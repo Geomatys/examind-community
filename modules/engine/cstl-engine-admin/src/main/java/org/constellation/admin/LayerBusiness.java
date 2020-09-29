@@ -46,7 +46,6 @@ import org.constellation.dto.DataBrief;
 import org.constellation.dto.Layer;
 import org.constellation.dto.NameInProvider;
 import org.constellation.dto.ProviderBrief;
-import org.constellation.dto.Style;
 import org.constellation.dto.StyleReference;
 import org.constellation.dto.service.Service;
 import org.constellation.dto.service.config.wxs.AddLayer;
@@ -386,14 +385,14 @@ public class LayerBusiness implements ILayerBusiness {
         final List<Layer> layers   = layerRepository.findByServiceId(serviceId);
         for (Layer layer : layers) {
             final GenericName name = NamesExt.create(layer.getNamespace(), layer.getName());
-            final ProviderBrief provider  = providerRepository.findForData(layer.getDataId());
+            final Integer providerId = dataRepository.getProviderId(layer.getDataId());
              Date version = null;
             /* TODO how to get version?
               if (layer.getVersion() != null) {
                 version = new Date(layer.getVersion());
             }*/
             if (securityFilter.allowed(login, layer.getId())) {
-                response.add(new NameInProvider(layer.getId(), name, provider.getIdentifier(), version, layer.getAlias()));
+                response.add(new NameInProvider(layer.getId(), name, providerId, version, layer.getAlias()));
             }
         }
         return response;
@@ -463,13 +462,13 @@ public class LayerBusiness implements ILayerBusiness {
             final GenericName layerName = NamesExt.create(layer.getNamespace(), layer.getName());
             final LayerSecurityFilter securityFilter = getSecurityFilter(serviceId);
             if (securityFilter.allowed(login, layer.getId())) {
-                final ProviderBrief provider  = providerRepository.findForData(layer.getDataId());
+                final Integer providerId = dataRepository.getProviderId(layer.getDataId());
                 Date version = null;
                 /* TODO how to get version?
                   if (layer.getVersion() != null) {
                     version = new Date(layer.getVersion());
                 }*/
-                return new NameInProvider(layer.getId(), layerName, provider.getIdentifier(), version, layer.getAlias());
+                return new NameInProvider(layer.getId(), layerName, providerId, version, layer.getAlias());
             } else {
                 throw new ConfigurationException("Not allowed to see this layer.");
             }
@@ -489,13 +488,13 @@ public class LayerBusiness implements ILayerBusiness {
             final GenericName layerName = NamesExt.create(layer.getNamespace(), layer.getName());
             final LayerSecurityFilter securityFilter = getSecurityFilter(serviceId);
             if (securityFilter.allowed(login, layer.getId())) {
-                final ProviderBrief provider  = providerRepository.findForData(layer.getDataId());
+                final Integer providerId = dataRepository.getProviderId(layer.getDataId());
                 Date version = null;
                 /* TODO how to get version?
                   if (layer.getVersion() != null) {
                     version = new Date(layer.getVersion());
                 }*/
-                return new NameInProvider(layerId, layerName, provider.getIdentifier(), version, layer.getAlias());
+                return new NameInProvider(layerId, layerName, providerId, version, layer.getAlias());
             } else {
                 throw new ConfigurationException("Not allowed to see this layer.");
             }
@@ -539,7 +538,6 @@ public class LayerBusiness implements ILayerBusiness {
     private org.constellation.dto.service.config.wxs.Layer toLayerConfig(Layer layer) throws ConfigurationException {
         final ProviderBrief provider  = providerRepository.findForData(layer.getDataId());
         final QName name         = new QName(layer.getNamespace(), layer.getName());
-        final List<Style> styles = styleRepository.findByLayer(layer.getId());
         org.constellation.dto.service.config.wxs.Layer layerConfig = readLayerConfiguration(layer.getConfig());
         if (layerConfig == null) {
             layerConfig = new org.constellation.dto.service.config.wxs.Layer(name);
@@ -567,12 +565,9 @@ public class LayerBusiness implements ILayerBusiness {
         // TODO layerDto.setMetadataURL(null);
         // TODO layerDto.setOpaque(Boolean.TRUE);
 
-
-        for (Style style : styles) {
-            StyleReference styleProviderReference = new StyleReference(style.getId(),  style.getName(), style.getProviderId(), "sld");
-            layerConfig.getStyles().add(styleProviderReference);
-        }
-
+        final List<StyleReference> styles = styleRepository.fetchByLayerId(layer.getId());
+        layerConfig.getStyles().addAll(styles);
+        
          // TODO layerDto.setTitle(null);
          // TODO layerDto.setVersion();
         return layerConfig;

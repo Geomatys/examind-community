@@ -425,6 +425,12 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, org.
     public Integer getDatasetId(int dataId) {
         return dsl.select(DATA.DATASET_ID).from(DATA).where(DATA.ID.eq(dataId)).fetchOneInto(Integer.class);
     }
+    
+    @Override
+    public Integer getProviderId(int dataId) {
+        return dsl.select(DATA.PROVIDER).from(DATA).where(DATA.ID.eq(dataId)).fetchOneInto(Integer.class);
+    }
+
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)

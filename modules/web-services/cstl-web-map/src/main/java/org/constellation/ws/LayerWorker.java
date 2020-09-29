@@ -330,8 +330,8 @@ public abstract class LayerWorker extends AbstractWorker {
             List<StyleReference> styles = new ArrayList<>();
             Layer configuration;
             try {
-                styles.addAll(layerBusiness.getLayerStyles(nip.layerId));
                 configuration = layerBusiness.getLayer(nip.layerId, login);
+                styles.addAll(configuration.getStyles());
             } catch (ConstellationException ex) {
                throw new CstlServiceException(ex);
             }

@@ -311,6 +311,14 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
         }
         return null;
     }
+    
+    @Override
+    public Integer getProviderId(int dataId) {
+        if (byId.containsKey(dataId)) {
+            return byId.get(dataId).getProviderId();
+        }
+        return null;
+    }
 
     @Override
     public Data findByIdentifierWithEmptyMetadata(String localPart) {

@@ -30,11 +30,11 @@ public class NameInProvider {
 
     public Integer layerId;
     public GenericName name;
-    public String providerID;
+    public Integer providerID;
     public String alias;
     public Date dataVersion;
 
-    public NameInProvider(final Integer layerId, final GenericName name, final String providerID, final Date dataVersion, final String alias) {
+    public NameInProvider(final Integer layerId, final GenericName name, final Integer providerID, final Date dataVersion, final String alias) {
         this.layerId = layerId;
         this.name = name;
         this.providerID = providerID;

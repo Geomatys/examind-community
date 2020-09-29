@@ -154,7 +154,7 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
             query.setTypeName(name);
             FeatureSet subfs = origin.subset(query.buildQuery());
             return FeatureStoreUtilities.getEnvelope(subfs);
-        } catch (DataStoreException ex) {
+        } catch (Exception ex) {
             throw new ConstellationStoreException(ex);
         }
     }
