@@ -250,7 +250,7 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
      * data source.
      */
     @Override
-    public FeatureDataDescription getDataDescription(StatInfo statInfo) throws ConstellationStoreException {
+    public FeatureDataDescription getDataDescription(StatInfo statInfo, Envelope env) throws ConstellationStoreException {
         final FeatureDataDescription description = new FeatureDataDescription();
         try {
 
@@ -269,8 +269,10 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
             }
 
             // Geographic extent description.
-            final Envelope envelope = getEnvelope();
-            DataProviders.fillGeographicDescription(envelope, description);
+            if (env == null) {
+                env = getEnvelope();
+            }
+            DataProviders.fillGeographicDescription(env, description);
 
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);

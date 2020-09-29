@@ -136,7 +136,7 @@ public interface Data<T extends Resource> {
      */
     DataStore getStore();
 
-    DataDescription getDataDescription(StatInfo statInfo) throws ConstellationStoreException;
+    DataDescription getDataDescription(StatInfo statInfo, Envelope env) throws ConstellationStoreException;
 
     DataType getDataType();
 

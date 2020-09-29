@@ -33,7 +33,7 @@ import org.jooq.Identity;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row17;
+import org.jooq.Row22;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -150,6 +150,31 @@ public class Data extends TableImpl<DataRecord> {
      */
     public final TableField<DataRecord, Boolean> HIDDEN = createField(DSL.name("hidden"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field("false", SQLDataType.BOOLEAN)), this, "");
 
+    /**
+     * The column <code>admin.data.cached_info</code>.
+     */
+    public final TableField<DataRecord, Boolean> CACHED_INFO = createField(DSL.name("cached_info"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field("false", SQLDataType.BOOLEAN)), this, "");
+
+    /**
+     * The column <code>admin.data.has_time</code>.
+     */
+    public final TableField<DataRecord, Boolean> HAS_TIME = createField(DSL.name("has_time"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field("false", SQLDataType.BOOLEAN)), this, "");
+
+    /**
+     * The column <code>admin.data.has_elevation</code>.
+     */
+    public final TableField<DataRecord, Boolean> HAS_ELEVATION = createField(DSL.name("has_elevation"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field("false", SQLDataType.BOOLEAN)), this, "");
+
+    /**
+     * The column <code>admin.data.has_dim</code>.
+     */
+    public final TableField<DataRecord, Boolean> HAS_DIM = createField(DSL.name("has_dim"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field("false", SQLDataType.BOOLEAN)), this, "");
+
+    /**
+     * The column <code>admin.data.crs</code>.
+     */
+    public final TableField<DataRecord, String> CRS = createField(DSL.name("crs"), SQLDataType.VARCHAR(100000), this, "");
+
     private Data(Name alias, Table<DataRecord> aliased) {
         this(alias, aliased, null);
     }
@@ -265,11 +290,11 @@ public class Data extends TableImpl<DataRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row17 type methods
+    // Row22 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row17<Integer, String, String, Integer, String, String, Boolean, Boolean, Long, Integer, String, Integer, String, String, Boolean, String, Boolean> fieldsRow() {
-        return (Row17) super.fieldsRow();
+    public Row22<Integer, String, String, Integer, String, String, Boolean, Boolean, Long, Integer, String, Integer, String, String, Boolean, String, Boolean, Boolean, Boolean, Boolean, Boolean, String> fieldsRow() {
+        return (Row22) super.fieldsRow();
     }
 }

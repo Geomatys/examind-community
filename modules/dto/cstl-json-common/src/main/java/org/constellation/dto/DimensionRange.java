@@ -1,5 +1,3 @@
-package org.constellation.dto;
-
 /*
  *    Constellation - An open source and standard compliant SDI
  *    http://www.constellation-sdi.org
@@ -19,6 +17,7 @@ package org.constellation.dto;
  * limitations under the License.
  */
 
+package org.constellation.dto;
 
 /**
  *

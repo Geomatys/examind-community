@@ -50,6 +50,11 @@ public class Data implements Serializable {
     private Boolean rendered;
     private String  statsState;
     private Boolean hidden;
+    private Boolean cachedInfo;
+    private Boolean hasTime;
+    private Boolean hasElevation;
+    private Boolean hasDim;
+    private String  crs;
 
     public Data() {}
 
@@ -71,6 +76,11 @@ public class Data implements Serializable {
         this.rendered = value.rendered;
         this.statsState = value.statsState;
         this.hidden = value.hidden;
+        this.cachedInfo = value.cachedInfo;
+        this.hasTime = value.hasTime;
+        this.hasElevation = value.hasElevation;
+        this.hasDim = value.hasDim;
+        this.crs = value.crs;
     }
 
     public Data(
@@ -90,7 +100,12 @@ public class Data implements Serializable {
         String  statsResult,
         Boolean rendered,
         String  statsState,
-        Boolean hidden
+        Boolean hidden,
+        Boolean cachedInfo,
+        Boolean hasTime,
+        Boolean hasElevation,
+        Boolean hasDim,
+        String  crs
     ) {
         this.id = id;
         this.name = name;
@@ -109,6 +124,11 @@ public class Data implements Serializable {
         this.rendered = rendered;
         this.statsState = statsState;
         this.hidden = hidden;
+        this.cachedInfo = cachedInfo;
+        this.hasTime = hasTime;
+        this.hasElevation = hasElevation;
+        this.hasDim = hasDim;
+        this.crs = crs;
     }
 
     /**
@@ -375,6 +395,82 @@ public class Data implements Serializable {
         return this;
     }
 
+    /**
+     * Getter for <code>admin.data.cached_info</code>.
+     */
+    public Boolean getCachedInfo() {
+        return this.cachedInfo;
+    }
+
+    /**
+     * Setter for <code>admin.data.cached_info</code>.
+     */
+    public Data setCachedInfo(Boolean cachedInfo) {
+        this.cachedInfo = cachedInfo;
+        return this;
+    }
+
+    /**
+     * Getter for <code>admin.data.has_time</code>.
+     */
+    public Boolean getHasTime() {
+        return this.hasTime;
+    }
+
+    /**
+     * Setter for <code>admin.data.has_time</code>.
+     */
+    public Data setHasTime(Boolean hasTime) {
+        this.hasTime = hasTime;
+        return this;
+    }
+
+    /**
+     * Getter for <code>admin.data.has_elevation</code>.
+     */
+    public Boolean getHasElevation() {
+        return this.hasElevation;
+    }
+
+    /**
+     * Setter for <code>admin.data.has_elevation</code>.
+     */
+    public Data setHasElevation(Boolean hasElevation) {
+        this.hasElevation = hasElevation;
+        return this;
+    }
+
+    /**
+     * Getter for <code>admin.data.has_dim</code>.
+     */
+    public Boolean getHasDim() {
+        return this.hasDim;
+    }
+
+    /**
+     * Setter for <code>admin.data.has_dim</code>.
+     */
+    public Data setHasDim(Boolean hasDim) {
+        this.hasDim = hasDim;
+        return this;
+    }
+
+    /**
+     * Getter for <code>admin.data.crs</code>.
+     */
+    @Size(max = 100000)
+    public String getCrs() {
+        return this.crs;
+    }
+
+    /**
+     * Setter for <code>admin.data.crs</code>.
+     */
+    public Data setCrs(String crs) {
+        this.crs = crs;
+        return this;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("Data (");
@@ -396,6 +492,11 @@ public class Data implements Serializable {
         sb.append(", ").append(rendered);
         sb.append(", ").append(statsState);
         sb.append(", ").append(hidden);
+        sb.append(", ").append(cachedInfo);
+        sb.append(", ").append(hasTime);
+        sb.append(", ").append(hasElevation);
+        sb.append(", ").append(hasDim);
+        sb.append(", ").append(crs);
 
         sb.append(")");
         return sb.toString();

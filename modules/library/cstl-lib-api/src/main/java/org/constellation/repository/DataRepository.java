@@ -18,10 +18,14 @@
  */
 package org.constellation.repository;
 
+import java.util.Date;
 import org.constellation.dto.Data;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import org.constellation.dto.DimensionRange;
 
 public interface DataRepository extends AbstractRepository {
 
@@ -106,6 +110,24 @@ public interface DataRepository extends AbstractRepository {
 
     Map.Entry<Integer, List<Data>> filterAndGet(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage);
 
-     void updateStatistics(int dataId, String statsResult, String statsState);
+    void updateStatistics(int dataId, String statsResult, String statsState);
+    
+    List<Double[]> getDataBBox(int dataId);
+            
+    void updateDataBBox(int dataId, String crs,  List<Double[]> coordinates);
+    
+    SortedSet<Date> getDataTimes(int dataId, boolean range);
+    
+    void updateDataTimes(int dataId, Set<Date> dates);
+    
+    SortedSet<Number> getDataElevations(int dataId);
+    
+    void updateDataElevations(int dataId, Set<Number> elevations);
+    
+    boolean isCachedDataInfo(int dataId);
+    
+    SortedSet<DimensionRange> getDataDimensionRange(int dataId);
+    
+    void updateDimensionRange(int dataId, Set<DimensionRange> dimensions);
 
 }

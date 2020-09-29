@@ -106,7 +106,7 @@ public class CoverageDataTest {
     @Test
     public void testGetDataDescription() throws Exception {
         StatInfo info = getStatInfo(martinique);
-        CoverageDataDescription result = martinique.getDataDescription(info);
+        CoverageDataDescription result = martinique.getDataDescription(info, martinique.getEnvelope());
         Assert.assertNotNull(result);
 
         Assert.assertNotNull(result.getBoundingBox());
@@ -126,7 +126,7 @@ public class CoverageDataTest {
         Assert.assertArrayEquals(new double[]{Double.NaN}, desc.getNoDataValues(), 0);
 
         info = getStatInfo(sst);
-        result = sst.getDataDescription(info);
+        result = sst.getDataDescription(info, sst.getEnvelope());
         Assert.assertNotNull(result);
 
         Assert.assertNotNull(result.getBoundingBox());

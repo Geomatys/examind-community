@@ -456,7 +456,7 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
     }
 
     @Override
-    public CoverageDataDescription getDataDescription(StatInfo statInfo) throws ConstellationStoreException {
+    public CoverageDataDescription getDataDescription(StatInfo statInfo, Envelope env) throws ConstellationStoreException {
         final CoverageDataDescription description = new CoverageDataDescription();
         if (statInfo != null) {
             ImageStatistics stats = getDataStatistics(statInfo);
@@ -475,12 +475,10 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
         }
 
         // Geographic extent description.
-        final Envelope envelope = getEnvelope();
-        if (envelope != null) {
-            DataProviders.fillGeographicDescription(envelope, description);
-        } else {
-            LOGGER.log(Level.WARNING, "Unable to get a GridGeometry for coverage data:{0}", name);
+        if (env == null) {
+            env = getEnvelope();
         }
+        DataProviders.fillGeographicDescription(env, description);
         return description;
     }
 

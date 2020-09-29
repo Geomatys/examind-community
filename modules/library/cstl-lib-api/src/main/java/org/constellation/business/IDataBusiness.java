@@ -19,14 +19,18 @@
 package org.constellation.business;
 
 import java.nio.file.Path;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedSet;
 import javax.xml.namespace.QName;
 import org.constellation.dto.Data;
 import org.constellation.dto.DataBrief;
+import org.constellation.dto.DimensionRange;
 import org.constellation.dto.metadata.MetadataLightBrief;
 import org.constellation.dto.process.DataProcessReference;
 import org.constellation.exception.ConstellationException;
+import org.opengis.geometry.Envelope;
 
 /**
  * @author Cédric Briançon (Geomatys)
@@ -327,5 +331,13 @@ public interface IDataBusiness {
     DataBrief acceptData(int id, int owner, boolean hidden) throws ConstellationException;
 
     Map<String, List> acceptDatas(List<Integer> ids, int owner, boolean hidden) throws ConstellationException;
+    
+    Envelope getEnvelope(final int dataId);
+    
+    SortedSet<Date> getDataTimes(final int dataId, boolean range);
+    
+    SortedSet<Number> getDataElevations(final int dataId);
+    
+    SortedSet<DimensionRange> getDataDimensionRange(final int dataId);
 
 }

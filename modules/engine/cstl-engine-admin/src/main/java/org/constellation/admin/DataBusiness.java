@@ -27,9 +27,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.xml.namespace.QName;
+import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.metadata.MetadataCopier;
 import org.apache.sis.metadata.MetadataStandard;
 import org.apache.sis.metadata.iso.DefaultMetadata;
+import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.Resource;
 import org.constellation.admin.listener.DefaultDataBusinessListener;
 import org.constellation.admin.util.MetadataUtilities;
@@ -48,6 +50,7 @@ import org.constellation.dto.DataBrief;
 import org.constellation.dto.DataDescription;
 import org.constellation.dto.DataSet;
 import org.constellation.dto.Dimension;
+import org.constellation.dto.DimensionRange;
 import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.ServiceReference;
 import org.constellation.dto.SimpleDataDescription;
@@ -75,7 +78,10 @@ import org.constellation.repository.StyleRepository;
 import org.constellation.security.SecurityManagerHolder;
 import org.geotoolkit.temporal.util.PeriodUtilities;
 import org.opengis.feature.catalog.FeatureCatalogue;
+import org.opengis.geometry.Envelope;
 import org.opengis.metadata.Metadata;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.util.FactoryException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
@@ -379,6 +385,7 @@ public class DataBusiness implements IDataBusiness {
         if (datas == null) {
             return dataBriefs;
         }
+        final Map<String, CoordinateReferenceSystem> crsMap = new HashMap<>();
         for (final Data data : datas) {
 
 
@@ -431,7 +438,7 @@ public class DataBusiness implements IDataBusiness {
                 }
             }
 
-            final DataBrief db = convertToDataBrief(data, targetSensors, linkedDataList, serviceRefs, fetchDataDescription, fetchAssociations);
+            final DataBrief db = convertToDataBrief(data, targetSensors, linkedDataList, serviceRefs, crsMap, fetchDataDescription, fetchAssociations);
             dataBriefs.add(db);
         }
         return dataBriefs;
@@ -445,13 +452,13 @@ public class DataBusiness implements IDataBusiness {
      * @param fetchDataDescription Flag to add or not data dscription (high cost)
      * @return a {@link DataBrief}  never {@code null}.
      */
-    private DataBrief convertToDataBrief(Data data, List<String> targetSensors, final List<Data> linkedDataList, final Set<ServiceReference> serviceRefs , Boolean fetchDataDescription, Boolean fetchAssociations) {
-        final DataBrief db = new DataBrief(data);
+    private DataBrief convertToDataBrief(Data data, List<String> targetSensors, final List<Data> linkedDataList, final Set<ServiceReference> serviceRefs, Map<String, CoordinateReferenceSystem> crsMap, Boolean fetchDataDescription, Boolean fetchAssociations) {
+       final DataBrief db = new DataBrief(data);
        
-        final String owner = userBusiness.findById(data.getOwnerId()).map(CstlUser::getLogin).orElse(null);
-        db.setOwner(owner);
+       final String owner = userBusiness.findById(data.getOwnerId()).map(CstlUser::getLogin).orElse(null);
+       db.setOwner(owner);
 
-        if (Boolean.TRUE.equals(fetchDataDescription)) {
+       if (Boolean.TRUE.equals(fetchDataDescription)) {
             try {
                 final org.constellation.provider.Data provData = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
                 if (provData != null) {
@@ -459,10 +466,11 @@ public class DataBusiness implements IDataBusiness {
                     if (DataType.COVERAGE.name().equals(data.getType()) && (data.getRendered() == null || !data.getRendered())) {
                         stats = new StatInfo(data.getStatsState(), data.getStatsResult());
                     }
-                    final DataDescription dataDescription = provData.getDataDescription(stats);
-                    db.setDataDescription(dataDescription);
-
-                    // List of elevations, times and dim_range values.
+                    Envelope cachedEnv = null;
+                    if (data.getCachedInfo()) {
+                        cachedEnv = readEnvelope(data.getId(), data.getCrs(), crsMap);
+                    }
+                     // List of elevations, times and dim_range values.
                     final List<Dimension> dimensions = new ArrayList<>();
 
                     /*
@@ -480,6 +488,9 @@ public class DataBusiness implements IDataBusiness {
                     }
                     // TODO elevations and other dimensions
                     db.setDimensions(dimensions);
+                    
+                    final DataDescription dataDescription = provData.getDataDescription(stats, cachedEnv);
+                    db.setDataDescription(dataDescription);
                 } else {
                     // because UI can't support data without data description
                     db.setDataDescription(new SimpleDataDescription());
@@ -494,24 +505,24 @@ public class DataBusiness implements IDataBusiness {
             }
         }
 
-        String title = data.getName();
-        Integer dsid = data.getDatasetId();
-        if(dsid != null && dsid >= 0) {
-            String datasetId = datasetRepository.findById(dsid).getIdentifier();
+       String title = data.getName();
+       Integer dsid = data.getDatasetId();
+       if(dsid != null && dsid >= 0) {
+           String datasetId = datasetRepository.findById(dsid).getIdentifier();
             title = datasetId + " / " + data.getName();
-        }
-        final int providerId = data.getProviderId();
-        final String providerName = getProviderIdentifier(providerId);
-        db.setTitle(title);
-        db.setProvider(providerName);
+       }
+       final int providerId = data.getProviderId();
+       final String providerName = getProviderIdentifier(providerId);
+       db.setTitle(title);
+       db.setProvider(providerName);
 
-        if (fetchAssociations) {
+       if (fetchAssociations) {
             db.setTargetSensor(targetSensors);
-        
+
             final List<DataBrief> linkedBriefs = new ArrayList<>();
             for (final Data ld : linkedDataList) {
                 // do not return a complete brief for linked data.
-                DataBrief d = convertToDataBrief(ld, new ArrayList<>(), new ArrayList<>(), new HashSet<>(), false, false);
+                DataBrief d = convertToDataBrief(ld, new ArrayList<>(), new ArrayList<>(), new HashSet<>(), crsMap, false, false);
                 if ("pyramid".equalsIgnoreCase(d.getSubtype()) && !d.getRendered()) {
                     final String pyramidProvId = getProviderIdentifier(d.getProviderId());
                     db.setPyramidConformProviderId(pyramidProvId);
@@ -521,7 +532,7 @@ public class DataBusiness implements IDataBusiness {
             db.setLinkedDatas(linkedBriefs);
 
             //if the data is a pyramid itself. we need to fill the property to enable the picto of pyramided data.
-            if ("pyramid".equalsIgnoreCase(data.getSubtype()) && !data.getRendered()){
+                 if ("pyramid".equalsIgnoreCase(data.getSubtype()) && !data.getRendered()){
                 db.setPyramidConformProviderId(providerName);
             }
 
@@ -534,7 +545,7 @@ public class DataBusiness implements IDataBusiness {
                 final StyleBrief sb = new StyleBrief();
                 sb.setId(style.getId());
                 sb.setType(style.getType());
-                sb.setProvider(1 == style.getProviderId() ? "sld" : "sld_temp");
+                     sb.setProvider(1 == style.getProviderId() ? "sld" : "sld_temp");
                 sb.setDate(style.getDate());
                 sb.setName(style.getName());
 
@@ -551,8 +562,8 @@ public class DataBusiness implements IDataBusiness {
              * Add for linked metadatas
              */
             db.setMetadatas(metadataBusiness.getMetadataBriefForData(data.getId()));
-        }
-        return db;
+       }
+       return db;
     }
 
     /**
@@ -1078,6 +1089,54 @@ public class DataBusiness implements IDataBusiness {
             return data.getDatasetId();
         }
         return null;
+    }
+
+    @Override
+    public Envelope getEnvelope(int dataId) {
+        if (dataRepository.isCachedDataInfo(dataId)) {
+            final Data data = dataRepository.findById(dataId);
+            String crsWKT = data.getCrs();
+            return readEnvelope(dataId, crsWKT, new HashMap<>());
+        }
+        return null;
+    }
+    
+    private Envelope readEnvelope(int dataId, String crsWKT, Map<String, CoordinateReferenceSystem> crsMap) {
+        if (crsWKT != null) {
+            try {
+                CoordinateReferenceSystem crs;
+                if (crsMap.containsKey(crsWKT)) {
+                    crs = crsMap.get(crsWKT);
+                } else {
+                    crs = CRS.fromWKT(crsWKT);
+                    crsMap.put(crsWKT, crs);
+                }
+                List<Double[]> coordinates = dataRepository.getDataBBox(dataId);
+                GeneralEnvelope env = new GeneralEnvelope(crs);
+                for (int i = 0; i < crs.getCoordinateSystem().getDimension(); i++) {
+                    env.setRange(i, coordinates.get(i)[0], coordinates.get(i)[1]);
+                }
+                return env;
+            } catch (FactoryException ex) {
+                LOGGER.log(Level.WARNING, "Unreadable WKT CRS", ex);
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public SortedSet<Date> getDataTimes(int dataId, boolean range) {
+        return dataRepository.getDataTimes(dataId, range);
+    }
+
+    @Override
+    public SortedSet<Number> getDataElevations(int dataId) {
+        return dataRepository.getDataElevations(dataId);
+    }
+
+    @Override
+    public SortedSet<DimensionRange> getDataDimensionRange(int dataId) {
+        return dataRepository.getDataDimensionRange(dataId);
     }
 
     @FunctionalInterface

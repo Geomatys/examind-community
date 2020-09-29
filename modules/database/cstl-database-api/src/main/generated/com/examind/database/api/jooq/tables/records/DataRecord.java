@@ -26,8 +26,8 @@ import javax.validation.constraints.Size;
 
 import org.jooq.Field;
 import org.jooq.Record1;
-import org.jooq.Record17;
-import org.jooq.Row17;
+import org.jooq.Record22;
+import org.jooq.Row22;
 import org.jooq.impl.UpdatableRecordImpl;
 
 
@@ -35,7 +35,7 @@ import org.jooq.impl.UpdatableRecordImpl;
  * Generated DAO object for table admin.data
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
-public class DataRecord extends UpdatableRecordImpl<DataRecord> implements Record17<Integer, String, String, Integer, String, String, Boolean, Boolean, Long, Integer, String, Integer, String, String, Boolean, String, Boolean> {
+public class DataRecord extends UpdatableRecordImpl<DataRecord> implements Record22<Integer, String, String, Integer, String, String, Boolean, Boolean, Long, Integer, String, Integer, String, String, Boolean, String, Boolean, Boolean, Boolean, Boolean, Boolean, String> {
 
     private static final long serialVersionUID = 1L;
 
@@ -303,6 +303,82 @@ public class DataRecord extends UpdatableRecordImpl<DataRecord> implements Recor
         return (Boolean) get(16);
     }
 
+    /**
+     * Setter for <code>admin.data.cached_info</code>.
+     */
+    public DataRecord setCachedInfo(Boolean value) {
+        set(17, value);
+        return this;
+    }
+
+    /**
+     * Getter for <code>admin.data.cached_info</code>.
+     */
+    public Boolean getCachedInfo() {
+        return (Boolean) get(17);
+    }
+
+    /**
+     * Setter for <code>admin.data.has_time</code>.
+     */
+    public DataRecord setHasTime(Boolean value) {
+        set(18, value);
+        return this;
+    }
+
+    /**
+     * Getter for <code>admin.data.has_time</code>.
+     */
+    public Boolean getHasTime() {
+        return (Boolean) get(18);
+    }
+
+    /**
+     * Setter for <code>admin.data.has_elevation</code>.
+     */
+    public DataRecord setHasElevation(Boolean value) {
+        set(19, value);
+        return this;
+    }
+
+    /**
+     * Getter for <code>admin.data.has_elevation</code>.
+     */
+    public Boolean getHasElevation() {
+        return (Boolean) get(19);
+    }
+
+    /**
+     * Setter for <code>admin.data.has_dim</code>.
+     */
+    public DataRecord setHasDim(Boolean value) {
+        set(20, value);
+        return this;
+    }
+
+    /**
+     * Getter for <code>admin.data.has_dim</code>.
+     */
+    public Boolean getHasDim() {
+        return (Boolean) get(20);
+    }
+
+    /**
+     * Setter for <code>admin.data.crs</code>.
+     */
+    public DataRecord setCrs(String value) {
+        set(21, value);
+        return this;
+    }
+
+    /**
+     * Getter for <code>admin.data.crs</code>.
+     */
+    @Size(max = 100000)
+    public String getCrs() {
+        return (String) get(21);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -313,17 +389,17 @@ public class DataRecord extends UpdatableRecordImpl<DataRecord> implements Recor
     }
 
     // -------------------------------------------------------------------------
-    // Record17 type implementation
+    // Record22 type implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public Row17<Integer, String, String, Integer, String, String, Boolean, Boolean, Long, Integer, String, Integer, String, String, Boolean, String, Boolean> fieldsRow() {
-        return (Row17) super.fieldsRow();
+    public Row22<Integer, String, String, Integer, String, String, Boolean, Boolean, Long, Integer, String, Integer, String, String, Boolean, String, Boolean, Boolean, Boolean, Boolean, Boolean, String> fieldsRow() {
+        return (Row22) super.fieldsRow();
     }
 
     @Override
-    public Row17<Integer, String, String, Integer, String, String, Boolean, Boolean, Long, Integer, String, Integer, String, String, Boolean, String, Boolean> valuesRow() {
-        return (Row17) super.valuesRow();
+    public Row22<Integer, String, String, Integer, String, String, Boolean, Boolean, Long, Integer, String, Integer, String, String, Boolean, String, Boolean, Boolean, Boolean, Boolean, Boolean, String> valuesRow() {
+        return (Row22) super.valuesRow();
     }
 
     @Override
@@ -412,6 +488,31 @@ public class DataRecord extends UpdatableRecordImpl<DataRecord> implements Recor
     }
 
     @Override
+    public Field<Boolean> field18() {
+        return Data.DATA.CACHED_INFO;
+    }
+
+    @Override
+    public Field<Boolean> field19() {
+        return Data.DATA.HAS_TIME;
+    }
+
+    @Override
+    public Field<Boolean> field20() {
+        return Data.DATA.HAS_ELEVATION;
+    }
+
+    @Override
+    public Field<Boolean> field21() {
+        return Data.DATA.HAS_DIM;
+    }
+
+    @Override
+    public Field<String> field22() {
+        return Data.DATA.CRS;
+    }
+
+    @Override
     public Integer component1() {
         return getId();
     }
@@ -497,6 +598,31 @@ public class DataRecord extends UpdatableRecordImpl<DataRecord> implements Recor
     }
 
     @Override
+    public Boolean component18() {
+        return getCachedInfo();
+    }
+
+    @Override
+    public Boolean component19() {
+        return getHasTime();
+    }
+
+    @Override
+    public Boolean component20() {
+        return getHasElevation();
+    }
+
+    @Override
+    public Boolean component21() {
+        return getHasDim();
+    }
+
+    @Override
+    public String component22() {
+        return getCrs();
+    }
+
+    @Override
     public Integer value1() {
         return getId();
     }
@@ -579,6 +705,31 @@ public class DataRecord extends UpdatableRecordImpl<DataRecord> implements Recor
     @Override
     public Boolean value17() {
         return getHidden();
+    }
+
+    @Override
+    public Boolean value18() {
+        return getCachedInfo();
+    }
+
+    @Override
+    public Boolean value19() {
+        return getHasTime();
+    }
+
+    @Override
+    public Boolean value20() {
+        return getHasElevation();
+    }
+
+    @Override
+    public Boolean value21() {
+        return getHasDim();
+    }
+
+    @Override
+    public String value22() {
+        return getCrs();
     }
 
     @Override
@@ -684,7 +835,37 @@ public class DataRecord extends UpdatableRecordImpl<DataRecord> implements Recor
     }
 
     @Override
-    public DataRecord values(Integer value1, String value2, String value3, Integer value4, String value5, String value6, Boolean value7, Boolean value8, Long value9, Integer value10, String value11, Integer value12, String value13, String value14, Boolean value15, String value16, Boolean value17) {
+    public DataRecord value18(Boolean value) {
+        setCachedInfo(value);
+        return this;
+    }
+
+    @Override
+    public DataRecord value19(Boolean value) {
+        setHasTime(value);
+        return this;
+    }
+
+    @Override
+    public DataRecord value20(Boolean value) {
+        setHasElevation(value);
+        return this;
+    }
+
+    @Override
+    public DataRecord value21(Boolean value) {
+        setHasDim(value);
+        return this;
+    }
+
+    @Override
+    public DataRecord value22(String value) {
+        setCrs(value);
+        return this;
+    }
+
+    @Override
+    public DataRecord values(Integer value1, String value2, String value3, Integer value4, String value5, String value6, Boolean value7, Boolean value8, Long value9, Integer value10, String value11, Integer value12, String value13, String value14, Boolean value15, String value16, Boolean value17, Boolean value18, Boolean value19, Boolean value20, Boolean value21, String value22) {
         value1(value1);
         value2(value2);
         value3(value3);
@@ -702,6 +883,11 @@ public class DataRecord extends UpdatableRecordImpl<DataRecord> implements Recor
         value15(value15);
         value16(value16);
         value17(value17);
+        value18(value18);
+        value19(value19);
+        value20(value20);
+        value21(value21);
+        value22(value22);
         return this;
     }
 
@@ -719,7 +905,7 @@ public class DataRecord extends UpdatableRecordImpl<DataRecord> implements Recor
     /**
      * Create a detached, initialised DataRecord
      */
-    public DataRecord(Integer id, String name, String namespace, Integer provider, String type, String subtype, Boolean included, Boolean sensorable, Long date, Integer owner, String metadata, Integer datasetId, String featureCatalog, String statsResult, Boolean rendered, String statsState, Boolean hidden) {
+    public DataRecord(Integer id, String name, String namespace, Integer provider, String type, String subtype, Boolean included, Boolean sensorable, Long date, Integer owner, String metadata, Integer datasetId, String featureCatalog, String statsResult, Boolean rendered, String statsState, Boolean hidden, Boolean cachedInfo, Boolean hasTime, Boolean hasElevation, Boolean hasDim, String crs) {
         super(Data.DATA);
 
         setId(id);
@@ -739,5 +925,10 @@ public class DataRecord extends UpdatableRecordImpl<DataRecord> implements Recor
         setRendered(rendered);
         setStatsState(statsState);
         setHidden(hidden);
+        setCachedInfo(cachedInfo);
+        setHasTime(hasTime);
+        setHasElevation(hasElevation);
+        setHasDim(hasDim);
+        setCrs(crs);
     }
 }

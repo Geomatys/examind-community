@@ -9,6 +9,10 @@ import com.examind.database.api.jooq.tables.ChainProcess;
 import com.examind.database.api.jooq.tables.Crs;
 import com.examind.database.api.jooq.tables.CstlUser;
 import com.examind.database.api.jooq.tables.Data;
+import com.examind.database.api.jooq.tables.DataDimRange;
+import com.examind.database.api.jooq.tables.DataElevations;
+import com.examind.database.api.jooq.tables.DataEnvelope;
+import com.examind.database.api.jooq.tables.DataTimes;
 import com.examind.database.api.jooq.tables.DataXData;
 import com.examind.database.api.jooq.tables.Dataset;
 import com.examind.database.api.jooq.tables.Datasource;
@@ -78,6 +82,26 @@ public class Tables {
      * The table <code>admin.data</code>.
      */
     public static final Data DATA = Data.DATA;
+
+    /**
+     * The table <code>admin.data_dim_range</code>.
+     */
+    public static final DataDimRange DATA_DIM_RANGE = DataDimRange.DATA_DIM_RANGE;
+
+    /**
+     * The table <code>admin.data_elevations</code>.
+     */
+    public static final DataElevations DATA_ELEVATIONS = DataElevations.DATA_ELEVATIONS;
+
+    /**
+     * The table <code>admin.data_envelope</code>.
+     */
+    public static final DataEnvelope DATA_ENVELOPE = DataEnvelope.DATA_ENVELOPE;
+
+    /**
+     * The table <code>admin.data_times</code>.
+     */
+    public static final DataTimes DATA_TIMES = DataTimes.DATA_TIMES;
 
     /**
      * The table <code>admin.data_x_data</code>.

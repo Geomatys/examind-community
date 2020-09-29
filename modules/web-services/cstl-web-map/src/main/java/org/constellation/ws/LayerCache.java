@@ -27,6 +27,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.logging.Level;
+import java.util.TreeSet;
 import java.util.logging.Logger;
 import org.apache.sis.cql.CQLException;
 import org.apache.sis.geometry.Envelopes;
@@ -38,14 +39,18 @@ import org.apache.sis.referencing.crs.DefaultEngineeringCRS;
 import org.apache.sis.referencing.cs.AbstractCS;
 import org.apache.sis.referencing.cs.DefaultCoordinateSystemAxis;
 import org.apache.sis.referencing.datum.DefaultEngineeringDatum;
+import org.apache.sis.util.Utilities;
+import org.constellation.admin.SpringHelper;
 import org.constellation.api.DataType;
 import org.constellation.api.ServiceDef;
+import org.constellation.business.IDataBusiness;
 import org.constellation.dto.DimensionRange;
 import org.constellation.dto.FeatureDataDescription;
 import org.constellation.dto.NameInProvider;
 import org.constellation.dto.StyleReference;
 import org.constellation.dto.service.config.wxs.DimensionDefinition;
 import org.constellation.dto.service.config.wxs.LayerConfig;
+import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.map.util.DimensionDef;
 import org.constellation.provider.Data;
@@ -53,6 +58,7 @@ import org.constellation.map.util.DtoToOGCFilterTransformer;
 import org.geotoolkit.cql.CQL;
 import org.geotoolkit.filter.FilterFactoryImpl;
 import static org.geotoolkit.filter.FilterUtilities.FF;
+import org.geotoolkit.internal.referencing.CRSUtilities;
 import org.opengis.filter.Expression;
 import org.opengis.filter.Filter;
 import org.opengis.geometry.Envelope;
@@ -64,6 +70,7 @@ import org.opengis.referencing.datum.EngineeringDatum;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
@@ -79,7 +86,11 @@ public class LayerCache {
     private final Data data;
     private final LayerConfig configuration;
 
+    @Autowired
+    private IDataBusiness dataBusiness;
+
     public LayerCache(final NameInProvider nip, GenericName name, Data d, List<StyleReference> styles, final LayerConfig configuration) {
+        SpringHelper.injectDependencies(this);
         this.nip = nip;
         this.data = d;
         this.name = name;
@@ -114,13 +125,41 @@ public class LayerCache {
         return configuration;
     }
 
+    /**
+     * lazy cached native data envelope.
+     */
+    private Envelope envelope;
+
+    /**
+     * @return The native envelope.
+     * 
+     * @throws ConstellationStoreException
+     */
+    public Envelope getEnvelope() throws ConstellationStoreException {
+        if (envelope == null) {
+            envelope = dataBusiness.getEnvelope(nip.dataId).orElse(data.getEnvelope());
+        }
+        return envelope;
+    }
+
+    /**
+     * Return a reprojected data envelope.
+     * 
+     * @param crs A coordinate referenceSystem
+     * @return
+     * @throws ConstellationStoreException
+     */
     public Envelope getEnvelope(CoordinateReferenceSystem crs) throws ConstellationStoreException {
-        return data.getEnvelope(crs);
+        if (envelope != null && Utilities.equalsIgnoreMetadata(envelope.getCoordinateReferenceSystem(), crs)) {
+            return envelope;
+        } else {
+            return data.getEnvelope(crs);
+        }
     }
     
     public GeographicBoundingBox getGeographicBoundingBox() throws ConstellationStoreException {
         try {
-            final Envelope env = getEnvelope(null);
+            final Envelope env = getEnvelope();
             if (env != null) {
                 final DefaultGeographicBoundingBox result = new DefaultGeographicBoundingBox();
                 result.setBounds(env);
@@ -135,31 +174,40 @@ public class LayerCache {
     }
     
     public CoordinateReferenceSystem getCoordinateReferenceSystem() throws ConstellationStoreException {
-        CoordinateReferenceSystem dataCRS = data.getEnvelope().getCoordinateReferenceSystem();
-        // if the data has extra dimension, we need to add them in the crs.
-        if (configuration != null && !configuration.getDimensions().isEmpty()) {
-            try {
-                final int nbExtraDim = configuration.getDimensions().size();
-                CoordinateReferenceSystem[] crss = new CoordinateReferenceSystem[nbExtraDim + 1];
-                crss[0] = dataCRS;
-                for (int i = 0; i < nbExtraDim; i++) {
-                    DimensionDef dd = getDimensionDef(configuration.getDimensions().get(i));
-                    crss[i+1] = dd.crs;
+        CoordinateReferenceSystem dataCRS = null;
+        Envelope env = getEnvelope();
+        if (env != null) {
+            dataCRS = env.getCoordinateReferenceSystem();
+            // if the data has extra dimension, we need to add them in the crs.
+            if (configuration != null && !configuration.getDimensions().isEmpty()) {
+                try {
+                    final int nbExtraDim = configuration.getDimensions().size();
+                    CoordinateReferenceSystem[] crss = new CoordinateReferenceSystem[nbExtraDim + 1];
+                    crss[0] = dataCRS;
+                    for (int i = 0; i < nbExtraDim; i++) {
+                        DimensionDef dd = getDimensionDef(configuration.getDimensions().get(i));
+                        crss[i+1] = dd.crs;
+                    }
+                    dataCRS = CRS.compound(crss);
+                } catch (CQLException | FactoryException ex) {
+                    throw new ConstellationStoreException("Error while building a compound CRS with custom dimensions.", ex);
                 }
-                dataCRS = CRS.compound(crss);
-            } catch (CQLException | FactoryException ex) {
-                throw new ConstellationStoreException("Error while building a compound CRS with custom dimensions.", ex);
             }
         }
         return dataCRS;
     }
 
-    public Number getFirstElevation() throws ConstellationStoreException {
-        final SortedSet<Number> elevations = data.getAvailableElevations();
-        if (!elevations.isEmpty()) {
-            return elevations.first();
+    private org.constellation.dto.Data dbData;
+    
+    private org.constellation.dto.Data getDbData() throws ConstellationStoreException {
+        if (dbData == null) {
+            try {
+                dbData = dataBusiness.getData(nip.dataId);
+            } catch (ConstellationException ex) {
+                throw new ConstellationStoreException(ex);
+            }
         }
-        return null;
+        return dbData;
     }
 
     public boolean isQueryable(ServiceDef.Query query) {
@@ -171,19 +219,68 @@ public class LayerCache {
     }
     
     public SortedSet<Number> getAvailableElevations() throws ConstellationStoreException {
-        return data.getAvailableElevations();
+        SortedSet<Number> elevations;
+        if (getDbData().getCachedInfo()) {
+            if (getDbData().getHasElevation()) {
+                elevations = dataBusiness.getDataElevations(nip.dataId);
+            } else {
+                elevations = new TreeSet<>();
+            }
+        } else {
+            elevations = data.getAvailableElevations();
+        }
+        return elevations;
+    }
+    
+    public Number getFirstElevation() throws ConstellationStoreException {
+        // can be optimized like times behaviour
+        final SortedSet<Number> elevations = getAvailableElevations();
+        if (elevations != null && !elevations.isEmpty()) {
+            return elevations.first();
+        }
+        return null;
     }
     
     public SortedSet<Date> getAvailableTimes() throws ConstellationStoreException {
-        return data.getAvailableTimes();
+        SortedSet<Date> dates;
+        if (getDbData().getCachedInfo()) {
+            if (getDbData().getHasTime()) {
+                dates = dataBusiness.getDataTimes(nip.dataId, false);
+            } else {
+                dates = new TreeSet<>();
+            }
+        } else {
+            dates = data.getAvailableTimes();
+        }
+        return dates;
     }
     
     public SortedSet<Date> getDateRange() throws ConstellationStoreException {
-        return data.getDateRange();
+        SortedSet<Date> dates;
+        if (getDbData().getCachedInfo()) {
+            if (getDbData().getHasTime()) {
+                dates = dataBusiness.getDataTimes(nip.dataId, true);
+            } else {
+                dates = new TreeSet<>();
+            }
+        } else {
+            dates = data.getDateRange();
+        }
+        return dates;
     }
     
     public SortedSet<DimensionRange> getSampleValueRanges() throws ConstellationStoreException {
-        return data.getSampleValueRanges();
+        SortedSet<DimensionRange> dims;
+        if (getDbData().getCachedInfo()) {
+            if (getDbData().getHasDim()) {
+                dims = dataBusiness.getDataDimensionRange(nip.dataId);
+            } else {
+                dims = new TreeSet<>();
+            }
+        } else {
+            dims = data.getSampleValueRanges();
+        }
+        return dims;
     }
 
     public boolean hasFilterAndDimension() {
@@ -252,7 +349,7 @@ public class LayerCache {
 
          } else if (!inverted.isEmpty()) {
            
-            if (data.getDataDescription(null) instanceof  FeatureDataDescription fd) {
+            if (data.getDataDescription(null, getEnvelope()) instanceof  FeatureDataDescription fd) {
                 return fd.getProperties().stream()
                                   .map(p -> p.getName())
                                   .filter(p -> !inverted.contains(p))

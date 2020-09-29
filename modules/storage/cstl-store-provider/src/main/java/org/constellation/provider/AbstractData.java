@@ -157,7 +157,7 @@ public abstract class AbstractData<T extends Resource> implements Data<T> {
     public SortedSet<Number> getAvailableElevations() throws ConstellationStoreException {
         return new TreeSet<>();
     }
-
+    
     /**
      * {@inheritDoc}
      */
@@ -226,17 +226,17 @@ public abstract class AbstractData<T extends Resource> implements Data<T> {
     }
 
     @Override
-    public SimpleDataDescription getDataDescription(StatInfo statInfo) throws ConstellationStoreException {
+    public SimpleDataDescription getDataDescription(StatInfo statInfo, Envelope env) throws ConstellationStoreException {
         final SimpleDataDescription description = new SimpleDataDescription();
         try {
-            Envelope env = getEnvelope();
-            if (env != null) {
-                DataProviders.fillGeographicDescription(env, description);
+            if (env == null) {
+                env = getEnvelope();
             }
         } catch (ConstellationStoreException ex) {
             // we always want to return a description because if not, the UI will not display the data
             LOGGER.finer(ex.getMessage());
         }
+        DataProviders.fillGeographicDescription(env, description);
         return description;
     }
 

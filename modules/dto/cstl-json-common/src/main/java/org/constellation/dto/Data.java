@@ -43,7 +43,12 @@ public class Data extends DataReference implements Serializable {
     private Boolean rendered;
     private String statsState;
     private Boolean hidden;
-
+    private String  crs;
+    private Boolean hasTime;
+    private Boolean hasElevation;
+    private Boolean hasDim;
+    private Boolean cachedInfo;
+        
     public Data() {
     }
 
@@ -62,7 +67,12 @@ public class Data extends DataReference implements Serializable {
             String statsResult,
             Boolean rendered,
             String statsState,
-            Boolean hidden) {
+            Boolean hidden,
+            String crs,
+            Boolean hasTime,
+            Boolean hasElevation,
+            Boolean hasDim,
+            Boolean cachedInfo) {
         super(id, name, namespace, providerId);
         this.type = type;
         this.subtype = subtype;
@@ -75,6 +85,11 @@ public class Data extends DataReference implements Serializable {
         this.rendered = rendered;
         this.statsState = statsState;
         this.hidden = hidden;
+        this.crs = crs;
+        this.hasTime = hasTime;
+        this.hasElevation = hasElevation;
+        this.hasDim = hasDim;
+        this.cachedInfo = cachedInfo;
     }
 
     public Data(Data data) {
@@ -91,6 +106,11 @@ public class Data extends DataReference implements Serializable {
             this.rendered = data.rendered;
             this.statsState = data.statsState;
             this.hidden = data.hidden;
+            this.crs = data.crs;
+            this.hasTime = data.hasTime;
+            this.hasElevation = data.hasElevation;
+            this.hasDim = data.hasDim;
+            this.cachedInfo = data.cachedInfo;
         }
     }
 
@@ -247,6 +267,76 @@ public class Data extends DataReference implements Serializable {
     public void setHidden(Boolean hidden) {
         this.hidden = hidden;
     }
+    
+    /**
+     * @return the crs
+     */
+    public String getCrs() {
+        return crs;
+    }
+
+    /**
+     * @param crs the crs to set
+     */
+    public void setCrs(String crs) {
+        this.crs = crs;
+    }
+    
+    /**
+     * @return the hasTime
+     */
+    public Boolean getHasTime() {
+        return hasTime;
+    }
+
+    /**
+     * @param hasTime the hasTime to set
+     */
+    public void setHasTime(Boolean hasTime) {
+        this.hasTime = hasTime;
+    }
+
+    /**
+     * @return the hasElevation
+     */
+    public Boolean getHasElevation() {
+        return hasElevation;
+    }
+
+    /**
+     * @param hasElevation the hasElevation to set
+     */
+    public void setHasElevation(Boolean hasElevation) {
+        this.hasElevation = hasElevation;
+    }
+
+    /**
+     * @return the hasDim
+     */
+    public Boolean getHasDim() {
+        return hasDim;
+    }
+
+    /**
+     * @param hasDim the hasDim to set
+     */
+    public void setHasDim(Boolean hasDim) {
+        this.hasDim = hasDim;
+    }
+    
+    /**
+     * @return the cachedInfo
+     */
+    public Boolean getCachedInfo() {
+        return cachedInfo;
+    }
+
+    /**
+     * @param cachedInfo the cachedInfo to set
+     */
+    public void setCachedInfo(Boolean cachedInfo) {
+        this.cachedInfo = cachedInfo;
+    }
 
     @Override
     public String toString() {
@@ -307,7 +397,12 @@ public class Data extends DataReference implements Serializable {
                     && Objects.equals(this.statsResult, that.statsResult)
                     && Objects.equals(this.rendered, that.rendered)
                     && Objects.equals(this.statsState, that.statsState)
-                    && Objects.equals(this.hidden, that.hidden);
+                    && Objects.equals(this.hidden, that.hidden)
+                    && Objects.equals(this.cachedInfo, that.cachedInfo)
+                    && Objects.equals(this.hasTime, that.hasElevation)
+                    && Objects.equals(this.hasDim, that.hasDim)
+                    && Objects.equals(this.hasElevation, that.hasElevation)
+                    && Objects.equals(this.crs, that.crs);
         }
         return false;
     }
@@ -327,6 +422,11 @@ public class Data extends DataReference implements Serializable {
         hash = 71 * hash + Objects.hashCode(this.rendered);
         hash = 71 * hash + Objects.hashCode(this.statsState);
         hash = 71 * hash + Objects.hashCode(this.hidden);
+        hash = 71 * hash + Objects.hashCode(this.crs);
+        hash = 71 * hash + Objects.hashCode(this.hasDim);
+        hash = 71 * hash + Objects.hashCode(this.hasElevation);
+        hash = 71 * hash + Objects.hashCode(this.hasTime);
+        hash = 71 * hash + Objects.hashCode(this.cachedInfo);
         return hash;
     }
 }

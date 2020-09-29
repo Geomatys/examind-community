@@ -24,6 +24,10 @@ import com.examind.database.api.jooq.tables.ChainProcess;
 import com.examind.database.api.jooq.tables.Crs;
 import com.examind.database.api.jooq.tables.CstlUser;
 import com.examind.database.api.jooq.tables.Data;
+import com.examind.database.api.jooq.tables.DataDimRange;
+import com.examind.database.api.jooq.tables.DataElevations;
+import com.examind.database.api.jooq.tables.DataEnvelope;
+import com.examind.database.api.jooq.tables.DataTimes;
 import com.examind.database.api.jooq.tables.DataXData;
 import com.examind.database.api.jooq.tables.Dataset;
 import com.examind.database.api.jooq.tables.Datasource;
@@ -107,6 +111,26 @@ public class Admin extends SchemaImpl {
      * The table <code>admin.data</code>.
      */
     public final Data DATA = Data.DATA;
+
+    /**
+     * The table <code>admin.data_dim_range</code>.
+     */
+    public final DataDimRange DATA_DIM_RANGE = DataDimRange.DATA_DIM_RANGE;
+
+    /**
+     * The table <code>admin.data_elevations</code>.
+     */
+    public final DataElevations DATA_ELEVATIONS = DataElevations.DATA_ELEVATIONS;
+
+    /**
+     * The table <code>admin.data_envelope</code>.
+     */
+    public final DataEnvelope DATA_ENVELOPE = DataEnvelope.DATA_ENVELOPE;
+
+    /**
+     * The table <code>admin.data_times</code>.
+     */
+    public final DataTimes DATA_TIMES = DataTimes.DATA_TIMES;
 
     /**
      * The table <code>admin.data_x_data</code>.
@@ -338,6 +362,10 @@ public class Admin extends SchemaImpl {
             Crs.CRS,
             CstlUser.CSTL_USER,
             Data.DATA,
+            DataDimRange.DATA_DIM_RANGE,
+            DataElevations.DATA_ELEVATIONS,
+            DataEnvelope.DATA_ENVELOPE,
+            DataTimes.DATA_TIMES,
             DataXData.DATA_X_DATA,
             Dataset.DATASET,
             Datasource.DATASOURCE,

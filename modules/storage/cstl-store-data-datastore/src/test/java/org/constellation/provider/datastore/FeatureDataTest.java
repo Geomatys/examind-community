@@ -83,7 +83,7 @@ public class FeatureDataTest {
 
     @Test
     public void testGetDataDescription() throws Exception {
-        FeatureDataDescription result = countries.getDataDescription(null);
+        FeatureDataDescription result = countries.getDataDescription(null, countries.getEnvelope());
         Assert.assertNotNull(result);
 
         Assert.assertNotNull(result.getBoundingBox());
@@ -99,7 +99,7 @@ public class FeatureDataTest {
         Assert.assertNotNull(desc);
         Assert.assertEquals(org.locationtech.jts.geom.MultiPolygon.class, desc.getType());
 
-        result = city.getDataDescription(null);
+        result = city.getDataDescription(null, city.getEnvelope());
         Assert.assertNotNull(result);
 
         Assert.assertNotNull(result.getBoundingBox());

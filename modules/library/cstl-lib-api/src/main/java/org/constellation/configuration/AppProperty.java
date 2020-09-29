@@ -97,7 +97,8 @@ public enum AppProperty {
     CSTL_IMPORT_EMPTY("cstl.import.empty", false, Boolean.class),
 
     CSTL_IMPORT_CUSTOM("cstl.import.custom", false, Boolean.class),
-
+    
+    EXA_CACHE_DATA_INFO("exa.cache.data.info", false, Boolean.class),
     /**
      * Seed used to generate token
      */

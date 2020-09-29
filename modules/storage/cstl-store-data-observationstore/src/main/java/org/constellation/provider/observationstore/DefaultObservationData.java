@@ -69,10 +69,12 @@ public class DefaultObservationData extends AbstractData implements ObservationD
     }
 
     @Override
-    public SimpleDataDescription getDataDescription(StatInfo statInfo) throws ConstellationStoreException {
+    public SimpleDataDescription getDataDescription(StatInfo statInfo, Envelope env) throws ConstellationStoreException {
         final SimpleDataDescription description = new SimpleDataDescription();
-        final Envelope envelope = getEnvelope();
-        DataProviders.fillGeographicDescription(envelope, description);
+        if (env == null) {
+            env = getEnvelope();
+        }
+        DataProviders.fillGeographicDescription(env, description);
         return description;
     }
 

@@ -23,16 +23,24 @@ import java.util.ArrayList;
 import java.util.Date;
 import com.examind.database.api.jooq.Tables;
 import org.constellation.dto.Data;
+import org.constellation.dto.DimensionRange;
 import com.examind.database.api.jooq.tables.pojos.DataXData;
 import com.examind.database.api.jooq.tables.pojos.Metadata;
 import com.examind.database.api.jooq.tables.records.DataRecord;
 import com.examind.database.api.jooq.tables.records.DataXDataRecord;
+import com.examind.database.api.jooq.tables.records.DataDimRangeRecord;
+import com.examind.database.api.jooq.tables.records.DataElevationsRecord;
+import com.examind.database.api.jooq.tables.records.DataEnvelopeRecord;
+import com.examind.database.api.jooq.tables.records.DataTimesRecord;
 import org.constellation.repository.DataRepository;
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.Select;
 import org.jooq.SelectConditionStep;
+import org.jooq.SelectConnectByStep;
+import org.jooq.SelectJoinStep;
 import org.jooq.SelectLimitStep;
+import org.jooq.Record2;
 import org.jooq.SortField;
 import org.jooq.impl.DSL;
 import org.springframework.stereotype.Component;
@@ -42,8 +50,15 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import static com.examind.database.api.jooq.Tables.DATA;
+import static com.examind.database.api.jooq.Tables.DATA_DIM_RANGE;
+import static com.examind.database.api.jooq.Tables.DATA_TIMES;
+import static com.examind.database.api.jooq.Tables.DATA_ELEVATIONS;
+import static com.examind.database.api.jooq.Tables.DATA_ENVELOPE;
 import static com.examind.database.api.jooq.Tables.DATA_X_DATA;
 import static com.examind.database.api.jooq.Tables.LAYER;
 import static com.examind.database.api.jooq.Tables.METADATA;
@@ -53,8 +68,6 @@ import static com.examind.database.api.jooq.Tables.SENSORED_DATA;
 import static com.examind.database.api.jooq.Tables.SERVICE;
 import static com.examind.database.api.jooq.Tables.STYLED_DATA;
 import org.constellation.exception.ConstellationPersistenceException;
-import org.jooq.SelectConnectByStep;
-import org.jooq.SelectJoinStep;
 import org.springframework.context.annotation.DependsOn;
 
 @Component
@@ -522,6 +535,11 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, com.
             dto.setStatsState(dao.getStatsState());
             dto.setSubtype(dao.getSubtype());
             dto.setType(dao.getType());
+            dto.setCrs(dao.getCrs());
+            dto.setHasDim(dao.getHasDim());
+            dto.setHasElevation(dao.getHasElevation());
+            dto.setHasTime(dao.getHasTime());
+            dto.setCachedInfo(dao.getCachedInfo());
             return dto;
         }
         return null;
@@ -545,8 +563,133 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, com.
             dao.setStatsState(dto.getStatsState());
             dao.setSubtype(dto.getSubtype());
             dao.setType(dto.getType());
+            dao.setCrs(dto.getCrs());
+            dao.setHasDim(dto.getHasDim());
+            dao.setHasElevation(dto.getHasElevation());
+            dao.setHasTime(dto.getHasTime());
+            dao.setCachedInfo(dto.getCachedInfo());
             return dao;
         }
         return null;
+    }
+
+    @Override
+    public void updateDataBBox(int dataId, String crs, List<Double[]> coordinates) {
+        dsl.update(DATA)
+                .set(DATA.CRS, crs)
+                .set(DATA.CACHED_INFO, true)
+                .where(DATA.ID.eq(dataId))
+                .execute();
+        dsl.delete(DATA_ENVELOPE).where(DATA_ENVELOPE.DATA_ID.eq(dataId)).execute();
+        for (int i = 0; i < coordinates.size(); i++) {
+            DataEnvelopeRecord newRecord = dsl.newRecord(DATA_ENVELOPE);
+            newRecord.setDataId(dataId);
+            newRecord.setDimension(i);
+            newRecord.setMin(coordinates.get(i)[0]);
+            newRecord.setMax(coordinates.get(i)[1]);
+            newRecord.store();
+        }
+    }
+    
+    @Override
+    public List<Double[]> getDataBBox(int dataId) {
+        List<Double[]> results = new ArrayList<>();
+        List<DataEnvelopeRecord> deas = dsl.select().from(DATA_ENVELOPE).where(DATA_ENVELOPE.DATA_ID.eq(dataId)).orderBy(DATA_ENVELOPE.DIMENSION).fetchInto(DataEnvelopeRecord.class);
+        for (DataEnvelopeRecord dea : deas) {
+           results.add(new Double[]{dea.getMin(), dea.getMax()});
+        }
+        return results;
+    }
+
+    @Override
+    public void updateDataTimes(int dataId, Set<Date> dates) {
+        dsl.delete(DATA_TIMES).where(DATA_TIMES.DATA_ID.eq(dataId)).execute();
+        for (Date d : dates) {
+            DataTimesRecord newRecord = dsl.newRecord(DATA_TIMES);
+            newRecord.setDataId(dataId);
+            newRecord.setDate(d.getTime());
+            newRecord.store();
+        }
+        dsl.update(DATA)
+                .set(DATA.HAS_TIME, !dates.isEmpty())
+                .where(DATA.ID.eq(dataId))
+                .execute();
+
+    }
+    
+    @Override
+    public SortedSet<Date> getDataTimes(int dataId, boolean range) {
+        final SortedSet<Date> results = new TreeSet<>();
+        if (range) {
+            Record2<Long, Long> rec = dsl.select(DATA_TIMES.DATE.min().as("min"), DATA_TIMES.DATE.max().as("max")).from(DATA_TIMES).where(DATA_TIMES.DATA_ID.eq(dataId)).fetchOne();
+            if (rec.value1() != null && rec.value2() != null) {
+                results.add(new Date(rec.value1()));
+                results.add(new Date(rec.value2()));
+            }
+        } else {
+            List<DataTimesRecord> deas = dsl.select().from(DATA_TIMES).where(DATA_TIMES.DATA_ID.eq(dataId)).fetchInto(DataTimesRecord.class);
+            for (DataTimesRecord dea : deas) {
+               results.add(new Date(dea.getDate()));
+            }
+        }
+        return results;
+    }
+
+    @Override
+    public void updateDataElevations(int dataId, Set<Number> elevations) {
+        dsl.delete(DATA_ELEVATIONS).where(DATA_ELEVATIONS.DATA_ID.eq(dataId)).execute();
+        for (Number d : elevations) {
+            DataElevationsRecord newRecord = dsl.newRecord(DATA_ELEVATIONS);
+            newRecord.setDataId(dataId);
+            newRecord.setElevation(d.doubleValue());
+            newRecord.store();
+        }
+        dsl.update(DATA)
+                .set(DATA.HAS_ELEVATION, !elevations.isEmpty())
+                .where(DATA.ID.eq(dataId))
+                .execute();
+    }
+    
+    @Override
+    public SortedSet<Number> getDataElevations(int dataId) {
+        final SortedSet<Number> results = new TreeSet<>();
+        List<DataElevationsRecord> deas = dsl.select().from(DATA_ELEVATIONS).where(DATA_ELEVATIONS.DATA_ID.eq(dataId)).fetchInto(DataElevationsRecord.class);
+        for (DataElevationsRecord dea : deas) {
+           results.add(dea.getElevation());
+        }
+        return results;
+    }
+
+    @Override
+    public boolean isCachedDataInfo(int dataId) {
+        return dsl.select(DATA.CACHED_INFO).from(DATA).where(DATA.ID.eq(dataId)).fetchOneInto(Boolean.class);
+    }
+
+    @Override
+    public SortedSet<DimensionRange> getDataDimensionRange(int dataId) {
+        final SortedSet<DimensionRange> results = new TreeSet<>();
+        List<DataDimRangeRecord> deas = dsl.select().from(DATA_DIM_RANGE).where(DATA_DIM_RANGE.DATA_ID.eq(dataId)).orderBy(DATA_DIM_RANGE.DIMENSION).fetchInto(DataDimRangeRecord.class);
+        for (DataDimRangeRecord dea : deas) {
+           results.add(new DimensionRange(dea.getMin(), dea.getMax(), dea.getUnit(), dea.getUnitSymbol()));
+        }
+        return results;
+    }
+
+    @Override
+    public void updateDimensionRange(int dataId, Set<DimensionRange> dimensions) {
+        dsl.delete(DATA_DIM_RANGE).where(DATA_DIM_RANGE.DATA_ID.eq(dataId)).execute();
+        for (DimensionRange d : dimensions) {
+            DataDimRangeRecord newRecord = dsl.newRecord(DATA_DIM_RANGE);
+            newRecord.setDataId(dataId);
+            newRecord.setMin(d.getMin());
+            newRecord.setMax(d.getMin());
+            newRecord.setUnit(d.getUnit());
+            newRecord.setUnitSymbol(d.getUnitsymbol());
+            newRecord.store();
+        }
+        dsl.update(DATA)
+                .set(DATA.HAS_DIM, !dimensions.isEmpty())
+                .where(DATA.ID.eq(dataId))
+                .execute();
     }
 }
