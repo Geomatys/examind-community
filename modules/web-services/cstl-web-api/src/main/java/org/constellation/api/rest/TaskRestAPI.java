@@ -294,8 +294,8 @@ public class TaskRestAPI extends AbstractRestAPI {
             processBusiness.testTaskParameter(taskParameter);
             taskParameter.setOwner(userId);
             taskParameter.setDate(System.currentTimeMillis());
-            processBusiness.addTaskParameter(taskParameter);
-            return new ResponseEntity(OK);
+            Integer id = processBusiness.addTaskParameter(taskParameter);
+            return new ResponseEntity(id, OK);
 
         } catch(Throwable ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
