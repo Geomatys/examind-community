@@ -25,6 +25,7 @@ import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -39,6 +40,7 @@ import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
+import org.constellation.dto.Sensor;
 import org.constellation.dto.process.ServiceProcessReference;
 import org.constellation.dto.service.ServiceComplete;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
@@ -1074,8 +1076,9 @@ public class SosHarvesterProcessTest {
         val3.setValue("measure3");
         in.values().add(val3);
 
-        in.parameter(SosHarvesterProcessDescriptor.MEASURE_VALUE_NAME).setValue("parameter_value");
-        in.parameter(SosHarvesterProcessDescriptor.MEASURE_CODE_NAME).setValue("parameter_code");
+        in.parameter(SosHarvesterProcessDescriptor.VALUE_COLUMN_NAME).setValue("parameter_value");
+        in.parameter(SosHarvesterProcessDescriptor.CODE_COLUMN_NAME).setValue("parameter_code");
+        in.parameter(SosHarvesterProcessDescriptor.TYPE_COLUMN_NAME).setValue("file_type");
 
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Profile");
         in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_ID_NAME).setValue(sensorId);
@@ -1102,6 +1105,9 @@ public class SosHarvesterProcessTest {
 
         Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
         TimePeriodType time = (TimePeriodType) offp.getTime();
+        
+        String bpgv = time.getBeginPosition().getValue();
+        String epgv = time.getEndPosition().getValue();
 
         // ???
         Assert.assertEquals("2020-03-24T00:25:47.000", time.getBeginPosition().getValue());
@@ -1141,6 +1147,173 @@ public class SosHarvesterProcessTest {
         GeoJSONPoint pt1 = (GeoJSONPoint) feat1.getGeometry();
         Assert.assertEquals(-3.61021, pt1.getCoordinates()[1], 0);
         Assert.assertEquals(-35.27835, pt1.getCoordinates()[0], 0);
+    }
+    
+    @Test
+    @Order(order = 7)
+    public void harvesterCSVCoriolisTSTest() throws Exception {
+
+        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
+        Assert.assertNotNull(sc);
+
+        String sensorId = "urn:sensor:bgdata2";
+
+        String datasetId = "SOS_DATA_2";
+
+        final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, SosHarvesterProcessDescriptor.NAME);
+
+        final ParameterValueGroup in = desc.getInputDescriptor().createValue();
+        in.parameter(SosHarvesterProcessDescriptor.DATASET_IDENTIFIER_NAME).setValue(datasetId);
+        in.parameter(SosHarvesterProcessDescriptor.DATA_FOLDER_NAME).setValue(bigdataDirectory.toUri().toString());
+
+        in.parameter(SosHarvesterProcessDescriptor.STORE_ID_NAME).setValue("observationCsvCoriolisFile");
+
+        in.parameter(SosHarvesterProcessDescriptor.DATE_COLUMN_NAME).setValue("station_date");
+        in.parameter(SosHarvesterProcessDescriptor.MAIN_COLUMN_NAME).setValue("station_date");
+
+        in.parameter(SosHarvesterProcessDescriptor.DATE_FORMAT_NAME).setValue("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        in.parameter(SosHarvesterProcessDescriptor.LATITUDE_COLUMN_NAME).setValue("latitude");
+        in.parameter(SosHarvesterProcessDescriptor.LONGITUDE_COLUMN_NAME).setValue("longitude");
+
+        ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        val1.setValue("measure1");
+        in.values().add(val1);
+        ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        val2.setValue("measure2");
+        in.values().add(val2);
+
+        in.parameter(SosHarvesterProcessDescriptor.VALUE_COLUMN_NAME).setValue("parameter_value");
+        in.parameter(SosHarvesterProcessDescriptor.CODE_COLUMN_NAME).setValue("parameter_code");
+        in.parameter(SosHarvesterProcessDescriptor.TYPE_COLUMN_NAME).setValue("file_type");
+
+        in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
+        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_COLUMN_NAME).setValue("platform_code");
+        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_ID_NAME).setValue(sensorId);
+        in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(true);
+        in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
+
+        org.geotoolkit.process.Process proc = desc.createProcess(in);
+        proc.call();
+
+        // verify that the dataset has been created
+        Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
+
+        // verify that the sensor has been created
+        Assert.assertNotNull(sensorBusiness.getSensor("1501563"));
+        Assert.assertNotNull(sensorBusiness.getSensor("1501564"));
+        
+        SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
+        sosWorker.setServiceUrl("http://localhost/examind/");
+
+        STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
+        stsWorker.setServiceUrl("http://localhost/examind/");
+        
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+        /*
+        * first extracted procedure
+        */
+
+        ObservationOffering offp = getOffering(sosWorker, "1501563");
+        Assert.assertNotNull(offp);
+
+        Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
+        TimePeriodType time = (TimePeriodType) offp.getTime();
+        
+        Assert.assertEquals("2020-03-24", time.getBeginPosition().getValue());
+        Assert.assertEquals("2020-03-24T10:00:00.000", time.getEndPosition().getValue());
+
+        Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
+
+        String observedProperty = offp.getObservedProperties().get(0);
+        String foi = offp.getFeatureOfInterestIds().get(0);
+
+        /*
+        * Verify an inserted data
+        */
+        GetResultResponseType gr = (GetResultResponseType) sosWorker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
+        String expectedResult = getResourceAsString("com/examind/process/sos/bigdata-datablock-values-2.txt");
+        Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
+
+        GetHistoricalLocations hl = new GetHistoricalLocations();
+        hl.getExtraFilter().put("procedure", "1501563");
+        hl.getExpand().add("Locations");
+        HistoricalLocationsResponse response = stsWorker.getHistoricalLocations(hl);
+
+        Assert.assertEquals(21, response.getValue().size());
+
+        HistoricalLocation loc1 = response.getValue().get(0);
+        Assert.assertEquals(loc1.getTime().getTime(), sdf.parse("2020-03-24T00:00:00Z").getTime());
+        Assert.assertEquals(1, loc1.getLocations().size());
+        Assert.assertTrue(loc1.getLocations().get(0).getLocation() instanceof GeoJSONFeature);
+        GeoJSONFeature feat1 = (GeoJSONFeature) loc1.getLocations().get(0).getLocation();
+        Assert.assertTrue(feat1.getGeometry() instanceof GeoJSONPoint);
+        GeoJSONPoint pt1 = (GeoJSONPoint) feat1.getGeometry();
+        Assert.assertEquals(-29.9916, pt1.getCoordinates()[1], 0);
+        Assert.assertEquals(-20.539, pt1.getCoordinates()[0], 0);
+
+        HistoricalLocation loc2 = response.getValue().get(1);
+        Assert.assertEquals(loc2.getTime().getTime(), sdf.parse("2020-03-24T00:30:00Z").getTime());
+        Assert.assertEquals(1, loc2.getLocations().size());
+        Assert.assertTrue(loc2.getLocations().get(0).getLocation() instanceof GeoJSONFeature);
+        GeoJSONFeature feat2 = (GeoJSONFeature) loc2.getLocations().get(0).getLocation();
+        Assert.assertTrue(feat2.getGeometry() instanceof GeoJSONPoint);
+        GeoJSONPoint pt2 = (GeoJSONPoint) feat2.getGeometry();
+        Assert.assertEquals(-29.995, pt2.getCoordinates()[1], 0);
+        Assert.assertEquals(-20.5456, pt2.getCoordinates()[0], 0);
+
+
+        /*
+        * second extracted procedure
+        */
+
+        offp = getOffering(sosWorker, "1501564");
+        Assert.assertNotNull(offp);
+
+        Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
+        time = (TimePeriodType) offp.getTime();
+
+        Assert.assertEquals("2020-03-24", time.getBeginPosition().getValue());
+        Assert.assertEquals("2020-03-24T10:00:00.000", time.getEndPosition().getValue());
+
+        Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
+
+        observedProperty = offp.getObservedProperties().get(0);
+        foi = offp.getFeatureOfInterestIds().get(0);
+
+        /*
+        * Verify an inserted data
+        */
+        gr = (GetResultResponseType) sosWorker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
+        expectedResult = getResourceAsString("com/examind/process/sos/bigdata-datablock-values-3.txt");
+        Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
+
+        hl = new GetHistoricalLocations();
+        hl.getExtraFilter().put("procedure", "1501564");
+        hl.getExpand().add("Locations");
+        response = stsWorker.getHistoricalLocations(hl);
+
+        Assert.assertEquals(21, response.getValue().size());
+
+        loc1 = response.getValue().get(0);
+        Assert.assertEquals(loc1.getTime().getTime(), sdf.parse("2020-03-24T00:00:00Z").getTime());
+        Assert.assertEquals(1, loc1.getLocations().size());
+        Assert.assertTrue(loc1.getLocations().get(0).getLocation() instanceof GeoJSONFeature);
+        feat1 = (GeoJSONFeature) loc1.getLocations().get(0).getLocation();
+        Assert.assertTrue(feat1.getGeometry() instanceof GeoJSONPoint);
+        pt1 = (GeoJSONPoint) feat1.getGeometry();
+        Assert.assertEquals(-30.3464, pt1.getCoordinates()[1], 0);
+        Assert.assertEquals(-23.209, pt1.getCoordinates()[0], 0);
+
+        loc2 = response.getValue().get(1);
+        Assert.assertEquals(loc2.getTime().getTime(), sdf.parse("2020-03-24T00:30:00Z").getTime());
+        Assert.assertEquals(1, loc2.getLocations().size());
+        Assert.assertTrue(loc2.getLocations().get(0).getLocation() instanceof GeoJSONFeature);
+        feat2 = (GeoJSONFeature) loc2.getLocations().get(0).getLocation();
+        Assert.assertTrue(feat2.getGeometry() instanceof GeoJSONPoint);
+        pt2 = (GeoJSONPoint) feat2.getGeometry();
+        Assert.assertEquals(-30.3484, pt2.getCoordinates()[1], 0);
+        Assert.assertEquals(-23.2064, pt2.getCoordinates()[0], 0);
     }
 
     private static ObservationOffering getOffering(SOSworker worker, String sensorId) throws CstlServiceException {

@@ -81,7 +81,8 @@ public class CsvCoriolisObservationStoreFactory extends FileParsingObservationSt
 
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR
             = PARAM_BUILDER.addName(NAME).addName("ObservationCsvCoriolisFileParameters").createGroup(IDENTIFIER, NAMESPACE, CSVProvider.PATH, CSVProvider.SEPARATOR,
-                    MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, MEASURE_COLUMNS, MEASURE_COLUMNS_SEPARATOR, FOI_COLUMN, OBSERVATION_TYPE, PROCEDURE_ID, PROCEDURE_COLUMN, EXTRACT_UOM, MEASURE_VALUE, MEASURE_CODE);
+                    MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, MEASURE_COLUMNS, MEASURE_COLUMNS_SEPARATOR, FOI_COLUMN, OBSERVATION_TYPE,
+                    PROCEDURE_ID, PROCEDURE_COLUMN, EXTRACT_UOM, VALUE_COLUMN, CODE_COLUMN, TYPE_COLUMN);
 
 
     private static ParameterDescriptorGroup parameters(final String name, final int minimumOccurs) {
@@ -121,13 +122,14 @@ public class CsvCoriolisObservationStoreFactory extends FileParsingObservationSt
         final ParameterValue<String> measureCols = (ParameterValue<String>) params.parameter(MEASURE_COLUMNS.getName().toString());
         final Set<String> measureColumns = measureCols.getValue() == null ?
                 Collections.emptySet() : new HashSet<>(Arrays.asList(measureCols.getValue().split(measureColumnsSeparator)));
-        final String measureValue = (String) params.parameter(MEASURE_VALUE.getName().toString()).getValue();
-        final String measureCode = (String) params.parameter(MEASURE_CODE.getName().toString()).getValue();
+        final String valueColumn = (String) params.parameter(VALUE_COLUMN.getName().toString()).getValue();
+        final String codeColumn = (String) params.parameter(CODE_COLUMN.getName().toString()).getValue();
+        final String typeColumn = (String) params.parameter(TYPE_COLUMN.getName().toString()).getValue();
         try {
             return new CsvCoriolisObservationStore(Paths.get(uri),
                     separator, readType(uri, separator, dateColumn, longitudeColumn, latitudeColumn, measureColumns),
                     mainColumn, dateColumn, dateFormat, longitudeColumn, latitudeColumn, measureColumns, observationType,
-                    foiColumn, procedureId, procedureColumn, extractUom, measureValue, measureCode);
+                    foiColumn, procedureId, procedureColumn, extractUom, valueColumn, codeColumn, typeColumn);
         } catch (IOException ex) {
             LOGGER.log(Level.WARNING, "problem opening csv file", ex);
             throw new DataStoreException(ex);

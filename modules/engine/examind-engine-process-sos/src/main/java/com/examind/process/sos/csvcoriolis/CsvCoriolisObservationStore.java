@@ -102,8 +102,9 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
 
     private final boolean extractUom;
 
-    private final String measureValue;
-    private final String measureCode;
+    private final String valueColumn;
+    private final String codeColumn;
+    private final String typeColumn;
 
     private final static Map<String, String> codesMeasure;
 
@@ -133,15 +134,15 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
      * @param latitudeColumn the name (header) of the latitude column
      * @param measureColumns the names (headers) of the measure columns
      * @param foiColumn the name (header) of the feature of interest column
-     * @param measureValue the name (header) of the measure column
-     * @param measureCode the name (header) of the code measure column
+     * @param valueColumn the name (header) of the measure column
+     * @param codeColumn the name (header) of the code measure column
      * @throws DataStoreException
      * @throws MalformedURLException
      */
     public CsvCoriolisObservationStore(final Path observationFile, final char separator, final FeatureType featureType,
                                        final String mainColumn, final String dateColumn, final String dateTimeformat, final String longitudeColumn, final String latitudeColumn,
                                        final Set<String> measureColumns, String observationType, String foiColumn, final String procedureId, final String procedureColumn,
-                                       final boolean extractUom, final String measureValue, final String measureCode) throws DataStoreException, MalformedURLException {
+                                       final boolean extractUom, final String valueColumn, final String codeColumn, final String typeColumn) throws DataStoreException, MalformedURLException {
         super(observationFile, separator, featureType);
         dataFile = observationFile;
         this.mainColumn = mainColumn;
@@ -155,8 +156,9 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
         this.procedureId = procedureId;
         this.procedureColumn = procedureColumn;
         this.extractUom = extractUom;
-        this.measureValue = measureValue;
-        this.measureCode = measureCode;
+        this.valueColumn = valueColumn;
+        this.codeColumn = codeColumn;
+        this.typeColumn = typeColumn;
     }
 
     @Override
@@ -263,8 +265,9 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                 int longitudeIndex = -1;
                 int foiIndex = -1;
                 int procIndex = -1;
-                int measureValueIndex = -1;
-                int measureCodeIndex = -1;
+                int valueColumnIndex = -1;
+                int codeColumnIndex = -1;
+                int typeColumnIndex = -1;
 
                 // read headers
                 final String[] headers = it.next();
@@ -290,17 +293,24 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                     } else if (header.equals(longitudeColumn)) {
                         longitudeIndex = i;
                         ignoredFields.add(longitudeIndex);
-                    } else if (header.equals(measureValue)) {
-                        measureValueIndex = i;
-                    } else if (header.equals(measureCode)) {
-                        measureCodeIndex = i;
-                        ignoredFields.add(measureCodeIndex);
+                    } else if (header.equals(valueColumn)) {
+                        valueColumnIndex = i;
+                    } else if (header.equals(codeColumn)) {
+                        codeColumnIndex = i;
+                        ignoredFields.add(codeColumnIndex);
+                    } else if (header.equals(typeColumn)) {
+                        typeColumnIndex = i;
+                        ignoredFields.add(typeColumnIndex);
                     } else if (header.equals(procedureColumn)) {
                         procIndex = i;
                         ignoredFields.add(procIndex);
                     } else {
                         ignoredFields.add(i);
                     }
+                }
+                
+                if (typeColumnIndex == -1) {
+                    throw new IllegalArgumentException("Unexpected column type:" + typeColumn);
                 }
 
                 // add measure column
@@ -333,10 +343,12 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                 result.fields.addAll(measureFields);
 
                 final AbstractDataRecord datarecord;
+                final String obsTypeCode;
+                boolean isProfile = false;
                 switch (observationType) {
-                    case "Timeserie" : datarecord = OMUtils.getDataRecordTimeSeries("2.0.0", fields);break;
-                    case "Trajectory": datarecord = getDataRecordTrajectory("2.0.0", fields);break;
-                    case "Profile"   : datarecord = getDataRecordProfile("2.0.0", fields);   break;
+                    case "Timeserie" : datarecord = OMUtils.getDataRecordTimeSeries("2.0.0", fields); obsTypeCode = "TS";break;
+                    case "Trajectory": datarecord = getDataRecordTrajectory("2.0.0", fields); obsTypeCode = "TR";break;
+                    case "Profile"   : datarecord = getDataRecordProfile("2.0.0", fields); obsTypeCode = "PR"; isProfile = true;break;
                     default: throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
                 }
 
@@ -361,7 +373,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                 Long currentTime                      = null;
                 GeoSpatialBound currentSpaBound = new GeoSpatialBound();
                 // measure map used to construct the MeasureStringBuilder
-                LinkedHashMap<Double, LinkedHashMap<String, Double>> mmb = new LinkedHashMap<>();
+                LinkedHashMap<String, LinkedHashMap<String, Double>> mmb = new LinkedHashMap<>();
                 // memorize positions to compute FOI
                 final List<DirectPosition> positions = new ArrayList<>();
                 final Map<Long, List<DirectPosition>> historicalPositions = new HashMap<>();
@@ -395,7 +407,10 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                         LOGGER.info("skipping line due to none expected variable present.");
                         continue;
                     }
-
+                    
+                    // checks if row matches the observed data types
+                    if (!line[typeColumnIndex].equals(obsTypeCode)) continue;
+                    
                     // look for current foi (for observation separation)
                     if (foiIndex != -1) {
                         currentFoi = line[foiIndex];
@@ -441,7 +456,13 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                         if (procedureID.equals(affectedSensorId)) {
                             final SamplingFeature sp = buildFOIByGeom(foiID, positions, samplingFeatures);
                             result.addFeatureOfInterest(sp);
-                            MeasureStringBuilder msb = buildMeasureStringBuilderFromMap(mmb);
+                            MeasureStringBuilder msb;
+                            try {
+                                msb = buildMeasureStringBuilderFromMap(mmb, sdf, isProfile);
+                            } catch (ParseException ex) {
+                                // parsing error normally already handled
+                                throw new DataStoreException("Parsing error: " + ex);
+                            }
 
                             result.observations.add(OMUtils.buildObservation(oid,                           // id
                                                                              sp,                            // foi
@@ -522,18 +543,20 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                     =====================*/
 
                     // add main field
+                    String mainValue = "";
                     if (mainIndex != -1) {
-
+                        
                         // assume that for profile main field is a double
                         if ("Profile".equals(observationType)) {
                             try {
-                                Double mainValue = Double.parseDouble(line[mainIndex]);
+                                // variable only use to catch the exception at this line
+                                final double catchEx = Double.parseDouble(line[mainIndex]);
+                                mainValue = line[mainIndex];
                                 if (!mmb.containsKey(mainValue)) {
                                     LinkedHashMap<String, Double> row = new LinkedHashMap<>();
-                                    for (String measure: measureFields) {
+                                    for (String measure: sortedMeasureColumns) {
                                         row.put(measure, Double.NaN);
                                     }
-                                    row.put(measureFields.get(0), mainValue);
                                     mmb.put(mainValue, row);
                                 }
                             } catch (NumberFormatException ex) {
@@ -543,14 +566,14 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                         // assume that is a date otherwise
                         } else {
                             try {
-                                final long m = sdf.parse(line[mainIndex]).getTime();
-                                Double mainValue = new Long(m).doubleValue();
+                                // variable only use to catch the exception at this line
+                                final long catchEx = sdf.parse(line[mainIndex]).getTime();
+                                mainValue = line[mainIndex];
                                 if (!mmb.containsKey(mainValue)) {
                                     LinkedHashMap<String, Double> row = new LinkedHashMap<>();
-                                    for (String measure: measureFields) {
+                                    for (String measure: sortedMeasureColumns) {
                                         row.put(measure, Double.NaN);
                                     }
-                                    row.put(measureFields.get(0), mainValue);
                                     mmb.put(mainValue, row);
                                 }
                             } catch (ParseException ex) {
@@ -558,23 +581,22 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                                 continue;
                             }
                         }
-                    }
+                        
+                        // add measure code
+                        if (!mainValue.equals("") && codeColumnIndex != -1 && valueColumnIndex != -1 && typeColumnIndex != -1) {
+                            try {
+                                String currentMeasureCode = line[codeColumnIndex];
+                                String currentMeasureCodeLabel = codesMeasure.get(currentMeasureCode);
+                                if (currentMeasureCodeLabel != null && !currentMeasureCodeLabel.isEmpty() && sortedMeasureColumns.contains(currentMeasureCodeLabel)) {
+                                    LinkedHashMap<String, Double> row = mmb.get(mainValue);
 
-                    // add measure code
-                    if (mainIndex != -1 && measureCodeIndex != -1 && measureValueIndex != -1) {
-                        try {
-                            String currentMeasureCode = line[measureCodeIndex];
-                            String currentMeasureCodeLabel = codesMeasure.get(currentMeasureCode);
-                            if (currentMeasureCodeLabel != null && !currentMeasureCodeLabel.isEmpty() && measureFields.contains(currentMeasureCodeLabel)) {
-                                Double mainValue = Double.parseDouble(line[mainIndex]);
-                                LinkedHashMap<String, Double> row = mmb.get(mainValue);
-
-                                row.put(currentMeasureCodeLabel, Double.parseDouble(line[measureValueIndex]));
-                                mmb.put(mainValue, row);
-                            }
-                        } catch (NumberFormatException ex) {
-                            if (!line[measureValueIndex].isEmpty()) {
-                                LOGGER.warning(String.format("Problem parsing double value at line %d and column %d (value='%s')", count, measureValueIndex, line[measureValueIndex]));
+                                    row.put(currentMeasureCodeLabel, Double.parseDouble(line[valueColumnIndex]));
+                                    mmb.put(mainValue, row);
+                                }
+                            } catch (NumberFormatException ex) {
+                                if (!line[valueColumnIndex].isEmpty()) {
+                                    LOGGER.warning(String.format("Problem parsing double value at line %d and column %d (value='%s')", count, valueColumnIndex, line[valueColumnIndex]));
+                                }
                             }
                         }
                     }
@@ -602,7 +624,13 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                 if (procedureID.equals(affectedSensorId)) {
                     final SamplingFeature sp = buildFOIByGeom(foiID, positions, samplingFeatures);
                     result.addFeatureOfInterest(sp);
-                    MeasureStringBuilder msb = buildMeasureStringBuilderFromMap(mmb);
+                    MeasureStringBuilder msb;
+                    try {
+                        msb = buildMeasureStringBuilderFromMap(mmb, sdf, isProfile);
+                    } catch (ParseException ex) {
+                        // parsing error normally already handled
+                        throw new DataStoreException("Parsing error: " + ex);
+                    }
 
                     result.observations.add(OMUtils.buildObservation(oid,                           // id
                                                                      sp,                            // foi

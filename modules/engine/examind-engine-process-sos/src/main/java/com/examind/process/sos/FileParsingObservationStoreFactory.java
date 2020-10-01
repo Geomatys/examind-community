@@ -99,16 +99,20 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
             .setRequired(false)
             .create(Boolean.class, false);
 
-    public static final ParameterDescriptor<String> MEASURE_VALUE = PARAM_BUILDER
-            .addName("measure value")
+    public static final ParameterDescriptor<String> VALUE_COLUMN = PARAM_BUILDER
+            .addName("value column")
             .setRequired(false)
             .create(String.class, null);
 
-    public static final ParameterDescriptor<String> MEASURE_CODE = PARAM_BUILDER
-            .addName("measure code")
+    public static final ParameterDescriptor<String> CODE_COLUMN = PARAM_BUILDER
+            .addName("code column")
             .setRequired(false)
             .create(String.class, null);
-
+    
+    public static final ParameterDescriptor<String> TYPE_COLUMN = PARAM_BUILDER
+            .addName("type column")
+            .setRequired(false)
+            .create(String.class, null);
 
 
     @Override

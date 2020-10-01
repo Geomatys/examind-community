@@ -88,24 +88,32 @@ public class HarvesterPreProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(false)
             .createEnumerated(String.class, new String[]{"csv", "csv-coriolis", "dbf"}, "csv");
 
-    public static final String MEASURE_VALUE_NAME = "measure value";
-    public static final String MEASURE_VALUE_DESC = "measure value";
-    public static final ParameterDescriptor<String> MEASURE_VALUE = PARAM_BUILDER
-            .addName(MEASURE_VALUE_NAME)
-            .setRemarks(MEASURE_VALUE_DESC)
+    public static final String VALUE_COLUMN_NAME = "value column";
+    public static final String VALUE_COLUMN_DESC = "value column";
+    public static final ParameterDescriptor<String> VALUE_COLUMN = PARAM_BUILDER
+            .addName(VALUE_COLUMN_NAME)
+            .setRemarks(VALUE_COLUMN_DESC)
             .setRequired(false)
             .create(String.class, null);
 
-    public static final String MEASURE_CODE_NAME = "measure code";
-    public static final String MEASURE_CODE_DESC = "measure code";
-    public static final ParameterDescriptor<String> MEASURE_CODE = PARAM_BUILDER
-            .addName(MEASURE_CODE_NAME)
-            .setRemarks(MEASURE_CODE_DESC)
+    public static final String CODE_COLUMN_NAME = "code column";
+    public static final String CODE_COLUMN_DESC = "code column";
+    public static final ParameterDescriptor<String> CODE_COLUMN = PARAM_BUILDER
+            .addName(CODE_COLUMN_NAME)
+            .setRemarks(CODE_COLUMN_DESC)
+            .setRequired(false)
+            .create(String.class, null);
+    
+    public static final String TYPE_COLUMN_NAME = "type column";
+    public static final String TYPE_COLUMN_DESC = "type column";
+    public static final ParameterDescriptor<String> TYPE_COLUMN = PARAM_BUILDER
+            .addName(TYPE_COLUMN_NAME)
+            .setRemarks(TYPE_COLUMN_DESC)
             .setRequired(false)
             .create(String.class, null);
 
     public static final ParameterDescriptorGroup INPUT_DESC =
-            PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, OBS_TYPE, TASK_NAME, FORMAT, MEASURE_VALUE, MEASURE_CODE);
+            PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, OBS_TYPE, TASK_NAME, FORMAT, VALUE_COLUMN, CODE_COLUMN, TYPE_COLUMN);
 
     public static final String PROCESS_ID_NAME = "process.id";
     private static final String PROCESS_ID_REMARKS = "The assigned identifier of the deployed process.";

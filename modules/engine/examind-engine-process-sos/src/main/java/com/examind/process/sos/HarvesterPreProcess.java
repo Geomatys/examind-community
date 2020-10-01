@@ -94,8 +94,9 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         final String taskName        = inputParameters.getValue(HarvesterPreProcessDescriptor.TASK_NAME);
         String format                = inputParameters.getValue(HarvesterPreProcessDescriptor.FORMAT);
 
-        final String measureValue    = inputParameters.getValue(HarvesterPreProcessDescriptor.MEASURE_VALUE);
-        final String measureCode     = inputParameters.getValue(HarvesterPreProcessDescriptor.MEASURE_CODE);
+        final String valueColumn    = inputParameters.getValue(HarvesterPreProcessDescriptor.VALUE_COLUMN);
+        final String codeColumn     = inputParameters.getValue(HarvesterPreProcessDescriptor.CODE_COLUMN);
+        final String typeColumn     = inputParameters.getValue(HarvesterPreProcessDescriptor.TYPE_COLUMN);
         final Set<String> codes = new HashSet<>();
 
         if (format == null) {
@@ -106,8 +107,8 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
 
         if (format.equals("csv-coriolis")) {
             ext = ".csv";
-            if (measureValue == null || measureCode == null) {
-                throw new ProcessException("The measure value or measure code can't be null", this);
+            if (valueColumn == null || codeColumn == null || typeColumn == null) {
+                throw new ProcessException("The value column, code column or type column can't be null", this);
             }
         }
 
@@ -162,7 +163,7 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
 
                     // extract codes
                     if ("csv-coriolis".equals(format)) {
-                        Set<String> currentCodes = extractCodes(child, measureCode);
+                        Set<String> currentCodes = extractCodes(child, codeColumn);
                         codes.addAll(currentCodes);
                     }
                 }
@@ -271,12 +272,15 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
             inputs.add(FOparam);
         }
 
-        final Parameter MVparam = new Parameter(MEASURE_VALUE_NAME, String.class, MEASURE_VALUE_DESC, MEASURE_VALUE_DESC, 0, 1, measureValue);
-        inputs.add(MVparam);
+        final Parameter VCparam = new Parameter(VALUE_COLUMN_NAME, String.class, VALUE_COLUMN_DESC, VALUE_COLUMN_DESC, 0, 1, valueColumn);
+        inputs.add(VCparam);
 
-        final Parameter MCOparam = new Parameter(MEASURE_CODE_NAME, String.class, MEASURE_CODE_DESC, MEASURE_CODE_DESC, 0, 1, measureCode);
-        inputs.add(MCOparam);
+        final Parameter CCparam = new Parameter(CODE_COLUMN_NAME, String.class, CODE_COLUMN_DESC, CODE_COLUMN_DESC, 0, 1, codeColumn);
+        inputs.add(CCparam);
 
+        final Parameter TCparam = new Parameter(TYPE_COLUMN_NAME, String.class, TYPE_COLUMN_DESC, TYPE_COLUMN_DESC, 0, 1, typeColumn);
+        inputs.add(TCparam);
+        
         chain.setInputs(inputs);
 
 

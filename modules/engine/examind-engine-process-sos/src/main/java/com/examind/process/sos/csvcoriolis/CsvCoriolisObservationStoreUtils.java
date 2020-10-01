@@ -16,6 +16,8 @@
  */
 package com.examind.process.sos.csvcoriolis;
 
+import java.text.DateFormat;
+import java.text.ParseException;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.GMLXmlFactory;
 import org.geotoolkit.sampling.xml.SamplingFeature;
@@ -115,10 +117,16 @@ public class CsvCoriolisObservationStoreUtils {
         return SOSXmlFactory.buildSimpleDatarecord(version, null, null, null, true, fields);
     }
 
-    public static MeasureStringBuilder buildMeasureStringBuilderFromMap(final LinkedHashMap<Double, LinkedHashMap<String, Double>> mmb) {
+    public static MeasureStringBuilder buildMeasureStringBuilderFromMap(final LinkedHashMap<String, LinkedHashMap<String, Double>> mmb, DateFormat sdf, boolean isProfile) throws ParseException {
         MeasureStringBuilder result = new MeasureStringBuilder();
 
-        for (Map.Entry<Double, LinkedHashMap<String, Double>> entry: mmb.entrySet()) {
+        for (Map.Entry<String, LinkedHashMap<String, Double>> entry: mmb.entrySet()) {
+            String mainValue = entry.getKey();
+            if (isProfile) {
+                result.appendValue(Double.parseDouble(mainValue));
+            } else {
+                result.appendDate(sdf.parse(mainValue).getTime());
+            }
             for (Map.Entry<String, Double> entry2: entry.getValue().entrySet()) {
                 Double measureValue = entry2.getValue();
                 result.appendValue(measureValue);
