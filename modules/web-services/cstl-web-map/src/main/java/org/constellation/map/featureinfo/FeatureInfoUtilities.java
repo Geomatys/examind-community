@@ -388,7 +388,7 @@ public final class FeatureInfoUtilities extends Static {
         final List<SampleDimension> sampleDimensions = cvg.getSampleDimensions();
 
         final double[] values = cvg.evaluator().apply(location);
-        final Map<SampleDimension, Object> samples = new HashMap<>();
+        final Map<SampleDimension, Object> samples = new LinkedHashMap<>();
         for (int i = 0; i < values.length; i++) {
             samples.put(sampleDimensions.get(i), values[i]);
         }

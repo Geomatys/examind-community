@@ -156,23 +156,12 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             strs = new ArrayList<>();
             coverages.put(fullLayerName, strs);
         }
-
+        
         StringBuilder builder = new StringBuilder();
-        for (final Map.Entry<SampleDimension,Object> entry : results) {
-            final Object value = entry.getValue();
-            if (value == null) {
-                continue;
-            }
-            builder.append(value);
-        }
-
-        final String result = builder.toString();
-        builder = new StringBuilder();
 
         final String endMark = ">\n";
         layerName = layerName.replaceAll("\\W", "");
-        builder.append("\t<").append(layerName).append("_layer").append(endMark)
-                .append("\t\t<").append(layerName).append("_feature").append(endMark);
+        builder.append("\t<").append(layerName).append("_feature").append(endMark);
 
         final List<LayerCache> layers = getLayers();
         Data data = null;
@@ -201,7 +190,7 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             final CoordinateReferenceSystem crs = objEnv.getCoordinateReferenceSystem();
             final GeneralDirectPosition pos = getPixelCoordinates(gfi);
             if (pos != null) {
-                builder.append("\t\t\t<gml:boundedBy>").append("\n");
+                builder.append("\t\t<gml:boundedBy>").append("\n");
                 String crsName;
                 try {
                     crsName = ReferencingUtilities.lookupIdentifier(crs, true);
@@ -209,20 +198,20 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
                     LOGGER.log(Level.INFO, ex.getLocalizedMessage(), ex);
                     crsName = crs.getName().getCode();
                 }
-                builder.append("\t\t\t\t<gml:Box srsName=\"").append(crsName).append("\">\n");
-                builder.append("\t\t\t\t\t<gml:coordinates>");
+                builder.append("\t\t\t<gml:Box srsName=\"").append(crsName).append("\">\n");
+                builder.append("\t\t\t\t<gml:coordinates>");
                 builder.append(pos.getOrdinate(0)).append(",").append(pos.getOrdinate(1)).append(" ")
                         .append(pos.getOrdinate(0)).append(",").append(pos.getOrdinate(1));
                 builder.append("</gml:coordinates>").append("\n");
-                builder.append("\t\t\t\t</gml:Box>").append("\n");
-                builder.append("\t\t\t</gml:boundedBy>").append("\n");
-                builder.append("\t\t\t<x>").append(pos.getOrdinate(0)).append("</x>").append("\n")
-                        .append("\t\t\t<y>").append(pos.getOrdinate(1)).append("</y>").append("\n");
+                builder.append("\t\t\t</gml:Box>").append("\n");
+                builder.append("\t\t</gml:boundedBy>").append("\n");
+                builder.append("\t\t<x>").append(pos.getOrdinate(0)).append("</x>").append("\n")
+                       .append("\t\t<y>").append(pos.getOrdinate(1)).append("</y>").append("\n");
             }
         }
         if (time != null && !time.isEmpty()) {
             // TODO : Adapt code to use periods.
-            builder.append("\t\t\t<time>").append(time.get(time.size()-1)).append("</time>")
+            builder.append("\t\t<time>").append(time.get(time.size()-1)).append("</time>")
                     .append("\n");
         } else {
             /*
@@ -243,13 +232,13 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
                 if (dates.getMaxValue() != null) {
                     final DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
                     df.setTimeZone(TimeZone.getTimeZone("UTC"));
-                    builder.append("\t\t\t<time>").append(df.format(dates.getMaxValue()))
+                    builder.append("\t\t<time>").append(df.format(dates.getMaxValue()))
                             .append("</time>").append("\n");
                 }
             }
         }
         if (elevation != null) {
-            builder.append("\t\t\t<elevation>").append(elevation)
+            builder.append("\t\t<elevation>").append(elevation)
                     .append("</elevation>").append("\n");
         } else {
             SortedSet<Number> elevs = null;
@@ -262,15 +251,35 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
                 }
             }
             if (elevs != null && !(elevs.isEmpty())) {
-                builder.append("\t\t\t<elevation>").append(elevs.first().toString())
+                builder.append("\t\t<elevation>").append(elevs.first().toString())
                         .append("</elevation>").append("\n");
             }
         }
+        
+        StringBuilder variableBuilder = new StringBuilder();
+        StringBuilder valuesBuilder = new StringBuilder();
+        for (final Map.Entry<SampleDimension,Object> entry : results) {
+            final Object value = entry.getValue();
+            if (value == null) {
+                continue;
+            }
+            variableBuilder.append(entry.getKey().getName().toString()).append(',');
+            valuesBuilder.append(value).append(',');
+        }
+        if (variableBuilder.length() > 0) {
+            variableBuilder.deleteCharAt(variableBuilder.length() - 1);
+        }
+        if (valuesBuilder.length() > 0) {
+            valuesBuilder.deleteCharAt(valuesBuilder.length() - 1);
+        }
+
+        final String variables = variableBuilder.toString();
+        final String result = valuesBuilder.toString();
 
         if (!results.isEmpty()) {
-            builder.append("\t\t\t<variable>")
-                    .append(results.get(0).getKey().getName())
-                    .append("</variable>").append("\n");
+            builder.append("\t\t<variable>");
+            builder.append(variables);
+            builder.append("</variable>").append("\n");
         }
 
         MeasurementRange[] ranges = null;
@@ -282,15 +291,14 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             if (range != null) {
                 final Unit unit = range.unit();
                 if (unit != null && !unit.toString().isEmpty()) {
-                    builder.append("\t\t\t<unit>").append(unit.toString())
+                    builder.append("\t\t<unit>").append(unit.toString())
                             .append("</unit>").append("\n");
                 }
             }
         }
-        builder.append("\t\t\t<value>").append(result)
+        builder.append("\t\t<value>").append(result)
                 .append("</value>").append("\n")
-                .append("\t\t</").append(layerName).append("_feature").append(endMark)
-                .append("\t</").append(layerName).append("_layer").append(endMark);
+                .append("\t</").append(layerName).append("_feature").append(endMark);
 
         strs.add(builder.toString());
     }

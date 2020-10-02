@@ -30,8 +30,10 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.logging.Level;
+import javax.measure.Unit;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.storage.GridCoverageResource;
+import org.apache.sis.util.Numbers;
 import org.constellation.api.DataType;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.Data;
@@ -216,15 +218,29 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             if (value == null) {
                 continue;
             }
-            String bandName = "band_"+index;
-            String unit = entry.getKey().getUnits().isPresent() ? entry.getKey().getUnits().toString() : null;
+            final SampleDimension dim = entry.getKey();
+            String bandName;
+            if (dim.getName() != null) {
+                String name = dim.getName().toString();
+                // we don't want the dimension name to be a simple number
+                try {
+                     double d = Double.parseDouble(name);
+                     bandName = "band_" + name;
+                } catch (NumberFormatException ex) {
+                    bandName = name;
+                }
+            } else {
+                bandName = "band_" + index;
+            }
+            
+            final Unit unit = dim.getUnits().orElse(null);
             if (unit != null) {
-                builder.append(margin).append("<").append(encodeXMLMark(bandName)).append(" unit =\"").append(unit).append("\">");
+                builder.append(margin).append("<").append(encodeXMLMark(bandName)).append(" unit =\"").append(unit.toString()).append("\">");
             } else  {
                 builder.append(margin).append("<").append(encodeXMLMark(bandName)).append(">");
             }
-            builder.append(value)
-                   .append("</").append(encodeXMLMark(bandName)).append(">").append("\n");
+            builder.append(value).append("</").append(encodeXMLMark(bandName)).append(">").append("\n");
+            index++;
         }
         margin = margin.substring(1);
         builder.append(margin).append("</values>").append("\n");

@@ -169,6 +169,12 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "layers=" + LAYER_TEST + "&styles=&"
             + "query_layers=" + LAYER_TEST + "&info_format=text/plain&"
             + "X=169&Y=20";
+    
+    private static final String WMS_GETFEATUREINFO_PLAIN_COV2 = "request=GetFeatureInfo&service=WMS&version=1.3.0&"
+            + "format=image/png"
+            + "&I=50&J=50&CRS=EPSG%3A3857&STYLES=&WIDTH=101&HEIGHT=101&BBOX=-6841646.293883737%2C1624185.0768806678%2C-6786056.35298747%2C1679775.0177769344&"
+            + "layers=martinique&styles=&"
+            + "query_layers=martinique&info_format=text/plain";
 
     private static final String WMS_GETFEATUREINFO_PLAIN_COV_ALIAS = "request=GetFeatureInfo&service=WMS&version=1.1.1&"
             + "format=image/png&width=256&height=256&"
@@ -190,6 +196,12 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "layers=" + COV_ALIAS + "&styles=&"
             + "query_layers=" + COV_ALIAS + "&info_format=application/vnd.ogc.gml&"
             + "X=169&Y=20";
+    
+    private static final String WMS_GETFEATUREINFO_GML_COV2 = "request=GetFeatureInfo&service=WMS&version=1.3.0&"
+            + "format=image/png"
+            + "&I=50&J=50&CRS=EPSG%3A3857&STYLES=&WIDTH=101&HEIGHT=101&BBOX=-6841646.293883737%2C1624185.0768806678%2C-6786056.35298747%2C1679775.0177769344&"
+            + "layers=martinique&styles=&"
+            + "query_layers=martinique&info_format=application/vnd.ogc.gml";
 
     private static final String WMS_GETFEATUREINFO_PLAIN_FEAT = "request=GetFeatureInfo&service=WMS&version=1.1.1&"
             + "format=image/png&width=200&height=100&"
@@ -221,6 +233,12 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "layers=" + LAYER_TEST + "&styles=&"
             + "query_layers=" + LAYER_TEST + "&info_format=text/html&"
             + "X=169&Y=20";
+     
+     private static final String WMS_GETFEATUREINFO_HTML_COV2 = "request=GetFeatureInfo&service=WMS&version=1.3.0&"
+            + "format=image/png"
+            + "&I=50&J=50&CRS=EPSG%3A3857&STYLES=&WIDTH=101&HEIGHT=101&BBOX=-6841646.293883737%2C1624185.0768806678%2C-6786056.35298747%2C1679775.0177769344&"
+            + "layers=martinique&styles=&"
+            + "query_layers=martinique&info_format=text/html";
 
      private static final String WMS_GETFEATUREINFO_HTML_COV_ALIAS = "request=GetFeatureInfo&service=WMS&version=1.1.1&"
             + "format=image/png&width=256&height=256&"
@@ -228,7 +246,6 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "layers=" + COV_ALIAS + "&styles=&"
             + "query_layers=" + COV_ALIAS + "&info_format=text/html&"
             + "X=169&Y=20";
-
 
     private static final String WMS_GETFEATUREINFO_JSON_FEAT = "QuErY_LaYeRs=Lakes&BbOx=0,-0.0020,0.0040,0&"
             + "FoRmAt=image/gif&ReQuEsT=GetFeatureInfo&"
@@ -272,7 +289,39 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "layers=" + COV_ALIAS + "&styles=&"
             + "query_layers=" + COV_ALIAS + "&info_format=application/json&"
             + "X=169&Y=20";
+    
+    private static final String WMS_GETFEATUREINFO_JSON_COV2 = "request=GetFeatureInfo&service=WMS&version=1.3.0&"
+            + "format=image/png"
+            + "&I=50&J=50&CRS=EPSG%3A3857&STYLES=&WIDTH=101&HEIGHT=101&BBOX=-6841646.293883737%2C1624185.0768806678%2C-6786056.35298747%2C1679775.0177769344&"
+            + "layers=martinique&styles=&"
+            + "query_layers=martinique&info_format=application/json";
 
+    private static final String WMS_GETFEATUREINFO_XML_COV = "request=GetFeatureInfo&service=WMS&version=1.1.1&"
+            + "format=image/png&width=256&height=256&"
+            + "srs=EPSG:4326&bbox=-180,-90,-90,0&"
+            + "layers=" + LAYER_TEST + "&styles=&"
+            + "query_layers=" + LAYER_TEST + "&info_format=application/vnd.ogc.xml&"
+            + "X=169&Y=20";
+    
+    private static final String WMS_GETFEATUREINFO_XML_COV_ALIAS = "request=GetFeatureInfo&service=WMS&version=1.1.1&"
+            + "format=image/png&width=256&height=256&"
+            + "srs=EPSG:4326&bbox=-180,-90,-90,0&"
+            + "layers=" + COV_ALIAS + "&styles=&"
+            + "query_layers=" + COV_ALIAS + "&info_format=application/vnd.ogc.xml&"
+            + "X=169&Y=20";
+    
+    private static final String WMS_GETFEATUREINFO_XML_COV2 = "request=GetFeatureInfo&service=WMS&version=1.3.0&"
+            + "format=image/png"
+            + "&I=50&J=50&CRS=EPSG%3A3857&STYLES=&WIDTH=101&HEIGHT=101&BBOX=-6841646.293883737%2C1624185.0768806678%2C-6786056.35298747%2C1679775.0177769344&"
+            + "layers=martinique&styles=&"
+            + "query_layers=martinique&info_format=application/vnd.ogc.xml";
+    
+    private static final String WMS_GETFEATUREINFO_XML_FEAT = "QuErY_LaYeRs=Lakes&BbOx=0,-0.0020,0.0040,0&"
+            + "FoRmAt=image/gif&ReQuEsT=GetFeatureInfo&"
+            + "VeRsIoN=1.1.1&InFo_fOrMaT=application/vnd.ogc.xml&"
+            + "X=60&StYlEs=&LaYeRs=Lakes&"
+            + "SrS=EPSG:4326&WiDtH=200&HeIgHt=100&Y=60";
+    
 
     private static final String WMS_GETLEGENDGRAPHIC = "request=GetLegendGraphic&service=wms&"
             + "width=200&height=40&layer=" + LAYER_TEST + "&format=image/png&version=1.1.0";
@@ -1067,7 +1116,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
      * Ensures that the {@code WMS GetFeatureInfo} request on a particular point
      * of the testing layer produces the wanted result.
      *
-     * @throws java.io.Exception
+     * @throws Exception
      */
     @Test
     @Order(order = 13)
@@ -1101,6 +1150,22 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         expResult = "SST\n"
                 + "0;\n"
                 + "201.0;\n\n";
+
+        result = getStringResponse(gfi);
+
+        assertNotNull(expResult);
+        assertEquals(expResult, result);
+        
+        try {
+            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PLAIN_COV2);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        expResult = "martinique\n" +
+                    "0;1;2;\n" +
+                    "63.0;92.0;132.0;\n\n";
 
         result = getStringResponse(gfi);
 
@@ -1204,20 +1269,47 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         expResult = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                     "<msGMLOutput xmlns:gml=\"http://www.opengis.net/gml\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n" +
                     "<SSTMDE200305_layer>\n" +
-                    "	<SSTMDE200305_layer>\n" +
-                    "		<SSTMDE200305_feature>\n" +
-                    "			<gml:boundedBy>\n" +
-                    "				<gml:Box srsName=\"CRS:84\">\n" +
-                    "					<gml:coordinates>-120.41015625,-7.20703125 -120.41015625,-7.20703125</gml:coordinates>\n" +
-                    "				</gml:Box>\n" +
-                    "			</gml:boundedBy>\n" +
-                    "			<x>-120.41015625</x>\n" +
-                    "			<y>-7.20703125</y>\n" +
-                    "			<variable>0</variable>\n" +
-                    "			<value>201.0</value>\n" +
-                    "		</SSTMDE200305_feature>\n" +
-                    "	</SSTMDE200305_layer>\n" +
+                    "	<SSTMDE200305_feature>\n" +
+                    "		<gml:boundedBy>\n" +
+                    "			<gml:Box srsName=\"CRS:84\">\n" +
+                    "				<gml:coordinates>-120.41015625,-7.20703125 -120.41015625,-7.20703125</gml:coordinates>\n" +
+                    "			</gml:Box>\n" +
+                    "		</gml:boundedBy>\n" +
+                    "		<x>-120.41015625</x>\n" +
+                    "		<y>-7.20703125</y>\n" +
+                    "		<variable>0</variable>\n" +
+                    "		<value>201.0</value>\n" +
+                    "	</SSTMDE200305_feature>\n" +
                     "</SSTMDE200305_layer>\n" +
+                    "</msGMLOutput>";
+
+        result = getStringResponse(gfi);
+
+        assertNotNull(result);
+        assertEquals(expResult, result);
+        
+        try {
+            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_GML_COV2);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        expResult = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                    "<msGMLOutput xmlns:gml=\"http://www.opengis.net/gml\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n" +
+                    "<martinique_layer>\n" +
+                    "	<martinique_feature>\n" +
+                    "		<gml:boundedBy>\n" +
+                    "			<gml:Box srsName=\"EPSG:3857\">\n" +
+                    "				<gml:coordinates>-6813851.323435604,1651980.0473288011 -6813851.323435604,1651980.0473288011</gml:coordinates>\n" +
+                    "			</gml:Box>\n" +
+                    "		</gml:boundedBy>\n" +
+                    "		<x>-6813851.323435604</x>\n" +
+                    "		<y>1651980.0473288011</y>\n" +
+                    "		<variable>0,1,2</variable>\n" +
+                    "		<value>63.0,92.0,132.0</value>\n" +
+                    "	</martinique_feature>\n" +
+                    "</martinique_layer>\n" +
                     "</msGMLOutput>";
 
         result = getStringResponse(gfi);
@@ -1235,21 +1327,121 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         expResult = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                     "<msGMLOutput xmlns:gml=\"http://www.opengis.net/gml\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n" +
                     "<SST_layer>\n" +
-                    "	<SST_layer>\n" +
-                    "		<SST_feature>\n" +
-                    "			<gml:boundedBy>\n" +
-                    "				<gml:Box srsName=\"CRS:84\">\n" +
-                    "					<gml:coordinates>-120.41015625,-7.20703125 -120.41015625,-7.20703125</gml:coordinates>\n" +
-                    "				</gml:Box>\n" +
-                    "			</gml:boundedBy>\n" +
-                    "			<x>-120.41015625</x>\n" +
-                    "			<y>-7.20703125</y>\n" +
-                    "			<variable>0</variable>\n" +
-                    "			<value>201.0</value>\n" +
-                    "		</SST_feature>\n" +
-                    "	</SST_layer>\n" +
+                    "	<SST_feature>\n" +
+                    "		<gml:boundedBy>\n" +
+                    "			<gml:Box srsName=\"CRS:84\">\n" +
+                    "				<gml:coordinates>-120.41015625,-7.20703125 -120.41015625,-7.20703125</gml:coordinates>\n" +
+                    "			</gml:Box>\n" +
+                    "		</gml:boundedBy>\n" +
+                    "		<x>-120.41015625</x>\n" +
+                    "		<y>-7.20703125</y>\n" +
+                    "		<variable>0</variable>\n" +
+                    "		<value>201.0</value>\n" +
+                    "	</SST_feature>\n" +
                     "</SST_layer>\n" +
                     "</msGMLOutput>";
+
+        result = getStringResponse(gfi);
+
+        assertNotNull(result);
+        assertEquals(expResult, result);
+    }
+    
+    @Test
+    public void testWMSGetFeatureInfoXMLGif() throws Exception {
+        initLayerList();
+        // Creates a valid GetFeatureInfo url.
+        URL gfi;
+        try {
+            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_XML_FEAT);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        String expResult
+                =   "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                    "<FeatureInfo>\n" +
+                    "	<Feature>\n" +
+                    "		<Layer>Lakes</Layer>\n" +
+                    "		<Name>Lakes</Name>\n" +
+                    "		<ID>Lakes.1</ID>\n" +
+                    "		<identifier>Lakes.1</identifier>\n" +
+                    "		<the_geom>\n" +
+                    "MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)))		</the_geom>\n" +
+                    "		<FID>101</FID>\n" +
+                    "		<NAME>Blue Lake</NAME>\n" +
+                    "	</Feature>\n" +
+                    "</FeatureInfo>";
+
+        String result = getStringResponse(gfi);
+
+        assertNotNull(result);
+        assertEquals(expResult, result);
+
+        try {
+            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_XML_COV);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        expResult = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                    "<FeatureInfo>\n" +
+                    "	<Coverage>\n" +
+                    "		<Layer>SSTMDE200305</Layer>\n" +
+                    "		<values>\n" +
+                    "			<band_0>201.0</band_0>\n" +
+                    "		</values>\n" +
+                    "	</Coverage>\n" +
+                    "</FeatureInfo>";
+
+        result = getStringResponse(gfi);
+
+        assertNotNull(result);
+        assertEquals(expResult, result);
+
+        try {
+            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_XML_COV_ALIAS);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        expResult = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                    "<FeatureInfo>\n" +
+                    "	<Coverage>\n" +
+                    "		<Layer>SST</Layer>\n" +
+                    "		<values>\n" +
+                    "			<band_0>201.0</band_0>\n" +
+                    "		</values>\n" +
+                    "	</Coverage>\n" +
+                    "</FeatureInfo>";
+
+        result = getStringResponse(gfi);
+
+        assertNotNull(result);
+        assertEquals(expResult, result);
+        
+        
+        try {
+            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_XML_COV2);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        expResult = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                    "<FeatureInfo>\n" +
+                    "	<Coverage>\n" +
+                    "		<Layer>martinique</Layer>\n" +
+                    "		<values>\n" +
+                    "			<band_0>63.0</band_0>\n" +
+                    "			<band_1>92.0</band_1>\n" +
+                    "			<band_2>132.0</band_2>\n" +
+                    "		</values>\n" +
+                    "	</Coverage>\n" +
+                    "</FeatureInfo>";
 
         result = getStringResponse(gfi);
 
@@ -1812,6 +2004,59 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         assertNotNull(result);
         assertEquals(expResult, result);
+        
+        try {
+            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_HTML_COV2);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        expResult = "<html>\n" +
+                    "    <head>\n" +
+                    "        <title>GetFeatureInfo HTML output</title>\n" +
+                    "    </head>\n" +
+                    "    <style>\n" +
+                    "ul{\n" +
+                    "               margin-top: 0;\n" +
+                    "               margin-bottom: 0px;\n" +
+                    "           }\n" +
+                    "           .left-part{\n" +
+                    "               display:inline-block;\n" +
+                    "               width:350px;\n" +
+                    "               overflow:auto;\n" +
+                    "               white-space:nowrap;\n" +
+                    "           }\n" +
+                    "           .right-part{\n" +
+                    "               display:inline-block;\n" +
+                    "               width:600px;\n" +
+                    "               overflow: hidden;\n" +
+                    "           }\n" +
+                    "           .values{\n" +
+                    "               text-overflow: ellipsis;\n" +
+                    "               white-space:nowrap;\n" +
+                    "               display:block;\n" +
+                    "               overflow: hidden;\n" +
+                    "           }    </style>\n" +
+                    "    <body>\n" +
+                    "<h2>martinique</h2><br/><div><div class=\"left-part\"><ul>\n" +
+                    "<li>\n" +
+                    "0</li>\n" +
+                    "<li>\n" +
+                    "1</li>\n" +
+                    "<li>\n" +
+                    "2</li>\n" +
+                    "</ul>\n" +
+                    "</div><div class=\"right-part\">63.0<br/>\n" +
+                    "92.0<br/>\n" +
+                    "132.0<br/>\n" +
+                    "</div></div><br/>    </body>\n" +
+                    "</html>";
+
+        result = getStringResponse(gfi);
+
+        assertNotNull(result);
+        assertEquals(expResult, result);
 
         try {
             gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_HTML_COV_ALIAS);
@@ -2013,6 +2258,20 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         expResult
                 = "[{\"type\":\"coverage\",\"layer\":\"SST\",\"elevation\":null,\"values\":[{\"name\":\"0\",\"value\":201.0,\"unit\":null}],\"time\":null}]";
+
+        result = getStringResponse(gfi);
+        assertNotNull(result);
+        assertEquals(expResult, result);
+        
+        try {
+            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_COV2);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        expResult
+                = "[{\"type\":\"coverage\",\"layer\":\"martinique\",\"elevation\":null,\"values\":[{\"name\":\"0\",\"value\":63.0,\"unit\":null},{\"name\":\"1\",\"value\":92.0,\"unit\":null},{\"name\":\"2\",\"value\":132.0,\"unit\":null}],\"time\":null}]";
 
         result = getStringResponse(gfi);
         assertNotNull(result);
