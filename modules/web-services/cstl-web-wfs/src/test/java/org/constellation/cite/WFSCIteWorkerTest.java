@@ -18,12 +18,14 @@
  */
 package org.constellation.cite;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
@@ -32,6 +34,7 @@ import javax.xml.namespace.QName;
 import org.apache.sis.geometry.GeneralDirectPosition;
 import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.util.logging.Logging;
+import org.constellation.admin.SpringHelper;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
@@ -39,6 +42,7 @@ import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.dto.contact.Details;
+import org.constellation.exception.ConfigurationException;
 import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
@@ -102,9 +106,12 @@ public class WFSCIteWorkerTest {
 
     private static boolean initialized = false;
 
+    private static String serviceId =  UUID.randomUUID().toString();
+    private static final String CONFIG_DIR_NAME = "WFSCiteWorkerTest" + serviceId;
+
     @BeforeClass
     public static void initTestDir() throws IOException, URISyntaxException {
-        ConfigDirectory.setupTestEnvironement("WFSCiteWorkerTest");
+        ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
     }
 
     @PostConstruct
@@ -134,14 +141,14 @@ public class WFSCIteWorkerTest {
                 config.getCustomParameters().put("transactionSecurized", "false");
                 config.getCustomParameters().put("transactional", "true");
 
-                Details details = new Details("default", "default", null, null, Arrays.asList("1.1.0"), null, null, true, "en");
+                Details details = new Details(serviceId, serviceId, null, null, Arrays.asList("1.1.0"), null, null, true, "en");
 
-                Integer sid = serviceBusiness.create("wfs", "default", config, details, null);
+                Integer sid = serviceBusiness.create("wfs", serviceId, config, details, null);
                 layerBusiness.add(d1, null, sid, null);
                 layerBusiness.add(d2, null, sid, null);
                 layerBusiness.add(d3, null, sid, null);
 
-                worker = new DefaultWFSWorker("default");
+                worker = new DefaultWFSWorker(serviceId);
                 initialized = true;
             } catch (Exception ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
@@ -151,7 +158,40 @@ public class WFSCIteWorkerTest {
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        ConfigDirectory.shutdownTestEnvironement("WFSCiteWorkerTest");
+        try {
+            final ILayerBusiness layerBean = SpringHelper.getBean(ILayerBusiness.class);
+            if (layerBean != null) {
+                layerBean.removeAll();
+            }
+            final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
+            if (service != null) {
+                service.deleteAll();
+            }
+            final IDataBusiness dataBean = SpringHelper.getBean(IDataBusiness.class);
+            if (dataBean != null) {
+                dataBean.deleteAll();
+            }
+            final IProviderBusiness provider = SpringHelper.getBean(IProviderBusiness.class);
+            if (provider != null) {
+                provider.removeAll();
+            }
+        } catch (ConfigurationException ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage());
+        }
+        try {
+            ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
+
+            if (worker != null) {
+                worker.destroy();
+            }
+
+            File derbyLog = new File("derby.log");
+            if (derbyLog.exists()) {
+                derbyLog.delete();
+            }
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage());
+        }
     }
 
     @Before
