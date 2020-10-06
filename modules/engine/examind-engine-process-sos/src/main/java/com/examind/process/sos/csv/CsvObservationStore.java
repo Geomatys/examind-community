@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.ArrayUtils;
@@ -372,17 +373,20 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                         LOGGER.info("skipping line due to none expected variable present.");
                         continue;
                     }
+                    
+                    // look for current procedure (for observation separation)
+                    if (procIndex != -1) {
+                        if (!line[procIndex].equals(affectedSensorId)) {
+                            LOGGER.finer("skipping line due to none specified sensor related.");
+                            continue;
+                        }
+                        currentProc = line[procIndex];
+                    }
 
                     // look for current foi (for observation separation)
                     if (foiIndex != -1) {
                         currentFoi = line[foiIndex];
                     }
-
-                    // look for current procedure (for observation separation)
-                    if (procIndex != -1) {
-                        currentProc = line[procIndex];
-                    }
-
 
                     // look for current date (for non timeseries observation separation)
                     if (dateIndex != mainIndex) {
@@ -409,7 +413,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                         }
 
                         // sampling feature of interest
-                        String foiID = "foi-" + oid;
+                        String foiID = "foi-" + UUID.randomUUID();
                         if (previousFoi != null) {
                             foiID = previousFoi;
                         }
@@ -437,7 +441,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
 
                             procedure.spatialBound.merge(currentSpaBound);
                         } else {
-                            LOGGER.info(oid + " observation excluded from extraction. procedure does not match " + affectedSensorId);
+                            LOGGER.finer(oid + " observation excluded from extraction. procedure does not match " + affectedSensorId);
                         }
 
                         // reset single observation related variables
@@ -551,7 +555,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                 }
 
                 // sampling feature of interest
-                String foiID = "foi-" + oid;
+                String foiID = "foi-" + UUID.randomUUID();
                 if (previousFoi != null) {
                     foiID = previousFoi;
                 }

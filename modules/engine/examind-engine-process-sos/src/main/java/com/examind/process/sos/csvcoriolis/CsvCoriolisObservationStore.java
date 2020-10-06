@@ -192,22 +192,29 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
             // at least one line is expected to contain headers information
             if (it.hasNext()) {
 
-                // prepare time column indices
+                // prepare procedure/type column indices
                 int procIndex = -1;
+                int typeColumnIndex = -1;
 
                 // read headers
                 final String[] headers = it.next();
                 for (int i = 0; i < headers.length; i++) {
                     final String header = headers[i];
-                    if (procedureColumn.equals(header)) {
+                    if (header.equals(procedureColumn)) {
                         procIndex = i;
+                    } else if (header.equals(typeColumn)) {
+                        typeColumnIndex = i;
                     }
                 }
-
+                
+                final String obsTypeCode = getObsTypeCode();
                 while (it.hasNext()) {
                     final String[] line = it.next();
-                    // update temporal information
                     if (procIndex != -1) {
+                        // checks if row matches the observed data types
+                        if (typeColumnIndex != -1) {
+                            if (!line[typeColumnIndex].equals(obsTypeCode)) continue;
+                        }
                         result.add(NamesExt.create(line[procIndex]));
                     }
                 }
@@ -342,13 +349,14 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                 final ExtractionResult result = new ExtractionResult();
                 result.fields.addAll(measureFields);
 
+                 final String obsTypeCode = getObsTypeCode();
+                 
                 final AbstractDataRecord datarecord;
-                final String obsTypeCode;
                 boolean isProfile = false;
                 switch (observationType) {
-                    case "Timeserie" : datarecord = OMUtils.getDataRecordTimeSeries("2.0.0", fields); obsTypeCode = "TS";break;
-                    case "Trajectory": datarecord = getDataRecordTrajectory("2.0.0", fields); obsTypeCode = "TR";break;
-                    case "Profile"   : datarecord = getDataRecordProfile("2.0.0", fields); obsTypeCode = "PR"; isProfile = true;break;
+                    case "Timeserie" : datarecord = OMUtils.getDataRecordTimeSeries("2.0.0", fields);break;
+                    case "Trajectory": datarecord = getDataRecordTrajectory("2.0.0", fields); break;
+                    case "Profile"   : datarecord = getDataRecordProfile("2.0.0", fields); isProfile = true;break;
                     default: throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
                 }
 
@@ -447,7 +455,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                         }
 
                         // sampling feature of interest
-                        String foiID = "foi-" + oid;
+                        String foiID = "foi-" + UUID.randomUUID();
                         if (previousFoi != null) {
                             foiID = previousFoi;
                         }
@@ -482,7 +490,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
 
                             procedure.spatialBound.merge(currentSpaBound);
                         } else {
-                            LOGGER.info(oid + " observation excluded from extraction. procedure does not match " + affectedSensorId);
+                            LOGGER.finer(oid + " observation excluded from extraction. procedure does not match " + affectedSensorId);
                         }
 
                         // reset single observation related variables
@@ -616,7 +624,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                 }
 
                 // sampling feature of interest
-                String foiID = "foi-" + oid;
+                String foiID = "foi-" + UUID.randomUUID();
                 if (previousFoi != null) {
                     foiID = previousFoi;
                 }
@@ -745,6 +753,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                 int latitudeIndex = -1;
                 int longitudeIndex = -1;
                 int procedureIndex = -1;
+                int typeColumnIndex = -1;
 
                 // read headers
                 final String[] headers = it.next();
@@ -759,10 +768,12 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                         longitudeIndex = i;
                     } else if (header.equals(procedureColumn)) {
                         procedureIndex = i;
+                    } else if (header.equals(typeColumn)) {
+                        typeColumnIndex = i;
                     }
                 }
 
-
+                final String obsTypeCode   = getObsTypeCode();
                 List<ProcedureTree> result = new ArrayList<>();
                 String currentProc          = null;
                 String previousProc         = null;
@@ -771,6 +782,11 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                     final String[] line   = it.next();
                     AbstractGeometry geom = null;
                     Date dateParse        = null;
+                    
+                    // checks if row matches the observed data types
+                    if (typeColumnIndex != -1) {
+                        if (!line[typeColumnIndex].equals(obsTypeCode)) continue;
+                    }
 
                     if (procedureIndex != -1) {
                         currentProc = line[procedureIndex];
@@ -842,5 +858,14 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
         ProcedureTree tree = new ProcedureTree(procedureId, type, omType);
         result.procedures.add(tree);
         return tree;
+    }
+
+    private String getObsTypeCode() {
+        switch (observationType) {
+            case "Timeserie" : return "TS";
+            case "Trajectory": return "TR";
+            case "Profile"   : return "PR";
+            default: throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
+        }
     }
 }

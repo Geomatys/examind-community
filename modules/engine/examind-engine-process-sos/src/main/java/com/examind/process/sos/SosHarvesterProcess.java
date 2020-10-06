@@ -106,7 +106,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
     @Override
     protected void execute() throws ProcessException {
-        LOGGER.info("executiing sos insertion process");
+        LOGGER.info("executing sos insertion process");
 
         /*
         0- Paramètres fixés
@@ -190,7 +190,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
         // remove previous integration
         if (removePrevious) {
-            LOGGER.info("Removing previous integration");
+            fireAndLog("Removing previous integration");
             try {
                 Set<Integer> providers = new HashSet<>();
                 List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(ds, Integer.MAX_VALUE);
@@ -462,7 +462,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                 }
                 treated.add(omServiceProvider);
             }
-            LOGGER.info(String.format("ajout du capteur %s au service %s", sensorID, sosRef.getName()));
+            fireAndLog(String.format("ajout du capteur %s au service %s", sensorID, sosRef.getName()));
             serviceBusiness.restart(sosRef.getId());
         }
         return nbObservationInserted;
@@ -501,5 +501,10 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                Objects.equal(database1, database2) &&
                Objects.equal(schema1,   schema2);
 
+    }
+    
+    private void fireAndLog(final String msg) {
+        LOGGER.info(msg);
+        fireProgressing(msg, 0, false);
     }
 }

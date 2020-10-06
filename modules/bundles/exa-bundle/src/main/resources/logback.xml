@@ -61,6 +61,7 @@
     </sift>
   </appender>
 
+  <logger name="com.examind" level="INFO" />
   <logger name="org.constellation" level="INFO" />
   <logger name="org.geotoolkit" level="INFO" />
   <logger name="org.flywaydb" level="INFO" />

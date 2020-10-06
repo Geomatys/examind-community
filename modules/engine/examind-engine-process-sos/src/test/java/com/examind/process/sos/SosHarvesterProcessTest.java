@@ -54,15 +54,21 @@ import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import static org.constellation.test.utils.TestResourceUtils.getResourceAsString;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.constellation.ws.CstlServiceException;
+import org.geotoolkit.gml.xml.AbstractFeature;
+import org.geotoolkit.gml.xml.FeatureCollection;
+import org.geotoolkit.gml.xml.FeatureProperty;
 import org.geotoolkit.gml.xml.v311.TimePeriodType;
+import org.geotoolkit.gml.xml.v321.PointType;
 import org.geotoolkit.internal.geojson.binding.GeoJSONFeature;
 import org.geotoolkit.internal.geojson.binding.GeoJSONGeometry.GeoJSONPoint;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
+import org.geotoolkit.sampling.xml.SamplingFeature;
 import org.geotoolkit.sos.xml.Capabilities;
 import org.geotoolkit.sos.xml.Contents;
 import org.geotoolkit.sos.xml.ObservationOffering;
 import org.geotoolkit.sos.xml.v200.GetCapabilitiesType;
+import org.geotoolkit.sos.xml.v200.GetFeatureOfInterestType;
 import org.geotoolkit.sos.xml.v200.GetObservationResponseType;
 import org.geotoolkit.sos.xml.v200.GetObservationType;
 import org.geotoolkit.sos.xml.v200.GetResultResponseType;
@@ -475,16 +481,37 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(3, offp.getFeatureOfInterestIds().size());
 
         String observedProperty = offp.getObservedProperties().get(0);
-        String foi = "foi-tsg-FMLW-1.csv-0";
-
 
         /*
-        * Verify an inserted profile
+        * Verify inserted results
         */
-        GetResultResponseType gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
+        
+        GetResultResponseType gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, null));
         String expectedResult =  getResourceAsString("com/examind/process/sos/tsg-FMLW-datablock-values.txt");
         Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
+        
+        
+        String resultForFoi1 = getResourceAsString("com/examind/process/sos/tsg-FMLW-datablock-values-1.txt");
+        String resultForFoi2 = getResourceAsString("com/examind/process/sos/tsg-FMLW-datablock-values-2.txt");
+        String resultForFoi3 = getResourceAsString("com/examind/process/sos/tsg-FMLW-datablock-values-3.txt");
 
+        
+        String foi = offp.getFeatureOfInterestIds().get(0);
+        gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
+        String result = gr.getResultValues().toString() + '\n';
+        Assert.assertTrue(result.equals(resultForFoi1) ||  result.equals(resultForFoi2) || result.equals(resultForFoi3));
+        
+        foi = offp.getFeatureOfInterestIds().get(1);
+        gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
+        result = gr.getResultValues().toString() + '\n';
+        Assert.assertTrue(result.equals(resultForFoi1) ||  result.equals(resultForFoi2) || result.equals(resultForFoi3));
+
+        foi = offp.getFeatureOfInterestIds().get(2);
+        gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
+        result = gr.getResultValues().toString() + '\n';
+        Assert.assertTrue(result.equals(resultForFoi1) ||  result.equals(resultForFoi2) || result.equals(resultForFoi3));
+
+        
         GetHistoricalLocations hl = new GetHistoricalLocations();
         hl.getExtraFilter().put("procedure", sensorId);
         hl.getExpand().add("Locations");
@@ -1115,11 +1142,23 @@ public class SosHarvesterProcessTest {
 
         Assert.assertEquals(11, offp.getFeatureOfInterestIds().size());
 
+        String foi = null;
+        List<SamplingFeature> fois  = getFeatureOfInterest(worker, offp.getFeatureOfInterestIds());
+        for (SamplingFeature sp : fois) {
+            if (sp.getGeometry() instanceof PointType) {
+                PointType pt = (PointType) sp.getGeometry();
+                if (pt.getDirectPosition().getOrdinate(0) == -61.4234 &&
+                    pt.getDirectPosition().getOrdinate(1) == 68.2395) {
+                    
+                    foi = sp.getId();
+                }
+            }
+        }
+        
+        Assert.assertNotNull(foi);
+        
+        //-61.4234,68.2395
         String observedProperty = offp.getObservedProperties().get(0);
-        System.out.println(offp.getFeatureOfInterestIds());
-        System.out.println(offp.getFeatureOfInterestIds().get(0));
-        String foi = "foi-bigdata-1.csv-0";
-
 
         /*
          * Verify an inserted profile
@@ -1326,5 +1365,20 @@ public class SosHarvesterProcessTest {
             }
         }
         return offp;
+    }
+    
+    private static List<SamplingFeature> getFeatureOfInterest(SOSworker worker, List<String> foids) throws CstlServiceException {
+        List<SamplingFeature> results = new ArrayList<>();
+        AbstractFeature o = worker.getFeatureOfInterest(new GetFeatureOfInterestType("2.0.0", "SOS", foids));
+        if (o instanceof FeatureCollection ) {
+            for (FeatureProperty fp :  ((FeatureCollection)o).getFeatureMember()) {
+                if (fp.getAbstractFeature() instanceof SamplingFeature) {
+                    results.add((SamplingFeature)fp.getAbstractFeature());
+                }
+            }
+        } else if (o instanceof SamplingFeature) {
+            results.add((SamplingFeature)o);
+        }
+        return results;
     }
 }

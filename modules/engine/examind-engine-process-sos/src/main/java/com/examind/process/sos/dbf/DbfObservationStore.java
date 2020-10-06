@@ -37,6 +37,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.ArrayUtils;
@@ -312,7 +313,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                         final String procedureID = getProcedureID();
 
                         // sampling feature of interest
-                        String foiID = "foi-" + oid;
+                        String foiID = "foi-" + UUID.randomUUID();
                         if (previousFoi != null) {
                             foiID = previousFoi;
                         }
@@ -438,7 +439,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                 final String procedureID = getProcedureID();
 
                 // sampling feature of interest
-                String foiID = "foi-" + oid;
+                String foiID = "foi-" + UUID.randomUUID();
                 if (previousFoi != null) {
                     foiID = previousFoi;
                 }
