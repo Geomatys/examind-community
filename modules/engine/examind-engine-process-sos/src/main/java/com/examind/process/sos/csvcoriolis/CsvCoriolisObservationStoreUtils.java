@@ -117,8 +117,10 @@ public class CsvCoriolisObservationStoreUtils {
         return SOSXmlFactory.buildSimpleDatarecord(version, null, null, null, true, fields);
     }
 
-    public static MeasureStringBuilder buildMeasureStringBuilderFromMap(final LinkedHashMap<String, LinkedHashMap<String, Double>> mmb, DateFormat sdf, boolean isProfile) throws ParseException {
+    public static MeasureStringBuilder buildMeasureStringBuilderFromMap(final LinkedHashMap<String, LinkedHashMap<String, Double>> mmb, final Set<String> measureFound,
+            final DateFormat sdf, final boolean isProfile) throws ParseException {
         MeasureStringBuilder result = new MeasureStringBuilder();
+        boolean noneValue = true;
 
         for (Map.Entry<String, LinkedHashMap<String, Double>> entry: mmb.entrySet()) {
             String mainValue = entry.getKey();
@@ -128,10 +130,32 @@ public class CsvCoriolisObservationStoreUtils {
                 result.appendDate(sdf.parse(mainValue).getTime());
             }
             for (Map.Entry<String, Double> entry2: entry.getValue().entrySet()) {
-                Double measureValue = entry2.getValue();
-                result.appendValue(measureValue);
+                final String measureName = entry2.getKey();
+                if (measureFound.contains(measureName)) {
+                    final Double measureValue = entry2.getValue();
+                    result.appendValue(measureValue);
+                    noneValue = false;
+                }
             }
             result.closeBlock();
+        }
+        if (noneValue) {
+            return new MeasureStringBuilder();
+        } else {
+            return result;
+        }
+    }
+
+    public static Set<String> getMeasureFromMap(final LinkedHashMap<String, LinkedHashMap<String, Double>> mmb) {
+        Set<String> result = new HashSet<>();
+
+        for (Map.Entry<String, LinkedHashMap<String, Double>> entry1: mmb.entrySet()) {
+            for (Map.Entry<String, Double> entry2: entry1.getValue().entrySet()) {
+                final String measureName = entry2.getKey();
+                final Double measureValue = entry2.getValue();
+
+                if (!measureValue.isNaN()) result.add(measureName);
+            }
         }
         return result;
     }

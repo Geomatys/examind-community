@@ -321,51 +321,20 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                 }
 
                 // add measure column
+                Set<String> measureColumnFound = new HashSet<>();
                 List<String> sortedMeasureColumns = measureColumns.stream().sorted().collect(Collectors.toList());
-                measureFields.addAll(sortedMeasureColumns);
 
                 // memorize indices to skip
                 final int[] skippedIndices = ArrayUtils.toPrimitive(ignoredFields.toArray(new Integer[ignoredFields.size()]));
 
-                /*
-                2- set ordinary fields
-                =====================*/
-                final List<Field> fields = new ArrayList<>();
-                for (final String field : measureFields) {
-                    String name;
-                    String uom;
-                    int b = field.indexOf('(');
-                    int o = field.indexOf(')');
-                    if (extractUom && b != -1 && o != -1 && b < o) {
-                        name = field.substring(0, b).trim();
-                        uom  = field.substring(b + 1, o);
-                    } else {
-                        name = field;
-                        uom  = null;
-                    }
-                    fields.add(new Field(name, null, 1, "", null, uom));
-                }
-
+                // final result
                 final ExtractionResult result = new ExtractionResult();
-                result.fields.addAll(measureFields);
 
-                 final String obsTypeCode = getObsTypeCode();
-                 
-                final AbstractDataRecord datarecord;
-                boolean isProfile = false;
-                switch (observationType) {
-                    case "Timeserie" : datarecord = OMUtils.getDataRecordTimeSeries("2.0.0", fields);break;
-                    case "Trajectory": datarecord = getDataRecordTrajectory("2.0.0", fields); break;
-                    case "Profile"   : datarecord = getDataRecordProfile("2.0.0", fields); isProfile = true;break;
-                    default: throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
-                }
-
-                Phenomenon phenomenon = OMUtils.getPhenomenon("2.0.0", fields, "", phenomenons);
-                result.phenomenons.add(phenomenon);
-
+                final String obsTypeCode = getObsTypeCode();
+                Phenomenon phenomenon = null;
 
                 /*
-                3- compute measures
+                2- compute measures
                 =================*/
 
                 // -- global variables --
@@ -380,7 +349,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                 String currentProc                    = null;
                 Long currentTime                      = null;
                 GeoSpatialBound currentSpaBound = new GeoSpatialBound();
-                // measure map used to construct the MeasureStringBuilder
+                // measure map used to collect measure data then construct the MeasureStringBuilder
                 LinkedHashMap<String, LinkedHashMap<String, Double>> mmb = new LinkedHashMap<>();
                 // memorize positions to compute FOI
                 final List<DirectPosition> positions = new ArrayList<>();
@@ -464,12 +433,52 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                         if (procedureID.equals(affectedSensorId)) {
                             final SamplingFeature sp = buildFOIByGeom(foiID, positions, samplingFeatures);
                             result.addFeatureOfInterest(sp);
+                            // On extrait les types de mesure trouvées dans la donnée
+                            measureColumnFound.addAll(getMeasureFromMap(mmb));
+                            // Construction du measureStringBuilder à partir des données collectées dans le hashmap
                             MeasureStringBuilder msb;
                             try {
-                                msb = buildMeasureStringBuilderFromMap(mmb, sdf, isProfile);
+                                msb = buildMeasureStringBuilderFromMap(mmb, measureColumnFound, sdf, obsTypeCode.equals("Profile"));
                             } catch (ParseException ex) {
                                 // parsing error normally already handled
                                 throw new DataStoreException("Parsing error: " + ex);
+                            }
+
+                            // On complète les champs de mesures seulement avec celles trouvées dans la donnée
+                            List<String> filteredMeasure = new ArrayList<>();
+                            for (String m: sortedMeasureColumns) {
+                                if (measureColumnFound.contains(m)) filteredMeasure.add(m);
+                            }
+                            measureFields.addAll(filteredMeasure);
+
+                            /*
+                            - set ordinary fields
+                            =====================*/
+
+                            final List<Field> fields = new ArrayList<>();
+                            for (final String field : measureFields) {
+                                String name;
+                                String uom;
+                                int b = field.indexOf('(');
+                                int o = field.indexOf(')');
+                                if (extractUom && b != -1 && o != -1 && b < o) {
+                                    name = field.substring(0, b).trim();
+                                    uom  = field.substring(b + 1, o);
+                                } else {
+                                    name = field;
+                                    uom  = null;
+                                }
+                                fields.add(new Field(name, null, 1, "", null, uom));
+                            }
+
+                            phenomenon = OMUtils.getPhenomenon("2.0.0", fields, "", phenomenons);
+
+                            final AbstractDataRecord datarecord;
+                            switch (observationType) {
+                                case "Timeserie" : datarecord = OMUtils.getDataRecordTimeSeries("2.0.0", fields);break;
+                                case "Trajectory": datarecord = getDataRecordTrajectory("2.0.0", fields); break;
+                                case "Profile"   : datarecord = getDataRecordProfile("2.0.0", fields);break;
+                                default: throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
                             }
 
                             result.observations.add(OMUtils.buildObservation(oid,                           // id
@@ -632,12 +641,52 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                 if (procedureID.equals(affectedSensorId)) {
                     final SamplingFeature sp = buildFOIByGeom(foiID, positions, samplingFeatures);
                     result.addFeatureOfInterest(sp);
+                    // On extrait les types de mesure trouvées dans la donnée
+                    measureColumnFound.addAll(getMeasureFromMap(mmb));
+                    // Construction du measureStringBuilder à partir des données collectées dans le hashmap
                     MeasureStringBuilder msb;
                     try {
-                        msb = buildMeasureStringBuilderFromMap(mmb, sdf, isProfile);
+                        msb = buildMeasureStringBuilderFromMap(mmb, measureColumnFound, sdf, obsTypeCode.equals("Profile"));
                     } catch (ParseException ex) {
                         // parsing error normally already handled
                         throw new DataStoreException("Parsing error: " + ex);
+                    }
+
+                    // On complète les champs de mesures seulement avec celles trouvées dans la donnée
+                    List<String> filteredMeasure = new ArrayList<>();
+                    for (String m: sortedMeasureColumns) {
+                        if (measureColumnFound.contains(m)) filteredMeasure.add(m);
+                    }
+                    measureFields.addAll(filteredMeasure);
+
+                    /*
+                    - set ordinary fields
+                    =====================*/
+
+                    final List<Field> fields = new ArrayList<>();
+                    for (final String field : measureFields) {
+                        String name;
+                        String uom;
+                        int b = field.indexOf('(');
+                        int o = field.indexOf(')');
+                        if (extractUom && b != -1 && o != -1 && b < o) {
+                            name = field.substring(0, b).trim();
+                            uom  = field.substring(b + 1, o);
+                        } else {
+                            name = field;
+                            uom  = null;
+                        }
+                        fields.add(new Field(name, null, 1, "", null, uom));
+                    }
+
+                    phenomenon = OMUtils.getPhenomenon("2.0.0", fields, "", phenomenons);
+
+                    final AbstractDataRecord datarecord;
+                    switch (observationType) {
+                        case "Timeserie" : datarecord = OMUtils.getDataRecordTimeSeries("2.0.0", fields);break;
+                        case "Trajectory": datarecord = getDataRecordTrajectory("2.0.0", fields); break;
+                        case "Profile"   : datarecord = getDataRecordProfile("2.0.0", fields);break;
+                        default: throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
                     }
 
                     result.observations.add(OMUtils.buildObservation(oid,                           // id
@@ -657,6 +706,9 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                     }
                     procedure.spatialBound.merge(currentSpaBound);
                 }
+
+                result.fields.addAll(measureFields);
+                result.phenomenons.add(phenomenon);
 
                 return result;
             }
