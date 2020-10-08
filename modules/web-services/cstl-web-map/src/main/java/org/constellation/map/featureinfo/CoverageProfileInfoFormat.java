@@ -84,7 +84,7 @@ import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
 
 /**
- *
+ * TODO: toSourceCorner/toSourceCenter
  * @author Johann Sorel (Geomatys)
  */
 public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {

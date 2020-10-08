@@ -18,12 +18,33 @@
  */
 package org.constellation.map.featureinfo;
 
+import java.awt.Point;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.ToDoubleFunction;
+import java.util.stream.StreamSupport;
+import org.apache.sis.coverage.SampleDimension;
+import org.apache.sis.coverage.grid.GridCoverage;
+import org.apache.sis.coverage.grid.GridCoverage2D;
+import org.apache.sis.coverage.grid.GridCoverageBuilder;
+import org.apache.sis.coverage.grid.GridExtent;
+import org.apache.sis.coverage.grid.GridGeometry;
+import org.apache.sis.image.PixelIterator;
+import org.apache.sis.image.WritablePixelIterator;
+import org.apache.sis.referencing.CommonCRS;
+import org.apache.sis.referencing.operation.transform.MathTransforms;
 import org.constellation.map.featureinfo.CoverageProfileInfoFormat.XY;
 import org.junit.Assert;
 import org.junit.Test;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LineString;
+import org.opengis.referencing.datum.PixelInCell;
+import org.opengis.referencing.operation.TransformException;
+import org.opengis.util.FactoryException;
 
 import static org.constellation.map.featureinfo.CoverageProfileInfoFormat.ReductionMethod.*;
 import static org.constellation.map.featureinfo.CoverageProfileInfoFormat.reduce;
@@ -214,6 +235,112 @@ public class CoverageProfileInfoTest {
         double[] expectedValues = {0, 0, 5, 9};
         assertSeriesEquals("Distance means are wrong", expectedMeanDistances, reduced, XY::getX);
         assertSeriesEquals("Min values are wrong", expectedValues, reduced, XY::getY);
+    }
+
+    @Test public void testProfileOnSubset() throws Exception {
+        final GeometryFactory gf = new GeometryFactory();
+        final LineString line = gf.createLineString(new Coordinate[]{
+                new Coordinate(3, 4),
+                new Coordinate(4, 4),
+                new Coordinate(4, 5)
+        });
+        line.setUserData(CommonCRS.defaultGeographic());
+        int px_3_4 = 8 * 4 + 3;
+        int px_4_4 = 8 * 4 + 4;
+        int px_4_5 = 8 * 5 + 4;
+        assertProfileEquals(
+                createDatasource(0, 0),
+                line,
+                px_3_4, // start
+                px_3_4, // median to pixel border
+                px_4_4, // median from pixel border
+                px_4_4, // last point of first segment
+                px_4_4, // median to pixel border
+                px_4_5, // median from pixel border
+                px_4_5  // last point
+        );
+
+        px_3_4 = 8 * (4-3) + (3-2);
+        px_4_4 = 8 * (4-3) + (4-2);
+        px_4_5 = 8 * (5-3) + (4-2);
+        assertProfileEquals(
+                createDatasource(2, 3),
+                line,
+                px_3_4, // start
+                px_3_4, // median to pixel border
+                px_4_4, // median from pixel border
+                px_4_4, // last point of first segment
+                px_4_4, // median to pixel border
+                px_4_5, // median from pixel border
+                px_4_5  // last point
+        );
+    }
+
+    @Test public void testProfileWithReprojection() throws Exception {
+        final GeometryFactory gf = new GeometryFactory();
+        final LineString line = gf.createLineString(new Coordinate[]{
+                new Coordinate(7, 6),
+                new Coordinate(6, 5)
+        });
+        line.setUserData(CommonCRS.WGS84.geographic());
+        int px_6_7 = 8 * 7 + 6;
+        int px_5_6 = 8 * 6 + 5;
+        assertProfileEquals(
+                createDatasource(0, 0),
+                line,
+                px_6_7, // start
+                px_6_7, // median to pixel border
+                px_5_6, // median from pixel border
+                px_5_6  // end
+        );
+    }
+
+    /**
+     * Create a grid-coverage whose extent starts at given x and y coordinates. The grid to CRS is identity, and CRS is
+     * {@link CommonCRS#defaultGeographic() CRS:84 }.
+     * The values of the coverage rendering pixel values are their position in linear browsing (y * width + x). The
+     * origin used to compute rendering indices is always (0, 0), it does not match grid extent indices.
+     *
+     * @param lowX grid extent origin in X
+     * @param lowY Grid extent origin in Y
+     */
+    private static GridCoverage createDatasource(int lowX, int lowY) {
+        final BufferedImage values = new BufferedImage(8, 8, BufferedImage.TYPE_BYTE_GRAY);
+        final WritablePixelIterator it = new PixelIterator.Builder().createWritable(values, values);
+        final int width = it.getDomain().width;
+        while (it.next()) {
+            final Point pos = it.getPosition();
+            it.setSample(0, pos.y * width + pos.x);
+        }
+
+        final GridGeometry domain = new GridGeometry(
+                new GridExtent(8, 8).translate(lowX, lowY),
+                PixelInCell.CELL_CENTER,
+                MathTransforms.identity(2),
+                CommonCRS.defaultGeographic()
+        );
+        final SampleDimension sampleDim = new SampleDimension.Builder()
+                .setName("numbers")
+                .setBackground("no-data", -1)
+                .build();
+        return new GridCoverage2D(domain, Collections.singletonList(sampleDim), values);
+    }
+
+    private static void assertProfileEquals(final GridCoverage source, final LineString line, final double... expectedValues) throws FactoryException, TransformException {
+        DataProfile profile = new DataProfile(source, line);
+        final double[] values = StreamSupport.stream(profile, false)
+                .peek(pt -> System.out.println(pt)) // TODO: remove after debug
+                .peek(CoverageProfileInfoTest::errorIfNoValue)
+                .mapToDouble(point -> ((double[]) point.value)[0])
+                .toArray();
+
+        Assert.assertArrayEquals("Profile values: "+ Arrays.toString(values), expectedValues, values, .1);
+    }
+
+    private static void errorIfNoValue(final DataProfile.DataPoint point) {
+        final Object value = point.value;
+        if (value instanceof double[] && ((double[])value).length > 0) return;
+        throw new AssertionError("No value set for point "+point);
     }
 
     private static void assertSeriesEquals(final String message, final double[] expectedValues, List<XY> values, ToDoubleFunction<XY> extractor) {
