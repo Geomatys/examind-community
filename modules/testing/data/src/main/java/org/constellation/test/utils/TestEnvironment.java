@@ -62,7 +62,7 @@ public final class TestEnvironment {
         PNG("org/constellation/data/image/SSTMDE200305.png", TestEnvironment::createCoverageFileProvider),
         TIF("org/constellation/data/image/martinique.tif", TestEnvironment::createTifProvider),
 
-        NETCDF("org/constellation/netcdf", null),
+        NETCDF("org/constellation/netcdf/2005092200_sst_21-24.en.nc", TestEnvironment::createNCProvider),
 
         SQL_SCRIPTS("org/constellation/sql", null),
 
@@ -373,6 +373,23 @@ public final class TestEnvironment {
             final ParameterValueGroup config = choice.addGroup("coverage-file");
             config.parameter("location").setValue(tifFile.toUri().toURL());
             config.parameter("type").setValue("AUTO");
+
+            return providerBusiness.storeProvider(providerIdentifier, null, ProviderType.LAYER, "data-store", source);
+        } catch (Exception ex) {
+            throw new ConstellationRuntimeException(ex);
+        }
+    }
+    
+    private static Integer createNCProvider(IProviderBusiness providerBusiness, Path ncFile) {
+        final String providerIdentifier = "netcdfSrc-" + UUID.randomUUID().toString();
+        try {
+            final DataProviderFactory dsFactory = DataProviders.getFactory("data-store");
+            final ParameterValueGroup source = dsFactory.getProviderDescriptor().createValue();
+            source.parameter("id").setValue(providerIdentifier);
+            final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) dsFactory.getStoreDescriptor(), source);
+
+            final ParameterValueGroup config = choice.addGroup("NetCDF");
+            config.parameter("location").setValue(ncFile.toUri().toURL());
 
             return providerBusiness.storeProvider(providerIdentifier, null, ProviderType.LAYER, "data-store", source);
         } catch (Exception ex) {

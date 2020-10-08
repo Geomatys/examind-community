@@ -274,19 +274,18 @@ public abstract class LayerWorker extends AbstractWorker {
     }
 
     private Data getData(NameInProvider nip){
-        final DataProvider provider;
         try {
-            provider = DataProviders.getProvider(nip.providerID);
-        } catch (ConfigurationException ex) {
+            final DataProvider provider = DataProviders.getProvider(nip.providerID);
+            if (nip.dataVersion != null) {
+                LOGGER.log(Level.FINE, "Provider with name = {0} and version = {1}", new Object[]{nip.name, nip.dataVersion});
+                return provider.get(nip.name, nip.dataVersion);
+            }else{
+                LOGGER.log(Level.FINE, "Provider with name = {0}", nip.name);
+                return provider.get(nip.name);
+            }
+        } catch (Exception ex) {
             LOGGER.log(Level.INFO, "Exception in getData() : "+ex.getMessage(), ex);
             return null;
-        }
-        if (nip.dataVersion != null) {
-            LOGGER.log(Level.FINE, "Provider with name = {0} and version = {1}", new Object[]{nip.name, nip.dataVersion});
-            return provider.get(nip.name, nip.dataVersion);
-        }else{
-            LOGGER.log(Level.FINE, "Provider with name = {0}", nip.name);
-            return provider.get(nip.name);
         }
     }
 

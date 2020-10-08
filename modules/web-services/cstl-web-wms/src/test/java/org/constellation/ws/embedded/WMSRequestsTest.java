@@ -344,7 +344,32 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "format=image/png&width=1024&height=512&"
             + "crs=CRS:84&bbox=-180,-90,180,90&"
             + "layers=" + LAYER_TEST + "&styles=";
+    
+    private static final String WMS_GETMAP_TIFF = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image%2Fpng"
+            + "&TRANSPARENT=true&LAYERS=martinique"
+            + "&SLD_VERSION=1.1.0&WIDTH=256&HEIGHT=256&CRS=EPSG%3A3857&STYLES="
+            + "&BBOX=-6887893.4928338025%2C1565430.3392804079%2C-6731350.458905761%2C1721973.3732084488";
+    
+    private static final String WMS_GETMAP_SHAPE_POINT = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image%2Fpng&"
+            + "TRANSPARENT=true&LAYERS=BuildingCenters&SLD_VERSION=1.1.0&WIDTH=256&HEIGHT=256&CRS=EPSG%3A3857&STYLES="
+            + "&BBOX=0%2C0%2C305.748113140705%2C305.748113140705";
 
+    private static final String WMS_GETMAP_SHAPE_POLYGON = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image%2Fpng"
+            + "&TRANSPARENT=true&LAYERS=BasicPolygons&SLD_VERSION=1.1.0&WIDTH=256&HEIGHT=256&CRS=EPSG%3A3857&STYLES="
+            + "&BBOX=0%2C0%2C626172.1357121639%2C626172.1357121639";
+    
+    private static final String WMS_GETMAP_NETCDF = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image%2Fpng"
+            + "&TRANSPARENT=true&LAYERS=sea_water_temperature&SLD_VERSION=1.1.0&WIDTH=256&HEIGHT=256&CRS=EPSG%3A3857&STYLES=&"
+            + "BBOX=0%2C0%2C20037508.342789244%2C20037508.342789244";
+    
+    private static final String WMS_GETMAP_JSON_FEATURE = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image%2Fpng"
+            + "&TRANSPARENT=true&LAYERS=JS1&SLD_VERSION=1.1.0&WIDTH=256&HEIGHT=256&CRS=EPSG%3A3857&STYLES=&"
+            + "BBOX=-8986548.541431602%2C4197310.097195599%2C-8984102.556526477%2C4199756.082100725";
+    
+    private static final String WMS_GETMAP_JSON_COLLECTION = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image%2Fpng"
+            + "&TRANSPARENT=true&LAYERS=JS2&SLD_VERSION=1.1.0&WIDTH=256&HEIGHT=256&CRS=EPSG%3A3857&STYLES=&"
+            + "BBOX=-9001224.450862356%2C4187526.157575095%2C-8962088.692380344%2C4226661.916057105";
+    
     private static boolean initialized = false;
 
     @BeforeClass
@@ -429,6 +454,10 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 providerBusiness.createOrUpdateData(pid, null, false);
                 dbs = dataBusiness.getDataBriefsFromProviderId(pid, null, true, false, false, null, null);
                 Integer d14 = dbs.get(0).getId();
+                
+                // netcdf datastore
+                pid = testResource.createProvider(TestResource.NETCDF, providerBusiness);
+                Integer d15 = dataBusiness.create(new QName("sea_water_temperature"), pid, "COVERAGE", false, true, null, null);
 
                 final LayerContext config = new LayerContext();
                 config.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());
@@ -456,6 +485,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 layerBusiness.add(aggd, null, defId, null);
                 layerBusiness.add(d13,  "JS1", defId, null);
                 layerBusiness.add(d14,  "JS2", defId, null);
+                layerBusiness.add(d15, null, defId, null);
 
                 final LayerContext config2 = new LayerContext();
                 config2.setSupportedLanguages(new Languages(Arrays.asList(new Language("fre"), new Language("eng", true))));
@@ -1491,7 +1521,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     @Test
     @Order(order = 25)
     public void testGetMap130Crs84() throws Exception {
-
+        initLayerList();
+        
         // Creates a valid GetMap url.
         final URL getMapUrl;
         try {
@@ -1514,6 +1545,162 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         } else {
             assertEquals(sstChecksumGeo.longValue(), Commons.checksum(image));
         }
+    }
+    
+    @Test
+    @Order(order = 25)
+    public void testGetMap130Tiff() throws Exception {
+        initLayerList();
+
+        // Creates a valid GetMap url.
+        final URL getMapUrl;
+        try {
+            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_TIFF);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        final BufferedImage image = getImageFromURL(getMapUrl, "image/png");
+
+        // Tests on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(256, image.getWidth());
+        assertEquals(256, image.getHeight());
+        if (sstChecksumGeo == null) {
+            sstChecksumGeo = Commons.checksum(image);
+            assertTrue(ImageTesting.getNumColors(image) > 8);
+        } else {
+            assertEquals(sstChecksumGeo.longValue(), Commons.checksum(image));
+        }
+    }
+    
+    @Test
+    @Order(order = 25)
+    public void testGetMap130ShapePoint() throws Exception {
+        initLayerList();
+
+        // Creates a valid GetMap url.
+        final URL getMapUrl;
+        try {
+            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_SHAPE_POINT);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        final BufferedImage image = getImageFromURL(getMapUrl, "image/png");
+
+        // Tests on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(256, image.getWidth());
+        assertEquals(256, image.getHeight());
+        if (sstChecksumGeo == null) {
+            sstChecksumGeo = Commons.checksum(image);
+            assertTrue(ImageTesting.getNumColors(image) > 2);
+        } else {
+            assertEquals(sstChecksumGeo.longValue(), Commons.checksum(image));
+        }
+    }
+    
+    @Test
+    @Order(order = 25)
+    public void testGetMap130ShapePolygon() throws Exception {
+        initLayerList();
+
+        // Creates a valid GetMap url.
+        final URL getMapUrl;
+        try {
+            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_SHAPE_POLYGON);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        final BufferedImage image = getImageFromURL(getMapUrl, "image/png");
+
+        // Tests on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(256, image.getWidth());
+        assertEquals(256, image.getHeight());
+        if (sstChecksumGeo == null) {
+            sstChecksumGeo = Commons.checksum(image);
+            assertTrue(ImageTesting.getNumColors(image) > 8);
+        } else {
+            assertEquals(sstChecksumGeo.longValue(), Commons.checksum(image));
+        }
+    }
+    
+    @Test
+    @Order(order = 25)
+    public void testGetMap130NetCDF() throws Exception {
+        initLayerList();
+
+        // Creates a valid GetMap url.
+        final URL getMapUrl;
+        try {
+            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_NETCDF);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        final BufferedImage image = getImageFromURL(getMapUrl, "image/png");
+
+        // Tests on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(256, image.getWidth());
+        assertEquals(256, image.getHeight());
+        if (sstChecksumGeo == null) {
+            sstChecksumGeo = Commons.checksum(image);
+            assertTrue(ImageTesting.getNumColors(image) > 8);
+        } else {
+            assertEquals(sstChecksumGeo.longValue(), Commons.checksum(image));
+        }
+    }
+    
+    @Test
+    @Order(order = 25)
+    public void testGetMap130GeoJson() throws Exception {
+        initLayerList();
+
+        // Creates a valid GetMap url.
+        URL getMapUrl;
+        try {
+            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_JSON_FEATURE);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        BufferedImage image = getImageFromURL(getMapUrl, "image/png");
+
+        // Tests on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(256, image.getWidth());
+        assertEquals(256, image.getHeight());
+        assertTrue(ImageTesting.getNumColors(image) > 8);
+        
+         try {
+            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_JSON_COLLECTION);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        image = getImageFromURL(getMapUrl, "image/png");
+
+        // Tests on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(256, image.getWidth());
+        assertEquals(256, image.getHeight());
+        assertTrue(ImageTesting.getNumColors(image) > 8);
     }
 
     @Test
@@ -1956,7 +2143,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.3.0", "1.1.1");
         final List<String> versions2 = Arrays.asList("1.3.0");
-        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 18, ServiceStatus.STARTED));
+        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 19, ServiceStatus.STARTED));
         instances.add(new Instance(2, "wms1", "this is the default english capabilities", "Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.", "wms", versions, 1, ServiceStatus.STARTED));
         instances.add(new Instance(3, "wms2", "wms2", null, "wms", versions2, 13, ServiceStatus.STARTED));
         instances.add(new Instance(4, "wms3", "OGC:WMS", "Constellation Map Server", "wms", versions, 0, ServiceStatus.STOPPED));
@@ -2012,7 +2199,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.3.0", "1.1.1");
         final List<String> versions2 = Arrays.asList("1.3.0");
-        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 18, ServiceStatus.STARTED));
+        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 19, ServiceStatus.STARTED));
         instances.add(new Instance(2, "wms1", "this is the default english capabilities", "Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.", "wms", versions, 1, ServiceStatus.STARTED));
         instances.add(new Instance(3, "wms2", "wms2", null, "wms", versions2, 13, ServiceStatus.STARTED));
         instances.add(new Instance(4, "wms3", "OGC:WMS", "Constellation Map Server", "wms", versions, 0, ServiceStatus.STARTED));
@@ -2103,7 +2290,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.3.0", "1.1.1");
         final List<String> versions2 = Arrays.asList("1.3.0");
-        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 18, ServiceStatus.STARTED));
+        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 19, ServiceStatus.STARTED));
         instances.add(new Instance(2, "wms1", "this is the default english capabilities", "Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.", "wms", versions, 1, ServiceStatus.STARTED));
         instances.add(new Instance(3, "wms2", "wms2", null, "wms", versions2, 13, ServiceStatus.STARTED));
         instances.add(new Instance(4, "wms3", "OGC:WMS", "Constellation Map Server", "wms", versions, 0, ServiceStatus.STOPPED));
@@ -2146,7 +2333,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.3.0", "1.1.1");
         final List<String> versions2 = Arrays.asList("1.3.0");
-        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 18, ServiceStatus.STARTED));
+        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 19, ServiceStatus.STARTED));
         instances.add(new Instance(2, "wms1", "this is the default english capabilities", "Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.", "wms", versions, 1, ServiceStatus.STARTED));
         instances.add(new Instance(3, "wms2", "wms2", null, "wms", versions2, 13, ServiceStatus.STARTED));
         InstanceReport expResult2 = new InstanceReport(instances);
