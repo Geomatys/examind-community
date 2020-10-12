@@ -1292,7 +1292,7 @@
   "service.edit.dashboard.wmts.select.byMapcontext": "Composition cartographique",
   "service.edit.dashboard.wmts.select.byInternalData.title": "Créer une couche à partir des données",
   "service.edit.dashboard.wmts.select.byMapcontext.title": "Créer une couche à partir d'une composition cartographique",
-  "service.edit.dashboard.wmts.select.fillName": "Donner un nom à la couche WMTS",
+  "service.edit.dashboard.wmts.select.fillName": "Donner un nom à la couche de données",
   "service.edit.dashboard.wmts.select.layerName": "Nom de la couche",
   "service.edit.dashboard.wmts.validation.name": "Le nom est obligatoire et ne doit pas contenir de caractères spéciaux ou des espaces.",
   "service.edit.dashboard.wmts.validation.nameExists": "Le nom de couche existe déjà.",

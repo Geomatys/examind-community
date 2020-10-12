@@ -335,6 +335,30 @@ angular.module('cstl-webservice-edit', [
             });
         };
 
+        $scope.showDataToAddWMS = function() {
+            var modal = $modal.open({
+                templateUrl: 'views/webservice/wms/modalAddLayer.html',
+                controller: 'WMSAddLayerModalController',
+                resolve: {
+                    service: function() { return $scope.service; },
+                    epsgCodes: function(Examind) {
+                        return Examind.crs.listAll();
+                    }
+                }
+            });
+            modal.result.then(function() {
+                Examind.map.getLayers($scope.type,
+                    $routeParams.id).then(
+                    function (response) {//success
+                        $scope.layers = response.data;
+                        Dashboard($scope, response.data, true);
+                        $scope.selected = null;
+                        $scope.showLayerDashboardMap();
+                    }
+                );
+            });
+        };
+
         $scope.showDataToAddWMTS = function() {
             var modal = $modal.open({
                 templateUrl: 'views/webservice/wmts/modalAddLayer.html',
@@ -1026,7 +1050,206 @@ angular.module('cstl-webservice-edit', [
         };
 
     })
+    .controller('WMSAddLayerModalController', function($scope, $modalInstance, service,
+                                                        Growl, Examind, epsgCodes) {
+        var DEFAULT_PROJECTION = {
+            code:"EPSG:3857",
+            desc:"3857 - WGS 84 / Pseudo-Mercator"
+        };
+        $scope.service = service;
+        $scope.values = {
+            epsgList : epsgCodes.data,
+            selectedProjection : DEFAULT_PROJECTION,
+            listSelect : [],
+            selectedSensor : null,
+            selectedSensorsChild : null,
+            userLayerName : '',
+            listWMSLayers : [],
+            selectedContext : null
+        };
 
+        // handle display mode for this modal popup
+        $scope.mode = {
+            display: 'sourceSelection',
+            previous: undefined
+        };
+
+        $scope.dataSelect = {
+            all : false,
+            mergeData : false
+        };
+
+        $scope.wrap = {};
+
+        $scope.wrap.nbbypage = 5;
+
+        /**
+         * function to add data to service
+         */
+        $scope.choose = function() {
+            if ($scope.values.listSelect.length === 0) {
+                Growl('warning', 'Warning', 'No data selected!');
+                return;
+            }
+            // Aggregation of data in one single layer
+            if($scope.dataSelect.mergeData) {
+                var crs = "EPSG:3857";
+                var dataIds = $scope.values.listSelect.map(function (data) {
+                    return data.id;
+                });
+                if(!$scope.values.userLayerName) {
+                    $scope.values.userLayerName = $scope.values.listSelect[0].name;
+                }
+                Examind.datas.pyramidData(crs, $scope.values.userLayerName, dataIds).then(
+                    function(response){//success
+                        response = response.data;
+                        if(response.dataId && response.providerId) {
+                            Examind.map.addLayer($scope.service.type, $scope.service.identifier,
+                                {layerAlias: response.dataId,
+                                    layerId: response.dataId,
+                                    serviceType: $scope.service.type,
+                                    serviceId: $scope.service.identifier,
+                                    providerId: response.providerId}).then(
+                                function () {//success
+                                    Growl('success','Success','Layer successfully added to service '+$scope.service.name);
+                                    $scope.close();
+                                },
+                                function () {
+                                    Growl('error','Error','Layer failed to be added to service '+$scope.service.name);
+                                    $scope.dismiss();
+                                }
+                            );
+                        }
+                    },function(){//error
+                        Growl('error', 'Error', 'Failed to generate pyramid data');
+                    }
+                );
+            } else {
+                //using angular.forEach to avoid jsHint warning when declaring function in loop
+                angular.forEach($scope.values.listSelect, function(value){
+                    var providerId = value.provider;
+                    providerId = value.pyramidConformProviderId?value.pyramidConformProviderId:value.provider;
+                    Examind.map.addLayer($scope.service.type, $scope.service.identifier,
+                        {layerAlias: value.name,
+                            layerId: value.name,
+                            serviceType: $scope.service.type,
+                            serviceId: $scope.service.identifier,
+                            providerId: providerId,
+                            layerNamespace: value.namespace}).then(
+                        function(response) {//on success
+                            Growl('success', 'Success', response.data.message);
+                            $scope.close();
+                        },
+                        function(err) {//on error
+                            Growl('error', 'Error', err.data.message);
+                            $scope.dismiss();
+                        }
+                    );
+                });
+            }
+        };
+
+        $scope.goToLastStep = function() {
+            //get all layers in this wmts service to compare for existing layer names.
+            Examind.map.getLayers($scope.service.type,
+                $scope.service.identifier).then(
+                function (response) {//success
+                    $scope.values.listWMSLayers = response.data;
+                    if($scope.mode.display==='internal' && $scope.values.userLayerName === '' && $scope.values.listSelect.length===1){
+                        //set the layerName for singleton list
+                        var name = $scope.values.listSelect[0].name;
+                        if(!checkLayerName(name+'_pyramid')){
+                            $scope.values.userLayerName = name+'_pyramid';
+                        }else {
+                            $scope.values.userLayerName = '';
+                        }
+                    }else {
+                        $scope.values.userLayerName = '';
+                    }
+                    $scope.mode.previous=$scope.mode.display;
+                    $scope.mode.display='lastStep';
+                },function(){//error
+                    Growl('warning', 'Warning', 'An error occurred!');
+                }
+            );
+        };
+
+        function checkLayerName(name) {
+            if(name && name.length>0 &&
+                $scope.values.listWMSLayers && $scope.values.listWMSLayers.length>0){
+                for(var i=0;i<$scope.values.listWMSLayers.length;i++){
+                    var lay=$scope.values.listWMSLayers[i];
+                    if(lay.name === name || lay.alias === name) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        $scope.submitWMSLayer = function () {
+            if ($scope.values.selectedProjection && $scope.values.selectedProjection.code) {
+                $scope.crs = $scope.values.selectedProjection.code;
+            } else {
+                $scope.values.selectedProjection = DEFAULT_PROJECTION;
+            }
+            if ($scope.values.selectedContext === null) {
+                Growl('warning', 'Warning', 'No map context selected!');
+                return;
+            }
+            Examind.mapcontexts.pyramidMapContext($scope.values.selectedContext.id,
+                $scope.crs,
+                $scope.values.userLayerName).then(
+                function (response) {//on success
+                    response = response.data;
+                    if (response.dataId && response.providerId) {
+                        Examind.map.addLayer($scope.service.type, $scope.service.identifier,
+                            {
+                                layerAlias: response.dataId,
+                                layerId: response.dataId,
+                                serviceType: $scope.service.type,
+                                serviceId: $scope.service.identifier,
+                                providerId: response.providerId
+                            }).then(
+                            function () {//success
+                                Growl('success', 'Success', 'Layer successfully added to service ' + $scope.service.name);
+                                $scope.close();
+                            },
+                            function () {
+                                Growl('error', 'Error', 'Layer failed to be added to service ' + $scope.service.name);
+                                $scope.dismiss();
+                            }
+                        );
+                    }
+                },
+                function () {//on error
+                    Growl('error', 'Error', 'Failed to generate pyramid data');
+                }
+            );
+        };
+
+        $scope.isValidWMSLayerName = function(){
+            var letters = /^[A-Za-zàèìòùáéíóúäëïöüñãõåæøâêîôû0-9\-_]+$/;
+            var name = $scope.values.userLayerName;
+            var passRegEx = false;
+            if(name && name.match(letters)) {
+                passRegEx = true;
+            }
+            return passRegEx;
+        };
+
+        $scope.isLayerNameExists = function() {
+            return checkLayerName($scope.values.userLayerName);
+        };
+
+        $scope.dismiss = function() {
+            $modalInstance.dismiss('close');
+        };
+
+        $scope.close = function() {
+            $modalInstance.close();
+        };
+    })
     .controller('Step1WMTSInternalDataController', function($scope, Dashboard,
                                                             Examind, $cookieStore,$filter) {
         /**
@@ -1178,6 +1401,155 @@ angular.module('cstl-webservice-edit', [
         };
 
         $scope.initInternalDataWMTS();
+    })
+    /**
+     * Controller of WMS internal data
+     */
+    .controller('Step1WMSInternalDataController', function($scope, Dashboard, Growl, Examind, $cookieStore, $filter) {
+        /**
+         * To fix angular bug with nested scope.
+         */
+
+
+        $scope.clickFilter = function(ordType){
+            $scope.wrap.ordertype = ordType;
+            $scope.wrap.orderreverse = !$scope.wrap.orderreverse;
+        };
+
+        $scope.initInternalDataWMS = function() {
+            Examind.datas.getDataListLight(false).then(function (response) {
+                var dataList = response.data;
+                Dashboard($scope, dataList, false);
+            });
+            setTimeout(function(){
+                $scope.previewData();
+            },300);
+        };
+
+        $scope.previewData = function() {
+            //clear the map
+            if (DataViewer.map) {
+                DataViewer.map.setTarget(undefined);
+            }
+            var cstlUrl = $cookieStore.get('cstlUrl');
+            DataViewer.initConfig();
+            if($scope.values.listSelect.length >0){
+                var layerName,providerId;
+                for(var i=0;i<$scope.values.listSelect.length;i++){
+                    var dataItem = $scope.values.listSelect[i];
+                    if (dataItem.namespace) {
+                        layerName = '{' + dataItem.namespace + '}' + dataItem.name;
+                    } else {
+                        layerName = dataItem.name;
+                    }
+                    providerId = dataItem.provider;
+                    var layerData;
+                    var type = dataItem.type?dataItem.type.toLowerCase():null;
+                    if (dataItem.targetStyle && dataItem.targetStyle.length > 0) {
+                        layerData = DataViewer.createLayerWithStyle(cstlUrl,dataItem.id,layerName,
+                            dataItem.targetStyle[0].name,null,null,type!=='vector');
+                    } else {
+                        layerData = DataViewer.createLayer(cstlUrl,dataItem.id,layerName,null,type!=='vector');
+                    }
+                    //to force the browser cache reloading styled layer.
+                    layerData.get('params').ts=new Date().getTime();
+                    DataViewer.layers.push(layerData);
+                }
+                var dataIds = $scope.values.listSelect.map(function (value) {
+                    return value.id;
+                });
+                Examind.datas.mergedDataExtent(dataIds).then(
+                    function(response) {// on success
+                        DataViewer.initMap('styledMapPreviewForWMTS');
+                        if(response.data && response.data.boundingBox) {
+                            var bbox = response.data.boundingBox;
+                            var extent = [bbox[0],bbox[1],bbox[2],bbox[3]];
+                            DataViewer.zoomToExtent(extent,DataViewer.map.getSize(),false);
+                        }
+                    }, function() {//on error
+                        // failed to calculate an extent, just load the full map
+                        DataViewer.initMap('styledMapPreviewForWMTS');
+                    }
+                );
+            }else {
+                DataViewer.initMap('styledMapPreviewForWMTS');
+                DataViewer.map.getView().setZoom(DataViewer.map.getView().getZoom()+1);
+            }
+        };
+
+        /**
+         * Proceed to select all items of dashboard
+         * depending on the property binded to checkbox.
+         */
+        $scope.selectAllData = function() {
+            var array = $filter('filter')($scope.wrap.fullList, {'type':$scope.wrap.filtertype, '$': $scope.wrap.filtertext},$scope.wrap.matchExactly);
+            $scope.values.listSelect = ($scope.dataSelect.all) ? array.slice(0) : [];
+            $scope.previewData();
+        };
+        /**
+         * binding call when clicking on each row item.
+         */
+        $scope.toggleDataInArray = function(item){
+            var itemExists = false;
+            for (var i = 0; i < $scope.values.listSelect.length; i++) {
+                if ($scope.values.listSelect[i].id === item.id) {
+                    itemExists = true;
+                    $scope.values.listSelect.splice(i, 1);//remove item
+                    break;
+                }
+            }
+            if(!itemExists){
+                $scope.values.listSelect.push(item);
+            }
+            $scope.dataSelect.all=($scope.values.listSelect.length === $scope.wrap.fullList.length);
+            $scope.previewData();
+
+        };
+        /**
+         * Returns true if item is in the selected items list.
+         * binding function for css purposes.
+         * @param item
+         * @returns {boolean}
+         */
+        $scope.isInSelected = function(item){
+            for(var i=0; i < $scope.values.listSelect.length; i++){
+                if($scope.values.listSelect[i].id === item.id){
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        $scope.setTargetStyle = function(data,index) {
+            var tmp = data.targetStyle.splice(index,1);
+            data.targetStyle.unshift(tmp[0]);
+            $scope.previewData();
+        };
+
+        /**
+         * truncate text with JS.
+         * Why not use CSS for this?
+         *
+         * css rule is
+         * {
+         *  width: 100px
+         *  white-space: nowrap
+         *  overflow: hidden
+         *  text-overflow: ellipsis // This is where the magic happens
+         *  }
+         *
+         * @param text
+         * @param length
+         * @returns {string}
+         */
+        $scope.truncate = function(text,length){
+            if(text) {
+                return (text.length > length) ? text.substr(0, length) + "..." : text;
+            }
+        };
+
+        $scope.initInternalDataWMS();
+
     })
 
     .controller('Step1WMTSMapContextController', function($scope, Dashboard,Growl, $cookieStore, Examind) {
