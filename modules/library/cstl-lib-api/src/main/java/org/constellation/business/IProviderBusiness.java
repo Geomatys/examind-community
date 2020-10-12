@@ -156,6 +156,10 @@ public interface IProviderBusiness {
 
     void removeAll() throws ConfigurationException;
 
+    /**
+     * @deprecated TODO change the column type to int
+     */
+    @Deprecated
     void updateParent(String id, String providerId);
 
     List<Integer> getProviderIdsAsInt();

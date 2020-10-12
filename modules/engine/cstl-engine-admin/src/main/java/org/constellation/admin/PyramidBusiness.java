@@ -39,7 +39,6 @@ import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.measure.NumberRange;
 import org.apache.sis.parameter.Parameters;
-import org.apache.sis.portrayal.MapLayer;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.crs.AbstractCRS;
 import org.apache.sis.referencing.cs.AxesConvention;
@@ -143,11 +142,14 @@ public class PyramidBusiness implements IPyramidBusiness {
     @Inject
     private ProviderRepository providerRepository;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public TilingResult pyramidDatasRendered(Integer userId, String pyramidDataName, List<Integer> dataIds, final String crs) throws ConstellationException {
+    public TilingResult pyramidDatas(Integer userId, String pyramidDataName, List<Integer> dataIds, final String crs, String tilingMode) throws ConstellationException {
 
         // this method need to be executed in a transaction
-        TilingContext t = preparePyramidDatasRendered(userId, pyramidDataName, dataIds, crs, "rgb");
+        TilingContext t = preparePyramidDatas(userId, pyramidDataName, dataIds, crs, tilingMode);
 
         //add task in scheduler (previous transaction must be commited)
         processBusiness.runProcess("Create " + t.contextName, t.p, t.taskId, userId);
@@ -155,8 +157,11 @@ public class PyramidBusiness implements IPyramidBusiness {
         return new TilingResult(t.pyramidIdentifier, t.pyramidDataName, t.taskId, t.pyDataId);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Transactional
-    private TilingContext preparePyramidDatasRendered(Integer userId, String pyramidDataName, List<Integer> dataIds, final String crs, String tilingMode) throws ConstellationException {
+    private TilingContext preparePyramidDatas(Integer userId, String pyramidDataName, List<Integer> dataIds, final String crs, String tilingMode) throws ConstellationException {
         // verify CRS validity
         final CoordinateReferenceSystem coordsys = verifyCrs(crs, true);
 
@@ -179,21 +184,22 @@ public class PyramidBusiness implements IPyramidBusiness {
             GeneralEnvelope globalEnv = null;
             final MapLayers context = MapBuilder.createContext();
             for (final DataBrief db : briefs) {
-                final String providerIdentifier = db.getProvider();
-                final String dataName = db.getName();
+                final String dataName    = db.getName();
+                final String namespace   = db.getNamespace();
+                final Integer providerId = db.getProviderId();
 
                 //get data
                 final DataProvider inProvider;
                 try {
-                    inProvider = DataProviders.getProvider(db.getProviderId());
+                    inProvider = DataProviders.getProvider(providerId);
                 } catch (ConfigurationException ex) {
-                    LOGGER.log(Level.WARNING, "Provider " + providerIdentifier + " does not exist");
+                    LOGGER.log(Level.WARNING, "Provider " + providerId + " does not exist");
                     continue;
                 }
 
-                final Data inD = inProvider.get(NamesExt.create(dataName));
+                final Data inD = inProvider.get(namespace, dataName);
                 if (!(inD instanceof GeoData)) {
-                    LOGGER.log(Level.WARNING, "Data " + dataName + " does not exist in provider " + providerIdentifier + " (or is not a GeoData)");
+                    LOGGER.log(Level.WARNING, "Data " + dataName + " does not exist in provider " + providerId + " (or is not a GeoData)");
                     continue;
                 }
                 final GeoData inData = (GeoData) inD;
@@ -307,10 +313,10 @@ public class PyramidBusiness implements IPyramidBusiness {
     }
 
     @Override
-    public TilingResult pyramidMapContextRendered(Integer userId, String pyramidDataName, final String crs, final MapContextLayersDTO mc) throws ConstellationException {
+    public TilingResult pyramidMapContext(Integer userId, String pyramidDataName, final String crs, final MapContextLayersDTO mc, String mode) throws ConstellationException {
 
         // this method need to be executed in a transaction
-        TilingContext t = preparePyramidMapContextRendered(userId, pyramidDataName, crs, mc, "rgb");
+        TilingContext t = preparePyramidMapContext(userId, pyramidDataName, crs, mc, mode);
 
         //add task in scheduler (previous transaction must be commited)
         processBusiness.runProcess("Create " + t.contextName, t.p, t.taskId, userId);
@@ -319,7 +325,7 @@ public class PyramidBusiness implements IPyramidBusiness {
     }
 
     @Transactional
-    private TilingContext preparePyramidMapContextRendered(Integer userId, String pyramidDataName, final String crs, final MapContextLayersDTO mc, String tilingMode) throws ConstellationException {
+    private TilingContext preparePyramidMapContext(Integer userId, String pyramidDataName, final String crs, final MapContextLayersDTO mc, String tilingMode) throws ConstellationException {
 
         // verify CRS validity
         final CoordinateReferenceSystem crsOutput = verifyCrs(crs, false);
@@ -357,7 +363,7 @@ public class PyramidBusiness implements IPyramidBusiness {
 
         for (final MapContextStyledLayerDTO layer : mc.getLayers()) {
 
-            final String providerIdentifier = layer.getProvider();
+            final Integer providerIdentifier = layer.getProviderId();
             final String dataName = layer.getName();
             if (providerIdentifier == null) {
                 URL serviceUrl;
@@ -475,32 +481,32 @@ public class PyramidBusiness implements IPyramidBusiness {
 
     @Transactional
     private TilingContext preparePyramidDataConform(final int dataId, final int userId) throws ConstellationException {
-        final DataBrief inData = dataBusiness.getDataBrief(dataId);
-        if (inData != null){
-            final String pyramidDataName = inData.getName();
-            final String namespace = inData.getNamespace();
-            final String providerId = inData.getProvider();
+        final DataBrief db = dataBusiness.getDataBrief(dataId);
+        if (db != null){
+            final String dataName    = db.getName();
+            final String namespace   = db.getNamespace();
+            final Integer providerId = db.getProviderId();
 
             //get data
             final DataProvider inProvider;
             try {
-                inProvider = DataProviders.getProvider(inData.getProviderId());
+                inProvider = DataProviders.getProvider(providerId);
             } catch (ConfigurationException ex) {
                 throw new ConstellationException(ex.getMessage(),ex);
             }
             if (inProvider == null) {
                 throw new ConstellationException("Provider " + providerId + " does not exist");
             }
-            final org.constellation.provider.Data providerData = inProvider.get(namespace, pyramidDataName);
+            final Data providerData = inProvider.get(namespace, dataName);
             if (providerData == null) {
-                throw new ConstellationException("Data " + pyramidDataName + " does not exist in provider " + providerId);
+                throw new ConstellationException("Data " + dataName + " does not exist in provider " + providerId);
             }
             Envelope dataEnv;
             try {
                 //use data crs
                 dataEnv = providerData.getEnvelope();
             } catch (ConstellationStoreException ex) {
-                throw new ConstellationException("Failed to extract envelope for data " + pyramidDataName + ". " + ex.getMessage(),ex);
+                throw new ConstellationException("Failed to extract envelope for data " + dataName + ". " + ex.getMessage(),ex);
             }
 
             final Object origin = providerData.getOrigin();
@@ -515,52 +521,11 @@ public class PyramidBusiness implements IPyramidBusiness {
             try {
                 gg = inRef.getGridGeometry();
             } catch (DataStoreException ex) {
-                throw new ConstellationException("Failed to extract grid geometry for data " + pyramidDataName + ". " + ex.getMessage(),ex);
+                throw new ConstellationException("Failed to extract grid geometry for data " + dataName + ". " + ex.getMessage(),ex);
             }
 
             //find the type of data we are dealing with, geophysic or photographic
-            try {
-                final List<SampleDimension> sampleDimensions = inRef.getSampleDimensions();
-                if (sampleDimensions != null) {
-                    final int nbBand = sampleDimensions.size();
-                    boolean hasCategories = false;
-                    for (int i = 0; i < nbBand; i++) {
-                        hasCategories = hasCategories || sampleDimensions.get(i).getCategories() != null;
-                    }
-
-                    if (!hasCategories) {
-                        //no sample dimension categories, we force some categories
-                        //this is a bypass solution to avoid black border images in pyramids
-                        //note : we need a pyramid storage model that doesn't produce any pixels
-                        //outside the original coverage area
-
-                        RenderedImage img = readSmallImage(inRef, gg);
-
-                        final List<SampleDimension> newDims = new ArrayList<>();
-                        for (int i = 0; i < nbBand; i++) {
-                            final SampleDimension sd = sampleDimensions.get(i);
-                            final int dataType = img.getSampleModel().getDataType();
-                            NumberRange range;
-                            switch (dataType) {
-                                case DataBuffer.TYPE_BYTE : range = NumberRange.create(0, true, 255, true); break;
-                                case DataBuffer.TYPE_SHORT : range = NumberRange.create(Short.MIN_VALUE, true, Short.MAX_VALUE, true); break;
-                                case DataBuffer.TYPE_USHORT : range = NumberRange.create(0, true, 0xFFFF, true); break;
-                                case DataBuffer.TYPE_INT : range = NumberRange.create(Integer.MIN_VALUE, true, Integer.MAX_VALUE, true); break;
-                                default : range = NumberRange.create(-Double.MAX_VALUE, true, +Double.MAX_VALUE, true); break;
-                            }
-
-                            final SampleDimension nsd = new SampleDimension.Builder()
-                                    .setName(sd.getName())
-                                    .addQuantitative("data", range, (MathTransform1D) MathTransforms.linear(1, 0), sd.getUnits().orElse(null))
-                                    .build();
-                            newDims.add(nsd);
-                        }
-                        inRef = new ForcedSampleDimensionsCoverageResource(inRef, newDims);
-                    }
-                }
-            } catch (DataStoreException ex) {
-                throw new ConstellationException("Failed to extract no-data values for resampling " + ex.getMessage(),ex);
-            }
+            inRef = ForceSampleDimensions(inRef, gg);
 
             final String pyramidIdentifier = CONFORM_PREFIX + UUID.randomUUID().toString();
 
@@ -569,8 +534,8 @@ public class PyramidBusiness implements IPyramidBusiness {
             Integer pyDataId;
 
             //create the output provider
-            final GenericName pGname       = NamesExt.create(namespace,pyramidDataName);
-            final Integer pyramidProvider  = createPyramidProvider(pyramidIdentifier, pGname, true, "conform", "TIFF", gg, null, 256, null);
+            final GenericName pGname       = NamesExt.create(namespace,dataName);
+            final Integer pyramidProvider  = createPyramidProvider(pyramidIdentifier, pGname, true, "conform", "TIFF", gg, dataEnv, 256, null);
             final DataProvider outProvider = DataProviders.getProvider(pyramidProvider);
 
             Data pyData = outProvider.get(pGname);
@@ -588,13 +553,13 @@ public class PyramidBusiness implements IPyramidBusiness {
                 pyDataId = createdDataIds.get(0);
 
                 // Update the parent attribute of the created provider
-                providerBusiness.updateParent(outProvider.getId(), providerId);
+                providerBusiness.updateParent(outProvider.getId(), db.getProvider());
 
                 //set rendered attribute to false to indicates that this pyramid can have stats.
                 dataBusiness.updateDataRendered(pyDataId, false);
 
                 // link original data with the tiled data.
-                dataBusiness.linkDataToData(inData.getId(), pyDataId);
+                dataBusiness.linkDataToData(db.getId(), pyDataId);
 
             } else if (createdDataIds.size()> 1) {
                 // i don't think this could happen
@@ -611,12 +576,12 @@ public class PyramidBusiness implements IPyramidBusiness {
             t.contextName = context.getIdentifier();
             t.pyDataId = pyDataId;
             t.pyramidIdentifier = pyramidIdentifier;
-            t.pyramidDataName = pyramidDataName;
+            t.pyramidDataName = dataName;
             return t;
         }
         throw new ConstellationException("Data "+ dataId +" not found.");
     }
-
+    
     private static final class TilingContext {
         public String pyramidDataName;
         public String contextName;
@@ -628,6 +593,52 @@ public class PyramidBusiness implements IPyramidBusiness {
             this.p = p;
             this.taskId = taskId;
         }
+    }
+
+    private GridCoverageResource ForceSampleDimensions(GridCoverageResource inRef, GridGeometry gg) throws ConstellationException {
+        try {
+            final List<SampleDimension> sampleDimensions = inRef.getSampleDimensions();
+            if (sampleDimensions != null) {
+                final int nbBand = sampleDimensions.size();
+                boolean hasCategories = false;
+                for (int i = 0; i < nbBand; i++) {
+                    hasCategories = hasCategories || sampleDimensions.get(i).getCategories() != null;
+                }
+
+                if (!hasCategories) {
+                    //no sample dimension categories, we force some categories
+                    //this is a bypass solution to avoid black border images in pyramids
+                    //note : we need a pyramid storage model that doesn't produce any pixels
+                    //outside the original coverage area
+
+                    RenderedImage img = readSmallImage(inRef, gg);
+
+                    final List<SampleDimension> newDims = new ArrayList<>();
+                    for (int i = 0; i < nbBand; i++) {
+                        final SampleDimension sd = sampleDimensions.get(i);
+                        final int dataType = img.getSampleModel().getDataType();
+                        NumberRange range;
+                        switch (dataType) {
+                            case DataBuffer.TYPE_BYTE : range = NumberRange.create(0, true, 255, true); break;
+                            case DataBuffer.TYPE_SHORT : range = NumberRange.create(Short.MIN_VALUE, true, Short.MAX_VALUE, true); break;
+                            case DataBuffer.TYPE_USHORT : range = NumberRange.create(0, true, 0xFFFF, true); break;
+                            case DataBuffer.TYPE_INT : range = NumberRange.create(Integer.MIN_VALUE, true, Integer.MAX_VALUE, true); break;
+                            default : range = NumberRange.create(-Double.MAX_VALUE, true, +Double.MAX_VALUE, true); break;
+                        }
+
+                        final SampleDimension nsd = new SampleDimension.Builder()
+                                .setName(sd.getName())
+                                .addQuantitative("data", range, (MathTransform1D) MathTransforms.linear(1, 0), sd.getUnits().orElse(null))
+                                .build();
+                        newDims.add(nsd);
+                    }
+                    inRef = new ForcedSampleDimensionsCoverageResource(inRef, newDims);
+                }
+            }
+        } catch (DataStoreException ex) {
+            throw new ConstellationException("Failed to extract no-data values for resampling " + ex.getMessage(),ex);
+        }
+        return inRef;
     }
 
     private TilingContext buildTilingProcess(Integer userId, MultiResolutionResource outRef, MapLayers context, String mode) throws ConstellationException {

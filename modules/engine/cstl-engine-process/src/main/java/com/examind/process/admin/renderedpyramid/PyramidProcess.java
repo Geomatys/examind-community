@@ -23,11 +23,16 @@ import org.geotoolkit.processing.AbstractProcess;
 import org.geotoolkit.processing.AbstractProcessDescriptor;
 import org.geotoolkit.processing.ForwardProcessListener;
 import org.geotoolkit.storage.coverage.CoverageTileGenerator;
+import org.geotoolkit.storage.coverage.mosaic.AggregatedCoverageResource;
+import org.geotoolkit.storage.coverage.mosaic.AggregatedCoverageResource.Mode;
+import org.geotoolkit.storage.coverage.mosaic.AggregatedCoverageResource.Source;
+import org.geotoolkit.storage.coverage.mosaic.AggregatedCoverageResource.VirtualBand;
 import org.geotoolkit.storage.multires.TileMatrices;
 import org.geotoolkit.storage.multires.TileMatrixSet;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
+import org.opengis.referencing.operation.TransformException;
 import org.springframework.stereotype.Component;
 
 /**
@@ -102,22 +107,31 @@ public class PyramidProcess extends AbstractProcessDescriptor implements AdminPr
             switch (mode) {
                 case "rgb" : generator = new MapContextTileGenerator(context, new Hints(Hints.KEY_ANTIALIASING, Hints.VALUE_ANTIALIAS_ON)); break;
                 case "data" : {
-                    final List<GridCoverageResource> resources = new ArrayList<>();
+                    GridCoverageResource singleRes = null;
+                    List<AggregatedCoverageResource.VirtualBand> bands = new ArrayList<>();
                     for (MapLayer layer : MapBuilder.getLayers(context)) {
                         Resource res = layer.getData();
                         if (res instanceof GridCoverageResource) {
-                            final GridCoverageResource candidate = (GridCoverageResource) res;
-                            resources.add(candidate);
+                            singleRes = (GridCoverageResource) res;
+                            VirtualBand v = new VirtualBand();
+                            v.setSources(new Source(singleRes, 0));
+                            bands.add(v);
                         }
                     }
-
-                    if (resources.size() != 1) {
-                        throw new ProcessException("MapContext must contain a single coverage layer ", this);
+                    
+                    if (bands.isEmpty()) {
+                        throw new ProcessException("MapContext must contain at least one coverage layer ", this);
+                    } else if (bands.size() > 1) {
+                        try {
+                            singleRes = new AggregatedCoverageResource(bands, Mode.ORDER, context.getCoordinateReferenceSystem());
+                        } catch (DataStoreException | TransformException ex) {
+                            throw new ProcessException(ex.getMessage(), this, ex);
+                        }
                     }
-
+                    
                     CoverageTileGenerator ctg;
                     try {
-                        ctg = new CoverageTileGenerator(resources.get(0));
+                        ctg = new CoverageTileGenerator(singleRes);
                     } catch (DataStoreException ex) {
                         throw new ProcessException(ex.getMessage(), this, ex);
                     }

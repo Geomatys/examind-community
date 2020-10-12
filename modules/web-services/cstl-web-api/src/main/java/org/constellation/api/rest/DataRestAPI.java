@@ -626,16 +626,21 @@ public class DataRestAPI extends AbstractRestAPI{
      * @param crs
      * @param layerName
      * @param dataIds
+     * @param mode
      * @param req
      * @return
      */
     @RequestMapping(value="/datas/pyramid",method=POST,consumes=APPLICATION_JSON_VALUE,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity pyramidDatas(@RequestParam("crs") final String crs, @RequestParam("layerName") final String layerName,
-            @RequestBody final List<Integer> dataIds, HttpServletRequest req) {
+    public ResponseEntity pyramidDatas(
+            @RequestParam("crs") final String crs, 
+            @RequestParam("layerName") final String layerName,
+            @RequestBody final List<Integer> dataIds,
+            @RequestParam(name = "mode", defaultValue = "rgb") final String mode, 
+            HttpServletRequest req) {
         try {
 
             int userId = assertAuthentificated(req);
-            final TilingResult ref = pyramidBusiness.pyramidDatasRendered(userId, layerName, dataIds, crs);
+            final TilingResult ref = pyramidBusiness.pyramidDatas(userId, layerName, dataIds, crs, mode);
             return new ResponseEntity(ref, OK);
         } catch (ConstellationException ex) {
             return new ErrorMessage().message(ex.getMessage()).build();

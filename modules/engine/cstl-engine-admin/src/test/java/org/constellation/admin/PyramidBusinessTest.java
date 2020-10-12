@@ -31,7 +31,6 @@ import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.storage.GridCoverageResource;
-import org.apache.sis.storage.Resource;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.api.TaskState;
 import org.constellation.business.IDataBusiness;
@@ -42,10 +41,8 @@ import org.constellation.business.IPyramidBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.MapContextLayersDTO;
-import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.TilingResult;
 import org.constellation.dto.process.Task;
-import org.constellation.exception.ConfigurationException;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
@@ -181,7 +178,7 @@ public class PyramidBusinessTest {
 
         Assert.assertEquals(1, dataIds.size());
 
-        TilingResult result = pyramidBusiness.pyramidDatasRendered(1, "my_pyramid", dataIds, "CRS:84");
+        TilingResult result = pyramidBusiness.pyramidDatas(1, "my_pyramid", dataIds, "CRS:84", "rgb");
 
         Assert.assertEquals("my_pyramid", result.getDataId());
         Assert.assertNotNull(result.getTaskId());
@@ -257,7 +254,7 @@ public class PyramidBusinessTest {
 
         MapContextLayersDTO mapContext = mpBusiness.findMapContextLayers(mpId);
 
-        TilingResult result = pyramidBusiness.pyramidMapContextRendered(1, "my_pyramid_context", "CRS:84", mapContext);
+        TilingResult result = pyramidBusiness.pyramidMapContext(1, "my_pyramid_context", "CRS:84", mapContext, "rgb");
 
         Assert.assertEquals("my_pyramid_context", result.getDataId());
         Assert.assertNotNull(result.getTaskId());

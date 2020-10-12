@@ -437,6 +437,7 @@ public class MapContextRestAPI extends AbstractRestAPI {
             @RequestParam("crs") final String crs,
             @RequestParam("layerName") final String layerName,
             @PathVariable("id") final Integer contextId,
+            @RequestParam(name = "mode", defaultValue = "rgb") final String mode,
             HttpServletRequest req) {
 
         final int userId;
@@ -457,7 +458,7 @@ public class MapContextRestAPI extends AbstractRestAPI {
         }
 
         try {
-            final TilingResult ref = pyramidBusiness.pyramidMapContextRendered(userId, layerName, crs, mc);
+            final TilingResult ref = pyramidBusiness.pyramidMapContext(userId, layerName, crs, mc, mode);
             return new ResponseEntity(ref, OK);
 
         } catch (Exception ex) {
