@@ -19,6 +19,7 @@
 package org.constellation.ws.embedded;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.File;
 import org.constellation.dto.service.config.Languages;
 import org.constellation.dto.service.config.Language;
 import org.constellation.configuration.ConfigDirectory;
@@ -235,6 +236,11 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "X=60&StYlEs=&LaYeRs=Lakes&"
             + "SrS=EPSG:4326&WiDtH=200&HeIgHt=100&Y=60";
 
+    /**
+     * The queried line should cross SSTMDE200305 on following pixel coordinates:
+     * Start -> X: 338.11 ; Y: 213.8709 ; value: 200
+     * End   -> X: 338.82 ; Y: 214.8083 ; value: 0
+     */
     private static final String WMS_GETFEATUREINFO_PROFILE_COV = "QuErY_LaYeRs=" + LAYER_TEST + "&BbOx=0,-0.0020,0.0040,0&"
             + "FoRmAt=image/gif&ReQuEsT=GetFeatureInfo&"
             + "VeRsIoN=1.1.1&InFo_fOrMaT=application/json;%20subtype=profile&"
@@ -1714,24 +1720,11 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             return;
         }
 
-        /*
-        Expected result (for reference):
-        String expResult = "{\"layers\":[" +
-                "{\"name\":\"SSTMDE200305\",\"titles\":[\"SSTMDE200305\"],\"data\":[" +
-                  "{\"unit\":null,\"min\":200.0,\"max\":201.0,\"points\":[" +
-                    "{\"x\":0,\"y\":201.0}," +
-                    "{\"x\":14.197050942634485,\"y\":200.6666}," +
-                    "{\"x\":26.046030239075687,\"y\":200.0}," +
-                    "{\"x\":39.520943396902965,\"y\":200.0}," +
-                    "{\"x\":53.45248543862765,\"y\":201.0}" +
-                  "]}" +
-                "],\"message\":null}]}";
-         */
         String result = getStringResponse(gfi);
         assertNotNull(result);
-        //assertEquals(expResult, result);
 
-        System.out.println(result);
+        LOGGER.fine(result);
+
         // Note: do not check directly text representation, as field ordering could arbitrarily change on serialization/ and precison change with JDK version.
         final Map binding = new ObjectMapper().readValue(result, Map.class);
         assertNotNull("result is empty", binding);
@@ -1746,27 +1739,27 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertEquals("A single data result should be returned", 1, datas.size());
         Map data = (Map) datas.get(0);
 
-        assertEquals("min property", 200.0, data.get("min"));
-        assertEquals("max property", 201.0, data.get("max"));
+        assertEquals("min property", 0.0, data.get("min"));
+        assertEquals("max property", 200.0, data.get("max"));
 
         List<Map> points = (List) data.get("points");
 
         assertEquals("9 points should be returned", 5, points.size());
 
-        assertEquals("pt0 X property", 0,        (double)points.get(0).get("x"), 1e-4);
-        assertEquals("pt0 Y property", 201.0,    (double)points.get(0).get("y"), 1e-4);
+        assertEquals("pt0 X property", 0,      (double)points.get(0).get("x"), 1e-2);
+        assertEquals("pt0 Y property", 200.0,  (double)points.get(0).get("y"), 1e-2);
 
-        assertEquals("pt1 X property", 14.19705, (double)points.get(1).get("x"), 1e-4);
-        assertEquals("pt1 Y property", 200.6666, (double)points.get(1).get("y"), 1e-4);
+        assertEquals("pt1 X property", 6.34,   (double)points.get(1).get("x"), 1e-2);
+        assertEquals("pt1 Y property", 133.33, (double)points.get(1).get("y"), 1e-2);
 
-        assertEquals("pt2 X property", 26.04603, (double)points.get(2).get("x"), 1e-4);
-        assertEquals("pt2 Y property", 200.0,    (double)points.get(2).get("y"), 1e-4);
+        assertEquals("pt2 X property", 25.25,  (double)points.get(2).get("x"), 1e-2);
+        assertEquals("pt2 Y property", 0.0,    (double)points.get(2).get("y"), 1e-2);
 
-        assertEquals("pt3 X property", 39.52094, (double)points.get(3).get("x"), 1e-4);
-        assertEquals("pt3 Y property", 200.0,    (double)points.get(3).get("y"), 1e-4);
+        assertEquals("pt3 X property", 39.32,  (double)points.get(3).get("x"), 1e-2);
+        assertEquals("pt3 Y property", 0.0,    (double)points.get(3).get("y"), 1e-2);
 
-        assertEquals("pt4 X property", 53.45248, (double)points.get(4).get("x"), 1e-4);
-        assertEquals("pt4 Y property", 201.0,    (double)points.get(4).get("y"), 1e-4);
+        assertEquals("pt4 X property", 53.439, (double)points.get(4).get("x"), 1e-2);
+        assertEquals("pt4 Y property", 0.0,    (double)points.get(4).get("y"), 1e-2);
     }
 
     @Test
