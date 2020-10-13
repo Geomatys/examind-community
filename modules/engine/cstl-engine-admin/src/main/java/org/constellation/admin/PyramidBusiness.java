@@ -208,9 +208,13 @@ public class PyramidBusiness implements IPyramidBusiness {
                 //if style is null, a default style will be used in maplayer.
                 MutableStyle style = null;
                 try {
-                    final StyleBrief styleb = db.getFirstStyle();
-                    if (styleb != null) {
-                        style = (MutableStyle) styleBusiness.getStyle(styleb.getId());
+                    final StyleBrief styleB = db.getFirstStyle();
+                    if (styleB != null) {
+                        if (styleB.getId() != null) {
+                            style = (MutableStyle) styleBusiness.getStyle(styleB.getId());
+                        } else {
+                            LOGGER.warning("Map context layer style ignored (no id)");
+                        }
                     }
                 } catch (Exception ex) {
                     LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
@@ -389,7 +393,11 @@ public class PyramidBusiness implements IPyramidBusiness {
             try {
                 final StyleBrief styleB = layer.getFirstStyle();
                 if (styleB != null) {
-                    style = (MutableStyle) styleBusiness.getStyle(styleB.getId());
+                    if (styleB.getId() != null) {
+                        style = (MutableStyle) styleBusiness.getStyle(styleB.getId());
+                    } else {
+                        LOGGER.warning("Map context layer style ignored (no id)");
+                    }
                 }
             } catch (Exception ex) {
                 LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);

@@ -432,7 +432,6 @@ public class MapContextRestAPI extends AbstractRestAPI {
         }
     }
 
-    @Transactional
     @RequestMapping(value="/mapcontexts/{id}/pyramid",method=GET,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity pyramidMapContext(
             @RequestParam("crs") final String crs,
