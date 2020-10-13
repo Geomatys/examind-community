@@ -327,8 +327,6 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
                 var externalStyle;
                 if(layObj.layer.externalServiceUrl){
                     externalStyle = (layObj.styleObj) ? layObj.styleObj.name : (layObj.layer.externalStyle)?layObj.layer.externalStyle:null;
-                }else {
-                    externalStyle = (layObj.styleObj) ? layObj.styleObj.name:(layObj.layer.externalStyle) ? layObj.layer.externalStyle : null;
                 }
                 $scope.layers.toSend.push({
                     mapcontextId: (ctxt) ? ctxt.id : null,

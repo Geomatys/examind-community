@@ -41,7 +41,7 @@
                                    ng-required="true"
                                    placeholder="{{'service.edit.dashboard.wmts.select.fillName' | translate}}"
                                    name="layerNameField"/>
-                            <div ng-if="!isValidWMTSLayerName()"
+                            <div ng-if="!isValidWMSLayerName()"
                                  class="col-xs-12 col-sm-12 col-md-12 col-lg-12 control-error animate">
                                 <i class="fa fa-caret-up"></i>
                                 <span translate="service.edit.dashboard.wmts.validation.name">The name is required and should not contain any special characters or space characters.</span>
@@ -73,11 +73,6 @@
                                    typeahead="crs as crs.desc for crs in values.epsgList | filter:{desc:$viewValue} | limitTo:8"
                                    class="form-control"
                                    placeholder="{{'layer.listing.data.upload.typeEPSG' | translate}}"/>
-                            <div ng-if="values.selectedProjection.code != '3857'"
-                                 class="col-xs-12 col-sm-12 col-md-12 col-lg-12 control-warning animate">
-                                <i class="fa fa-warning"></i>
-                                <span translate="service.edit.dashboard.wmts.warning.projectionChange"></span>
-                            </div>
                         </div>
                     </div>
 
