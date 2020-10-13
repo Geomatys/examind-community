@@ -108,6 +108,7 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
 
                 writeResourceDataFile(hostedDirectory, "org/constellation/embedded/test/inputGeom1.xml", "inputGeom1.xml");
                 writeResourceDataFile(hostedDirectory, "org/constellation/embedded/test/inputGeom2.xml", "inputGeom2.xml");
+                writeResourceDataFile(hostedDirectory, "org/constellation/embedded/test/SimpleType.xsd", "SimpleType.xsd");
 
                 ProcessFactory geotkFacto = new ProcessFactory("geotoolkit", true);
                 ProcessFactory exaFacto = new ProcessFactory("examind", false);
@@ -884,5 +885,58 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
         sb.append(expected).append("\nbut was:\n");
         sb.append(result);
         assertTrue(sb.toString(), eq);
+    }
+    
+    @Test
+    @Order(order=12)
+    public void testWPSExecuteFeatureSetInputOutputXML() throws Exception {
+
+        initWPSServer();
+
+        // Creates a valid Execute url.
+        final URL executeUrl = new URL("http://localhost:"+ getCurrentPort() +"/WS/wps/default?");
+
+
+        // for a POST request
+        URLConnection conec = executeUrl.openConnection();
+
+        postRequestFile(conec, "org/constellation/wps/xml/executeRequest16.xml");
+        String result = getStringResponse(conec);
+        String expected = getStringFromFile("org/constellation/wps/xml/executeResponse16.xml");
+        domCompare(result, expected, Arrays.asList("creationTime", "schema", "timeStamp"));
+
+
+        conec = executeUrl.openConnection();
+        postRequestFile(conec, "org/constellation/wps/xml/executeRequest16_v200.xml");
+        result = getStringResponse(conec);
+        expected = getStringFromFile("org/constellation/wps/xml/executeResponse16_v200.xml");
+        domCompare(result, expected, Arrays.asList("schema", "timeStamp"), Arrays.asList("http://www.opengis.net/wps/2.0:JobID"));
+
+    }
+    
+    @Test
+    @Order(order=13)
+    public void testWPSExecuteFeatureSetInputOutputJSON() throws Exception {
+
+        initWPSServer();
+
+        // Creates a valid Execute url.
+        final URL executeUrl = new URL("http://localhost:"+ getCurrentPort() +"/WS/wps/default?");
+
+
+        // for a POST request
+        URLConnection conec = executeUrl.openConnection();
+
+        postRequestFile(conec, "org/constellation/wps/xml/executeRequest17.xml");
+        String result = getStringResponse(conec);
+        String expected = getStringFromFile("org/constellation/wps/xml/executeResponse17.xml");
+        domCompare(result, expected, Arrays.asList("creationTime", "schema", "timeStamp"));
+
+
+        conec = executeUrl.openConnection();
+        postRequestFile(conec, "org/constellation/wps/xml/executeRequest17_v200.xml");
+        result = getStringResponse(conec);
+        expected = getStringFromFile("org/constellation/wps/xml/executeResponse17_v200.xml");
+        domCompare(result, expected, Arrays.asList("schema", "timeStamp"), Arrays.asList("http://www.opengis.net/wps/2.0:JobID"));
     }
 }

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wps:Execute xmlns:wps="http://www.opengis.net/wps/1.0.0" 
+             xmlns:xlink="http://www.w3.org/1999/xlink" 
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+             xmlns:cust="http://www.geotoolkit.org/custom"
+             xmlns:ows="http://www.opengis.net/ows/1.1"
+             service="WPS" version="1.0.0" 
+             xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsExecute_request.xsd">
+    <ows:Identifier>urn:exa:wps:geotoolkit::vector:merge</ows:Identifier>
+    <wps:DataInputs>
+        <wps:Input>
+            <ows:Identifier>urn:exa:wps:geotoolkit::vector:merge:input:features_in</ows:Identifier>
+            <wps:Data>
+                <wps:ComplexData mimeType="text/xml" encoding="UTF-8" schema="http://localhost:9090/hosted/SimpleType.xsd">
+                    <cust:TestSimple>
+                        <cust:ID>1</cust:ID>
+                        <cust:attString>hello</cust:attString>
+                    </cust:TestSimple>
+                </wps:ComplexData>
+            </wps:Data>
+        </wps:Input>
+    </wps:DataInputs>
+    <wps:ResponseForm>
+        <wps:ResponseDocument>
+            <wps:Output asReference="false" mimeType="application/gml+xml" encoding="UTF-8" schema="http://schemas.opengis.net/gml/3.1.1/base/feature.xsd">
+                <ows:Identifier>urn:exa:wps:geotoolkit::vector:merge:output:feature_out</ows:Identifier>
+            </wps:Output>
+        </wps:ResponseDocument>
+    </wps:ResponseForm>
+</wps:Execute>

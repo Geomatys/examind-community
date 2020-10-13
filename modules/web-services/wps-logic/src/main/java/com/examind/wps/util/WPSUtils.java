@@ -539,13 +539,13 @@ public class WPSUtils {
     }
 
     /**
-     * Return the SupportedComplexDataInputType for the given class.
+     * Return the ComplexData for the given class.
      *
      * @param attributeClass The java class to get complex type from.
      * @param ioType The type of parameter to describe (input or output).
-     * @param type The complex type (complex, reference, etc.).
      * @param userData A map containing user's options for type support.
-     * @return SupportedComplexDataInputType
+     * 
+     * @return ComplexData
      */
     public static ComplexData describeComplex(final Class attributeClass, final WPSIO.IOType ioType, final Map<String, Object> userData) {
 

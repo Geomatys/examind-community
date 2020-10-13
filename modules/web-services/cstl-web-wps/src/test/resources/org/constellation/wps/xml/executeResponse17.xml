@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wps:ExecuteResponse xmlns:wps="http://www.opengis.net/wps/1.0.0" 
+                     xmlns:ows="http://www.opengis.net/ows/1.1" 
+                     xmlns:gml="http://www.opengis.net/gml/3.2" 
+                     xmlns:xlink="http://www.w3.org/1999/xlink" 
+                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                     serviceInstance="http://localhost:9090/WS/wps/default?SERVICE=WPS&amp;REQUEST=GetCapabilities" service="WPS" version="1.0.0" xml:lang="en-EN">
+    <wps:Process wps:processVersion="1.0.0">
+        <ows:Identifier>urn:exa:wps:geotoolkit::vector:merge</ows:Identifier>
+        <ows:Title xml:lang="en-EN">Geotoolkit : Vector:merge</ows:Title>
+        <ows:Abstract>Merge many FeatureCollection in one. The fist FeatureCollection found in the input Collection have his FeatureType preserved. The others will be adapted to this one.</ows:Abstract>
+    </wps:Process>
+    <wps:Status creationTime="2020-10-13T17:11:44.408+02:00">
+        <wps:ProcessSucceeded>Process completed.</wps:ProcessSucceeded>
+    </wps:Status>
+    <wps:ProcessOutputs>
+        <wps:Output>
+            <ows:Identifier>urn:exa:wps:geotoolkit::vector:merge:output:feature_out</ows:Identifier>
+            <ows:Title>Feature_out</ows:Title>
+            <ows:Abstract>The merged FeatureCollection</ows:Abstract>
+            <wps:Data>
+                <wps:ComplexData encoding="utf-8" mimeType="application/geo+json"><![CDATA[{
+"type":"FeatureCollection"
+,"features":[
+{"type":"Feature","id":"TestSimple.0","properties":{"@id":"TestSimple.0","metaDataProperty":null,"description":null,"name":null,"boundedBy":null,"location":null,"ID":1,"attString":"hello"}}
+]}]]></wps:ComplexData>
+            </wps:Data>
+        </wps:Output>
+    </wps:ProcessOutputs>
+</wps:ExecuteResponse>

@@ -1,0 +1,14 @@
+<?xml version='1.0'?>
+<wps:Result xmlns:xlink="http://www.w3.org/1999/xlink"
+            xmlns:wps="http://www.opengis.net/wps/2.0"
+            xsi:schemaLocation="http://www.opengis.net/wps/2.0 http://schemas.opengis.net/wps/2.0/wps.xsd"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <wps:JobID>33006908-316d-40f8-8e01-51e79bbb69b9</wps:JobID>
+    <wps:Output id="urn:exa:wps:geotoolkit::vector:merge:output:feature_out">
+        <wps:Data mimeType="application/geo+json" encoding="utf-8"><![CDATA[{
+"type":"FeatureCollection"
+,"features":[
+{"type":"Feature","id":"TestSimple.0","properties":{"@id":"TestSimple.0","metaDataProperty":null,"description":null,"name":null,"boundedBy":null,"location":null,"ID":1,"attString":"hello"}}
+]}]]></wps:Data>
+    </wps:Output>
+</wps:Result>
