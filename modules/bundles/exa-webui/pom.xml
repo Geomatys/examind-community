@@ -19,15 +19,9 @@
             <properties>
                 <!-- Grunt build profile -->
                 <grunt.build.profile>prod</grunt.build.profile>
-                <!-- Spring profile to use -->
-                <spring.profiles.active>prod</spring.profiles.active>
                 <!-- i18n resource files reloading -->
                 <message.reloading.enabled>false</message.reloading.enabled>
-                <!-- log configuration -->
-                <logback.loglevel>WARN</logback.loglevel>
-                <logback.appender>CONSOLE</logback.appender>
                 <!-- production database configuration -->
-
             </properties>
         </profile>
         <profile>
@@ -62,7 +56,6 @@
     </profiles>
 
     <properties>
-        <logback.loglevel>DEBUG</logback.loglevel>
         <message.reloading.enabled>true</message.reloading.enabled>
 
         <!-- Grunt build profile -->

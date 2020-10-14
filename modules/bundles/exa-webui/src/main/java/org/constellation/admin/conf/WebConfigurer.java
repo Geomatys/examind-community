@@ -18,10 +18,7 @@
  */
 package org.constellation.admin.conf;
 
-import org.constellation.admin.web.filter.CachingHttpHeadersFilter;
-import org.constellation.admin.web.filter.StaticResourcesProductionFilter;
 import org.constellation.admin.web.filter.gzip.GZipServletFilter;
-import org.springframework.core.env.Environment;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AbstractRefreshableWebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
@@ -76,18 +73,6 @@ public class WebConfigurer implements ServletContextListener {
         EnumSet<DispatcherType> disps = EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.ASYNC);
 
         initSpring(servletContext, rootContext);
-       // initSpringSecurity(servletContext, disps);
-
-
-
-        if (WebApplicationContextUtils
-                .getRequiredWebApplicationContext(servletContext)
-                .getBean(Environment.class)
-                .acceptsProfiles(Constants.SPRING_PROFILE_PRODUCTION)) {
-
-            initStaticResourcesProductionFilter(servletContext, disps);
-            initCachingHttpHeadersFilter(servletContext, disps);
-        }
 
         initGzipFilter(servletContext, disps);
 
@@ -120,46 +105,6 @@ public class WebConfigurer implements ServletContextListener {
     }
 
     /**
-     * Initializes the static resources production Filter.
-     */
-    private void initStaticResourcesProductionFilter(ServletContext servletContext,
-                                                     EnumSet<DispatcherType> disps) {
-
-        log.finer("Registering static resources production Filter");
-        FilterRegistration.Dynamic staticResourcesProductionFilter =
-                servletContext.addFilter("staticResourcesProductionFilter",
-                        new StaticResourcesProductionFilter());
-
-        staticResourcesProductionFilter.addMappingForUrlPatterns(disps, true, "/");
-        staticResourcesProductionFilter.addMappingForUrlPatterns(disps, true, "/index.html");
-        staticResourcesProductionFilter.addMappingForUrlPatterns(disps, true, "/img/*");
-        staticResourcesProductionFilter.addMappingForUrlPatterns(disps, true, "/fonts/*");
-        staticResourcesProductionFilter.addMappingForUrlPatterns(disps, true, "/js/*");
-        staticResourcesProductionFilter.addMappingForUrlPatterns(disps, true, "/css/*");
-        staticResourcesProductionFilter.addMappingForUrlPatterns(disps, true, "/views/*");
-        staticResourcesProductionFilter.setAsyncSupported(true);
-    }
-
-    /**
-     * Initializes the cachig HTTP Headers Filter.
-     */
-    private void initCachingHttpHeadersFilter(ServletContext servletContext,
-                                              EnumSet<DispatcherType> disps) {
-
-        log.finer("Registering Cachig HTTP Headers Filter");
-        FilterRegistration.Dynamic cachingHttpHeadersFilter =
-                servletContext.addFilter("cachingHttpHeadersFilter",
-                        new CachingHttpHeadersFilter());
-
-        cachingHttpHeadersFilter.addMappingForUrlPatterns(disps, true, "/dist/img/*");
-        cachingHttpHeadersFilter.addMappingForUrlPatterns(disps, true, "/dist/fonts/*");
-        cachingHttpHeadersFilter.addMappingForUrlPatterns(disps, true, "/dist/js/*");
-        cachingHttpHeadersFilter.addMappingForUrlPatterns(disps, true, "/dist/css/*");
-        cachingHttpHeadersFilter.setAsyncSupported(true);
-    }
-
-
-    /**
      * Initializes Spring and Spring MVC.
      */
     private ServletRegistration.Dynamic initSpring(ServletContext servletContext, AbstractRefreshableWebApplicationContext rootContext) {
@@ -176,8 +121,6 @@ public class WebConfigurer implements ServletContextListener {
         dispatcherServlet.setAsyncSupported(true);
         return dispatcherServlet;
     }
-
-
 
 
     @Override
