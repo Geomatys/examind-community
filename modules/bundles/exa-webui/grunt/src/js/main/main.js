@@ -177,7 +177,8 @@ angular.module('cstl-main', ['cstl-restapi', 'cstl-services', 'pascalprecht.tran
         $scope.user = user.data;
         $scope.disableEditLogin = true;
         $scope.roles = roles.data;
-
+        $scope.userRole = $scope.user.roles[0];
+        
         $scope.password = "";
         $scope.password2 = "";
 
@@ -189,6 +190,9 @@ angular.module('cstl-main', ['cstl-restapi', 'cstl-services', 'pascalprecht.tran
 
         $scope.save = function(){
             var formData = new FormData(document.getElementById('userForm'));
+            if (!formData.has("role")) {
+                formData.append("role", $scope.userRole);
+            }
             $.ajax({
                 headers: {
                     'access_token': Examind.authentication.getToken()

@@ -17,6 +17,8 @@ function SystemUsersEditController($rootScope, $scope, $modalInstance, $cookieSt
     var self = this;
 
     $scope.user = user.data;
+    
+    $scope.userRole = $scope.user.roles[0];
 
     $scope.roles = roles.data;
 
@@ -40,6 +42,9 @@ function SystemUsersEditController($rootScope, $scope, $modalInstance, $cookieSt
 
     $scope.save = function () {
         var formData = new FormData(document.getElementById('userForm'));
+        if (!formData.has("role")) {
+            formData.append("role", $scope.userRole);
+        }
         if ($scope.user.id) {
             //edit
             $.ajax({

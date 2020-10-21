@@ -242,7 +242,7 @@
                                                 ng-class="{error: userForm.role.$invalid}"
                                                 name="role"
                                                 id="role"
-                                                ng-model="user.roles[0]"
+                                                ng-model="userRole"
                                                 ng-disabled="!enableRole"
                                                 required>
                                             <option ng-repeat="role in roles track by role.name" ng-value="role.name">{{ role.name }}</option>
