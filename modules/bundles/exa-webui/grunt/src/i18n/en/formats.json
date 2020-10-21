@@ -27,6 +27,7 @@
     "zxy": "Examind : ZXY",
     "geotk_csv": "Examind : CSV",
     "geotk-landsat": "Examind : Landsat",
+    "hgt": "Examind : HGT",
     
     "aixm-application/aixm+xml": "Examind : AIXM",
     "geojson-application/json": "Examind : GeoJSON",
@@ -106,6 +107,7 @@
     "zxy-application/zxy": "Examind : ZXY",
     "geotk_csv-text/csv": "Examind : CSV",
     "Landsat-examind/unknown": "SIS : Landsat",
+    "hgt-application/x-ogc-srtmhgt": "Examind : HGT",
     
     "text/xml; subtype=\"om\"":"O&M",
     "text/x-openflights": "Open Flights",
@@ -162,5 +164,6 @@
     "application/coverage-xml-pyramid": "XML pyramid",
     "application/geopackage+sqlite3": "GPKG",
     "application/zxy": "ZXY",
+    "application/x-ogc-srtmhgt":"HGT",
     "examind/unknown" : "Unknow"
 }
