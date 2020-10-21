@@ -59,6 +59,24 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <dependencies>
+                <!-- included for apidocs generation-->
+                <dependency>
+                    <groupId>com.examind.community</groupId>
+                    <artifactId>cstl-web-map</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                 <!-- included for apidocs generation-->
+                <dependency>
+                    <groupId>com.examind.community</groupId>
+                    <artifactId>cstl-web-ogc</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <!-- included for apidocs generation-->
+                <dependency>
+                    <groupId>com.examind.community</groupId>
+                    <artifactId>cstl-web-sensor</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
                 <dependency>
                     <groupId>com.examind.community</groupId>
                     <artifactId>examind-engine-process-sos</artifactId>
@@ -419,6 +437,11 @@
                             <dependencySourceIncludes>
                                 <dependencySourceInclude>com.examind.community:cstl-web-api</dependencySourceInclude>
                                 <dependencySourceInclude>com.examind.community:cstl-web-map</dependencySourceInclude>
+                                <dependencySourceInclude>com.examind.community:cstl-web-ogc</dependencySourceInclude>
+                                <dependencySourceInclude>com.examind.community:cstl-web-sensor</dependencySourceInclude>
+                                <dependencySourceInclude>com.examind.community:cstl-web-csw</dependencySourceInclude>
+                                <dependencySourceInclude>com.examind.community:cstl-web-thw</dependencySourceInclude>
+                                <dependencySourceInclude>com.examind.community:cstl-web-wps</dependencySourceInclude>
                             </dependencySourceIncludes>
                             <includeDependencySources>true</includeDependencySources>
                             <reportOutputDirectory>${project.build.directory}/${project.build.finalName}

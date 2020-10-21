@@ -82,6 +82,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * todo For now the thesaurus does not follow the constellation pattern with workers.
  *       It does not support multi instance either
  *
+ * @ignore Ignore from rest api documentation
  * @author Guilhem Legal (Geomatys)
  * @author Mehdi Sidhoum (Geomatys)
  */

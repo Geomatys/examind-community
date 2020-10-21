@@ -127,6 +127,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
  *
  * @author Quentin Boileau (Geomatys).
  * @author Benjamin Garcia (Geomatys).
+ * 
+ * @ignore Ignore from rest api documentation
  *
  * @version 0.9
  */

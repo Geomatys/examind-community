@@ -187,7 +187,7 @@ public class MapContextRestAPI extends AbstractRestAPI {
      * @param req
      * @return
      */
-    @RequestMapping(value="/mapcontexts/",method=POST,consumes=APPLICATION_JSON_VALUE,produces=APPLICATION_JSON_VALUE)
+    @RequestMapping(value="/mapcontexts",method=POST,consumes=APPLICATION_JSON_VALUE,produces=APPLICATION_JSON_VALUE)
     @Transactional
     public ResponseEntity createContext(@RequestBody final MapContextLayersDTO mapContext,
             final HttpServletRequest req) {

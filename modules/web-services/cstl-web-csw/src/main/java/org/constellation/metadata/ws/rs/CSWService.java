@@ -124,6 +124,7 @@ import org.w3._2005.atom.FeedType;
  * @author Guilhem Legal
  * @author Benjamin Garcia (Geomatys)
  *
+ * @ignore Ignore from rest api documentation
  * @version 0.9
  */
 @Controller

@@ -43,6 +43,8 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * Service to access job products datas.
  *
+ * @ignore Ignore from rest api documentation
+ * 
  * @author Johann Sorel (Geomatys)
  */
 @RestController
