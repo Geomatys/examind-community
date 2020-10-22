@@ -43,7 +43,6 @@ import org.constellation.business.IMetadataBusiness;
 import org.constellation.dto.Data;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.metadata.utils.MetadataFeeder;
-import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.constellation.repository.DataRepository;
 import org.constellation.repository.ProviderRepository;
@@ -164,8 +163,7 @@ public class DataCoverageJob implements IDataCoverageJob {
                 updateData(data);
 
                 if (providerRepository.existsById(data.getProviderId())) {
-                    final DataProvider dataProvider = DataProviders.getProvider(data.getProviderId());
-                    final org.constellation.provider.Data dataP = dataProvider.get(data.getNamespace(), data.getName());
+                    final org.constellation.provider.Data dataP  = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
                     final Resource res = dataP.getOrigin();
 
                     if (res instanceof MultiResolutionResource) {

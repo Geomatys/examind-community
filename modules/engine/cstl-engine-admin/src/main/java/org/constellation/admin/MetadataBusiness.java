@@ -1725,8 +1725,7 @@ public class MetadataBusiness implements IMetadataBusiness {
     }
 
     private String getMetadataXMLFromStore(final int providerId, final String metadataId) throws ConfigurationException {
-        final DataProvider provider = DataProviders.getProvider(providerId);
-        final org.constellation.provider.Data data = provider.get(null, metadataId);
+        final org.constellation.provider.Data data = DataProviders.getProviderData(providerId, null, metadataId);
         if (data instanceof MetadataData) {
             final MetadataData md = (MetadataData) data;
             try {

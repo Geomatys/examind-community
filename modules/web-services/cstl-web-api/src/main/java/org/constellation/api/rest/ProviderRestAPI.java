@@ -326,12 +326,10 @@ public class ProviderRestAPI extends AbstractRestAPI {
 
     private Data getProviderData(final String providerId, final String dataName) throws ConfigurationException {
         Integer prId = providerBusiness.getIDFromIdentifier(providerId);
-        final DataProvider provider = DataProviders.getProvider(prId);
-        final GenericName name = NamesExt.valueOf(dataName);
-        final Data layer = provider.get(name);
-        if (layer == null) {
-            throw new ConfigurationException("No data named \"" + dataName + "\" in provider with id \"" + provider.getId() + "\".");
+        final Data data  = DataProviders.getProviderData(prId, null, dataName);
+        if (data == null) {
+            throw new ConfigurationException("No data named \"" + dataName + "\" in provider with id \"" + prId + "\".");
         }
-        return layer;
+        return data;
     }
 }

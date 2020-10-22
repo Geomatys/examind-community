@@ -67,7 +67,6 @@ import org.geotoolkit.storage.StoreMetadataExt;
 import org.geotoolkit.storage.feature.FeatureStore;
 import org.geotoolkit.storage.feature.FileFeatureStoreFactory;
 import org.geotoolkit.storage.memory.ExtendedFeatureStore;
-import org.geotoolkit.util.NamesExt;
 import org.opengis.feature.FeatureType;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.extent.Extent;
@@ -172,6 +171,16 @@ public final class DataProviders extends Static{
         CACHE.put(providerId, provider);
 
         return provider;
+    }
+    
+    public synchronized static Data getProviderData(final int providerId, final String namespace, final String name) throws ConfigurationException {
+        final DataProvider inProvider;
+        try {
+            inProvider = DataProviders.getProvider(providerId);
+        } catch (ConfigurationException ex) {
+            throw new ConfigurationException("Provider " +providerId + " does not exist");
+        }
+        return inProvider.get(namespace, name);
     }
 
     /**
@@ -322,25 +331,18 @@ public final class DataProviders extends Static{
         return computeScales(providerId, dataId, c);
     }
 
-    public static Double[] computeScales(final int providerId, final String dataId, final CoordinateReferenceSystem crs) throws ConstellationException {
+    public static Double[] computeScales(final int providerId, final String dataName, final CoordinateReferenceSystem crs) throws ConstellationException {
         //get data
-        final DataProvider inProvider;
-        try {
-            inProvider = DataProviders.getProvider(providerId);
-        } catch (ConfigurationException ex) {
-            throw new ConstellationException("Provider "+providerId+" does not exist");
-        }
-
-        final Data inData = inProvider.get(NamesExt.create(dataId));
-        if(inData==null){
-            throw new ConstellationException("Data "+dataId+" does not exist in provider "+providerId);
+        final Data inData = DataProviders.getProviderData(providerId, null, dataName);
+        if (inData==null) {
+            throw new ConstellationException("Data "+dataName+" does not exist in provider "+providerId);
         }
         Envelope dataEnv;
         try {
             //use data crs
             dataEnv = inData.getEnvelope();
         } catch (ConstellationStoreException ex) {
-            throw new ConstellationException("Failed to extract envelope for data "+dataId, ex);
+            throw new ConstellationException("Failed to extract envelope for data "+dataName, ex);
         }
         final Object origin = inData.getOrigin();
         final Double[] scales;
@@ -364,7 +366,7 @@ public final class DataProviders extends Static{
             try {
                 gg = inRef.getGridGeometry();
             } catch (DataStoreException ex) {
-                throw new ConstellationException("Failed to extract grid geometry for data "+dataId+". ",ex);
+                throw new ConstellationException("Failed to extract grid geometry for data "+dataName+". ",ex);
             }
             final double geospanX = env.getSpan(0);
             final double baseScale = geospanX / gg.getExtent().getSize(0);

@@ -51,7 +51,6 @@ import org.constellation.json.binding.InterpolationPoint;
 import org.constellation.json.binding.Repartition;
 import org.constellation.json.binding.Style;
 import org.constellation.json.binding.WrapperInterval;
-import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.geotoolkit.display2d.GO2Utilities;
 import org.geotoolkit.storage.coverage.ImageStatistics;
@@ -247,8 +246,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
              * I - Get feature type and feature data.
              */
             final DataBrief data  = dataBusiness.getDataBrief(dataId);
-            final DataProvider dp = DataProviders.getProvider(data.getProviderId());
-            final Data dataP      = dp.get(data.getNamespace(),data.getName());
+            final Data dataP      = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
             final Resource rs     = dataP.getOrigin();
 
             if (rs instanceof FeatureSet) {
@@ -480,8 +478,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
             /*
              * I - Get feature type and feature data.
              */
-            final DataProvider dp = DataProviders.getProvider(data.getProviderId());
-            final Data dataP      = dp.get(data.getNamespace(),data.getName());
+            final Data dataP      = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
             final Resource rs     = dataP.getOrigin();
 
             if (rs instanceof FeatureSet) {
@@ -591,8 +588,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
             final ChartDataModel result = new ChartDataModel();
 
             final DataBrief data  = dataBusiness.getDataBrief(dataId);
-            final DataProvider dp = DataProviders.getProvider(data.getProviderId());
-            final Data dataP      = dp.get(data.getNamespace(),data.getName());
+            final Data dataP      = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
             final Resource rs     = dataP.getOrigin();
 
             if (rs instanceof FeatureSet) {

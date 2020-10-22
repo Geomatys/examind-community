@@ -40,7 +40,6 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.AbstractDataProvider;
 import org.constellation.provider.Data;
-import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.DataProviders;
 import static org.constellation.provider.computed.ComputedResourceProviderDescriptor.DATA_IDS;
@@ -163,8 +162,8 @@ public abstract class ComputedResourceProvider extends AbstractDataProvider {
         final DataRepository repo = SpringHelper.getBean(DataRepository.class);
         for (Integer dataId : dataIds) {
             org.constellation.dto.Data d = repo.findById(dataId);
-            DataProvider dp = DataProviders.getProvider(d.getProviderId());
-            results.add(dp.get(d.getNamespace(), d.getName()));
+            Data dp = DataProviders.getProviderData(d.getProviderId(), d.getNamespace(), d.getName());
+            results.add(dp);
         }
         return results;
     }

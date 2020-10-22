@@ -83,8 +83,7 @@ public class ISO19110Builder {
     }
 
     public static FeatureCatalogue createCatalogueForData(final int providerID, final QName dataName) throws ConfigurationException {
-        DataProvider provider = DataProviders.getProvider(providerID);
-        Data data = provider.get(dataName.getNamespaceURI(), dataName.getLocalPart());
+        Data data = DataProviders.getProviderData(providerID, dataName.getNamespaceURI(), dataName.getLocalPart());
         try {
             Resource rs = data.getOrigin();
             if (rs != null) {

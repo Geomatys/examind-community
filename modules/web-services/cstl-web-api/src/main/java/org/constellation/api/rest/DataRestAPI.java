@@ -77,7 +77,6 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.metadata.utils.Utils;
 import static org.constellation.metadata.utils.Utils.UNKNOW_IDENTIFIER;
 import org.constellation.provider.Data;
-import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.constellation.util.MetadataMerger;
 import org.geotoolkit.nio.IOUtilities;
@@ -85,7 +84,6 @@ import org.geotoolkit.nio.ZipUtilities;
 import org.geotoolkit.storage.multires.MultiResolutionModel;
 import org.geotoolkit.storage.multires.MultiResolutionResource;
 import org.geotoolkit.storage.multires.TileMatrixSet;
-import org.geotoolkit.util.NamesExt;
 import org.opengis.metadata.Identifier;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.crs.ImageCRS;
@@ -675,9 +673,7 @@ public class DataRestAPI extends AbstractRestAPI{
             result.put("crs", crss);
 
             //get data
-            final DataProvider inProvider = DataProviders.getProvider(brief.getProviderId());
-            if (inProvider == null) return new ResponseEntity(result, OK);
-            final Data data = inProvider.get(NamesExt.create(brief.getName()));
+            final Data data = DataProviders.getProviderData(brief.getProviderId(), brief.getNamespace(), brief.getName());
             if (data == null) return new ResponseEntity(result, OK);
             final Resource resource = data.getOrigin();
             if (resource == null) return new ResponseEntity(result, OK);

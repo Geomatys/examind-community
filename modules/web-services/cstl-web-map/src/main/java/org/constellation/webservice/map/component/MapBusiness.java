@@ -29,7 +29,6 @@ import javax.xml.bind.JAXBException;
 
 import org.opengis.style.Style;
 import org.opengis.util.FactoryException;
-import org.opengis.util.GenericName;
 
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CRS;
@@ -53,7 +52,6 @@ import org.constellation.exception.ConstellationStoreException;
 import org.constellation.exception.TargetNotFoundException;
 import org.constellation.portrayal.PortrayalResponse;
 import org.constellation.provider.Data;
-import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.GeoData;
 import org.constellation.ws.CstlServiceException;
@@ -61,8 +59,6 @@ import org.springframework.stereotype.Component;
 
 import static org.apache.sis.util.ArgumentChecks.ensureDimensionMatches;
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
-
-import org.apache.sis.util.iso.Names;
 
 /**
  *
@@ -187,9 +183,7 @@ public class MapBusiness {
         final org.constellation.dto.Data data  = dataBusiness.getDataBrief(dataId);
         if (data == null) throw new TargetNotFoundException("Unexisting data: " + dataId);
 
-        final DataProvider provider = DataProviders.getProvider(data.getProviderId());
-        final GenericName name = Names.createLocalName(data.getNamespace(), ":", data.getName());
-        final Data d = provider.get(name);
+        final Data d = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());;
 
         if (d == null) throw new ConstellationStoreException("Unable to find a provider data for name:{" + data.getNamespace() +  "}:" +  data.getName());
         if (!(d instanceof GeoData)) throw new ConstellationStoreException("Unable to portray a non GeoData");

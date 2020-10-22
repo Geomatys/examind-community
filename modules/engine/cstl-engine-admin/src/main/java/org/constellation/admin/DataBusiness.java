@@ -33,7 +33,6 @@ import javax.xml.namespace.QName;
 import org.apache.sis.metadata.MetadataCopier;
 import org.apache.sis.metadata.MetadataStandard;
 import org.apache.sis.metadata.iso.DefaultMetadata;
-import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.logging.Logging;
@@ -42,10 +41,8 @@ import org.constellation.admin.util.DataCoverageUtilities;
 import org.constellation.admin.util.MetadataUtilities;
 import org.constellation.api.DataType;
 import org.constellation.business.IDataBusiness;
-import org.constellation.business.IDataCoverageJob;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
-import org.constellation.business.IPyramidBusiness;
 import org.constellation.business.IUserBusiness;
 import org.constellation.business.listener.IDataBusinessListener;
 import org.constellation.configuration.AppProperty;
@@ -58,7 +55,6 @@ import org.constellation.dto.process.DataProcessReference;
 import org.constellation.dto.service.Service;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
-import org.constellation.exception.ConstellationStoreException;
 import org.constellation.exception.TargetNotFoundException;
 import org.constellation.metadata.utils.MetadataFeeder;
 import org.constellation.metadata.utils.Utils;
@@ -249,15 +245,12 @@ public class DataBusiness implements IDataBusiness {
     @Override
     public Map<String,Object> getDataRawModel(int dataId) throws ConstellationException {
         final Data data = dataRepository.findById(dataId);
-        final DataProvider provider = DataProviders.getProvider(data.getProviderId());
-        if (provider != null) {
-            final org.constellation.provider.Data provData = provider.get(data.getNamespace(), data.getName());
-            if (provData != null) {
-                try {
-                    return provData.rawDescription();
-                } catch (Exception ex) {
-                    throw new ConstellationException(ex);
-                }
+        final org.constellation.provider.Data provData  = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
+        if (provData != null) {
+            try {
+                return provData.rawDescription();
+            } catch (Exception ex) {
+                throw new ConstellationException(ex);
             }
         }
         return new HashMap<>();
@@ -472,14 +465,13 @@ public class DataBusiness implements IDataBusiness {
 
             if (Boolean.TRUE.equals(fetchDataDescription)) {
                 try {
-                    final DataProvider provider = DataProviders.getProvider(data.getProviderId());
-                    final org.constellation.provider.Data layer = provider.get(data.getNamespace(), data.getName());
-                    if (layer != null) {
+                    final org.constellation.provider.Data provData = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
+                    if (provData != null) {
                         StatInfo stats = null;
                         if (DataType.COVERAGE.name().equals(data.getType()) && (data.getRendered() == null || !data.getRendered())) {
                             stats = new StatInfo(data.getStatsState(), data.getStatsResult());
                         }
-                        final DataDescription dataDescription = layer.getDataDescription(stats);
+                        final DataDescription dataDescription = provData.getDataDescription(stats);
                         db.setDataDescription(dataDescription);
                     } else {
                         LOGGER.warning("Unable to find a provider data: {" + data.getNamespace() + "} " + data.getName());
@@ -643,8 +635,7 @@ public class DataBusiness implements IDataBusiness {
             org.constellation.provider.Data provData = null;
 
             try {
-                final DataProvider provider = DataProviders.getProvider(data.getProviderId());
-                provData = provider.get(data.getNamespace(), data.getName());
+                provData = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
             } catch (Exception ex) {
                 LOGGER.log(Level.WARNING, "Unable to find a provider data: {" + data.getNamespace() + "} " + data.getName(), ex);
             }
@@ -916,9 +907,7 @@ public class DataBusiness implements IDataBusiness {
     public ParameterValues getVectorDataColumns(int id) throws ConfigurationException {
         final Data d = dataRepository.findById(id);
         if (d != null) {
-            final DataProvider dataProvider = DataProviders.getProvider(d.getProviderId());
-            final org.constellation.provider.Data provData = dataProvider.get(d.getNamespace(), d.getName());
-
+            final org.constellation.provider.Data provData = DataProviders.getProviderData(d.getProviderId(), d.getNamespace(), d.getName());
             if (provData != null) {
                 final List<String> colNames = new ArrayList<>();
                 try {
@@ -1168,8 +1157,7 @@ public class DataBusiness implements IDataBusiness {
         final Data data         = dataRepository.findById(dataId);
         final ProviderBrief provider = providerRepository.findOne(data.getProviderId());
         final String dataType   = data.getType();
-        final DataProvider dataProvider = DataProviders.getProvider(provider.getId());
-        final org.constellation.provider.Data dataP = dataProvider.get(data.getNamespace(), data.getName());
+        final org.constellation.provider.Data dataP = DataProviders.getProviderData(provider.getId(), data.getNamespace(), data.getName());
 
         final DefaultMetadata extractedMetadata = extractMetadata(dataP);
         tryFillMetadata(dataP.getOrigin(), extractedMetadata);

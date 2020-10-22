@@ -188,15 +188,14 @@ public class PyramidBusiness implements IPyramidBusiness {
                 }
 
                 //get data
-                final DataProvider inProvider;
+                final Data inD;
                 try {
-                    inProvider = DataProviders.getProvider(providerId);
+                    inD = DataProviders.getProviderData(providerId, namespace, dataName);
                 } catch (ConfigurationException ex) {
-                    LOGGER.log(Level.WARNING, "Provider {0} does not exist", providerId);
+                    LOGGER.log(Level.WARNING, ex.getMessage());
                     continue;
                 }
 
-                final Data inD = inProvider.get(namespace, dataName);
                 if (!(inD instanceof GeoData)) {
                     LOGGER.log(Level.WARNING, "Data " + dataName + " does not exist in provider " + providerId + " (or is not a GeoData)");
                     continue;
@@ -279,9 +278,8 @@ public class PyramidBusiness implements IPyramidBusiness {
             final GenericName pGname       = NamesExt.create(pyramidDataName);
             final String tileFormat        = tilingMode.equals(RENDERED) ? "PNG" : "TIFF";
             final Integer pyramidProvider  = createPyramidProvider(pyramidIdentifier, pGname, true, tilingMode, tileFormat, globalEnv, 256, scales);
-            final DataProvider outProvider = DataProviders.getProvider(pyramidProvider);
+            final Data pyData              = DataProviders.getProviderData(pyramidProvider, null, pyramidDataName);
 
-            Data pyData = outProvider.get(pGname);
             if (pyData != null && pyData.getOrigin() instanceof MultiResolutionResource) {
                 outRef = (MultiResolutionResource) pyData.getOrigin();
             } else {
@@ -391,15 +389,14 @@ public class PyramidBusiness implements IPyramidBusiness {
                 continue;
             }
             //get data
-            final DataProvider inProvider;
+            final Data inD;
             try {
-                inProvider = DataProviders.getProvider(providerIdentifier);
+                inD = DataProviders.getProviderData(providerIdentifier, null, dataName);
             } catch (ConfigurationException ex) {
                 LOGGER.log(Level.WARNING, "Provider " + providerIdentifier + " does not exist");
                 continue;
             }
 
-            final Data inD = inProvider.get(NamesExt.create(dataName));
             if (!(inD instanceof GeoData)) {
                 LOGGER.log(Level.WARNING, "Data " + dataName + " does not exist in provider " + providerIdentifier + " (or is not a GeoData)");
                 continue;
@@ -439,9 +436,8 @@ public class PyramidBusiness implements IPyramidBusiness {
         final GenericName pGname       = NamesExt.create(pyramidDataName);
         final String tileFormat        = tilingMode.equals(RENDERED) ? "PNG" : "TIFF";
         final Integer pyramidProvider  = createPyramidProvider(pyramidIdentifier, pGname, true, tilingMode, tileFormat, globalEnv, tileSize, scales);
-        final DataProvider outProvider = DataProviders.getProvider(pyramidProvider);
+        final Data pyData              = DataProviders.getProviderData(pyramidProvider, null, pyramidDataName);
 
-        Data pyData = outProvider.get(pGname);
         if (pyData != null && pyData.getOrigin() instanceof MultiResolutionResource) {
             outRef = (MultiResolutionResource) pyData.getOrigin();
         } else {

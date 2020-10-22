@@ -47,7 +47,6 @@ import org.constellation.dto.FeatureDataDescription;
 import org.constellation.dto.ParameterValues;
 import org.constellation.exception.ConstellationException;
 import org.constellation.provider.Data;
-import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
@@ -195,8 +194,7 @@ public class DataBusinessTest {
         metadataBusiness.updateMetadata(mdCopy.getFileIdentifier(), mdCopy, testData.getId(), null, null, null, null, null);
 
         // Ensure SIS resource is overriden to give back Examind metadata.
-        final DataProvider dataProvider = DataProviders.getProvider(testData.getProviderId());
-        final Data data = dataProvider.get(testData.getNamespace(), testData.getName());
+        final Data data = DataProviders.getProviderData(testData.getProviderId(), testData.getNamespace(), testData.getName());
         final Resource r = data.getOrigin();
         final Metadata resourceMetadata = r.getMetadata();
 
