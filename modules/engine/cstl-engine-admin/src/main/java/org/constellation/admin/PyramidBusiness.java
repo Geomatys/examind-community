@@ -241,18 +241,9 @@ public class PyramidBusiness implements IPyramidBusiness {
                         throw new ConstellationException("Cannot create pyramid conform for no raster data, it is not supported yet!");
                     }
 
-                    //init coverage reference and grid geometry
-                    GridCoverageResource inRef = (GridCoverageResource) origin;
-                    
-                    final GridGeometry gg;
-                    try {
-                        gg = inRef.getGridGeometry();
-                    } catch (DataStoreException ex) {
-                        throw new ConstellationException("Failed to extract grid geometry for data " + dataName + ". " + ex.getMessage(),ex);
-                    }
                     //find the type of data we are dealing with, geophysic or photographic
-                    inRef = ForceSampleDimensions(inRef, gg);
-                    
+                    GridCoverageResource inRef = ForceSampleDimensions((GridCoverageResource) origin);
+                   
                     context.getComponents().add(MapBuilder.createLayer(inRef));
                 }
 
@@ -287,7 +278,7 @@ public class PyramidBusiness implements IPyramidBusiness {
             //create the output provider
             final GenericName pGname       = NamesExt.create(pyramidDataName);
             final String tileFormat        = tilingMode.equals(RENDERED) ? "PNG" : "TIFF";
-            final Integer pyramidProvider  = createPyramidProvider(pyramidIdentifier, pGname, true, tilingMode, tileFormat, null, globalEnv, 256, scales);
+            final Integer pyramidProvider  = createPyramidProvider(pyramidIdentifier, pGname, true, tilingMode, tileFormat, globalEnv, 256, scales);
             final DataProvider outProvider = DataProviders.getProvider(pyramidProvider);
 
             Data pyData = outProvider.get(pGname);
@@ -447,7 +438,7 @@ public class PyramidBusiness implements IPyramidBusiness {
         //create the output provider
         final GenericName pGname       = NamesExt.create(pyramidDataName);
         final String tileFormat        = tilingMode.equals(RENDERED) ? "PNG" : "TIFF";
-        final Integer pyramidProvider  = createPyramidProvider(pyramidIdentifier, pGname, true, tilingMode, tileFormat, null, globalEnv, tileSize, scales);
+        final Integer pyramidProvider  = createPyramidProvider(pyramidIdentifier, pGname, true, tilingMode, tileFormat, globalEnv, tileSize, scales);
         final DataProvider outProvider = DataProviders.getProvider(pyramidProvider);
 
         Data pyData = outProvider.get(pGname);
@@ -496,7 +487,7 @@ public class PyramidBusiness implements IPyramidBusiness {
         }
     }
 
-    private GridCoverageResource ForceSampleDimensions(GridCoverageResource inRef, GridGeometry gg) throws ConstellationException {
+    private GridCoverageResource ForceSampleDimensions(GridCoverageResource inRef) throws ConstellationException {
         try {
             final List<SampleDimension> sampleDimensions = inRef.getSampleDimensions();
             if (sampleDimensions != null) {
@@ -511,7 +502,7 @@ public class PyramidBusiness implements IPyramidBusiness {
                     //this is a bypass solution to avoid black border images in pyramids
                     //note : we need a pyramid storage model that doesn't produce any pixels
                     //outside the original coverage area
-
+                    GridGeometry gg = inRef.getGridGeometry();
                     RenderedImage img = readSmallImage(inRef, gg);
 
                     final List<SampleDimension> newDims = new ArrayList<>();
@@ -615,7 +606,7 @@ public class PyramidBusiness implements IPyramidBusiness {
     }
 
 
-    public int createPyramidProvider(String pyramidProviderId, GenericName pyramidGname, boolean cacheTileState, TilingMode mode, String tileFormat, GridGeometry gg, Envelope globalEnv, int tileSize, double[] scales) throws ConstellationException {
+    public int createPyramidProvider(String pyramidProviderId, GenericName pyramidGname, boolean cacheTileState, TilingMode mode, String tileFormat, Envelope globalEnv, int tileSize, double[] scales) throws ConstellationException {
         try {
             //create the output folder for pyramid
             final Path pyramidDirectory = ConfigDirectory.getDataIntegratedDirectory(pyramidProviderId);
@@ -663,11 +654,7 @@ public class PyramidBusiness implements IPyramidBusiness {
             } else {
                 throw new ConstellationException("No pyramid data created (in provider).");
             }
-            if (gg != null) {
-                createTemplate(outRef, gg, tileSize);
-            } else {
-                createTemplate(outRef, globalEnv, tileSize, scales);
-            }
+            createTemplate(outRef, globalEnv, tileSize, scales);
 
             return pid;
         } catch (IOException | DataStoreException ex) {
@@ -680,15 +667,6 @@ public class PyramidBusiness implements IPyramidBusiness {
             //prepare the pyramid and mosaics
             final Dimension tileDim = new Dimension(tileSize, tileSize);
             final DefiningTileMatrixSet template = TileMatrices.createTemplate(globalEnv, tileDim, scales);
-            outRef.createModel(template);
-        } catch (DataStoreException ex) {
-            throw new ConstellationException("Error while creating pyramid template.", ex);
-        }
-    }
-
-    protected void createTemplate(MultiResolutionResource outRef, GridGeometry gg, int tileSize) throws ConstellationException {
-        try {
-            final DefiningTileMatrixSet template = TileMatrices.createTemplate(gg, gg.getCoordinateReferenceSystem(), new Dimension(tileSize, tileSize));
             outRef.createModel(template);
         } catch (DataStoreException ex) {
             throw new ConstellationException("Error while creating pyramid template.", ex);
