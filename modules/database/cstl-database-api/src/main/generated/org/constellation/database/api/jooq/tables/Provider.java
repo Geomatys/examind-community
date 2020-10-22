@@ -16,7 +16,7 @@ package org.constellation.database.api.jooq.tables;
 @java.lang.SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Provider extends org.jooq.impl.TableImpl<org.constellation.database.api.jooq.tables.records.ProviderRecord> {
 
-	private static final long serialVersionUID = 612415046;
+	private static final long serialVersionUID = 632279693;
 
 	/**
 	 * The reference instance of <code>admin.provider</code>
@@ -40,11 +40,6 @@ public class Provider extends org.jooq.impl.TableImpl<org.constellation.database
 	 * The column <code>admin.provider.identifier</code>.
 	 */
 	public final org.jooq.TableField<org.constellation.database.api.jooq.tables.records.ProviderRecord, java.lang.String> IDENTIFIER = createField("identifier", org.jooq.impl.SQLDataType.VARCHAR.length(512).nullable(false), this, "");
-
-	/**
-	 * The column <code>admin.provider.parent</code>.
-	 */
-	public final org.jooq.TableField<org.constellation.database.api.jooq.tables.records.ProviderRecord, java.lang.String> PARENT = createField("parent", org.jooq.impl.SQLDataType.VARCHAR.length(512), this, "");
 
 	/**
 	 * The column <code>admin.provider.type</code>.

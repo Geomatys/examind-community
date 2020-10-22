@@ -1,0 +1,1 @@
+ALTER TABLE "admin"."provider" DROP COLUMN "parent";

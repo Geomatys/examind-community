@@ -239,7 +239,7 @@ public final class TestEnvironment {
             config.parameter("ResultCRS").setValue("EPSG:4326");
             config.parameter("mode").setValue("ORDER");
 
-            return providerBusiness.storeProvider(providerIdentifier, null, ProviderType.LAYER, "computed-resource", source);
+            return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "computed-resource", source);
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
         }
@@ -255,7 +255,7 @@ public final class TestEnvironment {
             final ParameterValueGroup config = choice.addGroup("ShapefileParametersFolder");
             config.parameter("path").setValue(p.toUri());
 
-            return providerBusiness.storeProvider(providerIdentifier, null, ProviderType.LAYER, "data-store", source);
+            return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "data-store", source);
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
         }
@@ -282,7 +282,7 @@ public final class TestEnvironment {
             final ParameterValueGroup config = choice.addGroup("geojson");
             config.parameter("path").setValue(p.toUri());
 
-            return providerBusiness.storeProvider(providerIdentifier, null, ProviderType.LAYER, "data-store", source);
+            return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "data-store", source);
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
         }
@@ -302,7 +302,7 @@ public final class TestEnvironment {
             config.parameter("sgbdtype").setValue("derby");
             config.parameter("derbyurl").setValue(url);
 
-            return  providerBusiness.storeProvider(providerIdentifier, null, ProviderType.LAYER, "data-store", source);
+            return  providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "data-store", source);
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
         }
@@ -326,7 +326,7 @@ public final class TestEnvironment {
             config.parameter("xsdtypename").setValue(typeName);
             config.parameter("longitudeFirst").setValue(Boolean.TRUE);
 
-            return providerBusiness.storeProvider(providerIdentifier, null, ProviderType.LAYER, "data-store", source);
+            return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "data-store", source);
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
         }
@@ -367,7 +367,7 @@ public final class TestEnvironment {
             layer.parameter("language").setValue("CUSTOM-SQL");
             layer.parameter("statement").setValue("SELECT name as nom, \"pointProperty\" as geom FROM \"PrimitiveGeoFeature\" ");
 
-            return providerBusiness.storeProvider("postgisSrc", null, ProviderType.LAYER, "data-store", source);
+            return providerBusiness.storeProvider("postgisSrc", ProviderType.LAYER, "data-store", source);
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
         }
@@ -385,7 +385,7 @@ public final class TestEnvironment {
             config.parameter("path").setValue(pngFile.toUri().toURL());
             config.parameter("type").setValue("AUTO");
 
-            return providerBusiness.storeProvider(providerIdentifier, null, ProviderType.LAYER, "data-store", source);
+            return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "data-store", source);
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
         }
@@ -403,7 +403,7 @@ public final class TestEnvironment {
             config.parameter("location").setValue(tifFile.toUri().toURL());
             config.parameter("type").setValue("AUTO");
 
-            return providerBusiness.storeProvider(providerIdentifier, null, ProviderType.LAYER, "data-store", source);
+            return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "data-store", source);
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
         }
@@ -431,7 +431,7 @@ public final class TestEnvironment {
             final ParameterValueGroup config = choice.addGroup("NetCDF");
             config.parameter("location").setValue(ncFile.toUri().toURL());
 
-            return providerBusiness.storeProvider(providerIdentifier, null, ProviderType.LAYER, "data-store", source);
+            return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "data-store", source);
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
         }
@@ -462,7 +462,7 @@ public final class TestEnvironment {
             final ParameterValueGroup config = choice.addGroup("observationXmlFile");
             config.parameter("path").setValue(xmlFile.toUri().toURL());
 
-            return providerBusiness.storeProvider(providerIdentifier, null, ProviderType.LAYER, "observation-store", source);
+            return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "observation-store", source);
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
         }
@@ -486,7 +486,7 @@ public final class TestEnvironment {
             config.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
             config.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
 
-            return  providerBusiness.storeProvider(providerIdentifier, null, ProviderType.LAYER, "observation-store", source);
+            return  providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "observation-store", source);
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
         }
@@ -515,7 +515,7 @@ public final class TestEnvironment {
             config.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
             config.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
             config.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
-            return providerBusiness.storeProvider(providerIdentifier, null, ProviderType.LAYER, "observation-store", source);
+            return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "observation-store", source);
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
         }
@@ -541,7 +541,7 @@ public final class TestEnvironment {
             config.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
             config.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
             config.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
-            return providerBusiness.storeProvider(providerIdentifier, null, ProviderType.LAYER, "observation-store", source);
+            return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "observation-store", source);
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
         }
@@ -558,7 +558,7 @@ public final class TestEnvironment {
             final ParameterValueGroup config = choice.addGroup("filesensor");
             config.parameter("data_directory").setValue(p.toUri());
 
-            return providerBusiness.storeProvider(providerIdentifier, null, ProviderType.SENSOR, "sensor-store", source);
+            return providerBusiness.storeProvider(providerIdentifier, ProviderType.SENSOR, "sensor-store", source);
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
         }
@@ -576,7 +576,7 @@ public final class TestEnvironment {
             config.parameter("folder").setValue(p.toUri());
             config.parameter("store-id").setValue(providerIdentifier);
 
-            return providerBusiness.storeProvider(providerIdentifier, null, ProviderType.LAYER, "metadata-store", sourcef);
+            return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "metadata-store", sourcef);
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
         }
@@ -593,7 +593,7 @@ public final class TestEnvironment {
             final ParameterValueGroup config = choice.addGroup("NetCDFMetadata");
             config.parameter("folder").setValue(p.toUri());
 
-            return providerBusiness.storeProvider(providerIdentifier, null, ProviderType.LAYER, "metadata-store", sourcef);
+            return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "metadata-store", sourcef);
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
         }
@@ -609,7 +609,7 @@ public final class TestEnvironment {
             final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) factory.getStoreDescriptor(), sourcef);
             final ParameterValueGroup config = choice.addGroup("cstlsensor");
 
-            return providerBusiness.storeProvider(providerIdentifier, null, ProviderType.SENSOR, "sensor-store", sourcef);
+            return providerBusiness.storeProvider(providerIdentifier, ProviderType.SENSOR, "sensor-store", sourcef);
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
         }
@@ -625,7 +625,7 @@ public final class TestEnvironment {
             final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) factory.getStoreDescriptor(), sourcef);
             final ParameterValueGroup config = choice.addGroup("InternalCstlmetadata");
 
-            return providerBusiness.storeProvider(providerIdentifier, null, ProviderType.LAYER, "metadata-store", sourcef);
+            return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "metadata-store", sourcef);
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
         }

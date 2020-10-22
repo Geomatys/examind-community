@@ -114,7 +114,7 @@ public interface IProviderBusiness {
 
     void update(final String id, SPI_NAMES spiName, ParameterValueGroup spiConfiguration) throws ConfigurationException;
 
-    Integer storeProvider(String providerId, String o, ProviderType type, String factoryName, GeneralParameterValue config) throws ConfigurationException;
+    Integer storeProvider(String providerId, ProviderType type, String factoryName, GeneralParameterValue config) throws ConfigurationException;
 
     /**
      * Get all datas from the specified provider
@@ -157,14 +157,11 @@ public interface IProviderBusiness {
     void removeAll() throws ConfigurationException;
 
     /**
-     * @deprecated TODO change the column type to int
+     * Get all provider identifiers.
+     * 
+     * @return 
      */
-    @Deprecated
-    void updateParent(String id, String providerId);
-
     List<Integer> getProviderIdsAsInt();
-
-    List<Integer> getProviderIdsAsInt(boolean noParent);
 
     /**
      *

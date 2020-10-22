@@ -738,7 +738,7 @@ public class DataRestAPI extends AbstractRestAPI{
         try {
             final List<DataBrief> results = new ArrayList<>();
             // only providers that have a no parent
-            final List<Integer> providerIds = providerBusiness.getProviderIdsAsInt(true);
+            final List<Integer> providerIds = providerBusiness.getProviderIdsAsInt();
             for (final Integer providerId : providerIds) {
                 final List<DataBrief> briefs = dataBusiness.getDataBriefsFromProviderId(providerId, type, true, false, sensorable, published, fetchDataDescription);
                 results.addAll(briefs);

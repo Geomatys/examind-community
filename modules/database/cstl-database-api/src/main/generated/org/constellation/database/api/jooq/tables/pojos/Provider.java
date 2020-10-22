@@ -16,11 +16,10 @@ package org.constellation.database.api.jooq.tables.pojos;
 @java.lang.SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Provider implements java.io.Serializable {
 
-	private static final long serialVersionUID = 750702049;
+	private static final long serialVersionUID = -669893806;
 
 	private java.lang.Integer id;
 	private java.lang.String  identifier;
-	private java.lang.String  parent;
 	private java.lang.String  type;
 	private java.lang.String  impl;
 	private java.lang.String  config;
@@ -31,7 +30,6 @@ public class Provider implements java.io.Serializable {
 	public Provider(
 		java.lang.Integer id,
 		java.lang.String  identifier,
-		java.lang.String  parent,
 		java.lang.String  type,
 		java.lang.String  impl,
 		java.lang.String  config,
@@ -39,7 +37,6 @@ public class Provider implements java.io.Serializable {
 	) {
 		this.id = id;
 		this.identifier = identifier;
-		this.parent = parent;
 		this.type = type;
 		this.impl = impl;
 		this.config = config;
@@ -64,16 +61,6 @@ public class Provider implements java.io.Serializable {
 
 	public Provider setIdentifier(java.lang.String identifier) {
 		this.identifier = identifier;
-		return this;
-	}
-
-	@javax.validation.constraints.Size(max = 512)
-	public java.lang.String getParent() {
-		return this.parent;
-	}
-
-	public Provider setParent(java.lang.String parent) {
-		this.parent = parent;
 		return this;
 	}
 

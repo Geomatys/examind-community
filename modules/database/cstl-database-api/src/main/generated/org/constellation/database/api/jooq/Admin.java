@@ -16,7 +16,7 @@ package org.constellation.database.api.jooq;
 @java.lang.SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Admin extends org.jooq.impl.SchemaImpl {
 
-	private static final long serialVersionUID = 365568578;
+	private static final long serialVersionUID = -789495162;
 
 	/**
 	 * The reference instance of <code>admin</code>
@@ -74,13 +74,13 @@ public class Admin extends org.jooq.impl.SchemaImpl {
 			org.constellation.database.api.jooq.tables.Crs.CRS,
 			org.constellation.database.api.jooq.tables.CstlUser.CSTL_USER,
 			org.constellation.database.api.jooq.tables.Data.DATA,
+			org.constellation.database.api.jooq.tables.DataXData.DATA_X_DATA,
 			org.constellation.database.api.jooq.tables.Dataset.DATASET,
 			org.constellation.database.api.jooq.tables.Datasource.DATASOURCE,
 			org.constellation.database.api.jooq.tables.DatasourcePath.DATASOURCE_PATH,
 			org.constellation.database.api.jooq.tables.DatasourcePathStore.DATASOURCE_PATH_STORE,
 			org.constellation.database.api.jooq.tables.DatasourceSelectedPath.DATASOURCE_SELECTED_PATH,
 			org.constellation.database.api.jooq.tables.DatasourceStore.DATASOURCE_STORE,
-			org.constellation.database.api.jooq.tables.DataXData.DATA_X_DATA,
 			org.constellation.database.api.jooq.tables.InternalMetadata.INTERNAL_METADATA,
 			org.constellation.database.api.jooq.tables.InternalSensor.INTERNAL_SENSOR,
 			org.constellation.database.api.jooq.tables.Layer.LAYER,
@@ -97,8 +97,8 @@ public class Admin extends org.jooq.impl.SchemaImpl {
 			org.constellation.database.api.jooq.tables.ProviderXSos.PROVIDER_X_SOS,
 			org.constellation.database.api.jooq.tables.Role.ROLE,
 			org.constellation.database.api.jooq.tables.Sensor.SENSOR,
-			org.constellation.database.api.jooq.tables.SensoredData.SENSORED_DATA,
 			org.constellation.database.api.jooq.tables.SensorXSos.SENSOR_X_SOS,
+			org.constellation.database.api.jooq.tables.SensoredData.SENSORED_DATA,
 			org.constellation.database.api.jooq.tables.Service.SERVICE,
 			org.constellation.database.api.jooq.tables.ServiceDetails.SERVICE_DETAILS,
 			org.constellation.database.api.jooq.tables.ServiceExtraConfig.SERVICE_EXTRA_CONFIG,

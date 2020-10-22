@@ -42,6 +42,11 @@ public class Tables {
 	public static final org.constellation.database.api.jooq.tables.Data DATA = org.constellation.database.api.jooq.tables.Data.DATA;
 
 	/**
+	 * The table admin.data_x_data
+	 */
+	public static final org.constellation.database.api.jooq.tables.DataXData DATA_X_DATA = org.constellation.database.api.jooq.tables.DataXData.DATA_X_DATA;
+
+	/**
 	 * The table admin.dataset
 	 */
 	public static final org.constellation.database.api.jooq.tables.Dataset DATASET = org.constellation.database.api.jooq.tables.Dataset.DATASET;
@@ -70,11 +75,6 @@ public class Tables {
 	 * The table admin.datasource_store
 	 */
 	public static final org.constellation.database.api.jooq.tables.DatasourceStore DATASOURCE_STORE = org.constellation.database.api.jooq.tables.DatasourceStore.DATASOURCE_STORE;
-
-	/**
-	 * The table admin.data_x_data
-	 */
-	public static final org.constellation.database.api.jooq.tables.DataXData DATA_X_DATA = org.constellation.database.api.jooq.tables.DataXData.DATA_X_DATA;
 
 	/**
 	 * The table admin.internal_metadata
@@ -157,14 +157,14 @@ public class Tables {
 	public static final org.constellation.database.api.jooq.tables.Sensor SENSOR = org.constellation.database.api.jooq.tables.Sensor.SENSOR;
 
 	/**
-	 * The table admin.sensored_data
-	 */
-	public static final org.constellation.database.api.jooq.tables.SensoredData SENSORED_DATA = org.constellation.database.api.jooq.tables.SensoredData.SENSORED_DATA;
-
-	/**
 	 * The table admin.sensor_x_sos
 	 */
 	public static final org.constellation.database.api.jooq.tables.SensorXSos SENSOR_X_SOS = org.constellation.database.api.jooq.tables.SensorXSos.SENSOR_X_SOS;
+
+	/**
+	 * The table admin.sensored_data
+	 */
+	public static final org.constellation.database.api.jooq.tables.SensoredData SENSORED_DATA = org.constellation.database.api.jooq.tables.SensoredData.SENSORED_DATA;
 
 	/**
 	 * The table admin.service

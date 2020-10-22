@@ -52,20 +52,6 @@ public class ProviderBrief extends Identifiable implements Serializable {
     }
 
     /**
-     * @return the parent
-     */
-    public String getParent() {
-        return parent;
-    }
-
-    /**
-     * @param parent the parent to set
-     */
-    public void setParent(String parent) {
-        this.parent = parent;
-    }
-
-    /**
      * @return the type
      */
     public String getType() {

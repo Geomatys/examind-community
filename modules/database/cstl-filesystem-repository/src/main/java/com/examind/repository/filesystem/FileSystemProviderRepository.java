@@ -52,7 +52,6 @@ public class FileSystemProviderRepository extends AbstractFileSystemRepository i
 
     private final Map<Integer, ProviderBrief> byId = new HashMap<>();
     private final Map<String, ProviderBrief> byName = new HashMap<>();
-    private final Map<String, List<ProviderBrief>> byParent = new HashMap<>();
 
     @Autowired
     private DataRepository dataRepository;
@@ -71,13 +70,6 @@ public class FileSystemProviderRepository extends AbstractFileSystemRepository i
                     byId.put(provider.getId(), provider);
                     byName.put(provider.getIdentifier(), provider);
 
-                    if (!byParent.containsKey(provider.getParent())) {
-                        List<ProviderBrief> providers = new ArrayList<>();
-                        providers.add(provider);
-                        byParent.put(provider.getParent(), providers);
-                    } else {
-                        byParent.get(provider.getParent()).add(provider);
-                    }
                     incCurrentId(provider);
                 }
             }
@@ -90,17 +82,6 @@ public class FileSystemProviderRepository extends AbstractFileSystemRepository i
     @Override
     public List<Integer> getAllIds() {
         return new ArrayList<>(byId.keySet());
-    }
-
-    @Override
-    public List<Integer> getAllIdsWithNoParent() {
-        List<Integer> results = new ArrayList<>();
-        for (ProviderBrief p : byId.values()) {
-            if (p.getParent() == null) {
-                results.add(p.getId());
-            }
-        }
-        return results;
     }
 
     @Override
@@ -147,15 +128,6 @@ public class FileSystemProviderRepository extends AbstractFileSystemRepository i
         return byName.get(providerIdentifier);
     }
 
-    @Override
-    public List<ProviderBrief> findChildren(String id) {
-        if (byParent.containsKey(id)) {
-            return new ArrayList<>(byParent.get(id));
-        }
-        return new ArrayList<>();
-    }
-
-
     ////--------------------------------------------------------------------///
     ////------------------------    TRANSACTIONAL  -------------------------///
     ////--------------------------------------------------------------------///
@@ -172,13 +144,6 @@ public class FileSystemProviderRepository extends AbstractFileSystemRepository i
             byId.put(provider.getId(), provider);
             byName.put(provider.getIdentifier(), provider);
 
-            if (!byParent.containsKey(provider.getParent())) {
-                List<ProviderBrief> children = new ArrayList<>();
-                children.add(provider);
-                byParent.put(provider.getParent(), children);
-            } else {
-                byParent.get(provider.getParent()).add(provider);
-            }
             return provider.getId();
         }
         return null;
@@ -197,13 +162,6 @@ public class FileSystemProviderRepository extends AbstractFileSystemRepository i
             byId.put(provider.getId(), provider);
             byName.put(provider.getIdentifier(), provider);
 
-            if (!byParent.containsKey(provider.getParent())) {
-                List<ProviderBrief> children = new ArrayList<>();
-                children.add(provider);
-                byParent.put(provider.getParent(), children);
-            } else {
-                byParent.get(provider.getParent()).add(provider);
-            }
             return 1;
         }
         return 0;
@@ -227,9 +185,6 @@ public class FileSystemProviderRepository extends AbstractFileSystemRepository i
             byId.remove(provider.getId());
             byName.remove(provider.getIdentifier());
 
-            if (byParent.containsKey(provider.getParent())) {
-                byParent.get(provider.getParent()).remove(provider);
-            }
             return 1;
         }
         return 0;
@@ -261,9 +216,6 @@ public class FileSystemProviderRepository extends AbstractFileSystemRepository i
             byId.remove(provider.getId());
             byName.remove(provider.getIdentifier());
 
-            if (byParent.containsKey(provider.getParent())) {
-                byParent.get(provider.getParent()).remove(provider);
-            }
             return 1;
         }
         return 0;

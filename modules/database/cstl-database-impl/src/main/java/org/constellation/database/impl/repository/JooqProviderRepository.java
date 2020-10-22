@@ -98,7 +98,6 @@ public class JooqProviderRepository extends AbstractJooqRespository<ProviderReco
         newRecord.setImpl(provider.getImpl());
         newRecord.setOwner(provider.getOwner());
         newRecord.setType(provider.getType());
-        newRecord.setParent(provider.getParent());
         newRecord.store();
         return newRecord.into(Provider.class).getId();
     }
@@ -135,11 +134,6 @@ public class JooqProviderRepository extends AbstractJooqRespository<ProviderReco
     }
 
     @Override
-    public List<ProviderBrief> findChildren(String id) {
-        return convertListToDto(dsl.select().from(PROVIDER).where(PROVIDER.PARENT.eq(id)).fetchInto(Provider.class));
-    }
-
-    @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public int update(ProviderBrief provider) {
         ProviderRecord providerRecord = new ProviderRecord();
@@ -149,12 +143,10 @@ public class JooqProviderRepository extends AbstractJooqRespository<ProviderReco
                 .set(PROVIDER.IDENTIFIER, provider.getIdentifier())
                 .set(PROVIDER.IMPL, provider.getImpl())
                 .set(PROVIDER.OWNER, provider.getOwner())
-                .set(PROVIDER.PARENT, provider.getParent())
                 .set(PROVIDER.TYPE, provider.getType())
                 .where(PROVIDER.ID.eq(provider.getId()));
 
         return set.execute();
-
     }
 
     @Override
@@ -165,11 +157,6 @@ public class JooqProviderRepository extends AbstractJooqRespository<ProviderReco
     @Override
     public List<Integer> getAllIds() {
         return dsl.select(PROVIDER.ID).from(PROVIDER).fetchInto(Integer.class);
-    }
-
-    @Override
-    public List<Integer> getAllIdsWithNoParent() {
-        return dsl.select(PROVIDER.ID).from(PROVIDER).where(PROVIDER.PARENT.isNull()).fetchInto(Integer.class);
     }
 
     @Override
@@ -193,7 +180,6 @@ public class JooqProviderRepository extends AbstractJooqRespository<ProviderReco
             p.setIdentifier(dao.getIdentifier());
             p.setImpl(dao.getImpl());
             p.setOwner(dao.getOwner());
-            p.setParent(dao.getParent());
             p.setType(dao.getType());
             return p;
         }

@@ -128,7 +128,7 @@ public class SensorConfigurationUpgrade {
                             final ParameterValueGroup fsConfig = choice.addGroup("filesensor");
                             fsConfig.parameter("data_directory").setValue(smlConf.getDataDirectory());
 
-                            providerID = providerBusiness.storeProvider(providerIdentifier, null, ProviderType.SENSOR, "sensor-store", fsConfig);
+                            providerID = providerBusiness.storeProvider(providerIdentifier, ProviderType.SENSOR, "sensor-store", fsConfig);
                             try {
                                 providerBusiness.createOrUpdateData(providerID, null, false);
                             } catch (IOException | ConstellationException ex) {
@@ -201,7 +201,7 @@ public class SensorConfigurationUpgrade {
                             dbConfig.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
                             dbConfig.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
 
-                            providerID = providerBusiness.storeProvider(providerIdentifier, null, ProviderType.LAYER, "observation-store", source);
+                            providerID = providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "observation-store", source);
                         }
 
                         serviceBusiness.linkServiceAndProvider(id, providerID);

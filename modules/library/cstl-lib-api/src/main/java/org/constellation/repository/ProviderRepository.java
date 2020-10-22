@@ -42,14 +42,9 @@ public interface ProviderRepository extends AbstractRepository {
 
     int deleteByIdentifier(String providerID);
 
-    List<ProviderBrief> findChildren(String id);
-
     int update(ProviderBrief provider);
 
     int removeLinkedServices(int providerID);
 
     List<Integer> getAllIds();
-
-    List<Integer> getAllIdsWithNoParent();
-
 }

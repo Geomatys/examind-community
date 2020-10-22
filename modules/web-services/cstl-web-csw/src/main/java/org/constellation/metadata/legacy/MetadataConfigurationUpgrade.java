@@ -128,7 +128,7 @@ public class MetadataConfigurationUpgrade {
                             fsConfig.parameter("folder").setValue(config.getDataDirectory());
                             fsConfig.parameter("store-id").setValue(providerIdentifier);
 
-                            providerID = providerBusiness.storeProvider(providerIdentifier, null, ProviderType.LAYER, "metadata-store", fsConfig);
+                            providerID = providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "metadata-store", fsConfig);
                             try {
                                 providerBusiness.createOrUpdateData(providerID, null, false);
                             } catch (IOException | ConstellationException ex) {

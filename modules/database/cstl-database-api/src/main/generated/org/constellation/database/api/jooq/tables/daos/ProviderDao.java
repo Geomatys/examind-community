@@ -67,13 +67,6 @@ public class ProviderDao extends org.jooq.impl.DAOImpl<org.constellation.databas
 	}
 
 	/**
-	 * Fetch records that have <code>parent IN (values)</code>
-	 */
-	public java.util.List<org.constellation.database.api.jooq.tables.pojos.Provider> fetchByParent(java.lang.String... values) {
-		return fetch(org.constellation.database.api.jooq.tables.Provider.PROVIDER.PARENT, values);
-	}
-
-	/**
 	 * Fetch records that have <code>type IN (values)</code>
 	 */
 	public java.util.List<org.constellation.database.api.jooq.tables.pojos.Provider> fetchByType(java.lang.String... values) {

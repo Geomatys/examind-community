@@ -290,11 +290,6 @@ public class PyramidBusiness implements IPyramidBusiness {
             final Integer pyramidProvider  = createPyramidProvider(pyramidIdentifier, pGname, true, tilingMode, tileFormat, null, globalEnv, 256, scales);
             final DataProvider outProvider = DataProviders.getProvider(pyramidProvider);
 
-            // Update the parent attribute of the created provider
-            if (briefs.size() == 1) {
-                providerBusiness.updateParent(outProvider.getId(), providerId);
-            }
-
             Data pyData = outProvider.get(pGname);
             if (pyData != null && pyData.getOrigin() instanceof MultiResolutionResource) {
                 outRef = (MultiResolutionResource) pyData.getOrigin();

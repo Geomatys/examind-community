@@ -153,7 +153,6 @@ public class TestSamples {
         provider.setImpl("immmmp");
         provider.setOwner(ownerId);
         provider.setType("coverage");
-        provider.setParent("");
         provider.setConfig("<root />");
         return provider;
     }
@@ -164,7 +163,6 @@ public class TestSamples {
         provider.setImpl("immmmp");
         provider.setOwner(ownerId);
         provider.setType("VECTOR");
-        provider.setParent("");
         provider.setConfig("<root />");
         return provider;
     }
@@ -175,7 +173,6 @@ public class TestSamples {
         provider.setImpl("i'mmmmp");
         provider.setOwner(ownerId);
         provider.setType("'VECTOR'");
-        provider.setParent("");
         provider.setConfig("<ro';'ot />");
         return provider;
     }

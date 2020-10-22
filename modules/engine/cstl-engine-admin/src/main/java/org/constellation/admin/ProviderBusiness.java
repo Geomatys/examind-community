@@ -251,14 +251,6 @@ public class ProviderBusiness implements IProviderBusiness {
     }
 
     @Override
-    @Transactional
-    public void updateParent(String providerIdentifier, String newParentIdentifier) {
-        final ProviderBrief provider = providerRepository.findByIdentifier(providerIdentifier);
-        provider.setParent(newParentIdentifier);
-        providerRepository.update(provider);
-    }
-
-    @Override
     public Set<GenericName> test(final String providerIdentifier, final ProviderConfiguration configuration) throws ConfigurationException {
         final String type = configuration.getType();
         final String subType = configuration.getSubType();
@@ -328,19 +320,18 @@ public class ProviderBusiness implements IProviderBusiness {
     @Override
     @Transactional
     public Integer create(final String id, final String providerFactoryId, final ParameterValueGroup providerConfig) throws ConfigurationException {
-        return storeProvider(id, null, ProviderType.LAYER, providerFactoryId, providerConfig);
+        return storeProvider(id, ProviderType.LAYER, providerFactoryId, providerConfig);
     }
 
     @Override
     @Transactional
-    public Integer storeProvider(final String identifier, final String parent, final ProviderType type, final String providerFactoryId,
+    public Integer storeProvider(final String identifier, final ProviderType type, final String providerFactoryId,
                                   final GeneralParameterValue config) throws ConfigurationException {
         final ProviderBrief provider = new ProviderBrief();
         final Optional<CstlUser> user = userBusiness.findOne(securityManager.getCurrentUserLogin());
         if (user.isPresent()) {
             provider.setOwner(user.get().getId());
         }
-        provider.setParent(parent);
         provider.setType(type.name());
         try {
             provider.setConfig(ParamUtilities.writeParameter(config));
@@ -535,18 +526,12 @@ public class ProviderBusiness implements IProviderBusiness {
         }
     }
 
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public List<Integer> getProviderIdsAsInt() {
         return providerRepository.getAllIds();
-    }
-
-    @Override
-    public List<Integer> getProviderIdsAsInt(boolean noParent) {
-        if (noParent) {
-            return providerRepository.getAllIdsWithNoParent();
-        }
-        return getProviderIdsAsInt();
-
     }
 
     /**
