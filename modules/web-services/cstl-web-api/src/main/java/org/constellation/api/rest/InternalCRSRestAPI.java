@@ -22,9 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
-import javax.inject.Inject;
 import org.apache.sis.referencing.CRS;
-import org.constellation.business.IDataBusiness;
 import org.constellation.dto.service.config.wxs.CRSCoverageList;
 import org.constellation.util.CRSUtilities;
 import org.opengis.referencing.crs.CRSAuthorityFactory;
@@ -45,9 +43,6 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController()
 public class InternalCRSRestAPI extends AbstractRestAPI {
-
-    @Inject
-    private IDataBusiness dataBusiness;
 
     /**
      * @param start

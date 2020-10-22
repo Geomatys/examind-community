@@ -23,7 +23,6 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import java.awt.Dimension;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -61,7 +60,6 @@ import static org.constellation.api.StatisticState.STATE_PARTIAL;
 import static org.constellation.api.StatisticState.STATE_PENDING;
 import org.constellation.dto.BandDescription;
 import org.constellation.dto.CoverageDataDescription;
-import org.constellation.dto.ProviderPyramidChoiceList;
 import org.constellation.dto.StatInfo;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.util.DataStatisticsListener;
@@ -78,13 +76,10 @@ import org.geotoolkit.processing.coverage.statistics.StatisticsDescriptor;
 import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.storage.coverage.ImageStatistics;
 import org.geotoolkit.storage.multires.MultiResolutionResource;
-import org.geotoolkit.storage.multires.TileMatrices;
-import org.geotoolkit.storage.multires.TileMatrixSet;
 import org.geotoolkit.style.DefaultStyleFactory;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.style.StyleConstants;
 import org.opengis.geometry.Envelope;
-import org.opengis.metadata.Identifier;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.crs.SingleCRS;
 import org.opengis.referencing.crs.TemporalCRS;
@@ -440,35 +435,6 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
     }
 
     @Override
-    public ProviderPyramidChoiceList.CachePyramid getPyramid() throws ConstellationStoreException {
-         try {
-            final Object origin = getOrigin();
-            if (origin instanceof MultiResolutionResource) {
-                final MultiResolutionResource cacheRef = (MultiResolutionResource) origin;
-                final Collection<TileMatrixSet> pyramids = TileMatrices.getTileMatrixSets(cacheRef);
-                if(pyramids.isEmpty()) return null;
-
-                //TODO what do we do if there are more then one pyramid ?
-                //it the current state of constellation there is only one pyramid
-                final TileMatrixSet pyramid = pyramids.iterator().next();
-                final Identifier crsid = pyramid.getCoordinateReferenceSystem().getIdentifiers().iterator().next();
-
-                final ProviderPyramidChoiceList.CachePyramid cache = new ProviderPyramidChoiceList.CachePyramid();
-                cache.setCrs(crsid.getCode());
-                cache.setScales(pyramid.getScales());
-                //cache.setProviderId(provider.getId());
-                //cache.setDataId(layerName);
-                //cache.setConform(childRec.getIdentifier().startsWith("conform_"));
-
-                return cache;
-            }
-        } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
-        }
-        return null;
-    }
-
-    @Override
     public boolean isGeophysic() throws ConstellationStoreException {
         boolean isGeophysic = false;
         try {
@@ -613,7 +579,7 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
     /**
      * Get and parse data statistics.
      *
-     * @param s
+     * @param s specified statistics information.
      *
      * @return ImageStatistics object or null if data is not a coverage or if Statistics were not computed.
      * @throws ConstellationStoreException

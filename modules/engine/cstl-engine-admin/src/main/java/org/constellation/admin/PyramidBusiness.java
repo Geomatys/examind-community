@@ -27,7 +27,6 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -61,9 +60,7 @@ import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.MapContextLayersDTO;
 import org.constellation.dto.MapContextStyledLayerDTO;
-import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.TilingResult;
-import org.constellation.dto.ProviderPyramidChoiceList;
 import org.constellation.dto.StyleBrief;
 import org.constellation.dto.process.TaskParameter;
 import org.constellation.exception.ConfigurationException;
@@ -76,7 +73,6 @@ import org.constellation.provider.DataProviders;
 import org.constellation.provider.GeoData;
 import org.constellation.provider.ProviderParameters;
 import org.constellation.repository.DataRepository;
-import org.constellation.repository.ProviderRepository;
 import org.constellation.util.ParamUtilities;
 import org.constellation.util.Util;
 import org.geotoolkit.coverage.grid.ViewType;
@@ -93,14 +89,12 @@ import org.geotoolkit.storage.coverage.DefiningCoverageResource;
 import org.geotoolkit.storage.multires.DefiningTileMatrixSet;
 import org.geotoolkit.storage.multires.MultiResolutionResource;
 import org.geotoolkit.storage.multires.TileMatrices;
-import org.geotoolkit.storage.multires.TileMatrixSet;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.wms.WMSResource;
 import org.geotoolkit.wms.WebMapClient;
 import org.geotoolkit.wms.xml.WMSVersion;
 import org.opengis.geometry.Envelope;
-import org.opengis.metadata.Identifier;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform1D;
@@ -142,8 +136,6 @@ public class PyramidBusiness implements IPyramidBusiness {
     @Inject
     private DataRepository dataRepository;
 
-    @Inject
-    private ProviderRepository providerRepository;
 
     /**
      * {@inheritDoc}
@@ -706,45 +698,5 @@ public class PyramidBusiness implements IPyramidBusiness {
         } catch (DataStoreException ex) {
             throw new ConstellationException("Error while creating pyramid template.", ex);
         }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ProviderPyramidChoiceList listPyramids(final String id, final String dataName) throws ConfigurationException {
-        final ProviderPyramidChoiceList choices = new ProviderPyramidChoiceList();
-
-        final List<ProviderBrief> childrenRecs = providerRepository.findChildren(id);
-
-        for (ProviderBrief childRec : childrenRecs) {
-            final DataProvider provider = DataProviders.getProvider(childRec.getId());
-            final GenericName gname = NamesExt.create(ProviderParameters.getNamespace(provider), dataName);
-            final Data cacheData = provider.get(gname);
-            if (cacheData != null) {
-                final MultiResolutionResource cacheRef = (MultiResolutionResource) cacheData.getOrigin();
-                final Collection<TileMatrixSet> pyramids;
-                try {
-                    pyramids = TileMatrices.getTileMatrixSets(cacheRef);
-                } catch (DataStoreException ex) {
-                    throw new ConfigurationException(ex.getMessage(), ex);
-                }
-                if (pyramids.isEmpty()) continue;
-                //TODO what do we do if there are more then one pyramid ?
-                //it the current state of constellation there is only one pyramid
-                final TileMatrixSet pyramid = pyramids.iterator().next();
-                final Identifier crsid = pyramid.getCoordinateReferenceSystem().getIdentifiers().iterator().next();
-
-                final ProviderPyramidChoiceList.CachePyramid cache = new ProviderPyramidChoiceList.CachePyramid();
-                cache.setCrs(crsid.getCode());
-                cache.setScales(pyramid.getScales());
-                cache.setProviderId(provider.getId());
-                cache.setDataId(dataName);
-                cache.setConform(childRec.getIdentifier().startsWith("conform_"));
-
-                choices.getPyramids().add(cache);
-            }
-        }
-        return choices;
     }
 }

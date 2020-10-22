@@ -38,7 +38,6 @@ import org.geotoolkit.util.DateRange;
 
 import org.constellation.api.ServiceDef.Query;
 import org.constellation.dto.DataDescription;
-import org.constellation.dto.ProviderPyramidChoiceList;
 import org.constellation.dto.StatInfo;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.repository.DataRepository;
@@ -143,11 +142,6 @@ public abstract class AbstractData<T extends Resource> implements Data<T> {
 
     @Override
     public Boolean isRendered() {
-        return null;
-    }
-
-    @Override
-    public ProviderPyramidChoiceList.CachePyramid getPyramid() throws ConstellationStoreException {
         return null;
     }
 

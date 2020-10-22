@@ -22,8 +22,6 @@ import java.util.List;
 import org.constellation.api.TilingMode;
 import org.constellation.dto.MapContextLayersDTO;
 import org.constellation.dto.TilingResult;
-import org.constellation.dto.ProviderPyramidChoiceList;
-import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 
 /**
@@ -71,5 +69,4 @@ public interface IPyramidBusiness {
      */
     void createAllPyramidConformForProvider(final int providerId) throws ConstellationException;
 
-    ProviderPyramidChoiceList listPyramids(final String id, final String dataName) throws ConfigurationException;
 }

@@ -27,12 +27,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import javax.inject.Inject;
-import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.DataStores;
-import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IProviderBusiness;
-import org.constellation.business.IPyramidBusiness;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.ParameterValues;
 import org.constellation.dto.ProviderConfiguration;
@@ -42,8 +39,6 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
-import org.opengis.referencing.crs.CRSAuthorityFactory;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.util.GenericName;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -75,12 +70,6 @@ public class ProviderRestAPI extends AbstractRestAPI {
     @Inject
     private IProviderBusiness providerBusiness;
 
-    @Inject
-    private IDatasetBusiness datasetBusiness;
-
-    @Inject
-    private IPyramidBusiness pyramidBusiness;
-
     /**
      * List all providers.
      *
@@ -109,9 +98,9 @@ public class ProviderRestAPI extends AbstractRestAPI {
     /**
      * Reload a provider.
      *
-     * @param providerId the provider ID as integer
-     * @return
-     * @deprecated duplicate with CRSRest API
+     * @param providerId the provider ID as integer.
+     * 
+     * @return HTTP code 200 if the reload went well.
      */
     @RequestMapping(value="/{id}/reload",method=GET,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity reloadProvider(@PathVariable("id") final int providerId) {
@@ -124,6 +113,14 @@ public class ProviderRestAPI extends AbstractRestAPI {
         }
     }
 
+    /**
+     * Test a provider configuration to see if its valid an contains recognized data.
+     * 
+     * @param providerIdentifier assigned identifier.
+     * @param configuration provider configuration.
+     * 
+     * @return HTTP code 200 if the configuration is valid.
+     */
     @RequestMapping(value="/{id}/test",method=POST,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity test(
             @PathVariable("id") final String providerIdentifier,
@@ -182,33 +179,6 @@ public class ProviderRestAPI extends AbstractRestAPI {
 
         return new ResponseEntity(OK);
     }
-
-    /**
-     *
-     * @param providerIdentifier
-     * @return
-     * @deprecated duplicate with CRSRest API
-     */
-    @RequestMapping(value="/{id}/epsgCode",method=GET,produces=APPLICATION_JSON_VALUE)
-    @Deprecated
-    public ResponseEntity getAllEpsgCode(
-            @PathVariable("id") final String providerIdentifier) {
-
-        try {
-            final CRSAuthorityFactory factory = org.apache.sis.referencing.CRS.getAuthorityFactory("EPSG");
-            final Set<String> authorityCodes = factory.getAuthorityCodes(CoordinateReferenceSystem.class);
-            final List<String> codes = new ArrayList<>();
-            for (String code : authorityCodes){
-                code += " - " + factory.getDescriptionText(code).toString();
-                codes.add(code);
-            }
-            return new ResponseEntity(codes,OK);
-        } catch (Throwable ex) {
-            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
-            return new ErrorMessage(ex).build();
-        }
-    }
-
 
     @RequestMapping(value="/{id}/createprj",method=POST,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity createPrj(
@@ -300,73 +270,6 @@ public class ProviderRestAPI extends AbstractRestAPI {
             return new ErrorMessage(ex).build();
         }
         return new ResponseEntity(new SimpleValue(isGeophysic), OK);
-    }
-
-    /**
-     * List the available pyramids for this layer
-     *
-     * @param id
-     * @param dataName
-     * @return
-     */
-    @RequestMapping(value="/{id}/{dataName}/listPyramidChoice",method=GET,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity listPyramids(
-            @PathVariable("id")        final String id,
-            @PathVariable("dataName") final String dataName) {
-
-        try {
-            return new ResponseEntity(pyramidBusiness.listPyramids(id, dataName),OK);
-        } catch (ConfigurationException ex) {
-            LOGGER.log(Level.WARNING, "Cannot retrieve information for data "+dataName, ex);
-            return new ErrorMessage(ex).build();
-        }
-    }
-
-    /**
-     *
-     * Is this method still used ??
-     *
-     * No longer metadata for provider but for dataset
-     *
-     * @param providerId
-     * @return
-     */
-    @RequestMapping(value="/metadata/{providerId}",method=GET,produces=APPLICATION_XML_VALUE)
-    public ResponseEntity getMetadata(
-            @PathVariable("providerId") final String providerId) {
-
-        // for now assume that providerID == datasetID
-        try {
-            return new ResponseEntity(datasetBusiness.getMetadata(providerId),OK);
-        } catch (Throwable ex) {
-            LOGGER.log(Level.WARNING, "Cannot retrieve metadata for provider "+providerId, ex);
-            return new ErrorMessage(ex).build();
-        }
-    }
-
-    /**
-     *
-     * Is this method still used ??
-     *
-     * No longer metadata for provider but for dataset
-     *
-     * @param providerId
-     * @param metadata
-     * @return
-     */
-    @RequestMapping(value="/metadata/{providerId}",method=POST,consumes=APPLICATION_XML_VALUE,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity setMetadata(
-            @PathVariable("providerId") final String providerId,
-            @RequestBody                final DefaultMetadata metadata) {
-
-        // for now assume that providerID == datasetID
-        try {
-            datasetBusiness.updateMetadata(providerId, metadata);
-            return new ResponseEntity(OK);
-        } catch (Throwable ex) {
-            LOGGER.log(Level.WARNING, "Cannot update metadata for provider "+providerId, ex);
-            return new ErrorMessage(ex).build();
-        }
     }
 
     /**

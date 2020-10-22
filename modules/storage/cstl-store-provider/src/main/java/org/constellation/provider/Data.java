@@ -45,7 +45,6 @@ import org.apache.sis.util.Classes;
 import org.constellation.api.DataType;
 import org.constellation.api.ServiceDef;
 import org.constellation.dto.DataDescription;
-import org.constellation.dto.ProviderPyramidChoiceList;
 import org.constellation.dto.StatInfo;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.repository.DataRepository;
@@ -154,14 +153,6 @@ public interface Data<T extends Resource> {
      * (TODO move to CoverageData when the interface will be clean of geotk dependencies and moved to provider base module)
      */
     Boolean isRendered();
-
-    /**
-     * Return a list of pyramid linked to this coverage data.
-     * return an empty list, for other data type.
-     *
-     * (TODO move to CoverageData when the interface will be clean of geotk dependencies and moved to provider base module)
-     */
-    ProviderPyramidChoiceList.CachePyramid getPyramid() throws ConstellationStoreException;
 
     boolean isGeophysic() throws ConstellationStoreException;
 
