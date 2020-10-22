@@ -32,6 +32,7 @@ import org.geotoolkit.storage.multires.TileMatrixSet;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
 import org.springframework.stereotype.Component;
 
@@ -71,7 +72,7 @@ public class PyramidProcess extends AbstractProcessDescriptor implements AdminPr
 
         MODE = builder.addName("mode")
                 .setRequired(true)
-                .createEnumerated(String.class, new String[]{"data","rgb"},"data");
+                .createEnumerated(String.class, new String[]{"CONFORM","RENDERED"},"CONFORM");
 
 
         INPUT = builder.addName("input").createGroup(MAPCONTEXT, RESOURCE, INTERPOLATION, MODE);
@@ -105,8 +106,8 @@ public class PyramidProcess extends AbstractProcessDescriptor implements AdminPr
 
             final TileGenerator generator;
             switch (mode) {
-                case "rgb" : generator = new MapContextTileGenerator(context, new Hints(Hints.KEY_ANTIALIASING, Hints.VALUE_ANTIALIAS_ON)); break;
-                case "data" : {
+                case "RENDERED" : generator = new MapContextTileGenerator(context, new Hints(Hints.KEY_ANTIALIASING, Hints.VALUE_ANTIALIAS_ON)); break;
+                case "CONFORM" : {
                     GridCoverageResource singleRes = null;
                     List<AggregatedCoverageResource.VirtualBand> bands = new ArrayList<>();
                     for (MapLayer layer : MapBuilder.getLayers(context)) {
@@ -123,7 +124,13 @@ public class PyramidProcess extends AbstractProcessDescriptor implements AdminPr
                         throw new ProcessException("MapContext must contain at least one coverage layer ", this);
                     } else if (bands.size() > 1) {
                         try {
-                            singleRes = new AggregatedCoverageResource(bands, Mode.ORDER, context.getCoordinateReferenceSystem());
+                            CoordinateReferenceSystem crs;
+                            if (context.getAreaOfInterest() != null) {
+                                crs = context.getAreaOfInterest().getCoordinateReferenceSystem();
+                            } else {
+                                throw new ProcessException("Missing CRS on map context", this);
+                            }
+                            singleRes = new AggregatedCoverageResource(bands, Mode.ORDER, crs);
                         } catch (DataStoreException | TransformException ex) {
                             throw new ProcessException(ex.getMessage(), this, ex);
                         }

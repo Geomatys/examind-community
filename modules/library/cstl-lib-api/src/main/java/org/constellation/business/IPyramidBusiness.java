@@ -19,7 +19,7 @@
 package org.constellation.business;
 
 import java.util.List;
-import org.constellation.dto.DataBrief;
+import org.constellation.api.TilingMode;
 import org.constellation.dto.MapContextLayersDTO;
 import org.constellation.dto.TilingResult;
 import org.constellation.dto.ProviderPyramidChoiceList;
@@ -33,44 +33,34 @@ import org.constellation.exception.ConstellationException;
 public interface IPyramidBusiness {
 
     /**
-     * Generates a pyramid for a map context.if mode = 'rgb' generated pyramid will be styled for rendering.
-     * if mode = 'data' generated pyramid contains coverage real values, it's not styled for rendering.
+     * Generates a pyramid for a map context. if mode = RENDERED generated pyramid will be styled for rendering.
+     * if mode == CONFORM generated pyramid contains coverage real values, it's not styled for rendering.
      *
      * @param pyramidDataName The given pyramid name.
      * @param mc The input map context.
      * @param crs The given pyramid coordinate reference system.
      * @param userId The pyramids owner.
-     * @param mode The pyramid mode, 'rgb' or 'data'.
+     * @param mode The tiling mode, RENDERED or CONFORM.
      * 
      * @return {@link TilingResult}
      * @throws org.constellation.exception.ConstellationException
      */
-    TilingResult pyramidMapContext(Integer userId, String pyramidDataName, final String crs, final MapContextLayersDTO mc, final String mode) throws ConstellationException;
+    TilingResult pyramidMapContext(Integer userId, String pyramidDataName, final String crs, final MapContextLayersDTO mc, final TilingMode mode) throws ConstellationException;
 
     /**
-     * Generates a pyramid for a map context.if mode = 'rgb' generated pyramid will be styled for rendering.
-     * if mode = 'data' generated pyramid contains coverage real values, it's not styled for rendering.
+     * Generates a pyramid for a map context. if mode = RENDERED generated pyramid will be styled for rendering.
+     * if mode == CONFORM generated pyramid contains coverage real values, it's not styled for rendering.
      *
      * @param pyramidDataName The given pyramid name.
      * @param dataIds The input map data identifiers.
      * @param crs The given pyramid coordinate reference system.
      * @param userId The pyramids owner.
-     * @param mode The pyramid mode, 'rgb' or 'data'.
+     * @param mode The tiling mode, RENDERED or CONFORM.
      * 
      * @return {@link TilingResult}
      * @throws org.constellation.exception.ConstellationException
      */
-    TilingResult pyramidDatas(Integer userId, String pyramidDataName, List<Integer> dataIds, final String crs, final String mode) throws ConstellationException;
-
-    /**
-     * Generates a pyramid conform for data.
-     * N.B : Generated pyramid contains coverage real values, it's not styled for rendering.
-     *
-     * @param dataId The given data identifier.
-     * @param userId The pyramids owner.
-     * @return {@link DataBrief}
-     */
-    TilingResult pyramidDataConform(final int dataId, final int userId) throws ConstellationException;
+    TilingResult pyramidDatas(Integer userId, String pyramidDataName, List<Integer> dataIds, final String crs, final TilingMode mode) throws ConstellationException;
 
     /**
      * Generates a pyramid conform for each data of the provider.

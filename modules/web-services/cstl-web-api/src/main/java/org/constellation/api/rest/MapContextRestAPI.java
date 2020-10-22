@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
+import org.constellation.api.TilingMode;
 import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IMapContextBusiness;
@@ -437,7 +438,7 @@ public class MapContextRestAPI extends AbstractRestAPI {
             @RequestParam("crs") final String crs,
             @RequestParam("layerName") final String layerName,
             @PathVariable("id") final Integer contextId,
-            @RequestParam(name = "mode", defaultValue = "rgb") final String mode,
+            @RequestParam(name = "mode", defaultValue = "RENDERED") final String mode,
             HttpServletRequest req) {
 
         final int userId;
@@ -458,7 +459,7 @@ public class MapContextRestAPI extends AbstractRestAPI {
         }
 
         try {
-            final TilingResult ref = pyramidBusiness.pyramidMapContext(userId, layerName, crs, mc, mode);
+            final TilingResult ref = pyramidBusiness.pyramidMapContext(userId, layerName, crs, mc, TilingMode.valueOf(mode));
             return new ResponseEntity(ref, OK);
 
         } catch (Exception ex) {

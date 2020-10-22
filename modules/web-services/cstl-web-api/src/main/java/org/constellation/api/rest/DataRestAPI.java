@@ -27,6 +27,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -49,6 +50,7 @@ import org.apache.sis.referencing.IdentifiedObjects;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Resource;
+import org.constellation.api.TilingMode;
 import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
@@ -610,7 +612,7 @@ public class DataRestAPI extends AbstractRestAPI{
             HttpServletRequest req) {
         try {
             final int userId = assertAuthentificated(req);
-            final TilingResult ref =  pyramidBusiness.pyramidDataConform(dataId, userId);
+            final TilingResult ref =  pyramidBusiness.pyramidDatas(userId, null, Arrays.asList(dataId), null, TilingMode.CONFORM);
             return new ResponseEntity(ref, OK);
         }catch(ConstellationException ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
@@ -635,12 +637,12 @@ public class DataRestAPI extends AbstractRestAPI{
             @RequestParam("crs") final String crs, 
             @RequestParam("layerName") final String layerName,
             @RequestBody final List<Integer> dataIds,
-            @RequestParam(name = "mode", defaultValue = "rgb") final String mode, 
+            @RequestParam(name = "mode", defaultValue = "RENDERED") final String mode, 
             HttpServletRequest req) {
         try {
 
             int userId = assertAuthentificated(req);
-            final TilingResult ref = pyramidBusiness.pyramidDatas(userId, layerName, dataIds, crs, mode);
+            final TilingResult ref = pyramidBusiness.pyramidDatas(userId, layerName, dataIds, crs, TilingMode.valueOf(mode));
             return new ResponseEntity(ref, OK);
         } catch (ConstellationException ex) {
             return new ErrorMessage().message(ex.getMessage()).build();

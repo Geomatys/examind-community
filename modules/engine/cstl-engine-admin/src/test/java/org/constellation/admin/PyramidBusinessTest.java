@@ -33,6 +33,7 @@ import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.api.TaskState;
+import org.constellation.api.TilingMode;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IMapContextBusiness;
 import org.constellation.business.IProcessBusiness;
@@ -50,7 +51,9 @@ import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.test.utils.TestEnvironment;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
+import org.geotoolkit.storage.multires.MultiResolutionModel;
 import org.geotoolkit.storage.multires.MultiResolutionResource;
+import org.geotoolkit.storage.multires.TileMatrixSet;
 import org.geotoolkit.util.NamesExt;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -178,7 +181,7 @@ public class PyramidBusinessTest {
 
         Assert.assertEquals(1, dataIds.size());
 
-        TilingResult result = pyramidBusiness.pyramidDatas(1, "my_pyramid", dataIds, "CRS:84", "rgb");
+        TilingResult result = pyramidBusiness.pyramidDatas(1, "my_pyramid", dataIds, "CRS:84", TilingMode.RENDERED);
 
         Assert.assertEquals("my_pyramid", result.getDataId());
         Assert.assertNotNull(result.getTaskId());
@@ -226,7 +229,16 @@ public class PyramidBusinessTest {
 
         Assert.assertNotNull(d);
         Assert.assertTrue(d.getOrigin() instanceof MultiResolutionResource);
-
+        MultiResolutionResource mr = (MultiResolutionResource) d.getOrigin();
+        
+        Assert.assertEquals(1, mr.getModels().size());
+        MultiResolutionModel model = mr.getModels().iterator().next();
+        Assert.assertEquals("image/png", model.getFormat());
+        
+        Assert.assertTrue(model instanceof TileMatrixSet);
+        TileMatrixSet tms = (TileMatrixSet) model;
+        Assert.assertEquals(3, tms.getTileMatrices().size());
+        
         Assert.assertNotNull(result.getPyramidDataId());
 
         DataBrief db = dataBusiness.getDataBrief(result.getPyramidDataId());
@@ -254,7 +266,7 @@ public class PyramidBusinessTest {
 
         MapContextLayersDTO mapContext = mpBusiness.findMapContextLayers(mpId);
 
-        TilingResult result = pyramidBusiness.pyramidMapContext(1, "my_pyramid_context", "CRS:84", mapContext, "rgb");
+        TilingResult result = pyramidBusiness.pyramidMapContext(1, "my_pyramid_context", "CRS:84", mapContext, TilingMode.RENDERED);
 
         Assert.assertEquals("my_pyramid_context", result.getDataId());
         Assert.assertNotNull(result.getTaskId());
@@ -302,7 +314,16 @@ public class PyramidBusinessTest {
 
         Assert.assertNotNull(d);
         Assert.assertTrue(d.getOrigin() instanceof MultiResolutionResource);
+        MultiResolutionResource mr = (MultiResolutionResource) d.getOrigin();
 
+        Assert.assertEquals(1, mr.getModels().size());
+        MultiResolutionModel model = mr.getModels().iterator().next();
+        Assert.assertEquals("image/png", model.getFormat());
+        
+        Assert.assertTrue(model instanceof TileMatrixSet);
+        TileMatrixSet tms = (TileMatrixSet) model;
+        Assert.assertEquals(8, tms.getTileMatrices().size());
+        
         Assert.assertNotNull(result.getPyramidDataId());
 
         db = dataBusiness.getDataBrief(result.getPyramidDataId());
@@ -321,7 +342,7 @@ public class PyramidBusinessTest {
 
         Assert.assertEquals(1, dataIds.size());
 
-        TilingResult result = pyramidBusiness.pyramidDataConform(dataIds.get(0), 1);
+        TilingResult result = pyramidBusiness.pyramidDatas(1, null, dataIds, null, TilingMode.CONFORM);
 
         Assert.assertNotNull(result.getTaskId());
 
@@ -368,6 +389,16 @@ public class PyramidBusinessTest {
 
         Assert.assertNotNull(d);
         Assert.assertTrue(d.getOrigin() instanceof MultiResolutionResource);
+        MultiResolutionResource mr = (MultiResolutionResource) d.getOrigin();
+        
+        Assert.assertEquals(1, mr.getModels().size());
+        MultiResolutionModel model = mr.getModels().iterator().next();
+        //Assert.assertEquals("image/tiff", model.getFormat()); it seems that tiff is not supported....
+        
+        Assert.assertTrue(model instanceof TileMatrixSet);
+        TileMatrixSet tms = (TileMatrixSet) model;
+        
+        Assert.assertEquals(3, tms.getTileMatrices().size());
 
         Assert.assertNotNull(result.getPyramidDataId());
 

@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -48,6 +49,8 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.WritableAggregate;
 import org.apache.sis.util.logging.Logging;
+import org.constellation.api.TilingMode;
+import static org.constellation.api.TilingMode.*;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IMapContextBusiness;
 import org.constellation.business.IProcessBusiness;
@@ -146,7 +149,7 @@ public class PyramidBusiness implements IPyramidBusiness {
      * {@inheritDoc}
      */
     @Override
-    public TilingResult pyramidDatas(Integer userId, String pyramidDataName, List<Integer> dataIds, final String crs, String tilingMode) throws ConstellationException {
+    public TilingResult pyramidDatas(Integer userId, String pyramidDataName, List<Integer> dataIds, final String crs, TilingMode tilingMode) throws ConstellationException {
 
         // this method need to be executed in a transaction
         TilingContext t = preparePyramidDatas(userId, pyramidDataName, dataIds, crs, tilingMode);
@@ -161,7 +164,7 @@ public class PyramidBusiness implements IPyramidBusiness {
      * {@inheritDoc}
      */
     @Transactional
-    private TilingContext preparePyramidDatas(Integer userId, String pyramidDataName, List<Integer> dataIds, final String crs, String tilingMode) throws ConstellationException {
+    private TilingContext preparePyramidDatas(Integer userId, String pyramidDataName, List<Integer> dataIds, final String crs, TilingMode tilingMode) throws ConstellationException {
         // verify CRS validity
         final CoordinateReferenceSystem coordsys = verifyCrs(crs, true);
 
@@ -187,13 +190,17 @@ public class PyramidBusiness implements IPyramidBusiness {
                 final String dataName    = db.getName();
                 final String namespace   = db.getNamespace();
                 final Integer providerId = db.getProviderId();
+                
+                if (pyramidDataName == null) {
+                    pyramidDataName = dataName;
+                }
 
                 //get data
                 final DataProvider inProvider;
                 try {
                     inProvider = DataProviders.getProvider(providerId);
                 } catch (ConfigurationException ex) {
-                    LOGGER.log(Level.WARNING, "Provider " + providerId + " does not exist");
+                    LOGGER.log(Level.WARNING, "Provider {0} does not exist", providerId);
                     continue;
                 }
 
@@ -208,30 +215,53 @@ public class PyramidBusiness implements IPyramidBusiness {
                 try {
                     dataEnv = inData.getEnvelope();
                 } catch (ConstellationStoreException ex) {
-                    LOGGER.log(Level.WARNING, "Failed to extract envelope for data " + dataName);
+                    LOGGER.log(Level.WARNING, "Failed to extract envelope for data {0}", dataName);
                     continue;
                 }
 
-                //if style is null, a default style will be used in maplayer.
-                MutableStyle style = null;
-                try {
-                    final StyleBrief styleB = db.getFirstStyle();
-                    if (styleB != null) {
-                        if (styleB.getId() != null) {
-                            style = (MutableStyle) styleBusiness.getStyle(styleB.getId());
-                        } else {
-                            LOGGER.warning("Map context layer style ignored (no id)");
+                if (RENDERED.equals(tilingMode)) {
+                    //if style is null, a default style will be used in maplayer.
+                    MutableStyle style = null;
+                    try {
+                        final StyleBrief styleB = db.getFirstStyle();
+                        if (styleB != null) {
+                            if (styleB.getId() != null) {
+                                style = (MutableStyle) styleBusiness.getStyle(styleB.getId());
+                            } else {
+                                LOGGER.warning("Map context layer style ignored (no id)");
+                            }
                         }
+                    } catch (Exception ex) {
+                        LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
                     }
-                } catch (Exception ex) {
-                    LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
-                }
 
-                try {
-                    context.getComponents().add((MapItem) inData.getMapLayer(style, null));
-                } catch (ConstellationStoreException ex) {
-                    LOGGER.log(Level.WARNING, "Failed to create map context layer for data " + ex.getMessage(), ex);
-                    continue;
+                    try {
+                        context.getComponents().add((MapItem) inData.getMapLayer(style, null));
+                    } catch (ConstellationStoreException ex) {
+                        LOGGER.log(Level.WARNING, "Failed to create map context layer for data " + ex.getMessage(), ex);
+                        continue;
+                    }
+                } else {
+                    
+                     final Object origin = inD.getOrigin();
+
+                    if(!(origin instanceof GridCoverageResource)) {
+                        throw new ConstellationException("Cannot create pyramid conform for no raster data, it is not supported yet!");
+                    }
+
+                    //init coverage reference and grid geometry
+                    GridCoverageResource inRef = (GridCoverageResource) origin;
+                    
+                    final GridGeometry gg;
+                    try {
+                        gg = inRef.getGridGeometry();
+                    } catch (DataStoreException ex) {
+                        throw new ConstellationException("Failed to extract grid geometry for data " + dataName + ". " + ex.getMessage(),ex);
+                    }
+                    //find the type of data we are dealing with, geophysic or photographic
+                    inRef = ForceSampleDimensions(inRef, gg);
+                    
+                    context.getComponents().add(MapBuilder.createLayer(inRef));
                 }
 
                 if (coordsys != null) {
@@ -250,7 +280,7 @@ public class PyramidBusiness implements IPyramidBusiness {
                 }
             }
 
-            if (globalEnv != null) {
+            if (globalEnv != null && coordsys != null) {
                 globalEnv.intersect(CRS.getDomainOfValidity(coordsys));
             }
 
@@ -259,11 +289,13 @@ public class PyramidBusiness implements IPyramidBusiness {
 
             MultiResolutionResource outRef;
             Integer pyDataId;
-            String pyramidIdentifier = RENDERED_PREFIX + providerId;
+            final String prefix      = tilingMode.equals(RENDERED) ? RENDERED_PREFIX : CONFORM_PREFIX;
+            String pyramidIdentifier = prefix + providerId;
 
             //create the output provider
             final GenericName pGname       = NamesExt.create(pyramidDataName);
-            final Integer pyramidProvider  = createPyramidProvider(pyramidIdentifier, pGname, true, "rendered", "PNG", null, globalEnv, 256, scales);
+            final String tileFormat        = tilingMode.equals(RENDERED) ? "PNG" : "TIFF";
+            final Integer pyramidProvider  = createPyramidProvider(pyramidIdentifier, pGname, true, tilingMode, tileFormat, null, globalEnv, 256, scales);
             final DataProvider outProvider = DataProviders.getProvider(pyramidProvider);
 
             // Update the parent attribute of the created provider
@@ -286,8 +318,8 @@ public class PyramidBusiness implements IPyramidBusiness {
             if (!createdDataIds.isEmpty() && createdDataIds.size() == 1) {
                 pyDataId = createdDataIds.get(0);
 
-                //set data as RENDERED
-                dataBusiness.updateDataRendered(pyDataId, true);
+                //set RENDERED status
+                dataBusiness.updateDataRendered(pyDataId, RENDERED.equals(tilingMode));
 
                 //link pyramid data to original data
                 for (final DataBrief db : briefs) {
@@ -313,7 +345,7 @@ public class PyramidBusiness implements IPyramidBusiness {
     }
 
     @Override
-    public TilingResult pyramidMapContext(Integer userId, String pyramidDataName, final String crs, final MapContextLayersDTO mc, String mode) throws ConstellationException {
+    public TilingResult pyramidMapContext(Integer userId, String pyramidDataName, final String crs, final MapContextLayersDTO mc, TilingMode mode) throws ConstellationException {
 
         // this method need to be executed in a transaction
         TilingContext t = preparePyramidMapContext(userId, pyramidDataName, crs, mc, mode);
@@ -325,7 +357,7 @@ public class PyramidBusiness implements IPyramidBusiness {
     }
 
     @Transactional
-    private TilingContext preparePyramidMapContext(Integer userId, String pyramidDataName, final String crs, final MapContextLayersDTO mc, String tilingMode) throws ConstellationException {
+    private TilingContext preparePyramidMapContext(Integer userId, String pyramidDataName, final String crs, final MapContextLayersDTO mc, TilingMode tilingMode) throws ConstellationException {
 
         // verify CRS validity
         final CoordinateReferenceSystem crsOutput = verifyCrs(crs, false);
@@ -377,7 +409,7 @@ public class PyramidBusiness implements IPyramidBusiness {
                 final String serviceVersion = layer.getExternalServiceVersion() != null ? layer.getExternalServiceVersion() : "1.3.0";
                 final WebMapClient wmsServer = new WebMapClient(serviceUrl, WMSVersion.getVersion(serviceVersion));
                 final WMSResource wmsLayer = new WMSResource(wmsServer, dataName);
-                context.getComponents().add(MapBuilder.createCoverageLayer(wmsLayer));
+                context.getComponents().add(MapBuilder.createLayer(wmsLayer));
                 continue;
             }
             //get data
@@ -427,7 +459,8 @@ public class PyramidBusiness implements IPyramidBusiness {
 
         //create the output provider
         final GenericName pGname       = NamesExt.create(pyramidDataName);
-        final Integer pyramidProvider  = createPyramidProvider(pyramidIdentifier, pGname, true, "rendered", "PNG", null, globalEnv, tileSize, scales);
+        final String tileFormat        = tilingMode.equals(RENDERED) ? "PNG" : "TIFF";
+        final Integer pyramidProvider  = createPyramidProvider(pyramidIdentifier, pGname, true, tilingMode, tileFormat, null, globalEnv, tileSize, scales);
         final DataProvider outProvider = DataProviders.getProvider(pyramidProvider);
 
         Data pyData = outProvider.get(pGname);
@@ -445,8 +478,8 @@ public class PyramidBusiness implements IPyramidBusiness {
         if (!createdDataIds.isEmpty() && createdDataIds.size() == 1) {
             pyDataId = createdDataIds.get(0);
 
-            //set data as RENDERED
-            dataBusiness.updateDataRendered(pyDataId, true);
+            //set RENDERED status
+            dataBusiness.updateDataRendered(pyDataId, RENDERED.equals(tilingMode));
 
         } else if (createdDataIds.size()> 1) {
             // i don't think this could happen
@@ -463,125 +496,6 @@ public class PyramidBusiness implements IPyramidBusiness {
         return t;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public TilingResult pyramidDataConform(final int dataId, final int userId) throws ConstellationException {
-
-        // this method need to be executed in a transaction
-        TilingContext t = preparePyramidDataConform(dataId, userId);
-
-        //add task in scheduler (previous transaction must be commited)
-        processBusiness.runProcess("Create " + t.contextName, t.p, t.taskId, userId);
-
-        return new TilingResult(t.pyramidIdentifier, t.pyramidDataName, t.taskId, t.pyDataId);
-    }
-
-
-    @Transactional
-    private TilingContext preparePyramidDataConform(final int dataId, final int userId) throws ConstellationException {
-        final DataBrief db = dataBusiness.getDataBrief(dataId);
-        if (db != null){
-            final String dataName    = db.getName();
-            final String namespace   = db.getNamespace();
-            final Integer providerId = db.getProviderId();
-
-            //get data
-            final DataProvider inProvider;
-            try {
-                inProvider = DataProviders.getProvider(providerId);
-            } catch (ConfigurationException ex) {
-                throw new ConstellationException(ex.getMessage(),ex);
-            }
-            if (inProvider == null) {
-                throw new ConstellationException("Provider " + providerId + " does not exist");
-            }
-            final Data providerData = inProvider.get(namespace, dataName);
-            if (providerData == null) {
-                throw new ConstellationException("Data " + dataName + " does not exist in provider " + providerId);
-            }
-            Envelope dataEnv;
-            try {
-                //use data crs
-                dataEnv = providerData.getEnvelope();
-            } catch (ConstellationStoreException ex) {
-                throw new ConstellationException("Failed to extract envelope for data " + dataName + ". " + ex.getMessage(),ex);
-            }
-
-            final Object origin = providerData.getOrigin();
-
-            if(!(origin instanceof GridCoverageResource)) {
-                throw new ConstellationException("Cannot create pyramid conform for no raster data, it is not supported yet!");
-            }
-
-            //init coverage reference and grid geometry
-            GridCoverageResource inRef = (GridCoverageResource) origin;
-            final GridGeometry gg;
-            try {
-                gg = inRef.getGridGeometry();
-            } catch (DataStoreException ex) {
-                throw new ConstellationException("Failed to extract grid geometry for data " + dataName + ". " + ex.getMessage(),ex);
-            }
-
-            //find the type of data we are dealing with, geophysic or photographic
-            inRef = ForceSampleDimensions(inRef, gg);
-
-            final String pyramidIdentifier = CONFORM_PREFIX + UUID.randomUUID().toString();
-
-            //create the output folder for pyramid
-            MultiResolutionResource outRef;
-            Integer pyDataId;
-
-            //create the output provider
-            final GenericName pGname       = NamesExt.create(namespace,dataName);
-            final Integer pyramidProvider  = createPyramidProvider(pyramidIdentifier, pGname, true, "conform", "TIFF", gg, dataEnv, 256, null);
-            final DataProvider outProvider = DataProviders.getProvider(pyramidProvider);
-
-            Data pyData = outProvider.get(pGname);
-            if (pyData != null && pyData.getOrigin() instanceof MultiResolutionResource) {
-                outRef = (MultiResolutionResource) pyData.getOrigin();
-            } else {
-                throw new ConstellationException("No pyramid data created (in provider).");
-            }
-            //create database data object
-            providerBusiness.createOrUpdateData(pyramidProvider, null, false, true, userId);
-
-            // Get the new data created
-            List<Integer> createdDataIds = providerBusiness.getDataIdsFromProviderId(pyramidProvider);
-            if (!createdDataIds.isEmpty() && createdDataIds.size() == 1) {
-                pyDataId = createdDataIds.get(0);
-
-                // Update the parent attribute of the created provider
-                providerBusiness.updateParent(outProvider.getId(), db.getProvider());
-
-                //set rendered attribute to false to indicates that this pyramid can have stats.
-                dataBusiness.updateDataRendered(pyDataId, false);
-
-                // link original data with the tiled data.
-                dataBusiness.linkDataToData(db.getId(), pyDataId);
-
-            } else if (createdDataIds.size()> 1) {
-                // i don't think this could happen
-                throw new ConstellationException("Multiple pyramid data has been created.");
-            } else {
-                throw new ConstellationException("No pyramid data has been created.");
-            }
-
-            final MapLayers context = MapBuilder.createContext();
-            context.getComponents().add(MapBuilder.createCoverageLayer(inRef));
-
-            //add task in scheduler
-            final TilingContext t = buildTilingProcess(userId, outRef, context, "data");
-            t.contextName = context.getIdentifier();
-            t.pyDataId = pyDataId;
-            t.pyramidIdentifier = pyramidIdentifier;
-            t.pyramidDataName = dataName;
-            return t;
-        }
-        throw new ConstellationException("Data "+ dataId +" not found.");
-    }
-    
     private static final class TilingContext {
         public String pyramidDataName;
         public String contextName;
@@ -640,14 +554,14 @@ public class PyramidBusiness implements IPyramidBusiness {
         }
         return inRef;
     }
-
-    private TilingContext buildTilingProcess(Integer userId, MultiResolutionResource outRef, MapLayers context, String mode) throws ConstellationException {
+    
+    private TilingContext buildTilingProcess(Integer userId, MultiResolutionResource outRef, MapLayers context, TilingMode mode) throws ConstellationException {
         try {
             final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor("administration", "gen-pyramid");
             final ParameterValueGroup input = desc.getInputDescriptor().createValue();
             input.parameter("mapcontext").setValue(context);
             input.parameter("resource").setValue(outRef);
-            input.parameter("mode").setValue(mode);
+            input.parameter("mode").setValue(mode.name());
             final org.geotoolkit.process.Process p = desc.createProcess(input);
 
             //add task in scheduler
@@ -705,7 +619,8 @@ public class PyramidBusiness implements IPyramidBusiness {
         final List<org.constellation.dto.Data> dataList = dataRepository.findByProviderId(providerId);
         for(final org.constellation.dto.Data d : dataList) {
             try {
-                pyramidDataConform(d.getId(), d.getOwnerId());
+                // there is probably an issue here with null value for CRS param
+                pyramidDatas(d.getOwnerId(), d.getName(), Arrays.asList(d.getId()), null, CONFORM);
             } catch (ConstellationException ex) {
                 LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             }
@@ -713,7 +628,7 @@ public class PyramidBusiness implements IPyramidBusiness {
     }
 
 
-    public int createPyramidProvider(String pyramidProviderId, GenericName pyramidGname, boolean cacheTileState, String mode, String tileFormat, GridGeometry gg, Envelope globalEnv, int tileSize, double[] scales) throws ConstellationException {
+    public int createPyramidProvider(String pyramidProviderId, GenericName pyramidGname, boolean cacheTileState, TilingMode mode, String tileFormat, GridGeometry gg, Envelope globalEnv, int tileSize, double[] scales) throws ConstellationException {
         try {
             //create the output folder for pyramid
             final Path pyramidDirectory = ConfigDirectory.getDataIntegratedDirectory(pyramidProviderId);
@@ -742,11 +657,11 @@ public class PyramidBusiness implements IPyramidBusiness {
 
             //create the output pyramid coverage reference
             DataStore pyramidStore = outProvider.getMainStore();
-            if ("rendered".equals(mode)) {
+            if (RENDERED.equals(mode)) {
                 MultiResolutionResource outRef = (MultiResolutionResource) ((WritableAggregate) pyramidStore).add(new DefiningCoverageResource(pyramidGname));
                 ((XMLCoverageResource) outRef).setPackMode(ViewType.RENDERED);
                 ((XMLCoverageResource) outRef).setPreferredFormat(tileFormat);
-            } else if ("conform".equals(mode)) {
+            } else if (CONFORM.equals(mode)) {
                 ((XMLCoverageStore) pyramidStore).create(pyramidGname, ViewType.GEOPHYSICS, tileFormat);
             } else {
                 throw new IllegalArgumentException("Unexpected tiling mode:" + mode);

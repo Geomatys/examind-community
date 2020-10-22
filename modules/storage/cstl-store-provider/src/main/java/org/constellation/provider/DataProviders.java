@@ -24,7 +24,6 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -312,10 +311,18 @@ public final class DataProviders extends Static{
      * @throws ConstellationException
      */
     public static Double[] computeScales(final int providerId, final String dataId, final String crs) throws ConstellationException {
-        return computeScales(providerId, dataId, () -> CRS.forCode(crs));
+        CoordinateReferenceSystem c = null;
+         if (crs != null) {
+             try {
+                 c = CRS.forCode(crs);
+             } catch (FactoryException ex) {
+                 throw new ConstellationException("Failed to decode CRS: " + crs, ex);
+             } 
+        }
+        return computeScales(providerId, dataId, c);
     }
 
-    public static Double[] computeScales(final int providerId, final String dataId, final Callable<CoordinateReferenceSystem> crsSupplier) throws ConstellationException {
+    public static Double[] computeScales(final int providerId, final String dataId, final CoordinateReferenceSystem crs) throws ConstellationException {
         //get data
         final DataProvider inProvider;
         try {
@@ -339,7 +346,6 @@ public final class DataProviders extends Static{
         final Double[] scales;
         final Envelope env;
         try {
-            final CoordinateReferenceSystem crs = crsSupplier.call();
             if (crs == null) {
                 env = dataEnv;
             } else if (dataEnv.getCoordinateReferenceSystem() == null) {
@@ -398,11 +404,19 @@ public final class DataProviders extends Static{
         return scales;
     }
 
-    public static double[] getBestScales(List<DataBrief> briefs, String crs) {
-        return getBestScales(briefs, () -> CRS.forCode(crs));
+    public static double[] getBestScales(List<DataBrief> briefs, String crs) throws ConstellationException {
+        CoordinateReferenceSystem c = null;
+        if (crs != null) {
+            try {
+                c = CRS.forCode(crs);
+            } catch (FactoryException ex) {
+                throw new ConstellationException("Failed to decode CRS: " + crs, ex);
+            }
+        }
+        return getBestScales(briefs, c);
     }
 
-    public static double[] getBestScales(List<DataBrief> briefs, Callable<CoordinateReferenceSystem> crs) {
+    public static double[] getBestScales(List<DataBrief> briefs, CoordinateReferenceSystem crs) {
         final List<Double> mergedScales = new LinkedList<>();
         for(final DataBrief db : briefs){
             final Double[] scales;
