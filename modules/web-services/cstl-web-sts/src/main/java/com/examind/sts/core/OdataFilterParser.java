@@ -137,9 +137,36 @@ public class OdataFilterParser {
             String property = filterStr.substring(0, pos);
             String[] properties = property.split("/");
             if (properties.length >= 1) {
-                TemporalObject literal = parseTemporalObj(filterStr.substring(pos + 4, filterStr.length()));
-                String realProperty = getSupportedTemporalProperties(properties[properties.length - 1]);
-                return ff.after(ff.property(realProperty), ff.literal(literal));
+                String realProperty = properties[properties.length - 1];
+                String value = filterStr.substring(pos + 4, filterStr.length());
+                Object literal;
+                if (realProperty.startsWith("result") && !realProperty.equalsIgnoreCase("resulttime")) {
+                    literal = value;
+                    return ff.greaterOrEqual(ff.property(realProperty), ff.literal(literal));
+                } else {
+                    realProperty = getSupportedTemporalProperties(realProperty);
+                    literal      = parseTemporalObj(value);
+                    return ff.after(ff.property(realProperty), ff.literal(literal));
+                }
+            } else {
+                throw new CstlServiceException("malformed filter propertyName. ", INVALID_PARAMETER_VALUE, "FILTER");
+            }
+        } else if (filterStr.contains(" gt ")) {
+            int pos = filterStr.indexOf(" gt ");
+            String property = filterStr.substring(0, pos);
+            String[] properties = property.split("/");
+            if (properties.length >= 1) {
+                String realProperty = properties[properties.length - 1];
+                String value = filterStr.substring(pos + 4, filterStr.length());
+                Object literal;
+                if (realProperty.startsWith("result") && !realProperty.equalsIgnoreCase("resulttime")) {
+                    literal = value;
+                    return ff.greater(ff.property(realProperty), ff.literal(literal));
+                } else {
+                    realProperty = getSupportedTemporalProperties(realProperty);
+                    literal      = parseTemporalObj(value);
+                    return ff.after(ff.property(realProperty), ff.literal(literal));
+                }
             } else {
                 throw new CstlServiceException("malformed filter propertyName. ", INVALID_PARAMETER_VALUE, "FILTER");
             }
@@ -148,9 +175,36 @@ public class OdataFilterParser {
             String property = filterStr.substring(0, pos);
             String[] properties = property.split("/");
             if (properties.length >= 1) {
-                TemporalObject literal = parseTemporalObj(filterStr.substring(pos + 4, filterStr.length()));
-                String realProperty = getSupportedTemporalProperties(properties[properties.length - 1]);
-                return ff.before(ff.property(realProperty), ff.literal(literal));
+                String realProperty = properties[properties.length - 1];
+                String value = filterStr.substring(pos + 4, filterStr.length());
+                Object literal;
+                if (realProperty.startsWith("result") && !realProperty.equalsIgnoreCase("resulttime")) {
+                    literal = value;
+                    return ff.lessOrEqual(ff.property(realProperty), ff.literal(literal));
+                } else {
+                    realProperty = getSupportedTemporalProperties(realProperty);
+                    literal      = parseTemporalObj(value);
+                    return ff.before(ff.property(realProperty), ff.literal(literal));
+                }
+            } else {
+                throw new CstlServiceException("malformed filter propertyName. ", INVALID_PARAMETER_VALUE, "FILTER");
+            }
+        } else if (filterStr.contains(" lt ")) {
+            int pos = filterStr.indexOf(" lt ");
+            String property = filterStr.substring(0, pos);
+            String[] properties = property.split("/");
+            if (properties.length >= 1) {
+                String realProperty = properties[properties.length - 1];
+                String value = filterStr.substring(pos + 4, filterStr.length());
+                Object literal;
+                if (realProperty.startsWith("result") && !realProperty.equalsIgnoreCase("resulttime")) {
+                    literal = value;
+                    return ff.less(ff.property(realProperty), ff.literal(literal));
+                } else {
+                    realProperty = getSupportedTemporalProperties(realProperty);
+                    literal      = parseTemporalObj(value);
+                    return ff.before(ff.property(realProperty), ff.literal(literal));
+                }
             } else {
                 throw new CstlServiceException("malformed filter propertyName. ", INVALID_PARAMETER_VALUE, "FILTER");
             }
@@ -166,8 +220,20 @@ public class OdataFilterParser {
                 } else {
                     throw new CstlServiceException("malformed or unknow filter propertyName. was expecting something/id ", INVALID_PARAMETER_VALUE, "FILTER");
                 }
+            } else if (properties.length >= 1) {
+                String realProperty = properties[properties.length - 1];
+                String value = filterStr.substring(pos + 4, filterStr.length());
+                Object literal;
+                if (realProperty.startsWith("result") && !realProperty.equalsIgnoreCase("resulttime")) {
+                    literal = value;
+                    return ff.equals(ff.property(realProperty), ff.literal(literal));
+                } else {
+                    realProperty = getSupportedTemporalProperties(realProperty);
+                    literal      = parseTemporalObj(value);
+                    return ff.equals(ff.property(realProperty), ff.literal(literal));
+                }
             } else {
-                throw new CstlServiceException("malformed filter propertyName. was expecting something/id ", INVALID_PARAMETER_VALUE, "FILTER");
+                throw new CstlServiceException("malformed filter propertyName. was expecting something/id or something/result", INVALID_PARAMETER_VALUE, "FILTER");
             }
         } else {
             throw new CstlServiceException("malformed or unknow filter", INVALID_PARAMETER_VALUE, "FILTER");

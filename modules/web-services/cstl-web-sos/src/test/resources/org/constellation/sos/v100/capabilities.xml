@@ -189,11 +189,14 @@
         </ows:AllowedValues>
       </ows:Parameter>
       <ows:Parameter name="result">
-        <ows:AnyValue/>
+          <ows:AllowedValues>
+              <ows:Value>result</ows:Value>
+          </ows:AllowedValues>
+          <ows:AnyValue/>
       </ows:Parameter>
       <ows:Parameter name="responseFormat">
-        <ows:AllowedValues>
-          <ows:Value>text/xml; subtype="om/1.0.0"</ows:Value>
+          <ows:AllowedValues>
+              <ows:Value>text/xml; subtype="om/1.0.0"</ows:Value>
         </ows:AllowedValues>
       </ows:Parameter>
       <ows:Parameter name="resultModel">

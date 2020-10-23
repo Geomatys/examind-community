@@ -1017,11 +1017,28 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
                 localOmFilter.setProcedureType((String) value.getValue());
             // other properties must probably be result filter
             } else {
-                if (localOmFilter.supportedQueryableResultProperties().contains(pNameStr)) {
+                String cleanPname = pNameStr;
+                if (pNameStr.contains("[")) {
+                    cleanPname = pNameStr.substring(0, pNameStr.indexOf('['));
+                }
+                if (localOmFilter.supportedQueryableResultProperties().contains(cleanPname)) {
                     localOmFilter.setResultFilter((BinaryComparisonOperator) filter);
                 } else {
                     throw new ConstellationStoreException("Unsuported property for filtering:" + pNameStr);
                 }
+            }
+        } else if (filter instanceof BinaryComparisonOperator) {
+            final BinaryComparisonOperator ef = (BinaryComparisonOperator) filter;
+            final PropertyName name    = (PropertyName) ef.getExpression1();
+            final String pNameStr      = name.getPropertyName();
+            String cleanPname = pNameStr;
+            if (pNameStr.contains("[")) {
+                cleanPname = pNameStr.substring(0, pNameStr.indexOf('['));
+            }
+            if (localOmFilter.supportedQueryableResultProperties().contains(cleanPname)) {
+                localOmFilter.setResultFilter((BinaryComparisonOperator) filter);
+            } else {
+                throw new ConstellationStoreException("Unsuported property for filtering:" + pNameStr);
             }
 
         } else {

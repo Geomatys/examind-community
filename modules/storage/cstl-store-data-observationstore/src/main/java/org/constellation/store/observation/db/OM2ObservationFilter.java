@@ -38,6 +38,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -52,6 +53,13 @@ import static org.geotoolkit.observation.Utils.getTimeValue;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 import org.opengis.filter.BinaryComparisonOperator;
+import org.opengis.filter.PropertyIsEqualTo;
+import org.opengis.filter.PropertyIsGreaterThan;
+import org.opengis.filter.PropertyIsGreaterThanOrEqualTo;
+import org.opengis.filter.PropertyIsLessThan;
+import org.opengis.filter.PropertyIsLessThanOrEqualTo;
+import org.opengis.filter.expression.Literal;
+import org.opengis.filter.expression.PropertyName;
 import org.opengis.filter.temporal.After;
 import org.opengis.filter.temporal.Before;
 import org.opengis.filter.temporal.BinaryTemporalOperator;
@@ -609,15 +617,57 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      */
     @Override
     public void setResultFilter(final BinaryComparisonOperator filter) throws DataStoreException {
-        throw new DataStoreException("setResultFilter is not supported by this ObservationFilter implementation.");
+        if (!(filter.getExpression1() instanceof PropertyName)) {
+            throw new ObservationStoreException("Expression is null or not a propertyName on result filter");
+        }
+        if (!(filter.getExpression2() instanceof Literal)) {
+            throw new ObservationStoreException("Expression is null or not a Literal on result filter");
+        }
+        final String propertyName = ((PropertyName)filter.getExpression1()).getPropertyName();
+        final Literal value = (Literal) filter.getExpression2();
+        final String operator = getSQLOperator(filter);
+        // apply only on one phenonemenon
+        if (propertyName.contains("[")) {
+            int opos = propertyName.indexOf('[');
+            int cpos = propertyName.indexOf(']');
+            if (cpos <= opos) {
+                throw new ObservationStoreException("Malformed propertyName in result filter:" + propertyName);
+            }
+            String index = propertyName.substring(opos + 1, cpos);
+            
+            // if the field is not a number this will fail.
+            sqlMeasureRequest.append(" AND ($phen").append(index).append(operator).append(value.getValue()).append(')');
+            
+        // apply only on all phenonemenon    
+        } else {
+            sqlMeasureRequest.append(" ${allphen").append(operator).append(value.getValue()).append("} ");
+        }
     }
+    
+    private String getSQLOperator(final BinaryComparisonOperator filter) throws ObservationStoreException {
+        if (filter instanceof PropertyIsEqualTo) {
+            return " = ";
+        } else if (filter instanceof PropertyIsGreaterThan) {
+            return " > ";
+        } else if (filter instanceof PropertyIsGreaterThanOrEqualTo) {
+            return " >= ";
+        } else if (filter instanceof PropertyIsLessThan) {
+            return " < ";
+        } else if (filter instanceof PropertyIsLessThanOrEqualTo) {
+            return " <= ";
+        } else {
+            throw new ObservationStoreException("Unsuported binary comparison filter");
+        }
+    }
+
 
     /**
      * {@inheritDoc}
      */
     @Override
     public List<String> supportedQueryableResultProperties() {
-        return new ArrayList<>();
+        // will work mostly for STS
+        return Arrays.asList("result");
     }
 
     /**

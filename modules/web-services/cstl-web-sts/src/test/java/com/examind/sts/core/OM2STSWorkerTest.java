@@ -422,6 +422,121 @@ public class OM2STSWorkerTest {
         array.add(Arrays.asList("urn:ogc:object:observation:GEOM:507-0-5", "2007-05-01T14:59:00Z", "2007-05-01T14:59:00Z", 6.56f));
         expResult.setDataArray(array);
 
+        Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
+        Assert.assertEquals(expResult, result);
+        
+        request.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:12-0");
+        resultObj = worker.getObservations(request);
+
+        Assert.assertTrue(resultObj instanceof DataArray);
+        result = (DataArray) resultObj;
+
+        expResult = new DataArray();
+        expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
+        array = new ArrayList<>();
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-0-1", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 4.5f));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-0-2", "2009-12-01T13:00:00Z", "2009-12-01T13:00:00Z", 5.9f));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-0-3", "2009-12-11T13:01:00Z", "2009-12-11T13:01:00Z", 8.9f));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-0-4", "2009-12-15T13:02:00Z", "2009-12-15T13:02:00Z", 7.8f));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-0-5", "2012-12-21T23:00:00Z", "2012-12-21T23:00:00Z", 9.9f));
+        expResult.setDataArray(array);
+
+        Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
+        Assert.assertEquals(expResult, result);
+        
+        request.setFilter("result eq 9.9");
+        resultObj = worker.getObservations(request);
+
+        Assert.assertTrue(resultObj instanceof DataArray);
+        result = (DataArray) resultObj;
+
+        expResult = new DataArray();
+        expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
+        array = new ArrayList<>();
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-0-5", "2012-12-21T23:00:00Z", "2012-12-21T23:00:00Z", 9.9f));
+        expResult.setDataArray(array);
+
+        Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
+        Assert.assertEquals(expResult, result);
+        
+        request.setFilter("result le 7.8");
+        resultObj = worker.getObservations(request);
+
+        Assert.assertTrue(resultObj instanceof DataArray);
+        result = (DataArray) resultObj;
+
+        expResult = new DataArray();
+        expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
+        array = new ArrayList<>();
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-0-1", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 4.5f));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-0-2", "2009-12-01T13:00:00Z", "2009-12-01T13:00:00Z", 5.9f));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-0-4", "2009-12-15T13:02:00Z", "2009-12-15T13:02:00Z", 7.8f));
+        expResult.setDataArray(array);
+
+        Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
+        Assert.assertEquals(expResult, result);
+        
+        request.setFilter("result lt 7.8");
+        resultObj = worker.getObservations(request);
+
+        Assert.assertTrue(resultObj instanceof DataArray);
+        result = (DataArray) resultObj;
+
+        expResult = new DataArray();
+        expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
+        array = new ArrayList<>();
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-0-1", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 4.5f));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-0-2", "2009-12-01T13:00:00Z", "2009-12-01T13:00:00Z", 5.9f));
+        expResult.setDataArray(array);
+
+        Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
+        Assert.assertEquals(expResult, result);
+        
+         request.setFilter("result ge 7.8");
+        resultObj = worker.getObservations(request);
+
+        Assert.assertTrue(resultObj instanceof DataArray);
+        result = (DataArray) resultObj;
+
+        expResult = new DataArray();
+        expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
+        array = new ArrayList<>();
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-0-3", "2009-12-11T13:01:00Z", "2009-12-11T13:01:00Z", 8.9f));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-0-4", "2009-12-15T13:02:00Z", "2009-12-15T13:02:00Z", 7.8f));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-0-5", "2012-12-21T23:00:00Z", "2012-12-21T23:00:00Z", 9.9f));
+        expResult.setDataArray(array);
+
+        Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
+        Assert.assertEquals(expResult, result);
+        
+        request.setFilter("result gt 7.8");
+        resultObj = worker.getObservations(request);
+
+        Assert.assertTrue(resultObj instanceof DataArray);
+        result = (DataArray) resultObj;
+
+        expResult = new DataArray();
+        expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
+        array = new ArrayList<>();
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-0-3", "2009-12-11T13:01:00Z", "2009-12-11T13:01:00Z", 8.9f));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-0-5", "2012-12-21T23:00:00Z", "2012-12-21T23:00:00Z", 9.9f));
+        expResult.setDataArray(array);
+
+        Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
+        Assert.assertEquals(expResult, result);
+        
+        request.setFilter("result gt 5.8 and result lt 7.9");
+        resultObj = worker.getObservations(request);
+
+        Assert.assertTrue(resultObj instanceof DataArray);
+        result = (DataArray) resultObj;
+
+        expResult = new DataArray();
+        expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
+        array = new ArrayList<>();
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-0-2", "2009-12-01T13:00:00Z", "2009-12-01T13:00:00Z", 5.9f));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-0-4", "2009-12-15T13:02:00Z", "2009-12-15T13:02:00Z", 7.8f));
+        expResult.setDataArray(array);
 
         Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
         Assert.assertEquals(expResult, result);
@@ -492,7 +607,213 @@ public class OM2STSWorkerTest {
                 for (int j = 0; j < expSubArray.size(); j++) {
                     Assert.assertEquals(expSubArray.get(j), resSubArray.get(j));
                 }
-            }
+            } 
+            Assert.assertEquals(expCell, resCell);
+        }
+
+        Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
+        Assert.assertEquals(expResult, result);
+        
+       /*
+        * filter on result
+        */
+        request.setFilter("result[1] eq 15");
+        resultObj = worker.getObservations(request);
+        
+        Assert.assertTrue(resultObj instanceof DataArray);
+        result = (DataArray) resultObj;
+        
+        expResult = new DataArray();
+        expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
+        array = new ArrayList<>();
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:801-7", ISO_8601_3_FORMATTER.parse("2007-05-01T13:59:00.0"), ISO_8601_3_FORMATTER.parse("2007-05-01T13:59:00.0"), new ArrayList(Arrays.asList(6.56d,15.0d))));
+        expResult.setDataArray(array);
+
+        Assert.assertEquals(expResult.getDataArray().size(), result.getDataArray().size());
+        for (int i = 0; i < 1; i++) {
+            Object expCell = expResult.getDataArray().get(i);
+            Object resCell = result.getDataArray().get(i);
+            if (expCell instanceof List && resCell instanceof List) {
+                List expSubArray = (List) expCell;
+                List resSubArray = (List) resCell;
+                Assert.assertEquals(expSubArray.size(), resSubArray.size());
+                for (int j = 0; j < expSubArray.size(); j++) {
+                    Assert.assertEquals(expSubArray.get(j), resSubArray.get(j));
+                }
+            } 
+            Assert.assertEquals(expCell, resCell);
+        }
+
+        Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
+        Assert.assertEquals(expResult, result);
+        
+        /*
+        * filter on result
+        */
+        request.setFilter("result[1] le 15");
+        resultObj = worker.getObservations(request);
+        
+        Assert.assertTrue(resultObj instanceof DataArray);
+        result = (DataArray) resultObj;
+        
+        expResult = new DataArray();
+        expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
+        array = new ArrayList<>();
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:801-1", ISO_8601_3_FORMATTER.parse("2007-05-01T10:59:00.0"), ISO_8601_3_FORMATTER.parse("2007-05-01T10:59:00.0"), new ArrayList(Arrays.asList(6.56d,12.0d))));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:801-3", ISO_8601_3_FORMATTER.parse("2007-05-01T11:59:00.0"), ISO_8601_3_FORMATTER.parse("2007-05-01T11:59:00.0"), new ArrayList(Arrays.asList(6.56d,13.0d))));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:801-5", ISO_8601_3_FORMATTER.parse("2007-05-01T12:59:00.0"), ISO_8601_3_FORMATTER.parse("2007-05-01T12:59:00.0"), new ArrayList(Arrays.asList(6.56d,14.0d))));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:801-7", ISO_8601_3_FORMATTER.parse("2007-05-01T13:59:00.0"), ISO_8601_3_FORMATTER.parse("2007-05-01T13:59:00.0"), new ArrayList(Arrays.asList(6.56d,15.0d))));
+        expResult.setDataArray(array);
+
+        Assert.assertEquals(expResult.getDataArray().size(), result.getDataArray().size());
+        for (int i = 0; i < 1; i++) {
+            Object expCell = expResult.getDataArray().get(i);
+            Object resCell = result.getDataArray().get(i);
+            if (expCell instanceof List && resCell instanceof List) {
+                List expSubArray = (List) expCell;
+                List resSubArray = (List) resCell;
+                Assert.assertEquals(expSubArray.size(), resSubArray.size());
+                for (int j = 0; j < expSubArray.size(); j++) {
+                    Assert.assertEquals(expSubArray.get(j), resSubArray.get(j));
+                }
+            } 
+            Assert.assertEquals(expCell, resCell);
+        }
+
+        Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
+        Assert.assertEquals(expResult, result);
+        
+        /*
+        * filter on result
+        */
+        request.setFilter("result[1] lt 15");
+        resultObj = worker.getObservations(request);
+        
+        Assert.assertTrue(resultObj instanceof DataArray);
+        result = (DataArray) resultObj;
+        
+        expResult = new DataArray();
+        expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
+        array = new ArrayList<>();
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:801-1", ISO_8601_3_FORMATTER.parse("2007-05-01T10:59:00.0"), ISO_8601_3_FORMATTER.parse("2007-05-01T10:59:00.0"), new ArrayList(Arrays.asList(6.56d,12.0d))));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:801-3", ISO_8601_3_FORMATTER.parse("2007-05-01T11:59:00.0"), ISO_8601_3_FORMATTER.parse("2007-05-01T11:59:00.0"), new ArrayList(Arrays.asList(6.56d,13.0d))));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:801-5", ISO_8601_3_FORMATTER.parse("2007-05-01T12:59:00.0"), ISO_8601_3_FORMATTER.parse("2007-05-01T12:59:00.0"), new ArrayList(Arrays.asList(6.56d,14.0d))));
+        expResult.setDataArray(array);
+
+        Assert.assertEquals(expResult.getDataArray().size(), result.getDataArray().size());
+        for (int i = 0; i < 1; i++) {
+            Object expCell = expResult.getDataArray().get(i);
+            Object resCell = result.getDataArray().get(i);
+            if (expCell instanceof List && resCell instanceof List) {
+                List expSubArray = (List) expCell;
+                List resSubArray = (List) resCell;
+                Assert.assertEquals(expSubArray.size(), resSubArray.size());
+                for (int j = 0; j < expSubArray.size(); j++) {
+                    Assert.assertEquals(expSubArray.get(j), resSubArray.get(j));
+                }
+            } 
+            Assert.assertEquals(expCell, resCell);
+        }
+
+        Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
+        Assert.assertEquals(expResult, result);
+        
+        /*
+        * filter on result
+        */
+        request.setFilter("result[1] ge 15");
+        resultObj = worker.getObservations(request);
+        
+        Assert.assertTrue(resultObj instanceof DataArray);
+        result = (DataArray) resultObj;
+        
+        expResult = new DataArray();
+        expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
+        array = new ArrayList<>();
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:801-7", ISO_8601_3_FORMATTER.parse("2007-05-01T13:59:00.0"), ISO_8601_3_FORMATTER.parse("2007-05-01T13:59:00.0"), new ArrayList(Arrays.asList(6.56d,15.0d))));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:801-9", ISO_8601_3_FORMATTER.parse("2007-05-01T14:59:00.0"), ISO_8601_3_FORMATTER.parse("2007-05-01T14:59:00.0"), new ArrayList(Arrays.asList(6.56d,16.0d))));
+        expResult.setDataArray(array);
+
+        Assert.assertEquals(expResult.getDataArray().size(), result.getDataArray().size());
+        for (int i = 0; i < 1; i++) {
+            Object expCell = expResult.getDataArray().get(i);
+            Object resCell = result.getDataArray().get(i);
+            if (expCell instanceof List && resCell instanceof List) {
+                List expSubArray = (List) expCell;
+                List resSubArray = (List) resCell;
+                Assert.assertEquals(expSubArray.size(), resSubArray.size());
+                for (int j = 0; j < expSubArray.size(); j++) {
+                    Assert.assertEquals(expSubArray.get(j), resSubArray.get(j));
+                }
+            } 
+            Assert.assertEquals(expCell, resCell);
+        }
+
+        Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
+        Assert.assertEquals(expResult, result);
+        
+        /*
+        * filter on result
+        */
+        request.setFilter("result[1] gt 15");
+        resultObj = worker.getObservations(request);
+        
+        Assert.assertTrue(resultObj instanceof DataArray);
+        result = (DataArray) resultObj;
+        
+        expResult = new DataArray();
+        expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
+        array = new ArrayList<>();
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:801-9", ISO_8601_3_FORMATTER.parse("2007-05-01T14:59:00.0"), ISO_8601_3_FORMATTER.parse("2007-05-01T14:59:00.0"), new ArrayList(Arrays.asList(6.56d,16.0d))));
+        expResult.setDataArray(array);
+
+        Assert.assertEquals(expResult.getDataArray().size(), result.getDataArray().size());
+        for (int i = 0; i < 1; i++) {
+            Object expCell = expResult.getDataArray().get(i);
+            Object resCell = result.getDataArray().get(i);
+            if (expCell instanceof List && resCell instanceof List) {
+                List expSubArray = (List) expCell;
+                List resSubArray = (List) resCell;
+                Assert.assertEquals(expSubArray.size(), resSubArray.size());
+                for (int j = 0; j < expSubArray.size(); j++) {
+                    Assert.assertEquals(expSubArray.get(j), resSubArray.get(j));
+                }
+            } 
+            Assert.assertEquals(expCell, resCell);
+        }
+
+        Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
+        Assert.assertEquals(expResult, result);
+        
+        /*
+        * filter on result
+        */
+        request.setFilter("result[1] ge 13 and result[1] le 15");
+        resultObj = worker.getObservations(request);
+        
+        Assert.assertTrue(resultObj instanceof DataArray);
+        result = (DataArray) resultObj;
+        
+        expResult = new DataArray();
+        expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
+        array = new ArrayList<>();
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:801-3", ISO_8601_3_FORMATTER.parse("2007-05-01T11:59:00.0"), ISO_8601_3_FORMATTER.parse("2007-05-01T11:59:00.0"), new ArrayList(Arrays.asList(6.56d,13.0d))));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:801-5", ISO_8601_3_FORMATTER.parse("2007-05-01T12:59:00.0"), ISO_8601_3_FORMATTER.parse("2007-05-01T12:59:00.0"), new ArrayList(Arrays.asList(6.56d,14.0d))));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:801-7", ISO_8601_3_FORMATTER.parse("2007-05-01T13:59:00.0"), ISO_8601_3_FORMATTER.parse("2007-05-01T13:59:00.0"), new ArrayList(Arrays.asList(6.56d,15.0d))));
+        expResult.setDataArray(array);
+
+        Assert.assertEquals(expResult.getDataArray().size(), result.getDataArray().size());
+        for (int i = 0; i < 1; i++) {
+            Object expCell = expResult.getDataArray().get(i);
+            Object resCell = result.getDataArray().get(i);
+            if (expCell instanceof List && resCell instanceof List) {
+                List expSubArray = (List) expCell;
+                List resSubArray = (List) resCell;
+                Assert.assertEquals(expSubArray.size(), resSubArray.size());
+                for (int j = 0; j < expSubArray.size(); j++) {
+                    Assert.assertEquals(expSubArray.get(j), resSubArray.get(j));
+                }
+            } 
             Assert.assertEquals(expCell, resCell);
         }
 

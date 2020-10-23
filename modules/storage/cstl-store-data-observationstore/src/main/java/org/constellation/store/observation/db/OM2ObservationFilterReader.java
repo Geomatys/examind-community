@@ -449,6 +449,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     final int pid = getPIDFromProcedure(procedure, c);
                     final Field mainField = getMainField(procedure);
                     boolean isTimeField   = false;
+                    int offset            = 0;
                     if (mainField != null) {
                         isTimeField = "Time".equals(mainField.fieldType);
                     }
@@ -493,14 +494,35 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         fieldMap.put(procedure, fields);
                     }
 
-                    final String measureRequest;
+                    String measureFilter = sqlMeasureRequest.toString();
                     if (isTimeField) {
-                        measureRequest = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m "
-                                + "WHERE \"id_observation\" = ? " + sqlMeasureRequest.toString().replace("$time", mainField.fieldName)
-                                + "ORDER BY m.\"id\"";
-                    } else {
-                        measureRequest = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m WHERE \"id_observation\" = ? ORDER BY m.\"id\"";
+                        measureFilter = measureFilter.replace("$time", mainField.fieldName);
+                        offset++;
                     }
+                    if (includeIDInDataBlock) {
+                        offset++;
+                    }
+                    while (measureFilter.contains("${allphen")) {
+                        int opos = measureFilter.indexOf("${allphen");
+                        int cpos = measureFilter.indexOf("}", opos + 9);
+                        String block = measureFilter.substring(opos, cpos + 1);
+                        StringBuilder sb = new StringBuilder();
+                        for (Field field : fields) {
+                            sb.append(" AND (").append(block.replace("${allphen", "\"" + field.fieldName + "\"").replace('}', ' ')).append(") ");
+                        }
+                        measureFilter = measureFilter.replace(block, sb.toString());
+                    }
+                    
+                    for (int i = offset, j=0; i < fields.size(); i++, j++) {
+                        measureFilter = measureFilter.replace("$phen" + j, "\"" + fields.get(i).fieldName + "\"");
+                    }
+                    final String measureRequest = 
+                                  "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m "
+                                + "WHERE \"id_observation\" = ? " 
+                                + measureFilter
+                                + "ORDER BY m.\"id\"";
+
+                    
                     int timeForProfileIndex = -1;
                     if (includeTimeForProfile && !isTimeField) {
                         timeForProfileIndex = includeIDInDataBlock ? 1 : 0;
@@ -706,26 +728,43 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                      */
                     final Field mainField = getMainField(procedure);
                     boolean isTimeField = false;
-                    final String measureRequest;
                     if (mainField != null) {
                         isTimeField = "Time".equals(mainField.fieldType);
                         if (isTimeField) {
                             fields.remove(mainField);
                         }
                     }
+                    
+                    List<FieldPhenom> fieldPhen = getPhenomenonFields(phen, fields);
 
+                    String measureFilter = sqlMeasureRequest.toString();
                     if (isTimeField) {
-                        measureRequest = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m "
-                                + "WHERE \"id_observation\" = ? " + sqlMeasureRequest.toString().replace("$time", mainField.fieldName)
-                                + "ORDER BY m.\"id\"";
-                    } else {
-                        measureRequest = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m WHERE \"id_observation\" = ? ORDER BY m.\"id\"";
+                        measureFilter = measureFilter.replace("$time", mainField.fieldName);
                     }
+                    while (measureFilter.contains("${allphen")) {
+                        int opos = measureFilter.indexOf("${allphen");
+                        int cpos = measureFilter.indexOf("}", opos + 9);
+                        String block = measureFilter.substring(opos, cpos + 1);
+                        StringBuilder sb = new StringBuilder();
+                        for (FieldPhenom field : fieldPhen) {
+                            sb.append(" AND (").append(block.replace("${allphen", "\"" + field.field.fieldName + "\"").replace('}', ' ')).append(") ");
+                        }
+                        measureFilter = measureFilter.replace(block, sb.toString());
+                    }
+                    
+                    for (FieldPhenom field : fieldPhen) {
+                        measureFilter = measureFilter.replace("$phen" + field.i, "\"" + field.field.fieldName + "\"");
+                    }
+                    
+                    final String measureRequest = 
+                                  "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m "
+                                + "WHERE \"id_observation\" = ? " 
+                                + measureFilter
+                                + "ORDER BY m.\"id\"";
 
                     /**
                      * coherence verification
                      */
-                    List<FieldPhenom> fieldPhen = getPhenomenonFields(phen, fields);
 
                     try(final PreparedStatement stmt = c.prepareStatement(measureRequest)) {
                         stmt.setInt(1, oid);
