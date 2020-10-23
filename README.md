@@ -141,6 +141,10 @@ SMTP server configuration (used to re-initialize user password) :
 * **cstl.mail.smtp.password** : Default value `mypassword`
 * **cstl.mail.smtp.ssl** : Default value `false`
 
+#### Database configuration syntax
+
+It is recommended to use [standard jdbc urls](https://docs.oracle.com/javase/tutorial/jdbc/basics/connecting.html#db_connection_url) when specifying database url. A custom syntax is allowed, but not recommended anymore.
+
 ## Contribute
 
 ### Activate Git hooks

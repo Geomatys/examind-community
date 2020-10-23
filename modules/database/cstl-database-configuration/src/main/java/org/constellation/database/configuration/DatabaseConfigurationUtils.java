@@ -1,6 +1,7 @@
 package org.constellation.database.configuration;
 
 import com.zaxxer.hikari.HikariConfig;
+import org.apache.sis.util.ArgumentChecks;
 import org.constellation.exception.ConfigurationRuntimeException;
 
 import java.net.URI;
@@ -24,6 +25,13 @@ public class DatabaseConfigurationUtils {
      * @throws ConfigurationRuntimeException
      */
     public static String extractJDBCUrl(String databaseURL) throws ConfigurationRuntimeException {
+        if (databaseURL == null || (databaseURL = databaseURL.trim()).isEmpty()) {
+            throw new ConfigurationRuntimeException("Input database url is blank");
+        }
+        // Consider user already gave a standard jdbc URL
+        if (databaseURL.toLowerCase().startsWith("jdbc:")) {
+            return databaseURL;
+        }
         URI dbUri;
         try {
             dbUri = new URI(databaseURL);
