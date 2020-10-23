@@ -329,7 +329,6 @@ public class CoverageProfileInfoTest {
     private static void assertProfileEquals(final GridCoverage source, final LineString line, final double... expectedValues) throws FactoryException, TransformException {
         DataProfile profile = new DataProfile(source, line);
         final double[] values = StreamSupport.stream(profile, false)
-                .peek(pt -> System.out.println(pt)) // TODO: remove after debug
                 .peek(CoverageProfileInfoTest::errorIfNoValue)
                 .mapToDouble(point -> ((double[]) point.value)[0])
                 .toArray();

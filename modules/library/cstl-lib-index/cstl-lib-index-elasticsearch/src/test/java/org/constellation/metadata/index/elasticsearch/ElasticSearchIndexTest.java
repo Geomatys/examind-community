@@ -333,7 +333,7 @@ public class ElasticSearchIndexTest {
                                  .should(QueryBuilders.termQuery("identifier", "40510_145_19930221211500"))
                                  .toXContent(builder, ToXContent.EMPTY_PARAMS);
 
-        System.out.println(Strings.toString(filter));
+        LOGGER.fine(Strings.toString(filter));
         spatialQuery = new SpatialQuery(filter);
         result       = indexSearcher.doSearch(spatialQuery);
 

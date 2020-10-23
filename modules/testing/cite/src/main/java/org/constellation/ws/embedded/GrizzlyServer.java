@@ -382,7 +382,7 @@ public final class GrizzlyServer {
         grizzly.start();
 
         // Waiting for grizzly server to be completely started
-        System.out.println("wait for services start ...");
+        LOGGER.info("wait for services start ...");
         try {
             while (!grizzly.isReady()) {
                 Thread.sleep(1000);
@@ -391,7 +391,7 @@ public final class GrizzlyServer {
             // That case should not occur.
             throw new AssertionError(ex);
         }
-        System.out.println("all services should been started ...");
+        LOGGER.info("all services should been started ...");
     }
 
     /**
