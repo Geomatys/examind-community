@@ -293,6 +293,10 @@ public class ExaPlaceHolderReplacer extends PlaceholderReplacer {
                 output = output.replace("TABLE \"provider_x_sos\"", "TABLE \"admin\".\"provider_x_sos\"");
             }
 
+            // Bad case management for HSQL on T1580143603__SensorOmType.sql
+            if (output.equals("ALTER TABLE \"admin\".\"sensor\" ADD COLUMN om_type character varying(100);")) {
+                output = "ALTER TABLE \"admin\".\"sensor\" ADD COLUMN \"om_type\" character varying(100);";
+            }
 
             /*if (output.contains("SET statement_timeout = 0")) {
                 output = output.replace("SET statement_timeout = 0", "");

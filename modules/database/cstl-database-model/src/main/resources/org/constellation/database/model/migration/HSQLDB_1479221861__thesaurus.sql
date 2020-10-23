@@ -11,9 +11,9 @@ CREATE TABLE "admin"."thesaurus" (
     "description"   character varying(500),
     "creation_date" bigint  NOT NULL,
     "state"       boolean NOT NULL DEFAULT TRUE,
-    "defaultLang"   character varying(3),
+    "defaultlang"   character varying(3),
     "version"       character varying(20),
-    "schemaName"    character varying(100)
+    "schemaname"    character varying(100)
 );
 
 
