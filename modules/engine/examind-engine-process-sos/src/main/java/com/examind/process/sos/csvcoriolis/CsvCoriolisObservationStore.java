@@ -278,7 +278,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
 
                 // read headers
                 final String[] headers = it.next();
-                final List<String> measureFields = new ArrayList<>();
+                final Set<String> measureFields = new LinkedHashSet<>();
                 final List<Integer> ignoredFields = new ArrayList<>();
 
                 for (int i = 0; i < headers.length; i++) {
@@ -438,7 +438,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                             // Construction du measureStringBuilder à partir des données collectées dans le hashmap
                             MeasureStringBuilder msb;
                             try {
-                                msb = buildMeasureStringBuilderFromMap(mmb, measureColumnFound, sdf, obsTypeCode.equals("Profile"));
+                                msb = buildMeasureStringBuilderFromMap(mmb, measureColumnFound, sdf, obsTypeCode.equals("PR"));
                             } catch (ParseException ex) {
                                 // parsing error normally already handled
                                 throw new DataStoreException("Parsing error: " + ex);
@@ -446,6 +446,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
 
                             // On complète les champs de mesures seulement avec celles trouvées dans la donnée
                             List<String> filteredMeasure = new ArrayList<>();
+                            if ("Profile".equals(observationType))  filteredMeasure.add(mainColumn);
                             for (String m: sortedMeasureColumns) {
                                 if (measureColumnFound.contains(m)) filteredMeasure.add(m);
                             }
@@ -456,7 +457,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                             =====================*/
 
                             final List<Field> fields = new ArrayList<>();
-                            for (final String field : measureFields) {
+                            for (final String field : filteredMeasure) {
                                 String name;
                                 String uom;
                                 int b = field.indexOf('(');
@@ -472,6 +473,10 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                             }
 
                             phenomenon = OMUtils.getPhenomenon("2.0.0", fields, "", phenomenons);
+                            // update phenomenon list
+                            if (!phenomenons.contains(phenomenon)) {
+                                phenomenons.add(phenomenon);
+                            }
 
                             final AbstractDataRecord datarecord;
                             switch (observationType) {
@@ -646,7 +651,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                     // Construction du measureStringBuilder à partir des données collectées dans le hashmap
                     MeasureStringBuilder msb;
                     try {
-                        msb = buildMeasureStringBuilderFromMap(mmb, measureColumnFound, sdf, obsTypeCode.equals("Profile"));
+                        msb = buildMeasureStringBuilderFromMap(mmb, measureColumnFound, sdf, obsTypeCode.equals("PR"));
                     } catch (ParseException ex) {
                         // parsing error normally already handled
                         throw new DataStoreException("Parsing error: " + ex);
@@ -654,6 +659,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
 
                     // On complète les champs de mesures seulement avec celles trouvées dans la donnée
                     List<String> filteredMeasure = new ArrayList<>();
+                    if ("Profile".equals(observationType))  filteredMeasure.add(mainColumn);
                     for (String m: sortedMeasureColumns) {
                         if (measureColumnFound.contains(m)) filteredMeasure.add(m);
                     }
@@ -664,7 +670,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                     =====================*/
 
                     final List<Field> fields = new ArrayList<>();
-                    for (final String field : measureFields) {
+                    for (final String field : filteredMeasure) {
                         String name;
                         String uom;
                         int b = field.indexOf('(');
@@ -680,6 +686,10 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                     }
 
                     phenomenon = OMUtils.getPhenomenon("2.0.0", fields, "", phenomenons);
+                    // update phenomenon list
+                    if (!phenomenons.contains(phenomenon)) {
+                        phenomenons.add(phenomenon);
+                    }
 
                     final AbstractDataRecord datarecord;
                     switch (observationType) {

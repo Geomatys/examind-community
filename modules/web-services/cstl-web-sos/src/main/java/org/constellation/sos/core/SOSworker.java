@@ -2238,7 +2238,8 @@ public class SOSworker extends SensorWorker {
         schreduledTask.stream().forEach((t) -> {
             t.cancel();
         });
-        startError("The service has been shutdown", null);
+        startError = "The service has been shutdown";
+        isStarted = false;
     }
 
     private void assertTransactionnal(final String requestName) throws CstlServiceException {

@@ -84,7 +84,7 @@ public abstract class AbstractWorker implements Worker {
     /**
      * A message keeping the reason of the start error of the worker.
      */
-    private String startError;
+    protected String startError;
 
     /**
      * Contains the service url used in capabilities document.

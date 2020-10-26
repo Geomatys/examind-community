@@ -1263,9 +1263,11 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals("2020-03-24T10:00:00.000", time.getEndPosition().getValue());
 
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
+        Assert.assertEquals(1, offp.getObservedProperties().size());
 
         String observedProperty = offp.getObservedProperties().get(0);
         String foi = offp.getFeatureOfInterestIds().get(0);
+        Assert.assertEquals("measure2", observedProperty);
 
         /*
         * Verify an inserted data
@@ -1316,10 +1318,12 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals("2020-03-24T10:00:00.000", time.getEndPosition().getValue());
 
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
+        Assert.assertEquals(1, offp.getObservedProperties().size());
 
         observedProperty = offp.getObservedProperties().get(0);
         foi = offp.getFeatureOfInterestIds().get(0);
 
+        Assert.assertEquals("measure2", observedProperty);
         /*
         * Verify an inserted data
         */

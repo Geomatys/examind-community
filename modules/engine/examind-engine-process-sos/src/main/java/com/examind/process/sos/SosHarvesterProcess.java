@@ -356,6 +356,11 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                     nbObsInserted = nbObsInserted + importSensor(services, sensorID, dataId);
                 }
             }
+            
+            // reload service at the end
+            for (ServiceProcessReference serv : services) {
+                serviceBusiness.restart(serv.getId());
+            }
 
         } catch (ConfigurationException | ConstellationStoreException | SQLException ex) {
             throw new ProcessException(ex.getMessage(), this, ex);
@@ -463,7 +468,6 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                 treated.add(omServiceProvider);
             }
             fireAndLog(String.format("ajout du capteur %s au service %s", sensorID, sosRef.getName()));
-            serviceBusiness.restart(sosRef.getId());
         }
         return nbObservationInserted;
     }
