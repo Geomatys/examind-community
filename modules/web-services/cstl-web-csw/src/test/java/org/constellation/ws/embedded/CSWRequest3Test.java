@@ -659,10 +659,11 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
     @Test
     @Order(order=8)
     public void testCSWOpenSearchSpatial() throws Exception {
+        initServer();
         /**
          * KVP search csw output 3 BBOX filter
          */
-        String query = "bbox=60.042,13.754,68.410,17.920,urn:x-ogc:def:crs:EPSG:6.11:4326";
+        String query = "bbox=13.754,60.042,17.920,68.410";
         URL kvpsUrl = new URL(getOpenSearchURL() + "request=GetRecords&service=CSW&version=3.0.0&" + query + "&outputSchema=http://www.opengis.net/cat/csw/3.0&outputFormat=application/xml");
         URLConnection conec = kvpsUrl.openConnection();
 
@@ -681,6 +682,29 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         }
 
         Set<String> expResultID = new HashSet<>();
+        expResultID.add("urn:uuid:1ef30a8b-876d-4828-9246-c37ab4510bbd");
+        expResultID.add("L2-LST");
+        assertEquals(expResultID, resultID);
+        
+        query = "bbox=13.754,60.042,17.920,68.410";
+        kvpsUrl = new URL(getOpenSearchURL() + "request=GetRecords&service=CSW&version=3.0.0&" + query + "&outputSchema=http://www.opengis.net/cat/csw/3.0&outputFormat=application/xml");
+        conec = kvpsUrl.openConnection();
+
+        result = unmarshallResponse(conec);
+
+        assertTrue(result instanceof GetRecordsResponseType);
+
+        grResult = (GetRecordsResponseType) result;
+
+        assertEquals(2, grResult.getSearchResults().getAny().size());
+        resultID = new HashSet<>();
+        for (int i = 0; i < 2; i++) {
+            assertTrue(grResult.getSearchResults().getAny().get(i) instanceof RecordType);
+            RecordType r = (RecordType) grResult.getSearchResults().getAny().get(i);
+            resultID.add(r.getIdentifier().getFirstValue());
+        }
+
+        expResultID = new HashSet<>();
         expResultID.add("urn:uuid:1ef30a8b-876d-4828-9246-c37ab4510bbd");
         expResultID.add("L2-LST");
         assertEquals(expResultID, resultID);
@@ -738,7 +762,29 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         expResultID.add("urn:uuid:9a669547-b69b-469f-a11f-2d875366bbdc");
         expResultID.add("L2-LST");
         assertEquals(expResultID, resultID);
+        
+        query = "bbox=13.754,60.042,17.920,68.410&q=surface";
+        kvpsUrl = new URL(getOpenSearchURL() + "request=GetRecords&service=CSW&version=3.0.0&" + query + "&outputSchema=http://www.opengis.net/cat/csw/3.0&outputFormat=application/xml");
+        conec = kvpsUrl.openConnection();
 
+        result = unmarshallResponse(conec);
+
+        assertTrue(result instanceof GetRecordsResponseType);
+
+        grResult = (GetRecordsResponseType) result;
+
+        assertEquals(1, grResult.getSearchResults().getAny().size());
+        resultID = new HashSet<>();
+        for (int i = 0; i < 1; i++) {
+            assertTrue(grResult.getSearchResults().getAny().get(i) instanceof RecordType);
+            RecordType r = (RecordType) grResult.getSearchResults().getAny().get(i);
+            resultID.add(r.getIdentifier().getFirstValue());
+        }
+
+        expResultID = new HashSet<>();
+        expResultID.add("L2-LST");
+        assertEquals(expResultID, resultID);
+        
     }
 
     @Test

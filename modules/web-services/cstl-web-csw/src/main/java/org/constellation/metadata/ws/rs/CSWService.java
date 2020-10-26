@@ -102,6 +102,7 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
+import org.opengis.filter.And;
 import org.opengis.filter.Filter;
 import org.opengis.filter.expression.Literal;
 import org.opengis.filter.sort.SortOrder;
@@ -634,19 +635,18 @@ public class CSWService extends OGCWebService<CSWworker> {
 
         if (bbox != null && !bbox.isEmpty()) {
             String[] parts = bbox.split(",");
-            if (parts.length == 5) {
+            if (parts.length == 4) {
                 try {
-                    double minx = Double.parseDouble(parts[0]);
-                    double miny = Double.parseDouble(parts[1]);
-                    double maxx = Double.parseDouble(parts[2]);
-                    double maxy = Double.parseDouble(parts[3]);
-                    String crs =  parts[4];
-                    filters.add(FilterXmlFactory.buildBBOX(filterVersion, "ows:BoundingBox",minx, miny, maxx, maxy, crs));
+                    double minx = Double.parseDouble(parts[1]);
+                    double miny = Double.parseDouble(parts[0]);
+                    double maxx = Double.parseDouble(parts[3]);
+                    double maxy = Double.parseDouble(parts[2]);
+                    filters.add(FilterXmlFactory.buildBBOX(filterVersion, "ows:BoundingBox",minx, miny, maxx, maxy, "EPSG:4326"));
                 } catch (NumberFormatException ex) {
-                    throw new CstlServiceException("Bbox parameter must be of the form minx<Number>,miny<Number>,maxx<Number>,maxy<Number>,crs<String>:" + ex.getMessage(), INVALID_PARAMETER_VALUE, "bbox");
+                    throw new CstlServiceException("Bbox parameter must be of the form west<Number>,south<Number>,east<Number>,north<Number>:" + ex.getMessage(), INVALID_PARAMETER_VALUE, "bbox");
                 }
             } else {
-                throw new CstlServiceException("Bbox parameter must be of the form minx,miny,maxx,maxy,crs.", INVALID_PARAMETER_VALUE, "bbox");
+                throw new CstlServiceException("Bbox parameter must be of the form west,south,east,north).", INVALID_PARAMETER_VALUE, "bbox");
             }
         }
         if (geometry != null && !geometry.isEmpty()) {
@@ -727,9 +727,10 @@ public class CSWService extends OGCWebService<CSWworker> {
             if (filters.size() == 1) {
                 constraintObject = (Filter) FilterXmlFactory.buildFilter(filterVersion, filters.get(0));
             } else {
-                constraintObject = (Filter) FilterXmlFactory.buildAnd(filterVersion, filters.toArray(new Object[filters.size()]));
+                And and = FilterXmlFactory.buildAnd(filterVersion, filters.toArray(new Object[filters.size()]));
+                constraintObject = (Filter) FilterXmlFactory.buildFilter(filterVersion, and);;
             }
-            return CswXmlFactory.createQueryConstraint(version, constraintObject, "1.1.0");
+            return CswXmlFactory.createQueryConstraint(version, constraintObject, filterVersion);
         }
         return null;
     }
