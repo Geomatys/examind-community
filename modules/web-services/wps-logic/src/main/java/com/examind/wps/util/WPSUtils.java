@@ -565,7 +565,7 @@ public class WPSUtils {
         }
 
         if (infos == null) {
-            infos = WPSIO.getFormats(attributeClass, ioType);
+            infos = WPSIO.getFormats(attributeClass, ioType, false);
         }
 
         Format defaultFormat = null;
