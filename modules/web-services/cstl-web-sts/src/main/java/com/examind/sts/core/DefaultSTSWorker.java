@@ -617,7 +617,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                         List result = (List) resultObj;
                         Observation observation = new Observation();
 
-                        String obsId = observationId + '-' + (String) result.get(0);
+                        String obsId = (String) result.get(0);
 
                         String selfLink = baseSelfLink + "/Observations(" + obsId + ")";
                         observation = observation.iotId(obsId)
@@ -734,7 +734,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             
             // id
             if (idIncluded) {
-                newLine.add(oid + "-" + arrayLine.get(col));
+                newLine.add(arrayLine.get(col));
                 col++;
             } else {
                 newLine.add(oid + "-" + j);

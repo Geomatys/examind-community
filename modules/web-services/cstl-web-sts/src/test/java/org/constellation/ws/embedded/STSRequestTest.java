@@ -1009,6 +1009,13 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-filter3.json");
         compareJSON(expResult, result);
+        
+        filter = "(time ge 2007-05-01T08:59:00Z and time le 2007-05-01T19:59:00Z)".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:3)/Observations?$resultFormat=dataArray&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-filter4.json");
+        compareJSON(expResult, result);
     }
 
     @Test

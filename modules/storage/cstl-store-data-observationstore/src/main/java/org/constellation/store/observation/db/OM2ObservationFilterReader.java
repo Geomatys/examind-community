@@ -529,10 +529,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     }
 
                     Date firstTime = null;
+                    final String name = rs.getString("identifier");
                     if (observation == null) {
                         final String obsID = "obs-" + oid;
                         final String timeID = "time-" + oid;
-                        final String name = rs.getString("identifier");
                         final String observedProperty = rs.getString("observed_property");
                         final SamplingFeature feature = getFeatureOfInterest(featureID, version, c);
                         final FeatureProperty prop = buildFeatureProperty(version, feature);
@@ -583,7 +583,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                                 values.appendDouble(d);
                                                 break;
                                             default:
-                                                values.appendString(rs2.getString(field.fieldName));
+                                                String svalue = rs2.getString(field.fieldName);
+                                                if (includeIDInDataBlock && field.fieldName.equals("id")) {
+                                                    svalue = name + '-' + svalue;
+                                                }
+                                                values.appendString(svalue);
                                                 break;
                                         }
                                     }
@@ -625,7 +629,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                                 values.appendDouble(d);
                                                 break;
                                             default:
-                                                values.appendString(rs2.getString(field.fieldName));
+                                                String svalue = rs2.getString(field.fieldName);
+                                                if (includeIDInDataBlock && field.fieldName.equals("id")) {
+                                                    svalue = name + '-' + svalue;
+                                                }
+                                                values.appendString(svalue);
                                                 break;
                                         }
                                     }
