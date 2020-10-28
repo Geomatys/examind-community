@@ -79,6 +79,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
+import org.constellation.dto.service.Instance;
+import org.constellation.dto.service.InstanceReport;
+import org.constellation.dto.service.ServiceStatus;
 
 import org.geotoolkit.ogc.xml.v200.ResourceIdType;
 import org.geotoolkit.wfs.xml.v200.ActionResultsType;
@@ -101,6 +104,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
+import static org.constellation.ws.embedded.AbstractGrizzlyServer.getCurrentPort;
+import static org.constellation.ws.embedded.AbstractGrizzlyServer.unmarshallJsonResponse;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -1940,6 +1947,30 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
         assertTrue(isJSONValid(result2));
         assertEquals("{\"type\":\"FeatureCollection\",\"crs\":{\"type\":\"name\",\"properties\":{\"name\":\"urn:ogc:def:crs:EPSG:9.7:3857\"}},\"features\":[{\"type\":\"Feature\",\"id\":\"station-001\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[-461417.5781,5219276.6054]},\"properties\":{\"@id\":\"station-001\",\"description\":\"Pointd'eauBSSS\",\"name\":[\"[10972X0137-PONT]\"],\"sampledFeature\":[\"[urn:-sandre:object:bdrhf:123X]\"]}},{\"type\":\"Feature\",\"id\":\"station-002\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[-378989.4256,3141106.6415]},\"properties\":{\"@id\":\"station-002\",\"description\":\"Pointd'eauBSSS\",\"name\":[\"[10972X0137-PLOUF]\"],\"sampledFeature\":[\"[urn:-sandre:object:bdrhf:123X]\"]}}]}"
                 , result2);
+    }
+    
+    @Test
+    @Order(order=32)
+    public void listInstanceTest() throws Exception {
+        initPool();
+        
+        URL liUrl = new URL("http://localhost:" + getCurrentPort() + "/API/OGC/wfs/all");
+
+        URLConnection conec = liUrl.openConnection();
+
+        Object obj = unmarshallJsonResponse(conec, InstanceReport.class);
+
+        assertTrue(obj instanceof InstanceReport);
+
+        final Set<Instance> instances = new HashSet<>();
+        final List<String> versions = Arrays.asList("2.0.0", "1.1.0");
+        instances.add(new Instance(1, "default", "Web Feature Service (Constellation)", "Features provided by constellation SDI server.", "wfs", versions, 17, ServiceStatus.STARTED, "null/wfs/default"));
+        instances.add(new Instance(2, "test1",   "Web Feature Service (Constellation)", "Features provided by constellation SDI server.", "wfs", versions, 13, ServiceStatus.STARTED, "null/wfs/test1"));
+        instances.add(new Instance(3, "test",    "Web Feature Service (Constellation)", "Features provided by constellation SDI server.", "wfs", versions, 16, ServiceStatus.STARTED, "null/wfs/test"));
+        
+        InstanceReport expResult2 = new InstanceReport(instances);
+        assertEquals(expResult2, obj);
+
     }
 
     private boolean isJSONValid(String test) {

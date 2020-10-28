@@ -23,6 +23,9 @@ import java.io.File;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import org.constellation.admin.SpringHelper;
@@ -54,10 +57,15 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import static org.constellation.api.ServiceConstants.*;
+import org.constellation.dto.service.Instance;
+import org.constellation.dto.service.InstanceReport;
+import org.constellation.dto.service.ServiceStatus;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import static org.constellation.test.utils.TestResourceUtils.unmarshallSensorResource;
+import static org.constellation.ws.embedded.AbstractGrizzlyServer.getCurrentPort;
+import static org.constellation.ws.embedded.AbstractGrizzlyServer.unmarshallJsonResponse;
 
 /**
  *
@@ -442,5 +450,27 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
                                  "2007-05-01T21:53:00,6.55\n";
         result = result.replace("\\n", "\n").replace("\"", "");
         assertEquals(expResult, result);
+    }
+    
+    @Test
+    @Order(order=10)
+    public void listInstanceTest() throws Exception {
+        initPool();
+        
+        URL liUrl = new URL("http://localhost:" + getCurrentPort() + "/API/OGC/sos/all");
+
+        URLConnection conec = liUrl.openConnection();
+
+        Object obj = unmarshallJsonResponse(conec, InstanceReport.class);
+
+        assertTrue(obj instanceof InstanceReport);
+
+        final Set<Instance> instances = new HashSet<>();
+        final List<String> versions = Arrays.asList("1.0.0", "2.0.0");
+        instances.add(new Instance(1, "default", "Constellation SOS Server", "Constellation SOS Server", "sos", versions, 12, ServiceStatus.STARTED, "null/sos/default"));
+        instances.add(new Instance(2, "test",    "Constellation SOS Server", "Constellation SOS Server", "sos", versions, 12, ServiceStatus.STARTED, "null/sos/test"));
+        InstanceReport expResult2 = new InstanceReport(instances);
+        assertEquals(expResult2, obj);
+
     }
 }

@@ -29,7 +29,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import javax.xml.bind.JAXBException;
@@ -37,7 +39,10 @@ import javax.xml.bind.Unmarshaller;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
+import org.constellation.dto.service.Instance;
+import org.constellation.dto.service.InstanceReport;
 import org.constellation.dto.service.ServiceComplete;
+import org.constellation.dto.service.ServiceStatus;
 import org.constellation.dto.service.config.wps.ProcessContext;
 import org.constellation.dto.service.config.wps.ProcessFactory;
 import org.constellation.dto.service.config.wps.Processes;
@@ -59,6 +64,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
+import static org.constellation.ws.embedded.AbstractGrizzlyServer.getCurrentPort;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -938,5 +944,27 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
         result = getStringResponse(conec);
         expected = getStringFromFile("org/constellation/wps/xml/executeResponse17_v200.xml");
         domCompare(result, expected, Arrays.asList("schema", "timeStamp"), Arrays.asList("http://www.opengis.net/wps/2.0:JobID"));
+    }
+    
+    @Test
+    @Order(order=14)
+    public void listInstanceTest() throws Exception {
+        initWPSServer();
+        
+        URL liUrl = new URL("http://localhost:" + getCurrentPort() + "/API/OGC/wps/all");
+
+        URLConnection conec = liUrl.openConnection();
+
+        Object obj = unmarshallJsonResponse(conec, InstanceReport.class);
+
+        assertTrue(obj instanceof InstanceReport);
+
+        final Set<Instance> instances = new HashSet<>();
+        final List<String> versions = Arrays.asList("1.0.0", "2.0.0");
+        instances.add(new Instance(1, "default", "WPS server", "WPS server developed by Geomatys for Constellation SDI.", "wps", versions, 80, ServiceStatus.STARTED, "null/wps/default"));
+        instances.add(new Instance(2, "test",    "WPS server", "WPS server developed by Geomatys for Constellation SDI.", "wps", versions, 80, ServiceStatus.STARTED, "null/wps/test"));
+        InstanceReport expResult2 = new InstanceReport(instances);
+        assertEquals(expResult2, obj);
+
     }
 }

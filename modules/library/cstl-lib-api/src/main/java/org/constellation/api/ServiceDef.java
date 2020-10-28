@@ -262,6 +262,8 @@ public enum ServiceDef {
                 return WEBDAV;
             } else if (TILES3D.name().equalsIgnoreCase(shortName)) {
                 return TILES3D;
+            } else if (STS.name().equalsIgnoreCase(shortName)) {
+                return STS;
             }
             throw new IllegalArgumentException(shortName + " is not a valid service specification.");
         }
@@ -270,7 +272,8 @@ public enum ServiceDef {
             return this.equals(Specification.WMS)  ||this.equals(Specification.WMTS)
                  ||this.equals(Specification.WFS)  ||this.equals(Specification.CSW)
                  ||this.equals(Specification.WCS)  ||this.equals(Specification.SOS)
-                 ||this.equals(Specification.WPS)  ||this.equals(Specification.WEBDAV) ;
+                 ||this.equals(Specification.WPS)  ||this.equals(Specification.WEBDAV)
+                 ||this.equals(Specification.STS);
         }
 
         public boolean supportedWXS() {

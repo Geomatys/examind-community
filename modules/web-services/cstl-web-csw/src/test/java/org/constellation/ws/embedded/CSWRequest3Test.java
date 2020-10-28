@@ -78,8 +78,11 @@ import org.constellation.dto.AcknowlegementType;
 import org.constellation.dto.contact.AccessConstraint;
 import org.constellation.dto.contact.Contact;
 import org.constellation.dto.contact.Details;
+import org.constellation.dto.service.Instance;
+import org.constellation.dto.service.InstanceReport;
 import org.constellation.dto.service.ServiceProtocol;
 import org.constellation.dto.service.ServiceReport;
+import org.constellation.dto.service.ServiceStatus;
 import org.constellation.metadata.configuration.CSWConfigurer;
 import org.constellation.provider.DataProviders;
 import org.constellation.store.metadata.filesystem.FileSystemMetadataStore;
@@ -193,7 +196,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
                 Details d = new Details("Constellation CSW Server", "default", Arrays.asList("CS-W"),
                                         "CS-W 2.0.2/AP ISO19115/19139 for service, datasets and applications",
-                                        Arrays.asList("3.0.0", "2.0.0", "2.0.2"),
+                                        Arrays.asList("3.0.0", "2.0.2", "2.0.0"),
                                         new Contact(), new AccessConstraint(),
                                         true, "eng");
 
@@ -1355,8 +1358,6 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
         URL niUrl = new URL("http://localhost:" + getCurrentPort() +  "/API/OGC/list");
 
-
-        // for a POST request
         URLConnection conec = niUrl.openConnection();
 
         Object obj = unmarshallJsonResponse(conec, ServiceReport.class);
@@ -1371,10 +1372,22 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
             }
         }
         assertNotNull(cswProtocol);
-
-
         assertEquals(result.getAvailableServices().toString(), 1, result.getAvailableServices().size());
+        
+        URL liUrl = new URL("http://localhost:" + getCurrentPort() + "/API/OGC/csw/all");
 
+        conec = liUrl.openConnection();
+
+        obj = unmarshallJsonResponse(conec, InstanceReport.class);
+
+        assertTrue(obj instanceof InstanceReport);
+
+        final Set<Instance> instances = new HashSet<>();
+        final List<String> versions = Arrays.asList("3.0.0", "2.0.2", "2.0.0");
+        instances.add(new Instance(1, "csw2",    "Constellation CSW Server", "CS-W 2.0.2/AP ISO19115/19139 for service, datasets and applications", "csw", versions, 1, ServiceStatus.STARTED, "null/csw/csw2"));
+        instances.add(new Instance(2, "default", "Constellation CSW Server", "CS-W 2.0.2/AP ISO19115/19139 for service, datasets and applications", "csw", versions, 0, ServiceStatus.STARTED, "null/csw/default"));
+        InstanceReport expResult2 = new InstanceReport(instances);
+        assertEquals(expResult2, obj);
 
     }
 

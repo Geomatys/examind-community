@@ -25,6 +25,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.net.URL;
+import java.net.URLConnection;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralDirectPosition;
@@ -34,13 +39,20 @@ import org.apache.sis.referencing.CommonCRS;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
+import org.constellation.dto.service.Instance;
+import org.constellation.dto.service.InstanceReport;
+import org.constellation.dto.service.ServiceStatus;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
+import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import static org.constellation.test.utils.TestResourceUtils.unmarshallSensorResource;
 import org.constellation.test.utils.TestRunner;
+import static org.constellation.ws.embedded.AbstractGrizzlyServer.getCurrentPort;
+import static org.constellation.ws.embedded.AbstractGrizzlyServer.pool;
+import static org.constellation.ws.embedded.AbstractGrizzlyServer.unmarshallJsonResponse;
 import org.geotoolkit.gml.GeometrytoJTS;
 import org.geotoolkit.gml.xml.v321.PointType;
 import org.junit.AfterClass;
@@ -1024,6 +1036,28 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-filter2-3.json");
         compareJSON(expResult, result);
+    }
+    
+    @Test
+    @Order(order=25)
+    public void listInstanceTest() throws Exception {
+        initPool();
+        
+        URL liUrl = new URL("http://localhost:" + getCurrentPort() + "/API/OGC/sts/all");
+
+        URLConnection conec = liUrl.openConnection();
+
+        Object obj = unmarshallJsonResponse(conec, InstanceReport.class);
+
+        assertTrue(obj instanceof InstanceReport);
+
+        final Set<Instance> instances = new HashSet<>();
+        final List<String> versions = Arrays.asList("1.0.0");
+        instances.add(new Instance(1, "default", "Examind STS Server", "Examind STS Server", "sts", versions, 12, ServiceStatus.STARTED, "null/sts/default"));
+        instances.add(new Instance(2, "test",    "Examind STS Server", "Examind STS Server", "sts", versions, 12, ServiceStatus.STARTED, "null/sts/test"));
+        InstanceReport expResult2 = new InstanceReport(instances);
+        assertEquals(expResult2, obj);
+
     }
 
 

@@ -22,8 +22,11 @@ package org.constellation.ws.embedded;
 import java.awt.image.BufferedImage;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
@@ -39,6 +42,9 @@ import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
+import org.constellation.dto.service.Instance;
+import org.constellation.dto.service.InstanceReport;
+import org.constellation.dto.service.ServiceStatus;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.test.ImageTesting;
 import org.constellation.test.utils.Order;
@@ -68,7 +74,11 @@ import org.junit.runner.RunWith;
 import org.opengis.util.GenericName;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.domCompare;
+import static org.constellation.ws.embedded.AbstractGrizzlyServer.getCurrentPort;
+import static org.constellation.ws.embedded.AbstractGrizzlyServer.unmarshallJsonResponse;
 import org.geotoolkit.referencing.CRS;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 // JUnit dependencies
 
@@ -562,6 +572,28 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
         expResult = getStringFromFile("org/constellation/ws/embedded/v201/describeCoverageTIFF.xml");
         
         domCompare(result, expResult);
+
+    }
+    
+    @Test
+    @Order(order=6)
+    public void listInstanceTest() throws Exception {
+        initLayerList();
+        
+        URL liUrl = new URL("http://localhost:" + getCurrentPort() + "/API/OGC/wcs/all");
+
+        URLConnection conec = liUrl.openConnection();
+
+        Object obj = unmarshallJsonResponse(conec, InstanceReport.class);
+
+        assertTrue(obj instanceof InstanceReport);
+
+        final Set<Instance> instances = new HashSet<>();
+        final List<String> versions = Arrays.asList("1.0.0", "1.1.1", "2.0.1");
+        instances.add(new Instance(1, "default", "Web Coverage Server", "Constellation Web Coverage Server maintained by geomatys.", "wcs", versions, 3, ServiceStatus.STARTED, "null/wcs/default"));
+        instances.add(new Instance(2, "test",    "Web Coverage Server", "Constellation Web Coverage Server maintained by geomatys.", "wcs", versions, 1, ServiceStatus.STARTED, "null/wcs/test"));
+        InstanceReport expResult2 = new InstanceReport(instances);
+        assertEquals(expResult2, obj);
 
     }
 

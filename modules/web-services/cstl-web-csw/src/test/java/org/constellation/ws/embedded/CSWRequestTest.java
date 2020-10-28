@@ -61,8 +61,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -75,8 +77,11 @@ import org.apache.sis.xml.XML;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.AcknowlegementType;
+import org.constellation.dto.service.Instance;
+import org.constellation.dto.service.InstanceReport;
 import org.constellation.dto.service.ServiceProtocol;
 import org.constellation.dto.service.ServiceReport;
+import org.constellation.dto.service.ServiceStatus;
 import org.constellation.metadata.configuration.CSWConfigurer;
 import org.constellation.provider.DataProviders;
 import org.constellation.store.metadata.filesystem.FileSystemMetadataStore;
@@ -87,9 +92,11 @@ import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
+import static org.constellation.ws.embedded.AbstractGrizzlyServer.getCurrentPort;
 
 import org.junit.BeforeClass;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.postRequestObject;
+import static org.constellation.ws.embedded.AbstractGrizzlyServer.unmarshallJsonResponse;
 import org.geotoolkit.csw.xml.CSWMarshallerPool;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -1058,8 +1065,6 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
 
         URL niUrl = new URL("http://localhost:" + getCurrentPort() +  "/API/OGC/list");
 
-
-        // for a POST request
         URLConnection conec = niUrl.openConnection();
 
         Object obj = unmarshallJsonResponse(conec, ServiceReport.class);
@@ -1076,8 +1081,21 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         assertNotNull(cswProtocol);
 
         assertEquals(result.getAvailableServices().toString(), 1, result.getAvailableServices().size());
+        
+        URL liUrl = new URL("http://localhost:" + getCurrentPort() + "/API/OGC/csw/all");
 
+        conec = liUrl.openConnection();
 
+        obj = unmarshallJsonResponse(conec, InstanceReport.class);
+
+        assertTrue(obj instanceof InstanceReport);
+
+        final Set<Instance> instances = new HashSet<>();
+        final List<String> versions = Arrays.asList("2.0.2");
+        instances.add(new Instance(1, "csw2",    "Constellation CSW Server", "CS-W 2.0.2/AP ISO19115/19139 for service, datasets and applications", "csw", versions, 1, ServiceStatus.STARTED, "null/csw/csw2"));
+        instances.add(new Instance(2, "default", "Constellation CSW Server", "CS-W 2.0.2/AP ISO19115/19139 for service, datasets and applications", "csw", versions, 0, ServiceStatus.STARTED, "null/csw/default"));
+        InstanceReport expResult2 = new InstanceReport(instances);
+        assertEquals(expResult2, obj);
     }
 
     public void createDataset(String resourceName, String identifier) throws Exception {
