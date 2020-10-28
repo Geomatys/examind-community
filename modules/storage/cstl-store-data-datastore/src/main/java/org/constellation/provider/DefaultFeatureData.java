@@ -22,7 +22,6 @@ package org.constellation.provider;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -38,17 +37,13 @@ import org.opengis.feature.IdentifiedType;
 import org.opengis.feature.Operation;
 import org.opengis.feature.PropertyNotFoundException;
 import org.opengis.feature.PropertyType;
-import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
-import org.opengis.filter.PropertyIsEqualTo;
 import org.opengis.filter.expression.PropertyName;
 import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.util.GenericName;
-import org.opengis.util.InternationalString;
 
 import org.apache.sis.internal.feature.AttributeConvention;
-import org.apache.sis.internal.storage.query.SimpleQuery;
 import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.storage.DataSet;
@@ -56,16 +51,12 @@ import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.Resource;
-import org.apache.sis.util.iso.SimpleInternationalString;
 
-import org.geotoolkit.map.FeatureMapLayer;
-import org.geotoolkit.map.MapBuilder;
 import org.geotoolkit.map.MapLayer;
 import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.storage.feature.FeatureStoreUtilities;
 import org.geotoolkit.storage.feature.query.Query;
 import org.geotoolkit.storage.feature.query.QueryBuilder;
-import org.geotoolkit.style.DefaultDescription;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.style.RandomStyleBuilder;
 import org.geotoolkit.util.NamesExt;
@@ -141,7 +132,7 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
 
     }
 
-    protected MapLayer createMapLayer(Style styleI, final Map<String, Object> params) throws DataStoreException, ConstellationStoreException {
+    protected MapLayer createMapLayer(Style styleI, final Map<String, Object> params) throws ConstellationStoreException {
         final FeatureType featureType = getType();
         MutableStyle style;
         if (styleI == null) {
@@ -153,12 +144,12 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
             throw new IllegalArgumentException("Only MutableStyle implementation is acepted");
         }
 
-        final FeatureMapLayer layer = MapBuilder.createFeatureLayer((FeatureSet)getOrigin(), style);
+        final MapLayer layer = new MapLayer(getOrigin());
+        layer.setStyle(style);
 
         final String title = getName().tip().toString();
-        layer.setName(title);
-        final InternationalString isTitle = new SimpleInternationalString(title);
-        layer.setDescription(new DefaultDescription(isTitle,isTitle));
+        layer.setIdentifier(title);
+        layer.setTitle(title);
 
         return layer;
     }
@@ -177,59 +168,8 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
      */
     @Override
     public final MapLayer getMapLayer(Style style, final Map<String, Object> params) throws ConstellationStoreException {
-
-        final MapLayer layer;
-        try {
-            layer = createMapLayer(style, params);
-        } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
-        }
-
-        // EXTRA FILTER extra parameter ////////////////////////////////////////
-        if (params != null && layer instanceof FeatureMapLayer) {
-            final Map<String,?> extras = (Map<String, ?>) params.get(KEY_EXTRA_PARAMETERS);
-            if (extras != null){
-                Filter filter = null;
-                for (String key : extras.keySet()) {
-                    if (key.equalsIgnoreCase("cql_filter")) {
-                        final Object extra = extras.get(key);
-                        String cqlFilter = null;
-                        if (extra instanceof List) {
-                            cqlFilter = ((List) extra).get(0).toString();
-                        } else if (extra instanceof String){
-                            cqlFilter = (String)extra;
-                        }
-                        if (cqlFilter != null) {
-                            filter = buildCQLFilter(cqlFilter, filter);
-                        }
-                    } else if (key.startsWith("dim_") || key.startsWith("DIM_")) {
-                        final String dimValue = ((List) extras.get(key)).get(0).toString();
-                        final String dimName = key.substring(4);
-                        filter = buildDimFilter(dimName, dimValue, filter);
-                    }
-                }
-                if (filter != null) {
-                    final FeatureMapLayer fml = (FeatureMapLayer) layer;
-                    try {
-                        final FeatureType type = fml.getResource().getType();
-                        if (filter instanceof PropertyIsEqualTo) {
-                            final String propName = ((PropertyName)((PropertyIsEqualTo)filter).getExpression1()).getPropertyName();
-                            for (PropertyType desc : type.getProperties(true)) {
-                                if (desc.getName().tip().toString().equalsIgnoreCase(propName)) {
-                                    final SimpleQuery query = new SimpleQuery();
-                                    query.setFilter(filter);
-                                    fml.setQuery(query);
-                                    break;
-                                }
-                            }
-                        }
-                    } catch (DataStoreException ex) {
-                        throw new ConstellationStoreException(ex);
-                    }
-                }
-            }
-        }
-        ////////////////////////////////////////////////////////////////////////
+        final MapLayer layer = createMapLayer(style, params);
+        resolveQuery(params).ifPresent(query -> layer.setQuery(query));
 
         return layer;
     }

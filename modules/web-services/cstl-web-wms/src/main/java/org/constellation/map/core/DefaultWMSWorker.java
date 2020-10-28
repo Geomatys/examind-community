@@ -1539,7 +1539,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
      */
     private void applyLayerFiltersAndDims(final MapItem item, final String userLogin) throws DataStoreException {
 
-        if(item instanceof FeatureMapLayer){
+        if (item instanceof FeatureMapLayer) {
             final FeatureMapLayer fml = (FeatureMapLayer)item;
             Integer lid = (Integer) fml.getUserProperties().get("layerId");
             final FilterAndDimension layerFnD = getLayerFilterDimensions(lid);
@@ -1584,10 +1584,11 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
 
         }
 
-        for(MapItem layer : item.items()){
-            applyLayerFiltersAndDims(layer, userLogin);
+        if (item instanceof MapContext) {
+            for (MapItem layer : ((MapContext) item).getComponents()) {
+                applyLayerFiltersAndDims(layer, userLogin);
+            }
         }
-
     }
 
     /**

@@ -172,7 +172,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
                 final GridCoverageResource ressource = (GridCoverageResource) resource;
                 try {
                     final ProfilLayer l = extract(cdef, getFI, geom, ressource, samplingCount);
-                    l.name = layer.getName();
+                    l.name = layer.getIdentifier();
                     if (l.name == null) {
                            l.name = ressource.getIdentifier()
                                    .orElseThrow(() -> new PortrayalException("resource identifier not present")).tip().toString();

@@ -292,7 +292,7 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         if (layerName != null) {
             String ftLocal = layerName.tip().toString();
 
-            builder.append(margin).append("<Layer>").append(encodeXML(layer.getName())).append("</Layer>\n");
+            builder.append(margin).append("<Layer>").append(encodeXML(layer.getIdentifier())).append("</Layer>\n");
             builder.append(margin).append("<Name>").append(encodeXML(ftLocal)).append("</Name>\n");
             builder.append(margin).append("<ID>").append(encodeXML(FeatureExt.getId(feature).getID())).append("</ID>\n");
 

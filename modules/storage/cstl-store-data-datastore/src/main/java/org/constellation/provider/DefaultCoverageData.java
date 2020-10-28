@@ -68,8 +68,6 @@ import org.geotoolkit.coverage.grid.GridGeometryIterator;
 import org.geotoolkit.coverage.grid.GridIterator;
 import org.geotoolkit.coverage.worldfile.FileCoverageResource;
 import org.geotoolkit.image.io.metadata.SpatialMetadata;
-import org.geotoolkit.map.CoverageMapLayer;
-import org.geotoolkit.map.MapBuilder;
 import org.geotoolkit.map.MapLayer;
 import org.geotoolkit.process.ProcessException;
 import org.geotoolkit.processing.coverage.resample.ResampleProcess;
@@ -84,7 +82,6 @@ import org.geotoolkit.storage.multires.TileMatrixSet;
 import org.geotoolkit.style.DefaultStyleFactory;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.style.StyleConstants;
-import org.opengis.filter.Filter;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.Identifier;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -182,7 +179,7 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
      * {@inheritDoc}
      */
     @Override
-    public MapLayer getMapLayer(Style styleI, final Map<String, Object> params) throws ConstellationStoreException {
+    public MapLayer getMapLayer(Style styleI, final Map<String, Object> params) {
         MutableStyle style;
         if (styleI == null) {
             style = getDefaultStyle();
@@ -192,37 +189,11 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
             throw new IllegalArgumentException("Only MutableStyle implementation is acepted");
         }
 
-        final CoverageMapLayer layer = MapBuilder.createCoverageLayer(origin, style);
+        final GridCoverageResource origin = getOrigin();
 
-        // EXTRA FILTER extra parameter ////////////////////////////////////////
-        if (params != null && layer instanceof CoverageMapLayer) {
-            final Map<String,?> extras = (Map<String, ?>) params.get(KEY_EXTRA_PARAMETERS);
-            if (extras != null) {
-                Filter filter = null;
-                for (String key : extras.keySet()) {
-                    if (key.equalsIgnoreCase("cql_filter")) {
-                        final Object extra = extras.get(key);
-                        String cqlFilter = null;
-                        if (extra instanceof List) {
-                            cqlFilter = ((List) extra).get(0).toString();
-                        } else if (extra instanceof String){
-                            cqlFilter = (String)extra;
-                        }
-                        if (cqlFilter != null){
-                            filter = buildCQLFilter(cqlFilter, filter);
-                        }
-                    } else if (key.startsWith("dim_") || key.startsWith("DIM_")){
-                        final String dimValue = ((List)extras.get(key)).get(0).toString();
-                        final String dimName  = key.substring(4);
-                        filter = buildDimFilter(dimName, dimValue, filter);
-                    }
-                }
-                if (filter != null) {
-                    layer.setQuery(QueryBuilder.filtered(name.toString(), filter));
-                }
-            }
-        }
-        ////////////////////////////////////////////////////////////////////////
+        final MapLayer layer = new MapLayer(origin);
+        layer.setStyle(style);
+        resolveQuery(params).ifPresent(query -> layer.setQuery(query));
 
         return layer;
     }

@@ -18,16 +18,34 @@
  */
 package org.constellation.provider;
 
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.logging.Level;
 import org.apache.sis.cql.CQLException;
+import org.apache.sis.filter.DefaultFilterFactory;
+import org.apache.sis.internal.storage.query.SimpleQuery;
 import org.apache.sis.internal.system.DefaultFactories;
+import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.Query;
 import org.apache.sis.storage.Resource;
 
 import static org.constellation.provider.AbstractData.LOGGER;
+
+import org.apache.sis.util.collection.BackingStoreException;
+import org.constellation.exception.ConstellationStoreException;
 import org.geotoolkit.cql.CQL;
+import org.geotoolkit.map.FeatureMapLayer;
+import org.opengis.feature.FeatureType;
+import org.opengis.feature.PropertyType;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.FilterFactory2;
+import org.opengis.filter.PropertyIsEqualTo;
+import org.opengis.filter.expression.PropertyName;
 import org.opengis.util.GenericName;
 
 /**
@@ -40,35 +58,64 @@ public abstract class DefaultGeoData<T extends Resource> extends AbstractData<T>
         super(name, origin);
     }
 
-    protected Filter buildCQLFilter(final String cql, final Filter filter) {
-        final FilterFactory2 factory = (FilterFactory2) DefaultFactories.forBuildin(FilterFactory.class);
-        try {
-            final Filter cqlfilter = CQL.parseFilter(cql);
-            if (filter != null) {
-                return factory.and(cqlfilter, filter);
-            } else {
-                return cqlfilter;
-            }
-        } catch (CQLException ex) {
-            LOGGER.log(Level.INFO,  ex.getMessage(),ex);
-        }
-        return filter;
-    }
-
-    protected Filter buildDimFilter(final String dimName, final String dimValue, final Filter filter) {
+    protected Filter buildDimFilter(final String dimName, final String dimValue) {
         final FilterFactory2 factory = (FilterFactory2) DefaultFactories.forBuildin(FilterFactory.class);
         Object value = dimValue;
         try {
             value = Double.parseDouble(dimValue);
         } catch (NumberFormatException ex) {
             // not a number
+            LOGGER.log(Level.FINER, "Received dimension value is not a number", ex);
         }
-        final Filter extraDimFilter = factory.equals(factory.property(dimName), factory.literal(value));
-        if (filter != null) {
-            return factory.and(extraDimFilter, filter);
-        } else {
-            return extraDimFilter;
-        }
+
+        return factory.equals(factory.property(dimName), factory.literal(value));
     }
 
+    private Filter toFilter(Map.Entry param) {
+        final Object rawKey = param.getKey();
+        if (!(rawKey instanceof String)) return null;
+        final String key = (String) rawKey;
+        if (key.equalsIgnoreCase("cql_filter")) {
+            final String cqlFilter = extractStringValue(param.getValue());
+            if (cqlFilter != null) {
+                try {
+                    return CQL.parseFilter(cqlFilter);
+                } catch (CQLException e) {
+                    throw new BackingStoreException(e);
+                }
+            }
+        } else if (key.startsWith("dim_") || key.startsWith("DIM_")) {
+            final String dimValue = extractStringValue(param.getValue());
+            final String dimName = key.substring(4);
+            return buildDimFilter(dimName, dimValue);
+        }
+        return null;
+    }
+
+    private String extractStringValue(Object valueOrContainer) {
+        if (valueOrContainer instanceof Iterable) {
+            final Iterator it = ((Iterable) valueOrContainer).iterator();
+            if (it.hasNext()) valueOrContainer = it.next();
+        }
+
+        if (valueOrContainer instanceof String) return (String) valueOrContainer;
+        else return null;
+    }
+
+    protected Optional<Query> resolveQuery(final Map portrayParameters) {
+        if (portrayParameters == null) return Optional.empty();
+        final Object rawValues = portrayParameters.get(KEY_EXTRA_PARAMETERS);
+        if (rawValues == null) return Optional.empty();
+        if (!(rawValues instanceof Map)) throw new IllegalArgumentException(KEY_EXTRA_PARAMETERS+" parameter must be a Map");
+        final Map<?, ?> extras = (Map) rawValues;
+        return extras.entrySet().stream()
+                .map(this::toFilter)
+                .filter(Objects::nonNull)
+                .reduce(new DefaultFilterFactory()::and)
+                .map(filter-> {
+                    final SimpleQuery query = new SimpleQuery();
+                    query.setFilter(filter);
+                    return query;
+                });
+    }
 }

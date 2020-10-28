@@ -248,7 +248,7 @@ public class PyramidBusiness implements IPyramidBusiness {
             }
 
             final String providerId = UUID.randomUUID().toString();
-            context.setName("Styled pyramid " + crs + " for " + providerId + ":" + pyramidDataName);
+            context.setIdentifier("Styled pyramid " + crs + " for " + providerId + ": " + pyramidDataName);
 
             MultiResolutionResource outRef;
             Integer pyDataId;
@@ -294,7 +294,7 @@ public class PyramidBusiness implements IPyramidBusiness {
             }
 
             TilingContext t = buildTilingProcess(userId, outRef, context, tilingMode);
-            t.contextName = context.getName();
+            t.contextName = context.getIdentifier();
             t.pyDataId = pyDataId;
             t.pyramidIdentifier = pyramidIdentifier;
             t.pyramidDataName = pyramidDataName;
@@ -412,7 +412,7 @@ public class PyramidBusiness implements IPyramidBusiness {
         }
 
         String pyramidIdentifier = RENDERED_PREFIX + UUID.randomUUID().toString();
-        context.setName("Styled pyramid " + crs + " for " + pyramidIdentifier + ":" + pyramidDataName);
+        context.setIdentifier("Styled pyramid " + crs + " for " + pyramidIdentifier + ":" + pyramidDataName);
 
         //create the output folder for pyramid
         MultiResolutionResource outRef;
@@ -449,7 +449,7 @@ public class PyramidBusiness implements IPyramidBusiness {
         }
 
         final TilingContext t = buildTilingProcess(userId, outRef, context, tilingMode);
-        t.contextName = context.getName();
+        t.contextName = context.getIdentifier();
         t.pyDataId = pyDataId;
         t.pyramidIdentifier = pyramidIdentifier;
         t.pyramidDataName = pyramidDataName;
@@ -607,7 +607,7 @@ public class PyramidBusiness implements IPyramidBusiness {
 
             //add task in scheduler
             final TilingContext t = buildTilingProcess(userId, outRef, context, "data");
-            t.contextName = context.getName();
+            t.contextName = context.getIdentifier();
             t.pyDataId = pyDataId;
             t.pyramidIdentifier = pyramidIdentifier;
             t.pyramidDataName = pyramidDataName;
@@ -639,7 +639,7 @@ public class PyramidBusiness implements IPyramidBusiness {
             final org.geotoolkit.process.Process p = desc.createProcess(input);
 
             //add task in scheduler
-            final String taskName = context.getName() + " | " + System.currentTimeMillis();
+            final String taskName = context.getIdentifier() + " | " + System.currentTimeMillis();
             TaskParameter taskParameter = new TaskParameter();
             taskParameter.setProcessAuthority(Util.getProcessAuthorityCode(desc));
             taskParameter.setProcessCode(desc.getIdentifier().getCode());

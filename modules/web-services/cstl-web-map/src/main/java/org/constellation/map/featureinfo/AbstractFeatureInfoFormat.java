@@ -177,7 +177,7 @@ public abstract class AbstractFeatureInfoFormat implements FeatureInfoFormat {
     protected void nextProjectedFeature(MapLayer layer, final Feature feature, final RenderingContext2D context,
                                         final SearchAreaJ2D queryArea) {
 
-        final String layerName = layer.getName();
+        final String layerName = layer.getIdentifier();
         List<Feature> feat = features.get(layerName);
         if (feat == null) {
             feat = new ArrayList<>();
@@ -195,7 +195,7 @@ public abstract class AbstractFeatureInfoFormat implements FeatureInfoFormat {
     protected void nextProjectedCoverage(MapLayer layer, final GridCoverageResource resource, final RenderingContext2D context,
                                          final SearchAreaJ2D queryArea) {
 
-        final String layerName = layer.getName();
+        final String layerName = layer.getIdentifier();
         List<GridCoverageResource> cov = coverages.get(layerName);
         if (cov == null) {
             cov = new ArrayList<>();
@@ -223,7 +223,7 @@ public abstract class AbstractFeatureInfoFormat implements FeatureInfoFormat {
         if (ml.getUserProperties().containsKey("layerName")) {
             layerName = (GenericName) ml.getUserProperties().get("layerName");
         } else {
-            layerName = NamesExt.create(ml.getName());
+            layerName = NamesExt.create(ml.getIdentifier());
         }
         return layerName;
     }

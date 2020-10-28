@@ -16,7 +16,6 @@ import org.apache.sis.util.iso.Names;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
-import org.geotoolkit.map.CoverageMapLayer;
 import org.geotoolkit.map.FeatureMapLayer;
 import org.geotoolkit.map.MapBuilder;
 import org.geotoolkit.map.MapContext;
@@ -56,12 +55,12 @@ class GetFeatureInfoContext {
         layer.setSelectable(true);
         layer.setVisible(true);
 
-        context.items().add(layer);
+        context.getComponents().add(layer);
     }
 
-    public CoverageMapLayer createLayer(String name, GridCoverage dataset) {
+    public MapLayer createLayer(String name, GridCoverage dataset) {
         final InMemoryGridCoverageResource resource = new InMemoryGridCoverageResource(Names.createLocalName("examind", ":", name), dataset);
-        CoverageMapLayer layer = MapBuilder.createCoverageLayer(resource);
+        MapLayer layer = MapBuilder.createLayer(resource);
         prepareLayer(name, layer);
         return layer;
     }
