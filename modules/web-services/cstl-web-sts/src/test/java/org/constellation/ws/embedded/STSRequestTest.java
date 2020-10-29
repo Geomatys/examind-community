@@ -1046,6 +1046,19 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
     
     @Test
+    @Order(order=23)
+    public void getDataArrayForMultiDatastreamsDecimation() throws Exception {
+        initPool();
+
+        String filter = "(time ge 2007-05-01T08:59:00Z and time le 2007-05-01T19:59:00Z)".replace(" ", "%20");
+        URL getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:3)/Observations?$resultFormat=dataArray&$decimation=10&$filter=" + filter);
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-decim.json");
+        compareJSON(expResult, result);
+    }
+    
+    @Test
     @Order(order=25)
     public void listInstanceTest() throws Exception {
         initPool();

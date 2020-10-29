@@ -925,8 +925,12 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         final boolean profile = "profile".equals(currentOMType);
         final boolean profileWithTime = profile && includeTimeInProfile;
         try {
-            // add orderby to the query
+            final Field timeField = getTimeField(currentProcedure);
+            if (timeField != null) {
+                sqlRequest.append(sqlMeasureRequest.toString().replace("$time", timeField.fieldName));
+            }
             final String fieldRequest = sqlRequest.toString();
+            // add orderby to the query
             sqlRequest.append(" ORDER BY  o.\"id\", m.\"id\"");
             ResultBuilder values;
             try(final Connection c = source.getConnection()) {
@@ -1103,6 +1107,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 } else {
                     mainField = getMainField(currentProcedure, c);
                     fields = readFields(currentProcedure, c);
+                }
+                // add measure filter
+                final Field timeField = getTimeField(currentProcedure);
+                if (timeField != null) {
+                    sqlRequest.append(sqlMeasureRequest.toString().replace("$time", timeField.fieldName));
                 }
                 
                 // calculate step
