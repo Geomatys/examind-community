@@ -18,6 +18,7 @@
  */
 package org.constellation.portrayal;
 
+import org.constellation.dto.service.config.wxs.Layer;
 import org.constellation.provider.Data;
 import org.geotoolkit.map.MapBuilder;
 import org.geotoolkit.map.MapContext;
@@ -79,8 +80,14 @@ public final class PortrayalUtil {
                     ((MapLayer) mapLayer).setSelectable(true);
                 }
                 mapLayer.setVisible(true);
-                mapLayer.getUserProperties().put("layerId", layer.getId());
-                mapLayer.getUserProperties().put("layerName", layer.getName());
+                final Map<String, Object> userData = mapLayer.getUserProperties();
+                userData.put("layerId", layer.getId());
+                userData.put("layerName", layer.getName());
+                final Layer layerConf = layer.getConfiguration();
+                final String alias;
+                if (layerConf != null && (alias = layerConf.getAlias()) != null) {
+                    userData.put("alias", alias);
+                }
                 context.items().add(mapLayer);
             } else {
                 throw new ConstellationStoreException("Could not create a Context for a non Geo data: " + layerRefs.get(i).getName());

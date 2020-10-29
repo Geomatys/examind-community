@@ -262,6 +262,12 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "VeRsIoN=1.1.1&InFo_fOrMaT=application/json;%20subtype=profile&"
             + "X=60&StYlEs=&LaYeRs=" + LAYER_TEST + "&"
             + "SrS=EPSG:4326&WiDtH=200&HeIgHt=100&Y=60&PROFILE=LINESTRING(-61.132875680921%2014.81104016304,%20-60.973573923109%2014.673711061478,%20-60.946108102796%2014.706670045853,%20-60.915895700453%2014.610539674759,%20-60.882936716078%2014.48145031929)";
+    
+    private static final String WMS_GETFEATUREINFO_PROFILE_COV_ALIAS = "QuErY_LaYeRs=" + COV_ALIAS + "&BbOx=0,-0.0020,0.0040,0&"
+            + "FoRmAt=image/gif&ReQuEsT=GetFeatureInfo&"
+            + "VeRsIoN=1.1.1&InFo_fOrMaT=application/json;%20subtype=profile&"
+            + "X=60&StYlEs=&LaYeRs=" + LAYER_TEST + "&"
+            + "SrS=EPSG:4326&WiDtH=200&HeIgHt=100&Y=60&PROFILE=LINESTRING(-61.132875680921%2014.81104016304,%20-60.973573923109%2014.673711061478,%20-60.946108102796%2014.706670045853,%20-60.915895700453%2014.610539674759,%20-60.882936716078%2014.48145031929)";
 
     private static final String WMS_GETFEATUREINFO_JSON_FEAT_ALIAS = "QuErY_LaYeRs=JS1&BbOx=-80.72487831115721,35.2553619492954,-80.70324897766113,35.27035945142482&"
             + "FoRmAt=image/gif&ReQuEsT=GetFeatureInfo&"
@@ -2143,7 +2149,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     public void testWMSGetFeatureInfoJSONProfileCoverage() throws Exception {
         initLayerList();
         // Creates a valid GetFeatureInfo url.
-        final URL gfi;
+        URL gfi;
         try {
             gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PROFILE_COV);
         } catch (MalformedURLException ex) {
@@ -2157,7 +2163,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         LOGGER.fine(result);
 
         // Note: do not check directly text representation, as field ordering could arbitrarily change on serialization/ and precison change with JDK version.
-        final Map binding = new ObjectMapper().readValue(result, Map.class);
+        Map binding = new ObjectMapper().readValue(result, Map.class);
         assertNotNull("result is empty", binding);
         List records = (List) binding.get("layers");
         assertEquals("A single layer result should be returned", 1, records.size());
@@ -2191,6 +2197,28 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         assertEquals("pt4 X property", 53.47, (double)points.get(4).get("x"), 1e-2);
         assertEquals("pt4 Y property", 0.0,    (double)points.get(4).get("y"), 1e-2);
+        
+        try {
+            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PROFILE_COV_ALIAS);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+        
+        result = getStringResponse(gfi);
+        assertNotNull(result);
+
+        LOGGER.fine(result);
+
+        // Note: do not check directly text representation, as field ordering could arbitrarily change on serialization/ and precison change with JDK version.
+        binding = new ObjectMapper().readValue(result, Map.class);
+        assertNotNull("result is empty", binding);
+        records = (List) binding.get("layers");
+        assertEquals("A single layer result should be returned", 1, records.size());
+        record = (Map) records.get(0);
+
+        assertEquals("layer name property", "SSTMDE200305", record.get("name"));
+        assertEquals("layer alias property", "SST", record.get("alias"));
     }
 
     @Test

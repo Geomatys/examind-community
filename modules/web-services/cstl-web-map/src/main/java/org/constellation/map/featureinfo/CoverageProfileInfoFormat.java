@@ -177,6 +177,10 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
                            l.name = ressource.getIdentifier()
                                    .orElseThrow(() -> new PortrayalException("resource identifier not present")).tip().toString();
                     }
+
+                    final Object alias = layer.getUserProperties().get("alias");
+                    if (alias instanceof CharSequence) l.alias = alias.toString();
+
                     profil.layers.add(l);
                 } catch (DisjointExtentException | NoSuchDataException ex) {
                     LOGGER.log(Level.FINE, "Cannot extract profile for input geometry", ex);
@@ -794,6 +798,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
     public static class ProfilLayer {
 
         public String name;
+        public String alias;
         private List<String> titles;
         public List<ProfilData> data = new ArrayList<>();
         public String message;
