@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Spliterator;
 
 import java.util.function.Consumer;
@@ -40,6 +41,7 @@ import org.opengis.geometry.DirectPosition;
 import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.datum.PixelInCell;
+import org.opengis.referencing.operation.CoordinateOperation;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
@@ -49,6 +51,13 @@ import org.opengis.util.FactoryException;
  * @author Alexis Manin (Geomatys)
  */
 public class DataProfile implements Spliterator<DataProfile.DataPoint> {
+
+    /** 
+     * A translation between datasource grid space to rendering.
+     * Needed because rendering origin (0, 0) match grid space lower corner,
+     * which can be an arbitrary position.
+     */
+    private final LinearTransform gridToRendering;
 
     private static class Extractor {
         int[] sliceCoord;
@@ -72,6 +81,7 @@ public class DataProfile implements Spliterator<DataProfile.DataPoint> {
 
     private final CoordinateReferenceSystem lineCrs;
 
+    /** Conversion between datasource grid space (not rendering) to target polyline space. */
     private final MathTransform gridCornerToLineCrs;
 
     private int[] templateSize;
@@ -93,19 +103,13 @@ public class DataProfile implements Spliterator<DataProfile.DataPoint> {
 
         dimension = 2;
 
-        /* Forcing resample of data source into profile CRS fix some distance computing on some datasets (NetCDF grd
-         * for example). Also, bilinear interpolation could trigger better sampling.
-         */
-        final JTSEnvelope2D profileEnv = JTS.toEnvelope(profile);
-        final GridGeometry workGrid = subgridAndReproject(datasource.getGridGeometry(), profileEnv);
-
-        final GridCoverageProcessor gcp = new GridCoverageProcessor();
-        gcp.setInterpolation(Interpolation.BILINEAR);
-        datasource = gcp.resample(datasource, workGrid);
-
         //Transformation de la coordonnée dans l'image
         final GridGeometry gridGeometry = datasource.getGridGeometry();
-        this.gridCornerToLineCrs = gridGeometry.getGridToCRS(PixelInCell.CELL_CORNER);
+        // Grid traversal operator works with pixel borders.
+        final MathTransform gridToCRS = gridGeometry.getGridToCRS(PixelInCell.CELL_CORNER);
+        this.gridCornerToLineCrs = getConversion(gridGeometry, lineCrs)
+                .map(op -> MathTransforms.concatenate(gridToCRS, op.getMathTransform()))
+                .orElse(gridToCRS);
 
         final CoordinateSequence lineSeq = profile.getCoordinateSequence();
         final int nbPts = lineSeq.size();
@@ -122,13 +126,13 @@ public class DataProfile implements Spliterator<DataProfile.DataPoint> {
          * image origin. As extractors are built using a null extent on rendering, the translation is to move point from
          * grid minimum to space origin (0).
          */
-        final LinearTransform gridToOrigin = MathTransforms.translation(
+        gridToRendering = MathTransforms.translation(
                 LongStream.of(globalExtent.getLow().getCoordinateValues())
                         .mapToDouble(v -> v)
                         .toArray()
         ).inverse();
-        final MathTransform crsToRendering = MathTransforms.concatenate(gridCornerToLineCrs.inverse(), gridToOrigin);
-        crsToRendering.transform(gridPoints, 0, gridPoints, 0, nbPts);
+
+        gridCornerToLineCrs.inverse().transform(gridPoints, 0, gridPoints, 0, nbPts);
 
         buildExtractors(datasource);
 
@@ -161,7 +165,7 @@ public class DataProfile implements Spliterator<DataProfile.DataPoint> {
                 crd[i] = (int) slice.getLow(i+2);
             }
 
-            GridCoverage c = (GridCoverage) coverage;
+            GridCoverage c = coverage;
             while (c instanceof GridCoverageStack) {
                 GridCoverageStack cs = (GridCoverageStack) c;
                 c = cs.coverageAtIndex(crd[cs.zDimension-2]);
@@ -258,39 +262,20 @@ public class DataProfile implements Spliterator<DataProfile.DataPoint> {
     }
 
     /**
-     * HACK: This complex strategy is needed only because {@link GridCoverageProcessor resample operator } does not
-     * allow to set grid geometry rounding mode. If it were, we'd let it derive target geometry. However, currently, it
-     * uses nearest mode by default, and it happen to create grid geometries that does not properly enclose requested
-     * envelope.
-     * What we do currently is search an approximation of source dataset resolution expressed in target (polyline) CRS.
-     * Then, we create a fake affine geometry to represent evaluation space.
-     *
-     * @param source Grid geometry of source dataset. We want to "reproject" it, and conserve a resolution close to it.
-     * @param target The area of interest, expressed in evaluation space.
-     * @return A grid geometry to use as resampling target.
+     * Search for a conversion from input GridGeometry to given coordinate reference system.
+     * @param source The grid geometry describing space to start from. If no CRS is defined on it, an empty shell is
+     *               returned.
+     * @param targetCrs The destination coordinate reference system. If null, an empty optional will be returned.
+     * @return an empty shell if both input are in same CRS, or given grid geometry has no CRS defined.
      */
-    private static GridGeometry subgridAndReproject(final GridGeometry source, final Envelope target) throws TransformException, FactoryException {
-        final CoordinateReferenceSystem targetCrs = target.getCoordinateReferenceSystem();
+    private static Optional<CoordinateOperation> getConversion(final GridGeometry source, final CoordinateReferenceSystem targetCrs) throws TransformException, FactoryException {
         final CoordinateReferenceSystem sourceCrs = source.isDefined(GridGeometry.CRS) ? source.getCoordinateReferenceSystem() : null;
 
         if (targetCrs == null || sourceCrs == null || Utilities.equalsIgnoreMetadata(sourceCrs, targetCrs)) {
-            return source.derive()
-                    .rounding(GridRoundingMode.ENCLOSING)
-                    .subgrid(target)
-                    .build();
+            return Optional.empty();
         }
 
-        final MathTransform sourceCrsToTargetCrs = CRS.findOperation(sourceCrs, targetCrs, null).getMathTransform();
-        final MathTransform sourceToTarget = MathTransforms.concatenate(source.getGridToCRS(PixelInCell.CELL_CENTER), sourceCrsToTargetCrs);
-        final DirectPosition medianPoint = sourceCrsToTargetCrs.inverse().transform(AbstractEnvelope.castOrCopy(target).getMedian(), null);
-        final MathTransform targetGridToCrs = MathTransforms.linear(
-                Matrices.createAffine(
-                        sourceToTarget.derivative(medianPoint),
-                        target.getLowerCorner()
-                )
-        );
-        final GridGeometry reprojectedGrid = new GridGeometry(PixelInCell.CELL_CENTER, targetGridToCrs, target, GridRoundingMode.ENCLOSING);
-        return reprojectedGrid;
+        return Optional.of(CRS.findOperation(sourceCrs, targetCrs, null));
     }
 
     /**
@@ -334,8 +319,6 @@ public class DataProfile implements Spliterator<DataProfile.DataPoint> {
              * trouver les intersections entre la polyligne et la grille de pixels).
              */
             final DirectPosition2D subPixelMedian = new DirectPosition2D(previous.x + (current.x - previous.x) / 2, previous.y + (current.y - previous.y) / 2);
-            int px = (int) subPixelMedian.x;
-            int py = (int) subPixelMedian.y;
 
             final DirectPosition2D geoLoc = new DirectPosition2D(lineCrs);
             gridCornerToLineCrs.transform(subPixelMedian, geoLoc);
@@ -347,6 +330,9 @@ public class DataProfile implements Spliterator<DataProfile.DataPoint> {
             final DataPoint dp = new DataPoint(geoLoc, subPixelMedian, distanceToPreviousPoint);
             dp.value = Array.newInstance(double.class, templateSize);
 
+            gridToRendering.transform(subPixelMedian, subPixelMedian);
+            final int px = (int) subPixelMedian.x;
+            final int py = (int) subPixelMedian.y;
             for (Extractor ext : extractors) {
                 try {
                     ext.ite.moveTo(px, py);

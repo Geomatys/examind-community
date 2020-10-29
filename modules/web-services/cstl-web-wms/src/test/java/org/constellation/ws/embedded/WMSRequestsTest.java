@@ -2183,13 +2183,13 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertEquals("pt1 X property", 6.34,   (double)points.get(1).get("x"), 1e-2);
         assertEquals("pt1 Y property", 133.33, (double)points.get(1).get("y"), 1e-2);
 
-        assertEquals("pt2 X property", 25.25,  (double)points.get(2).get("x"), 1e-2);
+        assertEquals("pt2 X property", 25.27,  (double)points.get(2).get("x"), 1e-2);
         assertEquals("pt2 Y property", 0.0,    (double)points.get(2).get("y"), 1e-2);
 
-        assertEquals("pt3 X property", 39.32,  (double)points.get(3).get("x"), 1e-2);
+        assertEquals("pt3 X property", 39.35,  (double)points.get(3).get("x"), 1e-2);
         assertEquals("pt3 Y property", 0.0,    (double)points.get(3).get("y"), 1e-2);
 
-        assertEquals("pt4 X property", 53.439, (double)points.get(4).get("x"), 1e-2);
+        assertEquals("pt4 X property", 53.47, (double)points.get(4).get("x"), 1e-2);
         assertEquals("pt4 Y property", 0.0,    (double)points.get(4).get("y"), 1e-2);
     }
 
