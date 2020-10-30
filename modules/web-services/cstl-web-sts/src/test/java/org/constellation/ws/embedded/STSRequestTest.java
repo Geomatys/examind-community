@@ -43,7 +43,6 @@ import org.constellation.dto.service.Instance;
 import org.constellation.dto.service.InstanceReport;
 import org.constellation.dto.service.ServiceStatus;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
-import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
@@ -51,7 +50,6 @@ import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import static org.constellation.test.utils.TestResourceUtils.unmarshallSensorResource;
 import org.constellation.test.utils.TestRunner;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.getCurrentPort;
-import static org.constellation.ws.embedded.AbstractGrizzlyServer.pool;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.unmarshallJsonResponse;
 import org.geotoolkit.gml.GeometrytoJTS;
 import org.geotoolkit.gml.xml.v321.PointType;
@@ -355,6 +353,12 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         String result = getStringResponse(getFoiUrl) + "\n";
         String expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array.json");
+        compareJSON(expResult, result);
+        
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:8-1)/Observations?$resultFormat=dataArray");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-2.json");
         compareJSON(expResult, result);
     }
 
@@ -1055,6 +1059,47 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         String result = getStringResponse(getFoiUrl) + "\n";
         String expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-decim.json");
+        compareJSON(expResult, result);
+        
+        filter = "(result le 6.55)".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:3)/Observations?$resultFormat=dataArray&$decimation=10&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-decim-2.json");
+        compareJSON(expResult, result);
+        
+        filter = "(result[1] le 14.0)".replace(" ", "%20").replace("[", "%5B").replace("]", "%5D");
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/Observations?$resultFormat=dataArray&$decimation=10&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-decim-3.json");
+        compareJSON(expResult, result);
+    }
+    
+    @Test
+    @Order(order=24)
+    public void getDataArrayForDatastreamsDecimation() throws Exception {
+        initPool();
+
+        String filter = "(time ge 2007-05-01T10:59:00Z and time le 2007-05-01T13:59:00Z)".replace(" ", "%20");
+        URL getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:8-0)/Observations?$resultFormat=dataArray&$decimation=10&$filter=" + filter);
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-decim.json");
+        compareJSON(expResult, result);
+        
+        filter = "(time ge 2007-05-01T10:59:00Z and time le 2007-05-01T13:59:00Z)".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:8-1)/Observations?$resultFormat=dataArray&$decimation=10&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-decim-2.json");
+        compareJSON(expResult, result);
+        
+        filter = "(result le 14.0)".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:8-1)/Observations?$resultFormat=dataArray&$decimation=10&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-decim-3.json");
         compareJSON(expResult, result);
     }
     

@@ -924,149 +924,162 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     private Object getDecimatedResults(final int width, boolean includeTimeInProfile) throws DataStoreException {
         final boolean profile = "profile".equals(currentOMType);
         final boolean profileWithTime = profile && includeTimeInProfile;
-        try {
-            final Field timeField = getTimeField(currentProcedure);
-            if (timeField != null) {
-                sqlRequest.append(sqlMeasureRequest.toString().replace("$time", timeField.fieldName));
+        try (final Connection c = source.getConnection()) {
+            
+            final List<Field> fields = new ArrayList<>();
+            final List<Field> allfields = readFields(currentProcedure, c);
+            fields.add(allfields.get(0));
+            for (int i = 1; i < allfields.size(); i++) {
+                Field f = allfields.get(i);
+                 if ((currentFields.isEmpty() || currentFields.contains(f.fieldName) || currentFields.contains(f.fieldDesc)) &&
+                     (fieldFilters.isEmpty() || fieldFilters.contains(i - 1))) {
+                     fields.add(f);
+                 }
             }
+            
+            final Field timeField = getTimeField(currentProcedure);
+            String measureFilter = sqlMeasureRequest.toString();
+            if (timeField != null) {
+                measureFilter = measureFilter.replace("$time", timeField.fieldName);
+            }
+            while (measureFilter.contains("${allphen")) {
+                int opos = measureFilter.indexOf("${allphen");
+                int cpos = measureFilter.indexOf("}", opos + 9);
+                String block = measureFilter.substring(opos, cpos + 1);
+                StringBuilder sb = new StringBuilder();
+                for (int i = 1; i < fields.size(); i++) {
+                    Field field = fields.get(i);
+                    sb.append(" AND (").append(block.replace("${allphen", "\"" + field.fieldName + "\"").replace('}', ' ')).append(") ");
+                }
+                measureFilter = measureFilter.replace(block, sb.toString());
+            }
+            int offset = profile ? 0 : 1; // for profile, the first phenomenon field is the main field
+            for (int i = offset; i < allfields.size(); i++) {
+                Field f = allfields.get(i);
+                measureFilter = measureFilter.replace("$phen" + (i - offset), "\"" + f.fieldName + "\"");
+            }
+            sqlRequest.append(measureFilter);
             final String fieldRequest = sqlRequest.toString();
             // add orderby to the query
             sqlRequest.append(" ORDER BY  o.\"id\", m.\"id\"");
+            
             ResultBuilder values;
-            try(final Connection c = source.getConnection()) {
-                try (final Statement currentStatement = c.createStatement()) {
-                    String request = sqlRequest.toString();
-                    if (profileWithTime) {
-                        request = request.replace("m.*", "m.*, o.\"id\" as oid, o.\"time_begin\" ");
-                    } else if (profile) {
-                        request = request.replace("m.*", "m.*, o.\"id\" as oid ");
+            try (final Statement currentStatement = c.createStatement()) {
+                String request = sqlRequest.toString();
+                if (profileWithTime) {
+                    request = request.replace("m.*", "m.*, o.\"id\" as oid, o.\"time_begin\" ");
+                } else if (profile) {
+                    request = request.replace("m.*", "m.*, o.\"id\" as oid ");
+                }
+                LOGGER.info(request);
+                try (final ResultSet rs = currentStatement.executeQuery(request)) {
+                    if ("resultArray".equals(responseFormat)) {
+                        values = new ResultBuilder(true, null, false);
+                    } else if ("text/csv".equals(responseFormat)) {
+                        values = new ResultBuilder(false, getCsvTextEncoding("2.0.0"), true);
+                        // Add the header
+                        values.appendHeaders(fields);
+                    } else {
+                        values = new ResultBuilder(false, getDefaultTextEncoding("2.0.0"), false);
                     }
-                    LOGGER.info(request);
-                    try (final ResultSet rs = currentStatement.executeQuery(request)) {
-                        final List<Field> fields;
-                        if (!currentFields.isEmpty()) {
-                            fields = new ArrayList<>();
-                            final Field mainField = getMainField(currentProcedure, c);
-                            if (mainField != null) {
-                                fields.add(mainField);
-                            }
-                            List<Field> phenFields = new ArrayList<>();
-                            for (String f : currentFields) {
-                                final Field field = getFieldForPhenomenon(currentProcedure, f, c);
-                                if (field != null && !fields.contains(field)) {
-                                    phenFields.add(field);
+                    final Map<Integer, long[]> times = getMainFieldStepForGetResult(fieldRequest, fields.get(0), c, width);
+
+                    Map<String, Double> minVal = null;
+                    Map<String, Double> maxVal = null;
+                    long start = -1;
+                    long step  = -1;
+                    Integer prevObs = null;
+                    while (rs.next()) {
+                        Integer currentObs;
+                        if (profile) {
+                            currentObs = rs.getInt("oid");
+                        } else {
+                            currentObs = 1;
+                        }
+                        if (!currentObs.equals(prevObs)) {
+                            step = times.get(currentObs)[1];
+                            start = times.get(currentObs)[0];
+                            minVal = initMapVal(fields, false);
+                            maxVal = initMapVal(fields, true);
+                        }
+                        prevObs = currentObs;
+                        long currentMainValue = -1;
+                        for (int i = 0; i < fields.size(); i++) {
+                            Field field = fields.get(i);
+                            String value = rs.getString(field.fieldName);
+
+                            if (i == 0) {
+                                if (field.fieldType.equals("Time")) {
+                                    final Timestamp currentTime = Timestamp.valueOf(value);
+                                    currentMainValue = currentTime.getTime();
+                                } else if (field.fieldType.equals("Quantity")) {
+                                    if (value != null && !value.isEmpty()) {
+                                        final Double d = Double.parseDouble(value);
+                                        currentMainValue = d.longValue();
+                                    }
                                 }
                             }
-                             // add proper order to fields
-                            List<Field> procedureFields = readFields(currentProcedure, c);
-                            phenFields = reOrderFields(procedureFields, phenFields);
-                            fields.addAll(phenFields);
-                        } else {
-                            fields = readFields(currentProcedure, c);
+                            addToMapVal(minVal, maxVal, field.fieldName, value);
                         }
-                        if ("resultArray".equals(responseFormat)) {
-                            values = new ResultBuilder(true, null, false);
-                        } else if ("text/csv".equals(responseFormat)) {
-                            values = new ResultBuilder(false, getCsvTextEncoding("2.0.0"), true);
-                            // Add the header
-                            values.appendHeaders(fields);
-                        } else {
-                            values = new ResultBuilder(false, getDefaultTextEncoding("2.0.0"), false);
-                        }
-                        final Map<Integer, long[]> times = getMainFieldStepForGetResult(fieldRequest, fields.get(0), c, width);
 
-                        Map<String, Double> minVal = null;
-                        Map<String, Double> maxVal = null;
-                        long start = -1;
-                        long step  = -1;
-                        Integer prevObs = null;
-                        while (rs.next()) {
-                            Integer currentObs;
-                            if (profile) {
-                                currentObs = rs.getInt("oid");
+                        if (currentMainValue != -1 && currentMainValue > (start + step)) {
+                            values.newBlock();
+                            //min
+                            if (profileWithTime) {
+                                Date t = dateFromTS(rs.getTimestamp("time_begin"));
+                                values.appendTime(t);
+                            }
+                            if (fields.get(0).fieldType.equals("Time")) {
+                                values.appendTime(new Date(start));
+                            } else if (fields.get(0).fieldType.equals("Quantity")) {
+                                values.appendLong(start);
                             } else {
-                                currentObs = 1;
+                                throw new DataStoreException("main field other than Time or Quantity are not yet allowed");
                             }
-                            if (!currentObs.equals(prevObs)) {
-                                step = times.get(currentObs)[1];
-                                start = times.get(currentObs)[0];
-                                minVal = initMapVal(fields, false);
-                                maxVal = initMapVal(fields, true);
-                            }
-                            prevObs = currentObs;
-                            long currentMainValue = -1;
-                            for (int i = 0; i < fields.size(); i++) {
-                                Field field = fields.get(i);
-                                String value = rs.getString(field.fieldName);
-
-                                if (i == 0) {
-                                    if (field.fieldType.equals("Time")) {
-                                        final Timestamp currentTime = Timestamp.valueOf(value);
-                                        currentMainValue = currentTime.getTime();
-                                    } else if (field.fieldType.equals("Quantity")) {
-                                        if (value != null && !value.isEmpty()) {
-                                            final Double d = Double.parseDouble(value);
-                                            currentMainValue = d.longValue();
-                                        }
+                            for (Field field : fields) {
+                                if (!field.equals(fields.get(0))) {
+                                    final double minValue = minVal.get(field.fieldName);
+                                    if (minValue != Double.MAX_VALUE) {
+                                        values.appendDouble(minValue);
+                                    } else {
+                                        values.appendDouble(Double.NaN);
                                     }
                                 }
-                                addToMapVal(minVal, maxVal, field.fieldName, value);
                             }
-
-                            if (currentMainValue != -1 && currentMainValue > (start + step)) {
-                                values.newBlock();
-                                //min
-                                if (profileWithTime) {
-                                    Date t = dateFromTS(rs.getTimestamp("time_begin"));
-                                    values.appendTime(t);
-                                }
-                                if (fields.get(0).fieldType.equals("Time")) {
-                                    values.appendTime(new Date(start));
-                                } else if (fields.get(0).fieldType.equals("Quantity")) {
-                                    values.appendLong(start);
-                                } else {
-                                    throw new DataStoreException("main field other than Time or Quantity are not yet allowed");
-                                }
-                                for (Field field : fields) {
-                                    if (!field.equals(fields.get(0))) {
-                                        final double minValue = minVal.get(field.fieldName);
-                                        if (minValue != Double.MAX_VALUE) {
-                                            values.appendDouble(minValue);
-                                        }
+                            values.endBlock();
+                            values.newBlock();
+                            //max
+                            if (profileWithTime) {
+                                Date t = dateFromTS(rs.getTimestamp("time_begin"));
+                                values.appendTime(t);
+                            }
+                            if (fields.get(0).fieldType.equals("Time")) {
+                                long maxTime = start + step;
+                                values.appendTime(new Date(maxTime));
+                            } else if (fields.get(0).fieldType.equals("Quantity")) {
+                                values.appendLong(start + step);
+                            } else {
+                                throw new DataStoreException("main field other than Time or Quantity are not yet allowed");
+                            }
+                            for (Field field : fields) {
+                                if (!field.equals(fields.get(0))) {
+                                    final double maxValue = maxVal.get(field.fieldName);
+                                    if (maxValue != -Double.MAX_VALUE) {
+                                        values.appendDouble(maxValue);
+                                    } else {
+                                        values.appendDouble(Double.NaN);
                                     }
                                 }
-                                values.endBlock();
-                                values.newBlock();
-                                //max
-                                if (profileWithTime) {
-                                    Date t = dateFromTS(rs.getTimestamp("time_begin"));
-                                    values.appendTime(t);
-                                }
-                                if (fields.get(0).fieldType.equals("Time")) {
-                                    long maxTime = start + step;
-                                    values.appendTime(new Date(maxTime));
-                                } else if (fields.get(0).fieldType.equals("Quantity")) {
-                                    values.appendLong(start + step);
-                                } else {
-                                    throw new DataStoreException("main field other than Time or Quantity are not yet allowed");
-                                }
-                                for (Field field : fields) {
-                                    if (!field.equals(fields.get(0))) {
-                                        final double maxValue = maxVal.get(field.fieldName);
-                                        if (maxValue != -Double.MAX_VALUE) {
-                                            values.appendDouble(maxValue);
-                                        }
-                                    }
-                                }
-                                values.endBlock();
-                                start = currentMainValue;
-                                minVal = initMapVal(fields, false);
-                                maxVal = initMapVal(fields, true);
                             }
+                            values.endBlock();
+                            start = currentMainValue;
+                            minVal = initMapVal(fields, false);
+                            maxVal = initMapVal(fields, true);
                         }
                     }
                 }
             }
+            
             if (values.dra) {
                 return values.getDataArray();
             } else {
@@ -1081,121 +1094,124 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     private Object getDecimatedResultsTimeScale(final int width, boolean includeTimeInProfile) throws DataStoreException {
         final boolean profile = "profile".equals(currentOMType);
         final boolean profileWithTime = profile && includeTimeInProfile;
-        try {
-            ResultBuilder values;
-            try(final Connection c = source.getConnection()) {
-                
-                final List<Field> fields;
-                final Field mainField;
-                if (!currentFields.isEmpty()) {
-                    fields = new ArrayList<>();
-                    mainField = getMainField(currentProcedure, c);
-                    if (mainField != null) {
-                        fields.add(mainField);
-                    }
-                    List<Field> phenFields = new ArrayList<>();
-                    for (String f : currentFields) {
-                        final Field field = getFieldForPhenomenon(currentProcedure, f, c);
-                        if (field != null && !fields.contains(field)) {
-                            phenFields.add(field);
-                        }
-                    }
-                     // add proper order to fields
-                    List<Field> procedureFields = readFields(currentProcedure, c);
-                    phenFields = reOrderFields(procedureFields, phenFields);
-                    fields.addAll(phenFields);
-                } else {
-                    mainField = getMainField(currentProcedure, c);
-                    fields = readFields(currentProcedure, c);
-                }
-                // add measure filter
-                final Field timeField = getTimeField(currentProcedure);
-                if (timeField != null) {
-                    sqlRequest.append(sqlMeasureRequest.toString().replace("$time", timeField.fieldName));
-                }
-                
-                // calculate step
-                final Map<Integer, long[]> times = getMainFieldStepForGetResult(sqlRequest.toString(), mainField, c, width);
-                final long step;
-                if (profile) {
-                    // choose the first step
-                    // (may be replaced by one request by observation, maybe by looking if the step is uniform)
-                    step = times.values().iterator().next()[1];
-                } else {
-                    step = times.get(1)[1];
-                }
-                
-                StringBuilder select  = new StringBuilder();
-                select.append("time_bucket('").append(step);
-                if (profile) {
-                    select.append("', \"");
-                } else {
-                    select.append(" ms', \"");
-                }
-                select.append(mainField.fieldName).append("\") AS step");
+        try(final Connection c = source.getConnection()) {
+            
+            final List<Field> fields = new ArrayList<>();
+            final List<Field> allfields = readFields(currentProcedure, c);
+            fields.add(allfields.get(0));
+            for (int i = 1; i < allfields.size(); i++) {
+                Field f = allfields.get(i);
+                 if ((currentFields.isEmpty() || currentFields.contains(f.fieldName) || currentFields.contains(f.fieldDesc)) &&
+                     (fieldFilters.isEmpty() || fieldFilters.contains(i - 1))) {
+                     fields.add(f);
+                 }
+            }
+            // add measure filter
+            String measureFilter = sqlMeasureRequest.toString();
+            final Field timeField = getTimeField(currentProcedure);
+            if (timeField != null) {
+                measureFilter = measureFilter.replace("$time", timeField.fieldName);
+            }
+            while (measureFilter.contains("${allphen")) {
+                int opos = measureFilter.indexOf("${allphen");
+                int cpos = measureFilter.indexOf("}", opos + 9);
+                String block = measureFilter.substring(opos, cpos + 1);
+                StringBuilder sb = new StringBuilder();
                 for (int i = 1; i < fields.size(); i++) {
-                     select.append(", avg(\"").append(fields.get(i).fieldName).append("\") AS \"").append(fields.get(i).fieldName).append("\"");
+                    Field field = fields.get(i);
+                    sb.append(" AND (").append(block.replace("${allphen", "\"" + field.fieldName + "\"").replace('}', ' ')).append(") ");
                 }
-                if (profileWithTime) {
-                    select.append(", o.\"id\" AS \"oid\", o.\"time_begin\"");
-                } else if (profile) {
-                    select.append(", o.\"id\" AS \"oid\"");
-                }
-                String request = sqlRequest.toString();
-                request = request.replace("m.*", select.toString());
-                if (profile) {
-                    request = request + " GROUP BY step, \"oid\" ORDER BY \"oid\", step";
-                } else {
-                    request = request + " GROUP BY step ORDER BY step";
-                }
-                
-                try (final Statement currentStatement = c.createStatement()) {
-                    LOGGER.info(request);
-                    try (final ResultSet rs = currentStatement.executeQuery(request)) {
-                        
-                        if ("resultArray".equals(responseFormat)) {
-                            values = new ResultBuilder(true, null, false);
-                        } else if ("text/csv".equals(responseFormat)) {
-                            values = new ResultBuilder(false, getCsvTextEncoding("2.0.0"), true);
-                            // Add the header
-                            values.appendHeaders(fields);
-                        } else {
-                            values = new ResultBuilder(false, getDefaultTextEncoding("2.0.0"), false);
+                measureFilter = measureFilter.replace(block, sb.toString());
+            }
+            int offset = profile ? 0 : 1; // for profile, the first phenomenon field is the main field
+            for (int i = offset; i < allfields.size(); i++) {
+                Field f = allfields.get(i);
+                measureFilter = measureFilter.replace("$phen" + (i - offset), "\"" + f.fieldName + "\"");
+            }
+            sqlRequest.append(measureFilter);
+
+            // calculate step
+            final Map<Integer, long[]> times = getMainFieldStepForGetResult(sqlRequest.toString(), fields.get(0), c, width);
+            final long step;
+            if (profile) {
+                // choose the first step
+                // (may be replaced by one request by observation, maybe by looking if the step is uniform)
+                step = times.values().iterator().next()[1];
+            } else {
+                step = times.get(1)[1];
+            }
+
+            StringBuilder select  = new StringBuilder();
+            select.append("time_bucket('").append(step);
+            if (profile) {
+                select.append("', \"");
+            } else {
+                select.append(" ms', \"");
+            }
+            select.append(fields.get(0).fieldName).append("\") AS step");
+            for (int i = 1; i < fields.size(); i++) {
+                 select.append(", avg(\"").append(fields.get(i).fieldName).append("\") AS \"").append(fields.get(i).fieldName).append("\"");
+            }
+            if (profileWithTime) {
+                select.append(", o.\"id\" AS \"oid\", o.\"time_begin\"");
+            } else if (profile) {
+                select.append(", o.\"id\" AS \"oid\"");
+            }
+            String request = sqlRequest.toString();
+            request = request.replace("m.*", select.toString());
+            if (profile) {
+                request = request + " GROUP BY step, \"oid\" ORDER BY \"oid\", step";
+            } else {
+                request = request + " GROUP BY step ORDER BY step";
+            }
+
+            ResultBuilder values;
+            try (final Statement currentStatement = c.createStatement()) {
+                LOGGER.info(request);
+                try (final ResultSet rs = currentStatement.executeQuery(request)) {
+
+                    if ("resultArray".equals(responseFormat)) {
+                        values = new ResultBuilder(true, null, false);
+                    } else if ("text/csv".equals(responseFormat)) {
+                        values = new ResultBuilder(false, getCsvTextEncoding("2.0.0"), true);
+                        // Add the header
+                        values.appendHeaders(fields);
+                    } else {
+                        values = new ResultBuilder(false, getDefaultTextEncoding("2.0.0"), false);
+                    }
+
+                    while (rs.next()) {
+                        values.newBlock();
+                        if (profileWithTime) {
+                            Date t = dateFromTS(rs.getTimestamp("time_begin"));
+                            values.appendTime(t);
                         }
-                       
-                        while (rs.next()) {
-                            values.newBlock();
-                            if (profileWithTime) {
-                                Date t = dateFromTS(rs.getTimestamp("time_begin"));
-                                values.appendTime(t);
+                        for (int i = 0; i < fields.size(); i++) {
+                            Field field = fields.get(i);
+                            String fieldName = field.fieldName; 
+                            if (i == 0) {
+                                fieldName = "step";
+                            } 
+                            String value;
+                            switch (field.fieldType) {
+                                case "Time":
+                                    Date t = dateFromTS(rs.getTimestamp(fieldName));
+                                    values.appendTime(t);
+                                    break;
+                                case "Quantity":
+                                    value = rs.getString(fieldName); // we need to kown if the value is null (rs.getDouble return 0 if so).
+                                    Double d = Double.NaN;
+                                    if (value != null && !value.isEmpty()) {
+                                        d = rs.getDouble(fieldName);
+                                    }
+                                    values.appendDouble(d);
+                                    break;
+                                default:
+                                    values.appendString(rs.getString(fieldName));
+                                    break;
                             }
-                            for (int i = 0; i < fields.size(); i++) {
-                                Field field = fields.get(i);
-                                String fieldName = field.fieldName; 
-                                if (i == 0) {
-                                    fieldName = "step";
-                                } 
-                                String value;
-                                switch (field.fieldType) {
-                                    case "Time":
-                                        Date t = dateFromTS(rs.getTimestamp(fieldName));
-                                        values.appendTime(t);
-                                        break;
-                                    case "Quantity":
-                                        value = rs.getString(fieldName); // we need to kown if the value is null (rs.getDouble return 0 if so).
-                                        Double d = Double.NaN;
-                                        if (value != null && !value.isEmpty()) {
-                                            d = rs.getDouble(fieldName);
-                                        }
-                                        values.appendDouble(d);
-                                        break;
-                                    default:
-                                        values.appendString(rs.getString(fieldName));
-                                        break;
-                                }
-                            }
-                            values.endBlock();
                         }
+                        values.endBlock();
                     }
                 }
             }
@@ -1262,7 +1278,12 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         final long min = minT.getTime();
                         final long max = maxT.getTime();
                         result[0] = min;
-                        result[1] = (max - min) / width;
+                        long step = (max - min) / width;
+                        // step should always be positive
+                        if (step <= 0) {
+                            step = 1;
+                        }
+                        result[1] = step;
                     }
                 } else if (mainField.fieldType.equals("Quantity")) {
                     final Double minT = rs.getDouble(1);
@@ -1270,7 +1291,12 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     final long min    = minT.longValue();
                     final long max    = maxT.longValue();
                     result[0] = min;
-                    result[1] = (max - min) / width;
+                    long step = (max - min) / width;
+                    // step should always be positive
+                    if (step <= 0) {
+                        step = 1;
+                    }
+                    result[1] = step;
 
                 } else {
                     throw new SQLException("unable to extract bound from a " + mainField.fieldType + " main field.");
