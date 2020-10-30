@@ -68,14 +68,12 @@ import org.geotoolkit.coverage.grid.GridGeometryIterator;
 import org.geotoolkit.coverage.grid.GridIterator;
 import org.geotoolkit.coverage.worldfile.FileCoverageResource;
 import org.geotoolkit.image.io.metadata.SpatialMetadata;
-import org.geotoolkit.map.MapLayer;
 import org.geotoolkit.process.ProcessException;
 import org.geotoolkit.processing.coverage.resample.ResampleProcess;
 import org.geotoolkit.processing.coverage.statistics.Statistics;
 import org.geotoolkit.processing.coverage.statistics.StatisticsDescriptor;
 import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.storage.coverage.ImageStatistics;
-import org.geotoolkit.storage.feature.query.QueryBuilder;
 import org.geotoolkit.storage.multires.MultiResolutionResource;
 import org.geotoolkit.storage.multires.TileMatrices;
 import org.geotoolkit.storage.multires.TileMatrixSet;
@@ -92,7 +90,6 @@ import org.opengis.referencing.cs.CoordinateSystemAxis;
 import org.opengis.referencing.datum.PixelInCell;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
-import org.opengis.style.Style;
 import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
 
@@ -179,29 +176,7 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
      * {@inheritDoc}
      */
     @Override
-    public MapLayer getMapLayer(Style styleI, final Map<String, Object> params) {
-        MutableStyle style;
-        if (styleI == null) {
-            style = getDefaultStyle();
-        } else if (styleI instanceof MutableStyle) {
-            style = (MutableStyle) styleI;
-        } else {
-            throw new IllegalArgumentException("Only MutableStyle implementation is acepted");
-        }
-
-        final GridCoverageResource origin = getOrigin();
-
-        final MapLayer layer = new MapLayer(origin);
-        layer.setStyle(style);
-        resolveQuery(params).ifPresent(query -> layer.setQuery(query));
-
-        return layer;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    private MutableStyle getDefaultStyle() {
+    protected MutableStyle getDefaultStyle() {
         return DEFAULT;
     }
 
@@ -323,7 +298,7 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
      * Get back grid geometry for the data.
      *
      * @return The grid geometry of this data.
-     * @throws CoverageStoreException If we cannot extract geometry information
+     * @throws ConstellationStoreException If we cannot extract geometry information
      * from the resource.
      */
     @Override
@@ -437,8 +412,7 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
 
     @Override
     public String getSubType() throws ConstellationStoreException {
-        Object origin = getOrigin();
-        if (origin instanceof MultiResolutionResource) {
+        if (getOrigin() instanceof MultiResolutionResource) {
             return "pyramid";
         }
         return null;
@@ -446,8 +420,7 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
 
     @Override
     public Boolean isRendered() {
-        Object origin = getOrigin();
-        if (origin instanceof MultiResolutionResource) {
+        if (getOrigin() instanceof MultiResolutionResource) {
 //            try {
 //                ViewType packMode = ((MultiResolutionResource) origin).getPackMode();
 //                if (ViewType.RENDERED.equals(packMode)) {
@@ -465,7 +438,7 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
          try {
             final Object origin = getOrigin();
             if (origin instanceof MultiResolutionResource) {
-                final MultiResolutionResource cacheRef = (MultiResolutionResource) getOrigin();
+                final MultiResolutionResource cacheRef = (MultiResolutionResource) origin;
                 final Collection<TileMatrixSet> pyramids = TileMatrices.getTileMatrixSets(cacheRef);
                 if(pyramids.isEmpty()) return null;
 
@@ -632,10 +605,10 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
     /**
      * Get and parse data statistics.
      *
-     * @param d
+     * @param s
      *
      * @return ImageStatistics object or null if data is not a coverage or if Statistics were not computed.
-     * @throws org.constellation.exception.ConfigurationException
+     * @throws ConstellationStoreException
      */
     public static ImageStatistics getDataStatistics(StatInfo s) throws ConstellationStoreException {
         final String state = s.getState();

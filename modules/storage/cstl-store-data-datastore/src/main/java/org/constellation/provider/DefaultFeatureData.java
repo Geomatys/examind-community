@@ -22,7 +22,6 @@ package org.constellation.provider;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -52,7 +51,6 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.Resource;
 
-import org.geotoolkit.map.MapLayer;
 import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.storage.feature.FeatureStoreUtilities;
 import org.geotoolkit.storage.feature.query.Query;
@@ -70,7 +68,6 @@ import org.constellation.util.StoreUtilities;
 import org.locationtech.jts.geom.Geometry;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
-import org.opengis.style.Style;
 
 /**
  * Default layer details for a datastore type.
@@ -102,6 +99,7 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
      *
      * @param name layer name
      * @param store FeatureStore
+     * @param origin Wrapped feature set.
      * @param dateStart temporal filter start
      * @param dateEnd temporal filter end
      * @param elevationStart elevation filter start
@@ -132,29 +130,6 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
 
     }
 
-    protected MapLayer createMapLayer(Style styleI, final Map<String, Object> params) throws ConstellationStoreException {
-        final FeatureType featureType = getType();
-        MutableStyle style;
-        if (styleI == null) {
-            //no favorites defined, create a default one
-            style = RandomStyleBuilder.createDefaultVectorStyle(featureType);
-        } else if (styleI instanceof MutableStyle) {
-            style = (MutableStyle) styleI;
-        } else {
-            throw new IllegalArgumentException("Only MutableStyle implementation is acepted");
-        }
-
-        final MapLayer layer = new MapLayer(getOrigin());
-        layer.setStyle(style);
-
-        final String title = getName().tip().toString();
-        layer.setIdentifier(title);
-        layer.setTitle(title);
-
-        return layer;
-    }
-
-
     /**
      * {@inheritDoc}
      */
@@ -167,13 +142,10 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
      * {@inheritDoc}
      */
     @Override
-    public final MapLayer getMapLayer(Style style, final Map<String, Object> params) throws ConstellationStoreException {
-        final MapLayer layer = createMapLayer(style, params);
-        resolveQuery(params).ifPresent(query -> layer.setQuery(query));
-
-        return layer;
+    protected MutableStyle getDefaultStyle() throws ConstellationStoreException {
+        return RandomStyleBuilder.createDefaultVectorStyle(getType());
     }
-
+    
     /**
      * {@inheritDoc}
      */

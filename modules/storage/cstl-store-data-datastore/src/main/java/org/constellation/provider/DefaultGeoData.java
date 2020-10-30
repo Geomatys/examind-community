@@ -18,9 +18,7 @@
  */
 package org.constellation.provider;
 
-import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -29,7 +27,6 @@ import org.apache.sis.cql.CQLException;
 import org.apache.sis.filter.DefaultFilterFactory;
 import org.apache.sis.internal.storage.query.SimpleQuery;
 import org.apache.sis.internal.system.DefaultFactories;
-import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.Query;
 import org.apache.sis.storage.Resource;
 
@@ -38,14 +35,12 @@ import static org.constellation.provider.AbstractData.LOGGER;
 import org.apache.sis.util.collection.BackingStoreException;
 import org.constellation.exception.ConstellationStoreException;
 import org.geotoolkit.cql.CQL;
-import org.geotoolkit.map.FeatureMapLayer;
-import org.opengis.feature.FeatureType;
-import org.opengis.feature.PropertyType;
+import org.geotoolkit.map.MapLayer;
+import org.geotoolkit.style.MutableStyle;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.FilterFactory2;
-import org.opengis.filter.PropertyIsEqualTo;
-import org.opengis.filter.expression.PropertyName;
+import org.opengis.style.Style;
 import org.opengis.util.GenericName;
 
 /**
@@ -118,4 +113,31 @@ public abstract class DefaultGeoData<T extends Resource> extends AbstractData<T>
                     return query;
                 });
     }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public final MapLayer getMapLayer(Style styleI, final Map<String, Object> params) throws ConstellationStoreException {
+        MutableStyle style;
+        if (styleI == null) {
+            style = getDefaultStyle();
+        } else if (styleI instanceof MutableStyle) {
+            style = (MutableStyle) styleI;
+        } else {
+            throw new IllegalArgumentException("Only MutableStyle implementation is acepted");
+        }
+        final MapLayer layer = new MapLayer(origin);
+        layer.setStyle(style);
+        
+        final String title = getName().tip().toString();
+        layer.setIdentifier(title);
+        layer.setTitle(title);
+        
+        resolveQuery(params).ifPresent(query -> layer.setQuery(query));
+
+        return layer;
+    }
+    
+    protected abstract MutableStyle getDefaultStyle() throws ConstellationStoreException;
 }
