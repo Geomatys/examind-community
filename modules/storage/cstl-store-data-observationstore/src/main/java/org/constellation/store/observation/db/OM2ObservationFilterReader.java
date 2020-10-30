@@ -407,7 +407,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     public List<Observation> getObservations(final Map<String,String> hints) throws DataStoreException {
         boolean includeIDInDataBlock  = false;
         boolean includeTimeForProfile = false;
-        boolean directResultArray     = false;
+        ResultBuilder.Mode resultMode = ResultBuilder.Mode.CSV;
         String version = "2.0.0";
         if (hints != null) {
             if (hints.containsKey("version")) {
@@ -420,7 +420,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 includeTimeForProfile = Boolean.parseBoolean(hints.get("includeTimeForProfile"));
             }
             if (hints.containsKey("directResultArray")) {
-                directResultArray = Boolean.parseBoolean(hints.get("directResultArray"));
+                if (Boolean.parseBoolean(hints.get("directResultArray"))) {
+                    resultMode = ResultBuilder.Mode.DATA_ARRAY;
+                }
             }
         }
         if (MEASUREMENT_QNAME.equals(resultModel)) {
@@ -441,7 +443,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
                 while (rs.next()) {
                     int nbValue = 0;
-                    ResultBuilder values = new ResultBuilder(directResultArray, encoding, false);
+                    ResultBuilder values = new ResultBuilder(resultMode, encoding, false);
                     final String procedure = rs.getString("procedure");
                     final String featureID = rs.getString("foi");
                     final int oid = rs.getInt("id");
@@ -646,10 +648,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         final DataArrayProperty result = (DataArrayProperty) (observation).getResult();
                         final DataArray array = result.getDataArray();
                         array.setElementCount(array.getElementCount().getCount().getValue() + nbValue);
-                        if (directResultArray) {
-                            array.getDataValues().getAny().addAll(values.getDataArray());
-                        } else {
-                            array.setValues(array.getValues() + values.getStringValues());
+                        switch (resultMode) {
+                            case DATA_ARRAY: array.getDataValues().getAny().addAll(values.getDataArray()); break;
+                            case CSV:     array.setValues(array.getValues() + values.getStringValues()); break;
                         }
                         ((AbstractObservation) observation).extendSamplingTime(lastTime);
                     }
@@ -828,7 +829,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         if (hints.containsKey("includeTimeForProfile")) {
             includeTimeForProfile = Boolean.parseBoolean(hints.get("includeTimeForProfile"));
         }
-        if (decimationSize != null) {
+        if (decimationSize != null && !"count".equals(responseFormat)) {
             if (timescaleDB) {
                 return getDecimatedResultsTimeScale(decimationSize, includeTimeForProfile);
             } else {
@@ -876,13 +877,15 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     fields = readFields(currentProcedure, c);
                 }
                 if ("resultArray".equals(responseFormat)) {
-                    values = new ResultBuilder(true, null, false);
+                    values = new ResultBuilder(ResultBuilder.Mode.DATA_ARRAY, null, false);
                 } else if ("text/csv".equals(responseFormat)) {
-                    values = new ResultBuilder(false, getCsvTextEncoding("2.0.0"), true);
+                    values = new ResultBuilder(ResultBuilder.Mode.CSV, getCsvTextEncoding("2.0.0"), true);
                     // Add the header
                     values.appendHeaders(fields);
+                } else if ("count".equals(responseFormat)) {
+                    values = new ResultBuilder(ResultBuilder.Mode.COUNT, null, false);
                 } else {
-                    values = new ResultBuilder(false, getDefaultTextEncoding("2.0.0"), false);
+                    values = new ResultBuilder(ResultBuilder.Mode.CSV, getDefaultTextEncoding("2.0.0"), false);
                 }
                 while (rs.next()) {
                     values.newBlock();
@@ -910,10 +913,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     values.endBlock();
                 }
             }
-            if (values.dra) {
-                return values.getDataArray();
-            } else {
-                return values.getStringValues();
+           switch (values.getMode()) {
+                case DATA_ARRAY:  return values.getDataArray();
+                case CSV:         return values.getStringValues();
+                case COUNT:       return values.getCount();
+                default: throw new IllegalArgumentException("Unexpected result mode");
             }
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
@@ -974,13 +978,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 LOGGER.info(request);
                 try (final ResultSet rs = currentStatement.executeQuery(request)) {
                     if ("resultArray".equals(responseFormat)) {
-                        values = new ResultBuilder(true, null, false);
+                        values = new ResultBuilder(ResultBuilder.Mode.DATA_ARRAY, null, false);
                     } else if ("text/csv".equals(responseFormat)) {
-                        values = new ResultBuilder(false, getCsvTextEncoding("2.0.0"), true);
+                        values = new ResultBuilder(ResultBuilder.Mode.CSV, getCsvTextEncoding("2.0.0"), true);
                         // Add the header
                         values.appendHeaders(fields);
                     } else {
-                        values = new ResultBuilder(false, getDefaultTextEncoding("2.0.0"), false);
+                        values = new ResultBuilder(ResultBuilder.Mode.CSV, getDefaultTextEncoding("2.0.0"), false);
                     }
                     final Map<Integer, long[]> times = getMainFieldStepForGetResult(fieldRequest, fields.get(0), c, width);
 
@@ -1080,10 +1084,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 }
             }
             
-            if (values.dra) {
-                return values.getDataArray();
-            } else {
-                return values.getStringValues();
+            switch (values.getMode()) {
+                case DATA_ARRAY:  return values.getDataArray();
+                case CSV:         return values.getStringValues();
+                default: throw new IllegalArgumentException("Unexpected result mode");
             }
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
@@ -1171,13 +1175,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 try (final ResultSet rs = currentStatement.executeQuery(request)) {
 
                     if ("resultArray".equals(responseFormat)) {
-                        values = new ResultBuilder(true, null, false);
+                        values = new ResultBuilder(ResultBuilder.Mode.DATA_ARRAY, null, false);
                     } else if ("text/csv".equals(responseFormat)) {
-                        values = new ResultBuilder(false, getCsvTextEncoding("2.0.0"), true);
+                        values = new ResultBuilder(ResultBuilder.Mode.CSV, getCsvTextEncoding("2.0.0"), true);
                         // Add the header
                         values.appendHeaders(fields);
                     } else {
-                        values = new ResultBuilder(false, getDefaultTextEncoding("2.0.0"), false);
+                        values = new ResultBuilder(ResultBuilder.Mode.CSV, getDefaultTextEncoding("2.0.0"), false);
                     }
 
                     while (rs.next()) {
@@ -1215,10 +1219,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     }
                 }
             }
-            if (values.dra) {
-                return values.getDataArray();
-            } else {
-                return values.getStringValues();
+            switch (values.getMode()) {
+                case DATA_ARRAY:  return values.getDataArray();
+                case CSV:         return values.getStringValues();
+                default: throw new IllegalArgumentException("Unexpected result mode");
             }
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
@@ -1638,7 +1642,14 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     }
 
     private static class ResultBuilder {
-        public final boolean dra;
+        
+        private static enum Mode {
+            DATA_ARRAY,
+            CSV,
+            COUNT
+        }
+        
+        private final Mode mode;
         private final boolean csvHack;
         private boolean emptyLine;
 
@@ -1648,90 +1659,96 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
         private List<Object> dataArray;
         private List<Object> currentArrayLine;
+        
+        private int count = 0;
 
 
-        public ResultBuilder(boolean directResultArray, final TextBlock encoding, boolean csvHack) {
-            this.dra = directResultArray;
+        public ResultBuilder(Mode mode, final TextBlock encoding, boolean csvHack) {
+            this.mode = mode;
             this.csvHack = csvHack;
             this.encoding = encoding;
-            if (directResultArray) {
-                dataArray = new ArrayList<>();
-            } else {
-                values = new StringBuilder();
+            switch (mode) {
+                case DATA_ARRAY: dataArray = new ArrayList<>(); break;
+                case CSV:     values = new StringBuilder(); break;
             }
         }
 
         public void newBlock() {
-            if (dra) {
-                currentArrayLine = new ArrayList<>();
-            } else {
-                currentLine = new StringBuilder();
+            switch (getMode()) {
+                case DATA_ARRAY: currentArrayLine = new ArrayList<>(); break;
+                case CSV:     currentLine = new StringBuilder(); break;
             }
             this.emptyLine = true;
         }
 
         public void appendTime(Date t) {
-            if (dra) {
-                currentArrayLine.add(t);
-            } else {
-                DateFormat df;
-                if (csvHack) {
-                    df = format;
-                } else {
-                    df = format2;
-                }
-                synchronized(df) {
-                    currentLine.append(df.format(t)).append(encoding.getTokenSeparator());
-                }
+            switch (getMode()) {
+                case DATA_ARRAY: currentArrayLine.add(t); break;
+                case CSV:     
+                    DateFormat df;
+                    if (csvHack) {
+                        df = format;
+                    } else {
+                        df = format2;
+                    }
+                    synchronized(df) {
+                        currentLine.append(df.format(t)).append(encoding.getTokenSeparator());
+                    }
+                    break;
             }
         }
 
         public void appendDouble(Double d) {
             if (!d.isNaN()) emptyLine = false;
-            if (dra) {
-                currentArrayLine.add(d);
-            } else {
-                if (!d.isNaN()) {
-                    currentLine.append(Double.toString(d));
-                }
-                currentLine.append(encoding.getTokenSeparator());
+            switch (getMode()) {
+                case DATA_ARRAY: currentArrayLine.add(d); break;
+                case CSV:     
+                    if (!d.isNaN()) {
+                        currentLine.append(Double.toString(d));
+                    }
+                    currentLine.append(encoding.getTokenSeparator());
+                    break;
             }
         }
 
         public void appendString(String value) {
             if (value != null && !value.isEmpty()) emptyLine = false;
-            if (dra) {
-                currentArrayLine.add(value);
-            } else {
-                if (value != null && !value.isEmpty()) {
-                    currentLine.append(value);
-                }
-                currentLine.append(encoding.getTokenSeparator());
+            switch (getMode()) {
+                case DATA_ARRAY: currentArrayLine.add(value); break;
+                case CSV:  
+                    if (value != null && !value.isEmpty()) {
+                        currentLine.append(value);
+                    }
+                    currentLine.append(encoding.getTokenSeparator());
+                    break;
             }
         }
         
         public void appendLong(Long value) {
             if (value != null) emptyLine = false;
-            if (dra) {
-                currentArrayLine.add(value);
-            } else {
-                if (value != null) {
-                    currentLine.append(value);
-                }
-                currentLine.append(encoding.getTokenSeparator());
+            switch (getMode()) {
+                case DATA_ARRAY: currentArrayLine.add(value); break;
+                case CSV:  
+                    if (value != null) {
+                        currentLine.append(value);
+                    }
+                    currentLine.append(encoding.getTokenSeparator());
+                    break;
             }
         }
 
 
         public int endBlock() {
             if (!emptyLine) {
-                if (dra) {
-                    dataArray.add(currentArrayLine);
-                } else {
-                    values.append(currentLine);
-                    // remove last token separator
-                    values.deleteCharAt(values.length() - 1);
-                    values.append(encoding.getBlockSeparator());
+                switch (getMode()) {
+                    case DATA_ARRAY: dataArray.add(currentArrayLine); break;
+                    case CSV:  
+                            values.append(currentLine);
+                            // remove last token separator
+                            values.deleteCharAt(values.length() - 1);
+                            values.append(encoding.getBlockSeparator());
+                            break;
+                    case COUNT: count++; break;
                 }
                 return 1;
             }
@@ -1748,19 +1765,28 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         public List<Object> getDataArray() {
             return dataArray;
         }
+        
+        public int getCount() {
+            return count;
+        }
 
         private void appendHeaders(List<Field> fields) {
-            if (!dra) {
-                for (Field pheno : fields) {
-                    // hack for the current graph in cstl you only work when the main field is named "time"
-                    if (csvHack && "Time".equals(pheno.fieldType)) {
-                        values.append("time").append(encoding.getTokenSeparator());
-                    } else {
-                        values.append(pheno.fieldDesc).append(encoding.getTokenSeparator());
+            switch (getMode()) {
+                case CSV:
+                    for (Field pheno : fields) {
+                        // hack for the current graph in cstl you only work when the main field is named "time"
+                        if (csvHack && "Time".equals(pheno.fieldType)) {
+                            values.append("time").append(encoding.getTokenSeparator());
+                        } else {
+                            values.append(pheno.fieldDesc).append(encoding.getTokenSeparator());
+                        }
                     }
-                }
-                values.setCharAt(values.length() - 1, '\n');
+                    values.setCharAt(values.length() - 1, '\n');
             }
+        }
+
+        public Mode getMode() {
+            return mode;
         }
     }
 }

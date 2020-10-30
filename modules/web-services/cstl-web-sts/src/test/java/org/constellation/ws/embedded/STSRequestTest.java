@@ -1054,6 +1054,9 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     public void getDataArrayForMultiDatastreamsDecimation() throws Exception {
         initPool();
 
+       /*
+        * Time filter
+        */
         String filter = "(time ge 2007-05-01T08:59:00Z and time le 2007-05-01T19:59:00Z)".replace(" ", "%20");
         URL getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:3)/Observations?$resultFormat=dataArray&$decimation=10&$filter=" + filter);
 
@@ -1061,6 +1064,16 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         String expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-decim.json");
         compareJSON(expResult, result);
         
+        // same but with count
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:3)/Observations?$resultFormat=dataArray&$count=true&$decimation=10&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-decim-count.json");
+        compareJSON(expResult, result);
+        
+       /*
+        * result filter on all fields
+        */
         filter = "(result le 6.55)".replace(" ", "%20");
         getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:3)/Observations?$resultFormat=dataArray&$decimation=10&$filter=" + filter);
 
@@ -1068,6 +1081,9 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-decim-2.json");
         compareJSON(expResult, result);
         
+       /*
+        * result filter on specific fields
+        */
         filter = "(result[1] le 14.0)".replace(" ", "%20").replace("[", "%5B").replace("]", "%5D");
         getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/Observations?$resultFormat=dataArray&$decimation=10&$filter=" + filter);
 
@@ -1081,6 +1097,9 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     public void getDataArrayForDatastreamsDecimation() throws Exception {
         initPool();
 
+        /*
+        * Time filter
+        */
         String filter = "(time ge 2007-05-01T10:59:00Z and time le 2007-05-01T13:59:00Z)".replace(" ", "%20");
         URL getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:8-0)/Observations?$resultFormat=dataArray&$decimation=10&$filter=" + filter);
 
@@ -1088,6 +1107,16 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         String expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-decim.json");
         compareJSON(expResult, result);
         
+        // same but with count
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:8-0)/Observations?$resultFormat=dataArray&$count=true&$decimation=10&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-decim-count.json");
+        compareJSON(expResult, result);
+        
+       /*
+        * result filter on all fields
+        */
         filter = "(time ge 2007-05-01T10:59:00Z and time le 2007-05-01T13:59:00Z)".replace(" ", "%20");
         getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:8-1)/Observations?$resultFormat=dataArray&$decimation=10&$filter=" + filter);
 
@@ -1095,6 +1124,9 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-decim-2.json");
         compareJSON(expResult, result);
         
+       /*
+        * result filter on all fields
+        */
         filter = "(result le 14.0)".replace(" ", "%20");
         getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:8-1)/Observations?$resultFormat=dataArray&$decimation=10&$filter=" + filter);
 

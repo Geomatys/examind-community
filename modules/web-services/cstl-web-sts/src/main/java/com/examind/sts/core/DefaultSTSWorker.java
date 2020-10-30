@@ -347,11 +347,16 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             if (decimation) {
                 Collection<String> sensorIds = omProvider.getProcedureNames(subquery, defaultHints);
                 Map<String, List> resultArrays = new HashMap<>();
+                BigDecimal count = req.getCount() ? new BigDecimal(0) : null;
                 for (String sensorId : sensorIds) {
                     List<Object> resultArray = (List<Object>) omProvider.getResults(sensorId, model, subquery, "resultArray", hints);
                     resultArrays.put(sensorId, resultArray);
+                    if (req.getCount()) {
+                        count = count.add(new BigDecimal((Integer)omProvider.getResults(sensorId, model, subquery, "count", hints)));
+                    }
                 }
-                return buildDataArrayFromResults(resultArrays, model);
+                
+                return buildDataArrayFromResults(resultArrays, model, count);
             }
             
             List<org.opengis.observation.Observation> sps = omProvider.getObservations(subquery, model, "inline", null, hints);
@@ -665,7 +670,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         return observations;
     }
 
-    private DataArray buildDataArrayFromResults(Map<String, List> arrays, QName resultModel) throws ConstellationStoreException {
+    private DataArray buildDataArrayFromResults(Map<String, List> arrays, QName resultModel, BigDecimal count) throws ConstellationStoreException {
 
         DataArray result = new DataArray();
         result.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
@@ -675,6 +680,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             List<Object> results = formatSTSArray(sensorId, resultArray, MEASUREMENT_QNAME.equals(resultModel), false);
             result.getDataArray().addAll(results);
         }
+        result.setIotCount(count);
         return result;
     }
     
@@ -1548,9 +1554,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     @Override
     public HistoricalLocationsResponse getHistoricalLocations(GetHistoricalLocations req) throws CstlServiceException {
-        List<HistoricalLocation> locations = new ArrayList<>();
-        BigDecimal count = null;
-        String iotNextLink = null;
+        final List<HistoricalLocation> locations = new ArrayList<>();
+        final Map<String,String> hints           = new HashMap<>(defaultHints);
+        BigDecimal count                         = null;
+        String iotNextLink                       = null;
         try {
             String timeStr = req.getExtraFlag().get("hloc-time");
             Date d = null;
@@ -1565,6 +1572,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                         LOGGER.warning("Unable to parse timestamp value of the historical location");
                     }
                 }
+            }
+            if (req.getExtraFlag().containsKey("decimation")) {
+                hints.put("decimSize", req.getExtraFlag().get("decimation"));
             }
             final ExpandOptions exp = new ExpandOptions(req);
             final List<Filter> filters = new ArrayList<>();

@@ -1,0 +1,11 @@
+{
+  "components" : [ "id", "phenomenonTime", "resultTime", "result" ],
+  "dataArray" : [ 
+        [ "urn:ogc:object:sensor:GEOM:8-dec-0", "2007-05-01T10:59:00Z", "2007-05-01T10:59:00Z", 6.56 ], 
+        [ "urn:ogc:object:sensor:GEOM:8-dec-1", "2007-05-01T11:17:00Z", "2007-05-01T11:17:00Z", 6.56 ], 
+        [ "urn:ogc:object:sensor:GEOM:8-dec-2", "2007-05-01T11:59:00Z", "2007-05-01T11:59:00Z", 6.56 ], 
+        [ "urn:ogc:object:sensor:GEOM:8-dec-3", "2007-05-01T12:17:00Z", "2007-05-01T12:17:00Z", 6.56 ],
+        [ "urn:ogc:object:sensor:GEOM:8-dec-4", "2007-05-01T12:59:00Z", "2007-05-01T12:59:00Z", 6.56 ],
+        [ "urn:ogc:object:sensor:GEOM:8-dec-5", "2007-05-01T13:17:00Z", "2007-05-01T13:17:00Z", 6.56 ] ],
+    "dataArray@iot.count" : 4
+}
