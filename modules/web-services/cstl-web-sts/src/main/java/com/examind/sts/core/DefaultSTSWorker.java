@@ -1590,7 +1590,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 count = new BigDecimal(c.get());
             }
             final SimpleQuery subquery = buildExtraFilterQuery(req, true, filters);
-            Map<String, Map<Date, org.opengis.geometry.Geometry>> hLocations = omProvider.getHistoricalLocation(subquery, new HashMap<>());
+            Map<String, Map<Date, org.opengis.geometry.Geometry>> hLocations = omProvider.getHistoricalLocation(subquery, hints);
             List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), null);
             for (Entry<String, Map<Date, org.opengis.geometry.Geometry>> entry : hLocations.entrySet()) {
                 String sensorId = entry.getKey();

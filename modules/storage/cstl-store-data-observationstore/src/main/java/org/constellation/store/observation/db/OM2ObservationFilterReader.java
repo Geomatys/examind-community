@@ -32,21 +32,23 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import javax.sql.DataSource;
+import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStoreException;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.RESPONSE_MODE;
 import static org.constellation.store.observation.db.OM2BaseReader.defaultCRS;
+import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.geometry.jts.SRIDGenerator;
 import org.geotoolkit.gml.JTStoGeometry;
 import org.geotoolkit.gml.xml.AbstractGeometry;
-import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.gml.xml.FeatureProperty;
 import org.geotoolkit.observation.ObservationStoreException;
 import static org.geotoolkit.observation.Utils.getTimeValue;
@@ -62,6 +64,8 @@ import org.geotoolkit.swe.xml.AnyScalar;
 import org.geotoolkit.swe.xml.DataArray;
 import org.geotoolkit.swe.xml.DataArrayProperty;
 import org.geotoolkit.swe.xml.TextBlock;
+import org.locationtech.jts.geom.GeometryCollection;
+import org.locationtech.jts.geom.GeometryFactory;
 import org.opengis.filter.expression.Literal;
 import org.opengis.filter.temporal.After;
 import org.opengis.filter.temporal.Before;
@@ -88,6 +92,8 @@ import org.opengis.util.FactoryException;
 public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
     private String responseFormat;
+    
+    private static final GeometryFactory JTS_GEOM_FACTORY = new GeometryFactory();
 
     public OM2ObservationFilterReader(final OM2ObservationFilter omFilter) {
         super(omFilter);
@@ -986,7 +992,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     } else {
                         values = new ResultBuilder(ResultBuilder.Mode.CSV, getDefaultTextEncoding("2.0.0"), false);
                     }
-                    final Map<Integer, long[]> times = getMainFieldStepForGetResult(fieldRequest, fields.get(0), c, width);
+                    final Map<Object, long[]> times = getMainFieldStep(fieldRequest, fields.get(0), c, width);
 
                     Map<String, Double> minVal = null;
                     Map<String, Double> maxVal = null;
@@ -1135,7 +1141,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             sqlRequest.append(measureFilter);
 
             // calculate step
-            final Map<Integer, long[]> times = getMainFieldStepForGetResult(sqlRequest.toString(), fields.get(0), c, width);
+            final Map<Object, long[]> times = getMainFieldStep(sqlRequest.toString(), fields.get(0), c, width);
             final long step;
             if (profile) {
                 // choose the first step
@@ -1261,18 +1267,37 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             LOGGER.log(Level.FINER, "unable to parse value:{0}", value);
         }
     }
-
-    private Map<Integer, long[]> getMainFieldStepForGetResult(String request, final Field mainField, final Connection c, final int width) throws SQLException {
+    
+    /**
+     * extract the main field (time or other for profile observation) span and determine a step regarding the width parameter.
+     * 
+     * return a Map with in the keys :
+     *  - the procedure id for location retrieval
+     *  - the observation id for profiles sensor.
+     *  - a fixed value "1" for non profiles sensor (as in time series all observation are merged).
+     * 
+     * and in the values, an array of a fixed size of 2 containing :
+     *  - the mnimal value
+     *  - the step value
+     */
+    private Map<Object, long[]> getMainFieldStep(String request, final Field mainField, final Connection c, final int width) throws SQLException {
         boolean profile = "profile".equals(currentOMType);
-        if (profile) {
-            request = request.replace("SELECT m.*", "SELECT MIN(\"" + mainField.fieldName + "\"), MAX(\"" + mainField.fieldName + "\"), o.\"id\" ");
-            request = request + " group by o.\"id\" order by o.\"id\"";
+        if (getLoc) {
+            request = request.replace("SELECT hl.\"procedure\", hl.\"time\", st_asBinary(\"location\") as \"location\", hl.\"crs\" ", 
+                                      "SELECT MIN(\"" + mainField.fieldName + "\"), MAX(\"" + mainField.fieldName + "\"), hl.\"procedure\" ");
+            request = request + " group by hl.\"procedure\" order by hl.\"procedure\"";
+            
         } else {
-            request = request.replace("SELECT m.*", "SELECT MIN(\"" + mainField.fieldName + "\"), MAX(\"" + mainField.fieldName + "\") ");
+            if (profile) {
+                request = request.replace("SELECT m.*", "SELECT MIN(\"" + mainField.fieldName + "\"), MAX(\"" + mainField.fieldName + "\"), o.\"id\" ");
+                request = request + " group by o.\"id\" order by o.\"id\"";
+            } else {
+                request = request.replace("SELECT m.*", "SELECT MIN(\"" + mainField.fieldName + "\"), MAX(\"" + mainField.fieldName + "\") ");
+            }
         }
         try (final Statement stmt = c.createStatement();
              final ResultSet rs = stmt.executeQuery(request)) {
-            Map<Integer, long[]> results = new LinkedHashMap<>();
+            Map<Object, long[]> results = new LinkedHashMap<>();
             while (rs.next()) {
                 final long[] result = {-1L, -1L};
                 if (mainField.fieldType.equals("Time")) {
@@ -1305,11 +1330,15 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 } else {
                     throw new SQLException("unable to extract bound from a " + mainField.fieldType + " main field.");
                 }
-                final int key;
-                if (profile) {
-                    key = rs.getInt(3);
+                final Object key;
+                if (getLoc) {
+                    key = rs.getString(3);
                 } else {
-                    key = 1; // single in time series
+                    if (profile) {
+                        key = rs.getInt(3);
+                    } else {
+                        key = 1; // single in time series
+                    }
                 }
                 results.put(key, result);
             }
@@ -1478,7 +1507,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
     @Override
     public Map<String, Map<Date, Geometry>> getSensorLocations(final Map<String,String> hints) throws DataStoreException {
+        if (hints.containsKey("decimSize")) {
+            return getDecimatedSensorLocations(hints, Integer.parseInt(hints.get("decimSize")));
+        }
         final String version = getVersionFromHints(hints);
+        final String gmlVersion = getGMLVersion(version);
         String request = sqlRequest.toString();
         if (firstFilter) {
             request = request.replaceFirst("WHERE", "");
@@ -1509,8 +1542,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         } else {
                             continue;
                         }
-
-                        final String gmlVersion = getGMLVersion(version);
                         final AbstractGeometry gmlGeom = JTStoGeometry.toGML(gmlVersion, geom, crs);
 
                         final Map<Date, Geometry> procedureLocations;
@@ -1532,6 +1563,191 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 }
             }
             return locations;
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
+            throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
+        }
+    }
+    
+    private Map<String, Map<Date, Geometry>> getDecimatedSensorLocations(final Map<String,String> hints, int decimSize) throws DataStoreException {
+        final String version = getVersionFromHints(hints);
+        final String gmlVersion = getGMLVersion(version);
+        String request = sqlRequest.toString();
+        if (firstFilter) {
+            request = request.replaceFirst("WHERE", "");
+        }
+        request = request + " ORDER BY \"procedure\", \"time\"";
+        request = appendPaginationToRequest(request, hints);
+        
+        int nbCell = decimSize;
+        final Field timeField = new Field("Time", "time", null, null);
+
+        //Envelope env = CRS.getDomainOfValidity(defaultCRS);
+        // tmp debug
+        GeneralEnvelope env = new GeneralEnvelope(defaultCRS);
+        env.setRange(1, -15, 0);
+        env.setRange(0, 40, 60);
+                
+        try (final Connection c = source.getConnection()) {
+            
+            
+            final Map<Object, long[]> times = getMainFieldStep(sqlRequest.toString(), timeField, c, nbCell);
+            
+            
+            final org.locationtech.jts.geom.Geometry[][] geoCells = new org.locationtech.jts.geom.Geometry[nbCell][nbCell];
+            
+            // prepare geometrie cells
+            double xStep = env.getSpan(1) / nbCell;
+            double yStep = env.getSpan(0) / nbCell;
+            for (int i = 0; i < nbCell; i++) {
+                for (int j = 0; j < nbCell; j++) {
+                    double minx = env.getMinimum(1) + i*xStep;
+                    double maxx = minx + xStep;
+                    double miny = env.getMinimum(0) + j*yStep;
+                    double maxy = miny + yStep;
+                    org.locationtech.jts.geom.Envelope cellEnv = new org.locationtech.jts.geom.Envelope(minx, maxx, miny, maxy);
+                    geoCells[i][j] = JTS.toGeometry(cellEnv);
+                    
+                }
+            }
+            
+            Map<String, List[][][]> procedureCells = new HashMap<>();
+            try(final Statement currentStatement = c.createStatement();
+                final ResultSet rs = currentStatement.executeQuery(request)) {
+                
+                List[][][] curentCells = null;
+                long start = -1;
+                long step  = -1;
+                String prevProc = null;
+                int tIndex = 0; //dates are ordened
+                while (rs.next()) {
+                    try {
+                        final String procedure = rs.getString("procedure");
+                        
+                        if (!procedure.equals(prevProc)) {
+                            step = times.get(procedure)[1];
+                            start = times.get(procedure)[0];
+                            curentCells = new List[nbCell][nbCell][nbCell];
+                            procedureCells.put(procedure, curentCells);
+                            tIndex = 0;
+                        }
+                        prevProc = procedure;
+                        
+                        final Date time = new Date(rs.getTimestamp("time").getTime());
+                        final byte[] b = rs.getBytes(3);
+                        final int srid = rs.getInt(4);
+                        final CoordinateReferenceSystem crs;
+                        if (srid != 0) {
+                            crs = CRS.forCode("urn:ogc:def:crs:EPSG::" + srid);
+                        } else {
+                            crs = defaultCRS;
+                        }
+                        final org.locationtech.jts.geom.Geometry geom;
+                        if (b != null) {
+                            WKBReader reader = new WKBReader();
+                            geom             = reader.read(b);
+                        } else {
+                            continue;
+                        }
+                        
+                        // find the correct cell where to put the geometry
+                        
+                        // ajust the time index
+                        while (time.getTime() > (start + step)) {
+                            start = start + step;
+                            tIndex++;
+                        }
+                        boolean cellFound = false;
+                        csearch:for (int i = 0; i < nbCell; i++) {
+                            for (int j = 0; j < nbCell; j++) {
+                                org.locationtech.jts.geom.Geometry cellEnv = geoCells[i][j];
+                                if (cellEnv.intersects(geom)) {
+                                    if (curentCells[tIndex][i][j] == null) {
+                                        curentCells[tIndex][i][j] = new ArrayList<>();
+                                    }
+                                    curentCells[tIndex][i][j].add(geom);
+                                    cellFound = true;
+                                    break csearch;
+                                }
+                            }
+                        }
+                        /*debug
+                        if (!cellFound) {
+                            LOGGER.info("No cell found for: " + geom);
+                            for (int i = 0; i < nbCell; i++) {
+                                for (int j = 0; j < nbCell; j++) {
+                                    org.locationtech.jts.geom.Envelope cellEnv = geoCells[i][j].getEnvelopeInternal();
+                                    LOGGER.info(cellEnv.toString());
+                                }
+                            }
+                            
+                        }*/
+                        
+
+                        
+                    } catch (FactoryException | ParseException ex) {
+                        throw new DataStoreException(ex);
+                    }
+                }
+            }
+            
+            Map<String, Map<Date, Geometry>> locations = new LinkedHashMap<>();
+            // merge the geometries in each cells
+            for (Entry<String, List[][][]> entry : procedureCells.entrySet()) {
+                
+                String procedure = entry.getKey();
+                
+                long step = times.get(procedure)[1];
+                long start = times.get(procedure)[0];
+                for (int t = 0; t < nbCell; t++) {
+                    boolean tfound = false;
+                    for (int i = 0; i < nbCell; i++) {
+                        for (int j = 0; j < nbCell; j++) {
+                            
+                            org.locationtech.jts.geom.Geometry geom;
+                            List<org.locationtech.jts.geom.Geometry> cellgeoms = entry.getValue()[t][i][j];
+                            if (cellgeoms == null || cellgeoms.isEmpty()) {
+                                continue;
+                            } else if (cellgeoms.size() == 1) {
+                                geom = cellgeoms.get(0);
+                            } else {
+                                // merge geometries
+                                GeometryCollection coll = new GeometryCollection(cellgeoms.toArray(new org.locationtech.jts.geom.Geometry[cellgeoms.size()]), JTS_GEOM_FACTORY);
+                                geom = coll.getCentroid();
+                            }
+                            
+                            final AbstractGeometry gmlGeom = JTStoGeometry.toGML(gmlVersion, geom, defaultCRS);
+
+                            final Map<Date, Geometry> procedureLocations;
+                            if (locations.containsKey(procedure)) {
+                                procedureLocations = locations.get(procedure);
+                            } else {
+                                procedureLocations = new LinkedHashMap<>();
+                                locations.put(procedure, procedureLocations);
+                            }
+                            
+                            Date time = new Date(start + (step*t) + step/2);
+                            if (gmlGeom instanceof Geometry) {
+                                procedureLocations.put(time, (Geometry) gmlGeom);
+                                tfound = true;
+                            } else {
+                                throw new DataStoreException("GML geometry cannot be casted as an Opengis one");
+                            }
+                            
+                        }
+                    }
+                    /*if (!tfound) {
+                        LOGGER.finer("no date found for index:" + t + "\n "
+                                  + "min   : " +  format2.format(new Date(start + (step*t))) + "\n "
+                                  + "medium: " +  format2.format(new Date(start + (step*t) + step/2)) + "\n "
+                                  + "max   : " +  format2.format(new Date(start + (step*t) + step)) );
+                    }*/
+                }
+                
+            }
+            return locations;
+        } catch (FactoryException ex) {
+            throw new DataStoreException(ex);
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
             throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
@@ -1617,7 +1833,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     }
 
     @Override
-    public Envelope getCollectionBoundingShape() {
+    public org.geotoolkit.gml.xml.Envelope getCollectionBoundingShape() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
