@@ -79,7 +79,10 @@ public enum ServiceDef {
     TMS(Specification.TMS, Organization.NONE, "1.0.0", Profile.NONE, null, false, true),
 
     // 3DTiles service definitions
-    TILES3D(Specification.TILES3D, Organization.OGC, "1.0.0", Profile.NONE, null, true, true);
+    TILES3D(Specification.TILES3D, Organization.OGC, "1.0.0", Profile.NONE, null, true, true),
+
+    // QuantizedMesh service definitions
+    QUANTIZEDMESH(Specification.QUANTIZEDMESH, Organization.NONE, "1.0.0", Profile.NONE, null, true, true);
 
     /**
      * Name of the specification.
@@ -225,7 +228,8 @@ public enum ServiceDef {
         TMS("Tile Map Service"),
         STS("Sensor Things Service"),
         WEBDAV("Webdav"),
-        TILES3D("3DTiles");
+        TILES3D("3DTiles"),
+        QUANTIZEDMESH("QuantizedMesh");
 
         public final String fullName;
 
@@ -262,6 +266,8 @@ public enum ServiceDef {
                 return WEBDAV;
             } else if (TILES3D.name().equalsIgnoreCase(shortName)) {
                 return TILES3D;
+            } else if (QUANTIZEDMESH.name().equalsIgnoreCase(shortName)) {
+                return QUANTIZEDMESH;
             } else if (STS.name().equalsIgnoreCase(shortName)) {
                 return STS;
             }
@@ -273,7 +279,8 @@ public enum ServiceDef {
                  ||this.equals(Specification.WFS)  ||this.equals(Specification.CSW)
                  ||this.equals(Specification.WCS)  ||this.equals(Specification.SOS)
                  ||this.equals(Specification.WPS)  ||this.equals(Specification.WEBDAV)
-                 ||this.equals(Specification.STS)  ||this.equals(Specification.TILES3D);
+                 ||this.equals(Specification.STS)  ||this.equals(Specification.TILES3D)
+                 ||this.equals(Specification.QUANTIZEDMESH);
         }
 
         public boolean supportedWXS() {
