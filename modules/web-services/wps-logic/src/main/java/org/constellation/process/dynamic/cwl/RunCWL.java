@@ -233,6 +233,7 @@ public class RunCWL extends AbstractCstlProcess {
                       .append("--outdir ").append(execDir.toString()).append(" ");
             if (tmpDir != null) {
                 cwlCommand.append("--tmp-outdir-prefix ").append(tmpDir.toString()).append(" ");
+                cwlCommand.append("--tmpdir-prefix ").append(tmpDir.toString()).append(" ");
             }
             cwlCommand.append(cwlFile)
                       .append(" ").append(cwlParamFile.toString());
