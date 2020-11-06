@@ -87,8 +87,7 @@ or
 Create a **setenv.sh** executable file in **bin/** folder of Tomcat with :
 
 ```
-export CSTL_OPTS="$CSTL_OPTS -Dspring.profiles.active=standard"
-CATALINA_OPTS="$CATALINA_OPTS -Dfile.encoding=UTF8 -Xmx1024m -XX:MaxPermSize=128m -Dgeotk.image.cache.size=128m -XX:-HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=./constellation.hprof"
+CATALINA_OPTS="$CATALINA_OPTS -Dfile.encoding=UTF8 -Xmx1024m -XX:MaxPermSize=128m -Dgeotk.image.cache.size=128m -XX:-HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=./constellation.hprof $CSTL_OPTS -Dspring.profiles.active=standard"
 JAVA_HOME=<PATH_TO_JDK>
 JRE_HOME=<PATH_TO_JDK>/jre
 ```
