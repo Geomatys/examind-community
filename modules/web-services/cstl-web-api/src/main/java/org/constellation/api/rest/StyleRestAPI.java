@@ -201,22 +201,28 @@ public final class StyleRestAPI extends AbstractRestAPI {
     }
 
     /**
+     * Delete a style by id.
      *
-     * @param id
-     * @return
-     * @throws java.lang.Exception
+     * @param id style id
+     * @return ResponseEntity never null
      */
     @RequestMapping(value="/styles/{id}", method=DELETE,produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity deleteStyle(
-            @PathVariable("id") final Integer id) throws Exception {
-        styleBusiness.deleteStyle(id);
-        return new ResponseEntity(OK);
+            @PathVariable("id") final Integer id) {
+        try {
+            styleBusiness.deleteStyle(id);
+            return new ResponseEntity(OK);
+        } catch (Throwable ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
+
     }
 
     /**
-     * Returns the list of all styles
+     * Returns a list of all existing styles.
      *
-     * @return ResponseEntity never null
+     * @return ResponseEntity never null, the list of styles, and STYLE_DEFAULT_FIELDS
      */
     @RequestMapping(value="/styles", method=GET, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity getStyles(){
@@ -228,6 +234,13 @@ public final class StyleRestAPI extends AbstractRestAPI {
             return new ErrorMessage(ex).build();
         }
     }
+
+    /**
+     * Check if the style with a passed name already exists.
+     *
+     * @param name style name
+     * @return ResponseEntity never null, and a new style with the passed name
+     */
 
     @RequestMapping(value="/styles/name/{name}/exist", method=GET, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity existStyleName(@PathVariable(value="name") String name){
@@ -300,7 +313,7 @@ public final class StyleRestAPI extends AbstractRestAPI {
     }
 
     /**
-     * Import a new style from XML file.
+     * Import a new style from a XML file.
      *
      * @param type where to store the style ("sld" or "sld_temp");
      * @param style the style definition as json
@@ -325,7 +338,7 @@ public final class StyleRestAPI extends AbstractRestAPI {
     }
 
     /**
-     * Get a single style by identifier.
+     * Get a single style by id.
      *
      * @param id style identifier
      * @return ResponseEntity never null
@@ -352,9 +365,11 @@ public final class StyleRestAPI extends AbstractRestAPI {
 
 
     /**
-     * @param styleId
-     * @param dataId
-     * @return
+     * Link the chosen style to a dataset.
+     *
+     * @param styleId style id
+     * @param dataId data id
+     * @return ResponseEntity never null
      */
     @RequestMapping(value="/styles/{styleId}/linkData/{dataId}", method=POST, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity linkToData(
@@ -372,9 +387,11 @@ public final class StyleRestAPI extends AbstractRestAPI {
     }
 
     /**
-     * @param styleId
-     * @param dataId
-     * @return
+     * Unlink the chosen style from the dataset.
+     *
+     * @param styleId style id
+     * @param dataId data id
+     * @return ResponseEntity never null
      */
     @RequestMapping(value="/styles/{styleId}/unlinkData/{dataId}", method=POST, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity unlinkFromData(
@@ -392,11 +409,11 @@ public final class StyleRestAPI extends AbstractRestAPI {
     }
 
     /**
-     * Change the shared property for given styles list.
+     * Change the shared property for a given styles list.
      *
      * @param shared new shared value
-     * @param ids the style identifier list to apply changes
-     * @return Response
+     * @param ids the styles' id list to apply changes to
+     * @return ResponseEntity never null
      */
     @RequestMapping(value="/styles/shared/{shared}",method=POST,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity changeSharedProperty(
@@ -407,17 +424,17 @@ public final class StyleRestAPI extends AbstractRestAPI {
             styleBusiness.updateSharedProperty(ids, shared);
             return new ResponseEntity("shared value applied with success.",OK);
         }catch(Exception ex) {
-            LOGGER.log(Level.WARNING,"Cannot change the shared property for style list due to exception error : "+ ex.getLocalizedMessage());
+            LOGGER.log(Level.WARNING,"Cannot change the shared property for the style list due to exception error : "+ ex.getLocalizedMessage());
             return new ErrorMessage(ex).status(FORBIDDEN).build();
         }
     }
 
     /**
-     * Change the shared property for given styles list.
+     * Change the shared property for a given style.
      *
      * @param shared new shared value
-     * @param styleId the style identifier to apply changes
-     * @return Response
+     * @param styleId the style identifier to apply changes to
+     * @return ResponseEntity never null
      */
     @RequestMapping(value="/styles/{styleId}/shared/{shared}",method=POST,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity changeSharedProperty(@PathVariable("styleId") int styleId,
@@ -427,7 +444,7 @@ public final class StyleRestAPI extends AbstractRestAPI {
             styleBusiness.updateSharedProperty(Arrays.asList(styleId), shared);
             return new ResponseEntity("shared value applied with success.",OK);
         }catch(Exception ex) {
-            LOGGER.log(Level.WARNING,"Cannot change the shared property for style list due to exception error : "+ ex.getLocalizedMessage());
+            LOGGER.log(Level.WARNING,"Cannot change the shared property for the style due to exception error : "+ ex.getLocalizedMessage());
             return new ErrorMessage(ex).status(FORBIDDEN).build();
         }
     }
