@@ -273,7 +273,7 @@ public enum ServiceDef {
                  ||this.equals(Specification.WFS)  ||this.equals(Specification.CSW)
                  ||this.equals(Specification.WCS)  ||this.equals(Specification.SOS)
                  ||this.equals(Specification.WPS)  ||this.equals(Specification.WEBDAV)
-                 ||this.equals(Specification.STS);
+                 ||this.equals(Specification.STS)  ||this.equals(Specification.TILES3D);
         }
 
         public boolean supportedWXS() {
