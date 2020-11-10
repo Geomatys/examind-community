@@ -32,7 +32,6 @@ import org.constellation.map.featureinfo.FeatureInfoUtilities;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviders;
 import org.constellation.ws.security.SimplePDP;
-import org.geotoolkit.factory.FactoryNotFoundException;
 import org.geotoolkit.style.MutableStyle;
 
 import javax.annotation.PostConstruct;
@@ -117,10 +116,10 @@ public abstract class LayerWorker extends AbstractWorker {
             } else {
                 startError("The layer context File does not contain a layerContext object", null);
             }
-        } catch (FactoryNotFoundException ex) {
-            startError(ex.getMessage(), ex);
         } catch (ClassNotFoundException | ConfigurationException ex) {
             startError("Custom FeatureInfo configuration error : " + ex.getMessage(), ex);
+        } catch (Exception ex) {
+            startError(ex.getMessage(), ex);
         }
         defaultLanguage = defaultLanguageCandidate;
 
