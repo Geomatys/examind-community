@@ -107,11 +107,12 @@ public interface IStyleBusiness {
      *
      * @param providerId The style provider identifier.
      * @param style The style body.
+     * @return The assigned style id.
      *
      * @throws TargetNotFoundException If the style with the specified identifier can't be found.
      * @throws ConfigurationException If the operation has failed for any reason.
      */
-    StyleBrief createStyle(String providerId, org.opengis.style.Style style) throws ConfigurationException;
+    Integer createStyle(String providerId, org.opengis.style.Style style) throws ConfigurationException;
 
     /**
      * Returns the list of available styles as {@link StyleBrief} object.

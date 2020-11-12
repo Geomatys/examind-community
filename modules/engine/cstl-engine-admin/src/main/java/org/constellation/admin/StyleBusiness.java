@@ -182,7 +182,7 @@ public class StyleBusiness implements IStyleBusiness {
      */
     @Override
     @Transactional
-    public StyleBrief createStyle(final String providerId, final org.opengis.style.Style styleI) throws ConfigurationException {
+    public Integer createStyle(final String providerId, final org.opengis.style.Style styleI) throws ConfigurationException {
         nameToId(providerId);
         if (styleI instanceof MutableStyle) {
             MutableStyle style = (MutableStyle) styleI;
@@ -213,12 +213,13 @@ public class StyleBusiness implements IStyleBusiness {
                 throw new ConfigurationException(ex);
             }
             final Style s = styleRepository.findByNameAndProvider(provider, styleName);
-            final Style result;
+            final Integer id;
             if (s != null) {
                 s.setBody(sw.toString());
+                s.setName(styleName);
                 s.setType(getTypeFromMutableStyle(style));
                 styleRepository.update(s);
-                result = s;
+                id = s.getId();
             } else {
                 Integer userId = userBusiness.findOne(securityManager.getCurrentUserLogin()).map((CstlUser input) -> input.getId()).orElse(null);
                 final Style newStyle = new Style();
@@ -228,10 +229,9 @@ public class StyleBusiness implements IStyleBusiness {
                 newStyle.setDate(new Date());
                 newStyle.setBody(sw.toString());
                 newStyle.setOwnerId(userId);
-                newStyle.setId(styleRepository.create(newStyle));
-                result = newStyle;
+                id = styleRepository.create(newStyle);
             }
-            return convertToBrief(result);
+            return id;
         } else {
             throw new ConfigurationException("Style is not an instanceof Mutable style");
         }
@@ -370,6 +370,7 @@ public class StyleBusiness implements IStyleBusiness {
         if (s != null) {
             s.setBody(sw.toString());
             s.setType(getTypeFromMutableStyle((MutableStyle) style));
+            s.setName(styleName);
             styleRepository.update(s);
         } else {
             throw new TargetNotFoundException("Style with identifier \"" + id + "\" does not exist.");

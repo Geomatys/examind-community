@@ -2174,7 +2174,7 @@ angular.module('cstl-style-edit', [
                 Examind.styles.createStyle($scope.newStyle,'sld').then(
                     function (response) {
                         Growl('success', 'Success', 'Style ' + $scope.newStyle.name + ' successfully created');
-                        $modalInstance.close({"id": response.data.id, "provider": "sld", "name": $scope.newStyle.name});
+                        $modalInstance.close({"id": response.data, "provider": "sld", "name": $scope.newStyle.name});
                     }, function(response) {
                         var msg= '';
                         if(response.data.errorMessage) {
@@ -2229,7 +2229,7 @@ angular.module('cstl-style-edit', [
                 }
 
                 var callback = function(response) {
-                    $scope.optionsSLD.temporaryStyleId = response.data.id;
+                    $scope.optionsSLD.temporaryStyleId = response.data;
                     var layerData;
                     if($scope.selectedLayer){
                         if($scope.newStyle.rules.length ===0){

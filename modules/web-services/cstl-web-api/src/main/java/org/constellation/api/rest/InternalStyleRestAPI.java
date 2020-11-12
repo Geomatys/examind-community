@@ -51,7 +51,6 @@ import org.constellation.json.binding.InterpolationPoint;
 import org.constellation.json.binding.Repartition;
 import org.constellation.json.binding.Style;
 import org.constellation.json.binding.WrapperInterval;
-import org.constellation.json.view.JsonView;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.geotoolkit.display2d.GO2Utilities;
@@ -65,7 +64,6 @@ import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.Resource;
 import org.constellation.business.IStyleConverterBusiness;
 import org.constellation.dto.StatInfo;
-import org.constellation.dto.StyleBrief;
 import org.constellation.json.util.StyleUtilities;
 import org.constellation.provider.Data;
 import org.constellation.provider.DefaultCoverageData;
@@ -865,8 +863,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
         try {
             final boolean exists = styleBusiness.existsStyle(type,style.getName());
             if(!exists) {
-                final StyleBrief st = styleBusiness.createStyle(type, style);
-                return new ResponseEntity(new JsonView(st, "id"),OK);
+                return new ResponseEntity(styleBusiness.createStyle(type, style),OK);
             }else {
                 return new ErrorMessage(UNPROCESSABLE_ENTITY).i18N(I18nCodes.Style.ALREADY_EXIST).build();
             }

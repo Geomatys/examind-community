@@ -133,8 +133,7 @@ public final class StyleRestAPI extends AbstractRestAPI {
                 exists = false;
             }
             if(!exists) {
-                final StyleBrief st = styleBusiness.createStyle(type, style);
-                return new ResponseEntity(new JsonView(st, "id"),OK);
+                return new ResponseEntity(styleBusiness.createStyle(type, style),OK);
             }else {
                 return new ErrorMessage(UNPROCESSABLE_ENTITY).i18N(I18nCodes.Style.ALREADY_EXIST).build();
             }
@@ -194,7 +193,7 @@ public final class StyleRestAPI extends AbstractRestAPI {
             final MutableStyle style = StyleUtilities.type(stylejson);
             styleBusiness.updateStyle(id, style);
             stylejson.setId(id);
-            return new ResponseEntity(new JsonView(stylejson,"id"),OK);
+            return new ResponseEntity(id,OK);
         }catch(Throwable ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
@@ -315,8 +314,7 @@ public final class StyleRestAPI extends AbstractRestAPI {
         try {
             final boolean exists = styleBusiness.existsStyle(type,style.getName());
             if(!exists) {
-                final StyleBrief st = styleBusiness.createStyle(type, style);
-                return new ResponseEntity(new JsonView(st, "id"),OK);
+                return new ResponseEntity(styleBusiness.createStyle(type, style),OK);
             }else {
                 return new ErrorMessage(UNPROCESSABLE_ENTITY).i18N(I18nCodes.Style.ALREADY_EXIST).build();
             }

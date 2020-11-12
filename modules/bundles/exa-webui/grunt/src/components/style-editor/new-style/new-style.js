@@ -98,7 +98,7 @@ function NewStyleController($scope, $timeout, $translate, $cookieStore, Growl, E
         DataViewerService.initConfig();
 
         var callback = function (response) {
-            self.temporaryStyle.id = response.data.id;
+            self.temporaryStyle.id = response.data;
             var layerData;
 
             if (self.selectedDataRef.dataLayer) {

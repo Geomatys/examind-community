@@ -20,10 +20,8 @@ package org.constellation.admin;
 
 import java.util.logging.Level;
 import org.apache.sis.util.logging.Logging;
-import org.constellation.business.IServiceBusiness;
 import org.constellation.business.IStyleBusiness;
 import org.constellation.configuration.ConfigDirectory;
-import org.constellation.dto.Style;
 import org.constellation.exception.ConstellationException;
 import org.geotoolkit.style.DefaultMutableStyle;
 import org.junit.AfterClass;
@@ -68,9 +66,21 @@ public class StyleBusinessTest {
     public void createStyle() throws Exception {
         DefaultMutableStyle style = new DefaultMutableStyle();
         style.setName("hauteur du géoïde");
-        styleBusiness.createStyle("sld-temp", style);
+        Integer id = styleBusiness.createStyle("sld-temp", style);
 
         org.opengis.style.Style s = styleBusiness.getStyle("sld-temp", "hauteur du géoïde");
+        Assert.assertNotNull(s);
+        
+        s = styleBusiness.getStyle(id);
+        Assert.assertNotNull(s);
+        
+        style.setName("hauteur du géoïde v2");
+        styleBusiness.updateStyle(id, style);
+        
+        s = styleBusiness.getStyle(id);
+        Assert.assertEquals("hauteur du géoïde v2", s.getName());
+        
+        s = styleBusiness.getStyle("sld-temp", "hauteur du géoïde v2");
         Assert.assertNotNull(s);
     }
 }
