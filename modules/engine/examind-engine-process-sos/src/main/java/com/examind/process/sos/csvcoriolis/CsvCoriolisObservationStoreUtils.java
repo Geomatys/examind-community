@@ -16,12 +16,9 @@
  */
 package com.examind.process.sos.csvcoriolis;
 
-import java.text.DateFormat;
-import java.text.ParseException;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.GMLXmlFactory;
 import org.geotoolkit.sampling.xml.SamplingFeature;
-import org.geotoolkit.sos.MeasureStringBuilder;
 import org.geotoolkit.sos.netcdf.Field;
 import org.geotoolkit.sos.netcdf.OMUtils;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
@@ -115,48 +112,5 @@ public class CsvCoriolisObservationStoreUtils {
             fields.add(SOSXmlFactory.buildAnyScalar(version, null, phenomenon.label, cat));
         }
         return SOSXmlFactory.buildSimpleDatarecord(version, null, null, null, true, fields);
-    }
-
-    public static MeasureStringBuilder buildMeasureStringBuilderFromMap(final LinkedHashMap<String, LinkedHashMap<String, Double>> mmb, final Set<String> measureFound,
-            final DateFormat sdf, final boolean isProfile) throws ParseException {
-        MeasureStringBuilder result = new MeasureStringBuilder();
-        boolean noneValue = true;
-
-        for (Map.Entry<String, LinkedHashMap<String, Double>> entry: mmb.entrySet()) {
-            String mainValue = entry.getKey();
-            if (isProfile) {
-                result.appendValue(Double.parseDouble(mainValue));
-            } else {
-                result.appendDate(sdf.parse(mainValue).getTime());
-            }
-            for (Map.Entry<String, Double> entry2: entry.getValue().entrySet()) {
-                final String measureName = entry2.getKey();
-                if (measureFound.contains(measureName)) {
-                    final Double measureValue = entry2.getValue();
-                    result.appendValue(measureValue);
-                    noneValue = false;
-                }
-            }
-            result.closeBlock();
-        }
-        if (noneValue) {
-            return new MeasureStringBuilder();
-        } else {
-            return result;
-        }
-    }
-
-    public static Set<String> getMeasureFromMap(final LinkedHashMap<String, LinkedHashMap<String, Double>> mmb) {
-        Set<String> result = new HashSet<>();
-
-        for (Map.Entry<String, LinkedHashMap<String, Double>> entry1: mmb.entrySet()) {
-            for (Map.Entry<String, Double> entry2: entry1.getValue().entrySet()) {
-                final String measureName = entry2.getKey();
-                final Double measureValue = entry2.getValue();
-
-                if (!measureValue.isNaN()) result.add(measureName);
-            }
-        }
-        return result;
     }
 }

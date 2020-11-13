@@ -74,8 +74,11 @@ import org.geotoolkit.sos.xml.v200.GetObservationType;
 import org.geotoolkit.sos.xml.v200.GetResultResponseType;
 import org.geotoolkit.sos.xml.v200.GetResultType;
 import org.geotoolkit.sts.GetHistoricalLocations;
+import org.geotoolkit.sts.GetObservedProperties;
 import org.geotoolkit.sts.json.HistoricalLocation;
 import org.geotoolkit.sts.json.HistoricalLocationsResponse;
+import org.geotoolkit.sts.json.ObservedPropertiesResponse;
+import org.geotoolkit.sts.json.ObservedProperty;
 import org.geotoolkit.swe.xml.v200.DataArrayPropertyType;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -1268,7 +1271,7 @@ public class SosHarvesterProcessTest {
         String observedProperty = offp.getObservedProperties().get(0);
         String foi = offp.getFeatureOfInterestIds().get(0);
         Assert.assertEquals("measure2", observedProperty);
-
+        
         /*
         * Verify an inserted data
         */
@@ -1357,6 +1360,69 @@ public class SosHarvesterProcessTest {
         pt2 = (GeoJSONPoint) feat2.getGeometry();
         Assert.assertEquals(-30.3484, pt2.getCoordinates()[1], 0);
         Assert.assertEquals(-23.2064, pt2.getCoordinates()[0], 0);
+        
+        /*
+        * third extracted procedure with a lot of mesure code
+        */
+        
+        offp = getOffering(sosWorker, "1801573");
+        Assert.assertNotNull(offp);
+
+        Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
+        time = (TimePeriodType) offp.getTime();
+
+        Assert.assertEquals("2020-03-24", time.getBeginPosition().getValue());
+        Assert.assertEquals("2020-03-24T09:59:00.000", time.getEndPosition().getValue());
+
+        Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
+        Assert.assertEquals(1, offp.getObservedProperties().size());
+        
+        observedProperty = offp.getObservedProperties().get(0); // composite
+        
+        List<String> observedProperties = getObservedProperties(stsWorker, "1801573");
+        
+        Assert.assertEquals(2, observedProperties.size());
+        Assert.assertEquals("measure1", observedProperties.get(0));
+        Assert.assertEquals("measure2", observedProperties.get(1));
+        
+        foi = offp.getFeatureOfInterestIds().get(0);
+
+        
+        /*
+        * fourth extracted procedure with only measure 1
+        */
+        
+        offp = getOffering(sosWorker, "2100914");
+        Assert.assertNotNull(offp);
+
+        Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
+        time = (TimePeriodType) offp.getTime();
+
+        Assert.assertEquals("2020-03-24", time.getBeginPosition().getValue());
+        Assert.assertEquals("2020-03-24T08:00:00.000", time.getEndPosition().getValue());
+
+        Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
+        Assert.assertEquals(1, offp.getObservedProperties().size());
+
+        observedProperty = offp.getObservedProperties().get(0);
+        foi = offp.getFeatureOfInterestIds().get(0);
+
+        Assert.assertEquals("measure2", observedProperty);
+        
+        
+        
+        
+    }
+    
+    private static List<String> getObservedProperties(STSWorker stsWorker, String sensorId) throws CstlServiceException {
+        List<String> results = new ArrayList<>();
+        GetObservedProperties request = new GetObservedProperties();
+        request.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:" + sensorId);
+        ObservedPropertiesResponse resp = stsWorker.getObservedProperties(request);
+        for (ObservedProperty op : resp.getValue()) {
+            results.add(op.getIotId());
+        }
+        return results;
     }
 
     private static ObservationOffering getOffering(SOSworker worker, String sensorId) throws CstlServiceException {

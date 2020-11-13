@@ -50,7 +50,6 @@ import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.util.GenericName;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -106,22 +105,6 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
     private final String codeColumn;
     private final String typeColumn;
 
-    private final static Map<String, String> codesMeasure;
-
-    static {
-        codesMeasure = new HashMap<>();
-        codesMeasure.put("30", "measure1");
-        codesMeasure.put("35", "measure2");
-        codesMeasure.put("66", "measure3");
-        codesMeasure.put("70", "measure4");
-        codesMeasure.put("64", "measure5");
-        codesMeasure.put("65", "measure6");
-        codesMeasure.put("169", "measure7");
-        codesMeasure.put("193", "measure8");
-        codesMeasure.put("577", "measure9");
-        codesMeasure.put("584", "measure10");
-    }
-
     /**
      *
      * @param observationFile path to the csv observation file
@@ -136,6 +119,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
      * @param foiColumn the name (header) of the feature of interest column
      * @param valueColumn the name (header) of the measure column
      * @param codeColumn the name (header) of the code measure column
+     * 
      * @throws DataStoreException
      * @throws MalformedURLException
      */
@@ -153,12 +137,16 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
         this.measureColumns = measureColumns;
         this.observationType = observationType;
         this.foiColumn = foiColumn;
-        this.procedureId = procedureId;
         this.procedureColumn = procedureColumn;
         this.extractUom = extractUom;
         this.valueColumn = valueColumn;
         this.codeColumn = codeColumn;
         this.typeColumn = typeColumn;
+        if (procedureId == null) {
+            this.procedureId = IOUtilities.filenameWithoutExtension(dataFile);
+        } else {
+            this.procedureId = procedureId;
+        }
     }
 
     @Override
@@ -228,9 +216,6 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
     }
 
     private String getProcedureID() {
-        if (procedureId == null) {
-            return IOUtilities.filenameWithoutExtension(dataFile);
-        }
         return procedureId;
     }
 
@@ -254,7 +239,8 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
             final Set<org.opengis.observation.Phenomenon> phenomenons, final Set<org.opengis.observation.sampling.SamplingFeature> samplingFeatures) throws DataStoreException {
 
         int obsCpt = 0;
-
+        final String fileName = dataFile.getFileName().toString();
+        
         // open csv file
         try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile))) {
 
@@ -278,7 +264,6 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
 
                 // read headers
                 final String[] headers = it.next();
-                final Set<String> measureFields = new LinkedHashSet<>();
                 final List<Integer> ignoredFields = new ArrayList<>();
 
                 for (int i = 0; i < headers.length; i++) {
@@ -287,7 +272,6 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                     if (header.equals(mainColumn)) {
                         mainIndex = i;
                         if (header.equals(dateColumn)) dateIndex = i;
-                        if ("Profile".equals(observationType))  measureFields.add(header);
                     } else if (header.equals(foiColumn)) {
                         foiIndex = i;
                         ignoredFields.add(i);
@@ -317,21 +301,27 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                 }
                 
                 if (typeColumnIndex == -1) {
-                    throw new IllegalArgumentException("Unexpected column type:" + typeColumn);
+                    throw new DataStoreException("missing column type:" + typeColumn);
+                }
+                if (codeColumnIndex == -1) {
+                    throw new DataStoreException("Unexpected column code:" + codeColumn);
+                }
+                if (valueColumnIndex == -1) {
+                    throw new DataStoreException("Unexpected column value:" + valueColumn);
+                }
+                if (mainIndex == -1) {
+                    throw new DataStoreException("Unexpected column main:" + mainColumn);
                 }
 
                 // add measure column
-                Set<String> measureColumnFound = new HashSet<>();
-                List<String> sortedMeasureColumns = measureColumns.stream().sorted().collect(Collectors.toList());
+                final Set<String> measureColumnFound = new HashSet<>();
+                final List<String> sortedMeasureColumns = measureColumns.stream().sorted().collect(Collectors.toList());
 
                 // memorize indices to skip
                 final int[] skippedIndices = ArrayUtils.toPrimitive(ignoredFields.toArray(new Integer[ignoredFields.size()]));
 
                 // final result
                 final ExtractionResult result = new ExtractionResult();
-
-                final String obsTypeCode = getObsTypeCode();
-                Phenomenon phenomenon = null;
 
                 /*
                 2- compute measures
@@ -348,10 +338,14 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                 String currentFoi                     = null;
                 String currentProc                    = null;
                 Long currentTime                      = null;
-                GeoSpatialBound currentSpaBound = new GeoSpatialBound();
+                GeoSpatialBound currentSpaBound       = new GeoSpatialBound();
+                final String obsTypeCode              = getObsTypeCode();
+                
                 // measure map used to collect measure data then construct the MeasureStringBuilder
-                LinkedHashMap<String, LinkedHashMap<String, Double>> mmb = new LinkedHashMap<>();
+                final CoriolisMeasureBuilder mmb = new CoriolisMeasureBuilder(observationType, sdf, sortedMeasureColumns);
+                
                 // memorize positions to compute FOI
+                final Set<String> knownPositions = new HashSet<>();
                 final List<DirectPosition> positions = new ArrayList<>();
                 final Map<Long, List<DirectPosition>> historicalPositions = new HashMap<>();
 
@@ -398,7 +392,6 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                         currentProc = line[procIndex];
                     }
 
-
                     // look for current date (for non timeseries observation separation)
                     if (dateIndex != mainIndex) {
                         try {
@@ -414,104 +407,38 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                         previousTime != null && !previousTime.equals(currentTime) ||
                         previousProc != null && !previousProc.equals(currentProc)) {
 
-                        final String oid = dataFile.getFileName().toString() + '-' + obsCpt;
-                        obsCpt++;
-
                         // procedure
                         String procedureID = getProcedureID();
                         if (previousProc != null) {
                             procedureID = previousProc;
                         }
 
-                        // sampling feature of interest
-                        String foiID = "foi-" + UUID.randomUUID();
-                        if (previousFoi != null) {
-                            foiID = previousFoi;
-                        }
-
-
                         if (procedureID.equals(affectedSensorId)) {
+                            
+                            final String oid = fileName + '-' + obsCpt;
+                            obsCpt++;
+                        
+                            // sampling feature of interest
+                            String foiID = previousFoi != null ? previousFoi : "foi-" + UUID.randomUUID();
                             final SamplingFeature sp = buildFOIByGeom(foiID, positions, samplingFeatures);
-                            result.addFeatureOfInterest(sp);
+                            
                             // On extrait les types de mesure trouvées dans la donnée
-                            measureColumnFound.addAll(getMeasureFromMap(mmb));
+                            measureColumnFound.addAll(mmb.getMeasureFromMap());
                             // Construction du measureStringBuilder à partir des données collectées dans le hashmap
-                            MeasureStringBuilder msb;
-                            try {
-                                msb = buildMeasureStringBuilderFromMap(mmb, measureColumnFound, sdf, obsTypeCode.equals("PR"));
-                            } catch (ParseException ex) {
-                                // parsing error normally already handled
-                                throw new DataStoreException("Parsing error: " + ex);
-                            }
-
-                            // On complète les champs de mesures seulement avec celles trouvées dans la donnée
-                            List<String> filteredMeasure = new ArrayList<>();
-                            if ("Profile".equals(observationType))  filteredMeasure.add(mainColumn);
-                            for (String m: sortedMeasureColumns) {
-                                if (measureColumnFound.contains(m)) filteredMeasure.add(m);
-                            }
-                            measureFields.addAll(filteredMeasure);
-
-                            /*
-                            - set ordinary fields
-                            =====================*/
-
-                            final List<Field> fields = new ArrayList<>();
-                            for (final String field : filteredMeasure) {
-                                String name;
-                                String uom;
-                                int b = field.indexOf('(');
-                                int o = field.indexOf(')');
-                                if (extractUom && b != -1 && o != -1 && b < o) {
-                                    name = field.substring(0, b).trim();
-                                    uom  = field.substring(b + 1, o);
-                                } else {
-                                    name = field;
-                                    uom  = null;
-                                }
-                                fields.add(new Field(name, null, 1, "", null, uom));
-                            }
-
-                            phenomenon = OMUtils.getPhenomenon("2.0.0", fields, "", phenomenons);
-                            // update phenomenon list
-                            if (!phenomenons.contains(phenomenon)) {
-                                phenomenons.add(phenomenon);
-                            }
-
-                            final AbstractDataRecord datarecord;
-                            switch (observationType) {
-                                case "Timeserie" : datarecord = OMUtils.getDataRecordTimeSeries("2.0.0", fields);break;
-                                case "Trajectory": datarecord = getDataRecordTrajectory("2.0.0", fields); break;
-                                case "Profile"   : datarecord = getDataRecordProfile("2.0.0", fields);break;
-                                default: throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
-                            }
-
-                            result.observations.add(OMUtils.buildObservation(oid,                           // id
-                                                                             sp,                            // foi
-                                                                             phenomenon,                    // phenomenon
-                                                                             procedureID,                   // procedure
-                                                                             currentCount,                  // count
-                                                                             datarecord,                    // result structure
-                                                                             msb,                           // measures
-                                                                             currentSpaBound.getTimeObject("2.0.0"))   // time
-                            );
-
-                            // build new procedure tree
-                            final ProcedureTree procedure = getOrCreateProcedureTree(result, procedureID, PROCEDURE_TREE_TYPE, observationType.toLowerCase());
-                            for (Entry<Long, List<DirectPosition>> entry : historicalPositions.entrySet()) {
-                                procedure.spatialBound.addLocation(new Date(entry.getKey()), buildGeom(entry.getValue()));
-                            }
-
-                            procedure.spatialBound.merge(currentSpaBound);
+                            MeasureStringBuilder msb = mmb.buildMeasureStringBuilderFromMap(measureColumnFound, obsTypeCode.equals("PR"));
+                            
+                            buildObservation(result, procedureID, oid, sp, measureColumnFound, sortedMeasureColumns, phenomenons, currentCount, currentSpaBound, msb, historicalPositions);
+                            
                         } else {
-                            LOGGER.finer(oid + " observation excluded from extraction. procedure does not match " + affectedSensorId);
+                            LOGGER.finer("observation excluded from extraction. procedure does not match " + affectedSensorId);
                         }
 
                         // reset single observation related variables
                         currentCount    = 0;
                         currentSpaBound = new GeoSpatialBound();
                         positions.clear();
-                        mmb = new LinkedHashMap<>();
+                        knownPositions.clear();
+                        mmb.clear();
                         historicalPositions.clear();
                     }
 
@@ -519,7 +446,6 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                     previousTime = currentTime;
                     previousProc = currentProc;
                     currentCount++;
-
 
                     /*
                     a- build spatio-temporal information
@@ -529,7 +455,11 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                     Long millis = null;
                     if (dateIndex != -1) {
                         try {
-                            millis = sdf.parse(line[dateIndex]).getTime();
+                            if (currentTime != null) {
+                                millis = currentTime;
+                            } else {
+                                millis = sdf.parse(line[dateIndex]).getTime();
+                            }
                             result.spatialBound.addDate(millis);
                             currentSpaBound.addDate(millis);
                         } catch (ParseException ex) {
@@ -542,8 +472,10 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                     if (latitudeIndex != -1 && longitudeIndex != -1) {
                         final double longitude = Double.parseDouble(line[longitudeIndex]);
                         final double latitude = Double.parseDouble(line[latitudeIndex]);
-                        DirectPosition pos = SOSXmlFactory.buildDirectPosition("2.0.0", "EPSG:4326", 2, Arrays.asList(latitude, longitude));
-                        if (!positions.contains(pos)) {
+                        final String posKey = latitude + "_" + longitude;
+                        if (!knownPositions.contains(posKey)) {
+                            knownPositions.add(posKey);
+                            final DirectPosition pos = SOSXmlFactory.buildDirectPosition("2.0.0", "EPSG:4326", 2, Arrays.asList(latitude, longitude));
                             positions.add(pos);
                             if (millis != null) {
                                 if (historicalPositions.containsKey(millis)) {
@@ -559,68 +491,14 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                         currentSpaBound.addXYCoordinate(longitude, latitude);
                     }
 
-
                     /*
                     b- build measure map
                     =====================*/
-
-                    // add main field
-                    String mainValue = "";
-                    if (mainIndex != -1) {
-                        
-                        // assume that for profile main field is a double
-                        if ("Profile".equals(observationType)) {
-                            try {
-                                // variable only use to catch the exception at this line
-                                final double catchEx = Double.parseDouble(line[mainIndex]);
-                                mainValue = line[mainIndex];
-                                if (!mmb.containsKey(mainValue)) {
-                                    LinkedHashMap<String, Double> row = new LinkedHashMap<>();
-                                    for (String measure: sortedMeasureColumns) {
-                                        row.put(measure, Double.NaN);
-                                    }
-                                    mmb.put(mainValue, row);
-                                }
-                            } catch (NumberFormatException ex) {
-                                LOGGER.warning(String.format("Problem parsing double for main field at line %d and column %d (value='%s'). skipping line...", count, mainIndex, line[mainIndex]));
-                                continue;
-                            }
-                        // assume that is a date otherwise
-                        } else {
-                            try {
-                                // variable only use to catch the exception at this line
-                                final long catchEx = sdf.parse(line[mainIndex]).getTime();
-                                mainValue = line[mainIndex];
-                                if (!mmb.containsKey(mainValue)) {
-                                    LinkedHashMap<String, Double> row = new LinkedHashMap<>();
-                                    for (String measure: sortedMeasureColumns) {
-                                        row.put(measure, Double.NaN);
-                                    }
-                                    mmb.put(mainValue, row);
-                                }
-                            } catch (ParseException ex) {
-                                LOGGER.warning(String.format("Problem parsing date for main field at line %d and column %d (value='%s'). skipping line...", count, mainIndex, line[mainIndex]));
-                                continue;
-                            }
-                        }
-                        
-                        // add measure code
-                        if (!mainValue.equals("") && codeColumnIndex != -1 && valueColumnIndex != -1 && typeColumnIndex != -1) {
-                            try {
-                                String currentMeasureCode = line[codeColumnIndex];
-                                String currentMeasureCodeLabel = codesMeasure.get(currentMeasureCode);
-                                if (currentMeasureCodeLabel != null && !currentMeasureCodeLabel.isEmpty() && sortedMeasureColumns.contains(currentMeasureCodeLabel)) {
-                                    LinkedHashMap<String, Double> row = mmb.get(mainValue);
-
-                                    row.put(currentMeasureCodeLabel, Double.parseDouble(line[valueColumnIndex]));
-                                    mmb.put(mainValue, row);
-                                }
-                            } catch (NumberFormatException ex) {
-                                if (!line[valueColumnIndex].isEmpty()) {
-                                    LOGGER.warning(String.format("Problem parsing double value at line %d and column %d (value='%s')", count, valueColumnIndex, line[valueColumnIndex]));
-                                }
-                            }
-                        }
+                    try {
+                        mmb.parseLine(line[mainIndex], currentTime, line[codeColumnIndex], line[valueColumnIndex], count, valueColumnIndex);
+                    } catch (ParseException | NumberFormatException ex) {
+                        LOGGER.warning(String.format("Problem parsing date/double for main field at line %d and column %d (value='%s'). skipping line...", count, mainIndex, line[mainIndex]));
+                        continue;
                     }
                 }
 
@@ -629,96 +507,26 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                 3- build result
                 =============*/
 
-                final String oid = dataFile.getFileName().toString() + '-' + obsCpt;
-                obsCpt++;
-
                 String procedureID = getProcedureID();
                 if (previousProc != null) {
                     procedureID = previousProc;
                 }
 
-                // sampling feature of interest
-                String foiID = "foi-" + UUID.randomUUID();
-                if (previousFoi != null) {
-                    foiID = previousFoi;
-                }
-
                 if (procedureID.equals(affectedSensorId)) {
+                    final String oid = fileName + '-' + obsCpt;
+                    obsCpt++;
+                
+                    // sampling feature of interest
+                    String foiID = previousFoi != null ? previousFoi : "foi-" + UUID.randomUUID();
                     final SamplingFeature sp = buildFOIByGeom(foiID, positions, samplingFeatures);
-                    result.addFeatureOfInterest(sp);
+                    
                     // On extrait les types de mesure trouvées dans la donnée
-                    measureColumnFound.addAll(getMeasureFromMap(mmb));
+                    measureColumnFound.addAll(mmb.getMeasureFromMap());
                     // Construction du measureStringBuilder à partir des données collectées dans le hashmap
-                    MeasureStringBuilder msb;
-                    try {
-                        msb = buildMeasureStringBuilderFromMap(mmb, measureColumnFound, sdf, obsTypeCode.equals("PR"));
-                    } catch (ParseException ex) {
-                        // parsing error normally already handled
-                        throw new DataStoreException("Parsing error: " + ex);
-                    }
+                    MeasureStringBuilder msb = mmb.buildMeasureStringBuilderFromMap(measureColumnFound, obsTypeCode.equals("PR"));
 
-                    // On complète les champs de mesures seulement avec celles trouvées dans la donnée
-                    List<String> filteredMeasure = new ArrayList<>();
-                    if ("Profile".equals(observationType))  filteredMeasure.add(mainColumn);
-                    for (String m: sortedMeasureColumns) {
-                        if (measureColumnFound.contains(m)) filteredMeasure.add(m);
-                    }
-                    measureFields.addAll(filteredMeasure);
-
-                    /*
-                    - set ordinary fields
-                    =====================*/
-
-                    final List<Field> fields = new ArrayList<>();
-                    for (final String field : filteredMeasure) {
-                        String name;
-                        String uom;
-                        int b = field.indexOf('(');
-                        int o = field.indexOf(')');
-                        if (extractUom && b != -1 && o != -1 && b < o) {
-                            name = field.substring(0, b).trim();
-                            uom  = field.substring(b + 1, o);
-                        } else {
-                            name = field;
-                            uom  = null;
-                        }
-                        fields.add(new Field(name, null, 1, "", null, uom));
-                    }
-
-                    phenomenon = OMUtils.getPhenomenon("2.0.0", fields, "", phenomenons);
-                    // update phenomenon list
-                    if (!phenomenons.contains(phenomenon)) {
-                        phenomenons.add(phenomenon);
-                    }
-
-                    final AbstractDataRecord datarecord;
-                    switch (observationType) {
-                        case "Timeserie" : datarecord = OMUtils.getDataRecordTimeSeries("2.0.0", fields);break;
-                        case "Trajectory": datarecord = getDataRecordTrajectory("2.0.0", fields); break;
-                        case "Profile"   : datarecord = getDataRecordProfile("2.0.0", fields);break;
-                        default: throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
-                    }
-
-                    result.observations.add(OMUtils.buildObservation(oid,                           // id
-                                                                     sp,                            // foi
-                                                                     phenomenon,                    // phenomenon
-                                                                     procedureID,                   // procedure
-                                                                     count,                         // count
-                                                                     datarecord,                    // result structure
-                                                                     msb,                           // measures
-                                                                     currentSpaBound.getTimeObject("2.0.0"))   // time
-                    );
-
-                    // build procedure tree
-                    final ProcedureTree procedure = getOrCreateProcedureTree(result, procedureID, PROCEDURE_TREE_TYPE, observationType.toLowerCase());
-                    for (Entry<Long, List<DirectPosition>> entry : historicalPositions.entrySet()) {
-                        procedure.spatialBound.addLocation(new Date(entry.getKey()), buildGeom(entry.getValue()));
-                    }
-                    procedure.spatialBound.merge(currentSpaBound);
+                    buildObservation(result, procedureID, oid, sp, measureColumnFound, sortedMeasureColumns, phenomenons, currentCount, currentSpaBound, msb, historicalPositions);
                 }
-
-                result.fields.addAll(measureFields);
-                result.phenomenons.add(phenomenon);
 
                 return result;
             }
@@ -728,7 +536,78 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
             throw new DataStoreException(ex);
         }
     }
+    
+    private void buildObservation(ExtractionResult result, String procedureID, String oid, final SamplingFeature sp, Set<String> measureColumnFound, List<String> sortedMeasureColumns,  
+            Set<org.opengis.observation.Phenomenon> phenomenons, int currentCount, GeoSpatialBound currentSpaBound, MeasureStringBuilder msb, final Map<Long, List<DirectPosition>> historicalPositions) {
+               
+        // On complète les champs de mesures seulement avec celles trouvées dans la donnée
+        List<String> filteredMeasure = new ArrayList<>();
+        if ("Profile".equals(observationType))  filteredMeasure.add(mainColumn);
+        for (String m: sortedMeasureColumns) {
+            if (measureColumnFound.contains(m)) filteredMeasure.add(m);
+        }
+        
+        final List<Field> fields = new ArrayList<>();
+        for (final String field : filteredMeasure) {
+            String name;
+            String uom;
+            int b = field.indexOf('(');
+            int o = field.indexOf(')');
+            if (extractUom && b != -1 && o != -1 && b < o) {
+                name = field.substring(0, b).trim();
+                uom  = field.substring(b + 1, o);
+            } else {
+                name = field;
+                uom  = null;
+            }
+            fields.add(new Field(name, null, 1, "", null, uom));
+        }
 
+        Phenomenon phenomenon = OMUtils.getPhenomenon("2.0.0", fields, "", phenomenons);
+        // update phenomenon list
+        if (!phenomenons.contains(phenomenon)) {
+            phenomenons.add(phenomenon);
+        }
+
+        final AbstractDataRecord datarecord;
+        switch (observationType) {
+            case "Timeserie" : datarecord = OMUtils.getDataRecordTimeSeries("2.0.0", fields);break;
+            case "Trajectory": datarecord = getDataRecordTrajectory("2.0.0", fields); break;
+            case "Profile"   : datarecord = getDataRecordProfile("2.0.0", fields);break;
+            default: throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
+        }
+
+        result.observations.add(OMUtils.buildObservation(oid,                                      // id
+                                                         sp,                                       // foi
+                                                         phenomenon,                               // phenomenon
+                                                         procedureID,                              // procedure
+                                                         currentCount,                             // count
+                                                         datarecord,                               // result structure
+                                                         msb,                                      // measures
+                                                         currentSpaBound.getTimeObject("2.0.0"))   // time
+                            );
+        
+        result.addFeatureOfInterest(sp);
+        
+        if (!result.phenomenons.contains(phenomenon)) {
+            result.phenomenons.add(phenomenon);
+        }
+        
+        for (String mf : filteredMeasure) {
+            if (!result.fields.contains(mf)) {
+                result.fields.add(mf);
+            }
+        }
+        
+        // build procedure tree
+        final ProcedureTree procedure = getOrCreateProcedureTree(result, procedureID, PROCEDURE_TREE_TYPE, observationType.toLowerCase());
+        for (Entry<Long, List<DirectPosition>> entry : historicalPositions.entrySet()) {
+            procedure.spatialBound.addLocation(new Date(entry.getKey()), buildGeom(entry.getValue()));
+        }
+        procedure.spatialBound.merge(currentSpaBound);
+        
+    }
+    
 
 
     @Override
