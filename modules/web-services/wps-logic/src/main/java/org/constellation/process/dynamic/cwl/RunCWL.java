@@ -33,6 +33,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -249,15 +250,13 @@ public class RunCWL extends AbstractCstlProcess {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        BufferedReader input1 = new BufferedReader(new InputStreamReader(pr.getInputStream()));
-                        String line = null;
-                        try {
+                        try (BufferedReader input1 = new BufferedReader(new InputStreamReader(pr.getInputStream()))) {
+                            String line;
                             while ((line = input1.readLine()) != null) {
                                 System.out.println("REGULAR:" + line);
                                 results.append(line).append('\n');
                             }
                             System.out.println("CLOSING REGULAR READING");
-                            input1.close();
                         }catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -267,15 +266,13 @@ public class RunCWL extends AbstractCstlProcess {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        BufferedReader input1 = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
-                        String line = null;
-                        try {
+                        try (BufferedReader input1 = new BufferedReader(new InputStreamReader(pr.getErrorStream()))) {
+                            String line;
                             while ((line = input1.readLine()) != null) {
                                 System.out.println("DEBUG:" + line);
                                 errors.append(line).append('\n');
                             }
                             System.out.println("CLOSING DEBUG READING");
-                            input1.close();
                         }catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -437,7 +434,7 @@ public class RunCWL extends AbstractCstlProcess {
             if (cwlLocation.startsWith("file")) {
 
                 Path p = Paths.get(new URI(cwlLocation));
-                IOUtilities.copy(Files.newInputStream(p), Files.newOutputStream(cwlFile));
+                Files.copy(p, cwlFile, StandardCopyOption.REPLACE_EXISTING);
 
             } else {
 
@@ -445,9 +442,9 @@ public class RunCWL extends AbstractCstlProcess {
                 HttpURLConnection conec = (HttpURLConnection) source.openConnection();
 
                 // we get the response document
-                InputStream in = conec.getInputStream();
-
-                IOUtilities.copy(in, Files.newOutputStream(cwlFile));
+                try (InputStream in = conec.getInputStream()) {
+                    Files.copy(in, cwlFile, StandardCopyOption.REPLACE_EXISTING);
+                }
             }
         } catch (URISyntaxException ex) {
             throw new IOException(ex);
