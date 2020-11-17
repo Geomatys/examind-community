@@ -335,20 +335,23 @@ public class NetCDFMetadataReader extends AbstractMetadataReader implements CSWM
             final StorageConnector sc = new StorageConnector(metadataFile);
             try (DataStore store = factory.open(sc)){
                 Object obj = store.getMetadata();
-
-
-
-                    if (obj instanceof DefaultMetadata) {
-                        MetadataCopier copier = new MetadataCopier(MetadataStandard.ISO_19115);
-                        obj = (DefaultMetadata) copier.copy(Metadata.class, (DefaultMetadata)obj);
-                        ((DefaultMetadata)obj).setFileIdentifier(identifier);
-                    } else {
-                        Utils.setIdentifier(identifier, obj);
-                    }
-                    return obj;
+                if (obj instanceof DefaultMetadata) {
+                    MetadataCopier copier = new MetadataCopier(MetadataStandard.ISO_19115);
+                    obj = (DefaultMetadata) copier.copy(Metadata.class, (DefaultMetadata)obj);
+                    ((DefaultMetadata)obj).setFileIdentifier(identifier);
+                } else {
+                    Utils.setIdentifier(identifier, obj);
+                }
+                return obj;
 
             } catch (DataStoreException | IllegalArgumentException ex) {
                 throw new MetadataIoException("The netcdf file : " + metadataFile.getFileName().toString() + " can not be read\ncause: " + ex.getMessage(), ex, INVALID_PARAMETER_VALUE);
+            } finally {
+                try {
+                    sc.closeAllExcept(null);
+                } catch (DataStoreException e) {
+                    LOGGER.warning("A storage connector cannot be properly closed: "+e.getMessage());
+                }
             }
         }
         throw new MetadataIoException("The netcdf file : " + identifier + ".nc is not present", INVALID_PARAMETER_VALUE);

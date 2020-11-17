@@ -569,10 +569,10 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         } else {
             Path p = getDataSourcePath(ds, sp.getPath());
             final Path[] storeFiles;
-            StorageConnector sc = new StorageConnector(p);
             DataStoreProvider dsProvider = DataStores.getProviderById(ds.getStoreId());
             if (dsProvider != null) {
-                try (DataStore dstore = dsProvider.open(sc)){
+                StorageConnector sc = new StorageConnector(p);
+                try (DataStore dstore = dsProvider.open(sc)) {
                     if (dstore instanceof ResourceOnFileSystem) {
                         storeFiles = ((ResourceOnFileSystem) dstore).getComponentFiles();
                     } else {
@@ -583,6 +583,12 @@ public class DatasourceBusiness implements IDatasourceBusiness {
                     LOGGER.log(Level.WARNING, "Error while opening store " + ds.getStoreId() + " on path: " + p.toUri().toString(), ex);
                     dsRepository.updatePathStatus(ds.getId(), sp.getPath(), AnalysisState.ERROR.name());
                     return null;
+                } finally {
+                    try {
+                        sc.closeAllExcept(null);
+                    } catch (DataStoreException e) {
+                        LOGGER.warning("A storage connector cannot be properly closed: "+e.getMessage());
+                    }
                 }
             } else {
                 LOGGER.log(Level.WARNING, "Error provider not found " + ds.getStoreId() + " on path: " + p.toUri().toString());
