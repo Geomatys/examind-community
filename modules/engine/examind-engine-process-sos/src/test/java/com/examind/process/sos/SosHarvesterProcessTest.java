@@ -74,7 +74,9 @@ import org.geotoolkit.sos.xml.v200.GetObservationType;
 import org.geotoolkit.sos.xml.v200.GetResultResponseType;
 import org.geotoolkit.sos.xml.v200.GetResultType;
 import org.geotoolkit.sts.GetHistoricalLocations;
+import org.geotoolkit.sts.GetObservations;
 import org.geotoolkit.sts.GetObservedProperties;
+import org.geotoolkit.sts.json.DataArray;
 import org.geotoolkit.sts.json.HistoricalLocation;
 import org.geotoolkit.sts.json.HistoricalLocationsResponse;
 import org.geotoolkit.sts.json.ObservedPropertiesResponse;
@@ -315,6 +317,9 @@ public class SosHarvesterProcessTest {
         GeoJSONPoint pt1 = (GeoJSONPoint) feat1.getGeometry();
         Assert.assertEquals(44.06, pt1.getCoordinates()[1], 0);
         Assert.assertEquals(-6.81, pt1.getCoordinates()[0], 0);
+        
+        int nbMeasure = getNbMeasure(stsWorker, sensorId);
+        Assert.assertEquals(1609, nbMeasure);
 
         /*
          * add a new file to integrate and call again the process
@@ -380,6 +385,9 @@ public class SosHarvesterProcessTest {
         GeoJSONPoint pt8 = (GeoJSONPoint) feat8.getGeometry();
         Assert.assertEquals(44.154, pt8.getCoordinates()[1], 0);
         Assert.assertEquals(-5.04, pt8.getCoordinates()[0], 0);
+        
+        nbMeasure = getNbMeasure(stsWorker, sensorId);
+        Assert.assertEquals(3209, nbMeasure);
 
         /*
          * remove the new file and reinsert with REMOVE PREVIOUS
@@ -420,6 +428,9 @@ public class SosHarvesterProcessTest {
         pt1 = (GeoJSONPoint) feat1.getGeometry();
         Assert.assertEquals(44.06, pt1.getCoordinates()[1], 0);
         Assert.assertEquals(-6.81, pt1.getCoordinates()[0], 0);
+        
+        nbMeasure = getNbMeasure(stsWorker, sensorId);
+        Assert.assertEquals(1609, nbMeasure);
     }
 
     @Test
@@ -521,6 +532,9 @@ public class SosHarvesterProcessTest {
         HistoricalLocationsResponse response = stsWorker.getHistoricalLocations(hl);
 
         Assert.assertEquals(1236, response.getValue().size());
+        
+        int nbMeasure = getNbMeasure(stsWorker, sensorId);
+        Assert.assertEquals(1236, nbMeasure);
     }
 
     @Test
@@ -606,6 +620,9 @@ public class SosHarvesterProcessTest {
         HistoricalLocationsResponse response = stsWorker.getHistoricalLocations(hl);
 
         Assert.assertEquals(1, response.getValue().size());
+        
+        int nbMeasure = getNbMeasure(stsWorker, sensorId);
+        Assert.assertEquals(1509, nbMeasure);
     }
 
     @Test
@@ -657,6 +674,9 @@ public class SosHarvesterProcessTest {
 
         SOSworker worker = (SOSworker) wsEngine.buildWorker("sos", "default");
         worker.setServiceUrl("http://localhost/examind/");
+        
+        STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
+        stsWorker.setServiceUrl("http://localhost/examind/");
 
         ObservationOffering offp = getOffering(worker, sensorId);
         Assert.assertNotNull(offp);
@@ -701,6 +721,9 @@ public class SosHarvesterProcessTest {
 
         String value = daResult.getDataArray().getValues();
         Assert.assertEquals(expectedResult, value + '\n');
+        
+        int nbMeasure = getNbMeasure(stsWorker, sensorId);
+        Assert.assertEquals(3020, nbMeasure);
     }
 
     @Test
@@ -749,6 +772,9 @@ public class SosHarvesterProcessTest {
 
         SOSworker worker = (SOSworker) wsEngine.buildWorker("sos", "default");
         worker.setServiceUrl("http://localhost/examind/");
+        
+        STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
+        stsWorker.setServiceUrl("http://localhost/examind/");
 
         ObservationOffering offp = getOffering(worker, sensorId);
         Assert.assertNotNull(offp);
@@ -777,7 +803,9 @@ public class SosHarvesterProcessTest {
         gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
         expectedResult = getResourceAsString("com/examind/process/sos/LakeTile_foi-2.txt");
         Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
-
+        
+        int nbMeasure = getNbMeasure(stsWorker, sensorId);
+        Assert.assertEquals(9, nbMeasure);
     }
     
     @Test
@@ -833,6 +861,9 @@ public class SosHarvesterProcessTest {
 
         SOSworker worker = (SOSworker) wsEngine.buildWorker("sos", "default");
         worker.setServiceUrl("http://localhost/examind/");
+        
+        STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
+        stsWorker.setServiceUrl("http://localhost/examind/");
 
         ObservationOffering offp = getOffering(worker, sensorId);
         Assert.assertNotNull(offp);
@@ -861,6 +892,9 @@ public class SosHarvesterProcessTest {
         gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
         expectedResult = getResourceAsString("com/examind/process/sos/rivertile_foi-2.txt");
         Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
+        
+        int nbMeasure = getNbMeasure(stsWorker, sensorId);
+        Assert.assertEquals(85, nbMeasure);
 
     }
 
@@ -969,8 +1003,10 @@ public class SosHarvesterProcessTest {
         GeoJSONPoint pt2 = (GeoJSONPoint) feat2.getGeometry();
         Assert.assertEquals(49.5, pt2.getCoordinates()[1], 0);
         Assert.assertEquals(-6.8, pt2.getCoordinates()[0], 0);
-
-
+        
+        int nbMeasure = getNbMeasure(stsWorker, "p001");
+        Assert.assertEquals(95, nbMeasure);
+        
         /*
         * second extracted procedure
         */
@@ -1023,6 +1059,8 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(49.4, pt2.getCoordinates()[1], 0);
         Assert.assertEquals(-6.9, pt2.getCoordinates()[0], 0);
 
+        nbMeasure = getNbMeasure(stsWorker, "p002");
+        Assert.assertEquals(70, nbMeasure);
 
        /*
         * third extracted procedure
@@ -1066,6 +1104,8 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(51.2, pt1.getCoordinates()[1], 0);
         Assert.assertEquals(-5.3, pt1.getCoordinates()[0], 0);
 
+        nbMeasure = getNbMeasure(stsWorker, "p003");
+        Assert.assertEquals(35, nbMeasure);
 
     }
 
@@ -1189,6 +1229,9 @@ public class SosHarvesterProcessTest {
         GeoJSONPoint pt1 = (GeoJSONPoint) feat1.getGeometry();
         Assert.assertEquals(-3.61021, pt1.getCoordinates()[1], 0);
         Assert.assertEquals(-35.27835, pt1.getCoordinates()[0], 0);
+        
+        int nbMeasure = getNbMeasure(stsWorker, sensorId);
+        Assert.assertEquals(9566, nbMeasure);
     }
     
     @Test
@@ -1306,6 +1349,8 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(-29.995, pt2.getCoordinates()[1], 0);
         Assert.assertEquals(-20.5456, pt2.getCoordinates()[0], 0);
 
+        int nbMeasure = getNbMeasure(stsWorker, "1501563");
+        Assert.assertEquals(21, nbMeasure);
 
         /*
         * second extracted procedure
@@ -1361,6 +1406,9 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(-30.3484, pt2.getCoordinates()[1], 0);
         Assert.assertEquals(-23.2064, pt2.getCoordinates()[0], 0);
         
+        nbMeasure = getNbMeasure(stsWorker, "1501564");
+        Assert.assertEquals(21, nbMeasure);
+        
         /*
         * third extracted procedure with a lot of mesure code
         */
@@ -1387,6 +1435,8 @@ public class SosHarvesterProcessTest {
         
         foi = offp.getFeatureOfInterestIds().get(0);
 
+        nbMeasure = getNbMeasure(stsWorker, "1801573");
+        Assert.assertEquals(600, nbMeasure);
         
         /*
         * fourth extracted procedure with only measure 1
@@ -1409,8 +1459,8 @@ public class SosHarvesterProcessTest {
 
         Assert.assertEquals("measure2", observedProperty);
         
-        
-        
+        nbMeasure = getNbMeasure(stsWorker, "2100914");
+        Assert.assertEquals(4, nbMeasure);
         
     }
     
@@ -1423,6 +1473,16 @@ public class SosHarvesterProcessTest {
             results.add(op.getIotId());
         }
         return results;
+    }
+    
+    private static Integer getNbMeasure(STSWorker stsWorker, String sensorId) throws CstlServiceException {
+        GetObservations request = new GetObservations();
+        request.setResultFormat("dataArray");
+        request.getExtraFlag().put("forMDS", "true");
+        request.setCount(true);
+        request.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:" + sensorId);
+        DataArray resp = (DataArray) stsWorker.getObservations(request);
+        return resp.getIotCount().toBigInteger().intValue();
     }
 
     private static ObservationOffering getOffering(SOSworker worker, String sensorId) throws CstlServiceException {

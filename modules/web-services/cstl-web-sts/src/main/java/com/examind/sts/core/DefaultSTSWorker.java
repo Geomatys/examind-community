@@ -341,7 +341,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             }
             List<org.opengis.observation.Observation> sps = omProvider.getObservations(subquery, model, "inline", null, hints);
             if (isDataArray) {
-                return buildDataArray(sps);
+                return buildDataArray(sps, req.getCount());
             } else {
                 final ExpandOptions exp = new ExpandOptions(req);
                 List<Observation> values = new ArrayList<>();
@@ -650,9 +650,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         return observations;
     }
 
-    private DataArray buildDataArray(List<org.opengis.observation.Observation> obs) throws ConstellationStoreException {
-
-        DataArray result = new DataArray();
+    private DataArray buildDataArray(List<org.opengis.observation.Observation> obs, Boolean count) throws ConstellationStoreException {
+        int nb = 0;
+        final DataArray result = new DataArray();
         result.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
         for (org.opengis.observation.Observation ob : obs) {
             AbstractObservation aob = (AbstractObservation)ob;
@@ -683,6 +683,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                         }
                         newLine.add(measures);
                         results.add(newLine);
+                        nb++;
                     }
                     result.getDataArray().addAll(results);
 
@@ -701,10 +702,14 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 Measure meas = (Measure) aob.getResult();
                 line.add(meas.getValue());
                 result.getDataArray().add(line);
+                nb++;
             } else {
                 throw new ConstellationStoreException("unexpected result type:" + aob.getResult());
             }
 
+        }
+        if (count != null && count) {
+            result.setIotCount(new BigDecimal(nb));
         }
         return result;
     }
