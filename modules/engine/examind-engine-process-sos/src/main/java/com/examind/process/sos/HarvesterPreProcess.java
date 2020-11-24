@@ -103,9 +103,11 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
             format = "csv";
         }
 
+        final boolean coriolis = "csv-coriolis".equals(format);
+        
         String ext = '.' + format;
 
-        if (format.equals("csv-coriolis")) {
+        if (coriolis) {
             ext = ".csv";
             if (valueColumn == null || codeColumn == null || typeColumn == null) {
                 throw new ProcessException("The value column, code column or type column can't be null", this);
@@ -162,7 +164,7 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
                     headers = currentHeaders;
 
                     // extract codes
-                    if ("csv-coriolis".equals(format)) {
+                    if (coriolis) {
                         Set<String> currentCodes = extractCodes(child, codeColumn);
                         codes.addAll(currentCodes);
                     }
@@ -238,7 +240,7 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         final Parameter FCparam = new Parameter(FOI_COLUMN_NAME, String.class, FOI_COLUMN_DESC, FOI_COLUMN_DESC, 0, 1, null, headers);
         inputs.add(FCparam);
 
-        if (format.equals("csv-coriolis")) {
+        if (coriolis) {
             final Parameter MCSparam = new Parameter(MEASURE_COLUMNS_NAME, String.class, MEASURE_COLUMNS_DESC, MEASURE_COLUMNS_DESC, 0, 92, null, codes.toArray());
             inputs.add(MCSparam);
         } else {
@@ -253,32 +255,32 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         inputs.add(EUparam);
 
         if ("csv".equals(format)) {
-            final Parameter SIparam = new Parameter(STORE_ID_NAME, String.class, STORE_ID_DESC, STORE_ID_DESC, 0, 1, "observationCsvFile");
+            final Parameter SIparam = new Parameter(STORE_ID_NAME, String.class, STORE_ID_DESC, STORE_ID_DESC, 1, 1, "observationCsvFile");
             inputs.add(SIparam);
 
-            final Parameter FOparam = new Parameter(FORMAT_NAME, String.class, FORMAT_DESC, FORMAT_DESC, 0, 1, "text/csv; subtype=\"om\"");
+            final Parameter FOparam = new Parameter(FORMAT_NAME, String.class, FORMAT_DESC, FORMAT_DESC, 1, 1, "text/csv; subtype=\"om\"");
             inputs.add(FOparam);
-        } else if ("csv-coriolis".equals(format)) {
-            final Parameter SIparam = new Parameter(STORE_ID_NAME, String.class, STORE_ID_DESC, STORE_ID_DESC, 0, 1, "observationCsvCoriolisFile");
+        } else if (coriolis) {
+            final Parameter SIparam = new Parameter(STORE_ID_NAME, String.class, STORE_ID_DESC, STORE_ID_DESC, 1, 1, "observationCsvCoriolisFile");
             inputs.add(SIparam);
 
-            final Parameter FOparam = new Parameter(FORMAT_NAME, String.class, FORMAT_DESC, FORMAT_DESC, 0, 1, "text/csv; subtype=\"om\"");
+            final Parameter FOparam = new Parameter(FORMAT_NAME, String.class, FORMAT_DESC, FORMAT_DESC, 1, 1, "text/csv; subtype=\"om\"");
             inputs.add(FOparam);
         } else if ("dbf".equals(format)) {
-            final Parameter SIparam = new Parameter(STORE_ID_NAME, String.class, STORE_ID_DESC, STORE_ID_DESC, 0, 1, "observationDbfFile");
+            final Parameter SIparam = new Parameter(STORE_ID_NAME, String.class, STORE_ID_DESC, STORE_ID_DESC, 1, 1, "observationDbfFile");
             inputs.add(SIparam);
 
-            final Parameter FOparam = new Parameter(FORMAT_NAME, String.class, FORMAT_DESC, FORMAT_DESC, 0, 1, "application/dbase; subtype=\"om\"");
+            final Parameter FOparam = new Parameter(FORMAT_NAME, String.class, FORMAT_DESC, FORMAT_DESC, 1, 1, "application/dbase; subtype=\"om\"");
             inputs.add(FOparam);
         }
 
-        final Parameter VCparam = new Parameter(VALUE_COLUMN_NAME, String.class, VALUE_COLUMN_DESC, VALUE_COLUMN_DESC, 0, 1, valueColumn);
+        final Parameter VCparam = new Parameter(VALUE_COLUMN_NAME, String.class, VALUE_COLUMN_DESC, VALUE_COLUMN_DESC, coriolis ? 1 : 0, 1, valueColumn);
         inputs.add(VCparam);
 
-        final Parameter CCparam = new Parameter(CODE_COLUMN_NAME, String.class, CODE_COLUMN_DESC, CODE_COLUMN_DESC, 0, 1, codeColumn);
+        final Parameter CCparam = new Parameter(CODE_COLUMN_NAME, String.class, CODE_COLUMN_DESC, CODE_COLUMN_DESC, coriolis ? 1 : 0, 1, codeColumn);
         inputs.add(CCparam);
 
-        final Parameter TCparam = new Parameter(TYPE_COLUMN_NAME, String.class, TYPE_COLUMN_DESC, TYPE_COLUMN_DESC, 0, 1, typeColumn);
+        final Parameter TCparam = new Parameter(TYPE_COLUMN_NAME, String.class, TYPE_COLUMN_DESC, TYPE_COLUMN_DESC, coriolis ? 1 : 0, 1, typeColumn);
         inputs.add(TCparam);
         
         chain.setInputs(inputs);
