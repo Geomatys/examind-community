@@ -112,8 +112,8 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
     public static final ParameterDescriptor<String> OBS_TYPE = PARAM_BUILDER
             .addName(OBS_TYPE_NAME)
             .setRemarks(OBS_TYPE_DESC)
-            .setRequired(true)
-            .createEnumerated(String.class, new String[]{"Timeserie", "Trajectory", "Profile"}, "Timeserie");
+            .setRequired(false)
+            .createEnumerated(String.class, new String[]{"Timeserie", "Trajectory", "Profile"}, null);
 
     public static final String SEPARATOR_NAME = CSVProvider.SEPARATOR.getName().getCode();
     public static final String SEPARATOR_DESC = CSVProvider.SEPARATOR.getName().getCode();
@@ -130,6 +130,14 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRemarks(MAIN_COLUMN_DESC)
             .setRequired(true)
             .create(String.class, "DATE (yyyy-mm-ddThh:mi:ssZ)");
+    
+    public static final String Z_COLUMN_NAME = "Z column";
+    public static final String Z_COLUMN_DESC = "Z column";
+    public static final ParameterDescriptor<String> Z_COLUMN = PARAM_BUILDER
+            .addName(Z_COLUMN_NAME)
+            .setRemarks(Z_COLUMN_DESC)
+            .setRequired(false)
+            .create(String.class, null);
 
     public static final String DATE_COLUMN_NAME = FileParsingObservationStoreFactory.DATE_COLUMN.getName().getCode();
     public static final String DATE_COLUMN_DESC = FileParsingObservationStoreFactory.DATE_COLUMN.getName().getCode();
@@ -239,7 +247,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
 
     public static final ParameterDescriptorGroup INPUT_DESC =
             PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, REMOTE_READ, SERVICE_ID, DATASET_IDENTIFIER, PROCEDURE_ID, PROCEDURE_COLUMN, OBS_TYPE,
-                    SEPARATOR, MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, MEASURE_COLUMNS, REMOVE_PREVIOUS, EXTRACT_UOM,
+                    SEPARATOR, MAIN_COLUMN, Z_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, MEASURE_COLUMNS, REMOVE_PREVIOUS, EXTRACT_UOM,
                     STORE_ID, FORMAT, VALUE_COLUMN, CODE_COLUMN, TYPE_COLUMN);
 
     public static final String FILE_INSERTED_NAME = "Files inserted number";

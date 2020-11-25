@@ -178,14 +178,9 @@ public class SensorServiceBusiness {
             final Collection<Sensor> sensors = sensorBusiness.getByServiceId(id);
             for (Sensor sensor : sensors) {
                 sensorBusiness.removeSensorFromService(id, sensor.getId());
-                boolean sucess = true; // TODO
-                if (sucess) {
-                    pr.removeProcedure(sensor.getIdentifier());
-                } else {
-                    return false;
-                }
+                pr.removeProcedure(sensor.getIdentifier());
             }
-
+            serviceBusiness.restart(id);
             return true;
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);

@@ -69,8 +69,8 @@ public class HarvesterPreProcessDescriptor extends AbstractProcessDescriptor{
     public static final ParameterDescriptor<String> OBS_TYPE = PARAM_BUILDER
             .addName(OBS_TYPE_NAME)
             .setRemarks(OBS_TYPE_DESC)
-            .setRequired(true)
-            .createEnumerated(String.class, new String[]{"Timeserie", "Trajectory", "Profile"}, "Timeserie");
+            .setRequired(false)
+            .createEnumerated(String.class, new String[]{"Timeserie", "Trajectory", "Profile"}, null);
 
     public static final String TASK_NAME_NAME = "generated task name";
     public static final String TASK_NAME_DESC = "generated task name";
@@ -85,7 +85,7 @@ public class HarvesterPreProcessDescriptor extends AbstractProcessDescriptor{
     public static final ParameterDescriptor<String> FORMAT = PARAM_BUILDER
             .addName(FORMAT_NAME)
             .setRemarks(FORMAT_DESC)
-            .setRequired(false)
+            .setRequired(true)
             .createEnumerated(String.class, new String[]{"csv", "csv-coriolis", "dbf"}, "csv");
 
     public static final String VALUE_COLUMN_NAME = "value column";

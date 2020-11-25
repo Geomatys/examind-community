@@ -58,6 +58,7 @@ import org.apache.sis.internal.storage.query.SimpleQuery;
 import org.apache.sis.internal.system.DefaultFactories;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
+import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.SensorReference;
 import org.constellation.dto.importdata.FileBean;
 import org.constellation.dto.importdata.ResourceAnalysisV3;
@@ -114,7 +115,6 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
         final String storeId = inputParameters.getValue(STORE_ID);
         final String format = inputParameters.getValue(FORMAT);
-        final int userId = 1; // admin //assertAuthentificated(req);
         final String valueColumn = inputParameters.getValue(VALUE_COLUMN);
         final String codeColumn = inputParameters.getValue(CODE_COLUMN);
         final String typeColumn = inputParameters.getValue(TYPE_COLUMN);
@@ -150,6 +150,9 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final String latitudeColumn = inputParameters.getValue(LATITUDE_COLUMN);
         final String foiColumn = inputParameters.getValue(FOI_COLUMN);
         final String observationType = inputParameters.getValue(OBS_TYPE);
+        
+        // coriolis special
+        final String zColumn = inputParameters.getValue(Z_COLUMN);
 
         // prepare the results
         int nbFileInserted = 0;
@@ -160,6 +163,12 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             if (param.getDescriptor().getName().getCode().equals(MEASURE_COLUMNS.getName().getCode())) {
                 measureColumns.add(((ParameterValue)param).stringValue());
             }
+        }
+        
+        boolean coriolisMulti = storeId.equals("observationCsvCoriolisFile") && observationType == null;
+        
+        if (observationType == null && !storeId.equals("observationCsvCoriolisFile")) {
+            throw new ProcessException("The observation type can't be null except for coriolis store", this);
         }
 
         /*
@@ -195,8 +204,16 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                 Set<Integer> providers = new HashSet<>();
                 List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(ds, Integer.MAX_VALUE);
                 for (DataSourceSelectedPath path : paths) {
-                    if (path.getProviderId() != null && path.getProviderId() != -1) {
-                        providers.add(path.getProviderId());
+                    if (coriolisMulti) {
+                        // hack to remove the multiple providers created in coriolis multi mode.
+                        if (path.getProviderId() != null && path.getProviderId() != -1) {
+                            ProviderBrief pr = providerBusiness.getProvider(path.getProviderId());
+                            providers.addAll(coriolisProviderForPath(pr.getConfig()));
+                        }
+                    } else {
+                        if (path.getProviderId() != null && path.getProviderId() != -1) {
+                            providers.add(path.getProviderId());
+                        }
                     }
                 }
 
@@ -290,11 +307,6 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             try {
                 datasourceBusiness.computeDatasourceStores(ds.getId(), false, storeId, true);
 
-
-//                if (analyseDatasourceV3.getStores().isEmpty()) {
-//                    throw new ProcessException("No CSV files detected", this);
-//                }
-
                 Integer datasetId = datasetBusiness.getDatasetId(datasetIdentifier);
                 if (datasetId == null)  {
                     datasetId = datasetBusiness.createDataset(datasetIdentifier, null, null);
@@ -302,8 +314,6 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
 
                 List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(ds, Integer.MAX_VALUE);
-
-                final boolean hidden = false; // true
 
                 for (final DataSourceSelectedPath p : paths) {
 
@@ -324,11 +334,23 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                             break;
                         default:
                             LOGGER.log(Level.INFO, "Integrating data file: {0}", p.getPath());
-                            ResourceStoreAnalysisV3 store = datasourceBusiness.treatDataPath(p, ds, provConfig, true, datasetId, userId);
-                            for (ResourceAnalysisV3 resourceStore : store.getResources()) {
-                                final DataBrief acceptData = dataBusiness.acceptData(resourceStore.getId(), userId, hidden);
-                                dataBusiness.updateDataDataSetId(acceptData.getId(), datasetId);
-                                dataToIntegrate.add(acceptData.getId());
+                            
+                            // special case for coriolis, if the observation type is null so we create a provider for each type
+                            if (coriolisMulti) {
+                                provConfig.getParameters().put(FileParsingObservationStoreFactory.OBSERVATION_TYPE.getName().toString(), "Profile");
+                                provConfig.getParameters().put(FileParsingObservationStoreFactory.MAIN_COLUMN.getName().toString(), zColumn);
+                                dataToIntegrate.addAll(integratingDataFile(p, ds, provConfig, datasetId));
+                                
+                                provConfig.getParameters().put(FileParsingObservationStoreFactory.OBSERVATION_TYPE.getName().toString(), "Timeserie");
+                                provConfig.getParameters().put(FileParsingObservationStoreFactory.MAIN_COLUMN.getName().toString(), dateColumn);
+                                dataToIntegrate.addAll(integratingDataFile(p, ds, provConfig, datasetId));
+                                
+                                provConfig.getParameters().put(FileParsingObservationStoreFactory.OBSERVATION_TYPE.getName().toString(), "Trajectory");
+                                provConfig.getParameters().put(FileParsingObservationStoreFactory.MAIN_COLUMN.getName().toString(), dateColumn);
+                                dataToIntegrate.addAll(integratingDataFile(p, ds, provConfig, datasetId));
+                                
+                            } else {
+                                dataToIntegrate.addAll(integratingDataFile(p, ds, provConfig, datasetId));
                             }
                             nbFileInserted++;
                     }
@@ -368,6 +390,18 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
         outputParameters.getOrCreate(SosHarvesterProcessDescriptor.OBSERVATION_INSERTED).setValue(nbObsInserted);
         outputParameters.getOrCreate(SosHarvesterProcessDescriptor.FILE_INSERTED).setValue(nbFileInserted);
+    }
+    
+    private List<Integer> integratingDataFile(DataSourceSelectedPath p, DataSource ds, ProviderConfiguration provConfig, Integer datasetId) throws ConstellationException {
+        List<Integer> dataToIntegrate = new ArrayList<>();
+        int userId = 1;
+        ResourceStoreAnalysisV3 store = datasourceBusiness.treatDataPath(p, ds, provConfig, true, datasetId, userId);
+        for (ResourceAnalysisV3 resourceStore : store.getResources()) {
+            final DataBrief acceptData = dataBusiness.acceptData(resourceStore.getId(), userId, false);
+            dataBusiness.updateDataDataSetId(acceptData.getId(), datasetId);
+            dataToIntegrate.add(acceptData.getId());
+        }
+        return dataToIntegrate;
     }
 
     private List<Integer> generateSensorML(final int dataId) throws ConstellationStoreException, ConfigurationException, SQLException, ProcessException {
@@ -505,6 +539,27 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                Objects.equal(database1, database2) &&
                Objects.equal(schema1,   schema2);
 
+    }
+    
+    /**
+     * hack method to find multiple coriolis provider on the same file.
+     * 
+     * this is dirty, i know
+     */
+    private List<Integer> coriolisProviderForPath(String config) {
+        List<Integer> results = new ArrayList<>();
+        int start = config.indexOf("<location>");
+        int stop = config.indexOf("<location>");
+        if (start != -1 && stop != -1) {
+            String location = config.substring(start, stop);
+            for (ProviderBrief pr : providerBusiness.getProviders()) {
+                if (pr.getIdentifier().startsWith("observationCsvCoriolisFile") && 
+                    pr.getConfig().contains(location)) {
+                    results.add(pr.getId());
+                }
+            }
+        }
+        return results;
     }
     
     private void fireAndLog(final String msg) {

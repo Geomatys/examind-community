@@ -112,6 +112,10 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
             if (valueColumn == null || codeColumn == null || typeColumn == null) {
                 throw new ProcessException("The value column, code column or type column can't be null", this);
             }
+        } else {
+            if (observationType == null) {
+                throw new ProcessException("The observation type can't be null except for coriolis store", this);
+            }
         }
 
         String processId;
@@ -205,7 +209,7 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         final Parameter DSparam = new Parameter(DATASET_IDENTIFIER_NAME, String.class, DATASET_IDENTIFIER_DESC, DATASET_IDENTIFIER_DESC, 1, 1);
         inputs.add(DSparam);
 
-        final Parameter OTparam = new Parameter(OBS_TYPE_NAME, String.class, OBS_TYPE_DESC, OBS_TYPE_DESC, 1, 1, observationType);
+        final Parameter OTparam = new Parameter(OBS_TYPE_NAME, String.class, OBS_TYPE_DESC, OBS_TYPE_DESC, observationType != null ? 1 : 0, 1, observationType);
         inputs.add(OTparam);
 
         final Parameter PRparam = new Parameter(PROCEDURE_ID_NAME, String.class, PROCEDURE_ID_DESC, PROCEDURE_ID_DESC, 0, 1);
@@ -218,13 +222,18 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         inputs.add(SPparam);
 
         String defaultMainCol = null;
-        if (observationType.equals("Timeserie") || observationType.equals("Trajectory")) {
+        if ("Timeserie".equals(observationType) || "Trajectory".equals(observationType)) {
             defaultMainCol = guessColumn(headers, Arrays.asList("time", "date"));
         }
 
-        final Parameter MCparam = new Parameter(MAIN_COLUMN_NAME, String.class, MAIN_COLUMN_DESC, MAIN_COLUMN_DESC, 1, 1, defaultMainCol, headers);
-        inputs.add(MCparam);
-
+        if (coriolis && observationType == null) {
+            final Parameter MCparam = new Parameter(Z_COLUMN_NAME, String.class, Z_COLUMN_DESC, Z_COLUMN_DESC, 1, 1, defaultMainCol, headers);
+            inputs.add(MCparam);
+        } else {
+            final Parameter MCparam = new Parameter(MAIN_COLUMN_NAME, String.class, MAIN_COLUMN_DESC, MAIN_COLUMN_DESC, 1, 1, defaultMainCol, headers);
+            inputs.add(MCparam);
+        }
+        
         final Parameter DCparam = new Parameter(DATE_COLUMN_NAME, String.class, DATE_COLUMN_DESC, DATE_COLUMN_DESC, 1, 1, guessColumn(headers, Arrays.asList("time", "date")), headers);
         inputs.add(DCparam);
 
@@ -266,6 +275,16 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
 
             final Parameter FOparam = new Parameter(FORMAT_NAME, String.class, FORMAT_DESC, FORMAT_DESC, 1, 1, "text/csv; subtype=\"om\"");
             inputs.add(FOparam);
+            
+            final Parameter VCparam = new Parameter(VALUE_COLUMN_NAME, String.class, VALUE_COLUMN_DESC, VALUE_COLUMN_DESC, 1, 1, valueColumn);
+            inputs.add(VCparam);
+
+            final Parameter CCparam = new Parameter(CODE_COLUMN_NAME, String.class, CODE_COLUMN_DESC, CODE_COLUMN_DESC, 1, 1, codeColumn);
+            inputs.add(CCparam);
+
+            final Parameter TCparam = new Parameter(TYPE_COLUMN_NAME, String.class, TYPE_COLUMN_DESC, TYPE_COLUMN_DESC, 1, 1, typeColumn);
+            inputs.add(TCparam);
+        
         } else if ("dbf".equals(format)) {
             final Parameter SIparam = new Parameter(STORE_ID_NAME, String.class, STORE_ID_DESC, STORE_ID_DESC, 1, 1, "observationDbfFile");
             inputs.add(SIparam);
@@ -274,15 +293,6 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
             inputs.add(FOparam);
         }
 
-        final Parameter VCparam = new Parameter(VALUE_COLUMN_NAME, String.class, VALUE_COLUMN_DESC, VALUE_COLUMN_DESC, coriolis ? 1 : 0, 1, valueColumn);
-        inputs.add(VCparam);
-
-        final Parameter CCparam = new Parameter(CODE_COLUMN_NAME, String.class, CODE_COLUMN_DESC, CODE_COLUMN_DESC, coriolis ? 1 : 0, 1, codeColumn);
-        inputs.add(CCparam);
-
-        final Parameter TCparam = new Parameter(TYPE_COLUMN_NAME, String.class, TYPE_COLUMN_DESC, TYPE_COLUMN_DESC, coriolis ? 1 : 0, 1, typeColumn);
-        inputs.add(TCparam);
-        
         chain.setInputs(inputs);
 
 
