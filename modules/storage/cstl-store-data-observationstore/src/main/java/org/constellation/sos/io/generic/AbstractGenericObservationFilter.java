@@ -43,6 +43,7 @@ import org.constellation.api.CommonConstants;
 import org.constellation.generic.BDDUtils;
 
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
+import org.opengis.filter.BinaryComparisonOperator;
 
 /**
  *
@@ -191,8 +192,8 @@ public abstract class AbstractGenericObservationFilter implements ObservationFil
      * {@inheritDoc}
      */
     @Override
-    public void setResultEquals(final String propertyName, final String value) throws DataStoreException {
-        throw new DataStoreException("setResultEquals is not supported by this ObservationFilter implementation.");
+    public void setResultFilter(final BinaryComparisonOperator filter) throws DataStoreException {
+        throw new DataStoreException("setResultFilter is not supported by this ObservationFilter implementation.");
     }
 
     /**

@@ -51,6 +51,7 @@ import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.geotoolkit.observation.Utils.getTimeValue;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
+import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.temporal.After;
 import org.opengis.filter.temporal.Before;
 import org.opengis.filter.temporal.BinaryTemporalOperator;
@@ -606,8 +607,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      * {@inheritDoc}
      */
     @Override
-    public void setResultEquals(final String propertyName, final String value) throws DataStoreException{
-        throw new DataStoreException("setResultEquals is not supported by this ObservationFilter implementation.");
+    public void setResultFilter(final BinaryComparisonOperator filter) throws DataStoreException {
+        throw new DataStoreException("setResultFilter is not supported by this ObservationFilter implementation.");
     }
 
     /**

@@ -51,6 +51,7 @@ import org.geotoolkit.ogc.xml.v200.TimeBeforeType;
 import org.geotoolkit.ogc.xml.v200.TimeDuringType;
 import org.geotoolkit.ogc.xml.v200.TimeEqualsType;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
+import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.Filter;
 import org.opengis.filter.temporal.After;
 import org.opengis.filter.temporal.Before;
@@ -464,8 +465,8 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
      * {@inheritDoc}
      */
     @Override
-    public void setResultEquals(String propertyName, String value) throws DataStoreException {
-        throw new DataStoreException("setResultEquals is not supported by this ObservationFilter implementation.");
+    public void setResultFilter(final BinaryComparisonOperator filter) throws DataStoreException {
+        throw new DataStoreException("setResultFilter is not supported by this ObservationFilter implementation.");
     }
 
     /**

@@ -77,6 +77,7 @@ import org.geotoolkit.storage.ResourceType;
 import org.geotoolkit.swe.xml.PhenomenonProperty;
 import org.opengis.filter.Id;
 import org.opengis.filter.And;
+import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.Filter;
 import org.opengis.filter.Or;
 import org.opengis.filter.PropertyIsEqualTo;
@@ -1017,7 +1018,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             // other properties must probably be result filter
             } else {
                 if (localOmFilter.supportedQueryableResultProperties().contains(pNameStr)) {
-                    localOmFilter.setResultEquals(pNameStr, (String) value.getValue());
+                    localOmFilter.setResultFilter((BinaryComparisonOperator) filter);
                 } else {
                     throw new ConstellationStoreException("Unsuported property for filtering:" + pNameStr);
                 }
