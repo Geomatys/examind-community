@@ -1518,7 +1518,7 @@ public class SosHarvesterProcessTest {
 
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
         in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_COLUMN_NAME).setValue("platform_code");
-        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_ID_NAME).setValue(null);
+        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_ID_NAME).setValue("urn:template:");
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(true);
         in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
 
@@ -1529,8 +1529,8 @@ public class SosHarvesterProcessTest {
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
 
         // verify that the sensor has been created
-        Assert.assertNotNull(sensorBusiness.getSensor("1501563"));
-        Assert.assertNotNull(sensorBusiness.getSensor("1501564"));
+        Assert.assertNotNull(sensorBusiness.getSensor("urn:template:1501563"));
+        Assert.assertNotNull(sensorBusiness.getSensor("urn:template:1501564"));
         
         Assert.assertEquals(308, getNbOffering(sosWorker, prev));
         
@@ -1540,7 +1540,7 @@ public class SosHarvesterProcessTest {
         * first extracted procedure
         */
 
-        ObservationOffering offp = getOffering(sosWorker, "1501563");
+        ObservationOffering offp = getOffering(sosWorker, "urn:template:1501563");
         Assert.assertNotNull(offp);
 
         Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
@@ -1564,7 +1564,7 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
 
         GetHistoricalLocations hl = new GetHistoricalLocations();
-        hl.getExtraFilter().put("procedure", "1501563");
+        hl.getExtraFilter().put("procedure", "urn:template:1501563");
         hl.getExpand().add("Locations");
         HistoricalLocationsResponse response = stsWorker.getHistoricalLocations(hl);
 
@@ -1590,14 +1590,14 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(-29.995, pt2.getCoordinates()[1], 0);
         Assert.assertEquals(-20.5456, pt2.getCoordinates()[0], 0);
 
-        int nbMeasure = getNbMeasure(stsWorker, "1501563");
+        int nbMeasure = getNbMeasure(stsWorker, "urn:template:1501563");
         Assert.assertEquals(21, nbMeasure);
 
         /*
         * second extracted procedure
         */
 
-        offp = getOffering(sosWorker, "1501564");
+        offp = getOffering(sosWorker, "urn:template:1501564");
         Assert.assertNotNull(offp);
 
         Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
@@ -1621,7 +1621,7 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
 
         hl = new GetHistoricalLocations();
-        hl.getExtraFilter().put("procedure", "1501564");
+        hl.getExtraFilter().put("procedure", "urn:template:1501564");
         hl.getExpand().add("Locations");
         response = stsWorker.getHistoricalLocations(hl);
 
@@ -1647,14 +1647,14 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(-30.3484, pt2.getCoordinates()[1], 0);
         Assert.assertEquals(-23.2064, pt2.getCoordinates()[0], 0);
         
-        nbMeasure = getNbMeasure(stsWorker, "1501564");
+        nbMeasure = getNbMeasure(stsWorker, "urn:template:1501564");
         Assert.assertEquals(21, nbMeasure);
         
         /*
         * third extracted procedure with a lot of mesure code
         */
         
-        offp = getOffering(sosWorker, "1801573");
+        offp = getOffering(sosWorker, "urn:template:1801573");
         Assert.assertNotNull(offp);
 
         Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
@@ -1668,7 +1668,7 @@ public class SosHarvesterProcessTest {
         
         observedProperty = offp.getObservedProperties().get(0); // composite
         
-        List<String> observedProperties = getObservedProperties(stsWorker, "1801573");
+        List<String> observedProperties = getObservedProperties(stsWorker, "urn:template:1801573");
         
         Assert.assertEquals(2, observedProperties.size());
         Assert.assertEquals("measure1", observedProperties.get(0));
@@ -1676,14 +1676,14 @@ public class SosHarvesterProcessTest {
         
         foi = offp.getFeatureOfInterestIds().get(0);
 
-        nbMeasure = getNbMeasure(stsWorker, "1801573");
+        nbMeasure = getNbMeasure(stsWorker, "urn:template:1801573");
         Assert.assertEquals(600, nbMeasure);
         
         /*
         * fourth extracted procedure with only measure 1
         */
         
-        offp = getOffering(sosWorker, "2100914");
+        offp = getOffering(sosWorker, "urn:template:2100914");
         Assert.assertNotNull(offp);
 
         Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
@@ -1700,7 +1700,7 @@ public class SosHarvesterProcessTest {
 
         Assert.assertEquals("measure2", observedProperty);
         
-        nbMeasure = getNbMeasure(stsWorker, "2100914");
+        nbMeasure = getNbMeasure(stsWorker, "urn:template:2100914");
         Assert.assertEquals(4, nbMeasure);
         
     }

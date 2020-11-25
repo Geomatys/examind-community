@@ -108,6 +108,10 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
     // timeSeries / trajectory / profiles
     private final String observationType;
 
+    /**
+     * Act as a single sensor ID if no procedureColumn is supplied.
+     * Act as a prefix else.
+     */
     private final String procedureId;
     private final String procedureColumn;
 
@@ -141,9 +145,16 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
         this.measureColumns = measureColumns;
         this.observationType = observationType;
         this.foiColumn = foiColumn;
-        this.procedureId = procedureId;
         this.procedureColumn = procedureColumn;
         this.extractUom = extractUom;
+        
+        if (procedureId == null && procedureColumn == null) {
+            this.procedureId = IOUtilities.filenameWithoutExtension(dataFile);
+        } else if (procedureId == null) {
+            this.procedureId = ""; // empty template
+        } else {
+            this.procedureId = procedureId;
+        }
     }
 
     @Override
@@ -193,7 +204,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                     final String[] line = it.next();
                     // update temporal information
                     if (procIndex != -1) {
-                        result.add(NamesExt.create(line[procIndex]));
+                        result.add(NamesExt.create(procedureId + line[procIndex]));
                     }
                 }
                 return result;
@@ -206,9 +217,6 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
     }
 
     private String getProcedureID() {
-        if (procedureId == null) {
-            return IOUtilities.filenameWithoutExtension(dataFile);
-        }
         return procedureId;
     }
 
@@ -376,11 +384,11 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                     
                     // look for current procedure (for observation separation)
                     if (procIndex != -1) {
-                        if (!line[procIndex].equals(affectedSensorId)) {
+                        currentProc = procedureId + line[procIndex];
+                        if (!currentProc.equals(affectedSensorId)) {
                             LOGGER.finer("skipping line due to none specified sensor related.");
                             continue;
                         }
-                        currentProc = line[procIndex];
                     }
 
                     // look for current foi (for observation separation)
@@ -733,7 +741,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                     Date dateParse        = null;
 
                     if (procedureIndex != -1) {
-                        currentProc = line[procedureIndex];
+                        currentProc = procedureId + line[procedureIndex];
                         if (!currentProc.equals(previousProc)) {
                             procedureTree = new ProcedureTree(currentProc, PROCEDURE_TREE_TYPE, observationType.toLowerCase(), measureFields);
                             result.add(procedureTree);

@@ -96,6 +96,11 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
     // timeSeries / trajectory / profiles
     private final String observationType;
 
+    
+    /**
+     * Act as a single sensor ID if no procedureColumn is supplied.
+     * Act as a prefix else.
+     */
     private final String procedureId;
     private final String procedureColumn;
 
@@ -142,8 +147,10 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
         this.valueColumn = valueColumn;
         this.codeColumn = codeColumn;
         this.typeColumn = typeColumn;
-        if (procedureId == null) {
+        if (procedureId == null && procedureColumn == null) {
             this.procedureId = IOUtilities.filenameWithoutExtension(dataFile);
+        } else if (procedureId == null) {
+            this.procedureId = ""; // empty template
         } else {
             this.procedureId = procedureId;
         }
@@ -203,7 +210,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                         if (typeColumnIndex != -1) {
                             if (!line[typeColumnIndex].equals(obsTypeCode)) continue;
                         }
-                        result.add(NamesExt.create(line[procIndex]));
+                        result.add(NamesExt.create(procedureId + line[procIndex]));
                     }
                 }
                 return result;
@@ -389,7 +396,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
 
                     // look for current procedure (for observation separation)
                     if (procIndex != -1) {
-                        currentProc = line[procIndex];
+                        currentProc = procedureId + line[procIndex];
                     }
 
                     // look for current date (for non timeseries observation separation)
@@ -730,7 +737,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                     }
 
                     if (procedureIndex != -1) {
-                        currentProc = line[procedureIndex];
+                        currentProc = procedureId + line[procedureIndex];
                         if (!currentProc.equals(previousProc)) {
                             procedureTree = new ProcedureTree(currentProc, PROCEDURE_TREE_TYPE, observationType.toLowerCase(), measureColumns);
                             result.add(procedureTree);
