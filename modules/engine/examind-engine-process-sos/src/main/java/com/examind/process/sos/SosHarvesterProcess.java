@@ -50,6 +50,7 @@ import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import static com.examind.process.sos.SosHarvesterProcessDescriptor.*;
+import static com.examind.process.sos.csvcoriolis.CsvCoriolisObservationStoreUtils.coriolisProviderForPath;
 import com.examind.sensor.component.SensorServiceBusiness;
 import com.google.common.base.Objects;
 import java.net.URI;
@@ -62,7 +63,6 @@ import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.SensorReference;
 import org.constellation.dto.importdata.FileBean;
 import org.constellation.dto.importdata.ResourceAnalysisV3;
-import org.constellation.dto.service.ServiceComplete;
 import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
@@ -208,7 +208,11 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                         // hack to remove the multiple providers created in coriolis multi mode.
                         if (path.getProviderId() != null && path.getProviderId() != -1) {
                             ProviderBrief pr = providerBusiness.getProvider(path.getProviderId());
-                            providers.addAll(coriolisProviderForPath(pr.getConfig()));
+                            if (pr != null) {
+                                providers.addAll(coriolisProviderForPath(pr.getConfig(), providerBusiness));
+                            } else {
+                                LOGGER.warning("Inconsistency in database, a datasource path point to an unexisting provider");
+                            }
                         }
                     } else {
                         if (path.getProviderId() != null && path.getProviderId() != -1) {
@@ -539,27 +543,6 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                Objects.equal(database1, database2) &&
                Objects.equal(schema1,   schema2);
 
-    }
-    
-    /**
-     * hack method to find multiple coriolis provider on the same file.
-     * 
-     * this is dirty, i know
-     */
-    private List<Integer> coriolisProviderForPath(String config) {
-        List<Integer> results = new ArrayList<>();
-        int start = config.indexOf("<location>");
-        int stop = config.indexOf("<location>");
-        if (start != -1 && stop != -1) {
-            String location = config.substring(start, stop);
-            for (ProviderBrief pr : providerBusiness.getProviders()) {
-                if (pr.getIdentifier().startsWith("observationCsvCoriolisFile") && 
-                    pr.getConfig().contains(location)) {
-                    results.add(pr.getId());
-                }
-            }
-        }
-        return results;
     }
     
     private void fireAndLog(final String msg) {

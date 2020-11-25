@@ -1,2 +1,3 @@
 com.examind.process.sos.SosHarvesterProcessDescriptor
 com.examind.process.sos.HarvesterPreProcessDescriptor
+com.examind.process.sos.HarvesterCleanerDescriptor

@@ -29,6 +29,8 @@ import org.geotoolkit.swe.xml.UomProperty;
 import org.opengis.geometry.DirectPosition;
 
 import java.util.*;
+import org.constellation.business.IProviderBusiness;
+import org.constellation.dto.ProviderBrief;
 
 import static org.geotoolkit.sos.netcdf.OMUtils.TIME_FIELD;
 
@@ -112,5 +114,26 @@ public class CsvCoriolisObservationStoreUtils {
             fields.add(SOSXmlFactory.buildAnyScalar(version, null, phenomenon.label, cat));
         }
         return SOSXmlFactory.buildSimpleDatarecord(version, null, null, null, true, fields);
+    }
+    
+    /**
+     * hack method to find multiple coriolis provider on the same file.
+     * 
+     * this is dirty, i know
+     */
+    public static List<Integer> coriolisProviderForPath(String config, IProviderBusiness providerBusiness) {
+        List<Integer> results = new ArrayList<>();
+        int start = config.indexOf("<location>");
+        int stop = config.indexOf("<location>");
+        if (start != -1 && stop != -1) {
+            String location = config.substring(start, stop);
+            for (ProviderBrief pr : providerBusiness.getProviders()) {
+                if (pr.getIdentifier().startsWith("observationCsvCoriolisFile") && 
+                    pr.getConfig().contains(location)) {
+                    results.add(pr.getId());
+                }
+            }
+        }
+        return results;
     }
 }
