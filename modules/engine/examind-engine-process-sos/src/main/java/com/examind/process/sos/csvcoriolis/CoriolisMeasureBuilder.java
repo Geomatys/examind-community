@@ -138,6 +138,20 @@ public class CoriolisMeasureBuilder {
         List<Number> keys = new ArrayList<>(mmb.keySet());
         Collections.sort(keys, new MainColumnComparator());
         for (Number mainValue: keys) {
+            // verify that the line is not all NAN
+            boolean emptyLine = true;
+            for (Map.Entry<String, Double> entry2: mmb.get(mainValue).entrySet()) {
+                final String measureName = entry2.getKey();
+                if (measureFound.contains(measureName) && !entry2.getValue().isNaN()) {
+                    emptyLine = false;
+                    break;
+                }
+            }
+            if (emptyLine) {
+                continue;
+            }
+            
+            // write the data line
             if (isProfile) {
                 result.appendValue((Double)mainValue);
             } else {

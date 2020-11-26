@@ -32,6 +32,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
+import javax.validation.constraints.AssertTrue;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import org.constellation.admin.WSEngine;
@@ -1251,7 +1252,6 @@ public class SosHarvesterProcessTest {
          */
         GetResultResponseType gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
         String expectedResult = getResourceAsString("com/examind/process/sos/bigdata-datablock-values.txt");
-        System.out.println(gr.getResultValues().toString());
         Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
 
         GetHistoricalLocations hl = new GetHistoricalLocations();
@@ -1328,7 +1328,7 @@ public class SosHarvesterProcessTest {
         in.parameter(SosHarvesterProcessDescriptor.TYPE_COLUMN_NAME).setValue("file_type");
 
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Profile");
-        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_ID_NAME).setValue(null);
+        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_ID_NAME).setValue("urn:template:");
         in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_COLUMN_NAME).setValue("platform_code");
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(true);
         in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
@@ -1340,13 +1340,16 @@ public class SosHarvesterProcessTest {
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
 
         // verify that the sensors has been created
-        Assert.assertNotNull(sensorBusiness.getSensor("1901290"));
-        Assert.assertNotNull(sensorBusiness.getSensor("1901689"));
-        Assert.assertNotNull(sensorBusiness.getSensor("1901710"));
+        Assert.assertNotNull(sensorBusiness.getSensor("urn:template:1901290"));
+        Assert.assertNotNull(sensorBusiness.getSensor("urn:template:1901689"));
+        Assert.assertNotNull(sensorBusiness.getSensor("urn:template:1901710"));
+        
+        
+        Assert.assertNull(sensorBusiness.getSensor("urn:template:666999"));
 
         Assert.assertEquals(11, getNbOffering(worker, prev));
 
-        ObservationOffering offp = getOffering(worker, "1901290");
+        ObservationOffering offp = getOffering(worker, "urn:template:1901290");
         Assert.assertNotNull(offp);
 
         Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
@@ -1381,11 +1384,10 @@ public class SosHarvesterProcessTest {
          */
         GetResultResponseType gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
         String expectedResult = getResourceAsString("com/examind/process/sos/bigdata-datablock-values.txt");
-        System.out.println(gr.getResultValues().toString());
         Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
 
         GetHistoricalLocations hl = new GetHistoricalLocations();
-        hl.getExtraFilter().put("procedure", "1901290");
+        hl.getExtraFilter().put("procedure", "urn:template:1901290");
         hl.getExpand().add("Locations");
         HistoricalLocationsResponse response = stsWorker.getHistoricalLocations(hl);
         
@@ -1403,14 +1405,14 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(-61.4234, pt1.getCoordinates()[1], 0);
         Assert.assertEquals(68.2395, pt1.getCoordinates()[0], 0);
         
-        int nbMeasure = getNbMeasure(stsWorker, "1901290");
+        int nbMeasure = getNbMeasure(stsWorker, "urn:template:1901290");
         Assert.assertEquals(68, nbMeasure);
         
        /*
         * second
         */
         
-        offp = getOffering(worker, "1901689");
+        offp = getOffering(worker, "urn:template:1901689");
         Assert.assertNotNull(offp);
 
         Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
@@ -1445,11 +1447,10 @@ public class SosHarvesterProcessTest {
          */
         gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
         expectedResult = getResourceAsString("com/examind/process/sos/bigdata-datablock-values-4.txt");
-        System.out.println(gr.getResultValues().toString());
         Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
 
         hl = new GetHistoricalLocations();
-        hl.getExtraFilter().put("procedure", "1901689");
+        hl.getExtraFilter().put("procedure", "urn:template:1901689");
         hl.getExpand().add("Locations");
         response = stsWorker.getHistoricalLocations(hl);
         
@@ -1465,8 +1466,25 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(5.92986, pt1.getCoordinates()[1], 0);
         Assert.assertEquals(-25.92446, pt1.getCoordinates()[0], 0);
         
-        nbMeasure = getNbMeasure(stsWorker, "1901689");
+        nbMeasure = getNbMeasure(stsWorker, "urn:template:1901689");
         Assert.assertEquals(503, nbMeasure);
+        
+        // verify that all the sensors have at least one of the two observed properties
+        List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(sc.getId(), null);
+        for (String sid : sensorIds) {
+            if (sid.startsWith("urn:template:")) {
+                List<String> obsProp = getObservedProperties(stsWorker, sid);
+                boolean ok = obsProp.contains("measure1") || obsProp.contains("measure2") || obsProp.contains("measure3");
+                String msg = "";
+                if (!ok) {
+                    msg = sid + " observed properties missing:\n";
+                    for (String o : obsProp) {
+                        msg = msg + o + '\n';
+                    }
+                }
+                Assert.assertTrue(msg, ok);
+            }
+        }
     }
     
     @Test
@@ -1532,7 +1550,10 @@ public class SosHarvesterProcessTest {
         Assert.assertNotNull(sensorBusiness.getSensor("urn:template:1501563"));
         Assert.assertNotNull(sensorBusiness.getSensor("urn:template:1501564"));
         
-        Assert.assertEquals(308, getNbOffering(sosWorker, prev));
+        // not matching the measure
+        Assert.assertNull(sensorBusiness.getSensor("urn:template:1301603"));
+        
+        Assert.assertEquals(301, getNbOffering(sosWorker, prev));
         
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
@@ -1703,6 +1724,23 @@ public class SosHarvesterProcessTest {
         nbMeasure = getNbMeasure(stsWorker, "urn:template:2100914");
         Assert.assertEquals(4, nbMeasure);
         
+        // verify that all the sensors have at least one of the two observed properties
+        List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(sc.getId(), null);
+        for (String sid : sensorIds) {
+            if (sid.startsWith("urn:template:")) {
+                List<String> obsProp = getObservedProperties(stsWorker, sid);
+                boolean ok = obsProp.contains("measure1") || obsProp.contains("measure2");
+                String msg = "";
+                if (!ok) {
+                    msg = sid + " observed properties missing:\n";
+                    for (String o : obsProp) {
+                        msg = msg + o + '\n';
+                    }
+                }
+                Assert.assertTrue(msg, ok);
+            }
+        }
+        
     }
     
     @Test
@@ -1771,7 +1809,10 @@ public class SosHarvesterProcessTest {
         Assert.assertNotNull(sensorBusiness.getSensor("1501563"));
         Assert.assertNotNull(sensorBusiness.getSensor("1501564"));
         
-        Assert.assertEquals(319, getNbOffering(sosWorker, prev));
+        // not matching the measure
+        Assert.assertNull(sensorBusiness.getSensor("urn:template:1301603"));
+        
+        Assert.assertEquals(312, getNbOffering(sosWorker, prev));
         
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 

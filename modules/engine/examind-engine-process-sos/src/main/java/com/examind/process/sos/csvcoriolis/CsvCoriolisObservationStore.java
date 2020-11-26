@@ -389,15 +389,20 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                     // checks if row matches the observed data types
                     if (!line[typeColumnIndex].equals(obsTypeCode)) continue;
                     
+                    // look for current procedure (for observation separation)
+                    if (procIndex != -1) {
+                        currentProc = procedureId + line[procIndex];
+                        if (!currentProc.equals(affectedSensorId)) {
+                            LOGGER.finer("skipping line due to none specified sensor related.");
+                            continue;
+                        }
+                    }
+                    
                     // look for current foi (for observation separation)
                     if (foiIndex != -1) {
                         currentFoi = line[foiIndex];
                     }
 
-                    // look for current procedure (for observation separation)
-                    if (procIndex != -1) {
-                        currentProc = procedureId + line[procIndex];
-                    }
 
                     // look for current date (for non timeseries observation separation)
                     if (dateIndex != mainIndex) {
@@ -420,26 +425,23 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                             procedureID = previousProc;
                         }
 
-                        if (procedureID.equals(affectedSensorId)) {
-                            
-                            final String oid = fileName + '-' + obsCpt;
-                            obsCpt++;
-                        
-                            // sampling feature of interest
-                            String foiID = previousFoi != null ? previousFoi : "foi-" + UUID.randomUUID();
-                            final SamplingFeature sp = buildFOIByGeom(foiID, positions, samplingFeatures);
-                            
-                            // On extrait les types de mesure trouvées dans la donnée
-                            measureColumnFound.addAll(mmb.getMeasureFromMap());
-                            // Construction du measureStringBuilder à partir des données collectées dans le hashmap
-                            MeasureStringBuilder msb = mmb.buildMeasureStringBuilderFromMap(measureColumnFound, obsTypeCode.equals("PR"));
-                            
-                            buildObservation(result, procedureID, oid, sp, measureColumnFound, sortedMeasureColumns, phenomenons, currentCount, currentSpaBound, msb, historicalPositions);
-                            
-                        } else {
-                            LOGGER.finer("observation excluded from extraction. procedure does not match " + affectedSensorId);
+                        final String oid = fileName + '-' + obsCpt;
+                        obsCpt++;
+
+                        // sampling feature of interest
+                        String foiID = previousFoi != null ? previousFoi : "foi-" + UUID.randomUUID();
+                        final SamplingFeature sp = buildFOIByGeom(foiID, positions, samplingFeatures);
+                        if (!samplingFeatures.contains(sp)) {
+                            samplingFeatures.add(sp);
                         }
 
+                        // On extrait les types de mesure trouvées dans la donnée
+                        measureColumnFound.addAll(mmb.getMeasureFromMap());
+                        // Construction du measureStringBuilder à partir des données collectées dans le hashmap
+                        MeasureStringBuilder msb = mmb.buildMeasureStringBuilderFromMap(measureColumnFound, obsTypeCode.equals("PR"));
+
+                        buildObservation(result, procedureID, oid, sp, measureColumnFound, sortedMeasureColumns, phenomenons, currentCount, currentSpaBound, msb, historicalPositions);
+                            
                         // reset single observation related variables
                         currentCount    = 0;
                         currentSpaBound = new GeoSpatialBound();
@@ -519,22 +521,23 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                     procedureID = previousProc;
                 }
 
-                if (procedureID.equals(affectedSensorId)) {
-                    final String oid = fileName + '-' + obsCpt;
-                    obsCpt++;
-                
-                    // sampling feature of interest
-                    String foiID = previousFoi != null ? previousFoi : "foi-" + UUID.randomUUID();
-                    final SamplingFeature sp = buildFOIByGeom(foiID, positions, samplingFeatures);
-                    
-                    // On extrait les types de mesure trouvées dans la donnée
-                    measureColumnFound.addAll(mmb.getMeasureFromMap());
-                    // Construction du measureStringBuilder à partir des données collectées dans le hashmap
-                    MeasureStringBuilder msb = mmb.buildMeasureStringBuilderFromMap(measureColumnFound, obsTypeCode.equals("PR"));
+                final String oid = fileName + '-' + obsCpt;
+                obsCpt++;
 
-                    buildObservation(result, procedureID, oid, sp, measureColumnFound, sortedMeasureColumns, phenomenons, currentCount, currentSpaBound, msb, historicalPositions);
+                // sampling feature of interest
+                String foiID = previousFoi != null ? previousFoi : "foi-" + UUID.randomUUID();
+                final SamplingFeature sp = buildFOIByGeom(foiID, positions, samplingFeatures);
+                if (!samplingFeatures.contains(sp)) {
+                    samplingFeatures.add(sp);
                 }
 
+                // On extrait les types de mesure trouvées dans la donnée
+                measureColumnFound.addAll(mmb.getMeasureFromMap());
+                // Construction du measureStringBuilder à partir des données collectées dans le hashmap
+                MeasureStringBuilder msb = mmb.buildMeasureStringBuilderFromMap(measureColumnFound, obsTypeCode.equals("PR"));
+
+                buildObservation(result, procedureID, oid, sp, measureColumnFound, sortedMeasureColumns, phenomenons, currentCount, currentSpaBound, msb, historicalPositions);
+                
                 return result;
             }
             throw new DataStoreException("csv headers not found");
@@ -568,6 +571,12 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                 uom  = null;
             }
             fields.add(new Field(name, null, 1, "", null, uom));
+        }
+        
+        if (filteredMeasure.isEmpty() ||
+            ("Profile".equals(observationType) && filteredMeasure.size() == 1)) {
+            LOGGER.log(Level.FINE, "no measure available for {0}", procedureID);
+            return;
         }
 
         Phenomenon phenomenon = OMUtils.getPhenomenon("2.0.0", fields, "", phenomenons);

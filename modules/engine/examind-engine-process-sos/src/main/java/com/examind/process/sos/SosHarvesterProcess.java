@@ -100,7 +100,9 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
     @Autowired
     private SensorServiceBusiness sensorServBusiness;
-
+    
+    private double progress;
+    
     public SosHarvesterProcess(final ProcessDescriptor desc, final ParameterValueGroup input) {
         super(desc,input);
     }
@@ -109,6 +111,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
     protected void execute() throws ProcessException {
         LOGGER.info("executing sos insertion process");
 
+        this.progress = 0.0;
+        
         /*
         0- Paramètres fixés
         =================*/
@@ -199,7 +203,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
         // remove previous integration
         if (removePrevious) {
-            fireAndLog("Removing previous integration");
+            fireAndLog("Removing previous integration", 0);
             try {
                 Set<Integer> providers = new HashSet<>();
                 List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(ds, Integer.MAX_VALUE);
@@ -373,13 +377,21 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         ===========================================================================*/
 
         try {
+            double byData = 100.0 / dataToIntegrate.size();
             for (final Integer dataId : dataToIntegrate) {
 
                 List<Integer> ids = generateSensorML(dataId);
+                double bySensor = byData / ids.size();
 
                 // ajout d'un capteur au services
                 for (Integer sensorID : ids) {
-                    nbObsInserted = nbObsInserted + importSensor(services, sensorID, dataId);
+                    int currentNbObs = importSensor(services, sensorID, dataId, bySensor);
+                    
+                    // nothing usable in this sensor
+                    if (currentNbObs == 0) {
+                        sensorBusiness.delete(sensorID);
+                    }
+                    nbObsInserted = nbObsInserted + currentNbObs;
                 }
             }
             
@@ -436,12 +448,13 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         return provider.getFeatureOfInterest(subquery, Collections.singletonMap("version", "2.0.0"));
     }
 
-    private int importSensor(final List<ServiceProcessReference> sosRefs, final Integer sensorID, final int dataId) throws ConfigurationException, ConstellationStoreException {
+    private int importSensor(final List<ServiceProcessReference> sosRefs, final Integer sensorID, final int dataId, final double bySensor) throws ConfigurationException, ConstellationStoreException {
         int nbObservationInserted                   = 0;
         final Sensor sensor                         = sensorBusiness.getSensor(sensorID);
         final List<Sensor> sensorChildren           = sensorBusiness.getChildren(sensor.getParent());
         final List<ObservationProvider> treated     = new ArrayList<>();
-
+        final double byInsert                       = bySensor / sosRefs.size();
+        
         for (ServiceProcessReference sosRef : sosRefs) {
             final ObservationProvider omServiceProvider = getOMProvider(sosRef.getId());
             final List<String> alreadyLinked            = sensorBusiness.getLinkedSensorIdentifiers(sosRef.getId(), null);
@@ -452,20 +465,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
             providerIDs.add(dataBusiness.getDataProvider(dataId));
 
-            // import main sensor
-            if (!alreadyLinked.contains(sensor.getIdentifier())) {
-                sensorBusiness.addSensorToService(sosRef.getId(), sensorID);
-            }
-             sensorIds.add(sensor.getIdentifier());
-
-            //import sensor children
-            for (Sensor child : sensorChildren) {
-                providerIDs.addAll(sensorBusiness.getLinkedDataProviderIds(child.getId()));
-                if (!alreadyLinked.contains(sensor.getIdentifier())) {
-                    sensorBusiness.addSensorToService(sosRef.getId(), child.getId());
-                }
-                sensorIds.add(child.getIdentifier());
-            }
+            addToService(sosRef.getId(), sensor, sensorChildren, alreadyLinked);
 
             boolean alreadyInserted = false;
             for (ObservationProvider o : treated) {
@@ -476,6 +476,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
             // import observations
             if (!alreadyInserted) {
+                boolean hasObservation = false;
                 for (Integer providerId : providerIDs) {
                     final DataProvider provider;
                     try {
@@ -483,7 +484,11 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                         if (provider instanceof ObservationProvider) {
                             ObservationProvider omProvider = (ObservationProvider) provider;
                             final ExtractionResult result = omProvider.extractResults(sensor.getIdentifier(), sensorIds, existingPhenomenons, existingFois);
+                            if (result.getObservations().isEmpty()) {
+                                continue;
+                            }
 
+                            hasObservation = true;
                             existingPhenomenons.addAll(result.getPhenomenons());
                             existingFois.addAll(result.getFeatureOfInterest());
 
@@ -503,13 +508,18 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                         LOGGER.warning(ex.getMessage());
                     }
                 }
+                
+                // the sensor has not any observations so we remove it from the service
+                if (!hasObservation) {
+                    removeFromService(sosRef.getId(), sensor, sensorChildren, alreadyLinked);
+                }
                 treated.add(omServiceProvider);
             }
-            fireAndLog(String.format("ajout du capteur %s au service %s", sensorID, sosRef.getName()));
+            fireAndLog(String.format("ajout du capteur %s au service %s", sensorID, sosRef.getName()), byInsert);
         }
         return nbObservationInserted;
     }
-
+    
     protected ObservationProvider getOMProvider(final Integer serviceID) throws ConfigurationException {
         final List<Integer> providers = serviceBusiness.getLinkedProviders(serviceID);
         for (Integer providerID : providers) {
@@ -545,8 +555,39 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
     }
     
-    private void fireAndLog(final String msg) {
+    private List<String> addToService(int servId, final Sensor sensor, List<Sensor> sensorChildren, final List<String> alreadyLinked) {
+        final List<String> sensorIds = new ArrayList<>();
+        // import main sensor
+        if (!alreadyLinked.contains(sensor.getIdentifier())) {
+            sensorBusiness.addSensorToService(servId, sensor.getId());
+        }
+        sensorIds.add(sensor.getIdentifier());
+
+        //import sensor children
+        for (Sensor child : sensorChildren) {
+            if (!alreadyLinked.contains(child.getIdentifier())) {
+                sensorBusiness.addSensorToService(servId, child.getId());
+            }
+            sensorIds.add(child.getIdentifier());
+        }
+        return sensorIds;
+    }
+    
+    private void removeFromService(int servId, final Sensor sensor, List<Sensor> sensorChildren, final List<String> alreadyLinked) {
+        // if the sensor was previouly present in the service we let it
+        if (!alreadyLinked.contains(sensor.getIdentifier())) {
+            sensorBusiness.removeSensorFromService(servId, sensor.getId());
+        }
+        for (Sensor child : sensorChildren) {
+            if (!alreadyLinked.contains(child.getIdentifier())) {
+                sensorBusiness.removeSensorFromService(servId, child.getId());
+            }
+        }
+    }
+    
+    private void fireAndLog(final String msg, double progress) {
         LOGGER.info(msg);
-        fireProgressing(msg, 0, false);
+        this.progress = this.progress + progress;
+        fireProgressing(msg, (float) this.progress, false);
     }
 }
