@@ -25,11 +25,9 @@ import java.util.Date;
 import java.util.List;
 import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.referencing.CommonCRS;
-import org.constellation.exception.ConstellationStoreException;
 import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.gml.xml.GMLXmlFactory;
-import org.geotoolkit.gml.xml.v321.EnvelopeType;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
@@ -45,11 +43,9 @@ import org.opengis.temporal.TemporalObject;
  * @author Guilhem Legal (Geomatys)
  */
 public class OdataFilterParser {
-    private final SensorWorker worker;
     private final FilterFactory ff;
 
-    public OdataFilterParser(SensorWorker worker) {
-        this.worker = worker;
+    public OdataFilterParser() {
         this.ff = DefaultFactories.forBuildin(FilterFactory.class);
     }
 
@@ -105,25 +101,7 @@ public class OdataFilterParser {
                     Geometry geom = reader.read(geomStr);
                     geom.setUserData(CommonCRS.WGS84.geographic());
                     Envelope e = JTS.toEnvelope(geom);
-                    try {
-                        if (worker.getProviderCapabilities().isBoundedObservation) {
-                            return ((FilterFactory2) ff).bbox(ff.property("location"), e);
-                        } else {
-                            org.geotoolkit.gml.xml.Envelope gmlEnv = new EnvelopeType(e);
-                            List<String> fois = worker.getFeaturesOfInterestForBBOX((String) null, gmlEnv, "2.0.0");
-                            if (!fois.isEmpty()) {
-                                List<Filter> results = new ArrayList<>();
-                                for (String foi : fois) {
-                                    results.add(ff.equals(ff.property("featureOfInterest"), ff.literal(foi)));
-                                }
-                                return ff.or(results);
-                            } else {
-                                return ff.equals(ff.property("featureOfInterest"), ff.literal("unexisting-foi"));
-                            }
-                        }
-                    } catch (ConstellationStoreException ex) {
-                        throw new CstlServiceException(ex);
-                    }
+                    return ((FilterFactory2) ff).bbox(ff.property("location"), e);
                 } catch (ParseException ex) {
                     throw new CstlServiceException("malformed spatial filter geometry", INVALID_PARAMETER_VALUE, "FILTER");
                 }

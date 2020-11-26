@@ -30,6 +30,7 @@ import org.constellation.dto.service.config.sos.Offering;
 import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
 import org.constellation.exception.ConstellationStoreException;
+import org.opengis.geometry.Envelope;
 import org.opengis.geometry.Geometry;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
@@ -50,7 +51,7 @@ public interface ObservationProvider extends DataProvider {
     Collection<String> getPhenomenonNames(Query query, final Map<String,String> hints) throws ConstellationStoreException;
 
     Collection<String> getFeatureOfInterestNames(Query query, final Map<String,String> hints) throws ConstellationStoreException;
-
+    
     Collection<String> getObservationNames(Query query, QName resultModel, String responseMode, final Map<String,String> hints) throws ConstellationStoreException;
 
     List<ProcedureTree> getProcedureTrees(Query query, final Map<String,String> hints) throws ConstellationStoreException;
@@ -118,4 +119,11 @@ public interface ObservationProvider extends DataProvider {
     ExtractionResult extractResults() throws ConstellationStoreException;
     ExtractionResult extractResults(final String affectedSensorID, final List<String> sensorIds) throws ConstellationStoreException;
     ExtractionResult extractResults(final String affectedSensorID, final List<String> sensorIds, final Set<Phenomenon> existingPhenomenons, final Set<SamplingFeature> existingSamplingFeatures) throws ConstellationStoreException;
+    
+   /*
+    * The following 3 method will be removed and replace by the existing getFeatureOfInterestNames / getFeatureOfInterest with query
+    */
+    List<String> getFeaturesOfInterestForBBOX(List<String> offerings, final Envelope e, String version) throws ConstellationStoreException;
+    List<String> getFeaturesOfInterestForBBOX(String offname, final Envelope e, String version) throws ConstellationStoreException;
+    List<SamplingFeature> getFullFeaturesOfInterestForBBOX(String offname, final org.opengis.geometry.Envelope e, String version) throws ConstellationStoreException;
 }

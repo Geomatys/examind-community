@@ -18,16 +18,13 @@
  */
 package com.examind.sensor.ws;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
 import org.apache.sis.internal.storage.query.SimpleQuery;
 import org.apache.sis.internal.system.DefaultFactories;
 import org.constellation.api.ServiceDef;
 import org.constellation.business.ISensorBusiness;
-import org.constellation.dto.service.config.sos.Offering;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationStoreException;
@@ -35,17 +32,11 @@ import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.ObservationProvider;
 import org.constellation.provider.SensorProvider;
-import static com.examind.sensor.ws.SensorUtils.BoundMatchEnvelope;
-import static com.examind.sensor.ws.SensorUtils.getIDFromObject;
-import static com.examind.sensor.ws.SensorUtils.samplingPointMatchEnvelope;
 import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
 import org.constellation.ws.AbstractWorker;
-import org.geotoolkit.gml.xml.AbstractFeature;
-import org.geotoolkit.gml.xml.Envelope;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.Id;
 import org.opengis.filter.PropertyIsEqualTo;
-import org.opengis.geometry.primitive.Point;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.Process;
 import org.opengis.observation.sampling.SamplingFeature;
@@ -156,69 +147,8 @@ public abstract class SensorWorker extends AbstractWorker {
         }
     }
 
-    protected List<SamplingFeature> getFeaturesOfInterest(String version) throws ConstellationStoreException {
-        final SimpleQuery subquery = new SimpleQuery();
-        return omProvider.getFeatureOfInterest(subquery, Collections.singletonMap("version", version));
-    }
-
-    protected List<String> getFeaturesOfInterestForBBOX(List<Offering> offerings, final Envelope e, String version) throws ConstellationStoreException {
-        List<String> results = new ArrayList<>();
-        for (Offering off : offerings) {
-            results.addAll(getFeaturesOfInterestForBBOX(off.getId(), e, version));
-        }
-        return results;
-    }
-
-   /**
-    * TODO set protected (Filter parser issue).
-    */
-    public SOSProviderCapabilities getProviderCapabilities() throws ConstellationStoreException {
+    protected SOSProviderCapabilities getProviderCapabilities() throws ConstellationStoreException {
         return omProvider.getCapabilities();
-    }
-
-    /**
-    * TODO set protected (Filter parser issue).
-    */
-    public List<String> getFeaturesOfInterestForBBOX(String offname, final Envelope e, String version) throws ConstellationStoreException {
-        List<String> results = new ArrayList<>();
-        final List<SamplingFeature> stations = new ArrayList<>();
-        if (offname != null) {
-            stations.addAll(getFeaturesOfInterestForOffering(offname, version));
-        } else {
-            stations.addAll(getFeaturesOfInterest(version));
-        }
-        for (SamplingFeature offStation : stations) {
-            // TODO for SOS 2.0 use observed area
-            final org.geotoolkit.sampling.xml.SamplingFeature station = (org.geotoolkit.sampling.xml.SamplingFeature) offStation;
-
-            // should not happen
-            if (station == null) {
-                throw new ConstellationStoreException("the feature of interest is in offering list but not registered");
-            }
-            if (station.getGeometry() instanceof Point) {
-                if (samplingPointMatchEnvelope((Point) station.getGeometry(), e)) {
-                    results.add(getIDFromObject(station));
-                } else {
-                    LOGGER.log(Level.FINER, " the feature of interest {0} is not in the BBOX", getIDFromObject(station));
-                }
-
-            } else if (station instanceof AbstractFeature) {
-                final AbstractFeature sc = (AbstractFeature) station;
-                if (BoundMatchEnvelope(sc, e)) {
-                    results.add(sc.getId());
-                }
-            } else {
-                LOGGER.log(Level.WARNING, "unknow implementation:{0}", station.getClass().getName());
-            }
-        }
-        return results;
-    }
-
-    private List<SamplingFeature> getFeaturesOfInterestForOffering(String offname, String version) throws ConstellationStoreException {
-        final SimpleQuery subquery = new SimpleQuery();
-        final PropertyIsEqualTo filter = ff.equals(ff.property("offering"), ff.literal(offname));
-        subquery.setFilter(filter);
-        return omProvider.getFeatureOfInterest(subquery, Collections.singletonMap("version", version));
     }
 
     protected List<Process> getProcedureForOffering(String offname, String version) throws ConstellationStoreException {

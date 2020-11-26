@@ -302,7 +302,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         }
 
         if (req.getFilter() != null) {
-            OdataFilterParser parser = new OdataFilterParser(this);
+            OdataFilterParser parser = new OdataFilterParser();
             filters.add(parser.parserFilter(req.getFilter()));
 
         }

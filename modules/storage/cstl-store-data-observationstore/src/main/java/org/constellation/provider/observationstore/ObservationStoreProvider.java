@@ -33,9 +33,11 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 import org.apache.sis.internal.storage.ResourceOnFileSystem;
 import org.apache.sis.internal.storage.query.SimpleQuery;
+import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
@@ -58,13 +60,13 @@ import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.ObservationProvider;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.Envelope;
-import org.geotoolkit.gml.xml.v321.EnvelopeType;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.observation.model.ObservationTemplate;
 import org.constellation.dto.service.config.sos.ExtractionResult;
 import org.geotoolkit.gml.GMLUtilities;
+import org.geotoolkit.gml.xml.AbstractFeature;
 import org.geotoolkit.sos.netcdf.GeoSpatialBound;
 import org.geotoolkit.sos.xml.ObservationOffering;
 import org.geotoolkit.sos.xml.ResponseModeType;
@@ -79,6 +81,7 @@ import org.opengis.filter.Id;
 import org.opengis.filter.And;
 import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.Filter;
+import org.opengis.filter.FilterFactory;
 import org.opengis.filter.Or;
 import org.opengis.filter.PropertyIsEqualTo;
 import org.opengis.filter.expression.Literal;
@@ -86,6 +89,7 @@ import org.opengis.filter.expression.PropertyName;
 import org.opengis.filter.spatial.BBOX;
 import org.opengis.filter.temporal.BinaryTemporalOperator;
 import org.opengis.geometry.Geometry;
+import org.opengis.geometry.primitive.Point;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.Process;
@@ -96,6 +100,7 @@ import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.util.GenericName;
+import static org.constellation.provider.observationstore.ObservationProviderUtils.*;
 
 /**
  *
@@ -349,6 +354,66 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             throw new ConstellationStoreException(ex);
         }
     }
+    
+    @Override
+    public List<String> getFeaturesOfInterestForBBOX(List<String> offerings, final org.opengis.geometry.Envelope e, String version) throws ConstellationStoreException {
+        List<String> results = new ArrayList<>();
+        for (String off : offerings) {
+            results.addAll(getFeaturesOfInterestForBBOX(off, e, version));
+        }
+        return results;
+    }
+    
+    @Override
+    public List<SamplingFeature> getFullFeaturesOfInterestForBBOX(String offname, final org.opengis.geometry.Envelope env, String version) throws ConstellationStoreException {
+        final Envelope e = getOrCastEnvelope(env);
+        List<SamplingFeature> results = new ArrayList<>();
+        final List<SamplingFeature> stations = new ArrayList<>();
+        if (offname != null) {
+            stations.addAll(getFeaturesOfInterestForOffering(offname, version));
+        } else {
+            stations.addAll(getFeatureOfInterest(new SimpleQuery(), Collections.singletonMap("version", version)));
+        }
+        for (SamplingFeature offStation : stations) {
+            // TODO for SOS 2.0 use observed area
+            final org.geotoolkit.sampling.xml.SamplingFeature station = (org.geotoolkit.sampling.xml.SamplingFeature) offStation;
+
+            // should not happen
+            if (station == null) {
+                throw new ConstellationStoreException("the feature of interest is in offering list but not registered");
+            }
+            if (station.getGeometry() instanceof Point) {
+                if (samplingPointMatchEnvelope((Point) station.getGeometry(), e)) {
+                    results.add(station);
+                } else {
+                    LOGGER.log(Level.FINER, " the feature of interest {0} is not in the BBOX", getIDFromObject(station));
+                }
+
+            } else if (station instanceof AbstractFeature) {
+                final AbstractFeature sc = (AbstractFeature) station;
+                if (BoundMatchEnvelope(sc, e)) {
+                    results.add(station);
+                }
+            } else {
+                LOGGER.log(Level.WARNING, "unknow implementation:{0}", station.getClass().getName());
+            }
+        }
+        return results;
+    }
+    
+    @Override
+    public List<String> getFeaturesOfInterestForBBOX(String offname, final org.opengis.geometry.Envelope e, String version) throws ConstellationStoreException {
+        return getFullFeaturesOfInterestForBBOX(offname, e, version).stream().map(sp -> getIDFromObject(sp)).collect(Collectors.toList());
+    }
+    
+    private List<SamplingFeature> getFeaturesOfInterestForOffering(String offname, String version) throws ConstellationStoreException {
+        final SimpleQuery subquery = new SimpleQuery();
+        FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
+        final PropertyIsEqualTo filter = ff.equals(ff.property("offering"), ff.literal(offname));
+        subquery.setFilter(filter);
+        return getFeatureOfInterest(subquery, Collections.singletonMap("version", version));
+    }
+    
 
     @Override
     public Collection<String> getOfferingNames(Query q, final Map<String,String> hints) throws ConstellationStoreException {
@@ -980,24 +1045,29 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
         } else if (filter instanceof BBOX) {
             final BBOX bbox = (BBOX) filter;
             final Envelope env;
-            if (bbox.getExpression2() instanceof Envelope) {
-                env = (Envelope) bbox.getExpression2();
-            } else if (bbox.getExpression2() instanceof org.opengis.geometry.Envelope) {
-                env = new EnvelopeType((org.opengis.geometry.Envelope)bbox.getExpression2());
+            if (bbox.getExpression2() instanceof org.opengis.geometry.Envelope) {
+                env = getOrCastEnvelope((org.opengis.geometry.Envelope)bbox.getExpression2());
             } else if (bbox.getExpression2() instanceof Literal) {
                 Literal lit = (Literal) bbox.getExpression2();
-                if (lit.getValue() instanceof Envelope) {
-                    env = (Envelope) lit.getValue();
-                } else if (lit.getValue() instanceof org.opengis.geometry.Envelope) {
-                    env = new EnvelopeType((org.opengis.geometry.Envelope)lit.getValue());
+                if (lit.getValue() instanceof org.opengis.geometry.Envelope) {
+                    env = getOrCastEnvelope((org.opengis.geometry.Envelope)lit.getValue());
                 } else {
                     throw new ConstellationStoreException("Unexpected bbox expression type for geometry");
                 }
             } else {
                 throw new ConstellationStoreException("Unexpected bbox expression type for geometry");
             }
-            localOmFilter.setBoundingBox(env);
-
+            if (getCapabilities().isBoundedObservation) {
+                localOmFilter.setBoundingBox(env);
+            } else {
+                Collection<String> allfoi = getFeaturesOfInterestForBBOX((String)null, env, "2.0.0");
+                if (!allfoi.isEmpty()) {
+                    fois.addAll(allfoi);
+                } else {
+                   fois.add("unexisting-foi");
+                }
+            }
+            
         } else if (filter instanceof PropertyIsEqualTo) {
             final PropertyIsEqualTo ef = (PropertyIsEqualTo) filter;
             final PropertyName name    = (PropertyName) ef.getExpression1();
@@ -1045,7 +1115,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             throw new ConstellationStoreException("Unknow filter operation.\nAnother possibility is that the content of your time filter is empty or unrecognized.");
         }
     }
-
+    
     private String getVersionFromHints(Map<String, String> hints) {
         String version = "2.0.0";
         if (hints != null) {

@@ -18,8 +18,6 @@
  */
 package org.constellation.sos.core;
 
-// JDK dependencies
-
 import com.examind.sensor.ws.SensorWorker;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -72,12 +70,9 @@ import static org.constellation.sos.core.SOSConstants.SOS_FILTER_CAPABILITIES_V2
 import static org.constellation.sos.core.SOSConstants.SUPPORTED_FOI_TYPES;
 import static org.constellation.sos.core.SOSConstants.SUPPORTED_OBS_TYPES;
 import static org.constellation.api.ServiceConstants.*;
-import static com.examind.sensor.ws.SensorUtils.BoundMatchEnvelope;
 import static com.examind.sensor.ws.SensorUtils.extractTimeBounds;
 import static com.examind.sensor.ws.SensorUtils.getCollectionBound;
-import static com.examind.sensor.ws.SensorUtils.getIDFromObject;
 import static com.examind.sensor.ws.SensorUtils.isCompleteEnvelope3D;
-import static com.examind.sensor.ws.SensorUtils.samplingPointMatchEnvelope;
 import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V100;
 import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V200;
 import org.constellation.sos.legacy.SensorConfigurationUpgrade;
@@ -166,6 +161,7 @@ import org.constellation.dto.service.config.sos.Offering;
 import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
 import org.constellation.exception.ConstellationStoreException;
 import com.examind.sensor.ws.SensorUtils;
+import java.util.stream.Collectors;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildOffering;
 import org.geotoolkit.swe.xml.AbstractDataComponent;
@@ -209,7 +205,6 @@ import org.opengis.filter.temporal.TContains;
 import org.opengis.filter.temporal.TEquals;
 import org.opengis.filter.temporal.TOverlaps;
 import org.opengis.geometry.Geometry;
-import org.opengis.geometry.primitive.Point;
 import org.opengis.observation.Measurement;
 import org.opengis.observation.Observation;
 import org.opengis.observation.ObservationCollection;
@@ -999,7 +994,7 @@ public class SOSworker extends SensorWorker {
                         if (pc.isBoundedObservation) {
                             bboxFilter = (BBOX)requestObservation.getSpatialFilter();
                         } else {
-                            final List<String> matchingFeatureOfInterest = getFeaturesOfInterestForBBOX(offerings, e, currentVersion);
+                            final List<String> matchingFeatureOfInterest = omProvider.getFeaturesOfInterestForBBOX(offerings.stream().map(off -> off.getId()).collect(Collectors.toList()), e, currentVersion);
                             if (!matchingFeatureOfInterest.isEmpty()) {
                                 featureOfInterest.addAll(matchingFeatureOfInterest);
                             // if there is no matching FOI we must return an empty result
@@ -1249,7 +1244,7 @@ public class SOSworker extends SensorWorker {
                         if (pc.isBoundedObservation) {
                             bboxFilter = (BBOX)request.getSpatialFilter();
                         } else {
-                            fois.addAll(getFeaturesOfInterestForBBOX(offering, e, currentVersion));
+                            fois.addAll(omProvider.getFeaturesOfInterestForBBOX(offering, e, currentVersion));
                         }
                     } else {
                         throw new CstlServiceException("the envelope is not build correctly", INVALID_PARAMETER_VALUE);
@@ -1626,29 +1621,7 @@ public class SOSworker extends SensorWorker {
     private List<SamplingFeature> spatialFiltering(final BBOX bbox, final String currentVersion) throws ConstellationStoreException, CstlServiceException {
         final Envelope e = getEnvelopeFromBBOX(currentVersion, bbox);
         if (e != null && e.isCompleteEnvelope2D()) {
-
-            final List<SamplingFeature> matchingFeatureOfInterest = new ArrayList<>();
-            final List<SamplingFeature> featureOfInterests        = omProvider.getFeatureOfInterest(new SimpleQuery(), Collections.singletonMap("version", currentVersion));
-            for (SamplingFeature foi : featureOfInterests) {
-                // TODO for SOS 2.0 use observed area
-                final org.geotoolkit.sampling.xml.SamplingFeature station = (org.geotoolkit.sampling.xml.SamplingFeature) foi;
-                if (station.getGeometry() instanceof Point) {
-                    if (samplingPointMatchEnvelope((Point)station.getGeometry(), e)) {
-                        matchingFeatureOfInterest.add(station);
-                    } else {
-                        LOGGER.log(Level.FINER, " the feature of interest {0} is not in the BBOX", getIDFromObject(station));
-                    }
-                } else if (station instanceof AbstractFeature) {
-                    if (BoundMatchEnvelope((AbstractFeature) station, e)) {
-                        matchingFeatureOfInterest.add(station);
-                    } else {
-                        LOGGER.log(Level.FINER, " the feature of interest {0} is not in the BBOX", getIDFromObject(station));
-                    }
-                } else {
-                    LOGGER.log(Level.WARNING, "unknow implementation:{0}", station.getClass().getName());
-                }
-            }
-            return matchingFeatureOfInterest;
+            return omProvider.getFullFeaturesOfInterestForBBOX((String)null, e, currentVersion);
         } else {
             throw new CstlServiceException("the envelope is not build correctly", INVALID_PARAMETER_VALUE);
         }
