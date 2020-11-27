@@ -74,7 +74,7 @@
         <spring-boot.version>2.0.4.RELEASE</spring-boot.version>
         <spring-security.version>5.0.7.RELEASE</spring-security.version>
         <stax-utils.version>20060502</stax-utils.version>
-        <tika.version>1.6</tika.version>
+        <tika.version>1.22</tika.version>
         <validation-api.version>2.0.1.Final</validation-api.version>
         <woodstox.version>4.1.2</woodstox.version>
         <xstream.version>1.4.9</xstream.version>
