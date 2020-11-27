@@ -66,6 +66,7 @@ import org.geotoolkit.swe.xml.DataArrayProperty;
 import org.geotoolkit.swe.xml.TextBlock;
 import org.locationtech.jts.geom.GeometryCollection;
 import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Polygon;
 import org.opengis.filter.expression.Literal;
 import org.opengis.filter.temporal.After;
 import org.opengis.filter.temporal.Before;
@@ -1519,6 +1520,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
         request = request + " ORDER BY \"procedure\", \"time\"";
         request = appendPaginationToRequest(request, hints);
+        Polygon spaFilter = null;
+        if (envelopeFilter != null) {
+            spaFilter = JTS.toGeometry(envelopeFilter);
+        }
+        
         try(final Connection c = source.getConnection()) {
             Map<String, Map<Date, Geometry>> locations = new LinkedHashMap<>();
             try(final Statement currentStatement = c.createStatement();
@@ -1542,6 +1548,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         } else {
                             continue;
                         }
+                        // exclude from spatial filter
+                        if (spaFilter != null && !spaFilter.intersects(geom)) {
+                            continue;
+                        }
+                        
                         final AbstractGeometry gmlGeom = JTStoGeometry.toGML(gmlVersion, geom, crs);
 
                         final Map<Date, Geometry> procedureLocations;
@@ -1583,11 +1594,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         final Field timeField = new Field("Time", "time", null, null);
 
         //Envelope env = CRS.getDomainOfValidity(defaultCRS);
-        // tmp debug
-        GeneralEnvelope env = new GeneralEnvelope(defaultCRS);
-        env.setRange(1, -15, 0);
-        env.setRange(0, 40, 60);
-                
+        GeneralEnvelope env;
+        if (envelopeFilter != null) {
+            env = envelopeFilter;
+        } else {
+            env = new GeneralEnvelope(CRS.getDomainOfValidity(defaultCRS));
+        }
+        
         try (final Connection c = source.getConnection()) {
             
             
@@ -1597,13 +1610,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             final org.locationtech.jts.geom.Geometry[][] geoCells = new org.locationtech.jts.geom.Geometry[nbCell][nbCell];
             
             // prepare geometrie cells
-            double xStep = env.getSpan(1) / nbCell;
-            double yStep = env.getSpan(0) / nbCell;
+            double xStep = env.getSpan(0) / nbCell;
+            double yStep = env.getSpan(1) / nbCell;
             for (int i = 0; i < nbCell; i++) {
                 for (int j = 0; j < nbCell; j++) {
-                    double minx = env.getMinimum(1) + i*xStep;
+                    double minx = env.getMinimum(0) + i*xStep;
                     double maxx = minx + xStep;
-                    double miny = env.getMinimum(0) + j*yStep;
+                    double miny = env.getMinimum(1) + j*yStep;
                     double maxy = miny + yStep;
                     org.locationtech.jts.geom.Envelope cellEnv = new org.locationtech.jts.geom.Envelope(minx, maxx, miny, maxy);
                     geoCells[i][j] = JTS.toGeometry(cellEnv);
@@ -1650,13 +1663,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                             continue;
                         }
                         
-                        // find the correct cell where to put the geometry
-                        
                         // ajust the time index
-                        while (time.getTime() > (start + step)) {
+                        while (time.getTime() > (start + step) && tIndex != nbCell - 1) {
                             start = start + step;
                             tIndex++;
                         }
+                        
+                        // find the correct cell where to put the geometry
                         boolean cellFound = false;
                         csearch:for (int i = 0; i < nbCell; i++) {
                             for (int j = 0; j < nbCell; j++) {

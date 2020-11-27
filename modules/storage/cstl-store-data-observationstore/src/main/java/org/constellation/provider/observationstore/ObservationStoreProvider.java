@@ -1057,15 +1057,22 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             } else {
                 throw new ConstellationStoreException("Unexpected bbox expression type for geometry");
             }
-            if (getCapabilities().isBoundedObservation) {
-                localOmFilter.setBoundingBox(env);
-            } else {
-                Collection<String> allfoi = getFeaturesOfInterestForBBOX((String)null, env, "2.0.0");
-                if (!allfoi.isEmpty()) {
-                    fois.addAll(allfoi);
-                } else {
-                   fois.add("unexisting-foi");
-                }
+            
+            switch (mode) {
+                case GET_LOC:
+                    localOmFilter.setBoundingBox(env);
+                    break;
+                default:
+                    if (getCapabilities().isBoundedObservation) {
+                        localOmFilter.setBoundingBox(env);
+                    } else {
+                        Collection<String> allfoi = getFeaturesOfInterestForBBOX((String)null, env, "2.0.0");
+                        if (!allfoi.isEmpty()) {
+                            fois.addAll(allfoi);
+                        } else {
+                           fois.add("unexisting-foi");
+                        }
+                    }
             }
             
         } else if (filter instanceof PropertyIsEqualTo) {

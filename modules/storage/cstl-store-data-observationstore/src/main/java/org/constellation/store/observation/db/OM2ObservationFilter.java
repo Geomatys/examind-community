@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
+import org.apache.sis.geometry.GeneralEnvelope;
 
 import static org.constellation.api.CommonConstants.EVENT_TIME;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
@@ -103,6 +104,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     protected List<Integer> fieldFilters = new ArrayList<>();
 
     protected List<Integer> measureIdFilters = new ArrayList<>();
+    
+    protected GeneralEnvelope envelopeFilter = null;
 
     /**
      * Clone a new Observation Filter.
@@ -981,7 +984,11 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      */
     @Override
     public void setBoundingBox(final Envelope e) throws DataStoreException {
-        throw new DataStoreException("SetBoundingBox is not supported by this ObservationFilter implementation.");
+        if (getLoc) {
+            envelopeFilter = new GeneralEnvelope(e);
+        } else {
+            throw new DataStoreException("SetBoundingBox is not supported by this ObservationFilter implementation.");
+        }
     }
 
     /**
