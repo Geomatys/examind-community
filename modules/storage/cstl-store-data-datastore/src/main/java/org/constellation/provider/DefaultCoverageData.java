@@ -40,6 +40,8 @@ import org.apache.sis.coverage.grid.GridDerivation;
 import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.coverage.grid.IncompleteGridGeometryException;
+import org.apache.sis.geometry.Envelopes;
+import org.apache.sis.image.Interpolation;
 import org.apache.sis.internal.util.UnmodifiableArrayList;
 import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.measure.NumberRange;
@@ -147,24 +149,28 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
             final GridGeometry refGrid = getGeometry();
             final CoordinateReferenceSystem crs2D;
             final GridGeometry grid;
+            Envelope env2D = null;
             if (envelope != null) {
                 crs2D = CRS.getHorizontalComponent(envelope.getCoordinateReferenceSystem());
-                GridDerivation gd;
-                if (res != null) {
-                    gd = refGrid.derive().subgrid(envelope, res);
-                } else {
-                    gd = refGrid.derive().subgrid(envelope);
-                }
+                GridDerivation gd = refGrid.derive().subgrid(envelope, res);
                 gd = gd.sliceByRatio(0.5, 0, 1);
                 grid = gd.build();
+                env2D = Envelopes.transform(envelope, crs2D);
             } else {
                 crs2D = CRS.getHorizontalComponent(refGrid.getCoordinateReferenceSystem());
                 grid = refGrid;
             }
-
+            
             final GridCoverage cov = origin.read(grid);
+            GridGeometry resampleGrid;
+            if (env2D != null) {
+                resampleGrid = cov.getGridGeometry().derive().subgrid(env2D, res).build();
+            } else {
+                resampleGrid = new GridGeometry(null, PixelInCell.CELL_CENTER, null, crs2D);
+            }
             final GridCoverageProcessor processor = new GridCoverageProcessor();
-            return processor.resample(cov, new GridGeometry(null, PixelInCell.CELL_CENTER, null, crs2D));
+            processor.setInterpolation(Interpolation.NEAREST);
+            return processor.resample(cov, resampleGrid);
 
         } catch (Exception ex) {
             throw new ConstellationStoreException(ex.getMessage(), ex);

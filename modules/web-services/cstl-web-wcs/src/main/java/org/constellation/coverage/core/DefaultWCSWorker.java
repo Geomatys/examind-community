@@ -1098,19 +1098,23 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         final CoverageData data = (CoverageData) layer.getData();
         final SpatialMetadata metadata;
         final GridCoverageResource ref = (GridCoverageResource) data.getOrigin();
-        final GridGeometry gridGeometry;
-
+        final GeneralEnvelope readEnv;
         final CoordinateReferenceSystem crs;
         try {
-            gridGeometry = ref.getGridGeometry();
-            crs = gridGeometry.getCoordinateReferenceSystem();
+            if (ref.getEnvelope().isPresent()) {
+                readEnv = new GeneralEnvelope(ref.getEnvelope().get());
+                crs = readEnv.getCoordinateReferenceSystem();
+            } else {
+                final GridGeometry gridGeometry = ref.getGridGeometry();
+                readEnv = new GeneralEnvelope(gridGeometry.getEnvelope());
+                crs = gridGeometry.getCoordinateReferenceSystem();
+            }
             metadata = data.getSpatialMetadata();
         } catch (ConstellationStoreException | DataStoreException ex) {
             throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
         }
 
         //combine envelope with domain subset
-        final GeneralEnvelope readEnv = new GeneralEnvelope(gridGeometry.getEnvelope());
         if (!request.getDomainSubset().isEmpty()) {
 
             // trim / slice the envelope
