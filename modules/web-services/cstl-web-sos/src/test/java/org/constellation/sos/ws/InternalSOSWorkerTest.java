@@ -26,6 +26,8 @@ import javax.annotation.PostConstruct;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.Sensor;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
+import org.constellation.exception.ConfigurationException;
+import org.constellation.exception.ConstellationRuntimeException;
 import org.constellation.sos.core.SOSworker;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
@@ -84,7 +86,11 @@ public class InternalSOSWorkerTest extends SOSWorkerTest {
 
                 List<Sensor> sensors = sensorBusiness.getByProviderId(provider);
                 sensors.stream().forEach((sensor) -> {
-                    sensorBusiness.addSensorToService(sid, sensor.getId());
+                    try {
+                        sensorBusiness.addSensorToService(sid, sensor.getId());
+                    } catch (ConfigurationException ex) {
+                        throw new ConstellationRuntimeException(ex);
+                    }
                 });
 
                 init();

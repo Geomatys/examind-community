@@ -380,19 +380,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             double byData = 100.0 / dataToIntegrate.size();
             for (final Integer dataId : dataToIntegrate) {
 
-                List<Integer> ids = generateSensorML(dataId);
-                double bySensor = byData / ids.size();
-
-                // ajout d'un capteur au services
-                for (Integer sensorID : ids) {
-                    int currentNbObs = importSensor(services, sensorID, dataId, bySensor);
-                    
-                    // nothing usable in this sensor
-                    if (currentNbObs == 0) {
-                        sensorBusiness.delete(sensorID);
-                    }
+                    int currentNbObs = importSensor(services, dataId, byData);
                     nbObsInserted = nbObsInserted + currentNbObs;
-                }
             }
             
             // reload service at the end
@@ -400,7 +389,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                 serviceBusiness.restart(serv.getId());
             }
 
-        } catch (ConfigurationException | ConstellationStoreException | SQLException ex) {
+        } catch (ConfigurationException | ConstellationStoreException ex) {
             throw new ProcessException(ex.getMessage(), this, ex);
         }
 
@@ -420,52 +409,42 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         return dataToIntegrate;
     }
 
-    private List<Integer> generateSensorML(final int dataId) throws ConstellationStoreException, ConfigurationException, SQLException, ProcessException {
+    private List<String> listSensorInData(final int dataId) throws ConstellationStoreException, ConfigurationException {
 
         final Integer providerId    = dataBusiness.getDataProvider(dataId);
-        final Integer smlProviderId = sensorBusiness.getDefaultInternalProviderID();
         final DataProvider provider = DataProviders.getProvider(providerId);
-        final List<Integer> ids = new ArrayList<>();
+        final List<String> ids = new ArrayList<>();
 
         if (provider instanceof ObservationProvider) {
             final List<ProcedureTree> procedures = ((ObservationProvider)provider).getProcedureTrees(null, Collections.EMPTY_MAP);
 
             // SensorML generation
             for (final ProcedureTree process : procedures) {
-                ids.add(sensorBusiness.generateSensorForData(dataId, process, smlProviderId, null));
+                ids.add(process.getId());
             }
         } else {
-            throw new ProcessException("none observation store found", this);
+            throw new ConfigurationException("none observation store found");
         }
         return ids;
     }
-
-    private List<SamplingFeature> getFeatureOfInterestForProcedure(String procedure, ObservationProvider provider) throws ConstellationStoreException {
-        final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
-        final SimpleQuery subquery = new SimpleQuery();
-        final Filter filter = ff.equals(ff.property("procedure"), ff.literal(procedure));
-        subquery.setFilter(filter);
-        return provider.getFeatureOfInterest(subquery, Collections.singletonMap("version", "2.0.0"));
-    }
-
-    private int importSensor(final List<ServiceProcessReference> sosRefs, final Integer sensorID, final int dataId, final double bySensor) throws ConfigurationException, ConstellationStoreException {
-        int nbObservationInserted                   = 0;
-        final Sensor sensor                         = sensorBusiness.getSensor(sensorID);
-        final List<Sensor> sensorChildren           = sensorBusiness.getChildren(sensor.getParent());
+    
+    private int importSensor(final List<ServiceProcessReference> sosRefs, final int dataId, final double byData) throws ConfigurationException, ConstellationStoreException {
+        Integer providerId = dataBusiness.getDataProvider(dataId);
+        final DataProvider provider = DataProviders.getProvider(providerId);
+        ObservationProvider omProvider;
+        if (provider instanceof ObservationProvider) {
+             omProvider = (ObservationProvider) provider;
+        } else {
+            throw new ConfigurationException("Failure : Available only on Observation provider for now");
+        }
+        int nbObsTotal                              = 0;
         final List<ObservationProvider> treated     = new ArrayList<>();
-        final double byInsert                       = bySensor / sosRefs.size();
-        
+        final double byInsert                       = byData / sosRefs.size();
+
         for (ServiceProcessReference sosRef : sosRefs) {
             final ObservationProvider omServiceProvider = getOMProvider(sosRef.getId());
-            final List<String> alreadyLinked            = sensorBusiness.getLinkedSensorIdentifiers(sosRef.getId(), null);
             final Set<Phenomenon> existingPhenomenons   = new HashSet<>(omServiceProvider.getPhenomenon(new SimpleQuery(), Collections.singletonMap("version", "1.0.0")));
-            final Set<SamplingFeature> existingFois     = new HashSet<>(getFeatureOfInterestForProcedure(sensor.getIdentifier(), omServiceProvider));
-            final Set<Integer> providerIDs              = new HashSet<>();
-            final List<String> sensorIds                = new ArrayList<>();
-
-            providerIDs.add(dataBusiness.getDataProvider(dataId));
-
-            addToService(sosRef.getId(), sensor, sensorChildren, alreadyLinked);
+            final Set<SamplingFeature> existingFois     = new HashSet<>(getFeatureOfInterest(omServiceProvider));
 
             boolean alreadyInserted = false;
             for (ObservationProvider o : treated) {
@@ -476,48 +455,51 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
             // import observations
             if (!alreadyInserted) {
-                boolean hasObservation = false;
-                for (Integer providerId : providerIDs) {
-                    final DataProvider provider;
-                    try {
-                        provider = DataProviders.getProvider(providerId);
-                        if (provider instanceof ObservationProvider) {
-                            ObservationProvider omProvider = (ObservationProvider) provider;
-                            final ExtractionResult result = omProvider.extractResults(sensor.getIdentifier(), sensorIds, existingPhenomenons, existingFois);
-                            if (result.getObservations().isEmpty()) {
-                                continue;
-                            }
+                try {
+                    final ExtractionResult result = omProvider.extractResults(null, null, existingPhenomenons, existingFois);
+                    if (!result.getObservations().isEmpty()) {
 
-                            hasObservation = true;
-                            existingPhenomenons.addAll(result.getPhenomenons());
-                            existingFois.addAll(result.getFeatureOfInterest());
-
-                            // update sensor location
-                            for (ProcedureTree process : result.getProcedures()) {
-                                sensorServBusiness.writeProcedure(sosRef.getId(), process);
-                            }
-                            result.getObservations().stream().forEach(obs -> ((AbstractObservation)obs).setName(null));
-
-                            // import in O&M database
-                            sensorServBusiness.importObservations(sosRef.getId(), result.getObservations(), result.getPhenomenons());
-                            nbObservationInserted = nbObservationInserted + result.getObservations().size();
-                        } else {
-                            LOGGER.info("Failure : Available only on Observation provider for now");
+                        // generate sensor
+                        for (ProcedureTree process : result.getProcedures()) {
+                            sensorServBusiness.writeProcedure(sosRef.getId(), process);
+                            Integer sid =  sensorBusiness.generateSensorForData(dataId, process, null, null);
+                            sensorBusiness.addSensorToService(sosRef.getId(), sid);
                         }
-                    } catch (ConstellationStoreException ex) {
-                        LOGGER.warning(ex.getMessage());
+                        result.getObservations().stream().forEach(obs -> ((AbstractObservation)obs).setName(null));
+
+                        // import in O&M database
+                        sensorServBusiness.importObservations(sosRef.getId(), result.getObservations(), result.getPhenomenons());
+                        nbObsTotal = nbObsTotal + result.getObservations().size();
+                        fireAndLog("insertion dans le service " + sosRef.getName(), byInsert);
                     }
-                }
-                
-                // the sensor has not any observations so we remove it from the service
-                if (!hasObservation) {
-                    removeFromService(sosRef.getId(), sensor, sensorChildren, alreadyLinked);
+                } catch (ConstellationStoreException ex) {
+                    LOGGER.warning(ex.getMessage());
                 }
                 treated.add(omServiceProvider);
+            } else {
+                List<String> ids = listSensorInData(dataId);
+                for (String sensorID : ids) {
+                    final Sensor sensor = sensorBusiness.getSensor(sensorID);
+                    if (sensor != null) {
+                        sensorBusiness.addSensorToService(sosRef.getId(), sensor.getId());
+                    }
+                }
             }
-            fireAndLog(String.format("ajout du capteur %s au service %s", sensorID, sosRef.getName()), byInsert);
         }
-        return nbObservationInserted;
+        return nbObsTotal;
+    }
+    
+    
+    private List<SamplingFeature> getFeatureOfInterestForProcedure(String procedure, ObservationProvider provider) throws ConstellationStoreException {
+        final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
+        final SimpleQuery subquery = new SimpleQuery();
+        final Filter filter = ff.equals(ff.property("procedure"), ff.literal(procedure));
+        subquery.setFilter(filter);
+        return provider.getFeatureOfInterest(subquery, Collections.singletonMap("version", "2.0.0"));
+    }
+    
+    private List<SamplingFeature> getFeatureOfInterest(ObservationProvider provider) throws ConstellationStoreException {
+        return provider.getFeatureOfInterest(new SimpleQuery(), Collections.singletonMap("version", "2.0.0"));
     }
     
     protected ObservationProvider getOMProvider(final Integer serviceID) throws ConfigurationException {
@@ -537,36 +519,6 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
      */
     private boolean sameObservationProvider(ObservationProvider op1, ObservationProvider op2) {
         return Objects.equal(op1.getDatasourceKey(), op2.getDatasourceKey());
-    }
-    
-    private List<String> addToService(int servId, final Sensor sensor, List<Sensor> sensorChildren, final List<String> alreadyLinked) {
-        final List<String> sensorIds = new ArrayList<>();
-        // import main sensor
-        if (!alreadyLinked.contains(sensor.getIdentifier())) {
-            sensorBusiness.addSensorToService(servId, sensor.getId());
-        }
-        sensorIds.add(sensor.getIdentifier());
-
-        //import sensor children
-        for (Sensor child : sensorChildren) {
-            if (!alreadyLinked.contains(child.getIdentifier())) {
-                sensorBusiness.addSensorToService(servId, child.getId());
-            }
-            sensorIds.add(child.getIdentifier());
-        }
-        return sensorIds;
-    }
-    
-    private void removeFromService(int servId, final Sensor sensor, List<Sensor> sensorChildren, final List<String> alreadyLinked) {
-        // if the sensor was previouly present in the service we let it
-        if (!alreadyLinked.contains(sensor.getIdentifier())) {
-            sensorBusiness.removeSensorFromService(servId, sensor.getId());
-        }
-        for (Sensor child : sensorChildren) {
-            if (!alreadyLinked.contains(child.getIdentifier())) {
-                sensorBusiness.removeSensorFromService(servId, child.getId());
-            }
-        }
     }
     
     private void fireAndLog(final String msg, double progress) {

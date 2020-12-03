@@ -289,7 +289,7 @@ public class SensorServiceRestAPI {
     @RequestMapping(value="/SensorService/{id}/sensor/import/{sensorID:.+}", method = PUT, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity importSensor(final @PathVariable("id") Integer sid, final @PathVariable("sensorID") String sensorID) throws Exception {
         final Sensor sensor               = sensorBusiness.getSensor(sensorID);
-        final List<Sensor> sensorChildren = sensorBusiness.getChildren(sensor.getIdentifier());
+        final List<Sensor> sensorChildren = sensorBusiness.getChildren(sensor.getId());
         final Collection<String> previous = sensorServiceBusiness.getSensorIds(sid);
         final List<String> sensorIds      = new ArrayList<>();
         final List<Integer> dataProviders = new ArrayList<>();

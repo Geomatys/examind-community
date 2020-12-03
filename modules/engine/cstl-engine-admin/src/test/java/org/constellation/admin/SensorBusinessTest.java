@@ -123,10 +123,14 @@ public class SensorBusinessTest {
     @Test
     @Order(order=4)
     public void getChildrenTest() throws Exception {
-        List<Sensor> children = sensorBusiness.getChildren("sensor-1");
+        Sensor s1 = sensorBusiness.getSensor("sensor-1");
+        Assert.assertNotNull(s1);
+        List<Sensor> children = sensorBusiness.getChildren(s1.getId());
         Assert.assertEquals(1, children.size());
 
-        children = sensorBusiness.getChildren("sensor-2");
+        s1 = sensorBusiness.getSensor("sensor-2");
+        Assert.assertNotNull(s1);
+        children = sensorBusiness.getChildren(s1.getId());
         Assert.assertEquals(0, children.size());
     }
 }

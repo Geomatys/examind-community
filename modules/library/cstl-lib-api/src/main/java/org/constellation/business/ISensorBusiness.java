@@ -54,7 +54,7 @@ public interface ISensorBusiness {
 
     int getCountByServiceId(Integer serviceId);
 
-    List<Sensor> getChildren(String parentIdentifier);
+    List<Sensor> getChildren(Integer parentId);
 
     boolean delete(String sensorid) throws ConfigurationException;
 
@@ -116,22 +116,25 @@ public interface ISensorBusiness {
 
     /**
      * Link a sensor to a service.
+     * If the sensor has children, they will be added to the service as well.
+     * 
      *
      * @param serviceID Service identifier;
      * @param sensorID Sensor identifier.
+     * 
+     * @throws org.constellation.exception.ConfigurationException if the sensor does not exist.
      */
-    void addSensorToService(Integer serviceID, Integer sensorID);
+    void addSensorToService(Integer serviceID, Integer sensorID) throws ConfigurationException;
 
 
     /**
      * Remove a sensor from a service.
+     * If the sensor has children, they will be removed from the service as well.
      *
-     * @param serviceID Service identifier;
+     * @param serviceID Service identifier.
      * @param sensorID Sensor identifier.
      */
-    void removeSensorFromService(Integer serviceID, Integer sensorID);
-
-    void removeSensorFromService(Integer serviceID, String sensorID);
+    void removeSensorFromService(Integer serviceID, Integer sensorID) throws ConfigurationException;
 
     SensorMLTree getFullSensorMLTree();
 

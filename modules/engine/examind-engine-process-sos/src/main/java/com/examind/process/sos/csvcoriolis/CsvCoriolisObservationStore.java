@@ -321,7 +321,6 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                 }
 
                 // add measure column
-                final Set<String> measureColumnFound = new HashSet<>();
                 final List<String> sortedMeasureColumns = measureColumns.stream().sorted().collect(Collectors.toList());
 
                 // memorize indices to skip
@@ -392,7 +391,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                     // look for current procedure (for observation separation)
                     if (procIndex != -1) {
                         currentProc = procedureId + line[procIndex];
-                        if (!currentProc.equals(affectedSensorId)) {
+                        if (sensorIDs != null && !sensorIDs.isEmpty() && !sensorIDs.contains(currentProc)) {
                             LOGGER.finer("skipping line due to none specified sensor related.");
                             continue;
                         }
@@ -436,7 +435,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                         }
 
                         // On extrait les types de mesure trouvées dans la donnée
-                        measureColumnFound.addAll(mmb.getMeasureFromMap());
+                        final Set<String> measureColumnFound = mmb.getMeasureFromMap();
                         // Construction du measureStringBuilder à partir des données collectées dans le hashmap
                         MeasureStringBuilder msb = mmb.buildMeasureStringBuilderFromMap(measureColumnFound, obsTypeCode.equals("PR"));
 
@@ -532,7 +531,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                 }
 
                 // On extrait les types de mesure trouvées dans la donnée
-                measureColumnFound.addAll(mmb.getMeasureFromMap());
+                final Set<String> measureColumnFound = mmb.getMeasureFromMap();
                 // Construction du measureStringBuilder à partir des données collectées dans le hashmap
                 MeasureStringBuilder msb = mmb.buildMeasureStringBuilderFromMap(measureColumnFound, obsTypeCode.equals("PR"));
 

@@ -38,6 +38,8 @@ import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.Sensor;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
+import org.constellation.exception.ConfigurationException;
+import org.constellation.exception.ConstellationRuntimeException;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.test.utils.TestEnvironment.TestResource;
@@ -165,7 +167,11 @@ public class OM2STSWorkerTest {
 
                 List<Sensor> sensors = sensorBusiness.getByProviderId(pid);
                 sensors.stream().forEach((sensor) -> {
-                    sensorBusiness.addSensorToService(sid, sensor.getId());
+                    try {
+                        sensorBusiness.addSensorToService(sid, sensor.getId());
+                    } catch (ConfigurationException ex) {
+                       throw new ConstellationRuntimeException(ex);
+                    }
                 });
 
                 worker = new DefaultSTSWorker("default");

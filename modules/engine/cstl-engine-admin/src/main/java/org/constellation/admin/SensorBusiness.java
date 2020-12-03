@@ -151,8 +151,12 @@ public class SensorBusiness implements ISensorBusiness {
     }
 
     @Override
-    public List<Sensor> getChildren(final String parentIdentifier) {
-        return sensorRepository.getChildren(parentIdentifier);
+    public List<Sensor> getChildren(final Integer parentId) {
+        Sensor s = getSensor(parentId);
+        if (s != null) {
+            return sensorRepository.getChildren(s.getIdentifier());
+        }
+        return new ArrayList<>();
     }
 
     @Override
@@ -507,9 +511,21 @@ public class SensorBusiness implements ISensorBusiness {
      */
     @Override
     @Transactional
-    public void addSensorToService(Integer serviceID, Integer sensorID) {
+    public void addSensorToService(Integer serviceID, Integer sensorID) throws ConfigurationException {
         if (serviceID != null && sensorID != null) {
-            sensorRepository.linkSensorToSOS(sensorID, serviceID);
+            if (sensorRepository.existsById(sensorID)) {
+                if (!sensorRepository.isLinkedSensorToSOS(sensorID, serviceID)) {
+                    sensorRepository.linkSensorToSOS(sensorID, serviceID);
+                }
+                List<Sensor> children = getChildren(sensorID);
+                for (Sensor child : children) {
+                    if (!sensorRepository.isLinkedSensorToSOS(child.getId(), serviceID)) {
+                        sensorRepository.linkSensorToSOS(child.getId(), serviceID);
+                    }
+                }
+            } else {
+                throw new ConfigurationException("Unexisting sensor  :" + sensorID);
+            }
         }
     }
 
@@ -518,23 +534,17 @@ public class SensorBusiness implements ISensorBusiness {
      */
     @Override
     @Transactional
-    public void removeSensorFromService(Integer serviceID, Integer sensorID) {
+    public void removeSensorFromService(Integer serviceID, Integer sensorID) throws ConfigurationException {
         if (serviceID != null && sensorID != null) {
-            sensorRepository.unlinkSensorFromSOS(sensorID, serviceID);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Transactional
-    public void removeSensorFromService(Integer serviceID, String sensorID) {
-        final Integer sensor   = sensorRepository.findIdByIdentifier(sensorID);
-        if (serviceID != null && sensor != null) {
-            sensorRepository.unlinkSensorFromSOS(sensor, serviceID);
-        } else if (sensor == null) {
-            LOGGER.log(Level.WARNING, "Unexisting sensor:{0}", sensorID);
+            if (sensorRepository.existsById(sensorID)) {
+                sensorRepository.unlinkSensorFromSOS(sensorID, serviceID);
+                List<Sensor> children = getChildren(sensorID);
+                for (Sensor child : children) {
+                    sensorRepository.unlinkSensorFromSOS(child.getId(), serviceID);
+                }
+            } else {
+                throw new ConfigurationException("Unexisting sensor  :" + sensorID);
+            }
         }
     }
 
@@ -585,7 +595,11 @@ public class SensorBusiness implements ISensorBusiness {
      */
     @Override
     @Transactional
-    public Integer generateSensorForData(final int dataID, final ProcedureTree process, final Integer providerID, final String parentID) throws ConfigurationException {
+    public Integer generateSensorForData(final int dataID, final ProcedureTree process, Integer providerID, final String parentID) throws ConfigurationException {
+        
+        if (providerID == null) {
+            providerID = getDefaultInternalProviderID();
+        }
 
         final Properties prop = new Properties();
         prop.put("id",         process.getId());

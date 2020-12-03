@@ -385,7 +385,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                     // look for current procedure (for observation separation)
                     if (procIndex != -1) {
                         currentProc = procedureId + line[procIndex];
-                        if (!currentProc.equals(affectedSensorId)) {
+                        if (sensorIDs != null && !sensorIDs.isEmpty() && !sensorIDs.contains(currentProc)) {
                             LOGGER.finer("skipping line due to none specified sensor related.");
                             continue;
                         }
@@ -426,31 +426,27 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                             foiID = previousFoi;
                         }
 
+                        final SamplingFeature sp = buildFOIByGeom(foiID, positions, samplingFeatures);
+                        result.addFeatureOfInterest(sp);
 
-                        if (procedureID.equals(affectedSensorId)) {
-                            final SamplingFeature sp = buildFOIByGeom(foiID, positions, samplingFeatures);
-                            result.addFeatureOfInterest(sp);
+                        result.observations.add(OMUtils.buildObservation(oid,                           // id
+                                                                         sp,                            // foi
+                                                                         phenomenon,                    // phenomenon
+                                                                         procedureID,                   // procedure
+                                                                         currentCount,                  // count
+                                                                         datarecord,                    // result structure
+                                                                         msb,                           // measures
+                                                                         currentSpaBound.getTimeObject("2.0.0"))   // time
+                        );
 
-                            result.observations.add(OMUtils.buildObservation(oid,                           // id
-                                                                             sp,                            // foi
-                                                                             phenomenon,                    // phenomenon
-                                                                             procedureID,                   // procedure
-                                                                             currentCount,                  // count
-                                                                             datarecord,                    // result structure
-                                                                             msb,                           // measures
-                                                                             currentSpaBound.getTimeObject("2.0.0"))   // time
-                            );
-
-                            // build new procedure tree
-                            final ProcedureTree procedure = getOrCreateProcedureTree(result, procedureID, PROCEDURE_TREE_TYPE, observationType.toLowerCase());
-                            for (Entry<Long, List<DirectPosition>> entry : historicalPositions.entrySet()) {
-                                procedure.spatialBound.addLocation(new Date(entry.getKey()), buildGeom(entry.getValue()));
-                            }
-
-                            procedure.spatialBound.merge(currentSpaBound);
-                        } else {
-                            LOGGER.finer(oid + " observation excluded from extraction. procedure does not match " + affectedSensorId);
+                        // build new procedure tree
+                        final ProcedureTree procedure = getOrCreateProcedureTree(result, procedureID, PROCEDURE_TREE_TYPE, observationType.toLowerCase());
+                        for (Entry<Long, List<DirectPosition>> entry : historicalPositions.entrySet()) {
+                            procedure.spatialBound.addLocation(new Date(entry.getKey()), buildGeom(entry.getValue()));
                         }
+
+                        procedure.spatialBound.merge(currentSpaBound);
+                        
 
                         // reset single observation related variables
                         currentCount    = 0;
@@ -568,28 +564,26 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                     foiID = previousFoi;
                 }
 
-                if (procedureID.equals(affectedSensorId)) {
-                    final SamplingFeature sp = buildFOIByGeom(foiID, positions, samplingFeatures);
-                    result.addFeatureOfInterest(sp);
+                final SamplingFeature sp = buildFOIByGeom(foiID, positions, samplingFeatures);
+                result.addFeatureOfInterest(sp);
 
-                    result.observations.add(OMUtils.buildObservation(oid,                           // id
-                                                                     sp,                            // foi
-                                                                     phenomenon,                    // phenomenon
-                                                                     procedureID,                   // procedure
-                                                                     count,                         // count
-                                                                     datarecord,                    // result structure
-                                                                     msb,                           // measures
-                                                                     currentSpaBound.getTimeObject("2.0.0"))   // time
-                    );
+                result.observations.add(OMUtils.buildObservation(oid,                           // id
+                                                                 sp,                            // foi
+                                                                 phenomenon,                    // phenomenon
+                                                                 procedureID,                   // procedure
+                                                                 count,                         // count
+                                                                 datarecord,                    // result structure
+                                                                 msb,                           // measures
+                                                                 currentSpaBound.getTimeObject("2.0.0"))   // time
+                );
 
-                    // build procedure tree
-                    final ProcedureTree procedure = getOrCreateProcedureTree(result, procedureID, PROCEDURE_TREE_TYPE, observationType.toLowerCase());
-                    for (Entry<Long, List<DirectPosition>> entry : historicalPositions.entrySet()) {
-                        procedure.spatialBound.addLocation(new Date(entry.getKey()), buildGeom(entry.getValue()));
-                    }
-                    procedure.spatialBound.merge(currentSpaBound);
+                // build procedure tree
+                final ProcedureTree procedure = getOrCreateProcedureTree(result, procedureID, PROCEDURE_TREE_TYPE, observationType.toLowerCase());
+                for (Entry<Long, List<DirectPosition>> entry : historicalPositions.entrySet()) {
+                    procedure.spatialBound.addLocation(new Date(entry.getKey()), buildGeom(entry.getValue()));
                 }
-
+                procedure.spatialBound.merge(currentSpaBound);
+                
                 return result;
             }
             throw new DataStoreException("csv headers not found");
