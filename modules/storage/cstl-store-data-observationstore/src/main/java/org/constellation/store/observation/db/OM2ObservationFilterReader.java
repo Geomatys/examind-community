@@ -145,7 +145,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     }
                     sqlRequest.append(" \"time\"='").append(position).append("') ");
                 } else {
-                    sqlMeasureRequest.append(" AND ( \"$time\"='").append(position).append("') ");
+                    if (!"profile".equals(currentOMType)) {
+                        sqlMeasureRequest.append(" AND ( \"$time\"='").append(position).append("') ");
+                    }
                     obsJoin = true;
                 }
                 firstFilter = false;
@@ -170,7 +172,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     sqlRequest.append(" \"time\"<='").append(position).append("')");
                 } else {
                     sqlRequest.append(" \"time_begin\"<='").append(position).append("')");
-                    sqlMeasureRequest.append(" AND ( \"$time\"<='").append(position).append("')");
+                    if (!"profile".equals(currentOMType)) {
+                        sqlMeasureRequest.append(" AND ( \"$time\"<='").append(position).append("')");
+                    }
                     obsJoin = true;
                 }
                 firstFilter = false;
@@ -195,8 +199,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 if (getLoc) {
                     sqlRequest.append(" \"time\">='").append(position).append("')");
                 } else {
-                    sqlRequest.append(" \"time_end\">='").append(position).append("')");
-                    sqlMeasureRequest.append(" AND (\"$time\">='").append(position).append("')");
+                    sqlRequest.append("( \"time_end\">='").append(position).append("') OR (\"time_end\" IS NULL AND \"time_begin\" >='").append(position).append("'))");
+                    if (!"profile".equals(currentOMType)) {
+                        sqlMeasureRequest.append(" AND (\"$time\">='").append(position).append("')");
+                    }
                     obsJoin = true;
                 }
                 firstFilter = false;
@@ -237,7 +243,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     // the multiple observations which overlaps the whole period
                     sqlRequest.append(" (\"time_begin\"<='").append(begin).append("' AND \"time_end\">='").append(end).append("'))");
 
-                    sqlMeasureRequest.append(" AND ( \"$time\">='").append(begin).append("' AND \"$time\"<= '").append(end).append("')");
+                    if (!"profile".equals(currentOMType)) {
+                        sqlMeasureRequest.append(" AND ( \"$time\">='").append(begin).append("' AND \"$time\"<= '").append(end).append("')");
+                    }
 
                     obsJoin = true;
                 }
