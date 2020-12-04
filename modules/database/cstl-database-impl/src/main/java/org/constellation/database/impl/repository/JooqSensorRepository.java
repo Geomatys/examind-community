@@ -51,6 +51,14 @@ public class JooqSensorRepository extends AbstractJooqRespository<SensorRecord, 
         return dsl.select(DATA.PROVIDER).from(DATA).join(SENSORED_DATA).onKey()
                 .where(SENSORED_DATA.SENSOR.eq(sensorID)).fetchInto(Integer.class);
     }
+    
+    @Override
+    public boolean isLinkedDataToSensor(Integer dataId, Integer sensorID) {
+        return dsl.selectCount().from(SENSORED_DATA)
+                .where(SENSORED_DATA.SENSOR.eq(sensorID))
+                .and(SENSORED_DATA.DATA.eq(dataId))
+                .fetchOne(0, Integer.class) > 0;
+    }
 
     @Override
     public Sensor findByIdentifier(String identifier) {
@@ -194,7 +202,7 @@ public class JooqSensorRepository extends AbstractJooqRespository<SensorRecord, 
                 .and(SENSOR_X_SOS.SOS_ID.eq(sosID))
                 .fetchOne(0, Integer.class) > 0;
     }
-
+    
     @Override
     public List<Integer> getLinkedServices(Integer sensorID) {
         return dsl.select(SENSOR_X_SOS.SOS_ID).from(SENSOR_X_SOS)

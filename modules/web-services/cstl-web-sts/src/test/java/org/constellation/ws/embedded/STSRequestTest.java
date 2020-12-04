@@ -1090,6 +1090,15 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-decim-3.json");
         compareJSON(expResult, result);
+        
+        /*
+        * decimation on profile
+        */
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)/Observations?$resultFormat=dataArray&$decimation=10");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-decim-4.json");
+        compareJSON(expResult, result);
     }
     
     @Test
@@ -1132,6 +1141,24 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-decim-3.json");
+        compareJSON(expResult, result);
+        
+        /*
+        * decimation on profile - main
+        */
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:2-0)/Observations?$resultFormat=dataArray&$decimation=10");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-decim-4.json");
+        compareJSON(expResult, result);
+        
+        /*
+        * decimation on profile - phen 1
+        */
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:2-1)/Observations?$resultFormat=dataArray&$decimation=10");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-decim-5.json");
         compareJSON(expResult, result);
     }
     

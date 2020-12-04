@@ -218,7 +218,9 @@ public class SensorBusiness implements ISensorBusiness {
     @Override
     @Transactional
     public void linkDataToSensor(int dataId, int sensorId) {
-        sensorRepository.linkDataToSensor(dataId, sensorId);
+        if (!sensorRepository.isLinkedDataToSensor(dataId, sensorId)) {
+            sensorRepository.linkDataToSensor(dataId, sensorId);
+        }
     }
 
     /**

@@ -948,10 +948,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             final List<Field> fields = new ArrayList<>();
             final List<Field> allfields = readFields(currentProcedure, c);
             fields.add(allfields.get(0));
+            int offset = profile ? 0 : 1; // for profile, the first phenomenon field is the main field
             for (int i = 1; i < allfields.size(); i++) {
                 Field f = allfields.get(i);
                  if ((currentFields.isEmpty() || currentFields.contains(f.fieldName) || currentFields.contains(f.fieldDesc)) &&
-                     (fieldFilters.isEmpty() || fieldFilters.contains(i - 1))) {
+                     (fieldFilters.isEmpty() || fieldFilters.contains(i - offset))) {
                      fields.add(f);
                  }
             }
@@ -972,7 +973,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 }
                 measureFilter = measureFilter.replace(block, sb.toString());
             }
-            int offset = profile ? 0 : 1; // for profile, the first phenomenon field is the main field
             for (int i = offset; i < allfields.size(); i++) {
                 Field f = allfields.get(i);
                 measureFilter = measureFilter.replace("$phen" + (i - offset), "\"" + f.fieldName + "\"");
@@ -1051,7 +1051,12 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                             if (fields.get(0).fieldType.equals("Time")) {
                                 values.appendTime(new Date(start));
                             } else if (fields.get(0).fieldType.equals("Quantity")) {
-                                values.appendLong(start);
+                                // special case for profile + datastream on another phenomenon that the main field.
+                                // we do not include the main field in the result
+                                boolean skipMain = profile && !fieldFilters.isEmpty() && !fieldFilters.contains(0);
+                                if (!skipMain) {
+                                    values.appendLong(start);
+                                }
                             } else {
                                 throw new DataStoreException("main field other than Time or Quantity are not yet allowed");
                             }
@@ -1076,7 +1081,12 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                 long maxTime = start + step;
                                 values.appendTime(new Date(maxTime));
                             } else if (fields.get(0).fieldType.equals("Quantity")) {
-                                values.appendLong(start + step);
+                                // special case for profile + datastream on another phenomenon that the main field.
+                                // we do not include the main field in the result
+                                boolean skipMain = profile && !fieldFilters.isEmpty() && !fieldFilters.contains(0);
+                                if (!skipMain) {
+                                    values.appendLong(start + step);
+                                }
                             } else {
                                 throw new DataStoreException("main field other than Time or Quantity are not yet allowed");
                             }
@@ -1118,10 +1128,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             final List<Field> fields = new ArrayList<>();
             final List<Field> allfields = readFields(currentProcedure, c);
             fields.add(allfields.get(0));
+            int offset = profile ? 0 : 1; // for profile, the first phenomenon field is the main field
             for (int i = 1; i < allfields.size(); i++) {
                 Field f = allfields.get(i);
                  if ((currentFields.isEmpty() || currentFields.contains(f.fieldName) || currentFields.contains(f.fieldDesc)) &&
-                     (fieldFilters.isEmpty() || fieldFilters.contains(i - 1))) {
+                     (fieldFilters.isEmpty() || fieldFilters.contains(i - offset))) {
                      fields.add(f);
                  }
             }
@@ -1142,7 +1153,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 }
                 measureFilter = measureFilter.replace(block, sb.toString());
             }
-            int offset = profile ? 0 : 1; // for profile, the first phenomenon field is the main field
             for (int i = offset; i < allfields.size(); i++) {
                 Field f = allfields.get(i);
                 measureFilter = measureFilter.replace("$phen" + (i - offset), "\"" + f.fieldName + "\"");
@@ -1210,6 +1220,12 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                             String fieldName = field.fieldName; 
                             if (i == 0) {
                                 fieldName = "step";
+                                
+                                // special case for profile + datastream on another phenomenon that the main field.
+                                // we do not include the main field in the result
+                                if (profile && !fieldFilters.isEmpty() && !fieldFilters.contains(0)) {
+                                    continue;
+                                }
                             } 
                             String value;
                             switch (field.fieldType) {

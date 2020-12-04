@@ -360,6 +360,17 @@ public class FileSystemSensorRepository extends AbstractFileSystemRepository imp
         }
         return results;
     }
+    
+    @Override
+    public boolean isLinkedDataToSensor(Integer dataId, Integer sensorId) {
+        List<Sensor> sensors = byData.get(dataId);
+        if (sensors != null) {
+            for (Sensor s : sensors) {
+                if (s.getId().equals(sensorId)) return true;
+            }
+        }
+        return false;
+    }
 
     @Override
     public void linkSensorToSOS(int sensorID, int sosID) {

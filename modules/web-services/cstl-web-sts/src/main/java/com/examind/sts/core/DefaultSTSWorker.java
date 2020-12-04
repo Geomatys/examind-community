@@ -333,9 +333,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             QName model;
             boolean forMds = req.getExtraFlag().containsKey("forMDS") && req.getExtraFlag().get("forMDS").equals("true");
             Map<String,String> hints = new HashMap<>(defaultHints);
+            hints.put("includeTimeForProfile", "true");
             if (forMds) {
                 hints.put("includeIDInDataBlock", "true");
-                hints.put("includeTimeForProfile", "true");
                 hints.put("directResultArray", "true");
                 model = OBSERVATION_QNAME;
             } else {

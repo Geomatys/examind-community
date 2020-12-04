@@ -40,6 +40,8 @@ public interface SensorRepository {
     void linkDataToSensor(Integer dataId, Integer sensorId);
 
     void unlinkDataToSensor(Integer dataId, Integer sensorId);
+    
+     boolean isLinkedDataToSensor(Integer dataId, Integer sensorId);
 
     Integer create(Sensor sensor);
 
@@ -56,7 +58,7 @@ public interface SensorRepository {
     void unlinkSensorFromSOS(int sensorID, int sosID);
 
     boolean isLinkedSensorToSOS(int sensorID, int sosID);
-
+    
     int getLinkedSensorCount(int serviceId);
 
     List<String> getLinkedSensorIdentifiers(int serviceId, String sensorType);
