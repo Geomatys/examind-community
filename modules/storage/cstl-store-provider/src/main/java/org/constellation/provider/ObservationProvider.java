@@ -126,4 +126,12 @@ public interface ObservationProvider extends DataProvider {
     List<String> getFeaturesOfInterestForBBOX(List<String> offerings, final Envelope e, String version) throws ConstellationStoreException;
     List<String> getFeaturesOfInterestForBBOX(String offname, final Envelope e, String version) throws ConstellationStoreException;
     List<SamplingFeature> getFullFeaturesOfInterestForBBOX(String offname, final org.opengis.geometry.Envelope e, String version) throws ConstellationStoreException;
+    
+    /**
+     * Special key computed by the provider.
+     * Used to detect if different provider are using the exact same datasource.
+     * 
+     * @return a key identifyng the datasource.
+     */
+    String getDatasourceKey();
 }

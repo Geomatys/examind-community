@@ -149,9 +149,22 @@ public class SensorServiceBusiness {
                 // tree should no be null
                 toRemove.add(new NamedId(-1, sensorID));
             }
+            final String datasourceKey = pr.getDatasourceKey();
             for (NamedId sid : toRemove) {
                 sensorBusiness.removeSensorFromService(id, sid.getId());
-                if (sensorBusiness.getLinkedServiceIds(sid.getId()).isEmpty()) {
+               /*
+                * if another service, using the SAME datasource, use this sensor, we don't remove it from the datasource
+                */
+                boolean rmFromDatasource = true;
+                List<Integer> serviceIds = sensorBusiness.getLinkedServiceIds(sid.getId());
+                for (Integer serviceId : serviceIds) {
+                    ObservationProvider servProv  = getOMProvider(serviceId);
+                    if (servProv.getDatasourceKey().equals(datasourceKey)) {
+                        rmFromDatasource = false;
+                        break;
+                    }
+                }
+                if (rmFromDatasource) {
                     pr.removeProcedure(sid.getIdentifier());
                 }
             }

@@ -536,23 +536,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
      * hack method to compare two observation provider on the same datasource (should not be allowed in the future.)
      */
     private boolean sameObservationProvider(ObservationProvider op1, ObservationProvider op2) {
-        final ParameterValueGroup source1 = op1.getSource();
-        final ParameterValueGroup source2 = op2.getSource();
-        ParameterValueGroup fconfig1 = source1.groups("choice").get(0).groups("SOSDBParameters").get(0);
-        ParameterValueGroup fconfig2 = source2.groups("choice").get(0).groups("SOSDBParameters").get(0);
-
-        final Object host1     = fconfig1.parameter("host").getValue();
-        final Object database1 = fconfig1.parameter("database").getValue();
-        final Object schema1   = fconfig1.parameter("schema-prefix").getValue();
-
-        final Object host2     = fconfig2.parameter("host").getValue();
-        final Object database2 = fconfig2.parameter("database").getValue();
-        final Object schema2   = fconfig2.parameter("schema-prefix").getValue();
-
-        return Objects.equal(host1,     host2)     &&
-               Objects.equal(database1, database2) &&
-               Objects.equal(schema1,   schema2);
-
+        return Objects.equal(op1.getDatasourceKey(), op2.getDatasourceKey());
     }
     
     private List<String> addToService(int servId, final Sensor sensor, List<Sensor> sensorChildren, final List<String> alreadyLinked) {

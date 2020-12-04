@@ -1151,6 +1151,26 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
         index.clear();
         capabilities = null;
     }
-    
+
+    @Override
+    public String getDatasourceKey() {
+        /*
+         * special implementation for OM2 database otherwise return the identifier. 
+         * this code,  if we want to keep it, should me moved to the observationStore interface/implementation.
+         */
+        final ParameterValueGroup source = getSource();
+        if (!source.groups("choice").isEmpty()) {
+            ParameterValueGroup choice = source.groups("choice").get(0);
+            if (!choice.groups("SOSDBParameters").isEmpty()) {
+                ParameterValueGroup config = choice.groups("SOSDBParameters").get(0);
+                final String host     = String.valueOf(config.parameter("host").getValue());
+                final String database = String.valueOf(config.parameter("database").getValue());
+                final String port     = String.valueOf(config.parameter("port").getValue());
+                final String schema   = String.valueOf(config.parameter("schema-prefix").getValue());
+                return host + '-' + database + '-' + port + '-' + schema;
+            }
+        }
+        return getId();
+    }
     
 }
