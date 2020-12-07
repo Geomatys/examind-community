@@ -415,6 +415,7 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
     @Test
     @Order(order=9)
     public void testSOSAPIGetObservation() throws Exception {
+        initPool();
         // Creates a valid GetObservation url.
         final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
         Integer defId = service.getServiceIdByIdentifierAndType("sos", "default");

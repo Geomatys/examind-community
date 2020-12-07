@@ -25,7 +25,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -51,7 +50,6 @@ import org.geotoolkit.gml.JTStoGeometry;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.FeatureProperty;
 import org.geotoolkit.observation.ObservationStoreException;
-import static org.geotoolkit.observation.Utils.getTimeValue;
 import org.geotoolkit.observation.xml.AbstractObservation;
 import org.geotoolkit.observation.xml.OMXmlFactory;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
@@ -119,8 +117,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             }
             if (time instanceof Period) {
                 final Period tp    = (Period) time;
-                final String begin = getTimeValue(tp.getBeginning().getDate());
-                final String end   = getTimeValue(tp.getEnding().getDate());
+                final Timestamp begin = new Timestamp(tp.getBeginning().getDate().getTime());
+                final Timestamp end   = new Timestamp(tp.getEnding().getDate().getTime());
 
                 // we request directly a multiple observation or a period observation (one measure during a period)
                 if (firstFilter) {
@@ -128,25 +126,24 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 } else {
                     sqlRequest.append("AND ( ");
                 }
-                sqlRequest.append(" \"time_begin\"='").append(begin).append("' AND ");
-                sqlRequest.append(" \"time_end\"='").append(end).append("') ");
+                sqlRequest.append(" \"time_begin\"=").appendValue(begin).append(" AND ");
+                sqlRequest.append(" \"time_end\"=").appendValue(end).append(") ");
                 obsJoin = true;
                 firstFilter = false;
             // if the temporal object is a timeInstant
             } else if (time instanceof Instant) {
                 final Instant ti      = (Instant) time;
-                final String position = getTimeValue(ti.getDate());
-                //sqlRequest.append("AND (\"time_begin\"='").append(position).append("' AND \"time_end\"='").append(position).append("') ");
+                final Timestamp position = new Timestamp(ti.getDate().getTime());
                 if (getLoc) {
                     if (firstFilter) {
                         sqlRequest.append(" ( ");
                     } else {
                         sqlRequest.append("AND ( ");
                     }
-                    sqlRequest.append(" \"time\"='").append(position).append("') ");
+                    sqlRequest.append(" \"time\"=").appendValue(position).append(") ");
                 } else {
                     if (!"profile".equals(currentOMType)) {
-                        sqlMeasureRequest.append(" AND ( \"$time\"='").append(position).append("') ");
+                        sqlMeasureRequest.append(" AND ( \"$time\"=").appendValue(position).append(") ");
                     }
                     obsJoin = true;
                 }
@@ -162,18 +159,18 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             // for the operation before the temporal object must be an timeInstant
             if (time instanceof Instant) {
                 final Instant ti      = (Instant) time;
-                final String position = getTimeValue(ti.getDate());
+                final Timestamp position = new Timestamp(ti.getDate().getTime());
                 if (firstFilter) {
                     sqlRequest.append(" ( ");
                 } else {
                     sqlRequest.append("AND ( ");
                 }
                 if (getLoc) {
-                    sqlRequest.append(" \"time\"<='").append(position).append("')");
+                    sqlRequest.append(" \"time\"<=").appendValue(position).append(")");
                 } else {
-                    sqlRequest.append(" \"time_begin\"<='").append(position).append("')");
+                    sqlRequest.append(" \"time_begin\"<=").appendValue(position).append(")");
                     if (!"profile".equals(currentOMType)) {
-                        sqlMeasureRequest.append(" AND ( \"$time\"<='").append(position).append("')");
+                        sqlMeasureRequest.append(" AND ( \"$time\"<=").appendValue(position).append(")");
                     }
                     obsJoin = true;
                 }
@@ -190,18 +187,18 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             // for the operation after the temporal object must be an timeInstant
             if (time instanceof Instant) {
                 final Instant ti      = (Instant) time;
-                final String position = getTimeValue(ti.getDate());
+                final Timestamp position = new Timestamp(ti.getDate().getTime());
                 if (firstFilter) {
                     sqlRequest.append(" ( ");
                 } else {
                     sqlRequest.append("AND ( ");
                 }
                 if (getLoc) {
-                    sqlRequest.append(" \"time\">='").append(position).append("')");
+                    sqlRequest.append(" \"time\">=").appendValue(position).append(")");
                 } else {
-                    sqlRequest.append("( \"time_end\">='").append(position).append("') OR (\"time_end\" IS NULL AND \"time_begin\" >='").append(position).append("'))");
+                    sqlRequest.append("( \"time_end\">=").appendValue(position).append(") OR (\"time_end\" IS NULL AND \"time_begin\" >=").appendValue(position).append("))");
                     if (!"profile".equals(currentOMType)) {
-                        sqlMeasureRequest.append(" AND (\"$time\">='").append(position).append("')");
+                        sqlMeasureRequest.append(" AND (\"$time\">=").appendValue(position).append(")");
                     }
                     obsJoin = true;
                 }
@@ -217,8 +214,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             }
             if (time instanceof Period) {
                 final Period tp    = (Period) time;
-                final String begin = getTimeValue(tp.getBeginning().getDate());
-                final String end   = getTimeValue(tp.getEnding().getDate());
+                final Timestamp begin = new Timestamp(tp.getBeginning().getDate().getTime());
+                final Timestamp end   = new Timestamp(tp.getEnding().getDate().getTime());
                 if (firstFilter) {
                     sqlRequest.append(" ( ");
                 } else {
@@ -226,25 +223,25 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 }
 
                 if (getLoc) {
-                    sqlRequest.append(" \"time\">='").append(begin).append("' AND \"time\"<='").append(end).append("')");
+                    sqlRequest.append(" \"time\">=").appendValue(begin).append(" AND \"time\"<=").appendValue(end).append(")");
                 } else {
                     // the multiple observations included in the period
-                    sqlRequest.append(" (\"time_begin\">='").append(begin).append("' AND \"time_end\"<='").append(end).append("')");
+                    sqlRequest.append(" (\"time_begin\">=").appendValue(begin).append(" AND \"time_end\"<=").appendValue(end).append(")");
                     sqlRequest.append("OR");
                     // the single observations included in the period
-                    sqlRequest.append(" (\"time_begin\">='").append(begin).append("' AND \"time_begin\"<='").append(end).append("' AND \"time_end\" IS NULL)");
+                    sqlRequest.append(" (\"time_begin\">=").appendValue(begin).append(" AND \"time_begin\"<=").appendValue(end).append(" AND \"time_end\" IS NULL)");
                     sqlRequest.append("OR");
                     // the multiple observations which overlaps the first bound
-                    sqlRequest.append(" (\"time_begin\"<='").append(begin).append("' AND \"time_end\"<='").append(end).append("' AND \"time_end\">='").append(begin).append("')");
+                    sqlRequest.append(" (\"time_begin\"<=").appendValue(begin).append(" AND \"time_end\"<=").appendValue(end).append(" AND \"time_end\">=").appendValue(begin).append(")");
                     sqlRequest.append("OR");
                     // the multiple observations which overlaps the second bound
-                    sqlRequest.append(" (\"time_begin\">='").append(begin).append("' AND \"time_end\">='").append(end).append("' AND \"time_begin\"<='").append(end).append("')");
+                    sqlRequest.append(" (\"time_begin\">=").appendValue(begin).append(" AND \"time_end\">=").appendValue(end).append(" AND \"time_begin\"<=").appendValue(end).append(")");
                     sqlRequest.append("OR");
                     // the multiple observations which overlaps the whole period
-                    sqlRequest.append(" (\"time_begin\"<='").append(begin).append("' AND \"time_end\">='").append(end).append("'))");
+                    sqlRequest.append(" (\"time_begin\"<=").appendValue(begin).append(" AND \"time_end\">=").appendValue(end).append("))");
 
                     if (!"profile".equals(currentOMType)) {
-                        sqlMeasureRequest.append(" AND ( \"$time\">='").append(begin).append("' AND \"$time\"<= '").append(end).append("')");
+                        sqlMeasureRequest.append(" AND ( \"$time\">=").appendValue(begin).append(" AND \"$time\"<= ").appendValue(end).append(")");
                     }
 
                     obsJoin = true;
@@ -265,157 +262,154 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         if (MEASUREMENT_QNAME.equals(resultModel)) {
             return getMesurementTemplates(version, hints);
         }
-        String request = sqlRequest.toString();
         if (firstFilter) {
-            request = request.replaceFirst("WHERE", "");
+            sqlRequest.replaceFirst("WHERE", "");
         }
-        request = request + " ORDER BY \"procedure\" ";
-        request = appendPaginationToRequest(request, hints);
+        sqlRequest.append(" ORDER BY \"procedure\" ");
+        sqlRequest = appendPaginationToRequest(sqlRequest, hints);
         boolean includeTimeInTemplate = false;
         if (hints != null && hints.containsKey("includeTimeInTemplate")) {
             includeTimeInTemplate = Boolean.parseBoolean(hints.get("includeTimeInTemplate"));
         }
+        final List<Observation> observations = new ArrayList<>();
+        
+        try (final Connection c            = source.getConnection();
+             final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
+             final ResultSet rs            = pstmt.executeQuery()) {
+             final TextBlock encoding = getDefaultTextEncoding(version);
 
-        try(final Connection c = source.getConnection()) {
-            final List<Observation> observations = new ArrayList<>();
-            try(final Statement currentStatement = c.createStatement();
-                final ResultSet rs               = currentStatement.executeQuery(request)) {
-                final TextBlock encoding = getDefaultTextEncoding(version);
-
-                while (rs.next()) {
-                    final String procedure = rs.getString("procedure");
-                    final String procedureID;
-                    if (procedure.startsWith(sensorIdBase)) {
-                        procedureID = procedure.substring(sensorIdBase.length());
-                    } else {
-                        procedureID = procedure;
-                    }
-                    final String obsID = "obs-" + procedureID;
-                    final String name = observationTemplateIdBase + procedureID;
-                    final String observedProperty = rs.getString("observed_property");
-                    String featureID = null;
-                    FeatureProperty foi = null;
-                    if (includeFoiInTemplate) {
-                        featureID = rs.getString("foi");
-                        final SamplingFeature feature = getFeatureOfInterest(featureID, version, c);
-                        foi = buildFeatureProperty(version, feature);
-                    }
-                    TemporalGeometricPrimitive tempTime = null;
-                    if (includeTimeInTemplate) {
-                        tempTime = getTimeForTemplate(c, procedure, observedProperty, featureID, version);
-                    }
-                    final Phenomenon phen = getPhenomenon(version, observedProperty, c);
-                    List<Field> fields = readFields(procedure, c);
-                    /*
-                     *  BUILD RESULT
-                     */
-                    final List<AnyScalar> scal = new ArrayList<>();
-                    for (Field f : fields) {
-                        scal.add(f.getScalar(version));
-                    }
-                    final Object result = buildComplexResult(version, scal, 0, encoding, null, observations.size());
-                    Observation observation = OMXmlFactory.buildObservation(version, obsID, name, null, foi, phen, procedure, result, tempTime);
-                    observations.add(observation);
+            while (rs.next()) {
+                final String procedure = rs.getString("procedure");
+                final String procedureID;
+                if (procedure.startsWith(sensorIdBase)) {
+                    procedureID = procedure.substring(sensorIdBase.length());
+                } else {
+                    procedureID = procedure;
                 }
+                final String obsID = "obs-" + procedureID;
+                final String name = observationTemplateIdBase + procedureID;
+                final String observedProperty = rs.getString("observed_property");
+                String featureID = null;
+                FeatureProperty foi = null;
+                if (includeFoiInTemplate) {
+                    featureID = rs.getString("foi");
+                    final SamplingFeature feature = getFeatureOfInterest(featureID, version, c);
+                    foi = buildFeatureProperty(version, feature);
+                }
+                TemporalGeometricPrimitive tempTime = null;
+                if (includeTimeInTemplate) {
+                    tempTime = getTimeForTemplate(c, procedure, observedProperty, featureID, version);
+                }
+                final Phenomenon phen = getPhenomenon(version, observedProperty, c);
+                List<Field> fields = readFields(procedure, c);
+                /*
+                 *  BUILD RESULT
+                 */
+                final List<AnyScalar> scal = new ArrayList<>();
+                for (Field f : fields) {
+                    scal.add(f.getScalar(version));
+                }
+                final Object result = buildComplexResult(version, scal, 0, encoding, null, observations.size());
+                Observation observation = OMXmlFactory.buildObservation(version, obsID, name, null, foi, phen, procedure, result, tempTime);
+                observations.add(observation);
             }
-            return observations;
+            
+            
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
-            throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
+            throw new DataStoreException("the service has throw a SQL Exception.", ex);
         } catch (DataStoreException ex) {
             throw new DataStoreException("the service has throw a Datastore Exception:" + ex.getMessage(), ex);
         }
+        return observations;
     }
 
     private List<Observation> getMesurementTemplates(final String version, Map<String, String> hints) throws DataStoreException {
-        String request = sqlRequest.toString();
         if (firstFilter) {
-            request = request.replaceFirst("WHERE", "");
+            sqlRequest.replaceFirst("WHERE", "");
         }
-        request = request + " ORDER BY \"procedure\" ";
-        request = appendPaginationToRequest(request, hints);
+        sqlRequest.append(" ORDER BY \"procedure\" ");
+        sqlRequest = appendPaginationToRequest(sqlRequest, hints);
 
         boolean includeTimeInTemplate = false;
         if (hints != null && hints.containsKey("includeTimeInTemplate")) {
             includeTimeInTemplate = Boolean.parseBoolean(hints.get("includeTimeInTemplate"));
         }
+        final List<Observation> observations = new ArrayList<>();
+        
+        try (final Connection c              = source.getConnection();
+             final PreparedStatement pstmt   = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
+             final ResultSet rs              = pstmt.executeQuery()) {
 
-        try(final Connection c = source.getConnection()) {
-            final List<Observation> observations = new ArrayList<>();
+            while (rs.next()) {
+                final String procedure = rs.getString("procedure");
+                final String procedureID;
+                if (procedure.startsWith(sensorIdBase)) {
+                    procedureID = procedure.substring(sensorIdBase.length());
+                } else {
+                    procedureID = procedure;
+                }
+                final String obsID = "obs-" + procedureID;
+                final String name = observationTemplateIdBase + procedureID;
+                final String observedProperty = rs.getString("observed_property");
+                String featureID = null;
+                FeatureProperty foi = null;
+                if (includeFoiInTemplate) {
+                    featureID = rs.getString("foi");
+                    final SamplingFeature feature = getFeatureOfInterest(featureID, version, c);
+                    foi = buildFeatureProperty(version, feature);
+                }
+                TemporalGeometricPrimitive tempTime = null;
+                if (includeTimeInTemplate) {
+                    tempTime = getTimeForTemplate(c, procedure, observedProperty, featureID, version);
+                }
+                final org.geotoolkit.swe.xml.Phenomenon phen = (org.geotoolkit.swe.xml.Phenomenon) getPhenomenon(version, observedProperty, c);
+                /*
+                 *  BUILD RESULT
+                 */
+                final List<Field> fields = readFields(procedure, c);
+                final Field mainField = getMainField(procedure);
+                if (mainField != null && "Time".equals(mainField.fieldType)) {
+                    fields.remove(mainField);
+                }
 
-            try(final Statement currentStatement = c.createStatement();
-                final ResultSet rs               = currentStatement.executeQuery(request)) {
-
-                while (rs.next()) {
-                    final String procedure = rs.getString("procedure");
-                    final String procedureID;
-                    if (procedure.startsWith(sensorIdBase)) {
-                        procedureID = procedure.substring(sensorIdBase.length());
-                    } else {
-                        procedureID = procedure;
-                    }
-                    final String obsID = "obs-" + procedureID;
-                    final String name = observationTemplateIdBase + procedureID;
-                    final String observedProperty = rs.getString("observed_property");
-                    String featureID = null;
-                    FeatureProperty foi = null;
-                    if (includeFoiInTemplate) {
-                        featureID = rs.getString("foi");
-                        final SamplingFeature feature = getFeatureOfInterest(featureID, version, c);
-                        foi = buildFeatureProperty(version, feature);
-                    }
-                    TemporalGeometricPrimitive tempTime = null;
-                    if (includeTimeInTemplate) {
-                        tempTime = getTimeForTemplate(c, procedure, observedProperty, featureID, version);
-                    }
-                    final org.geotoolkit.swe.xml.Phenomenon phen = (org.geotoolkit.swe.xml.Phenomenon) getPhenomenon(version, observedProperty, c);
-                    /*
-                     *  BUILD RESULT
-                     */
-                    final List<Field> fields = readFields(procedure, c);
-                    final Field mainField = getMainField(procedure);
-                    if (mainField != null && "Time".equals(mainField.fieldType)) {
-                        fields.remove(mainField);
-                    }
-
-                    // aggregate phenomenon mode
-                    if (fields.size() > 1) {
-                        if (phen instanceof CompositePhenomenon) {
-                            CompositePhenomenon compoPhen = (CompositePhenomenon) phen;
-                            if (compoPhen.getComponent().size() == fields.size()) {
-                                for (int i = 0; i < fields.size(); i++) {
-                                    org.geotoolkit.swe.xml.Phenomenon compPhen = (org.geotoolkit.swe.xml.Phenomenon) compoPhen.getComponent().get(i);
-                                    if ((currentFields.isEmpty() || currentFields.contains(compPhen.getName().getCode())) &&
-                                        (fieldFilters.isEmpty() || fieldFilters.contains(i))) {
-                                        //final String cphenID = compPhen.getId();
-                                        final Object result = buildMeasure(version, "measure-001", fields.get(i).fieldUom, 0d);
-                                        observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + i, name + '-' + i, null, foi, compPhen, procedure, result, tempTime));
-                                    }
+                // aggregate phenomenon mode
+                if (fields.size() > 1) {
+                    if (phen instanceof CompositePhenomenon) {
+                        CompositePhenomenon compoPhen = (CompositePhenomenon) phen;
+                        if (compoPhen.getComponent().size() == fields.size()) {
+                            for (int i = 0; i < fields.size(); i++) {
+                                org.geotoolkit.swe.xml.Phenomenon compPhen = (org.geotoolkit.swe.xml.Phenomenon) compoPhen.getComponent().get(i);
+                                if ((currentFields.isEmpty() || currentFields.contains(compPhen.getName().getCode())) &&
+                                    (fieldFilters.isEmpty() || fieldFilters.contains(i))) {
+                                    //final String cphenID = compPhen.getId();
+                                    final Object result = buildMeasure(version, "measure-001", fields.get(i).fieldUom, 0d);
+                                    observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + i, name + '-' + i, null, foi, compPhen, procedure, result, tempTime));
                                 }
-                            } else {
-                                throw new DataStoreException("incoherence between multiple fields size and composite phenomenon components size");
                             }
                         } else {
-                            throw new DataStoreException("incoherence between multiple fields and non-composite phenomenon");
+                            throw new DataStoreException("incoherence between multiple fields size and composite phenomenon components size");
                         }
-
-                    // simple phenomenon mode
                     } else {
-                        if (phen instanceof CompositePhenomenon) {
-                            throw new DataStoreException("incoherence between single fields and composite phenomenon");
-                        }
-                        final Object result = buildMeasure(version, "measure-001", fields.get(0).fieldUom, 0d);
-                        observations.add(OMXmlFactory.buildMeasurement(version, obsID + "-0", name + "-0", null, foi, phen, procedure, result, tempTime));
+                        throw new DataStoreException("incoherence between multiple fields and non-composite phenomenon");
                     }
+
+                // simple phenomenon mode
+                } else {
+                    if (phen instanceof CompositePhenomenon) {
+                        throw new DataStoreException("incoherence between single fields and composite phenomenon");
+                    }
+                    final Object result = buildMeasure(version, "measure-001", fields.get(0).fieldUom, 0d);
+                    observations.add(OMXmlFactory.buildMeasurement(version, obsID + "-0", name + "-0", null, foi, phen, procedure, result, tempTime));
                 }
             }
-            return observations;
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
-            throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage());
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
+            throw new DataStoreException("the service has throw a SQL Exception.", ex);
         } catch (DataStoreException ex) {
-            throw new DataStoreException("the service has throw a Datastore Exception:" + ex.getMessage());
+            throw new DataStoreException("the service has throw a Datastore Exception:" + ex.getMessage(), ex);
         }
+        return observations;
     }
 
     @Override
@@ -443,241 +437,235 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         if (MEASUREMENT_QNAME.equals(resultModel)) {
             return getMesurements(version);
         }
-        String request = sqlRequest.toString();
         if (firstFilter) {
-            request = request.replaceFirst("WHERE", "");
+            sqlRequest.replaceFirst("WHERE", "");
         }
+        final Map<String, Observation> observations = new HashMap<>();
+        
+        try(final Connection c              = source.getConnection();
+            final PreparedStatement pstmt   = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
+            final ResultSet rs              = pstmt.executeQuery()) {
+            // add orderby to the query
+            
+            final TextBlock encoding = getDefaultTextEncoding(version);
+            final Map<String, List<Field>> fieldMap = new LinkedHashMap<>();
 
-        try(final Connection c               = source.getConnection();
-            final Statement currentStatement = c.createStatement()) {
-            try(final ResultSet rs           = currentStatement.executeQuery(request)) {
-                // add orderby to the query
-                final Map<String, Observation> observations = new HashMap<>();
-                final TextBlock encoding = getDefaultTextEncoding(version);
-                final Map<String, List<Field>> fieldMap = new LinkedHashMap<>();
-
-                while (rs.next()) {
-                    int nbValue = 0;
-                    ResultBuilder values = new ResultBuilder(resultMode, encoding, false);
-                    final String procedure = rs.getString("procedure");
-                    final String featureID = rs.getString("foi");
-                    final int oid = rs.getInt("id");
-                    Observation observation = observations.get(procedure + '-' + featureID);
-                    final int pid = getPIDFromProcedure(procedure, c);
-                    final Field mainField = getMainField(procedure);
-                    boolean isTimeField   = false;
-                    int offset            = 0;
-                    if (mainField != null) {
-                        isTimeField = "Time".equals(mainField.fieldType);
-                    }
-                    List<Field> fields = fieldMap.get(procedure);
-                    if (fields == null) {
-                        if (!currentFields.isEmpty()) {
-                            fields = new ArrayList<>();
-                            if (mainField != null) {
-                                fields.add(mainField);
-                            }
-
-                            List<Field> phenFields = new ArrayList<>();
-                            for (String f : currentFields) {
-                                final Field field = getFieldForPhenomenon(procedure, f, c);
-                                if (field != null && !fields.contains(field)) {
-                                    phenFields.add(field);
-                                }
-                            }
-
-                            // add proper order to fields
-                            List<Field> procedureFields = readFields(procedure, c);
-                            phenFields = reOrderFields(procedureFields, phenFields);
-                            fields.addAll(phenFields);
-
-                            // special case for trajectory observation
-                            // if lat/lon are available, include it anyway if they are not part of the phenomenon.
-                            final List<Field> llFields = getPosFields(procedure, c);
-                            for (Field llField : llFields) {
-                                if (!fields.contains(llField)) {
-                                    fields.add(1, llField);
-                                }
-                            }
-
-                        } else {
-                            fields = readFields(procedure, c);
-                        }
-
-                        // add the result id in the dataBlock if requested
-                        if (includeIDInDataBlock) {
-                            fields.add(0, new Field("Text", "id", "measure identifier", null));
-                        }
-                        fieldMap.put(procedure, fields);
-                    }
-
-                    String measureFilter = sqlMeasureRequest.toString();
-                    if (isTimeField) {
-                        measureFilter = measureFilter.replace("$time", mainField.fieldName);
-                        offset++;
-                    }
-                    if (includeIDInDataBlock) {
-                        offset++;
-                    }
-                    while (measureFilter.contains("${allphen")) {
-                        int opos = measureFilter.indexOf("${allphen");
-                        int cpos = measureFilter.indexOf("}", opos + 9);
-                        String block = measureFilter.substring(opos, cpos + 1);
-                        StringBuilder sb = new StringBuilder();
-                        for (Field field : fields) {
-                            sb.append(" AND (").append(block.replace("${allphen", "\"" + field.fieldName + "\"").replace('}', ' ')).append(") ");
-                        }
-                        measureFilter = measureFilter.replace(block, sb.toString());
-                    }
-                    
-                    for (int i = offset, j=0; i < fields.size(); i++, j++) {
-                        measureFilter = measureFilter.replace("$phen" + j, "\"" + fields.get(i).fieldName + "\"");
-                    }
-                    final String measureRequest = 
-                                  "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m "
-                                + "WHERE \"id_observation\" = ? " 
-                                + measureFilter
-                                + "ORDER BY m.\"id\"";
-
-                    
-                    int timeForProfileIndex = -1;
-                    if (includeTimeForProfile && !isTimeField) {
-                        timeForProfileIndex = includeIDInDataBlock ? 1 : 0;
-                    }
-
-                    Date firstTime = null;
-                    final String name = rs.getString("identifier");
-                    if (observation == null) {
-                        final String obsID = "obs-" + oid;
-                        final String timeID = "time-" + oid;
-                        final String observedProperty = rs.getString("observed_property");
-                        final SamplingFeature feature = getFeatureOfInterest(featureID, version, c);
-                        final FeatureProperty prop = buildFeatureProperty(version, feature);
-                        final Phenomenon phen = getPhenomenon(version, observedProperty, c);
-                        firstTime = dateFromTS(rs.getTimestamp("time_begin"));
-                        Date lastTime = dateFromTS(rs.getTimestamp("time_end"));
-                        boolean first = true;
-                        final List<AnyScalar> scal = new ArrayList<>();
-                        for (Field f : fields) {
-                            scal.add(f.getScalar(version));
-                        }
-
-                        // add the time field in the dataBlock if requested (only if main field is not a time field)
-                        if (timeForProfileIndex != -1) {
-                            scal.add(timeForProfileIndex, new Field("Time", "time", "http://www.opengis.net/def/property/OGC/0/SamplingTime", null).getScalar(version));
-                        }
-
-                        /*
-                         *  BUILD RESULT
-                         */
-                        try(final PreparedStatement stmt = c.prepareStatement(measureRequest)) {
-                            stmt.setInt(1, oid);
-                            try(final ResultSet rs2 = stmt.executeQuery()) {
-                                while (rs2.next()) {
-                                    values.newBlock();
-                                    for (int i = 0; i < fields.size(); i++) {
-
-                                        if (i == timeForProfileIndex) {
-                                            values.appendTime(firstTime);
-                                        }
-
-                                        Field field = fields.get(i);
-                                        switch (field.fieldType) {
-                                            case "Time":
-                                                Date t = dateFromTS(rs2.getTimestamp(field.fieldName));
-                                                values.appendTime(t);
-                                                if (first) {
-                                                    firstTime = t;
-                                                    first = false;
-                                                }   lastTime = t;
-                                                break;
-                                            case "Quantity":
-                                                String value = rs2.getString(field.fieldName); // we need to kown if the value is null (rs.getDouble return 0 if so).
-                                                Double d = Double.NaN;
-                                                if (value != null && !value.isEmpty()) {
-                                                    d = rs2.getDouble(field.fieldName);
-                                                }
-                                                values.appendDouble(d);
-                                                break;
-                                            default:
-                                                String svalue = rs2.getString(field.fieldName);
-                                                if (includeIDInDataBlock && field.fieldName.equals("id")) {
-                                                    svalue = name + '-' + svalue;
-                                                }
-                                                values.appendString(svalue);
-                                                break;
-                                        }
-                                    }
-                                    nbValue = nbValue + values.endBlock();
-                                }
-                            }
-                        }
-
-                        final TemporalGeometricPrimitive time = buildTimePeriod(version, timeID, firstTime, lastTime);
-                        final Object result = buildComplexResult(version, scal, nbValue, encoding, values, observations.size());
-                        observation = OMXmlFactory.buildObservation(version, obsID, name, null, prop, phen, procedure, result, time);
-                        observations.put(procedure + '-' + featureID, observation);
-                    } else {
-                        Date lastTime = null;
-                        try(final PreparedStatement stmt = c.prepareStatement(measureRequest)) {
-                            stmt.setInt(1, oid);
-                            try(final ResultSet rs2 = stmt.executeQuery()) {
-                                while (rs2.next()) {
-                                    values.newBlock();
-                                    for (int i = 0; i < fields.size(); i++) {
-
-                                        if (i == timeForProfileIndex) {
-                                            values.appendTime(firstTime);
-                                        }
-
-                                        Field field = fields.get(i);
-                                        switch (field.fieldType) {
-                                            case "Time":
-                                                Date t = dateFromTS(rs2.getTimestamp(field.fieldName));
-                                                values.appendTime(t);
-                                                lastTime = t;
-                                                break;
-                                            case "Quantity":
-                                                String value = rs2.getString(field.fieldName); // we need to kown if the value is null (rs.getDouble return 0 if so).
-                                                Double d = Double.NaN;
-                                                if (value != null && !value.isEmpty()) {
-                                                    d = rs2.getDouble(field.fieldName);
-                                                }
-                                                values.appendDouble(d);
-                                                break;
-                                            default:
-                                                String svalue = rs2.getString(field.fieldName);
-                                                if (includeIDInDataBlock && field.fieldName.equals("id")) {
-                                                    svalue = name + '-' + svalue;
-                                                }
-                                                values.appendString(svalue);
-                                                break;
-                                        }
-                                    }
-                                    nbValue = nbValue + values.endBlock();
-                                }
-                            }
-                        }
-
-                        // UPDATE RESULTS
-                        final DataArrayProperty result = (DataArrayProperty) (observation).getResult();
-                        final DataArray array = result.getDataArray();
-                        array.setElementCount(array.getElementCount().getCount().getValue() + nbValue);
-                        switch (resultMode) {
-                            case DATA_ARRAY: array.getDataValues().getAny().addAll(values.getDataArray()); break;
-                            case CSV:     array.setValues(array.getValues() + values.getStringValues()); break;
-                        }
-                        ((AbstractObservation) observation).extendSamplingTime(lastTime);
-                    }
+            while (rs.next()) {
+                int nbValue = 0;
+                ResultBuilder values = new ResultBuilder(resultMode, encoding, false);
+                final String procedure = rs.getString("procedure");
+                final String featureID = rs.getString("foi");
+                final int oid = rs.getInt("id");
+                Observation observation = observations.get(procedure + '-' + featureID);
+                final int pid = getPIDFromProcedure(procedure, c);
+                final Field mainField = getMainField(procedure);
+                boolean isTimeField   = false;
+                int offset            = 0;
+                if (mainField != null) {
+                    isTimeField = "Time".equals(mainField.fieldType);
                 }
-                return new ArrayList<>(observations.values());
+                List<Field> fields = fieldMap.get(procedure);
+                if (fields == null) {
+                    if (!currentFields.isEmpty()) {
+                        fields = new ArrayList<>();
+                        if (mainField != null) {
+                            fields.add(mainField);
+                        }
+
+                        List<Field> phenFields = new ArrayList<>();
+                        for (String f : currentFields) {
+                            final Field field = getFieldForPhenomenon(procedure, f, c);
+                            if (field != null && !fields.contains(field)) {
+                                phenFields.add(field);
+                            }
+                        }
+
+                        // add proper order to fields
+                        List<Field> procedureFields = readFields(procedure, c);
+                        phenFields = reOrderFields(procedureFields, phenFields);
+                        fields.addAll(phenFields);
+
+                        // special case for trajectory observation
+                        // if lat/lon are available, include it anyway if they are not part of the phenomenon.
+                        final List<Field> llFields = getPosFields(procedure, c);
+                        for (Field llField : llFields) {
+                            if (!fields.contains(llField)) {
+                                fields.add(1, llField);
+                            }
+                        }
+
+                    } else {
+                        fields = readFields(procedure, c);
+                    }
+
+                    // add the result id in the dataBlock if requested
+                    if (includeIDInDataBlock) {
+                        fields.add(0, new Field("Text", "id", "measure identifier", null));
+                    }
+                    fieldMap.put(procedure, fields);
+                }
+
+                if (isTimeField) {
+                    sqlMeasureRequest.replaceAll("$time", mainField.fieldName);
+                    offset++;
+                }
+                if (includeIDInDataBlock) {
+                    offset++;
+                }
+                while (sqlMeasureRequest.contains("${allphen")) {
+                    String measureFilter = sqlMeasureRequest.getRequest();
+                    int opos = measureFilter.indexOf("${allphen");
+                    int cpos = measureFilter.indexOf("}", opos + 9);
+                    String block = measureFilter.substring(opos, cpos + 1);
+                    StringBuilder sb = new StringBuilder();
+                    for (Field field : fields) {
+                        sb.append(" AND (").append(block.replace("${allphen", "\"" + field.fieldName + "\"").replace('}', ' ')).append(") ");
+                    }
+                    sqlMeasureRequest.replaceFirst(block, sb.toString());
+                }
+
+                for (int i = offset, j=0; i < fields.size(); i++, j++) {
+                    sqlMeasureRequest.replaceAll("$phen" + j, "\"" + fields.get(i).fieldName + "\"");
+                }
+                final FilterSQLRequest measureRequest = new FilterSQLRequest("SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m WHERE \"id_observation\" = ");
+                measureRequest.appendValue(-1).append(sqlMeasureRequest).append("ORDER BY m.\"id\"");
+
+                int timeForProfileIndex = -1;
+                if (includeTimeForProfile && !isTimeField) {
+                    timeForProfileIndex = includeIDInDataBlock ? 1 : 0;
+                }
+
+                Date firstTime = null;
+                final String name = rs.getString("identifier");
+                if (observation == null) {
+                    final String obsID = "obs-" + oid;
+                    final String timeID = "time-" + oid;
+                    final String observedProperty = rs.getString("observed_property");
+                    final SamplingFeature feature = getFeatureOfInterest(featureID, version, c);
+                    final FeatureProperty prop = buildFeatureProperty(version, feature);
+                    final Phenomenon phen = getPhenomenon(version, observedProperty, c);
+                    firstTime = dateFromTS(rs.getTimestamp("time_begin"));
+                    Date lastTime = dateFromTS(rs.getTimestamp("time_end"));
+                    boolean first = true;
+                    final List<AnyScalar> scal = new ArrayList<>();
+                    for (Field f : fields) {
+                        scal.add(f.getScalar(version));
+                    }
+
+                    // add the time field in the dataBlock if requested (only if main field is not a time field)
+                    if (timeForProfileIndex != -1) {
+                        scal.add(timeForProfileIndex, new Field("Time", "time", "http://www.opengis.net/def/property/OGC/0/SamplingTime", null).getScalar(version));
+                    }
+
+                    /*
+                     *  BUILD RESULT
+                     */
+                    measureRequest.setParamValue(0, oid);
+                    try(final PreparedStatement stmt = measureRequest.fillParams(c.prepareStatement(measureRequest.getRequest()));
+                        final ResultSet rs2 = stmt.executeQuery()) {
+                        while (rs2.next()) {
+                            values.newBlock();
+                            for (int i = 0; i < fields.size(); i++) {
+
+                                if (i == timeForProfileIndex) {
+                                    values.appendTime(firstTime);
+                                }
+
+                                Field field = fields.get(i);
+                                switch (field.fieldType) {
+                                    case "Time":
+                                        Date t = dateFromTS(rs2.getTimestamp(field.fieldName));
+                                        values.appendTime(t);
+                                        if (first) {
+                                            firstTime = t;
+                                            first = false;
+                                        }   lastTime = t;
+                                        break;
+                                    case "Quantity":
+                                        String value = rs2.getString(field.fieldName); // we need to kown if the value is null (rs.getDouble return 0 if so).
+                                        Double d = Double.NaN;
+                                        if (value != null && !value.isEmpty()) {
+                                            d = rs2.getDouble(field.fieldName);
+                                        }
+                                        values.appendDouble(d);
+                                        break;
+                                    default:
+                                        String svalue = rs2.getString(field.fieldName);
+                                        if (includeIDInDataBlock && field.fieldName.equals("id")) {
+                                            svalue = name + '-' + svalue;
+                                        }
+                                        values.appendString(svalue);
+                                        break;
+                                }
+                            }
+                            nbValue = nbValue + values.endBlock();
+                        }
+                    }
+
+                    final TemporalGeometricPrimitive time = buildTimePeriod(version, timeID, firstTime, lastTime);
+                    final Object result = buildComplexResult(version, scal, nbValue, encoding, values, observations.size());
+                    observation = OMXmlFactory.buildObservation(version, obsID, name, null, prop, phen, procedure, result, time);
+                    observations.put(procedure + '-' + featureID, observation);
+                } else {
+                    Date lastTime = null;
+                    measureRequest.setParamValue(0, oid);
+                    try(final PreparedStatement stmt = measureRequest.fillParams(c.prepareStatement(measureRequest.getRequest()));
+                        final ResultSet rs2 = stmt.executeQuery()) {
+                        while (rs2.next()) {
+                            values.newBlock();
+                            for (int i = 0; i < fields.size(); i++) {
+
+                                if (i == timeForProfileIndex) {
+                                    values.appendTime(firstTime);
+                                }
+
+                                Field field = fields.get(i);
+                                switch (field.fieldType) {
+                                    case "Time":
+                                        Date t = dateFromTS(rs2.getTimestamp(field.fieldName));
+                                        values.appendTime(t);
+                                        lastTime = t;
+                                        break;
+                                    case "Quantity":
+                                        String value = rs2.getString(field.fieldName); // we need to kown if the value is null (rs.getDouble return 0 if so).
+                                        Double d = Double.NaN;
+                                        if (value != null && !value.isEmpty()) {
+                                            d = rs2.getDouble(field.fieldName);
+                                        }
+                                        values.appendDouble(d);
+                                        break;
+                                    default:
+                                        String svalue = rs2.getString(field.fieldName);
+                                        if (includeIDInDataBlock && field.fieldName.equals("id")) {
+                                            svalue = name + '-' + svalue;
+                                        }
+                                        values.appendString(svalue);
+                                        break;
+                                }
+                            }
+                            nbValue = nbValue + values.endBlock();
+                        }
+                    }
+
+                    // UPDATE RESULTS
+                    final DataArrayProperty result = (DataArrayProperty) (observation).getResult();
+                    final DataArray array = result.getDataArray();
+                    array.setElementCount(array.getElementCount().getCount().getValue() + nbValue);
+                    switch (resultMode) {
+                        case DATA_ARRAY: array.getDataValues().getAny().addAll(values.getDataArray()); break;
+                        case CSV:     array.setValues(array.getValues() + values.getStringValues()); break;
+                    }
+                    ((AbstractObservation) observation).extendSamplingTime(lastTime);
+                }
             }
+                
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
-            throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
+            throw new DataStoreException("the service has throw a SQL Exception.", ex);
         } catch (DataStoreException ex) {
             throw new DataStoreException("the service has throw a Datastore Exception:" + ex.getMessage(), ex);
         }
+        return new ArrayList<>(observations.values());
     }
 
     private Date dateFromTS(Timestamp t) {
@@ -703,135 +691,130 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
     public List<Observation> getMesurements(final String version) throws DataStoreException {
         // add orderby to the query
-        String request = sqlRequest.append(" ORDER BY o.\"id\"").toString();
+        sqlRequest.append(" ORDER BY o.\"id\"");
         if (firstFilter) {
-            request = request.replaceFirst("WHERE", "");
+            sqlRequest.replaceFirst("WHERE", "");
         }
 
-        try(final Connection c = source.getConnection()) {
-            final List<Observation> observations = new ArrayList<>();
+        final List<Observation> observations = new ArrayList<>();
+        try(final Connection c            = source.getConnection();
+            final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
+            final ResultSet rs            = pstmt.executeQuery()) {
+            while (rs.next()) {
+                final String procedure = rs.getString("procedure");
+                final Date startTime = dateFromTS(rs.getTimestamp("time_begin"));
+                final Date endTime = dateFromTS(rs.getTimestamp("time_end"));
+                final int oid = rs.getInt("id");
+                final String name = rs.getString("identifier");
+                final String obsID = "obs-" + oid;
+                final String timeID = "time-" + oid;
+                final String featureID = rs.getString("foi");
+                final String observedProperty = rs.getString("observed_property");
+                final SamplingFeature feature = getFeatureOfInterest(featureID, version, c);
+                final Phenomenon phen = getPhenomenon(version, observedProperty, c);
+                final int pid = getPIDFromProcedure(procedure, c);
+                final List<Field> fields = readFields(procedure, c);
 
-            try(final Statement currentStatement = c.createStatement();
-                final ResultSet rs               = currentStatement.executeQuery(request)) {
-                while (rs.next()) {
-                    final String procedure = rs.getString("procedure");
-                    final Date startTime = dateFromTS(rs.getTimestamp("time_begin"));
-                    final Date endTime = dateFromTS(rs.getTimestamp("time_end"));
-                    final int oid = rs.getInt("id");
-                    final String name = rs.getString("identifier");
-                    final String obsID = "obs-" + oid;
-                    final String timeID = "time-" + oid;
-                    final String featureID = rs.getString("foi");
-                    final String observedProperty = rs.getString("observed_property");
-                    final SamplingFeature feature = getFeatureOfInterest(featureID, version, c);
-                    final Phenomenon phen = getPhenomenon(version, observedProperty, c);
-                    final int pid = getPIDFromProcedure(procedure, c);
-                    final List<Field> fields = readFields(procedure, c);
+                String start = null;
+                if (startTime != null) {
+                    synchronized (format2) {
+                        start = format2.format(startTime);
+                    }
+                }
+                String end = null;
+                if (endTime != null) {
+                    synchronized (format2) {
+                        end = format2.format(endTime);
+                    }
+                }
+                TemporalGeometricPrimitive time = null;
+                if (start != null && end == null) {
+                    time = buildTimeInstant(version, timeID, start);
+                } else if (start != null || end != null) {
+                    time = buildTimePeriod(version, timeID, start, end);
+                }
 
-                    String start = null;
-                    if (startTime != null) {
-                        synchronized (format2) {
-                            start = format2.format(startTime);
-                        }
-                    }
-                    String end = null;
-                    if (endTime != null) {
-                        synchronized (format2) {
-                            end = format2.format(endTime);
-                        }
-                    }
-                    TemporalGeometricPrimitive time = null;
-                    if (start != null && end == null) {
-                        time = buildTimeInstant(version, timeID, start);
-                    } else if (start != null || end != null) {
-                        time = buildTimePeriod(version, timeID, start, end);
-                    }
-
-                    /*
-                     *  BUILD RESULT
-                     */
-                    final Field mainField = getMainField(procedure);
-                    boolean isTimeField = false;
-                    if (mainField != null) {
-                        isTimeField = "Time".equals(mainField.fieldType);
-                        if (isTimeField) {
-                            fields.remove(mainField);
-                        }
-                    }
-                    
-                    List<FieldPhenom> fieldPhen = getPhenomenonFields(phen, fields);
-
-                    String measureFilter = sqlMeasureRequest.toString();
+                /*
+                 *  BUILD RESULT
+                 */
+                final Field mainField = getMainField(procedure);
+                boolean isTimeField = false;
+                if (mainField != null) {
+                    isTimeField = "Time".equals(mainField.fieldType);
                     if (isTimeField) {
-                        measureFilter = measureFilter.replace("$time", mainField.fieldName);
+                        fields.remove(mainField);
                     }
-                    while (measureFilter.contains("${allphen")) {
-                        int opos = measureFilter.indexOf("${allphen");
-                        int cpos = measureFilter.indexOf("}", opos + 9);
-                        String block = measureFilter.substring(opos, cpos + 1);
-                        StringBuilder sb = new StringBuilder();
-                        for (FieldPhenom field : fieldPhen) {
-                            sb.append(" AND (").append(block.replace("${allphen", "\"" + field.field.fieldName + "\"").replace('}', ' ')).append(") ");
-                        }
-                        measureFilter = measureFilter.replace(block, sb.toString());
-                    }
-                    
+                }
+
+                List<FieldPhenom> fieldPhen = getPhenomenonFields(phen, fields);
+
+                if (isTimeField) {
+                    sqlMeasureRequest.replaceAll("$time", mainField.fieldName);
+                }
+                while (sqlMeasureRequest.contains("${allphen")) {
+                    String measureFilter = sqlMeasureRequest.getRequest();
+                    int opos = measureFilter.indexOf("${allphen");
+                    int cpos = measureFilter.indexOf("}", opos + 9);
+                    String block = measureFilter.substring(opos, cpos + 1);
+                    StringBuilder sb = new StringBuilder();
                     for (FieldPhenom field : fieldPhen) {
-                        measureFilter = measureFilter.replace("$phen" + field.i, "\"" + field.field.fieldName + "\"");
+                        sb.append(" AND (").append(block.replace("${allphen", "\"" + field.field.fieldName + "\"").replace('}', ' ')).append(") ");
                     }
-                    
-                    final String measureRequest = 
-                                  "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m "
-                                + "WHERE \"id_observation\" = ? " 
-                                + measureFilter
-                                + "ORDER BY m.\"id\"";
+                    sqlMeasureRequest.replaceFirst(block, sb.toString());
+                }
 
-                    /**
-                     * coherence verification
-                     */
+                for (FieldPhenom field : fieldPhen) {
+                    sqlMeasureRequest.replaceAll("$phen" + field.i, "\"" + field.field.fieldName + "\"");
+                }
 
-                    try(final PreparedStatement stmt = c.prepareStatement(measureRequest)) {
-                        stmt.setInt(1, oid);
-                        try(final ResultSet rs2 = stmt.executeQuery()) {
-                            while (rs2.next()) {
-                                final Integer rid = rs2.getInt("id");
-                                if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
-                                    TemporalGeometricPrimitive measureTime;
-                                    if (isTimeField) {
-                                        final Date mt = dateFromTS(rs2.getTimestamp(mainField.fieldName));
-                                        measureTime = buildTimeInstant(version, "time-" + oid + '-' + rid, mt);
-                                    } else {
-                                        measureTime = time;
+                final FilterSQLRequest measureRequest = new FilterSQLRequest("SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m WHERE \"id_observation\" = ");
+                measureRequest.appendValue(oid).append(" ").append(sqlMeasureRequest);
+                measureRequest.append(" ORDER BY m.\"id\"");
+
+                /**
+                 * coherence verification
+                 */
+
+                try(final PreparedStatement stmt = measureRequest.fillParams(c.prepareStatement(measureRequest.getRequest()));
+                    final ResultSet rs2 = stmt.executeQuery()) {
+                    while (rs2.next()) {
+                        final Integer rid = rs2.getInt("id");
+                        if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
+                            TemporalGeometricPrimitive measureTime;
+                            if (isTimeField) {
+                                final Date mt = dateFromTS(rs2.getTimestamp(mainField.fieldName));
+                                measureTime = buildTimeInstant(version, "time-" + oid + '-' + rid, mt);
+                            } else {
+                                measureTime = time;
+                            }
+
+                            for (int i = 0; i < fieldPhen.size(); i++) {
+                                FieldPhenom field = fieldPhen.get(i);
+                                Double dValue = null;
+                                final String value = rs2.getString(field.field.fieldName);
+                                if (value != null) {
+                                    try {
+                                        dValue = Double.parseDouble(value);
+                                    } catch (NumberFormatException ex) {
+                                        throw new DataStoreException("Unable ta parse the result value as a double (value=" + value + ")");
                                     }
-
-                                    for (int i = 0; i < fieldPhen.size(); i++) {
-                                        FieldPhenom field = fieldPhen.get(i);
-                                        Double dValue = null;
-                                        final String value = rs2.getString(field.field.fieldName);
-                                        if (value != null) {
-                                            try {
-                                                dValue = Double.parseDouble(value);
-                                            } catch (NumberFormatException ex) {
-                                                throw new DataStoreException("Unable ta parse the result value as a double (value=" + value + ")");
-                                            }
-                                            final FeatureProperty foi = buildFeatureProperty(version, feature); // do not share the same object
-                                            final Object result = buildMeasure(version, "measure-00" + rid, field.field.fieldUom, dValue);
-                                            observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + field.i + '-' + rid, name + '-' + field.i + '-' + rid, null, foi, field.phenomenon, procedure, result, measureTime));
-                                        }
-                                    }
+                                    final FeatureProperty foi = buildFeatureProperty(version, feature); // do not share the same object
+                                    final Object result = buildMeasure(version, "measure-00" + rid, field.field.fieldUom, dValue);
+                                    observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + field.i + '-' + rid, name + '-' + field.i + '-' + rid, null, foi, field.phenomenon, procedure, result, measureTime));
                                 }
                             }
                         }
                     }
                 }
             }
-            return observations;
+            
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request.toString());
-            throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
+            throw new DataStoreException("the service has throw a SQL Exception.", ex);
         } catch (DataStoreException ex) {
             throw new DataStoreException("the service has throw a Datastore Exception:" + ex.getMessage(), ex);
         }
+        return observations;
     }
 
     @Override
@@ -851,23 +834,22 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 return getDecimatedResults(decimationSize, includeTimeForProfile);
             }
         }
-        String request = null;
         try {
             // add orderby to the query
             final Field timeField = getTimeField(currentProcedure);
             if (timeField != null) {
-                sqlRequest.append(sqlMeasureRequest.toString().replace("$time", timeField.fieldName));
+                sqlRequest.append(sqlMeasureRequest.replaceAll("$time", timeField.fieldName));
             }
-            request = sqlRequest.append(" ORDER BY  o.\"id\", m.\"id\"").toString();
+            sqlRequest.append(" ORDER BY  o.\"id\", m.\"id\"").toString();
 
             if (firstFilter) {
-                request = request.replaceFirst("WHERE", "");
+                return sqlRequest.replaceFirst("WHERE", "");
             }
-            LOGGER.info(request);
+            LOGGER.info(sqlRequest.toString());
             ResultBuilder values;
             try(final Connection c = source.getConnection();
-                final Statement currentStatement = c.createStatement();
-                final ResultSet rs = currentStatement.executeQuery(request)) {
+                final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
+                final ResultSet rs = pstmt.executeQuery()) {
 
                 final List<Field> fields;
                 if (!currentFields.isEmpty()) {
@@ -935,8 +917,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 default: throw new IllegalArgumentException("Unexpected result mode");
             }
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
-            throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
+            throw new DataStoreException("the service has throw a SQL Exception.", ex);
         }
     }
 
@@ -958,11 +940,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             }
             
             final Field timeField = getTimeField(currentProcedure);
-            String measureFilter = sqlMeasureRequest.toString();
             if (timeField != null) {
-                measureFilter = measureFilter.replace("$time", timeField.fieldName);
+                sqlMeasureRequest.replaceAll("$time", timeField.fieldName);
             }
-            while (measureFilter.contains("${allphen")) {
+            while (sqlMeasureRequest.contains("${allphen")) {
+                String measureFilter = sqlMeasureRequest.getRequest();
                 int opos = measureFilter.indexOf("${allphen");
                 int cpos = measureFilter.indexOf("}", opos + 9);
                 String block = measureFilter.substring(opos, cpos + 1);
@@ -971,140 +953,138 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     Field field = fields.get(i);
                     sb.append(" AND (").append(block.replace("${allphen", "\"" + field.fieldName + "\"").replace('}', ' ')).append(") ");
                 }
-                measureFilter = measureFilter.replace(block, sb.toString());
+                sqlMeasureRequest.replaceFirst(block, sb.toString());
             }
             for (int i = offset; i < allfields.size(); i++) {
                 Field f = allfields.get(i);
-                measureFilter = measureFilter.replace("$phen" + (i - offset), "\"" + f.fieldName + "\"");
+                sqlMeasureRequest.replaceAll("$phen" + (i - offset), "\"" + f.fieldName + "\"");
             }
-            sqlRequest.append(measureFilter);
-            final String fieldRequest = sqlRequest.toString();
+            sqlRequest.append(sqlMeasureRequest);
+            final FilterSQLRequest fieldRequest = sqlRequest.clone();
             // add orderby to the query
             sqlRequest.append(" ORDER BY  o.\"id\", m.\"id\"");
-            
+            if (profileWithTime) {
+                sqlRequest.replaceFirst("m.*", "m.*, o.\"id\" as oid, o.\"time_begin\" ");
+            } else if (profile) {
+                sqlRequest.replaceFirst("m.*", "m.*, o.\"id\" as oid ");
+            }
+            LOGGER.info(sqlRequest.toString());
             ResultBuilder values;
-            try (final Statement currentStatement = c.createStatement()) {
-                String request = sqlRequest.toString();
-                if (profileWithTime) {
-                    request = request.replace("m.*", "m.*, o.\"id\" as oid, o.\"time_begin\" ");
-                } else if (profile) {
-                    request = request.replace("m.*", "m.*, o.\"id\" as oid ");
+            try (final PreparedStatement pstmt    = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
+                 final ResultSet rs = pstmt.executeQuery()) {
+                
+                if ("resultArray".equals(responseFormat)) {
+                    values = new ResultBuilder(ResultBuilder.Mode.DATA_ARRAY, null, false);
+                } else if ("text/csv".equals(responseFormat)) {
+                    values = new ResultBuilder(ResultBuilder.Mode.CSV, getCsvTextEncoding("2.0.0"), true);
+                    // Add the header
+                    values.appendHeaders(fields);
+                } else {
+                    values = new ResultBuilder(ResultBuilder.Mode.CSV, getDefaultTextEncoding("2.0.0"), false);
                 }
-                LOGGER.info(request);
-                try (final ResultSet rs = currentStatement.executeQuery(request)) {
-                    if ("resultArray".equals(responseFormat)) {
-                        values = new ResultBuilder(ResultBuilder.Mode.DATA_ARRAY, null, false);
-                    } else if ("text/csv".equals(responseFormat)) {
-                        values = new ResultBuilder(ResultBuilder.Mode.CSV, getCsvTextEncoding("2.0.0"), true);
-                        // Add the header
-                        values.appendHeaders(fields);
+                final Map<Object, long[]> times = getMainFieldStep(fieldRequest, fields.get(0), c, width);
+
+                Map<String, Double> minVal = null;
+                Map<String, Double> maxVal = null;
+                long start = -1;
+                long step  = -1;
+                Integer prevObs = null;
+                while (rs.next()) {
+                    Integer currentObs;
+                    if (profile) {
+                        currentObs = rs.getInt("oid");
                     } else {
-                        values = new ResultBuilder(ResultBuilder.Mode.CSV, getDefaultTextEncoding("2.0.0"), false);
+                        currentObs = 1;
                     }
-                    final Map<Object, long[]> times = getMainFieldStep(fieldRequest, fields.get(0), c, width);
+                    if (!currentObs.equals(prevObs)) {
+                        step = times.get(currentObs)[1];
+                        start = times.get(currentObs)[0];
+                        minVal = initMapVal(fields, false);
+                        maxVal = initMapVal(fields, true);
+                    }
+                    prevObs = currentObs;
+                    long currentMainValue = -1;
+                    for (int i = 0; i < fields.size(); i++) {
+                        Field field = fields.get(i);
+                        String value = rs.getString(field.fieldName);
 
-                    Map<String, Double> minVal = null;
-                    Map<String, Double> maxVal = null;
-                    long start = -1;
-                    long step  = -1;
-                    Integer prevObs = null;
-                    while (rs.next()) {
-                        Integer currentObs;
-                        if (profile) {
-                            currentObs = rs.getInt("oid");
+                        if (i == 0) {
+                            if (field.fieldType.equals("Time")) {
+                                final Timestamp currentTime = Timestamp.valueOf(value);
+                                currentMainValue = currentTime.getTime();
+                            } else if (field.fieldType.equals("Quantity")) {
+                                if (value != null && !value.isEmpty()) {
+                                    final Double d = Double.parseDouble(value);
+                                    currentMainValue = d.longValue();
+                                }
+                            }
+                        }
+                        addToMapVal(minVal, maxVal, field.fieldName, value);
+                    }
+
+                    if (currentMainValue != -1 && currentMainValue > (start + step)) {
+                        values.newBlock();
+                        //min
+                        if (profileWithTime) {
+                            Date t = dateFromTS(rs.getTimestamp("time_begin"));
+                            values.appendTime(t);
+                        }
+                        if (fields.get(0).fieldType.equals("Time")) {
+                            values.appendTime(new Date(start));
+                        } else if (fields.get(0).fieldType.equals("Quantity")) {
+                            // special case for profile + datastream on another phenomenon that the main field.
+                            // we do not include the main field in the result
+                            boolean skipMain = profile && !fieldFilters.isEmpty() && !fieldFilters.contains(0);
+                            if (!skipMain) {
+                                values.appendLong(start);
+                            }
                         } else {
-                            currentObs = 1;
+                            throw new DataStoreException("main field other than Time or Quantity are not yet allowed");
                         }
-                        if (!currentObs.equals(prevObs)) {
-                            step = times.get(currentObs)[1];
-                            start = times.get(currentObs)[0];
-                            minVal = initMapVal(fields, false);
-                            maxVal = initMapVal(fields, true);
+                        for (Field field : fields) {
+                            if (!field.equals(fields.get(0))) {
+                                final double minValue = minVal.get(field.fieldName);
+                                if (minValue != Double.MAX_VALUE) {
+                                    values.appendDouble(minValue);
+                                } else {
+                                    values.appendDouble(Double.NaN);
+                                }
+                            }
                         }
-                        prevObs = currentObs;
-                        long currentMainValue = -1;
-                        for (int i = 0; i < fields.size(); i++) {
-                            Field field = fields.get(i);
-                            String value = rs.getString(field.fieldName);
-
-                            if (i == 0) {
-                                if (field.fieldType.equals("Time")) {
-                                    final Timestamp currentTime = Timestamp.valueOf(value);
-                                    currentMainValue = currentTime.getTime();
-                                } else if (field.fieldType.equals("Quantity")) {
-                                    if (value != null && !value.isEmpty()) {
-                                        final Double d = Double.parseDouble(value);
-                                        currentMainValue = d.longValue();
-                                    }
-                                }
-                            }
-                            addToMapVal(minVal, maxVal, field.fieldName, value);
+                        values.endBlock();
+                        values.newBlock();
+                        //max
+                        if (profileWithTime) {
+                            Date t = dateFromTS(rs.getTimestamp("time_begin"));
+                            values.appendTime(t);
                         }
-
-                        if (currentMainValue != -1 && currentMainValue > (start + step)) {
-                            values.newBlock();
-                            //min
-                            if (profileWithTime) {
-                                Date t = dateFromTS(rs.getTimestamp("time_begin"));
-                                values.appendTime(t);
+                        if (fields.get(0).fieldType.equals("Time")) {
+                            long maxTime = start + step;
+                            values.appendTime(new Date(maxTime));
+                        } else if (fields.get(0).fieldType.equals("Quantity")) {
+                            // special case for profile + datastream on another phenomenon that the main field.
+                            // we do not include the main field in the result
+                            boolean skipMain = profile && !fieldFilters.isEmpty() && !fieldFilters.contains(0);
+                            if (!skipMain) {
+                                values.appendLong(start + step);
                             }
-                            if (fields.get(0).fieldType.equals("Time")) {
-                                values.appendTime(new Date(start));
-                            } else if (fields.get(0).fieldType.equals("Quantity")) {
-                                // special case for profile + datastream on another phenomenon that the main field.
-                                // we do not include the main field in the result
-                                boolean skipMain = profile && !fieldFilters.isEmpty() && !fieldFilters.contains(0);
-                                if (!skipMain) {
-                                    values.appendLong(start);
-                                }
-                            } else {
-                                throw new DataStoreException("main field other than Time or Quantity are not yet allowed");
-                            }
-                            for (Field field : fields) {
-                                if (!field.equals(fields.get(0))) {
-                                    final double minValue = minVal.get(field.fieldName);
-                                    if (minValue != Double.MAX_VALUE) {
-                                        values.appendDouble(minValue);
-                                    } else {
-                                        values.appendDouble(Double.NaN);
-                                    }
-                                }
-                            }
-                            values.endBlock();
-                            values.newBlock();
-                            //max
-                            if (profileWithTime) {
-                                Date t = dateFromTS(rs.getTimestamp("time_begin"));
-                                values.appendTime(t);
-                            }
-                            if (fields.get(0).fieldType.equals("Time")) {
-                                long maxTime = start + step;
-                                values.appendTime(new Date(maxTime));
-                            } else if (fields.get(0).fieldType.equals("Quantity")) {
-                                // special case for profile + datastream on another phenomenon that the main field.
-                                // we do not include the main field in the result
-                                boolean skipMain = profile && !fieldFilters.isEmpty() && !fieldFilters.contains(0);
-                                if (!skipMain) {
-                                    values.appendLong(start + step);
-                                }
-                            } else {
-                                throw new DataStoreException("main field other than Time or Quantity are not yet allowed");
-                            }
-                            for (Field field : fields) {
-                                if (!field.equals(fields.get(0))) {
-                                    final double maxValue = maxVal.get(field.fieldName);
-                                    if (maxValue != -Double.MAX_VALUE) {
-                                        values.appendDouble(maxValue);
-                                    } else {
-                                        values.appendDouble(Double.NaN);
-                                    }
-                                }
-                            }
-                            values.endBlock();
-                            start = currentMainValue;
-                            minVal = initMapVal(fields, false);
-                            maxVal = initMapVal(fields, true);
+                        } else {
+                            throw new DataStoreException("main field other than Time or Quantity are not yet allowed");
                         }
+                        for (Field field : fields) {
+                            if (!field.equals(fields.get(0))) {
+                                final double maxValue = maxVal.get(field.fieldName);
+                                if (maxValue != -Double.MAX_VALUE) {
+                                    values.appendDouble(maxValue);
+                                } else {
+                                    values.appendDouble(Double.NaN);
+                                }
+                            }
+                        }
+                        values.endBlock();
+                        start = currentMainValue;
+                        minVal = initMapVal(fields, false);
+                        maxVal = initMapVal(fields, true);
                     }
                 }
             }
@@ -1137,12 +1117,12 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                  }
             }
             // add measure filter
-            String measureFilter = sqlMeasureRequest.toString();
             final Field timeField = getTimeField(currentProcedure);
             if (timeField != null) {
-                measureFilter = measureFilter.replace("$time", timeField.fieldName);
+                sqlMeasureRequest.replaceAll("$time", timeField.fieldName);
             }
-            while (measureFilter.contains("${allphen")) {
+            while (sqlMeasureRequest.contains("${allphen")) {
+                String measureFilter = sqlMeasureRequest.getRequest();
                 int opos = measureFilter.indexOf("${allphen");
                 int cpos = measureFilter.indexOf("}", opos + 9);
                 String block = measureFilter.substring(opos, cpos + 1);
@@ -1151,16 +1131,16 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     Field field = fields.get(i);
                     sb.append(" AND (").append(block.replace("${allphen", "\"" + field.fieldName + "\"").replace('}', ' ')).append(") ");
                 }
-                measureFilter = measureFilter.replace(block, sb.toString());
+                sqlMeasureRequest.replaceFirst(block, sb.toString());
             }
             for (int i = offset; i < allfields.size(); i++) {
                 Field f = allfields.get(i);
-                measureFilter = measureFilter.replace("$phen" + (i - offset), "\"" + f.fieldName + "\"");
+                sqlMeasureRequest.replaceAll("$phen" + (i - offset), "\"" + f.fieldName + "\"");
             }
-            sqlRequest.append(measureFilter);
+            sqlRequest.append(sqlMeasureRequest);
 
             // calculate step
-            final Map<Object, long[]> times = getMainFieldStep(sqlRequest.toString(), fields.get(0), c, width);
+            final Map<Object, long[]> times = getMainFieldStep(sqlRequest.clone(), fields.get(0), c, width);
             final long step;
             if (profile) {
                 // choose the first step
@@ -1186,68 +1166,65 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             } else if (profile) {
                 select.append(", o.\"id\" AS \"oid\"");
             }
-            String request = sqlRequest.toString();
-            request = request.replace("m.*", select.toString());
+            sqlRequest.replaceFirst("m.*", select.toString());
             if (profile) {
-                request = request + " GROUP BY step, \"oid\" ORDER BY \"oid\", step";
+                sqlRequest.append(" GROUP BY step, \"oid\" ORDER BY \"oid\", step");
             } else {
-                request = request + " GROUP BY step ORDER BY step";
+                sqlRequest.append(" GROUP BY step ORDER BY step");
             }
-
+            LOGGER.info(sqlRequest.toString());
             ResultBuilder values;
-            try (final Statement currentStatement = c.createStatement()) {
-                LOGGER.info(request);
-                try (final ResultSet rs = currentStatement.executeQuery(request)) {
+            try (final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
+                 final ResultSet rs            = pstmt.executeQuery()) {
 
-                    if ("resultArray".equals(responseFormat)) {
-                        values = new ResultBuilder(ResultBuilder.Mode.DATA_ARRAY, null, false);
-                    } else if ("text/csv".equals(responseFormat)) {
-                        values = new ResultBuilder(ResultBuilder.Mode.CSV, getCsvTextEncoding("2.0.0"), true);
-                        // Add the header
-                        values.appendHeaders(fields);
-                    } else {
-                        values = new ResultBuilder(ResultBuilder.Mode.CSV, getDefaultTextEncoding("2.0.0"), false);
+                if ("resultArray".equals(responseFormat)) {
+                    values = new ResultBuilder(ResultBuilder.Mode.DATA_ARRAY, null, false);
+                } else if ("text/csv".equals(responseFormat)) {
+                    values = new ResultBuilder(ResultBuilder.Mode.CSV, getCsvTextEncoding("2.0.0"), true);
+                    // Add the header
+                    values.appendHeaders(fields);
+                } else {
+                    values = new ResultBuilder(ResultBuilder.Mode.CSV, getDefaultTextEncoding("2.0.0"), false);
+                }
+
+                while (rs.next()) {
+                    values.newBlock();
+                    if (profileWithTime) {
+                        Date t = dateFromTS(rs.getTimestamp("time_begin"));
+                        values.appendTime(t);
                     }
+                    for (int i = 0; i < fields.size(); i++) {
+                        Field field = fields.get(i);
+                        String fieldName = field.fieldName; 
+                        if (i == 0) {
+                            fieldName = "step";
 
-                    while (rs.next()) {
-                        values.newBlock();
-                        if (profileWithTime) {
-                            Date t = dateFromTS(rs.getTimestamp("time_begin"));
-                            values.appendTime(t);
-                        }
-                        for (int i = 0; i < fields.size(); i++) {
-                            Field field = fields.get(i);
-                            String fieldName = field.fieldName; 
-                            if (i == 0) {
-                                fieldName = "step";
-                                
-                                // special case for profile + datastream on another phenomenon that the main field.
-                                // we do not include the main field in the result
-                                if (profile && !fieldFilters.isEmpty() && !fieldFilters.contains(0)) {
-                                    continue;
-                                }
-                            } 
-                            String value;
-                            switch (field.fieldType) {
-                                case "Time":
-                                    Date t = dateFromTS(rs.getTimestamp(fieldName));
-                                    values.appendTime(t);
-                                    break;
-                                case "Quantity":
-                                    value = rs.getString(fieldName); // we need to kown if the value is null (rs.getDouble return 0 if so).
-                                    Double d = Double.NaN;
-                                    if (value != null && !value.isEmpty()) {
-                                        d = rs.getDouble(fieldName);
-                                    }
-                                    values.appendDouble(d);
-                                    break;
-                                default:
-                                    values.appendString(rs.getString(fieldName));
-                                    break;
+                            // special case for profile + datastream on another phenomenon that the main field.
+                            // we do not include the main field in the result
+                            if (profile && !fieldFilters.isEmpty() && !fieldFilters.contains(0)) {
+                                continue;
                             }
+                        } 
+                        String value;
+                        switch (field.fieldType) {
+                            case "Time":
+                                Date t = dateFromTS(rs.getTimestamp(fieldName));
+                                values.appendTime(t);
+                                break;
+                            case "Quantity":
+                                value = rs.getString(fieldName); // we need to kown if the value is null (rs.getDouble return 0 if so).
+                                Double d = Double.NaN;
+                                if (value != null && !value.isEmpty()) {
+                                    d = rs.getDouble(fieldName);
+                                }
+                                values.appendDouble(d);
+                                break;
+                            default:
+                                values.appendString(rs.getString(fieldName));
+                                break;
                         }
-                        values.endBlock();
                     }
+                    values.endBlock();
                 }
             }
             switch (values.getMode()) {
@@ -1257,7 +1234,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             }
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
-            throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
+            throw new DataStoreException("the service has throw a SQL Exception", ex);
         }
     }
 
@@ -1305,23 +1282,23 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
      *  - the mnimal value
      *  - the step value
      */
-    private Map<Object, long[]> getMainFieldStep(String request, final Field mainField, final Connection c, final int width) throws SQLException {
+    private Map<Object, long[]> getMainFieldStep(FilterSQLRequest request, final Field mainField, final Connection c, final int width) throws SQLException {
         boolean profile = "profile".equals(currentOMType);
         if (getLoc) {
-            request = request.replace("SELECT hl.\"procedure\", hl.\"time\", st_asBinary(\"location\") as \"location\", hl.\"crs\" ", 
-                                      "SELECT MIN(\"" + mainField.fieldName + "\"), MAX(\"" + mainField.fieldName + "\"), hl.\"procedure\" ");
-            request = request + " group by hl.\"procedure\" order by hl.\"procedure\"";
+            request.replaceFirst("SELECT hl.\"procedure\", hl.\"time\", st_asBinary(\"location\") as \"location\", hl.\"crs\" ", 
+                                 "SELECT MIN(\"" + mainField.fieldName + "\"), MAX(\"" + mainField.fieldName + "\"), hl.\"procedure\" ");
+            request.append(" group by hl.\"procedure\" order by hl.\"procedure\"");
             
         } else {
             if (profile) {
-                request = request.replace("SELECT m.*", "SELECT MIN(\"" + mainField.fieldName + "\"), MAX(\"" + mainField.fieldName + "\"), o.\"id\" ");
-                request = request + " group by o.\"id\" order by o.\"id\"";
+                request.replaceFirst("SELECT m.*", "SELECT MIN(\"" + mainField.fieldName + "\"), MAX(\"" + mainField.fieldName + "\"), o.\"id\" ");
+                request.append(" group by o.\"id\" order by o.\"id\"");
             } else {
-                request = request.replace("SELECT m.*", "SELECT MIN(\"" + mainField.fieldName + "\"), MAX(\"" + mainField.fieldName + "\") ");
+                request.replaceFirst("SELECT m.*", "SELECT MIN(\"" + mainField.fieldName + "\"), MAX(\"" + mainField.fieldName + "\") ");
             }
         }
-        try (final Statement stmt = c.createStatement();
-             final ResultSet rs = stmt.executeQuery(request)) {
+        try (final PreparedStatement pstmt = request.fillParams(c.prepareStatement(request.getRequest()));
+             final ResultSet rs = pstmt.executeQuery()) {
             Map<Object, long[]> results = new LinkedHashMap<>();
             while (rs.next()) {
                 final long[] result = {-1L, -1L};
@@ -1374,160 +1351,154 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     @Override
     public List<SamplingFeature> getFeatureOfInterests(final Map<String,String> hints) throws DataStoreException {
         final String version = getVersionFromHints(hints);
-        String request = sqlRequest.toString();
         if (obsJoin) {
             final String obsJoin = ", \"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"foi\" = sf.\"id\" ";
             if (firstFilter) {
-                request = request.replaceFirst("WHERE", obsJoin);
+                sqlRequest.replaceFirst("WHERE", obsJoin);
             } else {
-                request = request.replaceFirst("WHERE", obsJoin + "AND ");
+                sqlRequest.replaceFirst("WHERE", obsJoin + "AND ");
             }
         } else if (offJoin) {
             final String offJoin = ", \"" + schemaPrefix + "om\".\"offering_foi\" off WHERE off.\"foi\" = sf.\"id\" ";
             if (firstFilter) {
-                request = request.replaceFirst("WHERE", offJoin);
+                sqlRequest.replaceFirst("WHERE", offJoin);
             } else {
-                request = request.replaceFirst("WHERE", offJoin + "AND ");
+                sqlRequest.replaceFirst("WHERE", offJoin + "AND ");
             }
         } else {
-            request = request.replace("\"foi\"='", "sf.\"id\"='");
+            sqlRequest.replaceFirst("\"foi\"='", "sf.\"id\"='");
             if (firstFilter) {
-                request = request.replaceFirst("WHERE", "");
+                sqlRequest.replaceFirst("WHERE", "");
             }
         }
-        request = appendPaginationToRequest(request, hints);
+        sqlRequest = appendPaginationToRequest(sqlRequest, hints);
 
-        try(final Connection c = source.getConnection()) {
-            final List<SamplingFeature> features = new ArrayList<>();
-            try(final Statement currentStatement = c.createStatement();
-                final ResultSet rs = currentStatement.executeQuery(request)) {
-                while (rs.next()) {
-                    final String id = rs.getString("id");
-                    final String name = rs.getString("name");
-                    final String desc = rs.getString("description");
-                    final String sf = rs.getString("sampledfeature");
-                    final int srid = rs.getInt("crs");
-                    final byte[] b = rs.getBytes("shape");
-                    final CoordinateReferenceSystem crs;
-                    if (srid != 0) {
-                        crs = CRS.forCode(SRIDGenerator.toSRS(srid, SRIDGenerator.Version.V1));
-                    } else {
-                        crs = defaultCRS;
-                    }
-                    final org.locationtech.jts.geom.Geometry geom;
-                    if (b != null) {
-                        WKBReader reader = new WKBReader();
-                        geom = reader.read(b);
-                    } else {
-                        geom = null;
-                    }
-                    features.add(buildFoi(version, id, name, desc, sf, geom, crs));
+        final List<SamplingFeature> features = new ArrayList<>();
+        try(final Connection c            = source.getConnection();
+            final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
+            final ResultSet rs            = pstmt.executeQuery()) {
+            while (rs.next()) {
+                final String id = rs.getString("id");
+                final String name = rs.getString("name");
+                final String desc = rs.getString("description");
+                final String sf = rs.getString("sampledfeature");
+                final int srid = rs.getInt("crs");
+                final byte[] b = rs.getBytes("shape");
+                final CoordinateReferenceSystem crs;
+                if (srid != 0) {
+                    crs = CRS.forCode(SRIDGenerator.toSRS(srid, SRIDGenerator.Version.V1));
+                } else {
+                    crs = defaultCRS;
                 }
+                final org.locationtech.jts.geom.Geometry geom;
+                if (b != null) {
+                    WKBReader reader = new WKBReader();
+                    geom = reader.read(b);
+                } else {
+                    geom = null;
+                }
+                features.add(buildFoi(version, id, name, desc, sf, geom, crs));
             }
-            return features;
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
-            throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
-        }catch (FactoryException ex) {
-            LOGGER.log(Level.SEVERE, "FactoryException while executing the query: {0}", request);
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
+            throw new DataStoreException("the service has throw a SQL Exception.", ex);
+        } catch (FactoryException ex) {
+            LOGGER.log(Level.SEVERE, "FactoryException while executing the query: {0}", sqlRequest.toString());
             throw new DataStoreException("the service has throw a Factory Exception:" + ex.getMessage(), ex);
-        }catch (ParseException ex) {
-            LOGGER.log(Level.SEVERE, "ParseException while executing the query: {0}", request);
+        } catch (ParseException ex) {
+            LOGGER.log(Level.SEVERE, "ParseException while executing the query: {0}", sqlRequest.toString());
             throw new DataStoreException("the service has throw a Parse Exception:" + ex.getMessage(), ex);
         }
+        return features;
     }
 
     @Override
     public List<Phenomenon> getPhenomenons(final Map<String,String> hints) throws DataStoreException {
         final String version = getVersionFromHints(hints);
-        String request = sqlRequest.toString();
         if (obsJoin) {
             final String obsJoin = ", \"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"observed_property\" = op.\"id\" ";
             if (firstFilter) {
-                request = request.replaceFirst("WHERE", obsJoin);
+                sqlRequest.replaceFirst("WHERE", obsJoin);
             } else {
-                request = request.replaceFirst("WHERE", obsJoin + "AND ");
+                sqlRequest.replaceFirst("WHERE", obsJoin + "AND ");
             }
         } else if (offJoin) {
             final String offJoin = ", \"" + schemaPrefix + "om\".\"offering_observed_properties\" off WHERE off.\"phenomenon\" = op.\"id\" ";
             if (firstFilter) {
-                request = request.replaceFirst("WHERE", offJoin);
+                sqlRequest.replaceFirst("WHERE", offJoin);
             } else {
-                request = request.replaceFirst("WHERE", offJoin + "AND ");
+                sqlRequest.replaceFirst("WHERE", offJoin + "AND ");
             }
         } else {
             if (firstFilter) {
-                request = request.replaceFirst("WHERE", "");
+                sqlRequest.replaceFirst("WHERE", "");
             }
         }
-        request = appendPaginationToRequest(request, hints);
-
-        try(final Connection c = source.getConnection()) {
-            final List<Phenomenon> phenomenons = new ArrayList<>();
-            try(final Statement currentStatement = c.createStatement();
-                final ResultSet rs = currentStatement.executeQuery(request)) {
-                while (rs.next()) {
-                    Phenomenon phen = getPhenomenon(version, rs.getString(1), c);
-                    if (phen instanceof CompositePhenomenon && !fieldFilters.isEmpty()) {
-                        CompositePhenomenon compos = (CompositePhenomenon) phen;
-                        for (int i = 0; i< compos.getComponent().size(); i++) {
-                            if (fieldFilters.contains(i)) {
-                                if (!phenomenons.contains(phen)) {
-                                    phenomenons.add(compos.getComponent().get(i));
-                                }
+        sqlRequest = appendPaginationToRequest(sqlRequest, hints);
+        final List<Phenomenon> phenomenons = new ArrayList<>();
+        
+        try(final Connection c            = source.getConnection();
+            final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
+            final ResultSet rs            = pstmt.executeQuery()) {
+            while (rs.next()) {
+                Phenomenon phen = getPhenomenon(version, rs.getString(1), c);
+                if (phen instanceof CompositePhenomenon && !fieldFilters.isEmpty()) {
+                    CompositePhenomenon compos = (CompositePhenomenon) phen;
+                    for (int i = 0; i< compos.getComponent().size(); i++) {
+                        if (fieldFilters.contains(i)) {
+                            if (!phenomenons.contains(phen)) {
+                                phenomenons.add(compos.getComponent().get(i));
                             }
                         }
-                    } else {
-                        if (!phenomenons.contains(phen)) {
-                            phenomenons.add(phen);
-                        }
+                    }
+                } else {
+                    if (!phenomenons.contains(phen)) {
+                        phenomenons.add(phen);
                     }
                 }
             }
-            return phenomenons;
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
-            throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
+            throw new DataStoreException("the service has throw a SQL Exception.", ex);
         }
+        return phenomenons;
     }
 
     @Override
     public List<Process> getProcesses(final Map<String,String> hints) throws DataStoreException {
         final String version = getVersionFromHints(hints);
-        String request = sqlRequest.toString();
         if (obsJoin) {
             final String obsJoin = ", \"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"procedure\" = pr.\"id\" ";
             if (firstFilter) {
-                request = request.replaceFirst("WHERE", obsJoin);
+                sqlRequest.replaceFirst("WHERE", obsJoin);
             } else {
-                request = request.replaceFirst("WHERE", obsJoin + "AND ");
+                sqlRequest.replaceFirst("WHERE", obsJoin + "AND ");
             }
         } else if (offJoin) {
             final String offJoin = ", \"" + schemaPrefix + "om\".\"offerings\" off WHERE off.\"procedure\" = pr.\"id\" ";
             if (firstFilter) {
-                request = request.replaceFirst("WHERE", offJoin);
+                sqlRequest.replaceFirst("WHERE", offJoin);
             } else {
-                request = request.replaceFirst("WHERE", offJoin + "AND ");
+                sqlRequest.replaceFirst("WHERE", offJoin + "AND ");
             }
         } else {
             if (firstFilter) {
-                request = request.replaceFirst("WHERE", "");
+                sqlRequest.replaceFirst("WHERE", "");
             }
         }
-        request = appendPaginationToRequest(request, hints);
-        try(final Connection c = source.getConnection()) {
-            final List<Process> processes = new ArrayList<>();
-            try(final Statement currentStatement = c.createStatement();
-                final ResultSet rs = currentStatement.executeQuery(request)) {
-                while (rs.next()) {
-                    processes.add(SOSXmlFactory.buildProcess(version, rs.getString(1)));
-                }
+        sqlRequest = appendPaginationToRequest(sqlRequest, hints);
+        final List<Process> processes = new ArrayList<>();
+        try(final Connection c            = source.getConnection();
+            final PreparedStatement pstmt =  sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
+            final ResultSet rs            = pstmt.executeQuery()) {
+            while (rs.next()) {
+                processes.add(SOSXmlFactory.buildProcess(version, rs.getString(1)));
             }
-            return processes;
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
-            throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
+            throw new DataStoreException("the service has throw a SQL Exception.", ex);
         }
+        return processes;
     }
 
     @Override
@@ -1537,82 +1508,78 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         }
         final String version = getVersionFromHints(hints);
         final String gmlVersion = getGMLVersion(version);
-        String request = sqlRequest.toString();
         if (firstFilter) {
-            request = request.replaceFirst("WHERE", "");
+            sqlRequest.replaceFirst("WHERE", "");
         }
-
-        request = request + " ORDER BY \"procedure\", \"time\"";
-        request = appendPaginationToRequest(request, hints);
+        sqlRequest.append(" ORDER BY \"procedure\", \"time\"");
+        sqlRequest = appendPaginationToRequest(sqlRequest, hints);
         Polygon spaFilter = null;
         if (envelopeFilter != null) {
             spaFilter = JTS.toGeometry(envelopeFilter);
         }
-        
-        try(final Connection c = source.getConnection()) {
-            Map<String, Map<Date, Geometry>> locations = new LinkedHashMap<>();
-            try(final Statement currentStatement = c.createStatement();
-                final ResultSet rs = currentStatement.executeQuery(request)) {
-                while (rs.next()) {
-                    try {
-                        final String procedure = rs.getString("procedure");
-                        final Date time = new Date(rs.getTimestamp("time").getTime());
-                        final byte[] b = rs.getBytes(3);
-                        final int srid = rs.getInt(4);
-                        final CoordinateReferenceSystem crs;
-                        if (srid != 0) {
-                            crs = CRS.forCode("urn:ogc:def:crs:EPSG::" + srid);
-                        } else {
-                            crs = defaultCRS;
-                        }
-                        final org.locationtech.jts.geom.Geometry geom;
-                        if (b != null) {
-                            WKBReader reader = new WKBReader();
-                            geom             = reader.read(b);
-                        } else {
-                            continue;
-                        }
-                        // exclude from spatial filter
-                        if (spaFilter != null && !spaFilter.intersects(geom)) {
-                            continue;
-                        }
-                        
-                        final AbstractGeometry gmlGeom = JTStoGeometry.toGML(gmlVersion, geom, crs);
-
-                        final Map<Date, Geometry> procedureLocations;
-                        if (locations.containsKey(procedure)) {
-                            procedureLocations = locations.get(procedure);
-                        } else {
-                            procedureLocations = new LinkedHashMap<>();
-                            locations.put(procedure, procedureLocations);
-
-                        }
-                        if (gmlGeom instanceof Geometry) {
-                            procedureLocations.put(time, (Geometry) gmlGeom);
-                        } else {
-                            throw new DataStoreException("GML geometry cannot be casted as an Opengis one");
-                        }
-                    } catch (FactoryException | ParseException ex) {
-                        throw new DataStoreException(ex);
+        Map<String, Map<Date, Geometry>> locations = new LinkedHashMap<>();
+        try(final Connection c            = source.getConnection();
+            final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
+            final ResultSet rs            = pstmt.executeQuery()) {
+            while (rs.next()) {
+                try {
+                    final String procedure = rs.getString("procedure");
+                    final Date time = new Date(rs.getTimestamp("time").getTime());
+                    final byte[] b = rs.getBytes(3);
+                    final int srid = rs.getInt(4);
+                    final CoordinateReferenceSystem crs;
+                    if (srid != 0) {
+                        crs = CRS.forCode("urn:ogc:def:crs:EPSG::" + srid);
+                    } else {
+                        crs = defaultCRS;
                     }
+                    final org.locationtech.jts.geom.Geometry geom;
+                    if (b != null) {
+                        WKBReader reader = new WKBReader();
+                        geom             = reader.read(b);
+                    } else {
+                        continue;
+                    }
+                    // exclude from spatial filter
+                    if (spaFilter != null && !spaFilter.intersects(geom)) {
+                        continue;
+                    }
+
+                    final AbstractGeometry gmlGeom = JTStoGeometry.toGML(gmlVersion, geom, crs);
+
+                    final Map<Date, Geometry> procedureLocations;
+                    if (locations.containsKey(procedure)) {
+                        procedureLocations = locations.get(procedure);
+                    } else {
+                        procedureLocations = new LinkedHashMap<>();
+                        locations.put(procedure, procedureLocations);
+
+                    }
+                    if (gmlGeom instanceof Geometry) {
+                        procedureLocations.put(time, (Geometry) gmlGeom);
+                    } else {
+                        throw new DataStoreException("GML geometry cannot be casted as an Opengis one");
+                    }
+                } catch (FactoryException | ParseException ex) {
+                    throw new DataStoreException(ex);
                 }
             }
-            return locations;
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
-            throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
+            throw new DataStoreException("the service has throw a SQL Exception.", ex);
         }
+        return locations;
     }
     
     private Map<String, Map<Date, Geometry>> getDecimatedSensorLocations(final Map<String,String> hints, int decimSize) throws DataStoreException {
         final String version = getVersionFromHints(hints);
         final String gmlVersion = getGMLVersion(version);
-        String request = sqlRequest.toString();
+        FilterSQLRequest stepRequest = sqlRequest.clone();
         if (firstFilter) {
-            request = request.replaceFirst("WHERE", "");
+            sqlRequest.replaceFirst("WHERE", "");
         }
-        request = request + " ORDER BY \"procedure\", \"time\"";
-        request = appendPaginationToRequest(request, hints);
+        sqlRequest.append(" ORDER BY \"procedure\", \"time\"");
+        sqlRequest = appendPaginationToRequest(sqlRequest, hints);
         
         int nbCell = decimSize;
         final Field timeField = new Field("Time", "time", null, null);
@@ -1627,9 +1594,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         
         try (final Connection c = source.getConnection()) {
             
-            
-            final Map<Object, long[]> times = getMainFieldStep(sqlRequest.toString(), timeField, c, nbCell);
-            
+            final Map<Object, long[]> times = getMainFieldStep(stepRequest, timeField, c, nbCell);
             
             final org.locationtech.jts.geom.Geometry[][] geoCells = new org.locationtech.jts.geom.Geometry[nbCell][nbCell];
             
@@ -1649,8 +1614,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             }
             
             Map<String, List[][][]> procedureCells = new HashMap<>();
-            try(final Statement currentStatement = c.createStatement();
-                final ResultSet rs = currentStatement.executeQuery(request)) {
+            try(final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
+                final ResultSet rs = pstmt.executeQuery()) {
                 
                 List[][][] curentCells = null;
                 long start = -1;
@@ -1786,46 +1751,44 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         } catch (FactoryException ex) {
             throw new DataStoreException(ex);
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
-            throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
+            throw new DataStoreException("the service has throw a SQL Exception.", ex);
         }
     }
 
     @Override
     public Map<String, List<Date>> getSensorTimes(final Map<String,String> hints) throws DataStoreException {
-        String request = sqlRequest.toString();
         if (firstFilter) {
-            request = request.replaceFirst("WHERE", "");
+            sqlRequest.replaceFirst("WHERE", "");
         }
 
-        request = request + " ORDER BY \"procedure\", \"time\"";
-        request = appendPaginationToRequest(request, hints);
-        try(final Connection c = source.getConnection()) {
-            Map<String, List<Date>> times = new LinkedHashMap<>();
-            try(final Statement currentStatement = c.createStatement();
-                final ResultSet rs = currentStatement.executeQuery(request)) {
-                while (rs.next()) {
-                    final String procedure = rs.getString("procedure");
-                    final Date time = new Date(rs.getTimestamp("time").getTime());
+        sqlRequest.append(" ORDER BY \"procedure\", \"time\"");
+        sqlRequest = appendPaginationToRequest(sqlRequest, hints);
+        Map<String, List<Date>> times = new LinkedHashMap<>();
+        try(final Connection c            = source.getConnection();
+            final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
+            final ResultSet rs            = pstmt.executeQuery()) {
+            while (rs.next()) {
+                final String procedure = rs.getString("procedure");
+                final Date time = new Date(rs.getTimestamp("time").getTime());
 
-                    final List<Date> procedureTimes;
-                    if (times.containsKey(procedure)) {
-                        procedureTimes = times.get(procedure);
-                    } else {
-                        procedureTimes = new ArrayList<>();
-                        times.put(procedure, procedureTimes);
-                    }
-                    procedureTimes.add(time);
+                final List<Date> procedureTimes;
+                if (times.containsKey(procedure)) {
+                    procedureTimes = times.get(procedure);
+                } else {
+                    procedureTimes = new ArrayList<>();
+                    times.put(procedure, procedureTimes);
                 }
+                procedureTimes.add(time);
             }
-            return times;
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
-            throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
+            throw new DataStoreException("the service has throw a SQL Exception.", ex);
         }
+        return times;
     }
 
-    private String appendPaginationToRequest(String request, Map<String, String> hints) {
+    private FilterSQLRequest appendPaginationToRequest(FilterSQLRequest request, Map<String, String> hints) {
         Long limit     = null;
         Long offset    = null;
         if (hints != null) {
@@ -1838,17 +1801,17 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         }
         if (isPostgres) {
             if (limit != null) {
-                request = request + " LIMIT " + limit;
+                request.append(" LIMIT ").append(Long.toString(limit));
             }
             if (offset != null) {
-                request = request + " OFFSET " + offset;
+                request.append(" OFFSET ").append(Long.toString(offset));
             }
         } else {
             if (offset != null) {
-                request = request + " OFFSET " + offset + " ROWS ";
+                request.append(" OFFSET ").append(Long.toString(offset)).append(" ROWS ");
             }
             if (limit != null) {
-                request = request + " fetch next " + limit +" rows only";
+                request.append(" fetch next ").append(Long.toString(limit)).append(" rows only");
             }
         }
         return request;

@@ -121,7 +121,7 @@ public class OdataFilterParser {
                 String value = filterStr.substring(pos + 4, filterStr.length());
                 Object literal;
                 if (realProperty.startsWith("result") && !realProperty.equalsIgnoreCase(RESULT_TIME)) {
-                    literal = value;
+                    literal = parseNumberValue(value);
                     return ff.greaterOrEqual(ff.property(realProperty), ff.literal(literal));
                 } else {
                     realProperty = getSupportedTemporalProperties(realProperty);
@@ -140,7 +140,7 @@ public class OdataFilterParser {
                 String value = filterStr.substring(pos + 4, filterStr.length());
                 Object literal;
                 if (realProperty.startsWith("result") && !realProperty.equalsIgnoreCase(RESULT_TIME)) {
-                    literal = value;
+                    literal = parseNumberValue(value);
                     return ff.greater(ff.property(realProperty), ff.literal(literal));
                 } else {
                     realProperty = getSupportedTemporalProperties(realProperty);
@@ -159,7 +159,7 @@ public class OdataFilterParser {
                 String value = filterStr.substring(pos + 4, filterStr.length());
                 Object literal;
                 if (realProperty.startsWith("result") && !realProperty.equalsIgnoreCase(RESULT_TIME)) {
-                    literal = value;
+                    literal = parseNumberValue(value);
                     return ff.lessOrEqual(ff.property(realProperty), ff.literal(literal));
                 } else {
                     realProperty = getSupportedTemporalProperties(realProperty);
@@ -178,7 +178,7 @@ public class OdataFilterParser {
                 String value = filterStr.substring(pos + 4, filterStr.length());
                 Object literal;
                 if (realProperty.startsWith("result") && !realProperty.equalsIgnoreCase(RESULT_TIME)) {
-                    literal = value;
+                    literal = parseNumberValue(value);
                     return ff.less(ff.property(realProperty), ff.literal(literal));
                 } else {
                     realProperty = getSupportedTemporalProperties(realProperty);
@@ -192,9 +192,10 @@ public class OdataFilterParser {
             int pos = filterStr.indexOf(" eq ");
             String property = filterStr.substring(0, pos);
             String[] properties = property.split("/");
+            String value = filterStr.substring(pos + 4, filterStr.length());
             if (properties.length >= 2) {
                 if (properties[properties.length - 1].equals("id")) {
-                    String literal = filterStr.substring(pos + 4, filterStr.length());
+                    Object literal = parseObjectValue(value);
                     String realProperty = getSupportedProperties(properties[properties.length - 2]);
                     return ff.equals(ff.property(realProperty), ff.literal(literal));
                 } else {
@@ -202,10 +203,9 @@ public class OdataFilterParser {
                 }
             } else if (properties.length >= 1) {
                 String realProperty = properties[properties.length - 1];
-                String value = filterStr.substring(pos + 4, filterStr.length());
                 Object literal;
                 if (realProperty.startsWith("result") && !realProperty.equalsIgnoreCase(RESULT_TIME)) {
-                    literal = value;
+                    literal = parseObjectValue(value);
                     return ff.equals(ff.property(realProperty), ff.literal(literal));
                 } else {
                     realProperty = getSupportedTemporalProperties(realProperty);
@@ -255,7 +255,7 @@ public class OdataFilterParser {
         }
     }
 
-    public static TemporalObject parseTemporalLong(String to) throws CstlServiceException {
+    public static TemporalObject parseTemporalLong(String to) {
         int index = to.indexOf('/');
         if (index != -1) {
             Date begin = new Date(Long.parseLong(to.substring(0, index)));
@@ -267,7 +267,23 @@ public class OdataFilterParser {
         }
     }
 
-    public static TemporalObject buildTemporalObj(Date to) throws CstlServiceException {
+    public static TemporalObject buildTemporalObj(Date to) {
         return GMLXmlFactory.createTimeInstant("3.2.1", to);
+    }
+
+    public static Double parseNumberValue(String to) throws CstlServiceException {
+        try {
+            return Double.parseDouble(to);
+        } catch (NumberFormatException ex) {
+            throw new CstlServiceException("Unable to parse a double from value:" + to);
+        }
+    }
+
+    public static Object parseObjectValue(String to) throws CstlServiceException {
+        try {
+            return Double.parseDouble(to);
+        } catch (NumberFormatException ex) {
+            return to;
+        }
     }
 }
