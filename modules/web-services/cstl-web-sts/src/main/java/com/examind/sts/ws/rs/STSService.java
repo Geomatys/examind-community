@@ -386,6 +386,7 @@ public class STSService extends OGCWebService<STSWorker> {
     @RequestMapping(path = "Observations({id:[^\\)]+})/FeaturesOfInterest", method = RequestMethod.GET)
     public ResponseEntity getFeatureOfInterestForObservation(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);
+        id = removeQuote(id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
@@ -407,6 +408,7 @@ public class STSService extends OGCWebService<STSWorker> {
     @RequestMapping(path = "FeaturesOfInterest({id:[^\\)]+})", method = RequestMethod.GET)
     public ResponseEntity getFeatureOfInterestById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);
+        id = removeQuote(id);
         putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
@@ -448,6 +450,7 @@ public class STSService extends OGCWebService<STSWorker> {
     @RequestMapping(path = "Things({id:[^\\)]+})", method = RequestMethod.GET)
     public ResponseEntity getThingsById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);
+        id = removeQuote(id);
         putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
@@ -489,6 +492,7 @@ public class STSService extends OGCWebService<STSWorker> {
     @RequestMapping(path = "FeaturesOfInterest({id:[^\\)]+})/Observations", method = RequestMethod.GET)
     public ResponseEntity getObservationForFoi(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);
+        id = removeQuote(id);
         putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
@@ -511,6 +515,7 @@ public class STSService extends OGCWebService<STSWorker> {
     @RequestMapping(path = "Observations({id:[^\\)]+})", method = RequestMethod.GET)
     public ResponseEntity getObservationsById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);
+        id = removeQuote(id);
         putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
@@ -552,6 +557,7 @@ public class STSService extends OGCWebService<STSWorker> {
     @RequestMapping(path = "Datastreams({id:[^\\)]+})", method = RequestMethod.GET)
     public ResponseEntity getDatastreamById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);
+        id = removeQuote(id);
         putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
@@ -573,6 +579,7 @@ public class STSService extends OGCWebService<STSWorker> {
     @RequestMapping(path = "Observations({id:[^\\)]+})/Datastreams", method = RequestMethod.GET)
     public ResponseEntity getDatastreamsForObservation(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
+       id = removeQuote(id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
@@ -594,6 +601,7 @@ public class STSService extends OGCWebService<STSWorker> {
     @RequestMapping(path = "ObservedProperties({id:[^\\)]+})/Datastreams", method = RequestMethod.GET)
     public ResponseEntity getDatastreamsForObservedProperty(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
+       id = removeQuote(id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
@@ -635,6 +643,7 @@ public class STSService extends OGCWebService<STSWorker> {
     @RequestMapping(path = "MultiDatastreams({id:[^\\)]+})", method = RequestMethod.GET)
     public ResponseEntity getMultiDatastreamById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);
+        id = removeQuote(id);
         putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
@@ -656,6 +665,7 @@ public class STSService extends OGCWebService<STSWorker> {
     @RequestMapping(path = "Observations({id:[^\\)]+})/MultiDatastreams", method = RequestMethod.GET)
     public ResponseEntity getMultiDatastreamsForObservation(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);
+        id = removeQuote(id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
@@ -677,6 +687,7 @@ public class STSService extends OGCWebService<STSWorker> {
     @RequestMapping(path = "ObservedProperties({id:[^\\)]+})/MultiDatastreams", method = RequestMethod.GET)
     public ResponseEntity getMultiDatastreamsForObservedProperty(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
+       id = removeQuote(id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
@@ -719,6 +730,7 @@ public class STSService extends OGCWebService<STSWorker> {
     @RequestMapping(path = "ObservedProperties({id:[^\\)]+})", method = RequestMethod.GET)
     public ResponseEntity getObservedPropertyById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);
+        id = removeQuote(id);
         putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
@@ -740,6 +752,7 @@ public class STSService extends OGCWebService<STSWorker> {
     @RequestMapping(path = "Datastreams({id:[^\\)]+})/ObservedProperties", method = RequestMethod.GET)
     public ResponseEntity getObservedPropertyForDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);
+        id = removeQuote(id);
         putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
@@ -762,6 +775,7 @@ public class STSService extends OGCWebService<STSWorker> {
     @RequestMapping(path = "Datastreams({id:[^\\)]+})/Observations", method = RequestMethod.GET)
     public ResponseEntity getObservationForDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);
+        id = removeQuote(id);
         putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
@@ -784,6 +798,7 @@ public class STSService extends OGCWebService<STSWorker> {
     @RequestMapping(path = "Datastreams({id:[^\\)]+})/Sensors", method = RequestMethod.GET)
     public ResponseEntity getSensorsForDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);
+        id = removeQuote(id);
         putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
@@ -806,6 +821,7 @@ public class STSService extends OGCWebService<STSWorker> {
     @RequestMapping(path = "MultiDatastreams({id:[^\\)]+})/ObservedProperties", method = RequestMethod.GET)
     public ResponseEntity getObservedPropertyForMultiDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);
+        id = removeQuote(id);
         putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
@@ -829,6 +845,7 @@ public class STSService extends OGCWebService<STSWorker> {
     @RequestMapping(path = "MultiDatastreams({id:[^\\)]+})/Observations", method = RequestMethod.GET)
     public ResponseEntity getObservationForMultiDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);
+        id = removeQuote(id);
         putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
@@ -852,6 +869,7 @@ public class STSService extends OGCWebService<STSWorker> {
     @RequestMapping(path = "MultiDatastreams({id:[^\\)]+})/Sensors", method = RequestMethod.GET)
     public ResponseEntity getSensorsForMultiDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);
+        id = removeQuote(id);
         putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
@@ -896,6 +914,7 @@ public class STSService extends OGCWebService<STSWorker> {
     @RequestMapping(path = "Locations({id:[^\\)]+})", method = RequestMethod.GET)
     public ResponseEntity getLocationById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
+       id = removeQuote(id);
        putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
@@ -917,6 +936,7 @@ public class STSService extends OGCWebService<STSWorker> {
     @RequestMapping(path = "Locations({id:[^\\)]+})/Things", method = RequestMethod.GET)
     public ResponseEntity getThingsForLocation(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
+       id = removeQuote(id);
        putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
@@ -959,6 +979,7 @@ public class STSService extends OGCWebService<STSWorker> {
     @RequestMapping(path = "Sensors({id:[^\\)]+})", method = RequestMethod.GET)
     public ResponseEntity getSensorById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
+       id = removeQuote(id);
        putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
@@ -980,6 +1001,7 @@ public class STSService extends OGCWebService<STSWorker> {
     @RequestMapping(path = "Sensors({id:[^\\)]+})/Datastreams", method = RequestMethod.GET)
     public ResponseEntity getDatastreamsForSensor(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
+       id = removeQuote(id);
        putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
@@ -1002,6 +1024,7 @@ public class STSService extends OGCWebService<STSWorker> {
     @RequestMapping(path = "Things({id:[^\\)]+})/Datastreams", method = RequestMethod.GET)
     public ResponseEntity getDatastreamsForThing(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
+       id = removeQuote(id);
        putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
@@ -1024,6 +1047,7 @@ public class STSService extends OGCWebService<STSWorker> {
     @RequestMapping(path = "Sensors({id:[^\\)]+})/MultiDatastreams", method = RequestMethod.GET)
     public ResponseEntity getMultiDatastreamsForSensor(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
+       id = removeQuote(id);
        putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
@@ -1046,6 +1070,7 @@ public class STSService extends OGCWebService<STSWorker> {
     @RequestMapping(path = "Things({id:[^\\)]+})/MultiDatastreams", method = RequestMethod.GET)
     public ResponseEntity getMultiDatastreamsForThing(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
+       id = removeQuote(id);
        putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
@@ -1088,6 +1113,7 @@ public class STSService extends OGCWebService<STSWorker> {
     @RequestMapping(path = "HistoricalLocations({id:[^\\)]+})", method = RequestMethod.GET)
     public ResponseEntity getHistoricalLocationById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);
+        id = removeQuote(id);
         putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
@@ -1110,6 +1136,7 @@ public class STSService extends OGCWebService<STSWorker> {
     @RequestMapping(path = "HistoricalLocations({id:[^\\)]+})/Things", method = RequestMethod.GET)
     public ResponseEntity getThingsForHistoricalLocation(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
+       id = removeQuote(id);
        putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
@@ -1137,6 +1164,7 @@ public class STSService extends OGCWebService<STSWorker> {
     @RequestMapping(path = "Locations({id:[^\\)]+})/HistoricalLocations", method = RequestMethod.GET)
     public ResponseEntity getHistoricalLocationForLocation(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
+       id = removeQuote(id);
        putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
@@ -1174,6 +1202,7 @@ public class STSService extends OGCWebService<STSWorker> {
     @RequestMapping(path = "Things({id:[^\\)]+})/HistoricalLocations", method = RequestMethod.GET)
     public ResponseEntity getHistoricalLocationForThing(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
+       id = removeQuote(id);
        putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
@@ -1199,6 +1228,7 @@ public class STSService extends OGCWebService<STSWorker> {
     @RequestMapping(path = "HistoricalLocations({id:[^\\)]+})/Locations", method = RequestMethod.GET)
     public ResponseEntity getLocationsForHistoricalLocation(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
+       id = removeQuote(id);
        putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
@@ -1221,5 +1251,14 @@ public class STSService extends OGCWebService<STSWorker> {
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
+    }
+
+    private String removeQuote(String s) {
+        if (s != null) {
+            if (s.charAt(0) == '\'' && s.charAt(s.length() -1) == '\'') {
+                s = s.substring(1, s.length() -1);
+            }
+        }
+        return s;
     }
 }
