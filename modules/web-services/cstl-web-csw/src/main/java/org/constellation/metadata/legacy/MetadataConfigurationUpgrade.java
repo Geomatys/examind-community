@@ -97,7 +97,7 @@ public class MetadataConfigurationUpgrade {
                                 if (sdp != null) {
                                     if (sdp.getMainStore() instanceof FileSystemMetadataStore) {
                                         final ParameterValueGroup fconfig = sdp.getSource().groups("choice").stream()
-                                                .flatMap(choice -> choice.groups("FSMetadataParameters").stream())
+                                                .flatMap(choice -> choice.groups("FilesystemMetadata").stream())
                                                 .findFirst()
                                                 .orElse(null);
                                         if (fconfig != null) {
@@ -128,7 +128,7 @@ public class MetadataConfigurationUpgrade {
                             fsConfig.parameter("folder").setValue(config.getDataDirectory());
                             fsConfig.parameter("store-id").setValue(providerIdentifier);
 
-                            providerID = providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "metadata-store", fsConfig);
+                            providerID = providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "metadata-store", sourcef);
                             try {
                                 providerBusiness.createOrUpdateData(providerID, null, false);
                             } catch (IOException | ConstellationException ex) {
