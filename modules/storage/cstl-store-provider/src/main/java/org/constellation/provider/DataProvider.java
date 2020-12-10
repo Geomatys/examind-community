@@ -128,8 +128,9 @@ public interface DataProvider{
     /**
      * Original data store.
      * @return
+     * @throws org.constellation.exception.ConstellationStoreException
      */
-    DataStore getMainStore();
+    DataStore getMainStore()throws ConstellationStoreException;
 
     /**
      * Get the data related to the given key in given version.

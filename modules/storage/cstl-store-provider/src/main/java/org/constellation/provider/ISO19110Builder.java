@@ -1,4 +1,21 @@
-
+/*
+ *    Constellation - An open source and standard compliant SDI
+ *    http://www.constellation-sdi.org
+ *
+ * Copyright 2020 Geomatys.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.constellation.provider;
 
@@ -21,6 +38,7 @@ import org.apache.sis.storage.Resource;
 import org.apache.sis.util.iso.DefaultNameFactory;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.exception.ConfigurationException;
+import org.constellation.exception.ConstellationStoreException;
 import org.geotoolkit.feature.catalog.FeatureAttributeImpl;
 import org.geotoolkit.feature.catalog.FeatureCatalogueImpl;
 import org.geotoolkit.feature.catalog.FeatureTypeImpl;
@@ -53,11 +71,13 @@ public class ISO19110Builder {
 
     public static FeatureCatalogue createCatalogueFromProvider(final int providerID) throws ConfigurationException {
         DataProvider provider = DataProviders.getProvider(providerID);
-        DataStore store = provider.getMainStore();
-        try {
-            return createCatalogueFromResources(DataStores.flatten(store, true));
-        } catch (DataStoreException ex) {
-            LOGGER.log(Level.WARNING, "error while generating featureCatalogue from feature Store", ex);
+        if (provider != null) {
+            try {
+                DataStore store = provider.getMainStore();
+                return createCatalogueFromResources(DataStores.flatten(store, true));
+            } catch (DataStoreException | ConstellationStoreException ex) {
+                LOGGER.log(Level.WARNING, "error while generating featureCatalogue from feature Store", ex);
+            }
         }
         return null;
     }

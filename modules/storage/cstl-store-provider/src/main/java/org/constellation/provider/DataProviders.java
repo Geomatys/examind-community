@@ -20,7 +20,6 @@ package org.constellation.provider;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.file.DirectoryIteratorException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -31,7 +30,6 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralDirectPosition;
@@ -39,7 +37,6 @@ import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.internal.storage.ResourceOnFileSystem;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
-import org.apache.sis.storage.Aggregate;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
@@ -56,8 +53,6 @@ import org.constellation.dto.DataBrief;
 import org.constellation.dto.DataCustomConfiguration;
 import org.constellation.dto.DataDescription;
 import org.constellation.dto.ProviderBrief;
-import org.constellation.dto.importdata.ResourceData;
-import org.constellation.dto.importdata.ResourceStore;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
@@ -202,48 +197,54 @@ public final class DataProviders extends Static{
         final Set<GenericName> names = new HashSet<>();
         if (provider != null) {
             //test to read data
-            final DataStore ds = provider.getMainStore();
-            Collection<? extends Resource> resources = DataStores.flatten(ds, false);
-            for (Resource rs : resources) {
-                Optional<GenericName> rid = rs.getIdentifier();
-                if (rid.isPresent()) {
-                    names.add(rid.get());
+            try {
+                final DataStore ds = provider.getMainStore();
+                Collection<? extends Resource> resources = DataStores.flatten(ds, false);
+                for (Resource rs : resources) {
+                    Optional<GenericName> rid = rs.getIdentifier();
+                    if (rid.isPresent()) {
+                        names.add(rid.get());
+                    }
                 }
+                provider.dispose();
+            } catch (Exception ex) {
+                LOGGER.log(Level.WARNING, "Error while testing provider: " + id, ex);
             }
-            provider.dispose();
         }
         return names;
     }
 
 
     public static HashMap<GenericName, CoordinateReferenceSystem> getCRS(int id) throws DataStoreException, ConfigurationException {
-        final DataProvider provider = getProvider(id);
-        return getCRS(provider);
-    }
-
-    private static HashMap<GenericName, CoordinateReferenceSystem> getCRS(DataProvider provider) throws DataStoreException, ConfigurationException {
         HashMap<GenericName,CoordinateReferenceSystem> nameCoordinateReferenceSystemHashMap = new HashMap<>();
         //test getting CRS from data
-        final DataStore store = provider.getMainStore();
+        try  {
+            final DataProvider provider = getProvider(id);
+            if (provider != null) {
+                final DataStore store = provider.getMainStore();
 
-        for (final Resource rs : DataStores.flatten(store, false)) {
-            Optional<GenericName> name = rs.getIdentifier();
-            if (name.isPresent()) {
-                if (rs instanceof GridCoverageResource) {
-                   final GridCoverageResource coverageReference = (GridCoverageResource) rs;
-                   final CoordinateReferenceSystem crs = coverageReference.getGridGeometry().getCoordinateReferenceSystem();
-                   if (crs != null) {
-                       nameCoordinateReferenceSystemHashMap.put(name.get(),crs);
-                   }
-               } else if (rs instanceof FeatureSet) {
-                   FeatureSet fs = (FeatureSet) rs;
-                   final FeatureType ft = fs.getType();
-                   final CoordinateReferenceSystem crs = FeatureExt.getCRS(ft);
-                   if(crs!=null) {
-                       nameCoordinateReferenceSystemHashMap.put(name.get(),crs);
-                   }
-               }
+                for (final Resource rs : DataStores.flatten(store, false)) {
+                    Optional<GenericName> name = rs.getIdentifier();
+                    if (name.isPresent()) {
+                        if (rs instanceof GridCoverageResource) {
+                           final GridCoverageResource coverageReference = (GridCoverageResource) rs;
+                           final CoordinateReferenceSystem crs = coverageReference.getGridGeometry().getCoordinateReferenceSystem();
+                           if (crs != null) {
+                               nameCoordinateReferenceSystemHashMap.put(name.get(),crs);
+                           }
+                       } else if (rs instanceof FeatureSet) {
+                           FeatureSet fs = (FeatureSet) rs;
+                           final FeatureType ft = fs.getType();
+                           final CoordinateReferenceSystem crs = FeatureExt.getCRS(ft);
+                           if(crs!=null) {
+                               nameCoordinateReferenceSystemHashMap.put(name.get(),crs);
+                           }
+                       }
+                    }
+                }
             }
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, "Error while extracting provider (" + id + ") + CRS.", ex);
         }
         return nameCoordinateReferenceSystemHashMap;
     }
@@ -624,51 +625,55 @@ public final class DataProviders extends Static{
     }
 
     public static boolean proceedToCreatePrj(final DataProvider provider, final Map<String,String> epsgCode) throws DataStoreException,FactoryException,IOException {
-
         final ResourceOnFileSystem dataFileStore;
-        final DataStore datastore = provider.getMainStore();
-        if (datastore instanceof ResourceOnFileSystem) {
-            dataFileStore = (ResourceOnFileSystem) datastore;
+        try {
+            final DataStore datastore = provider.getMainStore();
+            if (datastore instanceof ResourceOnFileSystem) {
+                dataFileStore = (ResourceOnFileSystem) datastore;
 
-        } else if(datastore instanceof ExtendedFeatureStore) {
+            } else if(datastore instanceof ExtendedFeatureStore) {
 
-            final ExtendedFeatureStore efs = (ExtendedFeatureStore) datastore;
-            final FeatureStore fstore = efs.getWrapped();
-            if (fstore instanceof ResourceOnFileSystem) {
-                dataFileStore = (ResourceOnFileSystem)fstore;
+                final ExtendedFeatureStore efs = (ExtendedFeatureStore) datastore;
+                final FeatureStore fstore = efs.getWrapped();
+                if (fstore instanceof ResourceOnFileSystem) {
+                    dataFileStore = (ResourceOnFileSystem)fstore;
+                } else {
+                    return false;
+                }
             } else {
                 return false;
             }
-        } else {
-            return false;
-        }
 
-        Path[] dataFiles = dataFileStore.getComponentFiles();
-        if (dataFiles == null) return false;
-        if (dataFiles.length == 1 && Files.isDirectory(dataFiles[0])) {
-            List<Path> dirPaths = new ArrayList<>();
-            try (DirectoryStream<Path> stream = Files.newDirectoryStream(dataFiles[0])) {
-                for (Path candidate : stream) {
-                    dirPaths.add(candidate);
+            Path[] dataFiles = dataFileStore.getComponentFiles();
+            if (dataFiles == null) return false;
+            if (dataFiles.length == 1 && Files.isDirectory(dataFiles[0])) {
+                List<Path> dirPaths = new ArrayList<>();
+                try (DirectoryStream<Path> stream = Files.newDirectoryStream(dataFiles[0])) {
+                    for (Path candidate : stream) {
+                        dirPaths.add(candidate);
+                    }
                 }
+                dataFiles = dirPaths.toArray(new Path[dirPaths.size()]);
             }
-            dataFiles = dirPaths.toArray(new Path[dirPaths.size()]);
+            if (dataFiles.length == 0) {
+                return false;
+            }
+            final String firstFileName = dataFiles[0].getFileName().toString();
+            final String fileNameWithoutExtention;
+            if (firstFileName.indexOf('.') != -1) {
+                fileNameWithoutExtention = firstFileName.substring(0, firstFileName.indexOf('.'));
+            } else {
+                fileNameWithoutExtention = firstFileName;
+            }
+            final Path parentPath = dataFiles[0].getParent();
+            final CoordinateReferenceSystem coordinateReferenceSystem = CRS.forCode(epsgCode.get("codeEpsg"));
+            PrjFiles.write(coordinateReferenceSystem, parentPath.resolve(fileNameWithoutExtention + ".prj"));
+            provider.reload();
+            return true;
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, "Error while trying to create PRJ.", ex);
         }
-        if (dataFiles.length == 0) {
-            return false;
-        }
-        final String firstFileName = dataFiles[0].getFileName().toString();
-        final String fileNameWithoutExtention;
-        if (firstFileName.indexOf('.') != -1) {
-            fileNameWithoutExtention = firstFileName.substring(0, firstFileName.indexOf('.'));
-        } else {
-            fileNameWithoutExtention = firstFileName;
-        }
-        final Path parentPath = dataFiles[0].getParent();
-        final CoordinateReferenceSystem coordinateReferenceSystem = CRS.forCode(epsgCode.get("codeEpsg"));
-        PrjFiles.write(coordinateReferenceSystem, parentPath.resolve(fileNameWithoutExtention + ".prj"));
-        provider.reload();
-        return true;
+        return false;
     }
 
     /**

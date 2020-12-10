@@ -55,6 +55,7 @@ import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.ICSWConfigurer;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
+import org.constellation.exception.ConstellationStoreException;
 import org.constellation.metadata.core.IndexConfigHandler;
 import org.constellation.metadata.core.MetadataStoreWrapper;
 import org.constellation.metadata.utils.Utils;
@@ -694,9 +695,12 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
         final Automatic config   = getServiceConfiguration(serviceID);
         final Integer providerID = serviceBusiness.getCSWLinkedProviders(serviceID);
         if (providerID != null) {
-            final MetadataStore originalStore = (MetadataStore) DataProviders.getProvider(providerID).getMainStore();
-            return new MetadataStoreWrapper(serviceID, originalStore, config.getCustomparameters(), providerID);
-
+            try {
+                final MetadataStore originalStore = (MetadataStore) DataProviders.getProvider(providerID).getMainStore();
+                return new MetadataStoreWrapper(serviceID, originalStore, config.getCustomparameters(), providerID);
+            } catch (ConstellationStoreException ex) {
+                throw new ConfigurationException(ex);
+            }
         } else {
             throw new ConfigurationException("there is no metadata store correspounding to this ID:" + serviceID);
         }
