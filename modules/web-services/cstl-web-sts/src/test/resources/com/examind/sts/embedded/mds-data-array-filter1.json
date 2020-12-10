@@ -1,4 +1,6 @@
 {
-  "components" : [ "id", "phenomenonTime", "resultTime", "result" ],
-  "dataArray" : [ [ "urn:ogc:object:observation:GEOM:801-3", "2007-05-01T11:59:00Z", "2007-05-01T11:59:00Z", [ 6.56, 13.0 ] ], [ "urn:ogc:object:observation:GEOM:801-5", "2007-05-01T12:59:00Z", "2007-05-01T12:59:00Z", [ 6.56, 14.0 ] ], [ "urn:ogc:object:observation:GEOM:801-7", "2007-05-01T13:59:00Z", "2007-05-01T13:59:00Z", [ 6.56, 15.0 ] ] ]
+  "value" : [ {
+    "components" : [ "id", "phenomenonTime", "resultTime", "result" ],
+    "dataArray" : [ [ "urn:ogc:object:observation:GEOM:801-3", "2007-05-01T11:59:00Z", "2007-05-01T11:59:00Z", [ 6.56, 13.0 ] ], [ "urn:ogc:object:observation:GEOM:801-5", "2007-05-01T12:59:00Z", "2007-05-01T12:59:00Z", [ 6.56, 14.0 ] ], [ "urn:ogc:object:observation:GEOM:801-7", "2007-05-01T13:59:00Z", "2007-05-01T13:59:00Z", [ 6.56, 15.0 ] ] ]
+  } ]
 }

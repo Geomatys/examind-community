@@ -1,7 +1,7 @@
 {
   "value" : [ {
     "description" : "urn:ogc:object:observation:template:GEOM:7-0",
-    "unitOfMeasure" : {
+    "unitOfMeasurement" : {
       "name" : "°C",
       "symbol" : "°C",
       "definition" : "°C"
@@ -15,12 +15,13 @@
     "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:7-0)/Observations"
   }, {
     "description" : "urn:ogc:object:observation:template:GEOM:8-0",
-    "unitOfMeasure" : {
+    "unitOfMeasurement" : {
       "name" : "m",
       "symbol" : "m",
       "definition" : "m"
     },
     "observationType" : "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
+    "phenomenonTime" : "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
     "resultTime" : "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
     "@iot.id" : "urn:ogc:object:observation:template:GEOM:8-0",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:8-0)",
@@ -30,12 +31,13 @@
     "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:8-0)/Observations"
   }, {
     "description" : "urn:ogc:object:observation:template:GEOM:8-1",
-    "unitOfMeasure" : {
+    "unitOfMeasurement" : {
       "name" : "°C",
       "symbol" : "°C",
       "definition" : "°C"
     },
     "observationType" : "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
+    "phenomenonTime" : "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
     "resultTime" : "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
     "@iot.id" : "urn:ogc:object:observation:template:GEOM:8-1",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:8-1)",
@@ -45,12 +47,13 @@
     "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:8-1)/Observations"
   }, {
     "description" : "urn:ogc:object:observation:template:GEOM:9-0",
-    "unitOfMeasure" : {
+    "unitOfMeasurement" : {
       "name" : "m",
       "symbol" : "m",
       "definition" : "m"
     },
     "observationType" : "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
+    "phenomenonTime" : "2009-05-01T11:47:00Z/2009-05-01T11:47:00Z",
     "resultTime" : "2009-05-01T11:47:00Z/2009-05-01T11:47:00Z",
     "@iot.id" : "urn:ogc:object:observation:template:GEOM:9-0",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:9-0)",
@@ -60,12 +63,13 @@
     "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:9-0)/Observations"
   }, {
     "description" : "urn:ogc:object:observation:template:GEOM:test-1-0",
-    "unitOfMeasure" : {
+    "unitOfMeasurement" : {
       "name" : "m",
       "symbol" : "m",
       "definition" : "m"
     },
     "observationType" : "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
+    "phenomenonTime" : "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
     "resultTime" : "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
     "@iot.id" : "urn:ogc:object:observation:template:GEOM:test-1-0",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-0)",
@@ -75,12 +79,13 @@
     "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-0)/Observations"
   }, {
     "description" : "urn:ogc:object:observation:template:GEOM:test-1-1",
-    "unitOfMeasure" : {
+    "unitOfMeasurement" : {
       "name" : "°C",
       "symbol" : "°C",
       "definition" : "°C"
     },
     "observationType" : "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
+    "phenomenonTime" : "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
     "resultTime" : "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
     "@iot.id" : "urn:ogc:object:observation:template:GEOM:test-1-1",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-1)",
@@ -90,12 +95,13 @@
     "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-1)/Observations"
   }, {
     "description" : "urn:ogc:object:observation:template:GEOM:test-id-0",
-    "unitOfMeasure" : {
+    "unitOfMeasurement" : {
       "name" : "m",
       "symbol" : "m",
       "definition" : "m"
     },
     "observationType" : "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
+    "phenomenonTime" : "2009-05-01T11:47:00Z/2009-05-01T12:03:00Z",
     "resultTime" : "2009-05-01T11:47:00Z/2009-05-01T12:03:00Z",
     "@iot.id" : "urn:ogc:object:observation:template:GEOM:test-id-0",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-id-0)",

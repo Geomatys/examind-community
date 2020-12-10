@@ -55,6 +55,7 @@ import org.geotoolkit.sts.json.Observation;
 import org.geotoolkit.sts.json.ObservedPropertiesResponse;
 import org.geotoolkit.sts.json.ObservedProperty;
 import org.geotoolkit.sts.json.STSCapabilities;
+import org.geotoolkit.sts.json.STSResponse;
 import org.geotoolkit.sts.json.Sensor;
 import org.geotoolkit.sts.json.SensorsResponse;
 import org.geotoolkit.sts.json.Thing;
@@ -73,7 +74,7 @@ public interface STSWorker extends Worker {
 
     void addThing(Thing thing) throws CstlServiceException;
 
-    Object getObservations(GetObservations go) throws CstlServiceException;
+    STSResponse getObservations(GetObservations go) throws CstlServiceException;
 
     Observation getObservationById(GetObservationById goi) throws CstlServiceException;
 

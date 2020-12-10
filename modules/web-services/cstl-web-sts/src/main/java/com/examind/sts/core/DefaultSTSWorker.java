@@ -81,6 +81,7 @@ import org.geotoolkit.sts.GetSensors;
 import org.geotoolkit.sts.GetThingById;
 import org.geotoolkit.sts.GetThings;
 import org.geotoolkit.sts.json.DataArray;
+import org.geotoolkit.sts.json.DataArrayResponse;
 import org.geotoolkit.sts.json.Datastream;
 import org.geotoolkit.sts.json.DatastreamsResponse;
 import org.geotoolkit.sts.json.FeatureOfInterest;
@@ -96,6 +97,7 @@ import org.geotoolkit.sts.json.ObservationsResponse;
 import org.geotoolkit.sts.json.ObservedPropertiesResponse;
 import org.geotoolkit.sts.json.ObservedProperty;
 import org.geotoolkit.sts.json.STSCapabilities;
+import org.geotoolkit.sts.json.STSResponse;
 import org.geotoolkit.sts.json.Sensor;
 import org.geotoolkit.sts.json.SensorsResponse;
 import org.geotoolkit.sts.json.Thing;
@@ -324,7 +326,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     }
 
     @Override
-    public Object getObservations(GetObservations req) throws CstlServiceException {
+    public STSResponse getObservations(GetObservations req) throws CstlServiceException {
         try {
             boolean isDataArray = "dataArray".equals(req.getResultFormat());
             final SimpleQuery subquery = buildExtraFilterQuery(req, false);
@@ -670,7 +672,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         return observations;
     }
 
-    private DataArray buildDataArrayFromResults(Map<String, List> arrays, QName resultModel, BigDecimal count) throws ConstellationStoreException {
+    private DataArrayResponse buildDataArrayFromResults(Map<String, List> arrays, QName resultModel, BigDecimal count) throws ConstellationStoreException {
 
         DataArray result = new DataArray();
         result.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
@@ -681,10 +683,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             result.getDataArray().addAll(results);
         }
         result.setIotCount(count);
-        return result;
+        return new DataArrayResponse(Arrays.asList(result));
     }
     
-    private DataArray buildDataArrayFromObservations(List<org.opengis.observation.Observation> obs, Boolean count) throws ConstellationStoreException {
+    private DataArrayResponse buildDataArrayFromObservations(List<org.opengis.observation.Observation> obs, Boolean count) throws ConstellationStoreException {
         int nb = 0;
         final DataArray result = new DataArray();
         result.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
@@ -726,7 +728,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         if (count != null && count) {
             result.setIotCount(new BigDecimal(nb));
         }
-        return result;
+        return new DataArrayResponse(Arrays.asList(result));
     }
     
     private List<Object> formatSTSArray(final String oid, List<Object> resultArray, boolean single, boolean idIncluded) {
@@ -906,7 +908,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
 
         if (obs.getSamplingTime() != null) {
-            datastream = datastream.resultTime(temporalObjToString(obs.getSamplingTime()));
+            String time = temporalObjToString(obs.getSamplingTime());
+            datastream = datastream.resultTime(time);
+            datastream = datastream.phenomenonTime(time);
         }
 
         // TODO observation type
@@ -927,7 +931,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         } else {
             LOGGER.warning("measurement result type not handled yet");
         }
-        datastream.setUnitOfMeasure(uom);
+        datastream.setUnitOfMeasurement(uom);
 
         final String id = obs.getName().getCode();
         datastream = datastream.iotId(id)
@@ -1051,7 +1055,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         }
 
         if (obs.getSamplingTime() != null) {
-            datastream.setResultTime(temporalObjToString(obs.getSamplingTime()));
+            String time = temporalObjToString(obs.getSamplingTime());
+            datastream.setResultTime(time);
+            datastream.setPhenomenonTime(time);
         }
 
         datastream.setObservationType("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation");
@@ -1095,7 +1101,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         // TODO area
         // TODO description
 
-        datastream.setUnitOfMeasure(uoms);
+        datastream.setUnitOfMeasurement(uoms);
         datastream.setIotId(obs.getName().getCode());
         datastream.setIotSelfLink(selfLink);
         return datastream;

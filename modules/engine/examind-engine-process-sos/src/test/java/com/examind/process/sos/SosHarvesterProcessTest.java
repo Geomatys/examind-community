@@ -79,6 +79,7 @@ import org.geotoolkit.sts.GetHistoricalLocations;
 import org.geotoolkit.sts.GetObservations;
 import org.geotoolkit.sts.GetObservedProperties;
 import org.geotoolkit.sts.json.DataArray;
+import org.geotoolkit.sts.json.DataArrayResponse;
 import org.geotoolkit.sts.json.HistoricalLocation;
 import org.geotoolkit.sts.json.HistoricalLocationsResponse;
 import org.geotoolkit.sts.json.ObservedPropertiesResponse;
@@ -2133,8 +2134,8 @@ public class SosHarvesterProcessTest {
         request.getExtraFlag().put("forMDS", "true");
         request.setCount(true);
         request.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:" + sensorId);
-        DataArray resp = (DataArray) stsWorker.getObservations(request);
-        return resp.getIotCount().toBigInteger().intValue();
+        DataArrayResponse resp = (DataArrayResponse) stsWorker.getObservations(request);
+        return resp.getValue().get(0).getIotCount().toBigInteger().intValue();
     }
 
     private static ObservationOffering getOffering(SOSworker worker, String sensorId) throws CstlServiceException {

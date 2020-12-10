@@ -18,7 +18,6 @@
  */
 package com.examind.sts.core;
 
-import com.examind.sensor.ws.SensorWorker;
 import static com.examind.sts.core.STSUtils.parseDate;
 import java.util.ArrayList;
 import java.util.Date;
@@ -44,6 +43,9 @@ import org.opengis.temporal.TemporalObject;
  */
 public class OdataFilterParser {
     private final FilterFactory ff;
+
+    private static final String RESULT_TIME = "resulttime";
+    private static final String PHENOMENON_TIME = "phenomenontime";
 
     public OdataFilterParser() {
         this.ff = DefaultFactories.forBuildin(FilterFactory.class);
@@ -118,7 +120,7 @@ public class OdataFilterParser {
                 String realProperty = properties[properties.length - 1];
                 String value = filterStr.substring(pos + 4, filterStr.length());
                 Object literal;
-                if (realProperty.startsWith("result") && !realProperty.equalsIgnoreCase("resulttime")) {
+                if (realProperty.startsWith("result") && !realProperty.equalsIgnoreCase(RESULT_TIME)) {
                     literal = value;
                     return ff.greaterOrEqual(ff.property(realProperty), ff.literal(literal));
                 } else {
@@ -137,7 +139,7 @@ public class OdataFilterParser {
                 String realProperty = properties[properties.length - 1];
                 String value = filterStr.substring(pos + 4, filterStr.length());
                 Object literal;
-                if (realProperty.startsWith("result") && !realProperty.equalsIgnoreCase("resulttime")) {
+                if (realProperty.startsWith("result") && !realProperty.equalsIgnoreCase(RESULT_TIME)) {
                     literal = value;
                     return ff.greater(ff.property(realProperty), ff.literal(literal));
                 } else {
@@ -156,7 +158,7 @@ public class OdataFilterParser {
                 String realProperty = properties[properties.length - 1];
                 String value = filterStr.substring(pos + 4, filterStr.length());
                 Object literal;
-                if (realProperty.startsWith("result") && !realProperty.equalsIgnoreCase("resulttime")) {
+                if (realProperty.startsWith("result") && !realProperty.equalsIgnoreCase(RESULT_TIME)) {
                     literal = value;
                     return ff.lessOrEqual(ff.property(realProperty), ff.literal(literal));
                 } else {
@@ -175,7 +177,7 @@ public class OdataFilterParser {
                 String realProperty = properties[properties.length - 1];
                 String value = filterStr.substring(pos + 4, filterStr.length());
                 Object literal;
-                if (realProperty.startsWith("result") && !realProperty.equalsIgnoreCase("resulttime")) {
+                if (realProperty.startsWith("result") && !realProperty.equalsIgnoreCase(RESULT_TIME)) {
                     literal = value;
                     return ff.less(ff.property(realProperty), ff.literal(literal));
                 } else {
@@ -202,7 +204,7 @@ public class OdataFilterParser {
                 String realProperty = properties[properties.length - 1];
                 String value = filterStr.substring(pos + 4, filterStr.length());
                 Object literal;
-                if (realProperty.startsWith("result") && !realProperty.equalsIgnoreCase("resulttime")) {
+                if (realProperty.startsWith("result") && !realProperty.equalsIgnoreCase(RESULT_TIME)) {
                     literal = value;
                     return ff.equals(ff.property(realProperty), ff.literal(literal));
                 } else {
@@ -220,9 +222,9 @@ public class OdataFilterParser {
 
     private String getSupportedTemporalProperties(String property) throws CstlServiceException {
         switch(property.toLowerCase()) {
-            case "resulttime"             : return "time";
-            case "phenomenontime"         : return "time";
-            case "time"                   : return "time";
+            case RESULT_TIME             : return "time";
+            case PHENOMENON_TIME         : return "time";
+            case "time"                  : return "time";
         }
         throw new CstlServiceException("Unexpected temporal property name:" + property, INVALID_PARAMETER_VALUE, "FILTER");
     }

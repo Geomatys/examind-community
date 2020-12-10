@@ -1,4 +1,5 @@
 {
+  "value" : [{
   "components" : [ "id", "phenomenonTime", "resultTime", "result" ],
   "dataArray" : [ 
         [ "urn:ogc:object:sensor:GEOM:3-dec-0", "2007-05-01T16:59:00Z", "2007-05-01T16:59:00Z", [ 6.55 ] ], 
@@ -7,4 +8,5 @@
         [ "urn:ogc:object:sensor:GEOM:3-dec-3", "2007-05-01T18:17:00Z", "2007-05-01T18:17:00Z", [ 6.55 ] ], 
         [ "urn:ogc:object:sensor:GEOM:3-dec-4", "2007-05-01T18:59:00Z", "2007-05-01T18:59:00Z", [ 6.55 ] ], 
         [ "urn:ogc:object:sensor:GEOM:3-dec-5", "2007-05-01T19:17:00Z", "2007-05-01T19:17:00Z", [ 6.55 ] ] ]
+} ]
 }

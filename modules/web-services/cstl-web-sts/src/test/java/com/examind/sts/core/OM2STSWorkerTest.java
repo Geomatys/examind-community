@@ -61,6 +61,7 @@ import org.geotoolkit.sts.GetObservedPropertyById;
 import org.geotoolkit.sts.GetSensorById;
 import org.geotoolkit.sts.GetSensors;
 import org.geotoolkit.sts.json.DataArray;
+import org.geotoolkit.sts.json.DataArrayResponse;
 import org.geotoolkit.sts.json.Datastream;
 import org.geotoolkit.sts.json.DatastreamsResponse;
 import org.geotoolkit.sts.json.FeatureOfInterest;
@@ -73,6 +74,7 @@ import org.geotoolkit.sts.json.ObservationsResponse;
 import org.geotoolkit.sts.json.ObservedPropertiesResponse;
 import org.geotoolkit.sts.json.ObservedProperty;
 import org.geotoolkit.sts.json.STSCapabilities;
+import org.geotoolkit.sts.json.STSResponse;
 import org.geotoolkit.sts.json.SensorsResponse;
 import org.geotoolkit.sts.json.UnitOfMeasure;
 import org.junit.AfterClass;
@@ -280,7 +282,7 @@ public class OM2STSWorkerTest {
         */
         GetObservations goRequest = new GetObservations();
         goRequest.getExtraFilter().put("featureOfInterest", "station-001");
-        Object obj = worker.getObservations(goRequest);
+        STSResponse obj = worker.getObservations(goRequest);
 
         Assert.assertTrue(obj instanceof ObservationsResponse);
         ObservationsResponse obsResult = (ObservationsResponse) obj;
@@ -366,10 +368,11 @@ public class OM2STSWorkerTest {
                 .observedPropertyIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:3-0)/ObservedProperties")
                 .iotSelfLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:3-0)")
                 .resultTime("2007-05-01T00:59:00Z/2007-05-01T19:59:00Z")
+                .phenomenonTime("2007-05-01T00:59:00Z/2007-05-01T19:59:00Z")
                 .description("urn:ogc:object:observation:template:GEOM:3-0")
                 .observationType("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement")
                 .thingIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:3-0)/Things")
-                .unitOfMeasure(new UnitOfMeasure("m", "m", "m"))
+                .unitOfMeasurement(new UnitOfMeasure("m", "m", "m"))
                 .observationsIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:3-0)/Observations")
                 .sensorIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:3-0)/Sensors");
         expResult.setDatastream(expDatas);
@@ -407,10 +410,13 @@ public class OM2STSWorkerTest {
         GetObservations request = new GetObservations();
         request.setResultFormat("dataArray");
         request.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:test-1-0");
-        Object resultObj = worker.getObservations(request);
+        STSResponse resultObj = worker.getObservations(request);
 
-        Assert.assertTrue(resultObj instanceof DataArray);
-        DataArray result = (DataArray) resultObj;
+        Assert.assertTrue(resultObj instanceof DataArrayResponse);
+        DataArrayResponse resp = (DataArrayResponse) resultObj;
+        Assert.assertNotNull(resp.getValue());
+        Assert.assertEquals(1, resp.getValue().size());
+        DataArray result = resp.getValue().get(0);
 
         DataArray expResult = new DataArray();
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
@@ -428,8 +434,11 @@ public class OM2STSWorkerTest {
         request.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:12-0");
         resultObj = worker.getObservations(request);
 
-        Assert.assertTrue(resultObj instanceof DataArray);
-        result = (DataArray) resultObj;
+        Assert.assertTrue(resultObj instanceof DataArrayResponse);
+        resp = (DataArrayResponse) resultObj;
+        Assert.assertNotNull(resp.getValue());
+        Assert.assertEquals(1, resp.getValue().size());
+        result = resp.getValue().get(0);
 
         expResult = new DataArray();
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
@@ -447,8 +456,11 @@ public class OM2STSWorkerTest {
         request.setFilter("result eq 9.9");
         resultObj = worker.getObservations(request);
 
-        Assert.assertTrue(resultObj instanceof DataArray);
-        result = (DataArray) resultObj;
+        Assert.assertTrue(resultObj instanceof DataArrayResponse);
+        resp = (DataArrayResponse) resultObj;
+        Assert.assertNotNull(resp.getValue());
+        Assert.assertEquals(1, resp.getValue().size());
+        result = resp.getValue().get(0);
 
         expResult = new DataArray();
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
@@ -462,8 +474,11 @@ public class OM2STSWorkerTest {
         request.setFilter("result le 7.8");
         resultObj = worker.getObservations(request);
 
-        Assert.assertTrue(resultObj instanceof DataArray);
-        result = (DataArray) resultObj;
+        Assert.assertTrue(resultObj instanceof DataArrayResponse);
+        resp = (DataArrayResponse) resultObj;
+        Assert.assertNotNull(resp.getValue());
+        Assert.assertEquals(1, resp.getValue().size());
+        result = resp.getValue().get(0);
 
         expResult = new DataArray();
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
@@ -479,8 +494,11 @@ public class OM2STSWorkerTest {
         request.setFilter("result lt 7.8");
         resultObj = worker.getObservations(request);
 
-        Assert.assertTrue(resultObj instanceof DataArray);
-        result = (DataArray) resultObj;
+        Assert.assertTrue(resultObj instanceof DataArrayResponse);
+        resp = (DataArrayResponse) resultObj;
+        Assert.assertNotNull(resp.getValue());
+        Assert.assertEquals(1, resp.getValue().size());
+        result = resp.getValue().get(0);
 
         expResult = new DataArray();
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
@@ -492,11 +510,14 @@ public class OM2STSWorkerTest {
         Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
         Assert.assertEquals(expResult, result);
         
-         request.setFilter("result ge 7.8");
+        request.setFilter("result ge 7.8");
         resultObj = worker.getObservations(request);
 
-        Assert.assertTrue(resultObj instanceof DataArray);
-        result = (DataArray) resultObj;
+        Assert.assertTrue(resultObj instanceof DataArrayResponse);
+        resp = (DataArrayResponse) resultObj;
+        Assert.assertNotNull(resp.getValue());
+        Assert.assertEquals(1, resp.getValue().size());
+        result = resp.getValue().get(0);
 
         expResult = new DataArray();
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
@@ -512,8 +533,11 @@ public class OM2STSWorkerTest {
         request.setFilter("result gt 7.8");
         resultObj = worker.getObservations(request);
 
-        Assert.assertTrue(resultObj instanceof DataArray);
-        result = (DataArray) resultObj;
+        Assert.assertTrue(resultObj instanceof DataArrayResponse);
+        resp = (DataArrayResponse) resultObj;
+        Assert.assertNotNull(resp.getValue());
+        Assert.assertEquals(1, resp.getValue().size());
+        result = resp.getValue().get(0);
 
         expResult = new DataArray();
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
@@ -528,8 +552,11 @@ public class OM2STSWorkerTest {
         request.setFilter("result gt 5.8 and result lt 7.9");
         resultObj = worker.getObservations(request);
 
-        Assert.assertTrue(resultObj instanceof DataArray);
-        result = (DataArray) resultObj;
+        Assert.assertTrue(resultObj instanceof DataArrayResponse);
+        resp = (DataArrayResponse) resultObj;
+        Assert.assertNotNull(resp.getValue());
+        Assert.assertEquals(1, resp.getValue().size());
+        result = resp.getValue().get(0);
 
         expResult = new DataArray();
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
@@ -549,10 +576,13 @@ public class OM2STSWorkerTest {
         request.setResultFormat("dataArray");
         request.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:test-1-0");
         request.getExtraFlag().put("decimation", "10");
-        Object resultObj = worker.getObservations(request);
+        STSResponse resultObj = worker.getObservations(request);
 
-        Assert.assertTrue(resultObj instanceof DataArray);
-        DataArray result = (DataArray) resultObj;
+        Assert.assertTrue(resultObj instanceof DataArrayResponse);
+        DataArrayResponse resp = (DataArrayResponse) resultObj;
+        Assert.assertNotNull(resp.getValue());
+        Assert.assertEquals(1, resp.getValue().size());
+        DataArray result = resp.getValue().get(0);
 
         DataArray expResult = new DataArray();
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
@@ -580,10 +610,13 @@ public class OM2STSWorkerTest {
         request.setResultFormat("dataArray");
         request.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:8");
         request.getExtraFlag().put("forMDS", "true");
-        Object resultObj = worker.getObservations(request);
+        STSResponse resultObj = worker.getObservations(request);
 
-        Assert.assertTrue(resultObj instanceof DataArray);
-        DataArray result = (DataArray) resultObj;
+        Assert.assertTrue(resultObj instanceof DataArrayResponse);
+        DataArrayResponse resp = (DataArrayResponse) resultObj;
+        Assert.assertNotNull(resp.getValue());
+        Assert.assertEquals(1, resp.getValue().size());
+        DataArray result = resp.getValue().get(0);
 
         DataArray expResult = new DataArray();
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
@@ -620,8 +653,11 @@ public class OM2STSWorkerTest {
         request.setFilter("result[1] eq 15");
         resultObj = worker.getObservations(request);
         
-        Assert.assertTrue(resultObj instanceof DataArray);
-        result = (DataArray) resultObj;
+        Assert.assertTrue(resultObj instanceof DataArrayResponse);
+        resp = (DataArrayResponse) resultObj;
+        Assert.assertNotNull(resp.getValue());
+        Assert.assertEquals(1, resp.getValue().size());
+        result = resp.getValue().get(0);
         
         expResult = new DataArray();
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
@@ -653,8 +689,11 @@ public class OM2STSWorkerTest {
         request.setFilter("result[1] le 15");
         resultObj = worker.getObservations(request);
         
-        Assert.assertTrue(resultObj instanceof DataArray);
-        result = (DataArray) resultObj;
+        Assert.assertTrue(resultObj instanceof DataArrayResponse);
+        resp = (DataArrayResponse) resultObj;
+        Assert.assertNotNull(resp.getValue());
+        Assert.assertEquals(1, resp.getValue().size());
+        result = resp.getValue().get(0);
         
         expResult = new DataArray();
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
@@ -689,8 +728,11 @@ public class OM2STSWorkerTest {
         request.setFilter("result[1] lt 15");
         resultObj = worker.getObservations(request);
         
-        Assert.assertTrue(resultObj instanceof DataArray);
-        result = (DataArray) resultObj;
+        Assert.assertTrue(resultObj instanceof DataArrayResponse);
+        resp = (DataArrayResponse) resultObj;
+        Assert.assertNotNull(resp.getValue());
+        Assert.assertEquals(1, resp.getValue().size());
+        result = resp.getValue().get(0);
         
         expResult = new DataArray();
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
@@ -724,8 +766,11 @@ public class OM2STSWorkerTest {
         request.setFilter("result[1] ge 15");
         resultObj = worker.getObservations(request);
         
-        Assert.assertTrue(resultObj instanceof DataArray);
-        result = (DataArray) resultObj;
+        Assert.assertTrue(resultObj instanceof DataArrayResponse);
+        resp = (DataArrayResponse) resultObj;
+        Assert.assertNotNull(resp.getValue());
+        Assert.assertEquals(1, resp.getValue().size());
+        result = resp.getValue().get(0);
         
         expResult = new DataArray();
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
@@ -758,8 +803,11 @@ public class OM2STSWorkerTest {
         request.setFilter("result[1] gt 15");
         resultObj = worker.getObservations(request);
         
-        Assert.assertTrue(resultObj instanceof DataArray);
-        result = (DataArray) resultObj;
+        Assert.assertTrue(resultObj instanceof DataArrayResponse);
+        resp = (DataArrayResponse) resultObj;
+        Assert.assertNotNull(resp.getValue());
+        Assert.assertEquals(1, resp.getValue().size());
+        result = resp.getValue().get(0);
         
         expResult = new DataArray();
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
@@ -791,8 +839,11 @@ public class OM2STSWorkerTest {
         request.setFilter("result[1] ge 13 and result[1] le 15");
         resultObj = worker.getObservations(request);
         
-        Assert.assertTrue(resultObj instanceof DataArray);
-        result = (DataArray) resultObj;
+        Assert.assertTrue(resultObj instanceof DataArrayResponse);
+        resp = (DataArrayResponse) resultObj;
+        Assert.assertNotNull(resp.getValue());
+        Assert.assertEquals(1, resp.getValue().size());
+        result = resp.getValue().get(0);
         
         expResult = new DataArray();
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
@@ -825,7 +876,7 @@ public class OM2STSWorkerTest {
     @Order(order=4)
     public void getObservationsTest() throws Exception {
         GetObservations request = new GetObservations();
-        Object obj = worker.getObservations(request);
+        STSResponse obj = worker.getObservations(request);
 
         Assert.assertTrue(obj instanceof ObservationsResponse);
         ObservationsResponse result = (ObservationsResponse) obj;
@@ -977,8 +1028,9 @@ public class OM2STSWorkerTest {
                 .iotSelfLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-0)")
                 .observationType("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement")
                 .thingIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-0)/Things")
-                .unitOfMeasure(new UnitOfMeasure("m", "m", "m"))
+                .unitOfMeasurement(new UnitOfMeasure("m", "m", "m"))
                 .resultTime("2007-05-01T10:59:00Z/2007-05-01T14:59:00Z")
+                .phenomenonTime("2007-05-01T10:59:00Z/2007-05-01T14:59:00Z")
                 .observationsIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-0)/Observations")
                 .sensorIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-0)/Sensors");
         Assert.assertEquals(expResult, result);
@@ -1088,7 +1140,7 @@ public class OM2STSWorkerTest {
         */
        GetObservations go = new GetObservations();
        go.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:test-1-0");
-       Object obj = worker.getObservations(go);
+       STSResponse obj = worker.getObservations(go);
 
        Assert.assertTrue(obj instanceof ObservationsResponse);
        ObservationsResponse obsResult = (ObservationsResponse) obj;
@@ -1124,8 +1176,9 @@ public class OM2STSWorkerTest {
                 .iotSelfLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:10-0)")
                 .observationType("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement")
                 .thingIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:10-0)/Things")
-                .unitOfMeasure(new UnitOfMeasure("m", "m", "m"))
+                .unitOfMeasurement(new UnitOfMeasure("m", "m", "m"))
                 .resultTime("2009-05-01T11:47:00Z/2009-05-01T12:03:00Z")
+                .phenomenonTime("2009-05-01T11:47:00Z/2009-05-01T12:03:00Z")
                 .observationsIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:10-0)/Observations")
                 .sensorIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:10-0)/Sensors");
         Assert.assertEquals(expResult, result);
@@ -1232,8 +1285,9 @@ public class OM2STSWorkerTest {
                 .iotSelfLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-id-0)")
                 .observationType("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement")
                 .thingIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-id-0)/Things")
-                .unitOfMeasure(new UnitOfMeasure("m", "m", "m"))
+                .unitOfMeasurement(new UnitOfMeasure("m", "m", "m"))
                 .resultTime("2009-05-01T11:47:00Z/2009-05-01T12:03:00Z")
+                .phenomenonTime("2009-05-01T11:47:00Z/2009-05-01T12:03:00Z")
                 .observationsIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-id-0)/Observations")
                 .sensorIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-id-0)/Sensors");
         Assert.assertEquals(expResult, result);
@@ -1370,11 +1424,12 @@ public class OM2STSWorkerTest {
         uoms.add(new UnitOfMeasure("m", "m", "m"));
         uoms.add(new UnitOfMeasure("°C", "°C", "°C"));
         MultiDatastream expResult = new MultiDatastream();
-                expResult.setUnitOfMeasure(uoms);
+                expResult.setUnitOfMeasurement(uoms);
                 expResult.setIotId("urn:ogc:object:observation:template:GEOM:8");
                 expResult.setObservedPropertyIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/ObservedProperties");
                 expResult.setIotSelfLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)");
                 expResult.setResultTime("2007-05-01T10:59:00Z/2007-05-01T14:59:00Z");
+                expResult.setPhenomenonTime("2007-05-01T10:59:00Z/2007-05-01T14:59:00Z");
                 expResult.setObservationsIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/Observations");
                 expResult.setSensorIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/Sensors");
                 expResult.setThingIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/Things");
@@ -1384,7 +1439,7 @@ public class OM2STSWorkerTest {
 
         Assert.assertEquals(expResult.getMultiObservationDataTypes(), result.getMultiObservationDataTypes());
         Assert.assertEquals(expResult.getObservationType(), result.getObservationType());
-        Assert.assertEquals(expResult.getUnitOfMeasure(), result.getUnitOfMeasure());
+        Assert.assertEquals(expResult.getUnitOfMeasurement(), result.getUnitOfMeasurement());
         Assert.assertEquals(expResult, result);
 
         /*
@@ -1513,7 +1568,7 @@ public class OM2STSWorkerTest {
        GetObservations go = new GetObservations();
        go.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:8");
        go.getExtraFlag().put("forMDS", "true");
-       Object obj = worker.getObservations(go);
+       STSResponse obj = worker.getObservations(go);
 
        Assert.assertTrue(obj instanceof ObservationsResponse);
        ObservationsResponse obsResult = (ObservationsResponse) obj;
@@ -1531,11 +1586,12 @@ public class OM2STSWorkerTest {
         List<UnitOfMeasure> uoms = new ArrayList<>();
         uoms.add(new UnitOfMeasure("m", "m", "m"));
         MultiDatastream expResult = new MultiDatastream();
-                expResult.setUnitOfMeasure(uoms);
+                expResult.setUnitOfMeasurement(uoms);
                 expResult.setIotId("urn:ogc:object:observation:template:GEOM:10");
                 expResult.setObservedPropertyIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:10)/ObservedProperties");
                 expResult.setIotSelfLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:10)");
                 expResult.setResultTime("2009-05-01T11:47:00Z/2009-05-01T12:03:00Z");
+                expResult.setPhenomenonTime("2009-05-01T11:47:00Z/2009-05-01T12:03:00Z");
                 expResult.setObservationsIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:10)/Observations");
                 expResult.setSensorIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:10)/Sensors");
                 expResult.setThingIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:10)/Things");
@@ -1544,7 +1600,7 @@ public class OM2STSWorkerTest {
 
         Assert.assertEquals(expResult.getMultiObservationDataTypes(), result.getMultiObservationDataTypes());
         Assert.assertEquals(expResult.getObservationType(), result.getObservationType());
-        Assert.assertEquals(expResult.getUnitOfMeasure(), result.getUnitOfMeasure());
+        Assert.assertEquals(expResult.getUnitOfMeasurement(), result.getUnitOfMeasurement());
         Assert.assertEquals(expResult, result);
 
         /*
@@ -1652,11 +1708,12 @@ public class OM2STSWorkerTest {
         List<UnitOfMeasure> uoms = new ArrayList<>();
         uoms.add(new UnitOfMeasure("m", "m", "m"));
         MultiDatastream expResult = new MultiDatastream();
-                expResult.setUnitOfMeasure(uoms);
+                expResult.setUnitOfMeasurement(uoms);
                 expResult.setIotId("urn:ogc:object:observation:template:GEOM:test-id");
                 expResult.setObservedPropertyIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:test-id)/ObservedProperties");
                 expResult.setIotSelfLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:test-id)");
                 expResult.setResultTime("2009-05-01T11:47:00Z/2009-05-01T12:03:00Z");
+                expResult.setPhenomenonTime("2009-05-01T11:47:00Z/2009-05-01T12:03:00Z");
                 expResult.setObservationsIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:test-id)/Observations");
                 expResult.setSensorIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:test-id)/Sensors");
                 expResult.setThingIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:test-id)/Things");
@@ -1665,7 +1722,7 @@ public class OM2STSWorkerTest {
 
         Assert.assertEquals(expResult.getMultiObservationDataTypes(), result.getMultiObservationDataTypes());
         Assert.assertEquals(expResult.getObservationType(), result.getObservationType());
-        Assert.assertEquals(expResult.getUnitOfMeasure(), result.getUnitOfMeasure());
+        Assert.assertEquals(expResult.getUnitOfMeasurement(), result.getUnitOfMeasurement());
         Assert.assertEquals(expResult, result);
 
         /*
@@ -1821,8 +1878,9 @@ public class OM2STSWorkerTest {
                 .iotSelfLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-0)")
                 .observationType("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement")
                 .thingIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-0)/Things")
-                .unitOfMeasure(new UnitOfMeasure("m", "m", "m"))
+                .unitOfMeasurement(new UnitOfMeasure("m", "m", "m"))
                 .resultTime("2000-12-31T23:00:00Z/2000-12-31T23:00:00Z")
+                .phenomenonTime("2000-12-31T23:00:00Z/2000-12-31T23:00:00Z")
                 .observationsIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-0)/Observations")
                 .sensorIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-0)/Sensors");
 
@@ -1833,8 +1891,9 @@ public class OM2STSWorkerTest {
                 .iotSelfLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-1)")
                 .observationType("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement")
                 .thingIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-1)/Things")
-                .unitOfMeasure(new UnitOfMeasure("°C", "°C", "°C"))
+                .unitOfMeasurement(new UnitOfMeasure("°C", "°C", "°C"))
                 .resultTime("2000-12-31T23:00:00Z/2000-12-31T23:00:00Z")
+                .phenomenonTime("2000-12-31T23:00:00Z/2000-12-31T23:00:00Z")
                 .observationsIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-1)/Observations")
                 .sensorIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-1)/Sensors");
 
@@ -1847,11 +1906,12 @@ public class OM2STSWorkerTest {
         uoms.add(new UnitOfMeasure("°C", "°C", "°C"));
 
         MultiDatastream expMDs1 = new MultiDatastream();
-        expMDs1.setUnitOfMeasure(uoms);
+        expMDs1.setUnitOfMeasurement(uoms);
         expMDs1.setIotId("urn:ogc:object:observation:template:GEOM:2");
         expMDs1.setObservedPropertyIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)/ObservedProperties");
         expMDs1.setIotSelfLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)");
         expMDs1.resultTime("2000-12-31T23:00:00Z/2000-12-31T23:00:00Z");
+        expMDs1.setPhenomenonTime("2000-12-31T23:00:00Z/2000-12-31T23:00:00Z");
         expMDs1.setObservationsIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)/Observations");
         expMDs1.setSensorIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)/Sensors");
         expMDs1.setThingIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)/Things");
