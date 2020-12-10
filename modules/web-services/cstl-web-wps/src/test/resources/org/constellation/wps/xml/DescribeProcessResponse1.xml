@@ -2578,6 +2578,15 @@
         </LiteralData>
       </Input>
       <Input minOccurs="0" maxOccurs="1">
+        <ns9:Identifier>urn:exa:wps:geotoolkit::vector:clusterhull:input:smoothing_epsilon</ns9:Identifier>
+        <ows:Title xml:lang="fr-FR">Smoothing_epsilon</ows:Title>
+        <ows:Abstract xml:lang="fr-FR">Tolerance of the smoothing algorithm</ows:Abstract>
+        <LiteralData>
+          <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+          <ows:AnyValue/>
+        </LiteralData>
+      </Input>
+      <Input minOccurs="0" maxOccurs="1">
         <ns9:Identifier>urn:exa:wps:geotoolkit::vector:clusterhull:input:tolerance_unit</ns9:Identifier>
         <ows:Title xml:lang="fr-FR">Tolerance_unit</ows:Title>
         <ows:Abstract xml:lang="fr-FR">Unit of tolerance used</ows:Abstract>
