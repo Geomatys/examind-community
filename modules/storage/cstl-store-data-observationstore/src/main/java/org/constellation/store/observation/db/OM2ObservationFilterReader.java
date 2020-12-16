@@ -1507,7 +1507,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     @Override
     public Map<String, Map<Date, Geometry>> getSensorLocations(final Map<String,String> hints) throws DataStoreException {
         if (hints.containsKey("decimSize")) {
-            return getDecimatedSensorLocations(hints, Integer.parseInt(hints.get("decimSize")));
+            return getDecimatedSensorLocationsV2(hints, Integer.parseInt(hints.get("decimSize")));
         }
         final String version = getVersionFromHints(hints);
         final String gmlVersion = getGMLVersion(version);
@@ -1516,6 +1516,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         }
         sqlRequest.append(" ORDER BY \"procedure\", \"time\"");
         sqlRequest = appendPaginationToRequest(sqlRequest, hints);
+
+         // will be removed when postgis filter will be set in request
         Polygon spaFilter = null;
         if (envelopeFilter != null) {
             spaFilter = JTS.toGeometry(envelopeFilter);
@@ -1543,7 +1545,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     } else {
                         continue;
                     }
-                    // exclude from spatial filter
+                    // exclude from spatial filter (will be removed when postgis filter will be set in request)
                     if (spaFilter != null && !spaFilter.intersects(geom)) {
                         continue;
                     }
@@ -1574,6 +1576,24 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         return locations;
     }
 
+    /**
+     * First version of decimation for Sensor Historical Location.
+     *
+     * We build a cube of decimSize X decimSize X decimSize  with the following dimension : Time, Latitude, longitude.
+     * Each results maching the query will be put in the correspounding cell of the cube.
+     *
+     * Once the cube is complete, we build a entity for each non-empty cell.
+     * if multiple entries are in the same cell, we build en entry by getting the centroid of the geometries union.
+     *
+     * This method is more efficient used with a bbox filter. if not, the whole world will be used for the cube LAT/LON boundaries.
+     *
+     * this method can return results for multiple procedure so, it will build one cube by procedure.
+     *
+     * @param hints
+     * @param decimSize
+     * @return
+     * @throws DataStoreException
+     */
     private Map<String, Map<Date, Geometry>> getDecimatedSensorLocations(final Map<String,String> hints, int decimSize) throws DataStoreException {
         final String version = getVersionFromHints(hints);
         final String gmlVersion = getGMLVersion(version);
@@ -1587,7 +1607,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         int nbCell = decimSize;
         final Field timeField = new Field("Time", "time", null, null);
 
-        //Envelope env = CRS.getDomainOfValidity(defaultCRS);
         GeneralEnvelope env;
         if (envelopeFilter != null) {
             env = envelopeFilter;
@@ -1597,6 +1616,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
         try (final Connection c = source.getConnection()) {
 
+            // calculate the first date and the time step for each procedure.
             final Map<Object, long[]> times = getMainFieldStep(stepRequest, timeField, c, nbCell);
 
             final Envelope[][] geoCells = new Envelope[nbCell][nbCell];
@@ -1612,11 +1632,14 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     double maxx = minx + xStep;
                     double miny = envMiny + j*yStep;
                     double maxy = miny + yStep;
-                    geoCells[i][j] = new Envelope(minx, maxx, miny, maxy); //JTS.toGeometry(cellEnv);
+                    geoCells[i][j] = new Envelope(minx, maxx, miny, maxy); 
                 }
             }
             
-            // prepare 4 env to reduce the cell by cell intersect
+            // prepare a first grid reducing the gris size by 10
+            // in order to reduce the cell by cell intersect
+            // and perform a pre-search
+            // TODO, use multiple level like in a R-Tree
             List<NarrowEnvelope> nEnvs = new ArrayList<>();
             int reduce = 10;
             int tmpNbCell = nbCell/reduce;
@@ -1838,7 +1861,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
         @Override
         public int hashCode() {
-            return t + 1009 * j + 1000003 * t;
+            return t + 1009 * j + 1000003 * i;
         }
     }
 
@@ -1852,7 +1875,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             this.i_min = i_min;
             this.j_max = j_max;
             this.j_min = j_min;
-            //System.out.println(this.toString());
         }
 
         @Override
@@ -1860,6 +1882,155 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             StringBuilder sb = new StringBuilder("Env[ ").append(env.getMinX()).append(", ").append(env.getMaxX()).append(", ").append(env.getMinY()).append(", ").append(env.getMaxY()).append("]\n");
             sb.append("Bound[").append(i_min).append( ", ").append(i_max).append(", ").append(j_min ).append(", ").append(j_max).append(']');
             return sb.toString();
+        }
+    }
+
+    /**
+     * Second version of decimation for Sensor Historical Location.
+     *
+     * Much more simple version of  the decimation.
+     * we split all the entries by time frame,
+     * and we build an entry using centroid if multiple entries are in the same time slice.
+     *
+     * @param hints
+     * @param decimSize
+     * @return
+     * @throws DataStoreException
+     */
+    private Map<String, Map<Date, Geometry>> getDecimatedSensorLocationsV2(final Map<String,String> hints, int decimSize) throws DataStoreException {
+        final String version = getVersionFromHints(hints);
+        final String gmlVersion = getGMLVersion(version);
+        FilterSQLRequest stepRequest = sqlRequest.clone();
+        if (firstFilter) {
+            sqlRequest.replaceFirst("WHERE", "");
+        }
+        sqlRequest.append(" ORDER BY \"procedure\", \"time\"");
+        sqlRequest = appendPaginationToRequest(sqlRequest, hints);
+
+        // will be removed when postgis filter will be set in request
+        Polygon spaFilter = null;
+        if (envelopeFilter != null) {
+            spaFilter = JTS.toGeometry(envelopeFilter);
+        }
+
+        int nbCell = decimSize;
+        final Field timeField = new Field("Time", "time", null, null);
+
+        Map<String, Map<Integer, List>> procedureCells = new HashMap<>();
+        try (final Connection c = source.getConnection()) {
+
+            // calculate the first date and the time step for each procedure.
+            final Map<Object, long[]> times = getMainFieldStep(stepRequest, timeField, c, nbCell);
+
+            try(final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
+                final ResultSet rs = pstmt.executeQuery()) {
+
+                Map<Integer, List> currentGeoms = null;
+                long start = -1;
+                long step  = -1;
+                String prevProc = null;
+                int tIndex = 0; //dates are ordened
+                final WKBReader reader = new WKBReader(JTS_GEOM_FACTORY);
+                while (rs.next()) {
+                    try {
+                        final String procedure = rs.getString("procedure");
+
+                        if (!procedure.equals(prevProc)) {
+                            step = times.get(procedure)[1];
+                            start = times.get(procedure)[0];
+                            currentGeoms = new HashMap<>();
+                            procedureCells.put(procedure, currentGeoms);
+                            tIndex = 0;
+                        }
+                        prevProc = procedure;
+
+                        final byte[] b = rs.getBytes(3);
+                        final int srid = rs.getInt(4);
+                        final CoordinateReferenceSystem crs;
+                        if (srid != 0) {
+                            crs = CRS.forCode("urn:ogc:def:crs:EPSG::" + srid);
+                        } else {
+                            crs = defaultCRS;
+                        }
+                        final org.locationtech.jts.geom.Geometry geom;
+                        if (b != null) {
+                            geom = reader.read(b);
+                        } else {
+                            continue;
+                        }
+
+                        // exclude from spatial filter  (will be removed when postgis filter will be set in request)
+                        if (spaFilter != null && !spaFilter.intersects(geom)) {
+                            continue;
+                        }
+
+                        // ajust the time index
+                        final long time = rs.getTimestamp("time").getTime();
+                        while (time > (start + step) && tIndex != nbCell - 1) {
+                            start = start + step;
+                            tIndex++;
+                        }
+                        if (currentGeoms.containsKey(tIndex)) {
+                            currentGeoms.get(tIndex).add(geom);
+                        } else {
+                            List<org.locationtech.jts.geom.Geometry> geoms = new ArrayList<>();
+                            geoms.add(geom);
+                            currentGeoms.put(tIndex, geoms);
+                        }
+
+                    } catch (FactoryException | ParseException ex) {
+                        throw new DataStoreException(ex);
+                    }
+                }
+            }
+
+            Map<String, Map<Date, Geometry>> locations = new LinkedHashMap<>();
+            // merge the geometries in each cells
+            for (Entry<String, Map<Integer, List>> entry : procedureCells.entrySet()) {
+
+                String procedure = entry.getKey();
+                Map<Integer, List> cells = entry.getValue();
+                long step = times.get(procedure)[1];
+                long start = times.get(procedure)[0];
+                for (int t = 0; t < nbCell; t++) {
+                    org.locationtech.jts.geom.Geometry geom;
+                    if (!cells.containsKey(t)) {
+                        continue;
+                    }
+                    List<org.locationtech.jts.geom.Geometry> cellgeoms = cells.get(t);
+                    if (cellgeoms == null || cellgeoms.isEmpty()) {
+                        continue;
+                    } else if (cellgeoms.size() == 1) {
+                        geom = cellgeoms.get(0);
+                    } else {
+                        // merge geometries
+                        GeometryCollection coll = new GeometryCollection(cellgeoms.toArray(new org.locationtech.jts.geom.Geometry[cellgeoms.size()]), JTS_GEOM_FACTORY);
+                        geom = coll.getCentroid();
+                    }
+
+                    final AbstractGeometry gmlGeom = JTStoGeometry.toGML(gmlVersion, geom, defaultCRS);
+
+                    final Map<Date, Geometry> procedureLocations;
+                    if (locations.containsKey(procedure)) {
+                        procedureLocations = locations.get(procedure);
+                    } else {
+                        procedureLocations = new LinkedHashMap<>();
+                        locations.put(procedure, procedureLocations);
+                    }
+                    final Date time = new Date(start + (step*t) + step/2);
+                    if (gmlGeom instanceof Geometry) {
+                        procedureLocations.put(time, (Geometry) gmlGeom);
+                    } else {
+                        throw new DataStoreException("GML geometry cannot be casted as an Opengis one");
+                    }
+                }
+            }
+            return locations;
+        } catch (FactoryException ex) {
+            throw new DataStoreException(ex);
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
+            throw new DataStoreException("the service has throw a SQL Exception.", ex);
         }
     }
 
