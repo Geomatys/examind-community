@@ -12,6 +12,10 @@
       "definition" : "m"
     },
     "observationType" : "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
+    "observedArea" : {
+      "type" : "Point",
+      "coordinates" : [ 65400.0, 1731368.0 ]
+    },
     "phenomenonTime" : "2007-05-01T00:59:00Z/2007-05-01T19:59:00Z",
     "resultTime" : "2007-05-01T00:59:00Z/2007-05-01T19:59:00Z",
     "@iot.id" : "urn:ogc:object:observation:template:GEOM:3-0",

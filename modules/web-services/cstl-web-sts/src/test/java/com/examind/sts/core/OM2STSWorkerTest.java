@@ -380,7 +380,8 @@ public class OM2STSWorkerTest {
                 .thingIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:3-0)/Things")
                 .unitOfMeasurement(new UnitOfMeasure("m", "m", "m"))
                 .observationsIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:3-0)/Observations")
-                .sensorIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:3-0)/Sensors");
+                .sensorIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:3-0)/Sensors")
+                .observedArea(point);
         expResult.setDatastream(expDatas);
         expResult.setDatastreamIotNavigationLink(null);
 
@@ -1027,6 +1028,9 @@ public class OM2STSWorkerTest {
         GetDatastreamById request = new GetDatastreamById("urn:ogc:object:observation:template:GEOM:test-1-0");
         Datastream result = worker.getDatastreamById(request);
 
+        GeoJSONGeometry.GeoJSONPoint point = new GeoJSONGeometry.GeoJSONPoint();
+        point.setCoordinates(new double[]{5.0, 10.0});
+
         Datastream expResult = new Datastream()
                 .iotId("urn:ogc:object:observation:template:GEOM:test-1-0")
                 .description("urn:ogc:object:observation:template:GEOM:test-1-0")
@@ -1038,7 +1042,8 @@ public class OM2STSWorkerTest {
                 .resultTime("2007-05-01T10:59:00Z/2007-05-01T14:59:00Z")
                 .phenomenonTime("2007-05-01T10:59:00Z/2007-05-01T14:59:00Z")
                 .observationsIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-0)/Observations")
-                .sensorIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-0)/Sensors");
+                .sensorIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-0)/Sensors")
+                .observedArea(point);
         Assert.assertEquals(expResult, result);
 
         /*
@@ -1175,6 +1180,21 @@ public class OM2STSWorkerTest {
         GetDatastreamById request = new GetDatastreamById("urn:ogc:object:observation:template:GEOM:10-0");
         Datastream result = worker.getDatastreamById(request);
 
+        GeoJSONGeometry.GeoJSONPolygon polygon = new GeoJSONGeometry.GeoJSONPolygon();
+        // POLYGON ((5 10, 5 1731368, 65400 1731368, 65400 10, 5 10))
+        double[][][] coordinates = new double[1][5][2];
+        coordinates[0][0][0] = 5.0;
+        coordinates[0][0][1] = 10.0;
+        coordinates[0][1][0] = 5.0;
+        coordinates[0][1][1] = 1731368.0;
+        coordinates[0][2][0] = 65400.0;
+        coordinates[0][2][1] = 1731368.0;
+        coordinates[0][3][0] = 65400.0;
+        coordinates[0][3][1] = 10.0;
+        coordinates[0][4][0] = 5.0;
+        coordinates[0][4][1] = 10.0;
+        polygon.setCoordinates(coordinates);
+
         Datastream expResult = new Datastream()
                 .iotId("urn:ogc:object:observation:template:GEOM:10-0")
                 .description("urn:ogc:object:observation:template:GEOM:10-0")
@@ -1186,7 +1206,8 @@ public class OM2STSWorkerTest {
                 .resultTime("2009-05-01T11:47:00Z/2009-05-01T12:03:00Z")
                 .phenomenonTime("2009-05-01T11:47:00Z/2009-05-01T12:03:00Z")
                 .observationsIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:10-0)/Observations")
-                .sensorIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:10-0)/Sensors");
+                .sensorIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:10-0)/Sensors")
+                .observedArea(polygon);
         Assert.assertEquals(expResult, result);
 
         /*
@@ -1284,6 +1305,9 @@ public class OM2STSWorkerTest {
         GetDatastreamById request = new GetDatastreamById("urn:ogc:object:observation:template:GEOM:test-id-0");
         Datastream result = worker.getDatastreamById(request);
 
+        GeoJSONGeometry.GeoJSONPoint point = new GeoJSONGeometry.GeoJSONPoint();
+        point.setCoordinates(new double[]{65400.0, 1731368.0});
+
         Datastream expResult = new Datastream()
                 .iotId("urn:ogc:object:observation:template:GEOM:test-id-0")
                 .description("urn:ogc:object:observation:template:GEOM:test-id-0")
@@ -1295,7 +1319,8 @@ public class OM2STSWorkerTest {
                 .resultTime("2009-05-01T11:47:00Z/2009-05-01T12:03:00Z")
                 .phenomenonTime("2009-05-01T11:47:00Z/2009-05-01T12:03:00Z")
                 .observationsIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-id-0)/Observations")
-                .sensorIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-id-0)/Sensors");
+                .sensorIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-id-0)/Sensors")
+                .observedArea(point);
         Assert.assertEquals(expResult, result);
 
         /*
@@ -1426,6 +1451,21 @@ public class OM2STSWorkerTest {
         GetMultiDatastreamById request = new GetMultiDatastreamById("urn:ogc:object:observation:template:GEOM:8");
         MultiDatastream result = worker.getMultiDatastreamById(request);
 
+        //  POLYGON ((-30.711 134.196, -30.711 134.205, -30.702 134.205, -30.702 134.196, -30.711 134.196))
+        GeoJSONGeometry.GeoJSONPolygon polygon = new GeoJSONGeometry.GeoJSONPolygon();
+        double[][][] coordinates = new double[1][5][2];
+        coordinates[0][0][0] = -30.711;
+        coordinates[0][0][1] = 134.196;
+        coordinates[0][1][0] = -30.711;
+        coordinates[0][1][1] = 134.205;
+        coordinates[0][2][0] = -30.702;
+        coordinates[0][2][1] = 134.205;
+        coordinates[0][3][0] = -30.702;
+        coordinates[0][3][1] = 134.196;
+        coordinates[0][4][0] = -30.711;
+        coordinates[0][4][1] = 134.196;
+        polygon.setCoordinates(coordinates);
+        
         List<UnitOfMeasure> uoms = new ArrayList<>();
         uoms.add(new UnitOfMeasure("m", "m", "m"));
         uoms.add(new UnitOfMeasure("°C", "°C", "°C"));
@@ -1442,6 +1482,7 @@ public class OM2STSWorkerTest {
                 expResult.setObservationType("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation");
                 expResult.setMultiObservationDataTypes(Arrays.asList("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
                                                                      "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement"));
+                expResult.setObservedArea(polygon);
 
         Assert.assertEquals(expResult.getMultiObservationDataTypes(), result.getMultiObservationDataTypes());
         Assert.assertEquals(expResult.getObservationType(), result.getObservationType());
@@ -1588,6 +1629,21 @@ public class OM2STSWorkerTest {
     public void getMultiDatastreamByIdSinglePhenTest() throws Exception {
        GetMultiDatastreamById request = new GetMultiDatastreamById("urn:ogc:object:observation:template:GEOM:10");
         MultiDatastream result = worker.getMultiDatastreamById(request);
+        
+        GeoJSONGeometry.GeoJSONPolygon polygon = new GeoJSONGeometry.GeoJSONPolygon();
+        // POLYGON ((5 10, 5 1731368, 65400 1731368, 65400 10, 5 10))
+        double[][][] coordinates = new double[1][5][2];
+        coordinates[0][0][0] = 5.0;
+        coordinates[0][0][1] = 10.0;
+        coordinates[0][1][0] = 5.0;
+        coordinates[0][1][1] = 1731368.0;
+        coordinates[0][2][0] = 65400.0;
+        coordinates[0][2][1] = 1731368.0;
+        coordinates[0][3][0] = 65400.0;
+        coordinates[0][3][1] = 10.0;
+        coordinates[0][4][0] = 5.0;
+        coordinates[0][4][1] = 10.0;
+        polygon.setCoordinates(coordinates);
 
         List<UnitOfMeasure> uoms = new ArrayList<>();
         uoms.add(new UnitOfMeasure("m", "m", "m"));
@@ -1603,6 +1659,7 @@ public class OM2STSWorkerTest {
                 expResult.setThingIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:10)/Things");
                 expResult.setObservationType("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation");
                 expResult.setMultiObservationDataTypes(Arrays.asList("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement"));
+                expResult.setObservedArea(polygon);
 
         Assert.assertEquals(expResult.getMultiObservationDataTypes(), result.getMultiObservationDataTypes());
         Assert.assertEquals(expResult.getObservationType(), result.getObservationType());
@@ -1711,6 +1768,9 @@ public class OM2STSWorkerTest {
        GetMultiDatastreamById request = new GetMultiDatastreamById("urn:ogc:object:observation:template:GEOM:test-id");
         MultiDatastream result = worker.getMultiDatastreamById(request);
 
+        GeoJSONGeometry.GeoJSONPoint point = new GeoJSONGeometry.GeoJSONPoint();
+        point.setCoordinates(new double[]{65400.0, 1731368.0});
+
         List<UnitOfMeasure> uoms = new ArrayList<>();
         uoms.add(new UnitOfMeasure("m", "m", "m"));
         MultiDatastream expResult = new MultiDatastream();
@@ -1725,6 +1785,7 @@ public class OM2STSWorkerTest {
                 expResult.setThingIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:test-id)/Things");
                 expResult.setObservationType("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation");
                 expResult.setMultiObservationDataTypes(Arrays.asList("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement"));
+                expResult.setObservedArea(point);
 
         Assert.assertEquals(expResult.getMultiObservationDataTypes(), result.getMultiObservationDataTypes());
         Assert.assertEquals(expResult.getObservationType(), result.getObservationType());
@@ -1870,6 +1931,9 @@ public class OM2STSWorkerTest {
                 .multiDatastreamsIotNavigationLink("http://test.geomatys.com/sts/default/Sensors(urn:ogc:object:sensor:GEOM:2)/MultiDatastreams");
         Assert.assertEquals(expResult, result);
 
+        GeoJSONGeometry.GeoJSONPoint point = new GeoJSONGeometry.GeoJSONPoint();
+        point.setCoordinates(new double[]{5.0, 10.0});
+        
         /*
          * expand datastreams, multidatastreams
          */
@@ -1888,7 +1952,8 @@ public class OM2STSWorkerTest {
                 .resultTime("2000-12-31T23:00:00Z/2000-12-31T23:00:00Z")
                 .phenomenonTime("2000-12-31T23:00:00Z/2000-12-31T23:00:00Z")
                 .observationsIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-0)/Observations")
-                .sensorIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-0)/Sensors");
+                .sensorIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-0)/Sensors")
+                .observedArea(point);
 
         Datastream expDs2 = new Datastream()
                 .iotId("urn:ogc:object:observation:template:GEOM:2-1")
@@ -1901,7 +1966,8 @@ public class OM2STSWorkerTest {
                 .resultTime("2000-12-31T23:00:00Z/2000-12-31T23:00:00Z")
                 .phenomenonTime("2000-12-31T23:00:00Z/2000-12-31T23:00:00Z")
                 .observationsIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-1)/Observations")
-                .sensorIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-1)/Sensors");
+                .sensorIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-1)/Sensors")
+                .observedArea(point);
 
         expResult.addDatastreamsItem(expDs1);
         expResult.addDatastreamsItem(expDs2);
@@ -1922,6 +1988,7 @@ public class OM2STSWorkerTest {
         expMDs1.setSensorIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)/Sensors");
         expMDs1.setThingIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)/Things");
         expMDs1.setObservationType("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation");
+        expMDs1.setObservedArea(point);
 
         // vertical profile issue
         expMDs1.setMultiObservationDataTypes(Arrays.asList("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement", "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement"));

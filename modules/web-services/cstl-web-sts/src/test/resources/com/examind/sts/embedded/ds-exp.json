@@ -6,8 +6,12 @@
     "definition" : "°C"
   },
   "observationType" : "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
-  "resultTime" : "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
+  "observedArea" : {
+    "type" : "Polygon",
+    "coordinates" : [ [ [ -30.711, 134.196 ], [ -30.711, 134.205 ], [ -30.702, 134.205 ], [ -30.702, 134.196 ], [ -30.711, 134.196 ] ] ]
+  },
   "phenomenonTime" : "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
+  "resultTime" : "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
   "@iot.id" : "urn:ogc:object:observation:template:GEOM:8-1",
   "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:8-1)",
   "Sensor" : {
