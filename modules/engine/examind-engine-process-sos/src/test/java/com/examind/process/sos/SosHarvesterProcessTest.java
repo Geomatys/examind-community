@@ -340,10 +340,10 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(4, offp.getFeatureOfInterestIds().size());
         
         List<SamplingFeature> fois  = getFeatureOfInterest(worker, offp.getFeatureOfInterestIds());
-        verifySamplingFeature(fois,  "251", 44.06,  -6.81);
-        verifySamplingFeature(fois,  "252", 44.01,  -6.581);
-        verifySamplingFeature(fois,  "253", 43.959, -6.256);
-        verifySamplingFeature(fois,  "254", 44.031, -6.035);
+        verifySamplingFeature(fois,  "251",  -6.81,  44.06);
+        verifySamplingFeature(fois,  "252",  -6.581, 44.01);
+        verifySamplingFeature(fois,  "253",  -6.256, 43.959);
+        verifySamplingFeature(fois,  "254",  -6.035, 44.031);
 
         /*
          * add a new file to integrate and call again the process
@@ -431,10 +431,10 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(4, offp.getFeatureOfInterestIds().size());
         
         fois  = getFeatureOfInterest(worker, offp.getFeatureOfInterestIds());
-        verifySamplingFeature(fois,  "251", 44.06,  -6.81);
-        verifySamplingFeature(fois,  "252", 44.01,  -6.581);
-        verifySamplingFeature(fois,  "253", 43.959, -6.256);
-        verifySamplingFeature(fois,  "254", 44.031, -6.035);
+        verifySamplingFeature(fois,  "251",  -6.81,  44.06);
+        verifySamplingFeature(fois,  "252",  -6.581, 44.01);
+        verifySamplingFeature(fois,  "253",  -6.256, 43.959);
+        verifySamplingFeature(fois,  "254",  -6.035, 44.031);
     }
 
     @Test
@@ -634,7 +634,7 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
         
         List<SamplingFeature> fois  = getFeatureOfInterest(worker, offp.getFeatureOfInterestIds());
-        verifySamplingFeature(fois,  48.2903, -4.9683);
+        verifySamplingFeature(fois, -4.9683,  48.2903);
 
         String observedProperty = offp.getObservedProperties().get(0);
         String foi = offp.getFeatureOfInterestIds().get(0);
@@ -731,7 +731,7 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
         
         List<SamplingFeature> fois  = getFeatureOfInterest(worker, offp.getFeatureOfInterestIds());
-        String foi = verifySamplingFeature(fois,  48.2903, -4.9683);
+        String foi = verifySamplingFeature(fois, -4.9683,  48.2903);
         
         Assert.assertEquals(1, offp.getObservedProperties().size());
         String observedProperty = offp.getObservedProperties().get(0);
@@ -953,12 +953,12 @@ public class SosHarvesterProcessTest {
         /*
         * Verify an inserted time serie
         */
-        String foi = verifySamplingFeature(fois, "8403780.0", 45.22470466446091, 2.074899266154643);
+        String foi = verifySamplingFeature(fois, "8403780.0", 2.074899266154643, 45.22470466446091);
         GetResultResponseType gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
         String expectedResult = getResourceAsString("com/examind/process/sos/rivertile_foi-1.txt");
         Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
 
-        foi = verifySamplingFeature(fois, "8403781.0", 45.224199842811814, 2.07361239284379);
+        foi = verifySamplingFeature(fois, "8403781.0", 2.07361239284379, 45.224199842811814);
         gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
         expectedResult = getResourceAsString("com/examind/process/sos/rivertile_foi-2.txt");
         Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
@@ -1088,9 +1088,9 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals("2000-07-30", time.getBeginPosition().getValue());
         Assert.assertEquals("2000-07-31T10:30:00.000", time.getEndPosition().getValue());
 
-        Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
         fois  = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
-        foi = verifySamplingFeature(fois, 49.4, -6.9);
+        Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
+        foi = verifySamplingFeature(fois, -6.9, 49.4);
 
         observedProperty = offp.getObservedProperties().get(0);
 
@@ -1132,7 +1132,7 @@ public class SosHarvesterProcessTest {
 
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
         fois  = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
-        foi = verifySamplingFeature(fois, 51.2, -5.3);
+        foi = verifySamplingFeature(fois, -5.3, 51.2);
         
         observedProperty = offp.getObservedProperties().get(0);
 
@@ -1238,7 +1238,7 @@ public class SosHarvesterProcessTest {
 
         List<SamplingFeature> fois  = getFeatureOfInterest(worker, offp.getFeatureOfInterestIds());
         verifySamplingFeatureNotSame(fois);
-        String foi = verifySamplingFeature(fois, -61.4234, 68.2395);
+        String foi = verifySamplingFeature(fois, 68.2395, -61.4234);
         
         Assert.assertNotNull(foi);
         
@@ -1377,7 +1377,7 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
 
         List<SamplingFeature> fois  = getFeatureOfInterest(worker, offp.getFeatureOfInterestIds());
-        String foi = verifySamplingFeature(fois, -61.4234, 68.2395);
+        String foi = verifySamplingFeature(fois, 68.2395, -61.4234);
         
         Assert.assertNotNull(foi);
         
@@ -1421,7 +1421,7 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
 
         fois  = getFeatureOfInterest(worker, offp.getFeatureOfInterestIds());
-        foi = verifySamplingFeature(fois, 5.92986, -25.92446);
+        foi = verifySamplingFeature(fois, -25.92446, 5.92986);
         
         Assert.assertNotNull(foi);
         
@@ -1658,7 +1658,7 @@ public class SosHarvesterProcessTest {
 
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
         fois  = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
-        foi = verifySamplingFeature(fois, 16.01637, 137.91875);
+        foi = verifySamplingFeature(fois, 137.91875, 16.01637);
         
         Assert.assertEquals(1, offp.getObservedProperties().size());
         observedProperty = offp.getObservedProperties().get(0);
@@ -1883,7 +1883,7 @@ public class SosHarvesterProcessTest {
 
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
         fois = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
-        foi = verifySamplingFeature(fois, 16.01637, 137.91875);
+        foi = verifySamplingFeature(fois, 137.91875, 16.01637);
         
         Assert.assertEquals(1, offp.getObservedProperties().size());
         observedProperty = offp.getObservedProperties().get(0);
@@ -1913,7 +1913,7 @@ public class SosHarvesterProcessTest {
 
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
         fois = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
-        foi  = verifySamplingFeature(fois, -61.4234, 68.2395);
+        foi  = verifySamplingFeature(fois, 68.2395, -61.4234);
         
         observedProperty = offp.getObservedProperties().get(0);
 
@@ -1955,7 +1955,7 @@ public class SosHarvesterProcessTest {
 
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
         fois = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
-        foi  = verifySamplingFeature(fois, 5.92986, -25.92446);
+        foi  = verifySamplingFeature(fois, -25.92446, 5.92986);
         
         //-61.4234,68.2395
         observedProperty = offp.getObservedProperties().get(0);

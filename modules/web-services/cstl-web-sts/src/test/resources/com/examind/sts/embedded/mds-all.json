@@ -8,7 +8,7 @@
     "observationType" : "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
     "observedArea" : {
       "type" : "Polygon",
-      "coordinates" : [ [ [ 5.0, 10.0 ], [ 5.0, 1731368.0 ], [ 65400.0, 1731368.0 ], [ 65400.0, 10.0 ], [ 5.0, 10.0 ] ] ]
+      "coordinates" : [ [ [ 5.0, -4.144984627896042 ], [ 5.0, 10.0 ], [ 42.38798858151254, 10.0 ], [ 42.38798858151254, -4.144984627896042 ], [ 5.0, -4.144984627896042 ] ] ]
     },
     "phenomenonTime" : "2009-05-01T11:47:00Z/2009-05-01T12:03:00Z",
     "resultTime" : "2009-05-01T11:47:00Z/2009-05-01T12:03:00Z",
@@ -36,7 +36,7 @@
     "observationType" : "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
     "observedArea" : {
       "type" : "Point",
-      "coordinates" : [ 65400.0, 1731368.0 ]
+      "coordinates" : [ 42.38798858151254, -4.144984627896042 ]
     },
     "phenomenonTime" : "2000-11-30T23:00:00Z/2012-12-21T23:00:00Z",
     "resultTime" : "2000-11-30T23:00:00Z/2012-12-21T23:00:00Z",
@@ -80,7 +80,7 @@
     "observationType" : "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
     "observedArea" : {
       "type" : "Point",
-      "coordinates" : [ 65400.0, 1731368.0 ]
+      "coordinates" : [ 42.38798858151254, -4.144984627896042 ]
     },
     "phenomenonTime" : "2007-05-01T00:59:00Z/2007-05-01T19:59:00Z",
     "resultTime" : "2007-05-01T00:59:00Z/2007-05-01T19:59:00Z",
@@ -100,7 +100,7 @@
     "observationType" : "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
     "observedArea" : {
       "type" : "Point",
-      "coordinates" : [ 65400.0, 1731368.0 ]
+      "coordinates" : [ 42.38798858151254, -4.144984627896042 ]
     },
     "phenomenonTime" : "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
     "resultTime" : "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
@@ -142,7 +142,7 @@
     "observationType" : "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
     "observedArea" : {
       "type" : "Polygon",
-      "coordinates" : [ [ [ -30.711, 134.196 ], [ -30.711, 134.205 ], [ -30.702, 134.205 ], [ -30.702, 134.196 ], [ -30.711, 134.196 ] ] ]
+      "coordinates" : [ [ [ 27.142098949519518, -3.404947100307331 ], [ 27.142098949519518, -3.4049470103064325 ], [ 27.142099023169745, -3.4049470103064325 ], [ 27.142099023169745, -3.404947100307331 ], [ 27.142098949519518, -3.404947100307331 ] ] ]
     },
     "phenomenonTime" : "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
     "resultTime" : "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
@@ -162,7 +162,7 @@
     "observationType" : "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
     "observedArea" : {
       "type" : "Polygon",
-      "coordinates" : [ [ [ -30.711, 134.196 ], [ -30.711, 134.205 ], [ -30.702, 134.205 ], [ -30.702, 134.196 ], [ -30.711, 134.196 ] ] ]
+      "coordinates" : [ [ [ 27.142098949519518, -3.404947100307331 ], [ 27.142098949519518, -3.4049470103064325 ], [ 27.142099023169745, -3.4049470103064325 ], [ 27.142099023169745, -3.404947100307331 ], [ 27.142098949519518, -3.404947100307331 ] ] ]
     },
     "phenomenonTime" : "2009-05-01T11:47:00Z/2009-05-01T11:47:00Z",
     "resultTime" : "2009-05-01T11:47:00Z/2009-05-01T11:47:00Z",
@@ -206,7 +206,7 @@
     "observationType" : "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
     "observedArea" : {
       "type" : "Point",
-      "coordinates" : [ 65400.0, 1731368.0 ]
+      "coordinates" : [ 42.38798858151254, -4.144984627896042 ]
     },
     "phenomenonTime" : "2009-05-01T11:47:00Z/2009-05-01T12:03:00Z",
     "resultTime" : "2009-05-01T11:47:00Z/2009-05-01T12:03:00Z",

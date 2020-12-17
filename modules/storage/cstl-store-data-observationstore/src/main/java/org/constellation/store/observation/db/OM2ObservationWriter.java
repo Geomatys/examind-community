@@ -511,7 +511,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         return pid;
     }
 
-    private void writeFeatureOfInterest(final SamplingFeature foi, final Connection c) throws SQLException {
+    private void writeFeatureOfInterest(final SamplingFeature foi, final Connection c) throws SQLException, DataStoreException {
         try(final PreparedStatement stmtExist = c.prepareStatement("SELECT \"id\" FROM  \"" + schemaPrefix + "om\".\"sampling_features\" WHERE \"id\"=?")) {
             stmtExist.setString(1, foi.getId());
             try(final ResultSet rs = stmtExist.executeQuery()) {
@@ -524,10 +524,9 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
                         if (foi.getGeometry() != null) {
                             try {
-                                WKBWriter writer = new WKBWriter();
                                 final Geometry geom = GeometrytoJTS.toJTS((AbstractGeometry) foi.getGeometry(), false);
                                 final int SRID = geom.getSRID();
-                                stmtInsert.setBytes(5, writer.write(geom));
+                                stmtInsert.setBytes(5, getGeometryBytes(geom));
                                 stmtInsert.setInt(6, SRID);
                             } catch (FactoryException | IllegalArgumentException ex) {
                                 LOGGER.log(Level.WARNING, "unable to transform the geometry to JTS", ex);

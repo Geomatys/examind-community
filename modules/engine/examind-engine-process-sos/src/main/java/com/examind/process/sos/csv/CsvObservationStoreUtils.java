@@ -17,6 +17,7 @@
 package com.examind.process.sos.csv;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import org.geotoolkit.gml.xml.AbstractGeometry;
@@ -31,6 +32,7 @@ import org.geotoolkit.swe.xml.AnyScalar;
 import org.geotoolkit.swe.xml.Quantity;
 import org.geotoolkit.swe.xml.UomProperty;
 import org.opengis.geometry.DirectPosition;
+import org.opengis.geometry.Geometry;
 /**
  *
  * @author Guilhem Legal (Geomatys)
@@ -63,13 +65,30 @@ public class CsvObservationStoreUtils {
             if (existingFeature instanceof SamplingFeature) {
                 SamplingFeature ef = (SamplingFeature) existingFeature;
                 if ((ef.getGeometry() == null && sp.getGeometry() == null) ||
-                    (ef.getGeometry() != null && ef.getGeometry().equals(sp.getGeometry()))
+                    (ef.getGeometry() != null && equalsGeom(ef.getGeometry(), positions))
                 ) {
                     return ef;
                 }
             }
         }
         return sp;
+    }
+
+    private static boolean equalsGeom(Geometry current, List<DirectPosition> positions) {
+        // the problem here is that the axis will be flipped after save,
+        // so we need to flip the axis for comparison...
+        Geometry spGeometry;
+         if (positions.isEmpty()) {
+            return false;
+        } else if (positions.size() > 1) {
+            List<DirectPosition> flipped = new ArrayList<>();
+            positions.forEach(dp -> flipped.add(SOSXmlFactory.buildDirectPosition("2.0.0", "EPSG:4326", 2, Arrays.asList(dp.getCoordinate()[1], dp.getCoordinate()[0]))));
+            spGeometry = (Geometry) SOSXmlFactory.buildLineString("2.0.0", null, "EPSG:4326", flipped);
+        } else {
+            final DirectPosition position = SOSXmlFactory.buildDirectPosition("2.0.0", "EPSG:4326", 2, Arrays.asList(positions.get(0).getOrdinate(1), positions.get(0).getOrdinate(0)));
+            spGeometry = (Geometry) SOSXmlFactory.buildPoint("2.0.0", "SamplingPoint", position);
+        }
+        return current.equals(spGeometry);
     }
 
 

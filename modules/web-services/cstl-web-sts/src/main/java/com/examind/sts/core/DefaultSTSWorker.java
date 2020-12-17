@@ -1361,8 +1361,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         if (sf instanceof org.geotoolkit.sampling.xml.SamplingFeature) {
             try {
                 org.opengis.geometry.Geometry geom = ((org.geotoolkit.sampling.xml.SamplingFeature)sf).getGeometry();
-                return GeometrytoJTS.toJTS((AbstractGeometry)geom);
-            } catch (FactoryException ex) {
+                return toWGS84JTS((AbstractGeometry)geom);
+            } catch (ConstellationStoreException ex) {
                 LOGGER.log(Level.WARNING, ex.getMessage(), ex);
             }
         }
@@ -1812,26 +1812,30 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         }
 
         if (locGeom != null) {
-            try {
-                CoordinateReferenceSystem crs = CommonCRS.WGS84.geographic();
-                CoordinateReferenceSystem geomCrs = locGeom.getCoordinateReferenceSystem(false);
-                Geometry jts = GeometrytoJTS.toJTS(locGeom);
-                if (!Utilities.equalsIgnoreMetadata(geomCrs, crs)) {
-                    try {
-                        jts = JTS.transform(jts, crs);
-                    } catch (TransformException ex) {
-                        throw new ConstellationStoreException(ex);
-                    }
-                }
-                GeoJSONGeometry geom = GeoJSONGeometry.toGeoJSONGeometry(jts);
-                GeoJSONFeature feature = new GeoJSONFeature();
-                feature.setGeometry(geom);
-                result.setLocation(feature);
-            } catch (FactoryException ex) {
-                LOGGER.log(Level.WARNING, "Eror while transforming foi geometry", ex);
-            }
+            GeoJSONGeometry geom = GeoJSONGeometry.toGeoJSONGeometry(toWGS84JTS(locGeom));
+            GeoJSONFeature feature = new GeoJSONFeature();
+            feature.setGeometry(geom);
+            result.setLocation(feature);
         }
         return result;
+    }
+
+    private Geometry toWGS84JTS(AbstractGeometry locGeom) throws ConstellationStoreException {
+        try {
+            CoordinateReferenceSystem crs = CommonCRS.WGS84.geographic();
+            CoordinateReferenceSystem geomCrs = locGeom.getCoordinateReferenceSystem(false);
+            Geometry jts = GeometrytoJTS.toJTS(locGeom);
+            if (!Utilities.equalsIgnoreMetadata(geomCrs, crs)) {
+                try {
+                    jts = JTS.transform(jts, crs);
+                } catch (TransformException ex) {
+                    throw new ConstellationStoreException(ex);
+                }
+            }
+            return jts;
+        } catch (FactoryException ex) {
+            throw new ConstellationStoreException(ex);
+        }
     }
 
     private HistoricalLocation buildHistoricalLocation(ExpandOptions exp, String sensorID, org.constellation.dto.Sensor s, Date d, AbstractGeometry geomS, NavigationPath fn) throws ConstellationStoreException {
@@ -1881,15 +1885,11 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             result = result.observationsIotNavigationLink(selfLink + "/Observations");
         }
         if (sp.getGeometry() != null) {
-            try {
-                Geometry jts = GeometrytoJTS.toJTS((AbstractGeometry)sp.getGeometry());
-                GeoJSONGeometry geom = GeoJSONGeometry.toGeoJSONGeometry(jts);
-                GeoJSONFeature feature = new GeoJSONFeature();
-                feature.setGeometry(geom);
-                result.setFeature(feature);
-            } catch (FactoryException ex) {
-                LOGGER.log(Level.WARNING, "Eror while transforming foi geometry", ex);
-            }
+            Geometry jts = toWGS84JTS((AbstractGeometry)sp.getGeometry());
+            GeoJSONGeometry geom = GeoJSONGeometry.toGeoJSONGeometry(jts);
+            GeoJSONFeature feature = new GeoJSONFeature();
+            feature.setGeometry(geom);
+            result.setFeature(feature);
         }
         return result;
     }
