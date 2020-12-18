@@ -1348,7 +1348,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
                             insertResults.add(CswXmlFactory.createInsertResult(version, objs, null));
                         }
 
-                    } catch (MetadataIoException | ConfigurationException ex) {
+                    } catch (MetadataIoException | ConstellationException ex) {
                         CodeList execptionCode = null;// ex.getExceptionCode(); TODO lost code
                         if (execptionCode == null) {
                             execptionCode = NO_APPLICABLE_CODE;
@@ -1393,7 +1393,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
                                 totalDeleted++;
                             }
                         }
-                    } catch (ConfigurationException ex) {
+                    } catch (ConstellationException ex) {
                         CodeList execptionCode = null; // ex.getExceptionCode(); TODO los exception code
                         if (execptionCode == null) {
                             execptionCode = NO_APPLICABLE_CODE;
@@ -1449,7 +1449,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
                                 totalUpdated++;
                             }
                         }
-                    } catch (ConfigurationException ex) {
+                    } catch (ConstellationException ex) {
                         CodeList execptionCode = null; // ex.getExceptionCode(); TODO lost exception code
                         if (execptionCode == null) {
                             execptionCode = NO_APPLICABLE_CODE;

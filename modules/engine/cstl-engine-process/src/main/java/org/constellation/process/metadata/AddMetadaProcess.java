@@ -19,7 +19,6 @@
 package org.constellation.process.metadata;
 
 import org.constellation.api.ServiceDef;
-import org.constellation.exception.ConfigurationException;
 import org.constellation.process.AbstractCstlProcess;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
@@ -27,14 +26,14 @@ import org.opengis.parameter.ParameterValueGroup;
 
 import java.io.File;
 import java.nio.file.Path;
+import org.apache.sis.parameter.Parameters;
 import org.constellation.admin.SpringHelper;
+import org.constellation.exception.ConstellationException;
 
 import static org.constellation.process.metadata.AddMetadataDescriptor.*;
-import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.ICSWConfigurer;
 import org.constellation.ws.Refreshable;
 import org.constellation.ws.IWSEngine;
-import static org.geotoolkit.parameter.Parameters.getOrCreate;
 
 /**
  *
@@ -56,11 +55,11 @@ public class AddMetadaProcess extends AbstractCstlProcess {
     }
 
     private static ParameterValueGroup toParameter(String serviceID, String metadataID, Path metadataFile, final Boolean refresh) {
-        ParameterValueGroup params = INSTANCE.getInputDescriptor().createValue();
-        getOrCreate(METADATA_FILE, params).setValue(metadataFile);
-        getOrCreate(METADATA_ID, params).setValue(metadataID);
-        getOrCreate(SERVICE_IDENTIFIER, params).setValue(serviceID);
-        getOrCreate(REFRESH, params).setValue(refresh);
+        Parameters params = Parameters.castOrWrap(INSTANCE.getInputDescriptor().createValue());
+        params.getOrCreate(METADATA_FILE).setValue(metadataFile);
+        params.getOrCreate(METADATA_ID).setValue(metadataID);
+        params.getOrCreate(SERVICE_IDENTIFIER).setValue(serviceID);
+        params.getOrCreate(REFRESH).setValue(refresh);
         return params;
     }
 
@@ -80,7 +79,7 @@ public class AddMetadaProcess extends AbstractCstlProcess {
                     worker.refresh();
                 }
             }
-        } catch (ConfigurationException | CstlServiceException ex) {
+        } catch (ConstellationException ex) {
             throw new ProcessException(null, this, ex);
         }
     }

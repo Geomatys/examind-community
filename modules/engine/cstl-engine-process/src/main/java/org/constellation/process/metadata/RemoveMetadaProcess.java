@@ -18,10 +18,12 @@
  */
 package org.constellation.process.metadata;
 
+import org.apache.sis.parameter.DefaultParameterValueGroup;
+import org.apache.sis.parameter.Parameters;
 import org.constellation.api.ServiceDef;
 import org.constellation.admin.SpringHelper;
 import org.constellation.ws.IWSEngine;
-import org.constellation.exception.ConfigurationException;
+import org.constellation.exception.ConstellationException;
 import org.constellation.process.AbstractCstlProcess;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
@@ -29,7 +31,6 @@ import org.opengis.parameter.ParameterValueGroup;
 
 import static org.constellation.process.metadata.RemoveMetadataDescriptor.*;
 import org.constellation.ws.ICSWConfigurer;
-import static org.geotoolkit.parameter.Parameters.getOrCreate;
 
 /**
  *
@@ -47,9 +48,9 @@ public class RemoveMetadaProcess extends AbstractCstlProcess {
     }
 
     private static ParameterValueGroup toParameter(String serviceID, String metadataID) {
-        ParameterValueGroup params = INSTANCE.getInputDescriptor().createValue();
-        getOrCreate(METADATA_ID, params).setValue(metadataID);
-        getOrCreate(SERVICE_IDENTIFIER, params).setValue(serviceID);
+        Parameters params = DefaultParameterValueGroup.castOrWrap(INSTANCE.getInputDescriptor().createValue());
+        params.getOrCreate(METADATA_ID).setValue(metadataID);
+        params.getOrCreate(SERVICE_IDENTIFIER).setValue(serviceID);
         return params;
     }
 
@@ -64,7 +65,7 @@ public class RemoveMetadaProcess extends AbstractCstlProcess {
             if (configurer.metadataExist(serviceID, metadataID).getStatus().equalsIgnoreCase("Exist")) {
                 configurer.removeRecords(metadataID);
             }
-        } catch (ConfigurationException ex) {
+        } catch (ConstellationException ex) {
             throw new ProcessException(ex.getMessage(), this, ex);
         }
     }

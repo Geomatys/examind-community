@@ -714,7 +714,7 @@ public class DataBusiness implements IDataBusiness {
         }
     }
 
-    protected void deleteDatasetIfEmpty(Integer datasetID) throws ConfigurationException {
+    protected void deleteDatasetIfEmpty(Integer datasetID) throws ConstellationException {
         if (datasetID != null) {
             List<Data> datas = dataRepository.findAllByDatasetId(datasetID);
             if (datas.isEmpty()) {
@@ -893,7 +893,7 @@ public class DataBusiness implements IDataBusiness {
      */
     @Override
     @Transactional
-    public synchronized void removeDataFromProvider(final Integer providerId) throws ConfigurationException {
+    public synchronized void removeDataFromProvider(final Integer providerId) throws ConstellationException {
         final List<Data> datas = dataRepository.findByProviderId(providerId);
         for (final Data data : datas) {
             dataBusinessListener.preDataDelete(data);
@@ -906,7 +906,7 @@ public class DataBusiness implements IDataBusiness {
     }
 
     @Override
-    public ParameterValues getVectorDataColumns(int id) throws ConfigurationException {
+    public ParameterValues getVectorDataColumns(int id) throws ConstellationException {
         final Data d = dataRepository.findById(id);
         if (d != null) {
             final org.constellation.provider.Data provData = DataProviders.getProviderData(d.getProviderId(), d.getNamespace(), d.getName());

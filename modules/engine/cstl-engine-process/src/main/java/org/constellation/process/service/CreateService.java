@@ -32,7 +32,6 @@ import static org.constellation.process.service.CreateServiceDescriptor.IDENTIFI
 import static org.constellation.process.service.CreateServiceDescriptor.OUT_CONFIGURATION;
 import static org.constellation.process.service.CreateServiceDescriptor.SERVICE_METADATA;
 import static org.constellation.process.service.CreateServiceDescriptor.SERVICE_TYPE;
-import static org.geotoolkit.parameter.Parameters.getOrCreate;
 
 /**
  * Process that create a new instance configuration from the service name (WMS, WMTS, WCS or WFS) for a specified instance name.
@@ -72,6 +71,6 @@ public class CreateService extends AbstractCstlProcess {
             throw new ProcessException(ex.getMessage(), this, ex);
         }
 
-        getOrCreate(OUT_CONFIGURATION, outputParameters).setValue(configuration);
+        outputParameters.getOrCreate(OUT_CONFIGURATION).setValue(configuration);
     }
 }

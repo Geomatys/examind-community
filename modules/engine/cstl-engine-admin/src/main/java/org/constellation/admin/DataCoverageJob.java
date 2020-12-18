@@ -57,6 +57,7 @@ import static org.constellation.api.StatisticState.STATE_PARTIAL;
 import static org.constellation.api.StatisticState.STATE_PENDING;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
+import org.constellation.exception.ConstellationException;
 import org.springframework.scheduling.annotation.Scheduled;
 
 /**
@@ -231,7 +232,7 @@ public class DataCoverageJob implements IDataCoverageJob {
                 feeder.setCoverageDescription(adapter, MetadataFeeder.WriteOption.REPLACE_EXISTING);
                 metadataService.updateMetadata(((Metadata) md).getFileIdentifier(), updatedMd, dataId, null, null, null, null, null);
                 return null;
-            } catch (ConfigurationException e) {
+            } catch (ConstellationException e) {
                 throw new BackingStoreException(String.format("Cannot update metadata for data %d (%s)", dataId, target.getName()), e);
             }
         });

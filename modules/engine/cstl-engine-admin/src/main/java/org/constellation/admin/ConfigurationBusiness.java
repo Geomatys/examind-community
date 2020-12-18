@@ -20,8 +20,8 @@ import org.constellation.business.IMetadataBusiness;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.configuration.ConfigDirectory;
-import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.Service;
+import org.constellation.exception.ConstellationException;
 import org.constellation.repository.PropertyRepository;
 import org.constellation.repository.ServiceRepository;
 import org.constellation.token.TokenUtils;
@@ -193,7 +193,7 @@ public class ConfigurationBusiness implements IConfigurationBusiness {
                     LOGGER.info("Service metadata is not a ISO 19139 object");
                 }
             }
-        } catch (ConfigurationException ex) {
+        } catch (ConstellationException ex) {
             LOGGER.log(Level.WARNING, "An error occurred updating service URL", ex);
         }
     }

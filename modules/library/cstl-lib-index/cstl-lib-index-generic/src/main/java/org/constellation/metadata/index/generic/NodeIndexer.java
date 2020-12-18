@@ -288,7 +288,11 @@ public class NodeIndexer extends AbstractCSWIndexer<Node> {
 
                 @Override
                 public Node next() {
-                    return it.next().node;
+                    RecordInfo r = it.next();
+                    if (r != null) {
+                        return r.node;
+                    }
+                    return null;
                 }
             };
         } catch (MetadataIoException ex) {

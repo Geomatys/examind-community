@@ -21,7 +21,6 @@ package org.constellation.process.data;
 
 import org.geotoolkit.process.ProcessException;
 import org.opengis.parameter.ParameterValueGroup;
-import static org.geotoolkit.parameter.Parameters.*;
 import static org.constellation.process.data.ProviderToDataReferenceDescriptor.*;
 import java.util.Date;
 import org.constellation.util.DataReference;
@@ -54,7 +53,7 @@ public class ProviderToDataReference extends AbstractProcess {
         final DataReference dataReference = 
                 DataReference.createProviderDataReference(type, providerID, layerID, version);
 
-        getOrCreate(DATA_REFERENCE, outputParameters).setValue(dataReference);
+        outputParameters.getOrCreate(DATA_REFERENCE).setValue(dataReference);
     }
 
 }

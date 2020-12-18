@@ -80,7 +80,7 @@ public abstract class AbstractMapServiceTest extends ServiceProcessTest {
                 serviceBusiness.delete(sid);
             }
             return serviceBusiness.create(serviceName.toLowerCase(), identifier, context, null, null);
-        }  catch (ConfigurationException ex) {
+        }  catch (ConstellationException ex) {
             LOGGER.log(Level.SEVERE, "Error while creating custom instance", ex);
         }
         return null;

@@ -94,7 +94,7 @@ public interface IServiceBusiness {
      * @throws ConfigurationException
      *             if the operation has failed for any reason
      */
-    void delete(Integer serviceId) throws ConfigurationException;
+    void delete(Integer serviceId) throws ConstellationException;
 
     /**
      * Ensure that a service instance really exists.

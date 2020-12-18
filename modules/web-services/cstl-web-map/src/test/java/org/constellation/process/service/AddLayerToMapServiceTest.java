@@ -87,7 +87,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
     }
 
     @After
-    public void destroyProvider() throws ConfigurationException {
+    public void destroyProvider() throws ConstellationException {
         providerBusiness.removeProvider(providerId);
     }
 

@@ -18,7 +18,6 @@
  */
 package org.constellation.process.provider;
 
-import org.constellation.exception.ConfigurationException;
 import org.constellation.process.ExamindProcessFactory;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
@@ -28,12 +27,7 @@ import org.geotoolkit.process.ProcessException;
 import org.geotoolkit.process.ProcessFinder;
 import org.junit.Test;
 import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.util.NoSuchIdentifierException;
-
-import java.net.MalformedURLException;
-import org.apache.sis.parameter.DefaultParameterValueGroup;
 import org.apache.sis.parameter.Parameters;
-import org.apache.sis.util.ComparisonMode;
 
 import static org.junit.Assert.*;
 
@@ -48,7 +42,7 @@ public class UpdateProviderTest extends AbstractProviderTest {
     }
 
     @Test
-    public void testUpdateProvider() throws ProcessException, NoSuchIdentifierException, MalformedURLException, ConfigurationException{
+    public void testUpdateProvider() throws Exception {
         removeProvider("updateProvider10");
 
 
@@ -76,7 +70,7 @@ public class UpdateProviderTest extends AbstractProviderTest {
     }
 
     @Test
-    public void testFailUpdateProvider() throws ProcessException, NoSuchIdentifierException, MalformedURLException{
+    public void testFailUpdateProvider() throws Exception {
 
         final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, UpdateProviderDescriptor.NAME);
 

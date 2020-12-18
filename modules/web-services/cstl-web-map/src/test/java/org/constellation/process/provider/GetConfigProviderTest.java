@@ -18,7 +18,6 @@
  */
 package org.constellation.process.provider;
 
-import org.constellation.exception.ConfigurationException;
 import org.constellation.process.ExamindProcessFactory;
 import org.geotoolkit.process.Process;
 import org.geotoolkit.process.ProcessDescriptor;
@@ -26,9 +25,6 @@ import org.geotoolkit.process.ProcessException;
 import org.geotoolkit.process.ProcessFinder;
 import org.junit.Test;
 import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.util.NoSuchIdentifierException;
-
-import java.net.MalformedURLException;
 import org.apache.sis.parameter.DefaultParameterValueGroup;
 import org.apache.sis.parameter.Parameters;
 import org.apache.sis.util.ComparisonMode;
@@ -47,7 +43,7 @@ public class GetConfigProviderTest extends AbstractProviderTest {
     }
 
     @Test
-    public void testGetConfigProvider() throws ProcessException, NoSuchIdentifierException, MalformedURLException, ConfigurationException{
+    public void testGetConfigProvider() throws Exception {
         removeProvider("getConfigProvider1");
 
         final ParameterValueGroup parameters = buildCSVProvider(DATASTORE_SERVICE, "getConfigProvider1", EMPTY_CSV, ';');
@@ -74,7 +70,7 @@ public class GetConfigProviderTest extends AbstractProviderTest {
 
 
     @Test
-    public void testFailGetConfigProvider() throws ProcessException, NoSuchIdentifierException, MalformedURLException{
+    public void testFailGetConfigProvider() throws Exception {
 
         final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, GetConfigProviderDescriptor.NAME);
         final ParameterValueGroup in = desc.getInputDescriptor().createValue();
@@ -87,7 +83,5 @@ public class GetConfigProviderTest extends AbstractProviderTest {
         } catch (ProcessException ex) {
             //do nothing
         }
-
     }
-
 }

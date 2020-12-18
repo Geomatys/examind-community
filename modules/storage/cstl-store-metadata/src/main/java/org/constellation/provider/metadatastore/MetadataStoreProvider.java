@@ -327,7 +327,7 @@ public class MetadataStoreProvider extends AbstractDataProvider implements Metad
             result = store.deleteMetadata(metadataID);
             reload();
         } catch (MetadataIoException ex) {
-            LOGGER.log(Level.INFO, "Unable to delete a sensor in provider:" + id, ex);
+            LOGGER.log(Level.INFO, "Unable to delete a metadata in provider:" + id, ex);
         }
         return result;
     }

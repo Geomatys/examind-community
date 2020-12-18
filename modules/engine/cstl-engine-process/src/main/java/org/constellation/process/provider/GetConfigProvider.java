@@ -29,7 +29,6 @@ import org.constellation.exception.ConfigurationException;
 
 import static org.constellation.process.provider.GetConfigProviderDescriptor.CONFIG;
 import static org.constellation.process.provider.GetConfigProviderDescriptor.PROVIDER_ID;
-import static org.geotoolkit.parameter.Parameters.getOrCreate;
 
 /**
  * Remove a provider from constellation. Throw an ProcessException if Provider is not found.
@@ -53,7 +52,7 @@ public final class GetConfigProvider extends AbstractCstlProcess {
         } catch (ConfigurationException ex) {
             throw new ProcessException("Provider "+providerID+" not found.", this, null);
         }
-        getOrCreate(CONFIG, outputParameters).setValue(provider.getSource());
+        outputParameters.getOrCreate(CONFIG).setValue(provider.getSource());
     }
 
 }

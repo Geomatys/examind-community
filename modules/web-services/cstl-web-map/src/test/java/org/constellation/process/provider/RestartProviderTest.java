@@ -18,7 +18,6 @@
  */
 package org.constellation.process.provider;
 
-import org.constellation.exception.ConfigurationException;
 import org.constellation.process.ExamindProcessFactory;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
@@ -27,9 +26,6 @@ import org.geotoolkit.process.ProcessException;
 import org.geotoolkit.process.ProcessFinder;
 import org.junit.Test;
 import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.util.NoSuchIdentifierException;
-
-import java.net.MalformedURLException;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
@@ -45,7 +41,7 @@ public class RestartProviderTest extends AbstractProviderTest {
     }
 
     @Test
-    public void testRestartProvider() throws ProcessException, NoSuchIdentifierException, MalformedURLException, ConfigurationException{
+    public void testRestartProvider() throws Exception{
         removeProvider("restartProvider1");
 
         int pid = addProvider("restartProvider1",buildCSVProvider(DATASTORE_SERVICE, "restartProvider1", EMPTY_CSV, ';'));
@@ -65,7 +61,7 @@ public class RestartProviderTest extends AbstractProviderTest {
     }
 
     @Test
-    public void testRestartProviderFail() throws ProcessException, NoSuchIdentifierException, MalformedURLException, ConfigurationException{
+    public void testRestartProviderFail() throws Exception{
         removeProvider("restartProvider2");
 
         addProvider("restartProvider2",buildCSVProvider(DATASTORE_SERVICE, "restartProvider2", EMPTY_CSV, ';'));
@@ -87,7 +83,7 @@ public class RestartProviderTest extends AbstractProviderTest {
     }
 
     @Test
-    public void testRestartProviderFail2() throws ProcessException, NoSuchIdentifierException, MalformedURLException, ConfigurationException{
+    public void testRestartProviderFail2() throws Exception{
         removeProvider("restartProvider3");
 
         addProvider("restartProvider3",buildCSVProvider(DATASTORE_SERVICE, "restartProvider3", EMPTY_CSV, ';'));

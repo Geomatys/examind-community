@@ -33,7 +33,6 @@ import org.constellation.process.AbstractCstlProcess;
 import static org.constellation.process.provider.CreateProviderDescriptor.CREATED_ID;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.DataProviderFactory;
-import static org.geotoolkit.parameter.Parameters.getOrCreate;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.opengis.parameter.ParameterValue;
@@ -101,7 +100,7 @@ public final class CreateProvider extends AbstractCstlProcess {
                 final Integer pr = providerBusiness.create(id, service.getName(), source);
                 providerBusiness.createOrUpdateData(pr, null, createDataset);
 
-                getOrCreate(CREATED_ID, outputParameters).setValue(pr);
+                outputParameters.getOrCreate(CREATED_ID).setValue(pr);
 
             } catch (ConstellationException | IOException ex) {
                 throw new ProcessException("Failed to create provider : " + id+"  "+ex.getMessage(), this, ex);

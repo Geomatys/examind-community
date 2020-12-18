@@ -29,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import static org.constellation.process.service.GetConfigServiceDescriptor.CONFIGURATION;
 import static org.constellation.process.service.GetConfigServiceDescriptor.IDENTIFIER;
 import static org.constellation.process.service.GetConfigServiceDescriptor.SERVICE_TYPE;
-import static org.geotoolkit.parameter.Parameters.getOrCreate;
 
 /**
  *
@@ -58,7 +57,7 @@ public class GetConfigService extends AbstractCstlProcess {
         try {
             serviceBusiness.ensureExistingInstance(serviceType.toLowerCase(), identifier);
             final Object obj = serviceBusiness.getConfiguration(serviceType.toLowerCase(), identifier);
-            getOrCreate(CONFIGURATION, outputParameters).setValue(obj);
+            outputParameters.getOrCreate(CONFIGURATION).setValue(obj);
         } catch (ConfigurationException ex) {
             throw new ProcessException(ex.getMessage(), this, ex);
         }

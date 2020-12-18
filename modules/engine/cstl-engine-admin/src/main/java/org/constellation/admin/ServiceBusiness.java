@@ -282,7 +282,7 @@ public class ServiceBusiness implements IServiceBusiness {
      */
     @Override
     @Transactional
-    public void delete(final Integer id) throws ConfigurationException {
+    public void delete(final Integer id) throws ConstellationException {
         if (id == null) {
             throw new ConfigurationException("Service instance identifier can't be null.");
         }
@@ -318,7 +318,7 @@ public class ServiceBusiness implements IServiceBusiness {
      */
     @Override
     @Transactional
-    public void deleteAll() throws ConfigurationException {
+    public void deleteAll() throws ConstellationException {
         final List<Service> services = serviceRepository.findAll();
         for (Service service : services) {
             delete(service.getId());

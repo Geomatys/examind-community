@@ -143,13 +143,19 @@ public class ProviderBusiness implements IProviderBusiness {
             throw new ConstellationException("Provider " + providerId + " does not exist.");
         }
 
+        // if already instanciated, must be reloaded before updating data.
+        final DataProvider provider = DataProviders.getProvider(providerId);
+        if (provider != null) {
+            provider.reload();
+        }
+
         try {
             createOrUpdateData(providerId,null,false);
         } catch (IOException ex) {
             throw new ConstellationException(ex.getMessage(),ex);
         }
 
-        //send message to nodes
+        //send message for other nodes to reload (will cause double reload on this node)
         final ClusterMessage message = clusterBusiness.createRequest(PRV_MESSAGE_TYPE_ID,false);
         message.put(KEY_ACTION, PRV_VALUE_ACTION_RELOAD);
         message.put(KEY_IDENTIFIER, providerId);
@@ -159,34 +165,23 @@ public class ProviderBusiness implements IProviderBusiness {
     @Override
     public void reload(String identifier) throws ConstellationException {
         final Integer provider = providerRepository.findIdForIdentifier(identifier);
-        if(provider==null){
+        if (provider==null){
             throw new ConstellationException("Provider "+identifier+" does not exist.");
         }
-
-        try {
-            createOrUpdateData(provider,null,false);
-        } catch (IOException ex) {
-            throw new ConstellationException(ex.getMessage(),ex);
-        }
-
-        //send message to nodes
-        final ClusterMessage message = clusterBusiness.createRequest(PRV_MESSAGE_TYPE_ID,false);
-        message.put(KEY_ACTION, PRV_VALUE_ACTION_RELOAD);
-        message.put(KEY_IDENTIFIER, provider);
-        clusterBusiness.publish(message);
+        reload(provider);
     }
 
     @Override
     @Deprecated
     @Transactional
-    public void removeProvider(final String identifier) throws ConfigurationException {
+    public void removeProvider(final String identifier) throws ConstellationException {
         final Integer provider = getIDFromIdentifier(identifier);
         if(provider!=null) removeProvider(provider);
     }
 
     @Override
     @Transactional
-    public void removeProvider(final int identifier) throws ConfigurationException {
+    public void removeProvider(final int identifier) throws ConstellationException {
         final ProviderBrief provider = providerRepository.findOne(identifier);
         if (provider==null) return;
 
@@ -217,7 +212,7 @@ public class ProviderBusiness implements IProviderBusiness {
 
     @Override
     @Transactional
-    public void removeAll() throws ConfigurationException {
+    public void removeAll() throws ConstellationException {
         final List<ProviderBrief> providers = providerRepository.findAll();
         for (ProviderBrief p : providers) {
             removeProvider(p.getId());

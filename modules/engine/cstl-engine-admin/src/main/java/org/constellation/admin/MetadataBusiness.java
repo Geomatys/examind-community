@@ -252,7 +252,7 @@ public class MetadataBusiness implements IMetadataBusiness {
     @Override
     @Transactional
     public MetadataLightBrief updateMetadata(final String metadataId, final Object metadataObj, final Integer dataID, final Integer datasetID,
-                                  final Integer mapContextID, final Integer owner, Integer providerId, String type) throws ConfigurationException  {
+                                  final Integer mapContextID, final Integer owner, Integer providerId, String type) throws ConstellationException  {
         return updateMetadata(metadataId, metadataObj, dataID, datasetID, mapContextID, owner, providerId, type, null, false);
 
     }
@@ -262,7 +262,7 @@ public class MetadataBusiness implements IMetadataBusiness {
     @Override
     @Transactional
     public MetadataLightBrief updateMetadata(final String metadataId, final Object metadataObj, final Integer dataID, final Integer datasetID,
-                                  final Integer mapContextID, final Integer owner, Integer providerId, String type, String templateName, boolean hidden) throws ConfigurationException  {
+                                  final Integer mapContextID, final Integer owner, Integer providerId, String type, String templateName, boolean hidden) throws ConstellationException  {
         Metadata metadata          = metadataRepository.findByMetadataId(metadataId);
         final boolean update       = metadata != null;
         final Node   metaNode;
@@ -426,7 +426,7 @@ public class MetadataBusiness implements IMetadataBusiness {
     }
 
     @Override
-    public boolean updatePartialMetadata(String metadataId, Map<String, Object> properties, Integer providerId) throws ConfigurationException {
+    public boolean updatePartialMetadata(String metadataId, Map<String, Object> properties, Integer providerId) throws ConstellationException {
         // update in store ? update metadata table properties?
         final DataProvider provider = DataProviders.getProvider(providerId);
         if (provider instanceof MetadataProvider) {
@@ -739,7 +739,7 @@ public class MetadataBusiness implements IMetadataBusiness {
      */
     @Override
     @Transactional
-    public void updatePublication(final int id, final boolean newStatus) throws ConfigurationException {
+    public void updatePublication(final int id, final boolean newStatus) throws ConstellationException {
         updatePublication(Arrays.asList(id), newStatus);
     }
 
@@ -748,7 +748,7 @@ public class MetadataBusiness implements IMetadataBusiness {
      */
     @Override
     @Transactional
-    public void updatePublication(final List<Integer> ids, final boolean newStatus) throws ConfigurationException {
+    public void updatePublication(final List<Integer> ids, final boolean newStatus) throws ConstellationException {
         final List<MetadataWithState> toUpdate = new ArrayList<>();
         for (Integer id : ids) {
             final Metadata metadata = metadataRepository.findById(id);
@@ -767,7 +767,7 @@ public class MetadataBusiness implements IMetadataBusiness {
      */
     @Override
     @Transactional
-    public void updateHidden(final int id, final boolean newStatus) throws ConfigurationException {
+    public void updateHidden(final int id, final boolean newStatus) throws ConstellationException {
         updateHidden(Arrays.asList(id), newStatus);
     }
 
@@ -776,7 +776,7 @@ public class MetadataBusiness implements IMetadataBusiness {
      */
     @Override
     @Transactional
-    public void updateHidden(final List<Integer> ids, final boolean newStatus) throws ConfigurationException {
+    public void updateHidden(final List<Integer> ids, final boolean newStatus) throws ConstellationException {
         final List<MetadataWithState> toUpdate = new ArrayList<>();
         for (Integer id : ids) {
             final Metadata metadata = metadataRepository.findById(id);
@@ -856,7 +856,7 @@ public class MetadataBusiness implements IMetadataBusiness {
      */
     @Override
     @Transactional
-    public void deleteMetadata(int id) throws ConfigurationException {
+    public void deleteMetadata(int id) throws ConstellationException {
         deleteMetadata(Arrays.asList(id));
     }
 
@@ -865,7 +865,7 @@ public class MetadataBusiness implements IMetadataBusiness {
      */
     @Override
     @Transactional
-    public boolean deleteMetadata(String metadataID) throws ConfigurationException {
+    public boolean deleteMetadata(String metadataID) throws ConstellationException {
         final Metadata meta = metadataRepository.findByMetadataId(metadataID);
         if (meta != null) {
             deleteMetadata(Arrays.asList(meta.getId()));
@@ -880,7 +880,7 @@ public class MetadataBusiness implements IMetadataBusiness {
      */
     @Override
     @Transactional
-    public void deleteDataMetadata(final int dataId) throws ConfigurationException {
+    public void deleteDataMetadata(final int dataId) throws ConstellationException {
         final List<Metadata> metas = metadataRepository.findByDataId(dataId);
         for (Metadata meta : metas) {
             deleteMetadata(meta.getId());
@@ -892,7 +892,7 @@ public class MetadataBusiness implements IMetadataBusiness {
      */
     @Override
     @Transactional
-    public void deleteDatasetMetadata(final int datasetId) throws ConfigurationException {
+    public void deleteDatasetMetadata(final int datasetId) throws ConstellationException {
         final Metadata meta = metadataRepository.findByDatasetId(datasetId);
         if (meta != null) {
             deleteMetadata(meta.getId());
@@ -901,7 +901,7 @@ public class MetadataBusiness implements IMetadataBusiness {
 
     @Override
     @Transactional
-    public void deleteMapContextMetadata(int mapContextId) throws ConfigurationException {
+    public void deleteMapContextMetadata(int mapContextId) throws ConstellationException {
         final Metadata meta = metadataRepository.findByMapContextId(mapContextId);
         if (meta != null) {
             deleteMetadata(meta.getId());
@@ -913,7 +913,7 @@ public class MetadataBusiness implements IMetadataBusiness {
      */
     @Override
     @Transactional
-    public void deleteMetadata(List<Integer> ids) throws ConfigurationException {
+    public void deleteMetadata(List<Integer> ids) throws ConstellationException {
         // First we update the csw index
         final List<MetadataWithState> toDelete = new ArrayList<>();
         for (Integer id : ids) {
@@ -944,7 +944,7 @@ public class MetadataBusiness implements IMetadataBusiness {
 
     @Override
     @Transactional
-    public void deleteFromProvider(int identifier) throws ConfigurationException {
+    public void deleteFromProvider(int identifier) throws ConstellationException {
         List<Metadata> metas = metadataRepository.findByProviderId(identifier, null);
         for (Metadata meta : metas) {
             deleteMetadata(meta.getId());
@@ -956,7 +956,7 @@ public class MetadataBusiness implements IMetadataBusiness {
      */
     @Override
     @Transactional
-    public void deleteAllMetadata() throws ConfigurationException {
+    public void deleteAllMetadata() throws ConstellationException {
         List<Integer> ids = metadataRepository.findAllIds();
         deleteMetadata(ids);
     }
@@ -977,7 +977,7 @@ public class MetadataBusiness implements IMetadataBusiness {
      * {@inheritDoc}
      */
     @Override
-    public void updateCSWIndex(final List<MetadataWithState> metadatas, final boolean update) throws ConfigurationException {
+    public void updateCSWIndex(final List<MetadataWithState> metadatas, final boolean update) throws ConstellationException {
         if (metadatas.isEmpty()) return;
         try {
             final List<Service> services = serviceRepository.findByType("csw");

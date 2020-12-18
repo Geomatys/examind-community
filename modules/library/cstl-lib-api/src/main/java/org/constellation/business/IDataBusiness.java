@@ -117,7 +117,7 @@ public interface IDataBusiness {
      * @param providerId given provider identifier.
      * @throws org.constellation.exception.ConfigurationException
      */
-    void removeDataFromProvider(Integer providerId) throws ConfigurationException ;
+    void removeDataFromProvider(Integer providerId) throws ConstellationException ;
 
     /**
      * Returns {@link DataBrief} for given data name and provider id as integer.
@@ -286,7 +286,7 @@ public interface IDataBusiness {
      */
     List<DataBrief> getDataRefsFromStyleId(final Integer styleId);
 
-    ParameterValues getVectorDataColumns(int id) throws ConfigurationException;
+    ParameterValues getVectorDataColumns(int id) throws ConstellationException;
 
     /**
      * Update the data metadata

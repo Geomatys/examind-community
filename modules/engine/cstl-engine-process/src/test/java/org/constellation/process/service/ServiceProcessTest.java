@@ -20,7 +20,6 @@ package org.constellation.process.service;
 
 import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
-import org.constellation.exception.ConfigurationException;
 import org.constellation.process.AbstractProcessTest;
 import org.constellation.util.ReflectionUtilities;
 import org.constellation.ws.Worker;
@@ -34,6 +33,7 @@ import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.service.ServiceComplete;
+import org.constellation.exception.ConstellationException;
 import org.constellation.ws.IWSEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -97,7 +97,7 @@ public abstract class ServiceProcessTest extends AbstractProcessTest {
             if (engine.getWorkersMap(serviceName) != null) {
                 engine.getWorkersMap(serviceName).remove(identifier);
             }
-        } catch (ConfigurationException ex) {
+        } catch (ConstellationException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
     }

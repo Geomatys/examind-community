@@ -35,6 +35,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IProviderBusiness;
+import org.constellation.exception.ConstellationException;
 import org.geotoolkit.nio.IOUtilities;
 
 /**
@@ -119,7 +120,7 @@ public abstract class AbstractProviderTest extends AbstractProcessTest {
      * Un-register a provider
      * @param id
      */
-    protected void removeProvider(String id) throws ConfigurationException {
+    protected void removeProvider(String id) throws ConstellationException {
         providerBusiness.removeProvider(id);
     }
 }

@@ -131,8 +131,11 @@ public class FileSystemMetadataStore extends AbstractCstlMetadataStore implement
 
     @Override
     public boolean deleteMetadata(String metadataID) throws MetadataIoException {
-        final boolean deleted = writer.deleteMetadata(metadataID);
-        if (deleted) reader.removeFromCache(metadataID);
+        boolean deleted = false;
+        if (reader.existMetadata(metadataID)) {
+            deleted = writer.deleteMetadata(metadataID);
+            if (deleted) reader.removeFromCache(metadataID);
+        }
         return deleted;
     }
 

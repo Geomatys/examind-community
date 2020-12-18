@@ -135,7 +135,11 @@ public class ServiceMessageConsumer extends MessageListener{
         }
         final Worker worker = wsengine.getInstance(serviceType, serviceId);
         if (worker instanceof Refreshable) {
-            ((Refreshable)worker).refresh();
+            try  {
+                ((Refreshable)worker).refresh();
+            } catch (CstlServiceException ex) {
+                LOGGER.warning("Unable to refresh " + serviceType + " worker (" + serviceId + "). Cause: " + ex.getMessage());
+            }
         }
 
         return null;

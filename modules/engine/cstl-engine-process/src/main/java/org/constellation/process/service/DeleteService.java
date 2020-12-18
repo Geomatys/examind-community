@@ -20,7 +20,7 @@ package org.constellation.process.service;
 
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.service.ServiceComplete;
-import org.constellation.exception.ConfigurationException;
+import org.constellation.exception.ConstellationException;
 import org.constellation.process.AbstractCstlProcess;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
@@ -59,7 +59,7 @@ public class DeleteService extends AbstractCstlProcess {
                 throw new ProcessException("Unexisting service", this);
             }
             serviceBusiness.delete(s.getId());
-        } catch (ConfigurationException ex) {
+        } catch (ConstellationException ex) {
             throw new ProcessException(ex.getMessage(), this, ex);
         }
     }

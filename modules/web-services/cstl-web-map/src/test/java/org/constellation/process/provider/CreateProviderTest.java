@@ -18,19 +18,14 @@
  */
 package org.constellation.process.provider;
 
-import org.constellation.exception.ConfigurationException;
 import org.constellation.process.ExamindProcessFactory;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.geotoolkit.process.Process;
 import org.geotoolkit.process.ProcessDescriptor;
-import org.geotoolkit.process.ProcessException;
 import org.geotoolkit.process.ProcessFinder;
 import org.junit.Test;
 import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.util.NoSuchIdentifierException;
-
-import java.net.MalformedURLException;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -46,7 +41,7 @@ public class CreateProviderTest extends AbstractProviderTest {
     }
 
     @Test
-    public void testCreateProvider() throws ProcessException, NoSuchIdentifierException, MalformedURLException, ConfigurationException{
+    public void testCreateProvider() throws Exception {
         removeProvider("newProvider");
 
         final int nbProvider = providerBusiness.getProviderIds().size();

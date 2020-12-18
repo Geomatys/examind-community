@@ -56,6 +56,7 @@ import org.constellation.ws.ICSWConfigurer;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.exception.ConstellationStoreException;
+import org.constellation.exception.ConstellationException;
 import org.constellation.metadata.core.IndexConfigHandler;
 import org.constellation.metadata.core.MetadataStoreWrapper;
 import org.constellation.metadata.utils.Utils;
@@ -112,7 +113,7 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
     }
 
     @Override
-    public AcknowlegementType refreshIndex(final String id, final boolean asynchrone, final boolean forced) throws ConfigurationException {
+    public AcknowlegementType refreshIndex(final String id, final boolean asynchrone, final boolean forced) throws ConstellationException {
         if (isIndexing(id) && !forced) {
             final AcknowlegementType refused = new AcknowlegementType("Failure",
                     "An indexation is already started for this service:" + id);
@@ -142,7 +143,7 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
      * @return
      * @throws CstlServiceException
      */
-    private AcknowlegementType refreshIndex(final boolean asynchrone, final String id) throws ConfigurationException, IndexingException {
+    private AcknowlegementType refreshIndex(final boolean asynchrone, final String id) throws ConstellationException, IndexingException {
         String suffix = "";
         if (asynchrone) {
             suffix = " (asynchrone)";
@@ -231,7 +232,7 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
      * @throws ConfigurationException
      */
     @Override
-    public AcknowlegementType addToIndex(final String id, final List<String> identifierList) throws ConfigurationException {
+    public AcknowlegementType addToIndex(final String id, final List<String> identifierList) throws ConstellationException {
         if (identifierList.isEmpty()) {
             return new AcknowlegementType("Success", "warning: identifier list empty");
         }
@@ -241,15 +242,9 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
         if (store != null) {
 
             //hack for FS CSW
-            final MetadataStore origStore = store.getOriginalStore();
-            if (origStore instanceof FileSystemMetadataStore) {
-                try {
-                    ((FileSystemMetadataStore)origStore).analyzeFileSystem(true);
-                } catch (MetadataIoException ex) {
-                    throw new ConfigurationException(ex);
-                }
-            }
+            reloadFSProvider(store);
 
+            final MetadataStore origStore = store.getOriginalStore();
             String requestUUID = UUID.randomUUID().toString();
             Indexer indexer = getIndexer(id, store, requestUUID);
             if (indexer != null) {
@@ -333,7 +328,7 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
     }
 
     @Override
-    public AcknowlegementType importRecords(final String id, final Path f, final String fileName) throws ConfigurationException {
+    public AcknowlegementType importRecords(final String id, final Path f, final String fileName) throws ConstellationException {
         LOGGER.finer("Importing record");
         final List<Path> files;
         if (fileName.endsWith("zip")) {
@@ -366,7 +361,7 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
     }
 
     @Override
-    public AcknowlegementType importRecord(final String id, final Node n) throws ConfigurationException {
+    public AcknowlegementType importRecord(final String id, final Node n) throws ConstellationException {
         LOGGER.fine("Importing record");
         final int providerID = getProviderID(id);
         String metadataID = Utils.findIdentifierNode(n);
@@ -376,7 +371,7 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
     }
 
     @Override
-    public AcknowlegementType removeRecords(final String identifier) throws ConfigurationException {
+    public AcknowlegementType removeRecords(final String identifier) throws ConstellationException {
         final boolean deleted = metadataBusiness.deleteMetadata(identifier);
         if (deleted) {
             final String msg = "The specified record has been deleted from the CSW";
@@ -388,7 +383,7 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
     }
 
     @Override
-    public AcknowlegementType removeAllRecords(final String id) throws ConfigurationException {
+    public AcknowlegementType removeAllRecords(final String id) throws ConstellationException {
         final MetadataStore store = getMetadataStore(id);
         final List<Integer> metaIDS = new ArrayList<>();
         try {
@@ -429,7 +424,9 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
             final Map<String , List<String>> fieldMap = indexHandler.getBriefFieldMap(config);
             for (int i = startIndex; i<ids.size() && i<startIndex + count; i++) {
                 RecordInfo rec = store.getMetadata(ids.get(i),  MetadataType.NATIVE);
-                results.add(createBriefNode(rec.node, fieldMap));
+                if (rec != null) {
+                    results.add(createBriefNode(rec.node, fieldMap));
+                }
             }
         } catch (MetadataIoException ex) {
             throw new ConfigurationException(ex);
@@ -450,7 +447,9 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
 
             for (int i = startIndex; i<ids.size() && i<startIndex + count; i++) {
                 RecordInfo rec = store.getMetadata(ids.get(i), metaType);
-                results.add(rec.node);
+                if (rec != null) {
+                    results.add(rec.node);
+                }
             }
             return results;
         } catch (MetadataIoException ex) {
@@ -528,7 +527,7 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
      *
      * @throws org.constellation.ws.CstlServiceException
      */
-    private void synchroneIndexRefresh(final List<String> cswInstances, final boolean reloadFSStore) throws ConfigurationException, IndexingException {
+    private void synchroneIndexRefresh(final List<String> cswInstances, final boolean reloadFSStore) throws ConstellationException, IndexingException {
         boolean deleted = false;
         String requestUUID = UUID.randomUUID().toString();
         for (String cswInstance : cswInstances) {
@@ -543,13 +542,7 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
 
             //hack for FS CSW
             if (reloadFSStore) {
-                if (store.getOriginalStore() instanceof FileSystemMetadataStore) {
-                    try {
-                        ((FileSystemMetadataStore)store.getOriginalStore()).analyzeFileSystem(true);
-                    } catch (MetadataIoException ex) {
-                        throw new ConfigurationException(ex);
-                    }
-                }
+                reloadFSProvider(store);
             }
         }
 
@@ -767,4 +760,14 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
         return brief;
     }
 
+    private void reloadFSProvider(MetadataStoreWrapper store) throws ConstellationException {
+        if (store.getOriginalStore() instanceof FileSystemMetadataStore) {
+            try {
+                ((FileSystemMetadataStore)store.getOriginalStore()).analyzeFileSystem(true);
+            } catch (MetadataIoException ex) {
+                throw new ConfigurationException(ex);
+            }
+            providerBusiness.reload(store.getProviderID());
+        }
+    }
 }

@@ -21,7 +21,7 @@ package org.constellation.process.provider;
 import org.apache.sis.parameter.Parameters;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IProviderBusiness;
-import org.constellation.exception.ConfigurationException;
+import org.constellation.exception.ConstellationException;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.provider.DataProviders;
 import org.geotoolkit.process.ProcessDescriptor;
@@ -73,13 +73,13 @@ public final class DeleteProvider extends AbstractCstlProcess{
         if (Boolean.TRUE.equals(deleteData)) {
             try {
                 DataProviders.getProvider(providerID).removeAll();
-            } catch (ConfigurationException ex) {
+            } catch (ConstellationException ex) {
                 throw new ProcessException("Failed to delete provider : " + providerID+"  "+ex.getMessage(), this, ex);
             }
         }
         try {
             providerBusiness.removeProvider(providerID);
-        } catch (ConfigurationException ex) {
+        } catch (ConstellationException ex) {
             throw new ProcessException("Failed to delete provider : " + providerID+"  "+ex.getMessage(), this, ex);
         }
     }

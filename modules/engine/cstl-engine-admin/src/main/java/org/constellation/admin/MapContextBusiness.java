@@ -355,14 +355,14 @@ public class MapContextBusiness implements IMapContextBusiness {
 
     @Override
     @Transactional
-    public void delete(int contextId) throws ConfigurationException {
+    public void delete(int contextId) throws ConstellationException {
         metadataBusiness.deleteMapContextMetadata(contextId);
         mapContextRepository.delete(contextId);
     }
 
     @Override
     @Transactional
-    public void deleteAll() throws ConfigurationException {
+    public void deleteAll() throws ConstellationException {
         List<Integer> ids = mapContextRepository.findAllId();
         for (Integer id : ids) {
             delete(id);

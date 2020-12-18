@@ -28,9 +28,6 @@ import org.geotoolkit.process.ProcessException;
 import org.geotoolkit.process.ProcessFinder;
 import org.junit.Test;
 import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.util.NoSuchIdentifierException;
-
-import java.net.MalformedURLException;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -46,7 +43,7 @@ public class RemoveProviderTest extends AbstractProviderTest {
     }
 
     @Test
-    public void testRemoveProvider() throws ProcessException, NoSuchIdentifierException, MalformedURLException, ConfigurationException{
+    public void testRemoveProvider() throws Exception{
         providerBusiness.removeAll();
 
         Integer pid = addProvider("removeProvider1",buildCSVProvider(DATASTORE_SERVICE, "removeProvider1", EMPTY_CSV, ';'));
@@ -73,7 +70,7 @@ public class RemoveProviderTest extends AbstractProviderTest {
 
 
     @Test
-    public void testFailRemoveProvider() throws ProcessException, NoSuchIdentifierException, MalformedURLException{
+    public void testFailRemoveProvider() throws Exception{
 
 
         final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, DeleteProviderDescriptor.NAME);

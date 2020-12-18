@@ -34,7 +34,6 @@ import static org.constellation.process.data.ImportDataSampleDescriptor.DATASOUR
 import static org.constellation.process.data.ImportDataSampleDescriptor.OUT_CONFIGURATION;
 import static org.constellation.process.data.ImportDataSampleDescriptor.PROVIDER_CONFIGURATION;
 import static org.constellation.process.data.ImportDataSampleDescriptor.SAMPLE_COUNT;
-import static org.geotoolkit.parameter.Parameters.getOrCreate;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.opengis.parameter.ParameterValueGroup;
@@ -80,7 +79,7 @@ public class ImportDataSample extends AbstractCstlProcess {
                  ResourceStoreAnalysisV3 store = datasourceBusiness.treatDataPath(p, datasourceId, provConfig, true, null, null);
                  outputDatas.getStores().add(store);
              }
-             getOrCreate(OUT_CONFIGURATION, outputParameters).setValue(outputDatas);
+             outputParameters.getOrCreate(OUT_CONFIGURATION).setValue(outputDatas);
 
          } catch (ConstellationException ex) {
              throw new ProcessException("Error while importing data", this, ex);

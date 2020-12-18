@@ -149,12 +149,12 @@ public interface IProviderBusiness {
 
     List<Style> getStylesFromProviderId(Integer id);
 
-    void removeProvider(int providerId) throws ConfigurationException;
+    void removeProvider(int providerId) throws ConstellationException;
 
     @Deprecated
-    void removeProvider(String providerId) throws ConfigurationException;
+    void removeProvider(String providerId) throws ConstellationException;
 
-    void removeAll() throws ConfigurationException;
+    void removeAll() throws ConstellationException;
 
     /**
      * Get all provider identifiers.

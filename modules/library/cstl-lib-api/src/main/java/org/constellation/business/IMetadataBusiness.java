@@ -121,7 +121,7 @@ public interface IMetadataBusiness {
      * @return The created/update Metadata pojo.
      * @throws org.constellation.exception.ConfigurationException
      */
-    MetadataLightBrief updateMetadata(final String metadataId, final Object metadataObj, final Integer dataID, final Integer datasetID, final Integer mapcontextID, final Integer owner, final Integer providerId, String type) throws ConfigurationException;
+    MetadataLightBrief updateMetadata(final String metadataId, final Object metadataObj, final Integer dataID, final Integer datasetID, final Integer mapcontextID, final Integer owner, final Integer providerId, String type) throws ConstellationException;
 
     /**
      * Update or create a new Metadata pojo.
@@ -139,9 +139,9 @@ public interface IMetadataBusiness {
      * @return The created/update Metadata pojo.
      * @throws org.constellation.exception.ConfigurationException
      */
-    MetadataLightBrief updateMetadata(final String metadataId, final Object metadataObj, final Integer dataID, final Integer datasetID, final Integer mapcontextID, final Integer owner, final Integer providerId, String type, String templateName, boolean hidden) throws ConfigurationException;
+    MetadataLightBrief updateMetadata(final String metadataId, final Object metadataObj, final Integer dataID, final Integer datasetID, final Integer mapcontextID, final Integer owner, final Integer providerId, String type, String templateName, boolean hidden) throws ConstellationException;
 
-    boolean updatePartialMetadata(final String metadataId, Map<String, Object> properties, final Integer providerId) throws ConfigurationException;
+    boolean updatePartialMetadata(final String metadataId, Map<String, Object> properties, final Integer providerId) throws ConstellationException;
 
     /**
      * Returns all the metadata identifier associated with a csw service.
@@ -279,7 +279,7 @@ public interface IMetadataBusiness {
      *
      * @throws org.constellation.exception.ConfigurationException
      */
-    void updatePublication(final int id, final boolean newStatus) throws ConfigurationException;
+    void updatePublication(final int id, final boolean newStatus) throws ConstellationException;
 
     /**
      * Update the publication flag for a list of metadata pojo.
@@ -289,7 +289,7 @@ public interface IMetadataBusiness {
      *
      * @throws org.constellation.exception.ConfigurationException
      */
-    void updatePublication(final List<Integer> ids, final boolean newStatus) throws ConfigurationException;
+    void updatePublication(final List<Integer> ids, final boolean newStatus) throws ConstellationException;
 
     /**
      * Update the hidden flag of a metadata.
@@ -299,7 +299,7 @@ public interface IMetadataBusiness {
      *
      * @throws org.constellation.exception.ConfigurationException
      */
-    void updateHidden(final int id, final boolean newStatus) throws ConfigurationException;
+    void updateHidden(final int id, final boolean newStatus) throws ConstellationException;
 
     /**
      * Update the hidden flag for a list of metadata pojo.
@@ -309,7 +309,7 @@ public interface IMetadataBusiness {
      *
      * @throws org.constellation.exception.ConfigurationException
      */
-    void updateHidden(final List<Integer> ids, final boolean newStatus) throws ConfigurationException;
+    void updateHidden(final List<Integer> ids, final boolean newStatus) throws ConstellationException;
 
     /**
      * Update the profile for a metadata pojo.
@@ -354,7 +354,7 @@ public interface IMetadataBusiness {
      * @param id identifier of the metadata pojo.
      * @throws org.constellation.exception.ConfigurationException
      */
-    void deleteMetadata(final int id) throws ConfigurationException;
+    void deleteMetadata(final int id) throws ConstellationException;
 
     /**
      * Delete a metadata pojo.
@@ -364,7 +364,7 @@ public interface IMetadataBusiness {
      *
      * @throws org.constellation.exception.ConfigurationException
      */
-    boolean deleteMetadata(final String metadataID) throws ConfigurationException;
+    boolean deleteMetadata(final String metadataID) throws ConstellationException;
 
     /**
      * Delete the linked metadata pojo for the specified data.
@@ -372,7 +372,7 @@ public interface IMetadataBusiness {
      * @param dataId identifier of the data pojo.
      * @throws org.constellation.exception.ConfigurationException
      */
-    void deleteDataMetadata(final int dataId) throws ConfigurationException;
+    void deleteDataMetadata(final int dataId) throws ConstellationException;
 
     /**
      * Delete the linked metadata pojo for the specified dataszt.
@@ -380,7 +380,7 @@ public interface IMetadataBusiness {
      * @param datasetId identifier of the dataset pojo.
      * @throws org.constellation.exception.ConfigurationException
      */
-    void deleteDatasetMetadata(final int datasetId) throws ConfigurationException;
+    void deleteDatasetMetadata(final int datasetId) throws ConstellationException;
 
     /**
      * Delete the linked metadata pojo for the specified map context.
@@ -388,7 +388,7 @@ public interface IMetadataBusiness {
      * @param mapContextId identifier of the mapContext pojo.
      * @throws org.constellation.exception.ConfigurationException
      */
-    void deleteMapContextMetadata(final int mapContextId) throws ConfigurationException;
+    void deleteMapContextMetadata(final int mapContextId) throws ConstellationException;
 
     /**
      * Delete a list of metadata pojo.
@@ -396,13 +396,13 @@ public interface IMetadataBusiness {
      * @param ids List of metadata pojo identifiers.
      * @throws org.constellation.exception.ConfigurationException
      */
-    void deleteMetadata(final List<Integer> ids) throws ConfigurationException;
+    void deleteMetadata(final List<Integer> ids) throws ConstellationException;
 
     /**
      * Delete all metadata in database
      * @throws ConfigurationException
      */
-    void deleteAllMetadata() throws ConfigurationException;
+    void deleteAllMetadata() throws ConstellationException;
 
     /**
      * Return a percentage of the metadata completion (related to the profile linked to the metadata pojo).
@@ -465,7 +465,7 @@ public interface IMetadataBusiness {
      *
      * @throws org.constellation.exception.ConfigurationException
      */
-    void updateCSWIndex(final List<MetadataWithState> metadatas, final boolean update) throws ConfigurationException;
+    void updateCSWIndex(final List<MetadataWithState> metadatas, final boolean update) throws ConstellationException;
 
     /**
      * Duplicate a metadata pojo. Update the fileIdentifier and title of the geotk metadata.
@@ -735,7 +735,7 @@ public interface IMetadataBusiness {
      */
     int addMetadataAtachment(final int metadataID, final InputStream content, String fileName) throws ConfigurationException;
 
-    void deleteFromProvider(int identifier) throws ConfigurationException;
+    void deleteFromProvider(int identifier) throws ConstellationException;
 
     Integer getDefaultInternalProviderID() throws ConfigurationException;
 

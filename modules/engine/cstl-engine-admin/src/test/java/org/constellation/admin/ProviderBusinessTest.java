@@ -29,6 +29,7 @@ import org.apache.sis.util.ComparisonMode;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.exception.ConfigurationException;
+import org.constellation.exception.ConstellationException;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.DataProviders;
@@ -62,16 +63,16 @@ public class ProviderBusinessTest {
     }
 
     @PostConstruct
-    public void init() throws ConfigurationException {
+    public void init() throws Exception {
         clean();
     }
 
     @AfterClass
-    public static void destroy() throws ConfigurationException {
+    public static void destroy() throws Exception {
         clean();
     }
 
-    private static void clean() throws ConfigurationException {
+    private static void clean() throws ConstellationException {
         SpringHelper.getBean(IProviderBusiness.class).removeAll();
         ConfigDirectory.shutdownTestEnvironement("ProviderBusinessTest");
     }
