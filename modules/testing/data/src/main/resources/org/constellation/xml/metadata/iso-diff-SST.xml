@@ -247,15 +247,15 @@
                                         <CharacterString xmlns="http://www.isotc211.org/2005/gco">Second Generation Global Imager</CharacterString>
                                     </title>
                                     <date xmlns:ns0="http://www.isotc211.org/2005/gco" ns0:nilReason="unknown"/>
+                                    <identifier>
+                                        <MD_Identifier xmlns="http://www.isotc211.org/2005/gmd">
+                                            <code>
+                                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">SGLI</CharacterString>
+                                            </code>
+                                        </MD_Identifier>
+                                    </identifier>
                                 </CI_Citation>
                             </citation>
-                            <identifier>
-                                <MD_Identifier xmlns="http://www.isotc211.org/2005/gmd">
-                                    <code>
-                                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">SGLI</CharacterString>
-                                    </code>
-                                </MD_Identifier>
-                            </identifier>
                             <type xmlns:ns0="http://www.isotc211.org/2005/gco" ns0:nilReason="unknown"/>
                         </MI_Instrument>
                     </instrument>

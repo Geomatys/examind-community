@@ -54,9 +54,9 @@
     </contact>
     <contact>
         <CI_ResponsibleParty uuid="987-887">
-            <individualName>
+            <organisationName>
                 <CharacterString xmlns="http://www.isotc211.org/2005/gco">jean pierre imbert</CharacterString>
-            </individualName>
+            </organisationName>
             <positionName>
                 <CharacterString xmlns="http://www.isotc211.org/2005/gco">METADATA AUTHOR</CharacterString>
             </positionName>
@@ -331,6 +331,7 @@
                     <name>
                         <CharacterString xmlns="http://www.isotc211.org/2005/gco">binary</CharacterString>
                     </name>
+                    <version xmlns:ns0="http://www.isotc211.org/2005/gco" ns0:nilReason="inapplicable"/>
                 </MD_Format>
             </distributionFormat>
             <distributionFormat>
@@ -338,6 +339,7 @@
                     <name>
                         <CharacterString xmlns="http://www.isotc211.org/2005/gco">image/png</CharacterString>
                     </name>
+                    <version xmlns:ns0="http://www.isotc211.org/2005/gco" ns0:nilReason="inapplicable"/>
                 </MD_Format>
             </distributionFormat>
             <distributor>

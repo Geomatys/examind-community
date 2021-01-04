@@ -103,6 +103,48 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
     private static final String GML = "http://www.opengis.net/gml/3.2";
     private static final String GCO = "http://www.isotc211.org/2005/gco";
 
+    private static enum DateLabel {
+        UNKNOW("unknown"),
+        PRESENT("present"),
+        UNBOUNDED("unbounded"),
+        FUTURE("future"),
+        NOT_PROVIDED("Not provided");
+
+        private final String label;
+
+        DateLabel(String label) {
+            this.label = label;
+        }
+
+        static DateLabel getFromLabel(String label) {
+            switch(label) {
+                case "unknown"      : return UNKNOW;
+                case "present"      : return PRESENT;
+                case "unbounded"    : return UNBOUNDED;
+                case "future"       : return FUTURE;
+                case "Not provided" : return NOT_PROVIDED;
+            }
+            return null;
+        }
+
+        public String getLabelDate() {
+            switch(label) {
+                case "present"      :   String dateValue;
+                                        synchronized (FORMATTER) {
+                                            dateValue = FORMATTER.format(new Date(System.currentTimeMillis()));
+                                        }
+                                        dateValue = dateValue.substring(0, dateValue.length() - 2);
+                                        dateValue = dateValue + ":00";
+                                        return dateValue;
+                case "unbounded"    : 
+                case "future"       : 
+                case "Not provided" :
+                case "unknown"      : return "1970-01-01T00:00:00Z";
+            }
+            throw new IllegalArgumentException("Unxpected label:" + label);
+        }
+    }
+
     protected final DocumentBuilderFactory dbf;
 
     protected final XMLInputFactory xif = XMLInputFactory.newFactory();
@@ -815,7 +857,7 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                                 if (lName != null) {
                                     indName.append(lName);
                                 }
-                                addCharacterStringNode(doc, ciResp, "individualName", indName.toString());
+                                addCharacterStringNode(doc, ciResp, "organisationName", indName.toString());
                             }
                             addCharacterStringNode(doc, ciResp, "positionName", "METADATA AUTHOR");
 
@@ -829,10 +871,10 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                 addNullNode(doc, root, GMD, "contact");
             }
 
-            final String metaCreation = addTimeToDate(NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Metadata_Dates/dif:Metadata_Creation"));
-            final String metaLastUpda = addTimeToDate(NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Metadata_Dates/dif:Metadata_Last_Revision"));
-            final String dataCreation = addTimeToDate(NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Metadata_Dates/dif:Data_Creation"));
-            final String dataLastUpda = addTimeToDate(NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Metadata_Dates/dif:Data_Last_Revision"));
+            final String metaCreation = NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Metadata_Dates/dif:Metadata_Creation");
+            final String metaLastUpda = NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Metadata_Dates/dif:Metadata_Last_Revision");
+            final String dataCreation = NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Metadata_Dates/dif:Data_Creation");
+            final String dataLastUpda = NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Metadata_Dates/dif:Data_Last_Revision");
             if (notNullDate(metaLastUpda)) {
                 addDateTimeNode(doc, root, "dateStamp", metaLastUpda);
             } else {
@@ -954,6 +996,8 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                     fileXNode.setTextContent(fileValue);
                     ((Element)fileXNode).setAttribute("src", fileValue);
                     fileNNode.appendChild(fileXNode);
+                } else {
+                     addNullNode(doc, browNode, GMD, "fileName", "inapplicable");
                 }
 
                 String descValue = NodeUtilities.getFirstValueFromPath(multiMedia, "/dif:Multimedia_Sample/dif:Description");
@@ -1035,7 +1079,9 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
             final List<String> categoryValues = NodeUtilities.getValuesFromPath(metadata, "/dif:DIF/dif:ISO_Topic_Category");
             for (String categoryValue : categoryValues) {
                 categoryValue = convertISOTopicValue(categoryValue);
-                addGCONode(doc, dIdent, "topicCategory", categoryValue, GMD, "MD_TopicCategoryCode");
+                if (categoryValue != null) {
+                    addGCONode(doc, dIdent, "topicCategory", categoryValue, GMD, "MD_TopicCategoryCode");
+                }
             }
 
 
@@ -1143,6 +1189,7 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                     final Node mdFormat = doc.createElementNS(GMD, "MD_Format");
                     distFormat.appendChild(mdFormat);
                     addCharacterStringNode(doc, mdFormat, "name", format);
+                    addNullNode(doc, mdFormat, GMD, "version", "inapplicable");
                 }
             }
 
@@ -1317,21 +1364,25 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
 
                         String instShortName = NodeUtilities.getFirstValueFromPath(instrumentNode, "/dif:Instrument/dif:Short_Name");
                         String instLongName  = NodeUtilities.getFirstValueFromPath(instrumentNode, "/dif:Instrument/dif:Long_Name");
-                        if (longName != null) {
+                        if (longName != null || shortName != null) {
                             final Node instCit = doc.createElementNS(GMI, "citation");
                             miInst.appendChild(instCit);
                             final Node ciInstCit = doc.createElementNS(GMD, "CI_Citation");
                             instCit.appendChild(ciInstCit);
-                            addCharacterStringNode(doc, ciInstCit, "title", instLongName);
+                            if (longName != null) {
+                                addCharacterStringNode(doc, ciInstCit, "title", instLongName);
+                            }
                             addNullNode(doc, ciInstCit, GMD, "date");
+
+                             if (shortName != null) {
+                                final Node instId = doc.createElementNS(GMD, "identifier");
+                                ciInstCit.appendChild(instId);
+                                final Node mdInstId = doc.createElementNS(GMD, "MD_Identifier");
+                                instId.appendChild(mdInstId);
+                                addCharacterStringNode(doc, mdInstId, "code", instShortName);
+                            }
                         }
-                        if (shortName != null) {
-                            final Node InstId = doc.createElementNS(GMI, "identifier");
-                            miInst.appendChild(InstId);
-                            final Node mdInstId = doc.createElementNS(GMD, "MD_Identifier");
-                            InstId.appendChild(mdInstId);
-                            addCharacterStringNode(doc, mdInstId, "code", instShortName);
-                        }
+                       
                         //final Node instType = doc.createElementNS(GMI, "type");
                         //final Node instTypeCode = doc.createElementNS(GMI, "MI_SensorTypeCode");
                         //instType.appendChild(instTypeCode);
@@ -1353,17 +1404,27 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
 
     private static final String[] TOPICS = new String[]{"farming" , "biota" , "boundaries" , "climatologyMeteorologyAtmosphere" , "economy" , "elevation" , "environment" , "geoscientificInformation" , "health" , "imageryBaseMapsEarthCover" , "intelligenceMilitary" , "inlandWaters" , "location" , "oceans" , "planningCadastre" , "society" , "structure" , "transportation" , "utilitiesCommunication"};
     private String convertISOTopicValue(String categoryValue) {
-        categoryValue = categoryValue.replace(" ", "");
-        categoryValue = categoryValue.replace("/", "");
-        for (String topic : TOPICS) {
-            if (categoryValue.equalsIgnoreCase(topic)) {
-                return topic;
+        if (categoryValue != null) {
+            categoryValue = categoryValue.replace(" ", "");
+            categoryValue = categoryValue.replace("/", "");
+            for (String topic : TOPICS) {
+                if (categoryValue.equalsIgnoreCase(topic) ||
+                   (categoryValue + "s").equalsIgnoreCase(topic)) {  // special case for ocean/oceans
+                    return topic;
+                }
             }
+            LOGGER.info("ignore unknow iso topic category:" + categoryValue);
         }
-        return categoryValue;
+        return null;
     }
 
     private void addDateTimeNode(Document doc, Node root, String nodeName, String value) {
+        DateLabel dl = DateLabel.getFromLabel(value);
+        if (dl != null) {
+            value = dl.getLabelDate();
+        } else {
+            value = addTimeToDate(value);
+        }
         addGCONode(doc, root, nodeName, value, GCO, "DateTime");
     }
 
@@ -1401,8 +1462,12 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
     }
 
     private void addNullNode(Document doc, Node root, String nmsp, String nodeName) {
+        addNullNode(doc, root, nmsp, nodeName, "unknown");
+    }
+
+    private void addNullNode(Document doc, Node root, String nmsp, String nodeName, String value) {
         final Node node = doc.createElementNS(nmsp, nodeName);
-        addAttributeNS(node, GCO, "nilReason", "unknown");
+        addAttributeNS(node, GCO, "nilReason", value);
         root.appendChild(node);
     }
 
