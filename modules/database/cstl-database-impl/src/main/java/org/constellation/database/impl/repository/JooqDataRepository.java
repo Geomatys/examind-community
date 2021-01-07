@@ -91,8 +91,14 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, org.
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public int delete(int id) {
+    public int delete(Integer id) {
         return dsl.delete(DATA).where(DATA.ID.eq(id)).execute();
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public int deleteAll() {
+        return dsl.delete(DATA).execute();
     }
 
     @Override
@@ -395,7 +401,7 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, org.
     }
 
     @Override
-    public boolean existsById(int dataId) {
+    public boolean existsById(Integer dataId) {
         return dsl.selectCount().from(DATA)
                 .where(DATA.ID.eq(dataId))
                 .fetchOne(0, Integer.class) > 0;

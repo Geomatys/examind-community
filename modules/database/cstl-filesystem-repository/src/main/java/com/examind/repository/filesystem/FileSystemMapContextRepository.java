@@ -19,10 +19,12 @@
 package com.examind.repository.filesystem;
 
 import static com.examind.repository.filesystem.FileSystemUtilities.*;
+import com.examind.repository.filesystem.dto.MapContextCompleteDto;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,10 +44,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class FileSystemMapContextRepository extends AbstractFileSystemRepository implements MapContextRepository {
 
-    private final Map<Integer, MapContextDTO> byId = new HashMap<>();
+    private final Map<Integer, MapContextCompleteDto> byId = new HashMap<>();
 
     public FileSystemMapContextRepository() {
-        super(MapContextDTO.class);
+        super(MapContextDTO.class, MapContextCompleteDto.class);
         load();
     }
 
@@ -54,9 +56,8 @@ public class FileSystemMapContextRepository extends AbstractFileSystemRepository
             Path mcDir = getDirectory(MAPCONTEXT_DIR);
             try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(mcDir)) {
                 for (Path mcFile : directoryStream) {
-                    MapContextDTO meta = (MapContextDTO) getObjectFromPath(mcFile, pool);
+                    MapContextCompleteDto meta = (MapContextCompleteDto) getObjectFromPath(mcFile, pool);
                     byId.put(meta.getId(), meta);
-
                     incCurrentId(meta);
                 }
             }
@@ -65,6 +66,10 @@ public class FileSystemMapContextRepository extends AbstractFileSystemRepository
         }
     }
 
+    @Override
+    public boolean existsById(Integer id) {
+        return byId.containsKey(id);
+    }
 
     @Override
     public MapContextDTO findById(int id) {
@@ -83,7 +88,10 @@ public class FileSystemMapContextRepository extends AbstractFileSystemRepository
 
     @Override
     public List<MapContextStyledLayerDTO> getLinkedLayers(int mapContextId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (byId.containsKey(mapContextId)) {
+            return byId.get(mapContextId).getLayers();
+        }
+        return new ArrayList<>();
     }
 
     ////--------------------------------------------------------------------///
@@ -95,13 +103,15 @@ public class FileSystemMapContextRepository extends AbstractFileSystemRepository
         if (mapContext != null) {
             final int id = assignCurrentId(mapContext);
 
+            MapContextCompleteDto mcc = new MapContextCompleteDto(mapContext);
+
             Path mcDir = getDirectory(MAPCONTEXT_DIR);
             Path mcFile = mcDir.resolve(id + ".xml");
-            writeObjectInPath(mapContext, mcFile, pool);
+            writeObjectInPath(mcc, mcFile, pool);
 
-            byId.put(mapContext.getId(), mapContext);
+            byId.put(mcc.getId(), mcc);
 
-            return mapContext.getId();
+            return mcc.getId();
         }
         return -1;
     }
@@ -110,18 +120,21 @@ public class FileSystemMapContextRepository extends AbstractFileSystemRepository
     public int update(MapContextDTO mapContext) {
         if (byId.containsKey(mapContext.getId())) {
 
-            Path mcDir = getDirectory(MAPCONTEXT_DIR);
-            Path mcFile = mcDir.resolve(mapContext.getId() + ".xml");
-            writeObjectInPath(mapContext, mcFile, pool);
+            MapContextCompleteDto previous = byId.get(mapContext.getId());
+            MapContextCompleteDto mcc = new MapContextCompleteDto(mapContext, previous.getLayers());
 
-            byId.put(mapContext.getId(), mapContext);
+            Path mcDir = getDirectory(MAPCONTEXT_DIR);
+            Path mcFile = mcDir.resolve(mcc.getId() + ".xml");
+            writeObjectInPath(mcc, mcFile, pool);
+
+            byId.put(mcc.getId(), mcc);
             return 1;
         }
         return 0;
     }
 
     @Override
-    public int delete(int id) {
+    public int delete(Integer id) {
         if (byId.containsKey(id)) {
 
             MapContextDTO mapContext = byId.get(id);
@@ -151,17 +164,15 @@ public class FileSystemMapContextRepository extends AbstractFileSystemRepository
     }
 
     @Override
-    public void updateOwner(Integer contextId, int newOwner) {
-        if (byId.containsKey(contextId)) {
-            MapContextDTO mc = byId.get(contextId);
-            mc.setOwner(newOwner);
-            update(mc);
-        }
-    }
-
-    @Override
     public void setLinkedLayers(int mapContextId, List<MapContextStyledLayerDTO> layers) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (byId.containsKey(mapContextId)) {
+            MapContextCompleteDto previous = byId.get(mapContextId);
+            previous.setLayers(layers);
+
+            Path mcDir = getDirectory(MAPCONTEXT_DIR);
+            Path mcFile = mcDir.resolve(previous.getId() + ".xml");
+            writeObjectInPath(previous, mcFile, pool);
+        }
     }
 
     ////--------------------------------------------------------------------///
@@ -170,7 +181,36 @@ public class FileSystemMapContextRepository extends AbstractFileSystemRepository
 
     @Override
     public Map.Entry<Integer, List<MapContextDTO>> filterAndGet(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        List<MapContextDTO> fullResponse = new ArrayList<>();
+        for (MapContextDTO d : byId.values()) {
+            boolean add = true;
+
+            if (filterMap.containsKey("id")) {
+                Integer b = (Integer) filterMap.get("id");
+                if (!b.equals(d.getId())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("owner")) {
+                Integer b = (Integer) filterMap.get("owner");
+                if (!b.equals(d.getOwner())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("term")) {
+                String b = (String) filterMap.get("term");
+                if (!d.getName().contains(b) &&
+                    !d.getDescription().contains(b)) {
+                    add = false;
+                }
+            }
+            if (add) {
+                fullResponse.add(d);
+            }
+        }
+
+        // TODO paginate
+        return new AbstractMap.SimpleEntry<>(fullResponse.size(), fullResponse);
     }
 
 }

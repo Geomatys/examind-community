@@ -25,7 +25,6 @@ import org.constellation.repository.TaskParameterRepository;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
@@ -38,29 +37,66 @@ public class TaskParameterRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void crude() {
+        taskParamRepository.deleteAll();
+        List<? extends TaskParameter> all = taskParamRepository.findAll();
+        Assert.assertTrue(all.isEmpty());
+
 
         CstlUser owner = getOrCreateUser();
         Assert.assertNotNull(owner);
         Assert.assertNotNull(owner.getId());
 
-        // no removeAll method
-        List<? extends TaskParameter> all = taskParamRepository.findAll();
-        for (TaskParameter p : all) {
-            taskParamRepository.delete(p.getId());
-        }
-        all = taskParamRepository.findAll();
-        Assert.assertTrue(all.isEmpty());
+        /**
+         * Insertion
+         */
+        int tpid1 = taskParamRepository.create(TestSamples.newTaskParameter(owner.getId(), "auth", "code"));
+        Assert.assertNotNull(tpid1);
 
-        int sid = taskParamRepository.create(TestSamples.newTaskParameter(owner.getId(), "auth", "code"));
-        Assert.assertNotNull(sid);
+        TaskParameter tp1 = taskParamRepository.get(tpid1);
+        Assert.assertNotNull(tp1);
 
-        TaskParameter s = taskParamRepository.get(sid);
-        Assert.assertNotNull(s);
+        int tpid2 = taskParamRepository.create(TestSamples.newTaskParameterQuote(owner.getId(), "aut';h", "co';de"));
+        Assert.assertNotNull(tpid2);
 
-        taskParamRepository.delete(s.getId());
+        TaskParameter tp2 = taskParamRepository.get(tpid2);
+        Assert.assertNotNull(tp2);
 
-        s = taskParamRepository.get(s.getId());
-        Assert.assertNull(s);
+        /**
+         * Search
+         */
+        List<? extends TaskParameter> tps = taskParamRepository.findAllByNameAndProcess("na'med", "aut';h", "co';de");
+        Assert.assertEquals(1, tps.size());
+        Assert.assertEquals(tp2, tps.get(0));
+
+        tps = taskParamRepository.findAllByType("t'ype");
+        Assert.assertEquals(1, tps.size());
+        Assert.assertEquals(tp2, tps.get(0));
+
+        tps = taskParamRepository.findProgrammedTasks();
+        Assert.assertEquals(1, tps.size());
+        Assert.assertEquals(tp2, tps.get(0));
+
+        /**
+         * Update
+         */
+        tp1.setInputs("inn'p; puts");
+        taskParamRepository.update(tp1);
+        TaskParameter tp = taskParamRepository.get(tpid1);
+        Assert.assertEquals("inn'p; puts", tp.getInputs());
+        // date has changed
+        tp1.setDate(null);
+        tp.setDate(null);
+        Assert.assertEquals(tp1, tp);
+
+        /**
+         * deletetion
+         */
+        taskParamRepository.delete(tp1.getId());
+
+        tp1 = taskParamRepository.get(tp1.getId());
+        Assert.assertNull(tp1);
+
+        taskParamRepository.deleteAll();
     }
 
 }

@@ -27,7 +27,7 @@ import org.constellation.dto.process.ChainProcess;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public interface ChainProcessRepository {
+public interface ChainProcessRepository extends AbstractRepository {
 
     List<ChainProcess> findAll();
 
@@ -36,8 +36,6 @@ public interface ChainProcessRepository {
     Integer findId(String auth, String code);
 
     Integer create(ChainProcess chain);
-
-    int delete(int id);
 
     int delete(String auth, String code);
 }

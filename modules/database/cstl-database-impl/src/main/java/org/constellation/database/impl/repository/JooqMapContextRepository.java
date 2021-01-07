@@ -134,6 +134,13 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
     }
 
     @Override
+    public boolean existsById(Integer id) {
+        return dsl.selectCount().from(MAPCONTEXT)
+                .where(MAPCONTEXT.ID.eq(id))
+                .fetchOne(0, Integer.class) > 0;
+    }
+
+    @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public Integer create(MapContextDTO mapContext) {
         MapcontextRecord newRecord = dsl.newRecord(MAPCONTEXT);
@@ -160,7 +167,7 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public int delete(int id) {
+    public int delete(Integer id) {
         return dsl.delete(MAPCONTEXT).where(MAPCONTEXT.ID.eq(id)).execute();
     }
 
@@ -173,15 +180,6 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
     @Override
     public List<Integer> findAllId() {
         return dsl.select(MAPCONTEXT.ID).from(MAPCONTEXT).fetchInto(Integer.class);
-    }
-
-    @Override
-    @Transactional(propagation = Propagation.MANDATORY)
-    public void updateOwner(Integer contextId, int newOwner) {
-        dsl.update(MAPCONTEXT)
-                .set(MAPCONTEXT.OWNER, newOwner)
-                .where(MAPCONTEXT.ID.eq(contextId))
-                .execute();
     }
 
     /**

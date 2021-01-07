@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -187,7 +188,7 @@ public class FileSystemStyleRepository extends AbstractFileSystemRepository impl
     }
 
     @Override
-    public boolean existsById(int styleId) {
+    public boolean existsById(Integer styleId) {
         return byId.containsKey(styleId);
     }
 
@@ -270,7 +271,7 @@ public class FileSystemStyleRepository extends AbstractFileSystemRepository impl
     }
 
     @Override
-    public void delete(int id) {
+    public int delete(Integer id) {
         if (byId.containsKey(id)) {
 
             Style style = byId.get(id);
@@ -293,7 +294,6 @@ public class FileSystemStyleRepository extends AbstractFileSystemRepository impl
             if (byType.containsKey(style.getType())) {
                 byType.get(style.getType()).remove(style);
             }
-
         }
 
         // update linked data
@@ -323,13 +323,16 @@ public class FileSystemStyleRepository extends AbstractFileSystemRepository impl
         } catch (IOException ex) {
             LOGGER.log(Level.WARNING, "Error while linking style and data", ex);
         }
+        return 1;
     }
 
     @Override
-    public void deleteAll() {
-        for (Integer sid : new HashSet<Integer>(byId.keySet())) {
-            delete(sid);
+    public int deleteAll() {
+        int cpt = 0;
+        for (Integer id : new HashSet<>(byId.keySet())) {
+            cpt = cpt + delete(id);
         }
+        return cpt;
     }
 
     @Override
@@ -379,6 +382,20 @@ public class FileSystemStyleRepository extends AbstractFileSystemRepository impl
     }
 
     @Override
+    public List<StyleReference> fetchByLayerId(int layerId) {
+        List<StyleReference> results = new ArrayList<>();
+        if (byLayer.containsKey(layerId)) {
+            for (Style s : byLayer.get(layerId)) {
+                results.add(new StyleReference(s.getId(),
+                                               s.getName(),
+                                               s.getProviderId(),
+                                               (s.getProviderId() == 1) ? "sld" : "sld_temp"));
+            }
+        }
+        return results;
+    }
+
+    @Override
     public void linkStyleToData(int styleId, int dataId) {
         Path styleDataDir = getDirectory(STYLE_X_DATA_DIR);
         boolean found = false;
@@ -406,7 +423,7 @@ public class FileSystemStyleRepository extends AbstractFileSystemRepository impl
             }
 
             // create new file
-            if (found) {
+            if (!found) {
                 // update fs
                 StringList styleList = new StringList(Arrays.asList(styleId + ""));
                 Path styleDataFile = styleDataDir.resolve(dataId + ".xml");
@@ -563,18 +580,64 @@ public class FileSystemStyleRepository extends AbstractFileSystemRepository impl
         }
     }
 
-    @Override
-    public List<StyleReference> fetchByLayerId(int layerId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
     ////--------------------------------------------------------------------///
     ////------------------------    SEARCH         -------------------------///
     ////--------------------------------------------------------------------///
 
     @Override
     public Map.Entry<Integer, List<Style>> filterAndGet(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        //add default filter
+        if (filterMap == null) {
+           filterMap = new HashMap<>();
+        }
+
+        List<Style> fullResponse = new ArrayList<>();
+        for (Style d : byId.values()) {
+            boolean add = true;
+
+            if (filterMap.containsKey("id")) {
+                Integer b = (Integer) filterMap.get("id");
+                if (!b.equals(d.getId())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("owner")) {
+                Integer b = (Integer) filterMap.get("owner");
+                if (!b.equals(d.getOwnerId())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("type")) {
+                String b = (String) filterMap.get("type");
+                if (!b.equals(d.getType())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("term")) {
+                String b = (String) filterMap.get("term");
+                if (!d.getName().contains(b)) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("isShared")) {
+                Boolean b = (Boolean) filterMap.get("isShared");
+                if (!d.getIsShared().equals(b)) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("provider")) {
+                Integer b = (Integer) filterMap.get("provider");
+                if (!b.equals(d.getProviderId())) {
+                    add = false;
+                }
+            }
+            if (add) {
+                fullResponse.add(d);
+            }
+        }
+
+        // TODO paginate
+        return new AbstractMap.SimpleEntry<>(fullResponse.size(), fullResponse);
     }
 
     @Override

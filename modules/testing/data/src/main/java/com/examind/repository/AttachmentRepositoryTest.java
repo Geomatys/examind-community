@@ -19,8 +19,11 @@
 package com.examind.repository;
 
 import java.util.List;
+import org.constellation.dto.CstlUser;
 import org.constellation.dto.metadata.Attachment;
+import org.constellation.dto.metadata.Metadata;
 import org.constellation.repository.AttachmentRepository;
+import org.constellation.repository.MetadataRepository;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,28 +38,75 @@ public class AttachmentRepositoryTest extends AbstractRepositoryTest {
     @Autowired
     private AttachmentRepository attachmentRepository;
 
+    @Autowired
+    private MetadataRepository metadataRepository;
+
     @Test
     @Transactional()
     public void crude() {
 
-        // no removeAll method
+        metadataRepository.deleteAll();
+        attachmentRepository.deleteAll();
+
         List<Attachment> all = attachmentRepository.findAll();
-        for (Attachment p : all) {
-            attachmentRepository.delete(p.getId());
-        }
-        all = attachmentRepository.findAll();
         Assert.assertTrue(all.isEmpty());
 
-        int sid = attachmentRepository.create(TestSamples.newAttachment());
-        Assert.assertNotNull(sid);
+        List<Metadata> metas = metadataRepository.findAll();
+        Assert.assertTrue(metas.isEmpty());
+        
+        CstlUser owner = getOrCreateUser();
+        Assert.assertNotNull(owner);
+        Assert.assertNotNull(owner.getId());
 
-        Attachment s = attachmentRepository.findById(sid);
+        int mid = metadataRepository.create(TestSamples.newMetadata(owner.getId(), "meta-1", null, null, null));
+        Assert.assertNotNull(mid);
+
+        int sid1 = attachmentRepository.create(TestSamples.newAttachment());
+        Assert.assertNotNull(sid1);
+        Attachment s = attachmentRepository.findById(sid1);
         Assert.assertNotNull(s);
 
-        attachmentRepository.delete(s.getId());
+        List<Attachment> atts = attachmentRepository.findByFileName("fnmae");
+        Assert.assertNotNull(atts);
+        Assert.assertFalse(atts.isEmpty());
+        Assert.assertEquals(1, atts.size());
 
-        s = attachmentRepository.findById(s.getId());
+
+        attachmentRepository.linkMetadataAndAttachment(mid, sid1);
+        atts = attachmentRepository.getLinkedAttachment(mid);
+        Assert.assertNotNull(atts);
+        Assert.assertFalse(atts.isEmpty());
+        Assert.assertEquals(1, atts.size());
+
+
+        int sid2 = attachmentRepository.create(TestSamples.newAttachmentQuote());
+        Assert.assertNotNull(sid2);
+        s = attachmentRepository.findById(sid2);
+        Assert.assertNotNull(s);
+
+        atts = attachmentRepository.findByFileName("fn'mae");
+        Assert.assertNotNull(atts);
+        Assert.assertFalse(atts.isEmpty());
+        Assert.assertEquals(1, atts.size());
+
+        attachmentRepository.linkMetadataAndAttachment(mid, sid2);
+        atts = attachmentRepository.getLinkedAttachment(mid);
+        Assert.assertNotNull(atts);
+        Assert.assertEquals(2, atts.size());
+
+        attachmentRepository.delete(sid1);
+        s = attachmentRepository.findById(sid1);
         Assert.assertNull(s);
+
+        atts = attachmentRepository.getLinkedAttachment(mid);
+        Assert.assertNotNull(atts);
+        Assert.assertEquals(1, atts.size());
+
+        attachmentRepository.delete(sid2);
+        s = attachmentRepository.findById(sid2);
+        Assert.assertNull(s);
+        
+        metadataRepository.deleteAll();
     }
 
 }

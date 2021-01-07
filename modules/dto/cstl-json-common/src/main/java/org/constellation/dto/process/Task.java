@@ -19,6 +19,7 @@
 package org.constellation.dto.process;
 
 import java.io.Serializable;
+import java.util.Objects;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -195,5 +196,59 @@ public class Task implements Serializable {
      */
     public void setTaskOutput(String taskOutput) {
         this.taskOutput = taskOutput;
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof Task) {
+            final Task that = (Task) obj;
+            return Objects.equals(this.dateEnd, that.dateEnd) &&
+                   Objects.equals(this.dateStart, that.dateStart) &&
+                   Objects.equals(this.identifier, that.identifier) &&
+                   Objects.equals(this.message, that.message) &&
+                   Objects.equals(this.owner, that.owner) &&
+                   Objects.equals(this.progress, that.progress) &&
+                   Objects.equals(this.state, that.state) &&
+                   Objects.equals(this.taskOutput, that.taskOutput) &&
+                   Objects.equals(this.taskParameterId, that.taskParameterId) &&
+                   Objects.equals(this.type, that.type);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 61 * hash + Objects.hashCode(this.identifier);
+        hash = 61 * hash + Objects.hashCode(this.state);
+        hash = 61 * hash + Objects.hashCode(this.type);
+        hash = 61 * hash + Objects.hashCode(this.dateStart);
+        hash = 61 * hash + Objects.hashCode(this.dateEnd);
+        hash = 61 * hash + Objects.hashCode(this.owner);
+        hash = 61 * hash + Objects.hashCode(this.message);
+        hash = 61 * hash + Objects.hashCode(this.taskParameterId);
+        hash = 61 * hash + Objects.hashCode(this.progress);
+        hash = 61 * hash + Objects.hashCode(this.taskOutput);
+        return hash;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("TaskParameter{");
+        sb.append("identifier=").append(identifier);
+        sb.append(", state='").append(state).append('\'');
+        sb.append(", dateStart='").append(dateStart).append('\'');
+        sb.append(", owner='").append(owner).append('\'');
+        sb.append(", type='").append(type).append('\'');
+        sb.append(", dateEnd='").append(dateEnd).append('\'');
+        sb.append(", message='").append(message).append('\'');
+        sb.append(", taskParameterId='").append(taskParameterId).append('\'');
+        sb.append(", progress='").append(progress).append('\'');
+        sb.append(", taskOutput='").append(taskOutput).append('\'');
+        sb.append('}');
+        return sb.toString();
     }
 }

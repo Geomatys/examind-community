@@ -48,6 +48,7 @@ public class FileSystemUtilities {
     public static final String METADATA_DIR = "metadatas";
     public static final String USER_DIR = "users";
     public static final String THESAURUS_DIR = "thesaurus";
+    public static final String THESAURUS_X_SERVICE_DIR = "thesaurus_x_service";
     public static final String CHAIN_PROCESS_DIR = "chain_processes";
     public static final String INTERNAL_META_DIR = "internal_metadatas";
     public static final String INTERNAL_SENSOR_DIR = "internal_sensors";
@@ -60,6 +61,10 @@ public class FileSystemUtilities {
     public static final String STYLE_X_LAYER_DIR = "style_x_layer";
     public static final String DATA_X_DATA_DIR = "data_x_data";
     public static final String SENSOR_X_DATA_DIR = "sensor_x_data";
+    public static final String SENSOR_X_SERVICE_DIR = "sensor_x_service";
+    public static final String METADATA_X_ATTACHMENT_DIR = "metadata_x_attachment";
+    public static final String SERVICE_X_META_PROV_DIR = "service_x_meta_prov";
+    public static final String SERVICE_X_SENS_PROV_DIR = "service_x_sensor_prov";
 
 
     public static Path getDirectory(String dirName) {

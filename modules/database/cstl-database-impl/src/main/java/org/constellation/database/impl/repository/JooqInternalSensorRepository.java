@@ -68,6 +68,13 @@ public class JooqInternalSensorRepository extends AbstractJooqRespository<Intern
     }
 
     @Override
+    public boolean existsById(Integer id) {
+        return dsl.selectCount().from(INTERNAL_SENSOR)
+                .where(INTERNAL_SENSOR.ID.eq(id))
+                .fetchOne(0, Integer.class) > 0;
+    }
+
+    @Override
     public List<String> getSensorIds() {
         return dsl.select(INTERNAL_SENSOR.SENSOR_ID).from(INTERNAL_SENSOR).fetchInto(String.class);
     }
@@ -79,14 +86,14 @@ public class JooqInternalSensorRepository extends AbstractJooqRespository<Intern
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public int delete(int id) {
+    public int delete(Integer id) {
         return dsl.delete(INTERNAL_SENSOR).where(INTERNAL_SENSOR.ID.eq(id)).execute();
     }
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public void deleteAll() {
-        dsl.delete(INTERNAL_SENSOR).execute();
+    public int deleteAll() {
+        return dsl.delete(INTERNAL_SENSOR).execute();
     }
 
 }

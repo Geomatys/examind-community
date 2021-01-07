@@ -428,7 +428,7 @@ public class DataBusiness implements IDataBusiness {
             /*
              * apply filter on sensorable if specified
              */
-            List<String> targetSensors = sensorRepository.getLinkedSensors(data.getId());
+            List<String> targetSensors = sensorRepository.getDataLinkedSensors(data.getId());
             if (sensorable != null) {
                 if ((sensorable && targetSensors.isEmpty()) ||
                    (!sensorable && !targetSensors.isEmpty())) {
@@ -578,7 +578,7 @@ public class DataBusiness implements IDataBusiness {
             /*
              * apply filter on sensorable if specified
              */
-            List<String> targetSensors = sensorRepository.getLinkedSensors(data.getId());
+            List<String> targetSensors = sensorRepository.getDataLinkedSensors(data.getId());
             if (sensorable != null) {
                 if ((sensorable && targetSensors.isEmpty()) ||
                    (!sensorable && !targetSensors.isEmpty())) {

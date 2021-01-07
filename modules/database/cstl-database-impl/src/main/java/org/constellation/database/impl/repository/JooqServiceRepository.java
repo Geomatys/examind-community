@@ -67,7 +67,7 @@ public class JooqServiceRepository extends AbstractJooqRespository<ServiceRecord
     public List<Service> findByDataId(int dataId) {
         final List<org.constellation.database.api.jooq.tables.pojos.Service> results = new ArrayList<>();
 
-        results.addAll(dsl.select().from(SERVICE).join(Tables.LAYER).onKey()
+        results.addAll(dsl.select(SERVICE.fields()).from(SERVICE).join(Tables.LAYER).onKey()
                 .where(Tables.LAYER.DATA.eq(dataId))
                 .fetchInto(org.constellation.database.api.jooq.tables.pojos.Service.class));
 
@@ -105,20 +105,30 @@ public class JooqServiceRepository extends AbstractJooqRespository<ServiceRecord
     }
 
     @Override
-    public boolean exist(Integer id) {
+    public boolean existsById(Integer id) {
         return dsl.fetchExists(dsl.selectOne().from(SERVICE).where(SERVICE.ID.eq(id)));
-
     }
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public void delete(Integer id) {
+    public int delete(Integer id) {
         dsl.delete(SENSOR_X_SOS).where(SENSOR_X_SOS.SOS_ID.eq(id)).execute();
         dsl.delete(PROVIDER_X_SOS).where(PROVIDER_X_SOS.SOS_ID.eq(id)).execute();
         dsl.delete(PROVIDER_X_CSW).where(PROVIDER_X_CSW.CSW_ID.eq(id)).execute();
         dsl.delete(SERVICE_DETAILS).where(SERVICE_DETAILS.ID.eq(id)).execute();
         dsl.delete(SERVICE_EXTRA_CONFIG).where(SERVICE_EXTRA_CONFIG.ID.eq(id)).execute();
-        dsl.delete(SERVICE).where(SERVICE.ID.eq(id)).execute();
+        return dsl.delete(SERVICE).where(SERVICE.ID.eq(id)).execute();
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public int deleteAll() {
+        dsl.delete(SENSOR_X_SOS).execute();
+        dsl.delete(PROVIDER_X_SOS).execute();
+        dsl.delete(PROVIDER_X_CSW).execute();
+        dsl.delete(SERVICE_DETAILS).execute();
+        dsl.delete(SERVICE_EXTRA_CONFIG).execute();
+        return dsl.delete(SERVICE).execute();
     }
 
     @Override
@@ -214,8 +224,10 @@ public class JooqServiceRepository extends AbstractJooqRespository<ServiceRecord
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public void updateExtraFile(Integer serviceID, String fileName, String config) {
-        int updateCount = dsl.update(SERVICE_EXTRA_CONFIG).set(SERVICE_EXTRA_CONFIG.CONTENT, config)
-                .set(SERVICE_EXTRA_CONFIG.FILENAME, fileName).where(SERVICE_EXTRA_CONFIG.ID.eq(serviceID))
+        int updateCount = dsl.update(SERVICE_EXTRA_CONFIG)
+                .set(SERVICE_EXTRA_CONFIG.CONTENT, config)
+                .where(SERVICE_EXTRA_CONFIG.ID.eq(serviceID))
+                .and(SERVICE_EXTRA_CONFIG.FILENAME.eq(fileName))
                 .execute();
         if (updateCount == 0) {
             ServiceExtraConfigRecord newRecord = dsl.newRecord(SERVICE_EXTRA_CONFIG);
@@ -358,7 +370,7 @@ public class JooqServiceRepository extends AbstractJooqRespository<ServiceRecord
     @Override
     public Service getLinkedMetadataService(int providerId) {
         return dsl.select(SERVICE.fields()).from(Arrays.asList(PROVIDER_X_CSW,SERVICE))
-                .where(PROVIDER_X_CSW.CSW_ID.eq(providerId))
+                .where(PROVIDER_X_CSW.PROVIDER_ID.eq(providerId))
                 .and(PROVIDER_X_CSW.CSW_ID.eq(SERVICE.ID)).fetchOneInto(Service.class);
     }
 

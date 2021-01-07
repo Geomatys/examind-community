@@ -43,6 +43,20 @@ public class MapContextDTO extends Identifiable implements Serializable{
     public MapContextDTO() {
     }
 
+    public MapContextDTO(MapContextDTO mc) {
+        this.id = mc.id;
+        this.name = mc.name;
+        this.owner = mc.owner;
+        this.description = mc.description;
+        this.crs = mc.crs;
+        this.west = mc.west;
+        this.north = mc.north;
+        this.east = mc.east;
+        this.south = mc.south;
+        this.keywords = mc.keywords;
+        this.userOwner = mc.userOwner;
+    }
+
     public MapContextDTO(Integer id,
 		String  name,
 		Integer owner,

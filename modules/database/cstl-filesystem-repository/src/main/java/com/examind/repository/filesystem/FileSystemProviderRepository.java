@@ -41,6 +41,7 @@ import static com.examind.repository.filesystem.FileSystemUtilities.PROVIDER_DIR
 import static com.examind.repository.filesystem.FileSystemUtilities.getDirectory;
 import static com.examind.repository.filesystem.FileSystemUtilities.getObjectFromPath;
 import static com.examind.repository.filesystem.FileSystemUtilities.writeObjectInPath;
+import java.util.HashSet;
 
 /**
  *
@@ -86,8 +87,6 @@ public class FileSystemProviderRepository extends AbstractFileSystemRepository i
         }
     }
 
-
-
     @Override
     public List<Integer> getAllIds() {
         return new ArrayList<>(byId.keySet());
@@ -115,7 +114,7 @@ public class FileSystemProviderRepository extends AbstractFileSystemRepository i
     }
 
     @Override
-    public boolean existById(Integer id) {
+    public boolean existsById(Integer id) {
         return byId.containsKey(id);
     }
 
@@ -211,7 +210,7 @@ public class FileSystemProviderRepository extends AbstractFileSystemRepository i
     }
 
     @Override
-    public int delete(int id) {
+    public int delete(Integer id) {
         if (byId.containsKey(id)) {
 
             ProviderBrief provider = byId.get(id);
@@ -234,6 +233,15 @@ public class FileSystemProviderRepository extends AbstractFileSystemRepository i
             return 1;
         }
         return 0;
+    }
+
+    @Override
+    public int deleteAll() {
+        int cpt = 0;
+        for (Integer id : new HashSet<>(byId.keySet())) {
+            cpt = cpt + delete(id);
+        }
+        return cpt;
     }
 
     @Override

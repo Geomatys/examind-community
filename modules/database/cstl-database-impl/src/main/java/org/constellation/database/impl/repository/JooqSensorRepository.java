@@ -35,7 +35,7 @@ public class JooqSensorRepository extends AbstractJooqRespository<SensorRecord, 
     }
 
     @Override
-    public List<String> getLinkedSensors(Integer dataID) {
+    public List<String> getDataLinkedSensors(Integer dataID) {
         return dsl.select(SENSOR.IDENTIFIER).from(SENSOR).join(SENSORED_DATA).onKey()
                 .where(SENSORED_DATA.DATA.eq(dataID)).fetch(SENSOR.IDENTIFIER);
     }
@@ -100,9 +100,15 @@ public class JooqSensorRepository extends AbstractJooqRespository<SensorRecord, 
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public void deleteAll() {
+    public int deleteAll() {
         dsl.delete(SENSOR_X_SOS).execute();
-        dsl.delete(SENSOR).execute();
+        return dsl.delete(SENSOR).execute();
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public int delete(Integer id) {
+        return dsl.delete(SENSOR).where(SENSOR.ID.eq(id)).execute();
     }
 
     @Override
@@ -162,7 +168,7 @@ public class JooqSensorRepository extends AbstractJooqRespository<SensorRecord, 
     }
 
     @Override
-    public boolean existsById(int sensorId) {
+    public boolean existsById(Integer sensorId) {
         return dsl.selectCount().from(SENSOR)
                 .where(SENSOR.ID.eq(sensorId))
                 .fetchOne(0, Integer.class) > 0;
@@ -185,21 +191,21 @@ public class JooqSensorRepository extends AbstractJooqRespository<SensorRecord, 
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public void linkSensorToSOS(int sensorID, int sosID) {
-        dsl.insertInto(SENSOR_X_SOS).set(SENSOR_X_SOS.SENSOR_ID, sensorID).set(SENSOR_X_SOS.SOS_ID, sosID).execute();
+    public void linkSensorToService(int sensorID, int servID) {
+        dsl.insertInto(SENSOR_X_SOS).set(SENSOR_X_SOS.SENSOR_ID, sensorID).set(SENSOR_X_SOS.SOS_ID, servID).execute();
     }
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public void unlinkSensorFromSOS(int sensorID, int sosID) {
-        dsl.delete(SENSOR_X_SOS).where(SENSOR_X_SOS.SENSOR_ID.eq(sensorID)).and(SENSOR_X_SOS.SOS_ID.eq(sosID)).execute();
+    public void unlinkSensorFromService(int sensorID, int servID) {
+        dsl.delete(SENSOR_X_SOS).where(SENSOR_X_SOS.SENSOR_ID.eq(sensorID)).and(SENSOR_X_SOS.SOS_ID.eq(servID)).execute();
     }
 
     @Override
-    public boolean isLinkedSensorToSOS(int sensorID, int sosID) {
+    public boolean isLinkedSensorToService(int sensorID, int servID) {
         return dsl.selectCount().from(SENSOR_X_SOS)
                 .where(SENSOR_X_SOS.SENSOR_ID.eq(sensorID))
-                .and(SENSOR_X_SOS.SOS_ID.eq(sosID))
+                .and(SENSOR_X_SOS.SOS_ID.eq(servID))
                 .fetchOne(0, Integer.class) > 0;
     }
     

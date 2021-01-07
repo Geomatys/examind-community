@@ -18,7 +18,9 @@
  */
 package com.examind.repository;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.metadata.Metadata;
 import org.constellation.repository.DataRepository;
@@ -54,7 +56,13 @@ public class MetadataRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void crude() {
 
+       //cleanup
+        dataRepository.deleteAll();
+        datasetRepository.deleteAll();
+        serviceRepository.deleteAll();
+        providerRepository.deleteAll();
         metadataRepository.deleteAll();
+
         List<Metadata> all = metadataRepository.findAll();
         Assert.assertTrue(all.isEmpty());
 
@@ -85,12 +93,17 @@ public class MetadataRepositoryTest extends AbstractRepositoryTest {
         int mid3 = metadataRepository.create(TestSamples.newMetadata(owner.getId(), "meta-3", null, null, sid));
         Assert.assertNotNull(mid3);
 
+        int mid4 = metadataRepository.create(TestSamples.newMetadataQuote(owner.getId(), "meta'4"));
+        Assert.assertNotNull(mid4);
+
         Metadata m1 = metadataRepository.findById(mid1);
         Assert.assertNotNull(m1);
         Metadata m2 = metadataRepository.findById(mid2);
         Assert.assertNotNull(m2);
         Metadata m3 = metadataRepository.findById(mid3);
         Assert.assertNotNull(m3);
+        Metadata m4 = metadataRepository.findById(mid4);
+        Assert.assertNotNull(m4);
 
         /**
          * metadata search
@@ -101,6 +114,54 @@ public class MetadataRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals(m2, metadataRepository.findByDatasetId(dsid));
 
         Assert.assertEquals(m3, metadataRepository.findByServiceId(sid));
+
+        Assert.assertEquals(m4, metadataRepository.findByMetadataId("meta'4"));
+
+        Assert.assertTrue(metadataRepository.existMetadataTitle("tt'le"));
+
+        final Map<String,Object> filterMap = new HashMap<>();
+        filterMap.put("owner", owner.getId());
+        List<Map<String, Object>> results = metadataRepository.filterAndGetWithoutPagination(filterMap);
+        Assert.assertEquals(4, results.size());
+        Assert.assertEquals(mid1, (int) results.get(0).get("id"));
+
+        filterMap.clear();
+        filterMap.put("data", did1);
+        results = metadataRepository.filterAndGetWithoutPagination(filterMap);
+        Assert.assertEquals(1, results.size());
+        Assert.assertEquals(mid1, (int) results.get(0).get("id"));
+
+        filterMap.clear();
+        filterMap.put("dataset", dsid);
+        results = metadataRepository.filterAndGetWithoutPagination(filterMap);
+        Assert.assertEquals(1, results.size());
+        Assert.assertEquals(mid2, (int) results.get(0).get("id"));
+
+        filterMap.clear();
+        filterMap.put("profile", "profile_import");
+        results = metadataRepository.filterAndGetWithoutPagination(filterMap);
+        Assert.assertEquals(3, results.size());
+        Assert.assertEquals(mid1, (int) results.get(0).get("id"));
+        Assert.assertEquals(mid2, (int) results.get(1).get("id"));
+        Assert.assertEquals(mid3, (int) results.get(2).get("id"));
+
+        filterMap.clear();
+        filterMap.put("profile", "profile'; delete * from * 'import");
+        results = metadataRepository.filterAndGetWithoutPagination(filterMap);
+        Assert.assertEquals(1, results.size());
+        Assert.assertEquals(mid4, (int) results.get(0).get("id"));
+
+        filterMap.clear();
+        filterMap.put("identifier", "meta'4");
+        results = metadataRepository.filterAndGetWithoutPagination(filterMap);
+        Assert.assertEquals(1, results.size());
+        Assert.assertEquals(mid4, (int) results.get(0).get("id"));
+
+        filterMap.clear();
+        filterMap.put("term", "tt'le");
+        results = metadataRepository.filterAndGetWithoutPagination(filterMap);
+        Assert.assertEquals(1, results.size());
+        Assert.assertEquals(mid4, (int) results.get(0).get("id"));
 
         /**
          * metadata deletion
@@ -113,11 +174,10 @@ public class MetadataRepositoryTest extends AbstractRepositoryTest {
         Assert.assertNull(m1);
 
         //cleanup
-        dataRepository.delete(did1);
-        datasetRepository.delete(dsid);
-        serviceRepository.delete(sid);
-        providerRepository.delete(pid);
-
-
+        dataRepository.deleteAll();
+        datasetRepository.deleteAll();
+        serviceRepository.deleteAll();
+        providerRepository.deleteAll();
+        metadataRepository.deleteAll();
     }
 }

@@ -18,6 +18,10 @@
  */
 package com.examind.repository.filesystem;
 
+import static com.examind.repository.filesystem.FileSystemUtilities.SERVICE_X_META_PROV_DIR;
+import static com.examind.repository.filesystem.FileSystemUtilities.SERVICE_X_SENS_PROV_DIR;
+import static com.examind.repository.filesystem.FileSystemUtilities.getDirectory;
+import static com.examind.repository.filesystem.FileSystemUtilities.getIntegerList;
 import static com.examind.repository.filesystem.FileSystemUtilities.getObjectFromPath;
 import static com.examind.repository.filesystem.FileSystemUtilities.writeObjectInPath;
 import java.io.IOException;
@@ -25,18 +29,20 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.xml.bind.JAXBException;
 import org.constellation.api.ServiceDef;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.Layer;
 import org.constellation.dto.ServiceReference;
+import org.constellation.dto.StringList;
 import org.constellation.dto.service.Service;
 import org.constellation.exception.ConstellationPersistenceException;
 import org.constellation.repository.LayerRepository;
@@ -57,13 +63,15 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
     private final Map<Integer, Map<String, String>> loadedServiceDetails = new HashMap<>();
     private final Map<String, Map<String, Service>> byTypeNameService = new HashMap<>();
     private final Map<Integer, Map<String, String>> extraConfigs = new HashMap<>();
+    private final Map<Integer, Service> byMetaProvider = new HashMap<>();
+    private final Map<Integer, List<Service>> bySensorProvider = new HashMap<>();
 
     @Autowired
     private LayerRepository layerRepository;
 
 
     public FileSystemServiceRepository() {
-        super(Service.class);
+        super(Service.class, StringList.class);
         load();
     }
 
@@ -105,6 +113,33 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
                     }
                     loadedServiceDetails.put(serObj.getId(), servdetails);
 
+                    Path servMetaProvDir = getDirectory(SERVICE_X_META_PROV_DIR);
+                    try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(servMetaProvDir)) {
+                        for (Path sensorProvFile : directoryStream) {
+                            StringList sensorList = (StringList) getObjectFromPath(sensorProvFile, pool);
+                            String fileName = sensorProvFile.getFileName().toString();
+                            Integer providerId = Integer.parseInt(fileName.substring(0, fileName.length() - 4));
+                            // only one
+                            Service linked = null;
+                            for (Integer servId : getIntegerList(sensorList)) {
+                                linked = byId.get(servId);
+                            }
+                            byMetaProvider.put(providerId, linked);
+                        }
+                    }
+                    Path sensorProvDir = getDirectory(SERVICE_X_SENS_PROV_DIR);
+                    try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(sensorProvDir)) {
+                        for (Path sensorProvFile : directoryStream) {
+                            StringList styleList = (StringList) getObjectFromPath(sensorProvFile, pool);
+                            String fileName = sensorProvFile.getFileName().toString();
+                            Integer providerId = Integer.parseInt(fileName.substring(0, fileName.length() - 4));
+                            List<Service> linked = new ArrayList<>();
+                            for (Integer serviceId : getIntegerList(styleList)) {
+                                linked.add(byId.get(serviceId));
+                            }
+                            bySensorProvider.put(providerId, linked);
+                        }
+                    }
                     incCurrentId(serObj);
                     
                     Path metadataFile = p.resolve("metadata.xml");
@@ -213,7 +248,7 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
     }
 
     @Override
-    public boolean exist(Integer id) {
+    public boolean existsById(Integer id) {
         return byId.containsKey(id);
     }
 
@@ -243,14 +278,14 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
     }
 
     @Override
-    public void delete(Integer id) {
+    public int delete(Integer id) {
         Service service = byId.get(id);
         if (service != null) {
             Path servDir = ConfigDirectory.getInstanceDirectory(service.getType(), service.getIdentifier());
             try {
                 IOUtilities.deleteRecursively(servDir);
             } catch (IOException ex) {
-                Logger.getLogger(FileSystemServiceRepository.class.getName()).log(Level.SEVERE, null, ex);
+                LOGGER.log(Level.SEVERE, null, ex);
             }
             byId.remove(id);
             loadedServiceDetails.remove(id);
@@ -259,7 +294,18 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
                 byType.remove(service.getIdentifier());
             }
             extraConfigs.remove(id);
+            return 1;
         }
+        return 0;
+    }
+
+    @Override
+    public int deleteAll() {
+        int cpt = 0;
+        for (Integer ds : new HashSet<>(byId.keySet())) {
+            cpt = cpt + delete(ds);
+        }
+        return cpt;
     }
 
     @Override
@@ -339,6 +385,9 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
             Path extraFile  = extraFiles.resolve("fileName");
 
             try {
+                if (!Files.isDirectory(extraFiles)) {
+                    Files.createDirectory(extraFiles);
+                }
                 IOUtilities.writeString(config, extraFile);
             } catch (IOException ex) {
                 throw new ConstellationPersistenceException("unable to write extra file:" + extraFile.toString());
@@ -386,55 +435,100 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
 
     @Override
     public List<Integer> getLinkedSensorProviders(Integer serviceId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        List<Integer> results = new ArrayList<>();
+        for (Integer pid : bySensorProvider.keySet()) {
+            List<Service> ss = bySensorProvider.get(pid);
+            for (Service s : ss) {
+                if (s.getId().equals(serviceId)) {
+                    results.add(pid);
+                }
+            }
+        }
+        return results;
     }
 
     @Override
     public List<Service> getLinkedSOSServices(Integer providerId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (bySensorProvider.containsKey(providerId)) {
+            return bySensorProvider.get(providerId);
+        }
+        return new ArrayList<>();
     }
 
     @Override
     public void linkSensorProvider(int serviceId, int providerID, boolean allSensor) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Path sensorProvDir = getDirectory(SERVICE_X_SENS_PROV_DIR);
+        boolean found = false;
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(sensorProvDir)) {
+            for (Path sensorProvFile : directoryStream) {
+                String fileName = sensorProvFile.getFileName().toString();
+                Integer currentProvId = Integer.parseInt(fileName.substring(0, fileName.length() - 4));
+
+                // update file
+                if (currentProvId.equals(providerID)) {
+                    found = true;
+                    StringList serviceList = (StringList) getObjectFromPath(sensorProvFile, pool);
+                    List<Integer> serviceIds = getIntegerList(serviceList);
+                    if (!serviceIds.contains(serviceId)) {
+                        serviceIds.add(serviceId);
+
+                        // update fs
+                        writeObjectInPath(serviceList, sensorProvFile, pool);
+
+                        // update memory
+                        List<Service> services = bySensorProvider.get(providerID);
+                        services.add(byId.get(serviceId));
+                    }
+                }
+            }
+
+            // create new file
+            if (!found) {
+                // update fs
+                StringList serviceList = new StringList(Arrays.asList(serviceId + ""));
+                Path sensorProvFile = sensorProvDir.resolve(providerID + ".xml");
+                writeObjectInPath(serviceList, sensorProvFile, pool);
+
+                // update memory
+                List<Service> services = new ArrayList<>();
+                services.add(byId.get(serviceId));
+                bySensorProvider.put(providerID, services);
+            }
+        } catch (IOException | JAXBException ex) {
+            LOGGER.log(Level.WARNING, "Error while linking sensor and service", ex);
+        }
     }
 
     @Override
     public void removelinkedSensorProviders(int serviceId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Path sensorProvDir = getDirectory(SERVICE_X_SENS_PROV_DIR);
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(sensorProvDir)) {
+            for (Path sensorProvFile : directoryStream) {
+                String fileName = sensorProvFile.getFileName().toString();
+                Integer currentProvId = Integer.parseInt(fileName.substring(0, fileName.length() - 4));
+
+                // update file
+                StringList serviceList = (StringList) getObjectFromPath(sensorProvFile, pool);
+                List<Integer> serviceIds = getIntegerList(serviceList);
+                if (serviceIds.contains(serviceId)) {
+                    serviceIds.remove((Integer)serviceId);
+
+                    // update fs
+                    writeObjectInPath(serviceList, sensorProvFile, pool);
+
+                    // update memory
+                    List<Service> services = bySensorProvider.get(currentProvId);
+                    services.remove(byId.get(serviceId));
+                }
+                
+            }
+        } catch (IOException | JAXBException ex) {
+            LOGGER.log(Level.WARNING, "Error while unlinking sensor providers", ex);
+        }
     }
 
     @Override
     public void removelinkedSensors(int serviceId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-     ////--------------------------------------------------------------------///
-    ////------------------------    CSW         ----------------------------///
-    ////--------------------------------------------------------------------///
-
-    @Override
-    public Integer getLinkedMetadataProvider(int serviceId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void linkMetadataProvider(int serviceId, int providerID, boolean allMetadata) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public Service getLinkedMetadataService(int providerId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void removelinkedMetadataProvider(int serviceId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public boolean isLinkedMetadataProviderAndService(int serviceId, int providerID) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -443,6 +537,101 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    
+     ////--------------------------------------------------------------------///
+    ////------------------------    CSW         ----------------------------///
+    ////--------------------------------------------------------------------///
+
+    @Override
+    public Integer getLinkedMetadataProvider(int serviceId) {
+        for (Integer pid : byMetaProvider.keySet()) {
+            Service s = byMetaProvider.get(pid);
+            if (s.getId() == serviceId) {
+                return pid;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Service getLinkedMetadataService(int providerId) {
+        return byMetaProvider.get(providerId);
+    }
+
+    @Override
+    public boolean isLinkedMetadataProviderAndService(int serviceId, int providerID) {
+        Service s = byMetaProvider.get(providerID);
+        return s != null && s.getId().equals(serviceId);
+    }
+
+    @Override
+    public void linkMetadataProvider(int serviceId, int providerID, boolean allMetadata) {
+        Path metaProvDir = getDirectory(SERVICE_X_META_PROV_DIR);
+        boolean found = false;
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(metaProvDir)) {
+            for (Path metaProvFile : directoryStream) {
+                String fileName = metaProvFile.getFileName().toString();
+                Integer currentProvId = Integer.parseInt(fileName.substring(0, fileName.length() - 4));
+
+                // update file
+                if (currentProvId.equals(providerID)) {
+                    found = true;
+                    StringList serviceList = (StringList) getObjectFromPath(metaProvFile, pool);
+                    List<Integer> serviceIds = getIntegerList(serviceList);
+                    if (!serviceIds.contains(serviceId)) {
+                        serviceIds.add(serviceId);
+
+                        // update fs
+                        writeObjectInPath(serviceList, metaProvFile, pool);
+
+                        // update memory
+                        byMetaProvider.put(providerID,  byId.get(serviceId));
+                    }
+                }
+            }
+
+            // create new file
+            if (!found) {
+                // update fs
+                StringList serviceList = new StringList(Arrays.asList(serviceId + ""));
+                Path metaProvFile = metaProvDir.resolve(providerID + ".xml");
+                writeObjectInPath(serviceList, metaProvFile, pool);
+
+                // update memory
+                byMetaProvider.put(providerID, byId.get(serviceId));
+            }
+        } catch (IOException | JAXBException ex) {
+            LOGGER.log(Level.WARNING, "Error while linking sensor and service", ex);
+        }
+    }
+
+    @Override
+    public void removelinkedMetadataProvider(int serviceId) {
+        Path metaProvDir = getDirectory(SERVICE_X_META_PROV_DIR);
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(metaProvDir)) {
+            for (Path metaProvFile : directoryStream) {
+                String fileName = metaProvFile.getFileName().toString();
+                Integer currentProvId = Integer.parseInt(fileName.substring(0, fileName.length() - 4));
+
+                // update file
+                StringList serviceList = (StringList) getObjectFromPath(metaProvFile, pool);
+                List<Integer> serviceIds = getIntegerList(serviceList);
+                if (serviceIds.contains(serviceId)) {
+                    serviceIds.remove((Integer)serviceId);
+
+                    // update fs
+                    writeObjectInPath(serviceList, metaProvFile, pool);
+
+                    // update memory
+                    byMetaProvider.remove(currentProvId);
+                }
+            }
+        } catch (IOException | JAXBException ex) {
+            LOGGER.log(Level.WARNING, "Error while unlinking metadata providers", ex);
+        }
+    }
+
+   
     @Override
     public List<String> getServiceDefinedLanguage(int serviceId) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.

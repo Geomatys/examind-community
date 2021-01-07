@@ -53,7 +53,9 @@ import org.constellation.dto.process.Task;
      */
      void update(Task task);
 
-     void delete(String uuid);
+     int delete(String uuid);
+
+     int deleteAll();
      
     /**
      * List all the tasks with the state "RUNNING".

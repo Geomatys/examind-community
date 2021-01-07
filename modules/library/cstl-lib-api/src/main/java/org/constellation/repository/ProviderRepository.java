@@ -22,13 +22,11 @@ import java.util.List;
 
 import org.constellation.dto.ProviderBrief;
 
-public interface ProviderRepository {
+public interface ProviderRepository extends AbstractRepository {
 
     List<ProviderBrief> findAll();
 
     ProviderBrief findOne(Integer id);
-
-    boolean existById(Integer id);
 
     ProviderBrief findForData(Integer dataId);
 
@@ -41,8 +39,6 @@ public interface ProviderRepository {
     ProviderBrief findByIdentifier(String providerIdentifier);
 
     Integer create(ProviderBrief newProvider);
-
-    int delete(int id);
 
     int deleteByIdentifier(String providerID);
 

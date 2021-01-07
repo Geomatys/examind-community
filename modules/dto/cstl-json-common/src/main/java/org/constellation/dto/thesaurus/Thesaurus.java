@@ -21,6 +21,7 @@ package org.constellation.dto.thesaurus;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import javax.xml.bind.annotation.XmlRootElement;
 import org.constellation.dto.Identifiable;
 
@@ -186,5 +187,60 @@ public class Thesaurus extends Identifiable implements Serializable {
 
     public void setSchemaName(String schemaName) {
         this.schemaName = schemaName;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof Thesaurus) {
+            final Thesaurus that = (Thesaurus) obj;
+            return Objects.equals(this.creationDate, that.creationDate) &&
+                   Objects.equals(this.defaultLang, that.defaultLang) &&
+                   Objects.equals(this.description, that.description) &&
+                   Objects.equals(this.id, that.id) &&
+                   Objects.equals(this.langs, that.langs) &&
+                   Objects.equals(this.name, that.name) &&
+                   Objects.equals(this.state, that.state) &&
+                   Objects.equals(this.schemaName, that.schemaName) &&
+                   Objects.equals(this.uri, that.uri) &&
+                   Objects.equals(this.version, that.version);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 97 * hash + Objects.hashCode(this.uri);
+        hash = 97 * hash + Objects.hashCode(this.name);
+        hash = 97 * hash + Objects.hashCode(this.description);
+        hash = 97 * hash + Objects.hashCode(this.creationDate);
+        hash = 97 * hash + (this.state ? 1 : 0);
+        hash = 97 * hash + Objects.hashCode(this.langs);
+        hash = 97 * hash + Objects.hashCode(this.defaultLang);
+        hash = 97 * hash + Objects.hashCode(this.version);
+        hash = 97 * hash + Objects.hashCode(this.schemaName);
+        return hash;
+    }
+
+    
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Thesaurus{");
+        sb.append("uri=").append(uri);
+        sb.append(", id='").append(id).append('\'');
+        sb.append(", name='").append(name).append('\'');
+        sb.append(", description='").append(description).append('\'');
+        sb.append(", creationDate='").append(creationDate).append('\'');
+        sb.append(", state='").append(state).append('\'');
+        sb.append(", langs='").append(langs).append('\'');
+        sb.append(", defaultLang='").append(defaultLang).append('\'');
+        sb.append(", version='").append(version).append('\'');
+        sb.append(", schemaName='").append(schemaName).append('\'');
+        sb.append('}');
+        return sb.toString();
     }
 }

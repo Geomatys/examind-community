@@ -54,13 +54,13 @@ public class LayerRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void crud() {
+        dataRepository.deleteAll();
+        providerRepository.deleteAll();
+        datasetRepository.deleteAll();
+        layerRepository.deleteAll();
+        serviceRepository.deleteAll();
 
-        // no removeAll method
         List<Layer> all = layerRepository.findAll();
-        for (Layer p : all) {
-            layerRepository.delete(p.getId());
-        }
-        all = layerRepository.findAll();
         Assert.assertTrue(all.isEmpty());
 
         CstlUser owner = getOrCreateUser();
@@ -75,18 +75,42 @@ public class LayerRepositoryTest extends AbstractRepositoryTest {
         Integer did1 = dataRepository.create(TestSamples.newData1(owner.getId(), pid, dsid));
         Assert.assertNotNull(did1);
 
-        Integer sid = serviceRepository.create(TestSamples.newService(owner.getId()));
-        Assert.assertNotNull(sid);
+        Integer did2 = dataRepository.create(TestSamples.newData2(owner.getId(), pid, dsid));
+        Assert.assertNotNull(did2);
+
+        Integer sid1 = serviceRepository.create(TestSamples.newService(owner.getId()));
+        Assert.assertNotNull(sid1);
+
+        Integer sid2 = serviceRepository.create(TestSamples.newService2(owner.getId()));
+        Assert.assertNotNull(sid2);
 
         /**
          * Layer insertion
          */
 
-        Integer lid = layerRepository.create(TestSamples.newLayer(owner.getId(), did1, sid));
-        Assert.assertNotNull(lid);
+        Integer lid1 = layerRepository.create(TestSamples.newLayer(owner.getId(), did1, sid1));
+        Assert.assertNotNull(lid1);
 
-        Layer l1 = layerRepository.findById(lid);
+        Layer l1 = layerRepository.findById(lid1);
         Assert.assertNotNull(l1);
+
+        Integer lid2 = layerRepository.create(TestSamples.newLayer2(owner.getId(), did2, sid2));
+        Assert.assertNotNull(lid2);
+
+        Layer l2 = layerRepository.findById(lid2);
+        Assert.assertNotNull(l2);
+
+        Integer lid3 = layerRepository.create(TestSamples.newLayer3(owner.getId(), did1, sid2));
+        Assert.assertNotNull(lid3);
+
+        Layer l3 = layerRepository.findById(lid3);
+        Assert.assertNotNull(l3);
+
+        Integer lid4 = layerRepository.create(TestSamples.newLayer4(owner.getId(), did2, sid1));
+        Assert.assertNotNull(lid4);
+
+        Layer l4 = layerRepository.findById(lid4);
+        Assert.assertNotNull(l4);
 
         /**
          * layer search
@@ -95,26 +119,70 @@ public class LayerRepositoryTest extends AbstractRepositoryTest {
         Assert.assertTrue(layers.contains(l1));
 
         List<Integer> lids = layerRepository.findByDataId(did1);
-        Assert.assertTrue(lids.contains(lid));
+        Assert.assertEquals(2, lids.size());
+        Assert.assertTrue(lids.contains(lid1));
+        Assert.assertTrue(lids.contains(lid3));
 
-        layers = layerRepository.findByServiceId(sid);
+        lids = layerRepository.findByDataId(did2);
+        Assert.assertEquals(2, lids.size());
+        Assert.assertTrue(lids.contains(lid2));
+        Assert.assertTrue(lids.contains(lid4));
+
+        layers = layerRepository.findByServiceId(sid1);
+        Assert.assertEquals(2, layers.size());
         Assert.assertTrue(layers.contains(l1));
+        Assert.assertTrue(layers.contains(l4));
 
+        layers = layerRepository.findByServiceId(sid2);
+        Assert.assertEquals(2, layers.size());
+        Assert.assertTrue(layers.contains(l2));
+        Assert.assertTrue(layers.contains(l3));
+
+        Layer l = layerRepository.findByServiceIdAndAlias(sid2, "layer'; delete from admin.layer;'Alias");
+        Assert.assertNotNull(l);
+        Assert.assertEquals(l2, l);
+
+        l = layerRepository.findByServiceIdAndLayerName(sid2, "testlayer3");
+        Assert.assertNotNull(l);
+        Assert.assertEquals(l3, l);
+
+        l = layerRepository.findByServiceIdAndLayerName(sid1, "test'l'ayer4;", "test' nmsp");
+        Assert.assertNotNull(l);
+        Assert.assertEquals(l4, l);
+
+        layerRepository.updateLayerTitle(lid4, "some'; delete * from admin.layers;");
+        l = layerRepository.findById(lid4);
+        Assert.assertNotNull(l);
+
+        Assert.assertEquals("some'; delete * from admin.layers;", l.getTitle());
+
+        l.setAlias("bloup'; '");
+        layerRepository.update(l);
+
+        l = layerRepository.findById(lid4);
+        Assert.assertNotNull(l);
+
+        Assert.assertEquals("bloup'; '", l.getAlias());
 
         /**
          * layer deletion
          */
-        layerRepository.delete(lid);
+        layerRepository.deleteServiceLayer(sid2);
+        layers = layerRepository.findByServiceId(sid2);
+        Assert.assertEquals(0, layers.size());
 
-        Layer layer = layerRepository.findById(lid);
+        layerRepository.delete(lid1);
+
+        Layer layer = layerRepository.findById(lid1);
         Assert.assertNull(layer);
 
 
         // cleanup after test
-        serviceRepository.delete(sid);
-        dataRepository.delete(did1);
-        providerRepository.delete(pid);
-        datasetRepository.delete(dsid);
+        dataRepository.deleteAll();
+        providerRepository.deleteAll();
+        datasetRepository.deleteAll();
+        layerRepository.deleteAll();
+        serviceRepository.deleteAll();
 
     }
 

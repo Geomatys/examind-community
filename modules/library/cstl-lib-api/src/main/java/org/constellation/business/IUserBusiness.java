@@ -53,7 +53,7 @@ public interface IUserBusiness {
 
     List<String> getRoles(int userId);
 
-    int countUser();
+    long countUser();
 
     boolean loginAvailable(String login);
 

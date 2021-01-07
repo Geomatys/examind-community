@@ -16,21 +16,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.examind.respository.filesystem;
+package org.constellation.repository;
 
-import com.examind.repository.UserRepositoryTest;
-import org.junit.Test;
-import org.springframework.transaction.annotation.Transactional;
+/**
+ *
+ * @author Guilhem Legal (Geomatys)
+ */
+public interface AbstractRepository {
 
-@Transactional
-public class FSUserRepositoryTest extends UserRepositoryTest {
+    /**
+     * Delete the object identified by its id.
+     *
+     * @param id Object identifier.
+     * @return
+     */
+    int delete(Integer id);
 
+    /**
+     * Delete all the objects in this repository.
+     *
+     * @return
+     */
+    int deleteAll();
 
-    @Test
-    @Transactional()
-    @Override
-    public void crude() throws Throwable {
-        super.crude();
-    }
-
+    /**
+     * Test if an object exist.
+     *
+     * @param id Object identifier.
+     * @return
+     */
+    boolean existsById(Integer id);
 }

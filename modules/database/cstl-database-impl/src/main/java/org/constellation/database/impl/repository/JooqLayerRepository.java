@@ -30,7 +30,6 @@ import javax.xml.namespace.QName;
 import org.constellation.dto.Layer;
 import org.constellation.database.api.jooq.tables.records.LayerRecord;
 import org.constellation.repository.LayerRepository;
-import org.jooq.DeleteConditionStep;
 import org.jooq.Field;
 import org.jooq.UpdateConditionStep;
 import org.springframework.stereotype.Component;
@@ -97,14 +96,26 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, or
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public void delete(int layerId) {
-        final DeleteConditionStep<LayerRecord> delete = dsl.delete(LAYER).where(LAYER.ID.eq(layerId));
-        delete.execute();
+    public int delete(Integer layerId) {
+        return dsl.delete(LAYER).where(LAYER.ID.eq(layerId)).execute();
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public int deleteAll() {
+        return dsl.delete(LAYER).execute();
     }
 
     @Override
     public Layer findById(Integer layerId) {
         return convertIntoDto(dsl.select().from(LAYER).where(LAYER.ID.eq(layerId)).fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
+    }
+
+    @Override
+    public boolean existsById(Integer id) {
+        return dsl.selectCount().from(LAYER)
+                .where(LAYER.ID.eq(id))
+                .fetchOne(0, Integer.class) > 0;
     }
 
     @Override

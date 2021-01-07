@@ -163,7 +163,7 @@ public class DataCoverageJob implements IDataCoverageJob {
                 data.setStatsState(STATE_PENDING);
                 updateData(data);
 
-                if (providerRepository.existById(data.getProviderId())) {
+                if (providerRepository.existsById(data.getProviderId())) {
                     final DataProvider dataProvider = DataProviders.getProvider(data.getProviderId());
                     final org.constellation.provider.Data dataP = dataProvider.get(data.getNamespace(), data.getName());
                     final Resource res = dataP.getOrigin();

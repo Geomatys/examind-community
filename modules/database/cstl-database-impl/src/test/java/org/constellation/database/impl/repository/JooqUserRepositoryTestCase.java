@@ -25,13 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class JooqUserRepositoryTestCase extends UserRepositoryTest {
 
-
-    @Test
-    @Override
-    public void all() {
-        super.all();
-    }
-
     @Test
     @Transactional()
     @Override

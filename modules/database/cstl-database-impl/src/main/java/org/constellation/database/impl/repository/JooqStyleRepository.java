@@ -140,14 +140,14 @@ public class JooqStyleRepository extends AbstractJooqRespository<StyleRecord, or
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public void delete(int styleId) {
-        dsl.delete(STYLE).where(STYLE.ID.eq(styleId)).execute();
+    public int delete(Integer styleId) {
+        return dsl.delete(STYLE).where(STYLE.ID.eq(styleId)).execute();
     }
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public void deleteAll() {
-        dsl.delete(STYLE).execute();
+    public int deleteAll() {
+        return dsl.delete(STYLE).execute();
     }
 
     @Override
@@ -165,6 +165,11 @@ public class JooqStyleRepository extends AbstractJooqRespository<StyleRecord, or
         styleRecord.setOwner(style.getOwnerId());
         styleRecord.setProvider(style.getProviderId());
         styleRecord.setType(style.getType());
+        // default value
+        if (style.getIsShared() == null) {
+            style.setIsShared(false);
+        }
+        styleRecord.setIsShared(style.getIsShared());
         styleRecord.store();
         return styleRecord.getId();
     }
@@ -183,7 +188,7 @@ public class JooqStyleRepository extends AbstractJooqRespository<StyleRecord, or
     }
 
     @Override
-    public boolean existsById(int styleId) {
+    public boolean existsById(Integer styleId) {
         return dsl.selectCount().from(STYLE)
                 .where(STYLE.ID.eq(styleId))
                 .fetchOne(0, Integer.class) > 0;

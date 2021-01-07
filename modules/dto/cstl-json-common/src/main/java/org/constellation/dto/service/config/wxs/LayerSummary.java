@@ -23,6 +23,7 @@ import java.util.Date;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import java.util.List;
+import org.constellation.dto.Data;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.StyleBrief;
 
@@ -35,6 +36,12 @@ public class LayerSummary extends org.constellation.dto.Layer {
     private String type;
     private String subtype;
     private String owner;
+    
+    /**
+     * remove if possible
+     * @deprecated
+     */
+    @Deprecated
     private String provider;
     private Integer providerId;
     private List<StyleBrief> targetStyle;
@@ -71,6 +78,27 @@ public class LayerSummary extends org.constellation.dto.Layer {
         this.provider = dataProvider;
         this.providerId = dataProviderID;
         this.targetStyle = targetStyles;
+    }
+
+    /**
+     * for test purpose do no use this constructor otherwise
+     */
+    public LayerSummary(final org.constellation.dto.Layer layer, final Data db, String provider, final String owner) {
+        super(layer.getId(),
+              layer.getName(),
+              layer.getNamespace(),
+              layer.getAlias(),
+              null,
+              db.getId(),
+              layer.getDate(),
+              null,
+              db.getOwnerId(),
+              layer.getTitle());
+        this.type = db.getType();
+        this.subtype = db.getSubtype();
+        this.providerId = db.getProviderId();
+        this.provider = provider;
+        this.owner = owner;
     }
 
     public String getType() {

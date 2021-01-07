@@ -106,7 +106,7 @@ public class UserBusiness implements IUserBusiness {
     }
 
     @Override
-    public int countUser() {
+    public long countUser() {
         return userRepository.countUser();
     }
 

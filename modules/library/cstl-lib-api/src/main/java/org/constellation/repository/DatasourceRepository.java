@@ -30,15 +30,13 @@ import org.constellation.dto.DataSourcePathComplete;
  *
  * @author Guilhem Legal
  */
-public interface DatasourceRepository {
+public interface DatasourceRepository extends AbstractRepository {
 
     DataSource findById(int id);
 
     DataSource findByUrl(String url);
 
     int create(DataSource data);
-
-    int delete(int id);
 
     void deletePath(int id, String path);
 

@@ -89,6 +89,7 @@ public class LayerBusinessTest {
                 dataBusiness.deleteAll();
                 providerBusiness.removeAll();
                 datasetBusiness.removeAllDatasets();
+                serviceBusiness.deleteAll();
 
                 //Initialize geotoolkit
                 ImageIO.scanForPlugins();

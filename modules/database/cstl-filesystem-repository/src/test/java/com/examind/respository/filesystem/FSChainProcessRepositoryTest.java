@@ -2,7 +2,7 @@
  *    Constellation - An open source and standard compliant SDI
  *    http://www.constellation-sdi.org
  *
- * Copyright 2014 Geomatys.
+ * Copyright 2020 Geomatys.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,19 +18,20 @@
  */
 package com.examind.respository.filesystem;
 
-import com.examind.repository.UserRepositoryTest;
+import com.examind.repository.ChainProcessRepositoryTest;
 import org.junit.Test;
 import org.springframework.transaction.annotation.Transactional;
 
-@Transactional
-public class FSUserRepositoryTest extends UserRepositoryTest {
-
+/**
+ *
+ * @author Guilhem Legal (Geomatys)
+ */
+public class FSChainProcessRepositoryTest extends ChainProcessRepositoryTest {
 
     @Test
     @Transactional()
     @Override
-    public void crude() throws Throwable {
+    public void crude() {
         super.crude();
     }
-
 }

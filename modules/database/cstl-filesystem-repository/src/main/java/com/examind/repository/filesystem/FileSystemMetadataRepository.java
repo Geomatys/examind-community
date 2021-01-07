@@ -25,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -33,7 +34,9 @@ import org.constellation.dto.metadata.Metadata;
 import org.constellation.dto.metadata.MetadataBbox;
 import org.constellation.dto.metadata.MetadataComplete;
 import org.constellation.exception.ConstellationPersistenceException;
+import org.constellation.repository.AttachmentRepository;
 import org.constellation.repository.MetadataRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -51,6 +54,9 @@ public class FileSystemMetadataRepository extends AbstractFileSystemRepository i
     private final Map<Integer, MetadataComplete> byService = new HashMap<>();
     private final Map<Integer, MetadataComplete> byMapContext = new HashMap<>();
     private final Map<Integer, String> titles = new HashMap<>();
+
+    @Autowired
+    private AttachmentRepository attRepository;
 
     public FileSystemMetadataRepository() {
         super(MetadataComplete.class);
@@ -75,7 +81,9 @@ public class FileSystemMetadataRepository extends AbstractFileSystemRepository i
                     if (metadata.getMapContextId()!= null) {
                         byMapContext.put(metadata.getMapContextId(), metadata);
                     }
-
+                    if (metadata.getTitle()!= null) {
+                        titles.put(metadata.getId(), metadata.getTitle());
+                    }
                     if (metadata.getDataId() != null) {
                         if (!byData.containsKey(metadata.getDataId())) {
                             List<MetadataComplete> children = new ArrayList<>();
@@ -85,7 +93,6 @@ public class FileSystemMetadataRepository extends AbstractFileSystemRepository i
                             byData.get(metadata.getDataId()).add(metadata);
                         }
                     }
-
                     if (!byProvider.containsKey(metadata.getProviderId())) {
                         List<MetadataComplete> children = new ArrayList<>();
                         children.add(metadata);
@@ -102,6 +109,10 @@ public class FileSystemMetadataRepository extends AbstractFileSystemRepository i
         }
     }
 
+    @Override
+    public boolean existsById(Integer id) {
+        return byId.containsKey(id);
+    }
 
     @Override
     public List<Metadata> findAll() {
@@ -302,7 +313,9 @@ public class FileSystemMetadataRepository extends AbstractFileSystemRepository i
             if (metadata.getMapContextId() != null) {
                 byMapContext.put(metadata.getMapContextId(), metadata);
             }
-
+            if (metadata.getTitle()!= null) {
+                titles.put(metadata.getId(), metadata.getTitle());
+            }
             if (metadata.getDataId() != null) {
                 if (!byData.containsKey(metadata.getDataId())) {
                     List<MetadataComplete> children = new ArrayList<>();
@@ -312,7 +325,6 @@ public class FileSystemMetadataRepository extends AbstractFileSystemRepository i
                     byData.get(metadata.getDataId()).add(metadata);
                 }
             }
-
             if (!byProvider.containsKey(metadata.getProviderId())) {
                 List<MetadataComplete> children = new ArrayList<>();
                 children.add(metadata);
@@ -347,7 +359,9 @@ public class FileSystemMetadataRepository extends AbstractFileSystemRepository i
             if (metadata.getMapContextId() != null) {
                 byMapContext.put(metadata.getMapContextId(), metadata);
             }
-
+            if (metadata.getTitle()!= null) {
+                titles.put(metadata.getId(), metadata.getTitle());
+            }
             if (metadata.getDataId() != null) {
                 if (!byData.containsKey(metadata.getDataId())) {
                     List<MetadataComplete> children = new ArrayList<>();
@@ -357,7 +371,6 @@ public class FileSystemMetadataRepository extends AbstractFileSystemRepository i
                     byData.get(metadata.getDataId()).add(metadata);
                 }
             }
-
             if (!byProvider.containsKey(metadata.getProviderId())) {
                 List<MetadataComplete> children = new ArrayList<>();
                 children.add(metadata);
@@ -370,7 +383,7 @@ public class FileSystemMetadataRepository extends AbstractFileSystemRepository i
     }
 
     @Override
-    public int delete(int id) {
+    public int delete(Integer id) {
         if (byId.containsKey(id)) {
             MetadataComplete metadata = byId.get(id);
             Path metadataDir = getDirectory(METADATA_DIR);
@@ -382,7 +395,8 @@ public class FileSystemMetadataRepository extends AbstractFileSystemRepository i
                 throw new ConstellationPersistenceException(ex);
             }
 
-            byId.remove(metadata.getId());
+            byId.remove(id);
+            titles.remove(id);
             if (metadata.getDatasetId() != null) {
                 byDataset.remove(metadata.getDatasetId());
             }
@@ -398,16 +412,19 @@ public class FileSystemMetadataRepository extends AbstractFileSystemRepository i
                     byData.get(metadata.getDataId()).remove(metadata);
                 }
             }
+            attRepository.deleteForMetadata(id);
             return 1;
         }
         return 0;
     }
 
     @Override
-    public void deleteAll() {
-        for (Integer id : byId.keySet()) {
-            delete(id);
+    public int deleteAll() {
+        int cpt = 0;
+        for (Integer id : new HashSet<>(byId.keySet())) {
+            cpt = cpt + delete(id);
         }
+        return cpt;
     }
 
     @Override
@@ -594,7 +611,119 @@ public class FileSystemMetadataRepository extends AbstractFileSystemRepository i
 
     @Override
     public List<Map<String, Object>> filterAndGetWithoutPagination(Map<String, Object> filterMap) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        //add default filter
+        if (filterMap == null) {
+           filterMap = new HashMap<>();
+        }
+        if (!filterMap.containsKey("hidden")) {
+            filterMap.put("hidden", false);
+        }
+
+        List<Map<String, Object>> fullResponse = new ArrayList<>();
+        for (Metadata d : byId.values()) {
+            boolean add = true;
+
+            if (filterMap.containsKey("hidden")) {
+                Boolean b = (Boolean) filterMap.get("hidden");
+                if (!b.equals(d.getIsHidden())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("owner")) {
+                Integer b = (Integer) filterMap.get("owner");
+                if (!b.equals(d.getOwner())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("data")) {
+                Integer b = (Integer) filterMap.get("data");
+                if (!b.equals(d.getDataId())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("dataset")) {
+                Integer b = (Integer) filterMap.get("dataset");
+                if (!b.equals(d.getDatasetId())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("profile")) {
+                String b = (String) filterMap.get("profile");
+                if (!b.equals(d.getProfile())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("validated")) {
+                Boolean b = (Boolean) filterMap.get("validated");
+                if (!b.equals(d.getIsValidated())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("validation_required")) {
+                String b = (String) filterMap.get("validation_required");
+                if (!b.equals(d.getValidationRequired())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("isShared")) {
+                Boolean b = (Boolean) filterMap.get("isShared");
+                if (!b.equals(d.getIsShared())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("published")) {
+                Boolean b = (Boolean) filterMap.get("published");
+                if (!b.equals(d.getIsPublished())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("id")) {
+                Integer b = (Integer) filterMap.get("id");
+                if (!b.equals(d.getId())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("provider_id")) {
+                Integer b = (Integer) filterMap.get("provider_id");
+                if (!b.equals(d.getProviderId())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("type")) {
+                String b = (String) filterMap.get("type");
+                if (!b.equals(d.getType())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("identifier")) {
+                String b = (String) filterMap.get("identifier");
+                if (!b.equals(d.getMetadataId())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("level")) {
+                String b = (String) filterMap.get("level");
+                if (!b.equals(d.getLevel())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("term")) {
+                String b = (String) filterMap.get("term");
+                if (!d.getTitle().contains(b) &&
+                    !d.getResume().contains(b)) {
+                    add = false;
+                }
+            }
+
+            if (add) {
+                Map<String, Object> m = new HashMap<>();
+                m.put("id", d.getId());
+                m.put("title", d.getTitle());
+                m.put("profile", d.getProfile());
+                fullResponse.add(m);
+            }
+        }
+        return fullResponse;
     }
 
 

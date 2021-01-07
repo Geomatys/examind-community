@@ -53,8 +53,6 @@ public interface IMapContextBusiness {
 
     void updateContext(MapContextLayersDTO mapContext);
 
-    void updateOwner(final Integer contextId, final int newOwner);
-
     void delete(int contextId) throws ConstellationException;
 
     void deleteAll()throws ConstellationException;

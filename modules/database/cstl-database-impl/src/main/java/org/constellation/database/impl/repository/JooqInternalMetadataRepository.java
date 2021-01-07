@@ -50,6 +50,13 @@ public class JooqInternalMetadataRepository extends AbstractJooqRespository<Inte
     }
 
     @Override
+    public boolean existsById(Integer id) {
+        return dsl.selectCount().from(INTERNAL_METADATA)
+                .where(INTERNAL_METADATA.ID.eq(id))
+                .fetchOne(0, Integer.class) > 0;
+    }
+
+    @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public InternalMetadata update(InternalMetadata metadata) {
         UpdateSetFirstStep<InternalMetadataRecord> update = dsl.update(INTERNAL_METADATA);
@@ -82,14 +89,14 @@ public class JooqInternalMetadataRepository extends AbstractJooqRespository<Inte
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public int delete(int id) {
+    public int delete(Integer id) {
         return dsl.delete(INTERNAL_METADATA).where(INTERNAL_METADATA.ID.eq(id)).execute();
     }
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public void deleteAll() {
-         dsl.delete(INTERNAL_METADATA).execute();
+    public int deleteAll() {
+         return dsl.delete(INTERNAL_METADATA).execute();
     }
 
     @Override

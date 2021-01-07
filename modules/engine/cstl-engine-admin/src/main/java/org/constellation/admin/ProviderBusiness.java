@@ -137,7 +137,7 @@ public class ProviderBusiness implements IProviderBusiness {
 
     @Override
     public void reload(int providerId) throws ConstellationException {
-        if (!providerRepository.existById(providerId)){
+        if (!providerRepository.existsById(providerId)){
             throw new ConstellationException("Provider " + providerId + " does not exist.");
         }
 

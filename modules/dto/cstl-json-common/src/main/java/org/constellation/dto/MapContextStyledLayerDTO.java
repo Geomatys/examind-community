@@ -1,3 +1,21 @@
+/*
+ *    Constellation - An open source and standard compliant SDI
+ *    http://www.constellation-sdi.org
+ *
+ * Copyright 2014 Geomatys.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.constellation.dto;
 
 import org.constellation.dto.service.config.wxs.Layer;
@@ -7,6 +25,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * TODO. This pojo is wayyyyyyy too complex. => rework this
+ */
 public class MapContextStyledLayerDTO extends LayerSummary implements Comparable<MapContextStyledLayerDTO> {
     private Integer mapcontextId;
     private Integer layerId;
@@ -59,7 +80,7 @@ public class MapContextStyledLayerDTO extends LayerSummary implements Comparable
                 String dataProvider,
                 Integer dataProviderID,
                 final List<StyleBrief> targetStyles) {
-            super(layerId, layerName, layerNamespace, layerAlias, serviceID, dataId, date, layerConfig, ownerId, dataOwner, dataType, dataSubType, dataOwner, dataProvider, dataProviderID, targetStyles);
+            super(layerId, layerName, layerNamespace, layerAlias, serviceID, dataId, date, layerConfig, ownerId, layerTitle, dataType, dataSubType, dataOwner, dataProvider, dataProviderID, targetStyles);
             this.id = id;
             this.mapcontextId = mapcontextId;
             this.layerId = layerId;
@@ -130,6 +151,28 @@ public class MapContextStyledLayerDTO extends LayerSummary implements Comparable
             style.setTitle(externalStyle);
             super.setTargetStyle(Collections.singletonList(style));
         }
+    }
+
+    /**
+     * for test purpose do no use this constructor otherwise
+     */
+    public MapContextStyledLayerDTO(Integer id,
+		Integer mapcontextId,
+		Integer layerOrder,
+		Integer layerOpacity,
+		Boolean layerVisible,
+                final org.constellation.dto.Layer layer,
+                final Data db,
+                final String provider,
+                final String owner) {
+        super(layer, db, provider, owner);
+        this.id = id;
+        this.mapcontextId = mapcontextId;
+        this.layerId = layer.getId();
+        this.order = layerOrder;
+        this.opacity = layerOpacity;
+        this.visible = layerVisible;
+        this.dataId = db.getId();
     }
 
     public Integer getMapcontextId() {

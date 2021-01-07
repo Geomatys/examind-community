@@ -66,6 +66,13 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
     }
 
     @Override
+    public boolean existsById(Integer id) {
+        return dsl.selectCount().from(DATASOURCE)
+                .where(DATASOURCE.ID.eq(id))
+                .fetchOne(0, Integer.class) > 0;
+    }
+
+    @Override
     public DataSource findByUrl(String url) {
         return convertToDto(dsl.select().from(DATASOURCE).where(DATASOURCE.URL.eq(url)).fetchOneInto(Datasource.class));
     }
@@ -81,12 +88,23 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public int delete(int id) {
+    public int delete(Integer id) {
         dsl.delete(DATASOURCE_SELECTED_PATH).where(DATASOURCE_SELECTED_PATH.DATASOURCE_ID.eq(id)).execute();
         dsl.delete(DATASOURCE_PATH_STORE).where(DATASOURCE_PATH_STORE.DATASOURCE_ID.eq(id)).execute();
         dsl.delete(DATASOURCE_PATH).where(DATASOURCE_PATH.DATASOURCE_ID.eq(id)).execute();
         dsl.delete(DATASOURCE_STORE).where(DATASOURCE_STORE.DATASOURCE_ID.eq(id)).execute();
         return dsl.delete(DATASOURCE).where(DATASOURCE.ID.eq(id)).execute();
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public int deleteAll() {
+        List<DataSource> all = findAll();
+        int cpt = 0;
+        for (DataSource ds : all) {
+            cpt = cpt + delete(ds.getId());
+        }
+        return cpt;
     }
 
     @Override

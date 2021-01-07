@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.util.logging.Logging;
 
@@ -76,6 +77,13 @@ public class JooqUserRepository extends
         setUserRoles(user.getId(), user.getRoles());
     }
 
+    @Override
+    public boolean existsById(Integer id) {
+        return dsl.selectCount().from(CSTL_USER)
+                .where(CSTL_USER.ID.eq(id))
+                .fetchOne(0, Integer.class) > 0;
+    }
+
     /**
      * This method remove current user roles and add new roles to user
      *
@@ -106,13 +114,18 @@ public class JooqUserRepository extends
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public int delete(int userId) {
+    public int delete(Integer userId) {
         int deleteRole = deleteRole(userId);
-
-        LOGGER.finer("Delete " + deleteRole + " role references");
-
+        LOGGER.log(Level.FINER, "Delete {0} role references", deleteRole);
+        
         return dsl.delete(CSTL_USER).where(CSTL_USER.ID.eq(userId)).execute();
+    }
 
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public int deleteAll() {
+        dsl.delete(USER_X_ROLE).execute();
+        return dsl.delete(CSTL_USER).execute();
     }
 
     @Override
@@ -203,7 +216,7 @@ public class JooqUserRepository extends
 
     @Override
     public List<String> getRoles(int userId) {
-        return dsl.select().from(CSTL_USER)
+        return dsl.select().from(CSTL_USER).join(Tables.USER_X_ROLE).onKey()
                 .where(USER_X_ROLE.USER_ID.eq(userId)).fetch(USER_X_ROLE.ROLE);
     }
 
@@ -332,8 +345,8 @@ public class JooqUserRepository extends
     }
 
     @Override
-    public int countUser() {
-        return dsl.selectCount().from(CSTL_USER).fetchOne(0, int.class);
+    public long countUser() {
+        return dsl.selectCount().from(CSTL_USER).fetchOne(0, long.class);
     }
 
     @Override

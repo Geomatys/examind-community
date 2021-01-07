@@ -54,6 +54,8 @@ import static com.examind.repository.filesystem.FileSystemUtilities.getDirectory
 import static com.examind.repository.filesystem.FileSystemUtilities.getIntegerList;
 import static com.examind.repository.filesystem.FileSystemUtilities.getObjectFromPath;
 import static com.examind.repository.filesystem.FileSystemUtilities.writeObjectInPath;
+import java.util.AbstractMap;
+import java.util.HashSet;
 import java.util.Map.Entry;
 
 /**
@@ -289,7 +291,7 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
     }
 
     @Override
-    public boolean existsById(int dataId) {
+    public boolean existsById(Integer dataId) {
         return byId.containsKey(dataId);
     }
 
@@ -435,7 +437,7 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
     }
 
     @Override
-    public int delete(int id) {
+    public int delete(Integer id) {
         if (byId.containsKey(id)) {
 
             Data data = byId.get(id);
@@ -496,6 +498,15 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
             return delete(byFullName.get(nim).getId());
         }
         return 0;
+    }
+
+    @Override
+    public int deleteAll() {
+        int cpt = 0;
+        for (Integer i : new HashSet<>(byId.keySet())) {
+            cpt = cpt + delete(i);
+        }
+        return cpt;
     }
 
     @Override
@@ -579,9 +590,9 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
             }
 
             // create new file
-            if (found) {
+            if (!found) {
                 // update fs
-                StringList dataList = new StringList(Arrays.asList(dataId + ""));
+                StringList dataList = new StringList(Arrays.asList(childId + ""));
                 Path dataDataFile = dataDataDir.resolve(dataId + ".xml");
                 writeObjectInPath(dataList, dataDataFile, pool);
 
@@ -663,7 +674,96 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
     ////--------------------------------------------------------------------///
     @Override
     public Map.Entry<Integer, List<Data>> filterAndGet(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        //add default filter
+        if (filterMap == null) {
+           filterMap = new HashMap<>();
+        }
+        if (!filterMap.containsKey("hidden")) {
+            filterMap.put("hidden", false);
+        }
+        if (!filterMap.containsKey("included")) {
+            filterMap.put("included", true);
+        }
+
+
+        List<Data> fullResponse = new ArrayList<>();
+        for (Data d : byId.values()) {
+            boolean add = true;
+
+            if (filterMap.containsKey("hidden")) {
+                Boolean b = (Boolean) filterMap.get("hidden");
+                if (!b.equals(d.getHidden())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("included")) {
+                Boolean b = (Boolean) filterMap.get("included");
+                if (!b.equals(d.getIncluded())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("rendered")) {
+                Boolean b = (Boolean) filterMap.get("rendered");
+                if (!b.equals(d.getRendered())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("sensorable")) {
+                Boolean b = (Boolean) filterMap.get("sensorable");
+                if (!b.equals(d.getSensorable())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("id")) {
+                Integer b = (Integer) filterMap.get("id");
+                if (!b.equals(d.getId())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("owner")) {
+                Integer b = (Integer) filterMap.get("owner");
+                if (!b.equals(d.getOwnerId())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("dataset")) {
+                Integer b = (Integer) filterMap.get("dataset");
+                if (!b.equals(d.getDatasetId())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("provider_id")) {
+                Integer b = (Integer) filterMap.get("provider_id");
+                if (!b.equals(d.getProviderId())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("sub_type")) {
+                String b = (String) filterMap.get("sub_type");
+                if (!b.equals(d.getSubtype())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("type")) {
+                String b = (String) filterMap.get("type");
+                if (!b.equals(d.getType())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("term")) {
+                String b = (String) filterMap.get("term");
+                if (!d.getName().contains(b)) {
+                    add = false;
+                }
+            }
+
+            if (add) {
+                fullResponse.add(d);
+            }
+        }
+
+        // TODO paginate
+        return new AbstractMap.SimpleEntry<>(fullResponse.size(), fullResponse);
     }
 
     private class NameInProvider {

@@ -58,7 +58,7 @@ public class JooqProviderRepository extends AbstractJooqRespository<ProviderReco
     }
 
     @Override
-    public boolean existById(Integer id) {
+    public boolean existsById(Integer id) {
         return dsl.selectCount().from(PROVIDER)
                 .where(PROVIDER.ID.eq(id))
                 .fetchOne(0, Integer.class) > 0;
@@ -105,7 +105,7 @@ public class JooqProviderRepository extends AbstractJooqRespository<ProviderReco
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public int delete(int id) {
+    public int delete(Integer id) {
         List<Integer> metadIds = dsl.select(METADATA.ID).from(METADATA).where(METADATA.PROVIDER_ID.eq(id)).fetchInto(Integer.class);
         for (Integer metadId : metadIds) {
             dsl.delete(INTERNAL_METADATA).where(INTERNAL_METADATA.ID.eq(metadId)).execute();
@@ -115,6 +115,17 @@ public class JooqProviderRepository extends AbstractJooqRespository<ProviderReco
         dsl.delete(PROVIDER_X_SOS).where(PROVIDER_X_SOS.PROVIDER_ID.eq(id)).execute();
         dsl.delete(PROVIDER_X_CSW).where(PROVIDER_X_CSW.PROVIDER_ID.eq(id)).execute();
         return dsl.delete(PROVIDER).where(PROVIDER.ID.eq(id)).execute();
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public int deleteAll() {
+        List<Integer> ids = getAllIds();
+        int i = 0;
+        for (Integer id : ids) {
+            i = i + delete(id);
+        }
+        return i;
     }
 
     @Override

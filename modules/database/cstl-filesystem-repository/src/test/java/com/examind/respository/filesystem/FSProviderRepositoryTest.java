@@ -19,23 +19,10 @@
 package com.examind.respository.filesystem;
 
 import com.examind.repository.ProviderRepositoryTest;
-import org.constellation.configuration.ConfigDirectory;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.transaction.annotation.Transactional;
 
 public class FSProviderRepositoryTest extends ProviderRepositoryTest {
-
-    @BeforeClass
-    public static void beforeClass() {
-        ConfigDirectory.setupTestEnvironement("PRRepositoryTest");
-    }
-
-    @AfterClass
-    public static void shutDown() {
-        ConfigDirectory.shutdownTestEnvironement("PRRepositoryTest");
-    }
 
     @Test
     @Override

@@ -24,7 +24,7 @@ import java.util.Map;
 import org.constellation.dto.Style;
 import org.constellation.dto.StyleReference;
 
-public interface StyleRepository {
+public interface StyleRepository extends AbstractRepository {
 
     int create(Style style);
 
@@ -60,13 +60,7 @@ public interface StyleRepository {
 
     List<Integer> getStyleIdsForData(int id);
 
-    void delete(int id);
-
-    void deleteAll();
-
     void update(Style s);
-
-    public boolean existsById(int styleId);
 
     public List<StyleReference> fetchByDataId(int dataId);
 

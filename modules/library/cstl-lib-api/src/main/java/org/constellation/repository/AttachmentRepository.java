@@ -25,7 +25,7 @@ import org.constellation.dto.metadata.Attachment;
  *
  * @author Johann Sorel (Geomatys)
  */
-public interface AttachmentRepository {
+public interface AttachmentRepository extends AbstractRepository {
 
     /**
      * Store a new attachment
@@ -45,14 +45,6 @@ public interface AttachmentRepository {
     /**
      * Delete attachment.
      *
-     * @param id
-     * @return
-     */
-    int delete(int id);
-
-    /**
-     * Delete attachment.
-     *
      * @param metadataId
      */
     void deleteForMetadata(int metadataId);
@@ -68,7 +60,7 @@ public interface AttachmentRepository {
     /**
      * Find attachments by Name.
      *
-     * @param Name
+     * @param fileName
      * @return
      */
     List<Attachment> findByFileName(String fileName);
@@ -77,14 +69,6 @@ public interface AttachmentRepository {
      * Return all the attachment.
      */
     List<Attachment> findAll();
-
-    /**
-     * Test if an attachment exist.
-     *
-     * @param id
-     * @return
-     */
-    boolean existsById(int id);
 
     /**
      * Create a link between an attachment and a metadata.

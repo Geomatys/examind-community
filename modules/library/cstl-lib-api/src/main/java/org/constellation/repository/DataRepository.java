@@ -23,7 +23,7 @@ import org.constellation.dto.Data;
 import java.util.List;
 import java.util.Map;
 
-public interface DataRepository {
+public interface DataRepository extends AbstractRepository {
 
     List<Data> findAll();
 
@@ -36,8 +36,6 @@ public interface DataRepository {
     Integer create(Data data);
     
     Integer getParent(Integer id);
-
-    int delete(int id);
 
     int delete(String namespaceURI, String localPart, int providerId);
 
@@ -117,8 +115,6 @@ public interface DataRepository {
      * @return a list of full {@link Data}
      */
     List<Data> getRefDataByLinkedStyle(final int styleId);
-
-    boolean existsById(int dataId);
 
     Integer getDatasetId(int dataId);
 

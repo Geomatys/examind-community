@@ -18,7 +18,10 @@
  */
 package com.examind.repository;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import org.constellation.repository.DataRepository;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.Data;
@@ -49,12 +52,8 @@ public class DataRepositoryTest extends AbstractRepositoryTest {
     @Transactional()
     public void crud() {
 
-        // no removeAll method
+        dataRepository.deleteAll();
         List<Data> all = dataRepository.findAll();
-        for (Data p : all) {
-            dataRepository.delete(p.getId());
-        }
-        all = dataRepository.findAll();
         Assert.assertTrue(all.isEmpty());
 
 
@@ -63,9 +62,12 @@ public class DataRepositoryTest extends AbstractRepositoryTest {
         Assert.assertNotNull(owner.getId());
 
         Integer dsid = datasetRepository.create(TestSamples.newDataSet(owner.getId(), "dataset 1"));
+        Integer dsid2 = datasetRepository.create(TestSamples.newDataSet(owner.getId(), "dataset 2"));
 
         Integer pid = providerRepository.create(TestSamples.newProvider(owner.getId()));
         Assert.assertNotNull(pid);
+        Integer pid2 = providerRepository.create(TestSamples.newProvider2(owner.getId()));
+        Assert.assertNotNull(pid2);
 
         /**
          * Data insertion
@@ -76,7 +78,7 @@ public class DataRepositoryTest extends AbstractRepositoryTest {
         Assert.assertNotNull(data1);
         Assert.assertNotNull(data1.getId());
 
-        Integer did2 = dataRepository.create(TestSamples.newData2(owner.getId(), pid, dsid));
+        Integer did2 = dataRepository.create(TestSamples.newData2(owner.getId(), pid2, dsid));
         Assert.assertNotNull(did2);
         Data data2 = dataRepository.findById(did2);
         Assert.assertNotNull(data2);
@@ -88,48 +90,193 @@ public class DataRepositoryTest extends AbstractRepositoryTest {
         Assert.assertNotNull(data3);
         Assert.assertNotNull(data3.getId());
 
+        Integer did4 = dataRepository.create(TestSamples.newDataQuote(owner.getId(), pid, dsid2));
+        Assert.assertNotNull(did4);
+        Data data4 = dataRepository.findById(did4);
+        Assert.assertNotNull(data4);
+        Assert.assertNotNull(data4.getId());
+
+        Integer did5 = dataRepository.create(TestSamples.newData5(owner.getId(), pid2, dsid2));
+        Assert.assertNotNull(did5);
+        Data data5 = dataRepository.findById(did5);
+        Assert.assertNotNull(data5);
+        Assert.assertNotNull(data5.getId());
 
         /**
          * Data search
          */
         Assert.assertTrue(dataRepository.existsById(data1.getId()));
         Assert.assertTrue(dataRepository.existsById(data2.getId()));
+        Assert.assertTrue(dataRepository.existsById(data3.getId()));
+        Assert.assertTrue(dataRepository.existsById(data4.getId()));
+        Assert.assertTrue(dataRepository.existsById(data5.getId()));
 
-        Assert.assertEquals(3, dataRepository.findAll().size());
+        Assert.assertEquals(5, dataRepository.findAll().size());
 
-        Assert.assertEquals(new Integer(2), dataRepository.countAll(false));
-        Assert.assertEquals(new Integer(3), dataRepository.countAll(true));
+        Assert.assertEquals(new Integer(3), dataRepository.countAll(false));
+        Assert.assertEquals(new Integer(5), dataRepository.countAll(true));
 
         List<Data> datas = dataRepository.findAllByDatasetId(dsid);
         Assert.assertTrue(datas.contains(data1));
         Assert.assertTrue(datas.contains(data2));
         Assert.assertTrue(datas.contains(data3));
 
+        datas = dataRepository.findAllByDatasetId(dsid2);
+        Assert.assertTrue(datas.contains(data4));
+        Assert.assertTrue(datas.contains(data5));
+
         datas = dataRepository.findAllByVisibility(false);
         Assert.assertTrue(datas.contains(data1));
         Assert.assertTrue(datas.contains(data2));
+        Assert.assertTrue(datas.contains(data4));
 
         datas = dataRepository.findAllByVisibility(true);
         Assert.assertTrue(datas.contains(data3));
+        Assert.assertTrue(datas.contains(data5));
 
         datas = dataRepository.findByDatasetId(dsid, true, true);
         Assert.assertTrue(datas.contains(data3));
 
         datas = dataRepository.findByProviderId(pid);
         Assert.assertTrue(datas.contains(data1));
-        Assert.assertTrue(datas.contains(data2));
         Assert.assertTrue(datas.contains(data3));
+        Assert.assertTrue(datas.contains(data4));
 
-        datas = dataRepository.findByProviderId(pid, "raster", true, false);
+        datas = dataRepository.findByProviderId(pid2);
+        Assert.assertTrue(datas.contains(data2));
+        Assert.assertTrue(datas.contains(data5));
+
+        datas = dataRepository.findByProviderId(pid, "COVERAGE", true, false);
         Assert.assertTrue(datas.contains(data1));
 
         List<Integer> dids = dataRepository.findIdsByProviderId(pid);
         Assert.assertTrue(dids.contains(did1));
-        Assert.assertTrue(dids.contains(did2));
         Assert.assertTrue(dids.contains(did3));
+        Assert.assertTrue(dids.contains(did4));
 
-        dids = dataRepository.findIdsByProviderId(pid, "raster", true, false);
+        dids = dataRepository.findIdsByProviderId(pid2);
+        Assert.assertTrue(dids.contains(did2));
+        Assert.assertTrue(dids.contains(did5));
+
+        dids = dataRepository.findIdsByProviderId(pid, "COVERAGE", true, false);
         Assert.assertTrue(dids.contains(did1));
+
+        Data d = dataRepository.findByNameAndNamespaceAndProviderId("test data 3", "", pid);
+        Assert.assertNotNull(d);
+        Assert.assertEquals(data3.getId(), d.getId());
+
+        d = dataRepository.findByNameAndNamespaceAndProviderId("bla bloiu '; quote", "bla '; select * from admin.datas;", pid);
+        Assert.assertNotNull(d);
+        Assert.assertEquals(data4.getId(), d.getId());
+
+        /**
+         * Search
+         */
+        Map<String, Object> filters = new HashMap<>();
+        Entry<String, String> sortEntry = null;
+        Entry<Integer, List<Data>> dataFound = dataRepository.filterAndGet(filters, sortEntry, 1, 10);
+        Assert.assertEquals(new Integer(3), dataFound.getKey());
+
+        filters.put("hidden", true);
+        dataFound = dataRepository.filterAndGet(filters, sortEntry, 1, 10);
+        Assert.assertEquals(new Integer(1), dataFound.getKey());
+        Assert.assertTrue(dataFound.getValue().contains(data3));
+
+        filters.clear();
+        filters.put("dataset", dsid);
+        dataFound = dataRepository.filterAndGet(filters, sortEntry, 1, 10);
+        Assert.assertEquals(new Integer(2), dataFound.getKey());
+        Assert.assertTrue(dataFound.getValue().contains(data1));
+        Assert.assertTrue(dataFound.getValue().contains(data2));
+
+        filters.clear();
+        filters.put("dataset", dsid);
+        filters.put("hidden", true);
+        dataFound = dataRepository.filterAndGet(filters, sortEntry, 1, 10);
+        Assert.assertEquals(new Integer(1), dataFound.getKey());
+        Assert.assertTrue(dataFound.getValue().contains(data3));
+
+        filters.clear();
+        filters.put("provider_id", pid);
+        filters.put("hidden", false);
+        dataFound = dataRepository.filterAndGet(filters, sortEntry, 1, 10);
+        Assert.assertEquals(new Integer(2), dataFound.getKey());
+        Assert.assertTrue(dataFound.getValue().contains(data1));
+        Assert.assertTrue(dataFound.getValue().contains(data4));
+
+        filters.clear();
+        filters.put("provider_id", pid);
+        filters.put("hidden", false);
+        dataFound = dataRepository.filterAndGet(filters, sortEntry, 1, 10);
+        Assert.assertEquals(new Integer(2), dataFound.getKey());
+        Assert.assertTrue(dataFound.getValue().contains(data1));
+        Assert.assertTrue(dataFound.getValue().contains(data4));
+
+        filters.clear();
+        filters.put("included", false);
+        filters.put("hidden", true);
+        dataFound = dataRepository.filterAndGet(filters, sortEntry, 1, 10);
+        Assert.assertEquals(new Integer(1), dataFound.getKey());
+        Assert.assertTrue(dataFound.getValue().contains(data5));
+
+        filters.clear();
+        filters.put("rendered", true);
+        dataFound = dataRepository.filterAndGet(filters, sortEntry, 1, 10);
+        Assert.assertEquals(new Integer(1), dataFound.getKey());
+        Assert.assertTrue(dataFound.getValue().contains(data1));
+
+        filters.clear();
+        filters.put("sub_type", "point");
+        dataFound = dataRepository.filterAndGet(filters, sortEntry, 1, 10);
+        Assert.assertEquals(new Integer(1), dataFound.getKey());
+        Assert.assertTrue(dataFound.getValue().contains(data2));
+
+        filters.clear();
+        filters.put("sensorable", true);
+        dataFound = dataRepository.filterAndGet(filters, sortEntry, 1, 10);
+        Assert.assertEquals(new Integer(1), dataFound.getKey());
+        Assert.assertTrue(dataFound.getValue().contains(data2));
+
+        filters.clear();
+        filters.put("term", "test data");
+        dataFound = dataRepository.filterAndGet(filters, sortEntry, 1, 10);
+        Assert.assertEquals(new Integer(2), dataFound.getKey());
+        Assert.assertTrue(dataFound.getValue().contains(data1));
+        Assert.assertTrue(dataFound.getValue().contains(data2));
+
+        filters.clear();
+        filters.put("term", "test data");
+        filters.put("hidden", true);
+        dataFound = dataRepository.filterAndGet(filters, sortEntry, 1, 10);
+        Assert.assertEquals(new Integer(1), dataFound.getKey());
+        Assert.assertTrue(dataFound.getValue().contains(data3));
+
+        filters.clear();
+        filters.put("term", "test data");
+        filters.put("hidden", true);
+        filters.put("included", false);
+        dataFound = dataRepository.filterAndGet(filters, sortEntry, 1, 10);
+        Assert.assertEquals(new Integer(1), dataFound.getKey());
+        Assert.assertTrue(dataFound.getValue().contains(data5));
+
+        filters.clear();
+        filters.put("type", "COVERAGE");
+        dataFound = dataRepository.filterAndGet(filters, sortEntry, 1, 10);
+        Assert.assertEquals(new Integer(1), dataFound.getKey());
+        Assert.assertTrue(dataFound.getValue().contains(data1));
+
+        filters.clear();
+        filters.put("sub_type", "'; drop table admin.datas;'");
+        dataFound = dataRepository.filterAndGet(filters, sortEntry, 1, 10);
+        Assert.assertEquals(new Integer(1), dataFound.getKey());
+        Assert.assertTrue(dataFound.getValue().contains(data4));
+
+        filters.clear();
+        filters.put("term", "'; quote");
+        dataFound = dataRepository.filterAndGet(filters, sortEntry, 1, 10);
+        Assert.assertEquals(new Integer(1), dataFound.getKey());
+        Assert.assertTrue(dataFound.getValue().contains(data4));
+
 
         /**
          * Data deletion
@@ -141,6 +288,9 @@ public class DataRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals(1, res);
 
         res = dataRepository.delete(data3.getId());
+        Assert.assertEquals(1, res);
+
+        res = dataRepository.delete(data4.getId());
         Assert.assertEquals(1, res);
 
         res = dataRepository.delete(-1);

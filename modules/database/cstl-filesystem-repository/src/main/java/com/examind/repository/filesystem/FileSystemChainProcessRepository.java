@@ -25,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -73,6 +74,10 @@ public class FileSystemChainProcessRepository extends AbstractFileSystemReposito
         }
     }
 
+    @Override
+    public boolean existsById(Integer id) {
+        return byId.containsKey(id);
+    }
 
     @Override
     public List<ChainProcess> findAll() {
@@ -124,7 +129,7 @@ public class FileSystemChainProcessRepository extends AbstractFileSystemReposito
     }
 
     @Override
-    public int delete(int id) {
+    public int delete(Integer id) {
         if (byId.containsKey(id)) {
 
             ChainProcess chain = byId.get(id);
@@ -168,6 +173,15 @@ public class FileSystemChainProcessRepository extends AbstractFileSystemReposito
             return 1;
         }
         return 0;
+    }
+
+    @Override
+    public int deleteAll() {
+        int cpt = 0;
+        for (Integer i : new HashSet<>(byId.keySet())) {
+            cpt = cpt + delete(i);
+        }
+        return cpt;
     }
 
 }

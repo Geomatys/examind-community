@@ -24,15 +24,13 @@ import java.util.Optional;
 import org.constellation.dto.UserWithRole;
 import org.constellation.dto.CstlUser;
 
-public interface UserRepository {
+public interface UserRepository extends AbstractRepository {
 
     List<CstlUser> findAll();
 
     Integer create(UserWithRole user);
 
     void update(UserWithRole user);
-
-    int delete(int userId);
 
     int desactivate(int userId);
 
@@ -50,7 +48,7 @@ public interface UserRepository {
 
     List<String> getRoles(int userId);
 
-    int countUser();
+    long countUser();
 
     boolean loginAvailable(String login);
 

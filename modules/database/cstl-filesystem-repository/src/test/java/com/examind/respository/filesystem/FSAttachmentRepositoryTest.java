@@ -19,9 +19,7 @@
 package com.examind.respository.filesystem;
 
 import com.examind.repository.AttachmentRepositoryTest;
-import org.constellation.repository.AttachmentRepository;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -29,9 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Guilhem Legal (Geomatys)
  */
 public class FSAttachmentRepositoryTest extends AttachmentRepositoryTest {
-
-    @Autowired
-    private AttachmentRepository attachmentRepository;
 
     @Test
     @Transactional()

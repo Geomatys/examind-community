@@ -25,7 +25,7 @@ import org.constellation.dto.metadata.InternalMetadata;
  *
  * @author Guilhem Legal (geomatys)
  */
-public interface InternalMetadataRepository {
+public interface InternalMetadataRepository extends AbstractRepository {
 
     InternalMetadata findByMetadataId(String metadataId);
 
@@ -37,9 +37,6 @@ public interface InternalMetadataRepository {
 
     int countMetadata();
 
-    int delete(int id);
-
     int delete(String metadataId);
 
-    void deleteAll();
 }

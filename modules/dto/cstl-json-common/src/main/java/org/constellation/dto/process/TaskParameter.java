@@ -18,6 +18,7 @@
  */
 package org.constellation.dto.process;
 
+import java.util.Objects;
 import org.constellation.dto.Identifiable;
 
 /**
@@ -178,5 +179,60 @@ public class TaskParameter extends Identifiable {
      */
     public void setType(String type) {
         this.type = type;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof TaskParameter) {
+            final TaskParameter that = (TaskParameter) obj;
+            return Objects.equals(this.date, that.date) &&
+                   Objects.equals(this.id, that.id) &&
+                   Objects.equals(this.inputs, that.inputs) &&
+                   Objects.equals(this.name, that.name) &&
+                   Objects.equals(this.owner, that.owner) &&
+                   Objects.equals(this.processAuthority, that.processAuthority) &&
+                   Objects.equals(this.processCode, that.processCode) &&
+                   Objects.equals(this.trigger, that.trigger) &&
+                   Objects.equals(this.triggerType, that.triggerType) &&
+                   Objects.equals(this.type, that.type);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 71 * hash + Objects.hashCode(this.owner);
+        hash = 71 * hash + Objects.hashCode(this.name);
+        hash = 71 * hash + Objects.hashCode(this.date);
+        hash = 71 * hash + Objects.hashCode(this.processAuthority);
+        hash = 71 * hash + Objects.hashCode(this.processCode);
+        hash = 71 * hash + Objects.hashCode(this.inputs);
+        hash = 71 * hash + Objects.hashCode(this.trigger);
+        hash = 71 * hash + Objects.hashCode(this.triggerType);
+        hash = 71 * hash + Objects.hashCode(this.type);
+        return hash;
+    }
+
+
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("TaskParameter{");
+        sb.append("id=").append(id);
+        sb.append(", name='").append(name).append('\'');
+        sb.append(", date='").append(date).append('\'');
+        sb.append(", owner='").append(owner).append('\'');
+        sb.append(", type='").append(type).append('\'');
+        sb.append(", inputs='").append(inputs).append('\'');
+        sb.append(", processAuthority='").append(processAuthority).append('\'');
+        sb.append(", processCode='").append(processCode).append('\'');
+        sb.append(", trigger='").append(trigger).append('\'');
+        sb.append(", triggerType='").append(triggerType).append('\'');
+        sb.append('}');
+        return sb.toString();
     }
 }

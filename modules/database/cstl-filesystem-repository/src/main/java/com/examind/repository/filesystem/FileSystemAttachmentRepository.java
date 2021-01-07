@@ -24,11 +24,13 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import javax.xml.bind.JAXBException;
+import org.constellation.dto.StringList;
 import org.constellation.dto.metadata.Attachment;
 import org.constellation.exception.ConstellationPersistenceException;
 import org.constellation.repository.AttachmentRepository;
@@ -44,8 +46,10 @@ public class FileSystemAttachmentRepository extends AbstractFileSystemRepository
     private final Map<Integer, Attachment> byId = new HashMap<>();
     private final Map<String, List<Attachment>> byFileName = new HashMap<>();
 
+    private final Map<Integer, List<Attachment>> linkedAttachment = new HashMap<>();
+
     public FileSystemAttachmentRepository() {
-        super(Attachment.class);
+        super(Attachment.class, StringList.class);
         load();
     }
 
@@ -70,6 +74,21 @@ public class FileSystemAttachmentRepository extends AbstractFileSystemRepository
                 }
             }
 
+            Path metadataAttDir = getDirectory(METADATA_X_ATTACHMENT_DIR);
+            try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(metadataAttDir)) {
+                for (Path metadataAttFile : directoryStream) {
+                    StringList attList = (StringList) getObjectFromPath(metadataAttFile, pool);
+                    String fileName = metadataAttFile.getFileName().toString();
+                    Integer metadataId = Integer.parseInt(fileName.substring(0, fileName.length() - 4));
+                    List<Attachment> linked = new ArrayList<>();
+                    for (Integer linkedAttachmentId : getIntegerList(attList)) {
+                        linked.add(byId.get(linkedAttachmentId));
+                    }
+                    linkedAttachment.put(metadataId, linked);
+                }
+
+            }
+
         } catch (IOException | JAXBException ex) {
            LOGGER.log(Level.SEVERE, null, ex);
         }
@@ -81,7 +100,7 @@ public class FileSystemAttachmentRepository extends AbstractFileSystemRepository
     }
 
     @Override
-    public boolean existsById(int id) {
+    public boolean existsById(Integer id) {
         return byId.containsKey(id);
     }
 
@@ -160,7 +179,7 @@ public class FileSystemAttachmentRepository extends AbstractFileSystemRepository
     }
 
     @Override
-    public int delete(int id) {
+    public int delete(Integer id) {
         if (byId.containsKey(id)) {
 
             Attachment att = byId.get(id);
@@ -178,9 +197,27 @@ public class FileSystemAttachmentRepository extends AbstractFileSystemRepository
                     byFileName.get(att.getFilename()).remove(att);
                 }
             }
+
+            for (List<Attachment> atts : linkedAttachment.values()) {
+                for (Attachment a : atts) {
+                    if (a.getId() == id) {
+                        atts.remove(a);
+                        break;
+                    }
+                }
+            }
             return 1;
         }
         return 0;
+    }
+
+    @Override
+    public int deleteAll() {
+        int i = 0;
+        for (Integer id : byId.keySet()) {
+            i = i + delete(id);
+        }
+        return i;
     }
 
     ////--------------------------------------------------------------------///
@@ -189,22 +226,94 @@ public class FileSystemAttachmentRepository extends AbstractFileSystemRepository
 
     @Override
     public List<Attachment> getLinkedAttachment(int metadataID) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (linkedAttachment.containsKey(metadataID)) {
+            return linkedAttachment.get(metadataID);
+        }
+        return new ArrayList<>();
     }
 
     @Override
     public void deleteForMetadata(int metadataId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        List<Attachment> atts = getLinkedAttachment(metadataId);
+        for (Attachment att : atts) {
+            delete(att.getId());
+        }
     }
 
     @Override
     public void linkMetadataAndAttachment(int metadataID, int attId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+      
+
+        Path metadataAttDir = getDirectory(METADATA_X_ATTACHMENT_DIR);
+        boolean found = false;
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(metadataAttDir)) {
+            for (Path metaAttFile : directoryStream) {
+                String fileName = metaAttFile.getFileName().toString();
+                Integer currentMetadataId = Integer.parseInt(fileName.substring(0, fileName.length() - 4));
+
+                // update file
+                if (currentMetadataId == metadataID) {
+                    found = true;
+                    StringList attList = (StringList) getObjectFromPath(metaAttFile, pool);
+                    List<Integer> attIds = getIntegerList(attList);
+                    if (!attIds.contains(attId)) {
+                        attIds.add(attId);
+
+                        // update fs
+                        writeObjectInPath(attList, metaAttFile, pool);
+
+                        // update memory
+                        List<Attachment> atts = linkedAttachment.get(metadataID);
+                        atts.add(byId.get(attId));
+                    }
+                }
+            }
+
+            // create new file
+            if (!found) {
+                // update fs
+                StringList dataList = new StringList(Arrays.asList(attId + ""));
+                Path dataDataFile = metadataAttDir.resolve(metadataID + ".xml");
+                writeObjectInPath(dataList, dataDataFile, pool);
+
+                // update memory
+                List<Attachment> atts = new ArrayList<>();
+                atts.add(byId.get(attId));
+                linkedAttachment.put(metadataID, atts);
+            }
+
+        } catch (IOException | JAXBException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
     }
 
     @Override
     public void unlinkMetadataAndAttachment(int metadataID, int attId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+        Path dataDataDir = getDirectory(METADATA_X_ATTACHMENT_DIR);
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(dataDataDir)) {
+            for (Path metaAttFile : directoryStream) {
+                String fileName = metaAttFile.getFileName().toString();
+                Integer currentmetadataId = Integer.parseInt(fileName.substring(0, fileName.length() - 4));
 
+                // update file
+                if (currentmetadataId == metadataID) {
+                    StringList attList = (StringList) getObjectFromPath(metaAttFile, pool);
+                    List<Integer> attIds = getIntegerList(attList);
+                    if (attIds.contains(attId)) {
+                        attIds.remove(attId);
+
+                        // update fs
+                        writeObjectInPath(attList, metaAttFile, pool);
+
+                        // update memory
+                        List<Attachment> atts = linkedAttachment.get(metadataID);
+                        atts.remove(byId.get(attId));
+                    }
+                }
+            }
+
+        } catch (IOException | JAXBException ex) {
+            LOGGER.log(Level.WARNING, "Error while unlinking style and data", ex);
+        }
+    }
 }

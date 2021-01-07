@@ -21,7 +21,10 @@ package com.examind.repository;
 import java.util.List;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.Sensor;
+import org.constellation.repository.DataRepository;
+import org.constellation.repository.ProviderRepository;
 import org.constellation.repository.SensorRepository;
+import org.constellation.repository.ServiceRepository;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,12 +39,24 @@ public class SensorRepositoryTest extends AbstractRepositoryTest {
     @Autowired
     private SensorRepository sensorRepository;
 
+    @Autowired
+    private ServiceRepository serviceRepository;
+
+    @Autowired
+    private DataRepository dataRepository;
+
+    @Autowired
+    private ProviderRepository providerRepository;
+    
     @Test
     @Transactional()
     public void crude() {
 
-        // no removeAll method
+        dataRepository.deleteAll();
+        serviceRepository.deleteAll();
+        providerRepository.deleteAll();
         sensorRepository.deleteAll();
+        
         List<Sensor> all = sensorRepository.findAll();
         Assert.assertTrue(all.isEmpty());
 
@@ -52,25 +67,70 @@ public class SensorRepositoryTest extends AbstractRepositoryTest {
         /**
          * sensor insertion
          */
-        Integer sid = sensorRepository.create(TestSamples.newSensor(owner.getId(), "sensor1"));
-        Assert.assertNotNull(sid);
+        Integer pid = providerRepository.create(TestSamples.newProviderQuote(owner.getId()));
+        Assert.assertNotNull(pid);
 
-        Sensor s = sensorRepository.findById(sid);
-        Assert.assertNotNull(s);
+        Integer did1 = dataRepository.create(TestSamples.newData1(owner.getId(), pid, null));
+        Assert.assertNotNull(did1);
+
+        Integer sid1 = sensorRepository.create(TestSamples.newSensor(owner.getId(), "sensor1"));
+        Assert.assertNotNull(sid1);
+
+        Sensor s1 = sensorRepository.findById(sid1);
+        Assert.assertNotNull(s1);
+
+        Integer sid2 = sensorRepository.create(TestSamples.newSensor(owner.getId(), "senso'; r2"));
+        Assert.assertNotNull(sid2);
+
+        Sensor s2 = sensorRepository.findById(sid2);
+        Assert.assertNotNull(s2);
+
+        Integer srid1 = serviceRepository.create(TestSamples.newService(owner.getId()));
+
+        sensorRepository.linkSensorToService(sid2, srid1);
+        sensorRepository.linkDataToSensor(did1, sid1);
 
         /**
          * sensor search
          */
-        Assert.assertEquals(s, sensorRepository.findByIdentifier("sensor1"));
-        Assert.assertEquals(s.getId(), sensorRepository.findIdByIdentifier("sensor1"));
+        Assert.assertEquals(s1, sensorRepository.findByIdentifier("sensor1"));
+        Assert.assertEquals(s1.getId(), sensorRepository.findIdByIdentifier("sensor1"));
+
+        Assert.assertEquals(s2, sensorRepository.findByIdentifier("senso'; r2"));
+        Assert.assertEquals(s2.getId(), sensorRepository.findIdByIdentifier("senso'; r2"));
+
+        Assert.assertTrue(sensorRepository.existsById(sid2));
+        Assert.assertTrue(sensorRepository.existsByIdentifier("senso'; r2"));
+
+        List<Integer> dataIds = sensorRepository.getLinkedDatas(sid1);
+        Assert.assertTrue(dataIds.contains(did1));
+
+        Assert.assertTrue(sensorRepository.isLinkedSensorToService(sid2, srid1));
+        List<Integer> servIds = sensorRepository.getLinkedServices(sid2);
+        Assert.assertTrue(servIds.contains(srid1));
+        Assert.assertEquals(1, sensorRepository.getLinkedSensorCount(srid1));
+
+        sensorRepository.unlinkSensorFromService(sid2, srid1);
+        sensorRepository.unlinkDataToSensor(did1, sid1);
+
+        dataIds = sensorRepository.getLinkedDatas(sid1);
+        Assert.assertTrue(dataIds.isEmpty());
+
+        servIds = sensorRepository.getLinkedServices(sid2);
+        Assert.assertTrue(servIds.isEmpty());
 
         /**
          * sensor delete
          */
-        sensorRepository.delete(s.getIdentifier());
+        sensorRepository.delete(s1.getIdentifier());
 
-        s = sensorRepository.findById(s.getId());
-        Assert.assertNull(s);
+        s1 = sensorRepository.findById(s1.getId());
+        Assert.assertNull(s1);
+        
+        dataRepository.deleteAll();
+        serviceRepository.deleteAll();
+        providerRepository.deleteAll();
+        sensorRepository.deleteAll();
     }
 
 }

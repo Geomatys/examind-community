@@ -22,7 +22,7 @@ import java.util.List;
 
 import org.constellation.dto.process.TaskParameter;
 
-public interface TaskParameterRepository {
+public interface TaskParameterRepository extends AbstractRepository {
 
     /**
      * Return all the registered task parameters.
@@ -57,18 +57,6 @@ public interface TaskParameterRepository {
      * @return
      */
     TaskParameter get(Integer id);
-
-    /**
-     * Remove a task parameter.
-     *
-     * @param taskId
-     */
-     void delete(Integer taskId);
-
-     /**
-     * Remove all task parameters.
-     */
-     void deleteAll();
 
     /**
      * Update a task parameter.

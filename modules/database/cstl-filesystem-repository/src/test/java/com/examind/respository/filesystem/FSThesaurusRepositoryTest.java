@@ -33,10 +33,4 @@ public class FSThesaurusRepositoryTest extends ThesaurusRepositoryTest {
         super.crude();
     }
 
-    @Test
-    @Override
-    public void thesaurusLinkTest() {
-        // not supported yet
-    }
-
 }

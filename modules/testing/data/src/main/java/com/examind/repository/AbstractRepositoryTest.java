@@ -32,6 +32,7 @@ import java.util.logging.Logger;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.CstlUser;
+import org.constellation.dto.UserWithRole;
 import org.constellation.repository.UserRepository;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -64,10 +65,12 @@ public abstract class AbstractRepositoryTest {
     }
 
     protected CstlUser getOrCreateUser() {
+        return getOrCreateUser(TestSamples.newAdminUser());
+    }
 
-        return userRepository.findByEmail(TestSamples.newAdminUser().getEmail())
-                             .orElse(userRepository.findById(userRepository.create(TestSamples.newAdminUser())).get());
-
+    protected CstlUser getOrCreateUser(UserWithRole user) {
+        return userRepository.findByEmail(user.getEmail())
+                             .orElse(userRepository.findById(userRepository.create(user)).get());
     }
 
     protected void dump(List<?> findAll) {

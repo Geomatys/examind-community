@@ -166,6 +166,13 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
     }
 
     @Override
+    public boolean existsById(Integer id) {
+        return dsl.selectCount().from(METADATA)
+                .where(METADATA.ID.eq(id))
+                .fetchOne(0, Integer.class) > 0;
+    }
+
+    @Override
     public List<Metadata> findAll() {
         return convertListToDto(dsl.select().from(METADATA).fetchInto(org.constellation.database.api.jooq.tables.pojos.Metadata.class));
     }
@@ -664,7 +671,7 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public int delete(final int id) {
+    public int delete(final Integer id) {
         dsl.delete(INTERNAL_METADATA).where(INTERNAL_METADATA.ID.eq(id)).execute();
         dsl.delete(METADATA_BBOX).where(METADATA_BBOX.METADATA_ID.eq(id)).execute();
         return dsl.delete(METADATA).where(METADATA.ID.eq(id)).execute();
@@ -672,11 +679,10 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public void deleteAll() {
-        List<Integer> ids = findAllIds();
-        for (Integer id : ids) {
-            delete(id);
-        }
+    public int deleteAll() {
+        dsl.delete(INTERNAL_METADATA).execute();
+        dsl.delete(METADATA_BBOX).execute();
+        return dsl.delete(METADATA).execute();
     }
 
     @Override

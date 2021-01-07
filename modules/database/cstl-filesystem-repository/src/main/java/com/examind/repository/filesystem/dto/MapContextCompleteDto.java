@@ -2,7 +2,7 @@
  *    Constellation - An open source and standard compliant SDI
  *    http://www.constellation-sdi.org
  *
- * Copyright 2014 Geomatys.
+ * Copyright 2020 Geomatys.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.repository;
+package com.examind.repository.filesystem.dto;
 
 import java.util.List;
-import java.util.Map;
-
+import javax.xml.bind.annotation.XmlRootElement;
 import org.constellation.dto.MapContextDTO;
 import org.constellation.dto.MapContextStyledLayerDTO;
 
-public interface MapContextRepository extends AbstractRepository {
+/**
+ *
+ * @author Guilhem (geomatys)
+ */
+@XmlRootElement
+public class MapContextCompleteDto extends MapContextDTO {
 
-    MapContextDTO findById(int id);
+    private List<MapContextStyledLayerDTO> layers;
 
-    List<MapContextDTO> findAll();
+    public MapContextCompleteDto() {
 
-    List<Integer> findAllId();
+    }
 
-    List<MapContextStyledLayerDTO> getLinkedLayers(int mapContextId);
+    public MapContextCompleteDto(MapContextDTO mc) {
+        super(mc);
+    }
 
-    void setLinkedLayers(int mapContextId, List<MapContextStyledLayerDTO> layers);
+    public MapContextCompleteDto(MapContextDTO mc, List<MapContextStyledLayerDTO> layers) {
+        super(mc);
+        this.layers = layers;
+    }
 
-    Integer create(MapContextDTO mapContext);
+    public List<MapContextStyledLayerDTO> getLayers() {
+        return layers;
+    }
 
-    int update(MapContextDTO mapContext);
+    public void setLayers(List<MapContextStyledLayerDTO> layers) {
+        this.layers = layers;
+    }
 
-    Map.Entry<Integer, List<MapContextDTO>> filterAndGet(final Map<String,Object> filterMap, final Map.Entry<String,String> sortEntry,final int pageNumber,final int rowsPerPage);
 }

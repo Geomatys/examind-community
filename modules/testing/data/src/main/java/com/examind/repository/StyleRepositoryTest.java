@@ -18,10 +18,14 @@
  */
 package com.examind.repository;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.Layer;
 import org.constellation.dto.Style;
+import org.constellation.dto.StyleReference;
 import org.constellation.repository.DataRepository;
 import org.constellation.repository.DatasetRepository;
 import org.constellation.repository.LayerRepository;
@@ -58,39 +62,14 @@ public class StyleRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void crude() {
+        dataRepository.deleteAll();
+        datasetRepository.deleteAll();
+        providerRepository.deleteAll();
+        layerRepository.deleteAll();
+        serviceRepository.deleteAll();
+        styleRepository.deleteAll();
 
-        // no removeAll method
         List<Style> all = styleRepository.findAll();
-        for (Style p : all) {
-            styleRepository.delete(p.getId());
-        }
-        all = styleRepository.findAll();
-        Assert.assertTrue(all.isEmpty());
-
-        CstlUser owner = getOrCreateUser();
-        Assert.assertNotNull(owner);
-        Assert.assertNotNull(owner.getId());
-
-        int sid = styleRepository.create(TestSamples.newStyle(owner.getId(), "ds1"));
-        Assert.assertNotNull(sid);
-
-        Style s = styleRepository.findById(sid);
-        Assert.assertNotNull(s);
-
-        styleRepository.delete(s.getId());
-
-        s = styleRepository.findById(s.getId());
-        Assert.assertNull(s);
-    }
-
-    @Test
-    public void layersLink() {
-        // no removeAll method
-        List<Layer> all = layerRepository.findAll();
-        for (Layer p : all) {
-            layerRepository.delete(p.getId());
-        }
-        all = layerRepository.findAll();
         Assert.assertTrue(all.isEmpty());
 
         CstlUser owner = getOrCreateUser();
@@ -105,41 +84,153 @@ public class StyleRepositoryTest extends AbstractRepositoryTest {
         Integer did1 = dataRepository.create(TestSamples.newData1(owner.getId(), pid, dsid));
         Assert.assertNotNull(did1);
 
-        Integer sid = serviceRepository.create(TestSamples.newService(owner.getId()));
-        Assert.assertNotNull(sid);
+        Integer did2 = dataRepository.create(TestSamples.newData2(owner.getId(), pid, dsid));
+        Assert.assertNotNull(did2);
 
         /**
          * Layer insertion
          */
+         Integer sid = serviceRepository.create(TestSamples.newService(owner.getId()));
+        Assert.assertNotNull(sid);
 
-        Integer lid = layerRepository.create(TestSamples.newLayer(owner.getId(), did1, sid));
-        Assert.assertNotNull(lid);
+        Integer lid1 = layerRepository.create(TestSamples.newLayer(owner.getId(), did1, sid));
+        Assert.assertNotNull(lid1);
 
-        Layer l1 = layerRepository.findById(lid);
+        Layer l1 = layerRepository.findById(lid1);
         Assert.assertNotNull(l1);
+
+        Integer lid2 = layerRepository.create(TestSamples.newLayer2(owner.getId(), did1, sid));
+        Assert.assertNotNull(lid1);
+
+        Layer l2 = layerRepository.findById(lid2);
+        Assert.assertNotNull(l2);
 
         /**
          * link with style
          */
         Style style1 = TestSamples.newStyle(owner.getId(), "style1");
-        int stid = styleRepository.create(style1);
-        Assert.assertNotNull(stid);
-        style1.setId(stid);
+        int stid1 = styleRepository.create(style1);
+        Assert.assertNotNull(stid1);
+        style1.setId(stid1);
 
-        styleRepository.linkStyleToLayer(stid, lid);
+        Style s = styleRepository.findById(stid1);
+        Assert.assertEquals(s, style1);
+        Assert.assertEquals(Boolean.TRUE, s.getIsShared());
 
-        List<Style> styles = styleRepository.findByLayer(lid);
+        styleRepository.linkStyleToData(stid1, did1);
+        styleRepository.linkStyleToLayer(stid1, lid1);
+
+        Style style2 = TestSamples.newStyleQuote(owner.getId(), "style'; select *';1");
+        int stid2 = styleRepository.create(style2);
+        Assert.assertNotNull(stid2);
+        style2.setId(stid2);
+
+        s = styleRepository.findById(stid2);
+        Assert.assertEquals(s, style2);
+        Assert.assertEquals(Boolean.FALSE, s.getIsShared());
+
+        styleRepository.linkStyleToData(stid2, did2);
+        styleRepository.linkStyleToLayer(stid2, lid2);
+
+        /**
+         * Search
+         */
+        List<Style> styles = styleRepository.findByLayer(lid1);
         Assert.assertEquals(1, styles.size());
         Assert.assertEquals(style1, styles.get(0));
 
+        styles = styleRepository.findByLayer(lid2);
+        Assert.assertEquals(1, styles.size());
+        Assert.assertEquals(style2, styles.get(0));
 
-        styleRepository.unlinkStyleToLayer(stid, lid);
-        styles = styleRepository.findByLayer(lid);
+        styles = styleRepository.findByName("style'; select *';1");
+        Assert.assertEquals(1, styles.size());
+        Assert.assertEquals(style2, styles.get(0));
+
+        styles = styleRepository.findByProvider(1);
+        Assert.assertEquals(2, styles.size());
+        Assert.assertTrue(styles.contains(style1));
+        Assert.assertTrue(styles.contains(style2));
+
+        styles = styleRepository.findByType("VE''CTOR");
+        Assert.assertEquals(1, styles.size());
+        Assert.assertEquals(style2, styles.get(0));
+
+        styles = styleRepository.findByTypeAndProvider(1, "VE''CTOR");
+        Assert.assertEquals(1, styles.size());
+        Assert.assertEquals(style2, styles.get(0));
+
+
+        List<StyleReference> refs = styleRepository.fetchByDataId(did1);
+        Assert.assertEquals(1, refs.size());
+        Assert.assertEquals(new StyleReference(stid1, "style1", 1, "sld"), refs.get(0));
+
+        refs = styleRepository.fetchByDataId(did2);
+        Assert.assertEquals(1, refs.size());
+        Assert.assertEquals(new StyleReference(stid2, "style'; select *';1", 1, "sld"), refs.get(0));
+
+        refs = styleRepository.fetchByLayerId(lid2);
+        Assert.assertEquals(1, refs.size());
+        Assert.assertEquals(new StyleReference(stid2, "style'; select *';1", 1, "sld"), refs.get(0));
+
+        List<Integer> ids = styleRepository.getStyleIdsForData(did1);
+        Assert.assertEquals(1, ids.size());
+        Assert.assertTrue(ids.contains(stid1));
+
+        Map<String, Object> filters = new HashMap<>();
+        Entry<String, String> sortEntry = null;
+        Entry<Integer, List<Style>> styleFound = styleRepository.filterAndGet(filters, sortEntry, 1, 10);
+        Assert.assertEquals(new Integer(2), styleFound.getKey());
+
+        filters.clear();
+        filters.put("isShared", false);
+        styleFound = styleRepository.filterAndGet(filters, sortEntry, 1, 10);
+        Assert.assertEquals(new Integer(1), styleFound.getKey());
+        Assert.assertTrue(styleFound.getValue().contains(style2));
+
+        filters.clear();
+        filters.put("owner", owner.getId());
+        styleFound = styleRepository.filterAndGet(filters, sortEntry, 1, 10);
+        Assert.assertEquals(new Integer(2), styleFound.getKey());
+        Assert.assertTrue(styleFound.getValue().contains(style1));
+        Assert.assertTrue(styleFound.getValue().contains(style2));
+
+        filters.clear();
+        filters.put("type", "VE''CTOR");
+        styleFound = styleRepository.filterAndGet(filters, sortEntry, 1, 10);
+        Assert.assertEquals(new Integer(1), styleFound.getKey());
+        Assert.assertTrue(styleFound.getValue().contains(style2));
+
+        filters.clear();
+        filters.put("provider", 1);
+        styleFound = styleRepository.filterAndGet(filters, sortEntry, 1, 10);
+        Assert.assertEquals(new Integer(2), styleFound.getKey());
+        Assert.assertTrue(styleFound.getValue().contains(style1));
+        Assert.assertTrue(styleFound.getValue().contains(style2));
+
+        filters.clear();
+        filters.put("term", "select *';");
+        styleFound = styleRepository.filterAndGet(filters, sortEntry, 1, 10);
+        Assert.assertEquals(new Integer(1), styleFound.getKey());
+        Assert.assertTrue(styleFound.getValue().contains(style2));
+        /**
+         * update
+         */
+        styleRepository.unlinkStyleToLayer(stid1, lid1);
+        styles = styleRepository.findByLayer(lid1);
         Assert.assertEquals(0, styles.size());
 
+        Assert.assertEquals(Boolean.TRUE, style1.getIsShared());
+        styleRepository.changeSharedProperty(stid1, false);
+        s = styleRepository.findById(stid1);
+        Assert.assertEquals(Boolean.FALSE, s.getIsShared());
+
         // cleanup
-        styleRepository.delete(stid);
-        layerRepository.delete(lid);
+        dataRepository.deleteAll();
+        datasetRepository.deleteAll();
+        providerRepository.deleteAll();
+        layerRepository.deleteAll();
+        styleRepository.deleteAll();
 
     }
 

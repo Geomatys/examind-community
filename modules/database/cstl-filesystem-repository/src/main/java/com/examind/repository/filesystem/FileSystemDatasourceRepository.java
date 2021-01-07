@@ -97,6 +97,11 @@ public class FileSystemDatasourceRepository extends AbstractFileSystemRepository
     }
 
     @Override
+    public boolean existsById(Integer id) {
+        return byId.containsKey(id);
+    }
+
+    @Override
     public DataSource findById(int id) {
         return byId.get(id);
     }
@@ -223,7 +228,26 @@ public class FileSystemDatasourceRepository extends AbstractFileSystemRepository
 
     @Override
     public void deletePath(int id, String path) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (selectedPathsById.containsKey(id)) {
+            List<DataSourceSelectedPath> dpcs = selectedPathsById.get(id);
+            for (DataSourceSelectedPath dpc : dpcs) {
+                if (dpc.getPath().equals(path)) {
+                    dpcs.remove(dpc);
+                    updateSelectedPath(id);
+                    break;
+                }
+            }
+        }
+        if (completePathsById.containsKey(id)) {
+            List<DataSourcePathComplete> dpcs = completePathsById.get(id);
+            for (DataSourcePathComplete dpc : dpcs) {
+                if (dpc.getPath().equals(path)) {
+                    dpcs.remove(dpc);
+                    updateCompletePath(id);
+                    break;
+                }
+            }
+        }
     }
 
     ////--------------------------------------------------------------------///
@@ -264,7 +288,7 @@ public class FileSystemDatasourceRepository extends AbstractFileSystemRepository
      }
 
      @Override
-     public int delete(int id) {
+     public int delete(Integer id) {
         if (byId.containsKey(id)) {
 
             DataSource ds = byId.get(id);
@@ -308,7 +332,16 @@ public class FileSystemDatasourceRepository extends AbstractFileSystemRepository
         return 0;
      }
 
-     @Override
+    @Override
+     public int deleteAll() {
+        int cpt = 0;
+        for (Integer ds : new HashSet<>(byId.keySet())) {
+            cpt = cpt + delete(ds);
+        }
+        return cpt;
+    }
+
+    @Override
     public void updateAnalysisState(int id, String state) {
         if (byId.containsKey(id)) {
             DataSource ds = byId.get(id);
@@ -386,7 +419,7 @@ public class FileSystemDatasourceRepository extends AbstractFileSystemRepository
 
      @Override
     public void addAnalyzedPath(DataSourcePath dsPath, Map<String, String> types) {
-        DataSourcePathComplete path = new DataSourcePathComplete(dsPath, types);
+        DataSourcePathComplete path = new DataSourcePathComplete(dsPath, new HashMap(types));
         if (completePathsById.containsKey(dsPath.getDatasourceId())) {
             completePathsById.get(dsPath.getDatasourceId()).add(path);
         } else {
@@ -398,13 +431,13 @@ public class FileSystemDatasourceRepository extends AbstractFileSystemRepository
         updateCompletePath(dsPath.getDatasourceId());
     }
 
-    public void updateSelectedPath(int id) {
+    private void updateSelectedPath(int id) {
         Path dsDir = getDirectory(DATASOURCE_SELECTED_PATH_DIR);
         Path dsFile = dsDir.resolve(id + ".xml");
         writeObjectInPath(new DatasourceSelectedPathList(id, selectedPathsById.get(id)), dsFile, pool);
      }
 
-    public void updateCompletePath(int id) {
+    private void updateCompletePath(int id) {
         Path dsDir = getDirectory(DATASOURCE_COMPLETE_PATH_DIR);
         Path dsFile = dsDir.resolve(id + ".xml");
         writeObjectInPath(new DatasourcePathCompleteList(id, completePathsById.get(id)), dsFile, pool);

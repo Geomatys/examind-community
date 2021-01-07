@@ -25,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -80,6 +81,10 @@ public class FileSystemUserRepository extends AbstractFileSystemRepository imple
         }
     }
 
+    @Override
+    public boolean existsById(Integer id) {
+        return byId.containsKey(id);
+    }
 
     @Override
     public Optional<CstlUser> findOne(String login) {
@@ -131,7 +136,7 @@ public class FileSystemUserRepository extends AbstractFileSystemRepository imple
     }
 
     @Override
-    public int countUser() {
+    public long countUser() {
         return byId.size();
     }
 
@@ -193,12 +198,14 @@ public class FileSystemUserRepository extends AbstractFileSystemRepository imple
             byForgotPwd.put(userR.getForgotPasswordUuid(), userR);
             if (userR.getActive()) {
                 activeById.put(userR.getId(), userR);
+            } else {
+                activeById.remove(userR.getId());
             }
         }
     }
 
     @Override
-    public int delete(int userId) {
+    public int delete(Integer userId) {
         if (byId.containsKey(userId)) {
 
             UserWithRole userR = byId.get(userId);
@@ -222,6 +229,15 @@ public class FileSystemUserRepository extends AbstractFileSystemRepository imple
             return 1;
         }
         return 0;
+    }
+
+    @Override
+    public int deleteAll() {
+        int cpt = 0;
+        for (Integer id : new HashSet<>(byId.keySet())) {
+            cpt = cpt + delete(id);
+        }
+        return cpt;
     }
 
     @Override
@@ -257,11 +273,25 @@ public class FileSystemUserRepository extends AbstractFileSystemRepository imple
 
     @Override
     public List<UserWithRole> search(String search, int size, int page, String sortFieldName, String order) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        List<UserWithRole> results = new ArrayList<>();
+        // todo pagination
+        for (UserWithRole ur : byId.values()) {
+            if (ur.getLogin().contains(search)) {
+                results.add(ur);
+            }
+        }
+        return results;
     }
 
     @Override
     public long searchCount(String search) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        int results = 0;
+        // todo pagination
+        for (UserWithRole ur : byId.values()) {
+            if (ur.getLogin().contains(search)) {
+                results++;
+            }
+        }
+        return results;
     }
 }

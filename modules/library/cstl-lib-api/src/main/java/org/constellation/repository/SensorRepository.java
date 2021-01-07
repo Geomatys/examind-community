@@ -1,3 +1,21 @@
+/*
+ *    Constellation - An open source and standard compliant SDI
+ *    http://www.constellation-sdi.org
+ *
+ * Copyright 2014 Geomatys.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.constellation.repository;
 
 import java.util.List;
@@ -5,7 +23,7 @@ import java.util.List;
 import org.constellation.dto.Sensor;
 import org.constellation.dto.SensorReference;
 
-public interface SensorRepository {
+public interface SensorRepository extends AbstractRepository {
 
     Sensor findByIdentifier(String identifier);
 
@@ -13,7 +31,7 @@ public interface SensorRepository {
 
     Sensor findById(Integer id);
 
-    List<String> getLinkedSensors(Integer dataID);
+    List<String> getDataLinkedSensors(Integer dataID);
 
     List<Integer> getLinkedDatas(Integer sensorID);
 
@@ -28,8 +46,6 @@ public interface SensorRepository {
     List<Sensor> findByProviderId(int providerId);
 
     List<Sensor> findByServiceId(Integer id);
-
-    void deleteAll();
 
     void delete(String identifier);
 
@@ -47,17 +63,15 @@ public interface SensorRepository {
 
     void update(Sensor sensor);
 
-    boolean existsById(int sensorId);
-
     boolean existsByIdentifier(String sensorIdentifier);
 
     List<SensorReference> fetchByDataId(int dataId);
 
-    void linkSensorToSOS(int sensorID, int sosID);
+    void linkSensorToService(int sensorID, int servID);
 
-    void unlinkSensorFromSOS(int sensorID, int sosID);
+    void unlinkSensorFromService(int sensorID, int servID);
 
-    boolean isLinkedSensorToSOS(int sensorID, int sosID);
+    boolean isLinkedSensorToService(int sensorID, int sosID);
     
     int getLinkedSensorCount(int serviceId);
 

@@ -19,6 +19,7 @@
 package org.constellation.dto.process;
 
 import java.io.Serializable;
+import java.util.Objects;
 import javax.xml.bind.annotation.XmlRootElement;
 
 
@@ -47,5 +48,25 @@ public class TaskParameterWithOwnerName extends TaskParameter implements Seriali
 
     public void setOwnerName(String ownerName) {
         this.ownerName = ownerName;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof TaskParameterWithOwnerName && super.equals(obj)) {
+            final TaskParameterWithOwnerName that = (TaskParameterWithOwnerName) obj;
+            return Objects.equals(this.ownerName, that.ownerName);
+        }
+        return false;
+    }
+
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder(super.toString());
+        sb.append("ownerName=").append(ownerName);
+        return sb.toString();
     }
 }

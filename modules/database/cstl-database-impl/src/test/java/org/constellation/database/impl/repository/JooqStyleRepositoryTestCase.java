@@ -34,11 +34,4 @@ public class JooqStyleRepositoryTestCase extends StyleRepositoryTest {
     public void crude() {
         super.crude();
     }
-
-    @Test
-    @Transactional()
-    @Override
-    public void layersLink() {
-        super.layersLink();
-    }
 }

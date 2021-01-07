@@ -249,7 +249,7 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
     public void getUsersRequest() throws Exception {
         init();
 
-        int nbUsers = userBusiness.countUser();
+        long nbUsers = userBusiness.countUser();
 
         final URL request = new URL("http://localhost:" + getCurrentPort() + "/API/users");
         Object o = unmarshallJsonResponse(request, Page.class);

@@ -25,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -118,6 +119,11 @@ public class FileSystemLayerRepository extends AbstractFileSystemRepository impl
     }
 
     @Override
+    public boolean existsById(Integer id) {
+        return byId.containsKey(id);
+    }
+
+    @Override
     public List<Layer> findAll() {
         return new ArrayList<>(byId.values());
     }
@@ -165,7 +171,7 @@ public class FileSystemLayerRepository extends AbstractFileSystemRepository impl
         return ids;
     }
 
-     @Override
+    @Override
     public Layer findByServiceIdAndLayerName(int serviceId, String layerName) {
         return byServiceIdLayerName.get(serviceId + '-' + layerName);
     }
@@ -342,7 +348,7 @@ public class FileSystemLayerRepository extends AbstractFileSystemRepository impl
     }
 
     @Override
-    public void delete(int id) {
+    public int delete(Integer id) {
         if (byId.containsKey(id)) {
 
             Layer layer = byId.get(id);
@@ -381,7 +387,18 @@ public class FileSystemLayerRepository extends AbstractFileSystemRepository impl
             for (Style s : styleRepository.findByLayer(id)) {
                 styleRepository.unlinkStyleToLayer(s.getId(), id);
             }
+            return 1;
         }
+        return 0;
+    }
+
+    @Override
+    public int deleteAll() {
+        int cpt = 0;
+        for (Integer id : new HashSet<>(byId.keySet())) {
+            cpt = cpt + delete(id);
+        }
+        return cpt;
     }
 
     @Override
@@ -397,7 +414,7 @@ public class FileSystemLayerRepository extends AbstractFileSystemRepository impl
     public int deleteServiceLayer(Integer service) {
         int i = 0;
         if (byService.containsKey(service)) {
-            for (Layer l : byService.get(service)) {
+            for (Layer l : new ArrayList<>(byService.get(service))) {
                 delete(l.getId());
                 i++;
             }

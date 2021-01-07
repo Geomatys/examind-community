@@ -111,8 +111,13 @@ public class JooqTaskRepository extends AbstractJooqRespository<TaskRecord, org.
     }
 
     @Override
-    public void delete(String uuid) {
-        dsl.delete(Tables.TASK).where(Tables.TASK.IDENTIFIER.eq(uuid)).execute();
+    public int delete(String uuid) {
+        return dsl.delete(Tables.TASK).where(Tables.TASK.IDENTIFIER.eq(uuid)).execute();
+    }
+
+    @Override
+    public int deleteAll() {
+        return dsl.delete(Tables.TASK).execute();
     }
 
     private List<Task> convertTaskListToDto(List<org.constellation.database.api.jooq.tables.pojos.Task> daos) {

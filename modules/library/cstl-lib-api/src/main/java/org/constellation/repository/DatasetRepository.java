@@ -28,7 +28,7 @@ import java.util.Map;
  *
  * @author Guilhem Legal
  */
-public interface DatasetRepository {
+public interface DatasetRepository extends AbstractRepository {
 
     List<DataSet> findAll();
 
@@ -46,8 +46,6 @@ public interface DatasetRepository {
 
     DataSet findById(int datasetId);
 
-    void delete(int id);
-
     List<DataSet> getCswLinkedDataset(final int cswId);
 
     void addDatasetToCSW(final int serviceID, final int datasetID);
@@ -55,8 +53,6 @@ public interface DatasetRepository {
     void removeDatasetFromCSW(final int serviceID, final int datasetID);
 
     void removeAllDatasetFromCSW(final int serviceID);
-
-    boolean existsById(int datasetId);
 
     boolean existsByName(String datasetName);
 

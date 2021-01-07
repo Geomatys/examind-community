@@ -25,7 +25,7 @@ import org.constellation.dto.InternalSensor;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public interface InternalSensorRepository {
+public interface InternalSensorRepository extends AbstractRepository {
 
     InternalSensor findBySensorId(String sensorId);
 
@@ -37,7 +37,4 @@ public interface InternalSensorRepository {
 
     int countSensors();
 
-    int delete(int id);
-
-    void deleteAll();
 }

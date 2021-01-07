@@ -375,12 +375,6 @@ public class MapContextBusiness implements IMapContextBusiness {
     }
 
     @Override
-    @Transactional
-    public void updateOwner(Integer contextId, int newOwner) {
-        mapContextRepository.updateOwner(contextId, newOwner);
-    }
-
-    @Override
     public Map.Entry<Integer, List<MapContextDTO>> filterAndGetBrief(final Map<String,Object> filterMap, final Map.Entry<String,String> sortEntry,final int pageNumber,final int rowsPerPage) {
         return mapContextRepository.filterAndGet(filterMap, sortEntry, pageNumber, rowsPerPage);
     }

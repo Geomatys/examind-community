@@ -25,7 +25,7 @@ import org.constellation.dto.thesaurus.Thesaurus;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public interface ThesaurusRepository {
+public interface ThesaurusRepository extends AbstractRepository {
 
     /**
      * Return all the available thesaurus
@@ -66,8 +66,6 @@ public interface ThesaurusRepository {
     Thesaurus get(int id);
 
     void update(Thesaurus thesaurus);
-
-    int delete(int id);
 
     List<Thesaurus> getLinkedThesaurus(int serviceId);
 

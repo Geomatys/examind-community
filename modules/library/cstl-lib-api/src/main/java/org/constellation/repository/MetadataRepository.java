@@ -29,7 +29,7 @@ import org.constellation.dto.metadata.MetadataBbox;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public interface MetadataRepository {
+public interface MetadataRepository extends AbstractRepository {
 
     int create(MetadataComplete metadata);
 
@@ -54,10 +54,6 @@ public interface MetadataRepository {
     List<Integer> findAllIds();
 
     List<MetadataBbox> getBboxes(int id);
-
-    int delete(int id);
-
-    void deleteAll();
 
     List<Metadata> findByCswId(Integer id);
 

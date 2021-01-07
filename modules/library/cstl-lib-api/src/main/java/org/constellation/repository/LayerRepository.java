@@ -21,10 +21,9 @@ package org.constellation.repository;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import org.constellation.dto.Data;
 import org.constellation.dto.Layer;
 
-public interface LayerRepository {
+public interface LayerRepository extends AbstractRepository {
 
     List<Layer> findAll();
 
@@ -52,8 +51,6 @@ public interface LayerRepository {
      * @param storeLayer layer to update
      */
     void update(Layer storeLayer);
-
-    void delete(int layerId);
 
     Integer findIdByServiceIdAndLayerName(int serviceId, String layerName);
     

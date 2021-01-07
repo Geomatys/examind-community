@@ -29,7 +29,6 @@ import static org.constellation.database.api.jooq.Tables.THESAURUS;
 import static org.constellation.database.api.jooq.Tables.THESAURUS_LANGUAGE;
 import static org.constellation.database.api.jooq.Tables.THESAURUS_X_SERVICE;
 import org.constellation.database.api.jooq.tables.records.ThesaurusLanguageRecord;
-import org.constellation.database.api.jooq.tables.records.ThesaurusXServiceRecord;
 import org.jooq.Record;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.transaction.annotation.Propagation;
@@ -112,6 +111,13 @@ public class JooqThesaurusRepository extends AbstractJooqRespository<ThesaurusRe
     }
 
     @Override
+    public boolean existsById(Integer id) {
+        return dsl.selectCount().from(THESAURUS)
+                .where(THESAURUS.ID.eq(id))
+                .fetchOne(0, Integer.class) > 0;
+    }
+
+    @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public void update(Thesaurus thesaurus) {
         dsl.update(THESAURUS)
@@ -138,10 +144,18 @@ public class JooqThesaurusRepository extends AbstractJooqRespository<ThesaurusRe
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public int delete(final int id) {
+    public int delete(final Integer id) {
         dsl.delete(THESAURUS_X_SERVICE).where(THESAURUS_X_SERVICE.THESAURUS_ID.eq(id)).execute();
         dsl.delete(THESAURUS_LANGUAGE).where(THESAURUS_LANGUAGE.THESAURUS_ID.eq(id)).execute();
         return dsl.delete(THESAURUS).where(THESAURUS.ID.eq(id)).execute();
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public int deleteAll() {
+        dsl.delete(THESAURUS_X_SERVICE).execute();
+        dsl.delete(THESAURUS_LANGUAGE).execute();
+        return dsl.delete(THESAURUS).execute();
     }
 
     @Override

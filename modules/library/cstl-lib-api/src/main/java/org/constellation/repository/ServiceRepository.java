@@ -24,7 +24,7 @@ import java.util.Map;
 import org.constellation.dto.service.Service;
 import org.constellation.dto.ServiceReference;
 
-public interface ServiceRepository {
+public interface ServiceRepository extends AbstractRepository {
 
     int create(Service service);
 
@@ -39,10 +39,6 @@ public interface ServiceRepository {
     Service findByIdentifierAndType(String id, String type);
 
     Integer findIdByIdentifierAndType(String id, String type);
-
-    boolean exist(Integer id);
-
-    void delete(Integer id);
 
     List<String> findIdentifiersByType(String type);
 

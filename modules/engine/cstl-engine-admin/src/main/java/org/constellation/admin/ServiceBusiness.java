@@ -625,7 +625,7 @@ public class ServiceBusiness implements IServiceBusiness {
      */
     @Override
     public void ensureExistingInstance(final Integer id) throws ConfigurationException {
-        if (!serviceRepository.exist(id)) {
+        if (!serviceRepository.existsById(id)) {
             throw new TargetNotFoundException(id + " service instance not found.");
         }
     }

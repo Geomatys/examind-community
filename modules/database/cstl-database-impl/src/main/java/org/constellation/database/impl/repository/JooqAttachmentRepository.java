@@ -45,9 +45,16 @@ public class JooqAttachmentRepository extends AbstractJooqRespository<Attachment
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public int delete(int id) {
+    public int delete(Integer id) {
         dsl.delete(METADATA_X_ATTACHMENT).where(METADATA_X_ATTACHMENT.ATTACHEMENT_ID.eq(id)).execute();
         return dsl.delete(ATTACHMENT).where(ATTACHMENT.ID.eq(id)).execute();
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public int deleteAll() {
+        dsl.delete(METADATA_X_ATTACHMENT).execute();
+        return dsl.delete(ATTACHMENT).execute();
     }
 
     @Override
@@ -77,7 +84,7 @@ public class JooqAttachmentRepository extends AbstractJooqRespository<Attachment
     }
 
     @Override
-    public boolean existsById(int styleId) {
+    public boolean existsById(Integer styleId) {
         return dsl.selectCount().from(ATTACHMENT)
                 .where(ATTACHMENT.ID.eq(styleId))
                 .fetchOne(0, Integer.class) > 0;

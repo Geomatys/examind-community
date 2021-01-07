@@ -59,8 +59,15 @@ public class JooqChainProcessRepository extends AbstractJooqRespository<ChainPro
     }
 
     @Override
+    public boolean existsById(Integer id) {
+        return dsl.selectCount().from(CHAIN_PROCESS)
+                .where(CHAIN_PROCESS.ID.eq(id))
+                .fetchOne(0, Integer.class) > 0;
+    }
+
+    @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public int delete(int id) {
+    public int delete(Integer id) {
         return dsl.delete(CHAIN_PROCESS).where(CHAIN_PROCESS.ID.eq(id)).execute();
     }
 
@@ -68,6 +75,12 @@ public class JooqChainProcessRepository extends AbstractJooqRespository<ChainPro
     @Transactional(propagation = Propagation.MANDATORY)
     public int delete(String auth, String code) {
         return dsl.delete(CHAIN_PROCESS).where(CHAIN_PROCESS.AUTH.eq(auth)).and(CHAIN_PROCESS.CODE.eq(code)).execute();
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public int deleteAll() {
+        return dsl.delete(CHAIN_PROCESS).execute();
     }
 
     @Override

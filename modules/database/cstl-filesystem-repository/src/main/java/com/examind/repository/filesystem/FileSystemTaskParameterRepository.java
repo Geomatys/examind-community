@@ -25,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -110,10 +111,14 @@ public class FileSystemTaskParameterRepository extends AbstractFileSystemReposit
     }
 
     @Override
+    public boolean existsById(Integer id) {
+        return byId.containsKey(id);
+    }
+
+    @Override
     public TaskParameter get(Integer uuid) {
         return byId.get(uuid);
     }
-
 
     @Override
     public List<? extends TaskParameter> findAll() {
@@ -257,7 +262,7 @@ public class FileSystemTaskParameterRepository extends AbstractFileSystemReposit
     }
 
     @Override
-    public void delete(Integer taskId) {
+    public int delete(Integer taskId) {
         if (byId.containsKey(taskId)) {
 
             TaskParameterWithOwnerName taskParam = byId.get(taskId);
@@ -284,15 +289,17 @@ public class FileSystemTaskParameterRepository extends AbstractFileSystemReposit
                     }
                 }
             }
+            return 1;
         }
+        return 0;
     }
 
     @Override
-    public void deleteAll() {
-        for (Integer id : byId.keySet()) {
-            delete(id);
+    public int deleteAll() {
+        int cpt = 0;
+        for (Integer id : new HashSet<>(byId.keySet())) {
+            cpt = cpt + delete(id);
         }
+        return cpt;
     }
-
-
 }

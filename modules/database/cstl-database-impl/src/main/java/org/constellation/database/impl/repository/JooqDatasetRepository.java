@@ -138,8 +138,14 @@ public class JooqDatasetRepository extends AbstractJooqRespository<DatasetRecord
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public void delete(int id) {
-        dsl.delete(DATASET).where(DATASET.ID.eq(id)).execute();
+    public int delete(Integer id) {
+        return dsl.delete(DATASET).where(DATASET.ID.eq(id)).execute();
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public int deleteAll() {
+        return dsl.delete(DATASET).execute();
     }
 
     @Override
@@ -184,7 +190,7 @@ public class JooqDatasetRepository extends AbstractJooqRespository<DatasetRecord
     }
 
     @Override
-    public boolean existsById(int datasetId) {
+    public boolean existsById(Integer datasetId) {
         return dsl.selectCount().from(DATASET)
                 .where(DATASET.ID.eq(datasetId))
                 .fetchOne(0, Integer.class) > 0;
@@ -274,7 +280,7 @@ public class JooqDatasetRepository extends AbstractJooqRespository<DatasetRecord
 
         } else if ("excludeEmpty".equals(key)) {
             if ((boolean)value == true) {
-                Field<Integer> countData = countDataOfType(DATASET.ID, "VECTOR");
+                Field<Integer> countData = countData(DATASET.ID);
                 return countData.greaterThan(0);
             } else {
                 return DSL.trueCondition();

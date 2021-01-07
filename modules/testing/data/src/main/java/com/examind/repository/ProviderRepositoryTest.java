@@ -22,7 +22,6 @@ import java.util.List;
 import org.constellation.repository.ProviderRepository;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.ProviderBrief;
-import org.constellation.dto.service.Service;
 import org.constellation.repository.DataRepository;
 import org.constellation.repository.ServiceRepository;
 import org.junit.Assert;
@@ -48,58 +47,82 @@ public class ProviderRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void crude() {
 
-        List<Service> serv = serviceRepository.findAll();
-        for (Service p : serv) {
-            serviceRepository.delete(p.getId());
-        }
-
-        // no removeAll method
+        dataRepository.deleteAll();
+        serviceRepository.deleteAll();
+        providerRepository.deleteAll();
+        
         List<ProviderBrief> all = providerRepository.findAll();
-        for (ProviderBrief p : all) {
-            providerRepository.delete(p.getId());
-        }
-        all = providerRepository.findAll();
         Assert.assertTrue(all.isEmpty());
 
         CstlUser owner = getOrCreateUser();
         Assert.assertNotNull(owner);
         Assert.assertNotNull(owner.getId());
 
-
         /**
          * provider insertion
          */
-        Integer pid = providerRepository.create(TestSamples.newProvider(owner.getId()));
-        Assert.assertNotNull(pid);
+        Integer pid1 = providerRepository.create(TestSamples.newProvider(owner.getId()));
+        Assert.assertNotNull(pid1);
 
-        ProviderBrief pr = providerRepository.findOne(pid);
-        Assert.assertNotNull(pr);
+        Integer pid2 = providerRepository.create(TestSamples.newProvider2(owner.getId()));
+        Assert.assertNotNull(pid2);
 
-        Integer did1 = dataRepository.create(TestSamples.newData1(owner.getId(), pid, null));
+        Integer pid3 = providerRepository.create(TestSamples.newProviderQuote(owner.getId()));
+        Assert.assertNotNull(pid3);
+
+        ProviderBrief pr1 = providerRepository.findOne(pid1);
+        Assert.assertNotNull(pr1);
+
+        ProviderBrief pr2 = providerRepository.findOne(pid2);
+        Assert.assertNotNull(pr2);
+
+        ProviderBrief pr3 = providerRepository.findOne(pid3);
+        Assert.assertNotNull(pr3);
+
+        Integer did1 = dataRepository.create(TestSamples.newData1(owner.getId(), pid1, null));
         Assert.assertNotNull(did1);
 
         /**
          * provider search
          */
-        Assert.assertEquals(pr, providerRepository.findByIdentifier("provider-test"));
-        Assert.assertEquals(pr.getId(), providerRepository.findIdForIdentifier("provider-test"));
+        Assert.assertEquals(pr1, providerRepository.findByIdentifier("provider-test"));
+        Assert.assertEquals(pr1.getId(), providerRepository.findIdForIdentifier("provider-test"));
 
-        Assert.assertTrue(providerRepository.findByImpl("immmmp").contains(pr));
+        Assert.assertEquals(pr3, providerRepository.findByIdentifier("provider-'; drop table admin.provider; 'test3"));
+        Assert.assertEquals(pr3.getId(), providerRepository.findIdForIdentifier("provider-'; drop table admin.provider; 'test3"));
 
-        Assert.assertTrue(providerRepository.findForData(did1).equals(pr));
+        Assert.assertTrue(providerRepository.findByImpl("immmmp").contains(pr1));
+
+        Assert.assertTrue(providerRepository.findByImpl("i'mmmmp").contains(pr3));
+
+        Assert.assertTrue(providerRepository.findForData(did1).equals(pr1));
+
+        pr2.setImpl("ol'");
+        providerRepository.update(pr2);
+
+        Assert.assertTrue(providerRepository.findByImpl("ol'").contains(pr2));
+
         /**
          * provider deletion
          */
-        int res = providerRepository.delete(pid);
+        int res = providerRepository.delete(pid1);
         Assert.assertEquals(1, res);
 
         res = providerRepository.delete(-1);
         Assert.assertEquals(0, res);
 
-        pr = providerRepository.findOne(pid);
-        Assert.assertNull(pr);
+        pr1 = providerRepository.findOne(pid1);
+        Assert.assertNull(pr1);
+
+        res = providerRepository.deleteByIdentifier("provider-'; drop table admin.provider; 'test3");
+        Assert.assertEquals(1, res);
+
+        pr3 = providerRepository.findOne(pid3);
+        Assert.assertNull(pr3);
 
         //cleanup
-        dataRepository.delete(did1);
+        dataRepository.deleteAll();
+        serviceRepository.deleteAll();
+        providerRepository.deleteAll();
     }
 }

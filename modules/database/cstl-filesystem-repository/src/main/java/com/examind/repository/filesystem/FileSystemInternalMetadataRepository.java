@@ -25,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -65,6 +66,11 @@ public class FileSystemInternalMetadataRepository extends AbstractFileSystemRepo
         } catch (IOException | JAXBException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
+    }
+
+    @Override
+    public boolean existsById(Integer id) {
+        return byId.containsKey(id);
     }
 
     @Override
@@ -119,7 +125,7 @@ public class FileSystemInternalMetadataRepository extends AbstractFileSystemRepo
     }
 
     @Override
-    public int delete(int id) {
+    public int delete(Integer id) {
         if (byId.containsKey(id)) {
 
             InternalMetadata metadata = byId.get(id);
@@ -163,10 +169,12 @@ public class FileSystemInternalMetadataRepository extends AbstractFileSystemRepo
     }
 
     @Override
-    public void deleteAll() {
-        for (Integer id : byId.keySet()) {
-            delete(id);
+    public int deleteAll() {
+        int cpt = 0;
+        for (Integer id : new HashSet<>(byId.keySet())) {
+            cpt = cpt + delete(id);
         }
+        return cpt;
     }
 
 }

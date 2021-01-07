@@ -41,7 +41,7 @@ import static com.examind.repository.filesystem.FileSystemUtilities.getDirectory
 import static com.examind.repository.filesystem.FileSystemUtilities.getObjectFromPath;
 import static com.examind.repository.filesystem.FileSystemUtilities.writeObjectInPath;
 import java.util.AbstractMap;
-import java.util.Arrays;
+import java.util.HashSet;
 
 /**
  *
@@ -113,7 +113,7 @@ public class FileSystemDatasetRepository extends AbstractFileSystemRepository  i
     }
 
     @Override
-    public boolean existsById(int datasetId) {
+    public boolean existsById(Integer datasetId) {
         return byId.containsKey(datasetId);
     }
 
@@ -169,7 +169,7 @@ public class FileSystemDatasetRepository extends AbstractFileSystemRepository  i
     }
 
     @Override
-    public void delete(int id) {
+    public int delete(Integer id) {
         if (byId.containsKey(id)) {
 
             DataSet dataset = byId.get(id);
@@ -186,7 +186,18 @@ public class FileSystemDatasetRepository extends AbstractFileSystemRepository  i
 
             byId.remove(dataset.getId());
             byName.remove(dataset.getIdentifier());
+            return 1;
         }
+        return 0;
+    }
+
+    @Override
+    public int deleteAll() {
+        int cpt = 0;
+        for (Integer i : new HashSet<>(byId.keySet())) {
+            cpt = cpt + delete(i);
+        }
+        return cpt;
     }
 
     ////--------------------------------------------------------------------///
@@ -219,20 +230,65 @@ public class FileSystemDatasetRepository extends AbstractFileSystemRepository  i
 
     @Override
     public Map.Entry<Integer, List<DataSet>> filterAndGet(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage) {
-        if (sortEntry == null) {
-            if (filterMap == null || filterMap.isEmpty()) {
-                return new AbstractMap.SimpleEntry<>(byId.size(), new ArrayList(byId.values()));
-            // only id filter handled for now
-            } else if (filterMap.size() == 1 && filterMap.containsKey("id")) {
-                Integer id = (Integer) filterMap.get("id");
-                DataSet ds = byId.get(id);
-                if (ds != null) {
-                    return new AbstractMap.SimpleEntry<>(1, Arrays.asList(ds));
-                } else {
-                    return new AbstractMap.SimpleEntry<>(0, new ArrayList<>());
+        List<DataSet> fullResponse = new ArrayList<>();
+        for (DataSet d : byId.values()) {
+            boolean add = true;
+
+            if (filterMap.containsKey("id")) {
+                Integer b = (Integer) filterMap.get("id");
+                if (!b.equals(d.getId())) {
+                    add = false;
                 }
             }
+            if (filterMap.containsKey("owner")) {
+                Integer b = (Integer) filterMap.get("owner");
+                if (!b.equals(d.getOwnerId())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("type")) {
+                String b = (String) filterMap.get("type");
+                if (!b.equals(d.getType())) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("term")) {
+                String b = (String) filterMap.get("term");
+                if (!d.getIdentifier().contains(b)) {
+                    add = false;
+                }
+            }
+            if (filterMap.containsKey("excludeEmpty")) {
+                Boolean b = (Boolean) filterMap.get("excludeEmpty");
+                if (b) {
+                    add = !dataRepository.findByDatasetId(d.getId(), true, false).isEmpty();
+                }
+            }
+            if (filterMap.containsKey("hasVectorData")) {
+                Boolean b = (Boolean) filterMap.get("hasVectorData");
+                if (b) {
+                    Map<String, Object> filters = new HashMap<>();
+                    filters.put("dataset", d.getId());
+                    filters.put("type", "VECTOR");
+                    add = dataRepository.filterAndGet(filters, sortEntry, 1, 0).getKey() > 0;
+                }
+            }
+            if (filterMap.containsKey("hasCoverageData")) {
+                Boolean b = (Boolean) filterMap.get("hasCoverageData");
+                if (b) {
+                    Map<String, Object> filters = new HashMap<>();
+                    filters.put("dataset", d.getId());
+                    filters.put("type", "COVERAGE");
+                    add = dataRepository.filterAndGet(filters, sortEntry, 1, 0).getKey() > 0;
+                }
+            }
+
+            if (add) {
+                fullResponse.add(d);
+            }
         }
-        throw new UnsupportedOperationException("Complex search not supported yet (only byId search supported)");
+
+        // TODO paginate
+        return new AbstractMap.SimpleEntry<>(fullResponse.size(), fullResponse);
     }
 }

@@ -25,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -103,6 +104,15 @@ public class FileSystemTaskRepository  extends AbstractFileSystemRepository impl
             Path taskFile = taskDir.resolve(task.getIdentifier() + ".xml");
             writeObjectInPath(task, taskFile, pool);
             byId.put(task.getIdentifier(), task);
+            if (task.getTaskParameterId() != null) {
+                if (byTaskParameter.containsKey(task.getTaskParameterId())) {
+                    byTaskParameter.get(task.getTaskParameterId()).add(task);
+                } else {
+                    List<Task> tasks = new ArrayList<>();
+                    tasks.add(task);
+                    byTaskParameter.put(task.getTaskParameterId(), tasks);
+                }
+            }
             return task.getIdentifier();
         }
         return null;
@@ -144,7 +154,7 @@ public class FileSystemTaskRepository  extends AbstractFileSystemRepository impl
         if (byTaskParameter.containsKey(tpid)) {
             List<Task> tasks = new ArrayList<>();
             for (Task t : byTaskParameter.get(tpid)) {
-                if (t.getState().equalsIgnoreCase("RUNNING")) {
+                if (t.getDateEnd() == null) {
                     tasks.add(t);
                 }
             }
@@ -152,6 +162,8 @@ public class FileSystemTaskRepository  extends AbstractFileSystemRepository impl
             int cpt = 0;
             while (i < tasks.size() && cpt < limit) {
                 results.add(tasks.get(i));
+                cpt++;
+                i++;
             }
         }
         return results;
@@ -166,13 +178,15 @@ public class FileSystemTaskRepository  extends AbstractFileSystemRepository impl
             int cpt = 0;
             while (i < tasks.size() && cpt < limit) {
                 results.add(tasks.get(i));
+                cpt++;
+                i++;
             }
         }
         return results;
     }
 
     @Override
-    public void delete(String uuid) {
+    public int delete(String uuid) {
         if (byId.containsKey(uuid)) {
 
             Task t = byId.get(uuid);
@@ -191,7 +205,18 @@ public class FileSystemTaskRepository  extends AbstractFileSystemRepository impl
                     byTaskParameter.get(t.getTaskParameterId()).remove(t);
                 }
             }
+            return 1;
         }
+        return 0;
+    }
+
+    @Override
+    public int deleteAll() {
+        int cpt = 0;
+        for (String id : new HashSet<>(byId.keySet())) {
+            cpt = cpt + delete(id);
+        }
+        return cpt;
     }
 
 }

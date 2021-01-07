@@ -80,15 +80,22 @@ public class JooqTaskParameterRepository extends AbstractJooqRespository<TaskPar
     }
 
     @Override
-    @Transactional(propagation = Propagation.MANDATORY)
-    public void delete(Integer taskId) {
-        dsl.delete(Tables.TASK_PARAMETER).where(Tables.TASK_PARAMETER.ID.eq(taskId)).execute();
+    public boolean existsById(Integer id) {
+        return dsl.selectCount().from(Tables.TASK_PARAMETER)
+                .where(Tables.TASK_PARAMETER.ID.eq(id))
+                .fetchOne(0, Integer.class) > 0;
     }
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public void deleteAll() {
-        dsl.delete(Tables.TASK_PARAMETER).execute();
+    public int delete(Integer taskId) {
+        return dsl.delete(Tables.TASK_PARAMETER).where(Tables.TASK_PARAMETER.ID.eq(taskId)).execute();
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public int deleteAll() {
+        return dsl.delete(Tables.TASK_PARAMETER).execute();
     }
 
     @Override
