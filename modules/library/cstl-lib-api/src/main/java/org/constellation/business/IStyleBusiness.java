@@ -99,9 +99,6 @@ public interface IStyleBusiness {
 
     void unlinkToLayer(final int styleId, final int layerId) throws ConfigurationException;
 
-    void removeStyleFromLayer(String serviceIdentifier, String serviceType, String layerName, String styleProviderId,
-                              String styleName) throws TargetNotFoundException;
-
     /**
      * Creates a new style into a style provider instance.
      *
@@ -165,6 +162,6 @@ public interface IStyleBusiness {
 
     void updateSharedProperty(final int id, final boolean shared) throws ConfigurationException;
     
-    void unlinkAllFromLayer(int layerId);
+    void unlinkAllFromLayer(int layerId) throws ConfigurationException;
 
 }

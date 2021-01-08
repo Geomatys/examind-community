@@ -64,6 +64,8 @@ import org.constellation.dto.process.StyleProcessReference;
 import static org.constellation.business.ClusterMessageConstant.*;
 import org.apache.sis.internal.system.DefaultFactories;
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
+import org.constellation.dto.Layer;
+import org.constellation.dto.service.Service;
 import org.opengis.style.StyleFactory;
 
 /**
@@ -380,13 +382,29 @@ public class StyleBusiness implements IStyleBusiness {
     @Override
     @Transactional
     public void linkToLayer(int styleId, int layerId) throws ConfigurationException {
-        styleRepository.linkStyleToLayer(styleId, layerId);
+        Layer l = layerRepository.findById(layerId);
+        if (l != null) {
+            final boolean styleFound = styleRepository.existsById(styleId);
+            if (!styleFound) throw new TargetNotFoundException("Style " + styleId + " can't be found from database.");
+            styleRepository.linkStyleToLayer(styleId, layerId);
+            clearServiceCache(l.getService());
+        } else {
+            throw new TargetNotFoundException("Layer " + layerId + " can't be found from database.");
+        }
     }
 
     @Override
     @Transactional
     public void unlinkToLayer(int styleId, int layerId) throws ConfigurationException {
-        styleRepository.unlinkStyleToLayer(styleId, layerId);
+        Layer l = layerRepository.findById(layerId);
+        if (l != null) {
+            final boolean styleFound = styleRepository.existsById(styleId);
+            if (!styleFound) throw new TargetNotFoundException("Style " + styleId + " can't be found from database.");
+            styleRepository.unlinkStyleToLayer(styleId, layerId);
+            clearServiceCache(l.getService());
+        } else {
+            throw new TargetNotFoundException("Layer " + layerId + " can't be found from database.");
+        }
     }
 
     @Override
@@ -437,27 +455,30 @@ public class StyleBusiness implements IStyleBusiness {
 
     @Override
     @Transactional
-    public void removeStyleFromLayer(String serviceIdentifier, String serviceType, String layerName, String styleProviderId,
-            String styleName) throws TargetNotFoundException {
-        final Integer service = serviceRepository.findIdByIdentifierAndType(serviceIdentifier, serviceType);
-        final Integer layer = layerRepository.findIdByServiceIdAndLayerName(service, layerName);
-        final Style style = ensureExistingStyle(styleProviderId, styleName);
-        styleRepository.unlinkStyleToLayer(style.getId(), layer);
+    public void unlinkAllFromLayer(int layerId) throws ConfigurationException {
+        Layer l = layerRepository.findById(layerId);
+        if (l != null) {
+            styleRepository.unlinkAllStylesFromLayer(layerId);
+            clearServiceCache(l.getService());
+        } else {
+            throw new TargetNotFoundException("Layer " + layerId + " can't be found from database.");
+        }
+    }
 
+    /**
+     * Send an event to clear the specified service cache.
+     *
+     * @param serviceID Service identifier.
+     */
+    protected void clearServiceCache(Integer serviceID) {
+        Service service = serviceRepository.findById(serviceID);
         //clear cache event
         final ClusterMessage request = clusterBusiness.createRequest(SRV_MESSAGE_TYPE_ID,false);
         request.put(KEY_ACTION, SRV_VALUE_ACTION_CLEAR_CACHE);
-        request.put(SRV_KEY_TYPE, serviceType);
-        request.put(KEY_IDENTIFIER, serviceIdentifier);
+        request.put(SRV_KEY_TYPE, service.getType());
+        request.put(KEY_IDENTIFIER, service.getIdentifier());
         clusterBusiness.publish(request);
     }
-    
-    @Override
-    @Transactional
-    public void unlinkAllFromLayer(int layerId)  {
-        styleRepository.unlinkAllStylesFromLayer(layerId);
-    }
-
 
     protected org.opengis.style.Style parseStyle(final String name, final String xml) {
         MutableStyle value = null;
