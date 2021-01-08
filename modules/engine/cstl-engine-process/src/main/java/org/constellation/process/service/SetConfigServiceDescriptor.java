@@ -20,17 +20,16 @@ package org.constellation.process.service;
 
 import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.util.iso.SimpleInternationalString;
+import org.constellation.api.ServiceDef;
 import org.constellation.dto.contact.Details;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.process.AbstractCstlProcessDescriptor;
 import org.constellation.process.ExamindProcessFactory;
-import org.geotoolkit.utility.parameter.ExtendedParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.InternationalString;
 
-import static org.constellation.process.service.ServiceProcessCommon.SUPPORTED_SERVICE_TYPE;
 /**
  *
  * @author Quentin Boileau (Geomatys).
@@ -45,10 +44,11 @@ public class SetConfigServiceDescriptor extends AbstractCstlProcessDescriptor {
 
     public static final String SERVICE_TYPE_NAME = "service_type";
     private static final String SERVICE_TYPE_REMARKS = "The type of the service WMS, WFS, WMTS, WCS.";
-    private static final String[] SERVICE_TYPE_VALID_VALUES = SUPPORTED_SERVICE_TYPE.toArray(new String[SUPPORTED_SERVICE_TYPE.size()]);
-    public static final ParameterDescriptor<String> SERVICE_TYPE = 
-            new ExtendedParameterDescriptor<>(SERVICE_TYPE_NAME, SERVICE_TYPE_REMARKS, String.class, SERVICE_TYPE_VALID_VALUES, null, null, null, null, true, null);
-
+    public static final ParameterDescriptor<String> SERVICE_TYPE = BUILDER
+            .addName(SERVICE_TYPE_NAME)
+            .setRemarks(SERVICE_TYPE_REMARKS)
+            .setRequired(true)
+            .createEnumerated(String.class, ServiceDef.Specification.availableSpecifications(), null);
 
     public static final String IDENTIFIER_NAME = "identifier";
     private static final String IDENTIFIER_REMARKS = "Identifier of the service instance.";
@@ -57,7 +57,6 @@ public class SetConfigServiceDescriptor extends AbstractCstlProcessDescriptor {
             .setRemarks(IDENTIFIER_REMARKS)
             .setRequired(true)
             .create(String.class, "default");
-
 
     public static final String CONFIG_NAME = "configuration";
     private static final String CONFIG_REMARKS = "LayerContext object use to update instance configuration. If not specified the instance will be configured from default LayerContext.";

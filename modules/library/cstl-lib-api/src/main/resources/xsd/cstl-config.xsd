@@ -40,8 +40,6 @@
 
   <xs:element name="StringTreeNode" type="tns:stringTreeNode"/>
 
-  <xs:element name="WebdavContext" type="tns:webdavContext"/>
-
   <xs:complexType name="attributionType">
     <xs:sequence>
       <xs:element name="Title" type="xs:string" minOccurs="0"/>
@@ -319,18 +317,6 @@
         </xs:complexType>
       </xs:element>
       <xs:element name="Child" type="tns:stringTreeNode" minOccurs="0" maxOccurs="unbounded"/>
-    </xs:sequence>
-  </xs:complexType>
-
-  <xs:complexType name="webdavContext">
-    <xs:sequence>
-      <xs:element name="rootFile" type="xs:string" minOccurs="0"/>
-      <xs:element name="maxAgeSeconds" type="xs:long" minOccurs="0"/>
-      <xs:element name="digestAllowed" type="xs:boolean"/>
-      <xs:element name="ssoPrefix" type="xs:string" minOccurs="0"/>
-      <xs:element name="hideDotFile" type="xs:boolean"/>
-      <xs:element name="contextPath" type="xs:string" minOccurs="0"/>
-      <xs:element name="defaultPage" type="xs:string" minOccurs="0"/>
     </xs:sequence>
   </xs:complexType>
 

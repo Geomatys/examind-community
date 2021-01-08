@@ -26,7 +26,6 @@ import org.constellation.dto.service.config.wps.ProcessList;
 import org.constellation.dto.service.config.wps.Process;
 import org.constellation.dto.service.config.wps.ProcessContext;
 import org.constellation.dto.service.config.wxs.Layer;
-import org.constellation.dto.service.config.webdav.WebdavContext;
 import org.constellation.dto.service.ServiceReport;
 import org.constellation.dto.service.Instance;
 import org.constellation.dto.StringList;
@@ -497,31 +496,6 @@ public class ConfigurationXmlBindingTest {
 
         result = sw.toString();
         comparator = new DocumentComparator(expresult, result);
-        comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
-        comparator.compare();
-    }
-
-    /**
-     * Test processContext Marshalling.
-     *
-     * @throws java.lang.Exception
-     */
-    @Test
-    public void webdavContextMarshalingTest() throws Exception {
-        WebdavContext context = new WebdavContext("/home/guilhem");
-        StringWriter sw = new StringWriter();
-        marshaller.marshal(context, sw);
-
-        String expresult = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" + '\n'
-                + "<ns2:WebdavContext xmlns:ns2=\"http://www.constellation.org/config\">" + '\n'
-                + "    <ns2:rootFile>/home/guilhem</ns2:rootFile>" + '\n'
-                + "    <ns2:digestAllowed>true</ns2:digestAllowed>" + '\n'
-                + "    <ns2:hideDotFile>true</ns2:hideDotFile>" + '\n'
-                + "    <ns2:contextPath>webdav</ns2:contextPath>" + '\n'
-                + "</ns2:WebdavContext>\n";
-
-        final String result = sw.toString();
-        final DocumentComparator comparator = new DocumentComparator(expresult, result);
         comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
         comparator.compare();
     }

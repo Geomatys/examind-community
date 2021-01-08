@@ -74,7 +74,6 @@ import static org.constellation.business.ClusterMessageConstant.*;
 import org.constellation.business.IUserBusiness;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
-import org.constellation.dto.service.config.webdav.WebdavContext;
 import org.constellation.dto.service.config.wps.ProcessContext;
 import org.constellation.dto.service.config.wps.Processes;
 import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
@@ -741,7 +740,6 @@ public class ServiceBusiness implements IServiceBusiness {
             case "csw": return new Automatic();
             case "wps": return new ProcessContext(new Processes(true));
             case "sos": return new SOSConfiguration();
-            case "webdav": return new WebdavContext();
             // other case assume WXS
             default: final LayerContext configuration = new LayerContext();
                     configuration.setGetFeatureInfoCfgs(createGenericConfiguration());

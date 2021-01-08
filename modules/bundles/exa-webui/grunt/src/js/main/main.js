@@ -129,7 +129,7 @@ angular.module('cstl-main', ['cstl-restapi', 'cstl-services', 'pascalprecht.tran
                     var instances = response.data;
                     var count = 0;
                     for (var i=0; i<instances.length; i++) {
-                        if (instances[i].status === 'STARTED' && instances[i].type !== 'WEBDAV') {
+                        if (instances[i].status === 'STARTED') {
                             count++;
                         }
                     }

@@ -144,21 +144,6 @@
         <url-pattern>/API/*</url-pattern>
     </servlet-mapping>
 
-    <!-- webdav server servlet -->
-    <servlet>
-        <servlet-name>milton</servlet-name>
-        <servlet-class>com.bradmcevoy.http.MiltonServlet</servlet-class>
-        <load-on-startup>99</load-on-startup>
-        <init-param>
-            <param-name>resource.factory.class</param-name>
-            <param-value>org.constellation.webdav.ws.WebdavService</param-value>
-        </init-param>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>milton</servlet-name>
-        <url-pattern>/webdav/*</url-pattern>
-    </servlet-mapping>
-
     <!-- metrics servlet -->
     <servlet>
         <servlet-name>metricsAdminServlet</servlet-name>

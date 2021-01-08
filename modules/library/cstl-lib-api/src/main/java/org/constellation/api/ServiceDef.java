@@ -227,7 +227,6 @@ public enum ServiceDef {
         THW("Thesaurus"),
         TMS("Tile Map Service"),
         STS("Sensor Things Service"),
-        WEBDAV("Webdav"),
         TILES3D("3DTiles"),
         QUANTIZEDMESH("QuantizedMesh");
 
@@ -262,8 +261,6 @@ public enum ServiceDef {
                 return THW;
             } else if (TMS.name().equalsIgnoreCase(shortName)) {
                 return TMS;
-            } else if (WEBDAV.name().equalsIgnoreCase(shortName)) {
-                return WEBDAV;
             } else if (TILES3D.name().equalsIgnoreCase(shortName)) {
                 return TILES3D;
             } else if (QUANTIZEDMESH.name().equalsIgnoreCase(shortName)) {
@@ -278,7 +275,7 @@ public enum ServiceDef {
             return this.equals(Specification.WMS)  ||this.equals(Specification.WMTS)
                  ||this.equals(Specification.WFS)  ||this.equals(Specification.CSW)
                  ||this.equals(Specification.WCS)  ||this.equals(Specification.SOS)
-                 ||this.equals(Specification.WPS)  ||this.equals(Specification.WEBDAV)
+                 ||this.equals(Specification.WPS)
                  ||this.equals(Specification.STS)  ||this.equals(Specification.TILES3D)
                  ||this.equals(Specification.QUANTIZEDMESH);
         }
@@ -286,6 +283,16 @@ public enum ServiceDef {
         public boolean supportedWXS() {
             return this.equals(Specification.WMS)  ||this.equals(Specification.WMTS)
                  ||this.equals(Specification.WFS)  ||this.equals(Specification.WCS);
+        }
+
+        public static String[] availableSpecifications() {
+            final List<String> validValues = new ArrayList<>();
+             for (ServiceDef.Specification specification : values()) {
+                 if (!"NONE".equals(specification.name())) {
+                     validValues.add(specification.name());
+                 }
+             }
+            return validValues.toArray(new String[validValues.size()]);
         }
     }
 

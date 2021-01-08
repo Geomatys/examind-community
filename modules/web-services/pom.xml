@@ -48,7 +48,6 @@
         <module>cstl-web-api</module>
         <module>cstl-web-base</module>
         <module>cstl-web-ogc</module>
-        <module>cstl-web-webdav</module>
         <module>cstl-web-map</module>
         <module>cstl-web-csw</module>
         <module>cstl-web-sos</module>

@@ -30,7 +30,6 @@ import org.constellation.dto.contact.Contact;
 import org.constellation.dto.contact.Details;
 import org.constellation.dto.service.config.csw.HarvestTasks;
 import org.constellation.dto.service.config.csw.HarvestTask;
-import org.constellation.dto.service.config.webdav.WebdavContext;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.dto.service.config.wps.ProcessContext;
 import org.constellation.dto.service.ServiceReport;
@@ -159,10 +158,6 @@ public class ObjectFactory {
 
     public StringTreeNode createStringTreeNode(){
         return new StringTreeNode();
-    }
-
-    public WebdavContext createWebdavContext(){
-        return new WebdavContext();
     }
 
     public StyleBrief createStyleBrief() {

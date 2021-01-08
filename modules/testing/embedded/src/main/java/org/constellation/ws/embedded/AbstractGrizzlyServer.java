@@ -122,7 +122,6 @@ public abstract class AbstractGrizzlyServer {
             "org.constellation.metadata.ws.rs.provider",
             "org.constellation.wps.ws.rs",
             "com.examind.sts.ws.rs",
-            "org.constellation.webdav",
             "org.constellation.thesaurus.ws.rs"};
 
     protected static final Logger LOGGER = Logging.getLogger("org.constellation.ws.embedded");

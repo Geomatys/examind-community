@@ -115,8 +115,6 @@ public enum AppProperty {
     CSTL_MAIL_SMTP_USE_SSL("cstl.mail.smtp.ssl"),
 
 
-    CSTL_WEBDAV_TMP_FOLDER("cstl.webdav.tmp.folder"),
-
     /**
      * Flag that enable or disable automatic statistic computing.
      * If disable, may cause errors on style creation dashboard

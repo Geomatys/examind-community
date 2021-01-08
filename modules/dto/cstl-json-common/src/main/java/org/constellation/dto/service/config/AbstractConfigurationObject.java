@@ -24,14 +24,13 @@ import org.constellation.dto.service.config.generic.Automatic;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
-import org.constellation.dto.service.config.webdav.WebdavContext;
 import org.constellation.dto.service.config.wps.ProcessContext;
 import org.constellation.dto.service.config.wxs.LayerContext;
 
 /**
  * @author Cédric Briançon (Geomatys)
  */
-@XmlSeeAlso({LayerContext.class,ProcessContext.class,Automatic.class,SOSConfiguration.class,WebdavContext.class})
+@XmlSeeAlso({LayerContext.class,ProcessContext.class,Automatic.class,SOSConfiguration.class})
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
     include = JsonTypeInfo.As.PROPERTY,
@@ -40,8 +39,7 @@ import org.constellation.dto.service.config.wxs.LayerContext;
     @JsonSubTypes.Type(value = LayerContext.class, name = "LayerContext"),
     @JsonSubTypes.Type(value = ProcessContext.class, name = "ProcessContext"),
     @JsonSubTypes.Type(value = Automatic.class, name = "Automatic"),
-    @JsonSubTypes.Type(value = SOSConfiguration.class, name = "SOSConfiguration"),
-    @JsonSubTypes.Type(value = WebdavContext.class, name = "WebdavContext")
+    @JsonSubTypes.Type(value = SOSConfiguration.class, name = "SOSConfiguration")
 })
 public abstract class AbstractConfigurationObject {
 }

@@ -32,7 +32,7 @@ import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.InternationalString;
 
-import static org.constellation.api.CommonConstants.SUPPORTED_SERVICE_TYPE;
+import org.constellation.api.ServiceDef;
 import org.constellation.dto.StyleReference;
 
 /**
@@ -144,12 +144,11 @@ public class AddLayerToMapServiceDescriptor extends AbstractCstlProcessDescripto
      */
     public static final String SERVICE_TYPE_PARAM_NAME = "service_type";
     public static final InternationalString SERVICE_TYPE_PARAM_REMARKS = new ResourceInternationalString(BUNDLE, SERVICE_TYPE_PARAM_REMARKS_KEY);
-    private static final String[] SERVICE_TYPE_VALID_VALUES = SUPPORTED_SERVICE_TYPE.toArray(new String[SUPPORTED_SERVICE_TYPE.size()]);
     public static final ParameterDescriptor<String> SERVICE_TYPE = BUILDER
             .addName(SERVICE_TYPE_PARAM_NAME)
             .setRemarks(SERVICE_TYPE_PARAM_REMARKS)
             .setRequired(true)
-            .createEnumerated(String.class, SERVICE_TYPE_VALID_VALUES, "WMS");
+            .createEnumerated(String.class, ServiceDef.Specification.availableSpecifications(), "WMS");
 
     /*
      * Service instance name

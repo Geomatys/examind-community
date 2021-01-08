@@ -20,6 +20,7 @@ package org.constellation.process.service;
 
 import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.util.iso.SimpleInternationalString;
+import org.constellation.api.ServiceDef;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.process.AbstractCstlProcessDescriptor;
 import org.constellation.process.ExamindProcessFactory;
@@ -28,7 +29,6 @@ import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.InternationalString;
 
-import static org.constellation.process.service.ServiceProcessCommon.SUPPORTED_SERVICE_TYPE;
 /**
  *
  * @author Quentin Boileau (Geoamtys)
@@ -43,12 +43,11 @@ public class GetConfigServiceDescriptor extends AbstractCstlProcessDescriptor {
 
     public static final String SERVICE_TYPE_NAME = "service_type";
     private static final String SERVICE_TYPE_REMARKS = "The type of the service WMS, WFS, WMTS, WCS.";
-    private static final String[] SERVICE_TYPE_VALID_VALUES = SUPPORTED_SERVICE_TYPE.toArray(new String[SUPPORTED_SERVICE_TYPE.size()]);
     public static final ParameterDescriptor<String> SERVICE_TYPE = BUILDER
             .addName(SERVICE_TYPE_NAME)
             .setRemarks(SERVICE_TYPE_REMARKS)
             .setRequired(true)
-            .createEnumerated(String.class, SERVICE_TYPE_VALID_VALUES, null);
+            .createEnumerated(String.class, ServiceDef.Specification.availableSpecifications(), null);
 
     public static final String IDENTIFIER_NAME = "identifier";
     private static final String IDENTIFIER_REMARKS = "Identifier of the service instance.";

@@ -47,10 +47,6 @@
             <artifactId>commons-collections</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.ettrema</groupId>
-            <artifactId>milton-servlet</artifactId>
-        </dependency>
-        <dependency>
             <groupId>commons-fileupload</groupId>
             <artifactId>commons-fileupload</artifactId>
         </dependency>
@@ -181,17 +177,6 @@
             <groupId>com.examind.community</groupId>
             <artifactId>cstl-web-ogc</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.examind.community</groupId>
-            <artifactId>cstl-web-webdav</artifactId>
-            <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.examind.community</groupId>

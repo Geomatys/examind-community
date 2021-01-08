@@ -29,8 +29,6 @@ import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.InternationalString;
-
-import static org.constellation.api.CommonConstants.SUPPORTED_SERVICE_TYPE;
 import org.constellation.dto.ServiceReference;
 
 /**
@@ -57,7 +55,6 @@ public class RemoveLayerFromMapServiceDescriptor extends AbstractCstlProcessDesc
     private static final String BUNDLE = "org/constellation/process/service/bundle";
     private static final String ADD_SFLAYER_ABSTRACT_KEY            = "service.remove_layer_Abstract";
     private static final String LAYER_REF_PARAM_REMARKS_KEY         = "service.remove_layer.layerReference";
-    private static final String SERVICE_TYPE_PARAM_REMARKS_KEY      = "service.remove_layer.serviceType";
     private static final String SERVICE_INSTANCE_PARAM_REMARKS_KEY  = "service.remove_layer.serviceInstance";
     private static final String OLD_LAYER_PARAM_REMARKS_KEY         = "service.remove_layer.oldLayer";
 

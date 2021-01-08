@@ -18,7 +18,6 @@
  */
 package org.constellation;
 
-import com.bradmcevoy.http.MiltonServlet;
 import com.codahale.metrics.servlet.InstrumentedFilter;
 import com.codahale.metrics.servlets.AdminServlet;
 import java.util.EnumSet;
@@ -33,7 +32,6 @@ import org.constellation.configuration.Application;
 import org.constellation.filter.CorsFilter;
 import org.constellation.services.logger.MDCFilter;
 import org.constellation.setup.CstlInstaller;
-import org.constellation.webdav.ws.WebdavService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
@@ -69,7 +67,6 @@ public class Examind extends SpringBootServletInitializer {
             "org.constellation.wmts.ws.rs",
             "org.constellation.metadata.ws.rs.provider",
             "org.constellation.wps.ws.rs",
-            "org.constellation.webdav",
             "org.constellation.thesaurus.ws.rs"};
 
     public static String CSTL_JERSEY_PACKAGE =
@@ -84,7 +81,6 @@ public class Examind extends SpringBootServletInitializer {
             "org.constellation.wmts.ws.rs;\n" +
             "org.constellation.metadata.ws.rs.provider;\n" +
             "org.constellation.wps.ws.rs;\n" +
-            "org.constellation.webdav;\n" +
             "org.constellation.thesaurus.ws.rs";
 
 
@@ -201,16 +197,6 @@ public class Examind extends SpringBootServletInitializer {
     public CstlInstaller cstlInstaller() {
         return new CstlInstaller();
     }
-
-    @Bean
-    public ServletRegistrationBean webdavServlet() {
-        ServletRegistrationBean registration = new ServletRegistrationBean(new MiltonServlet(), "/webdav/*");
-        registration.addInitParameter("resource.factory.class", WebdavService.class.getName());
-        registration.setName("milton");
-        registration.setLoadOnStartup(99);
-        return registration;
-    }
-
 
     @Bean
     public FilterRegistrationBean metricsFilter() {

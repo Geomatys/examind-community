@@ -119,6 +119,4 @@ public class CommonConstants {
 
     public static final String CSW_CONFIG_ONLY_PUBLISHED = "onlyPublished";
     public static final String CSW_CONFIG_PARTIAL = "partial";
-
-    public static final List<String> SUPPORTED_SERVICE_TYPE = UnmodifiableArrayList.wrap(new String[] {"WMS", "WFS", "WMTS", "WCS", "CSW", "SOS", "WPS", "WEBDAV"});
 }
