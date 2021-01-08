@@ -45,6 +45,7 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.util.unit.DataSize;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
 /**
@@ -140,9 +141,9 @@ public class Examind extends SpringBootServletInitializer {
         servletBean.setName("examindapi");
         servletBean.setLoadOnStartup(1);
         MultipartConfigFactory factory = new MultipartConfigFactory();
-        factory.setMaxFileSize(MAX_UPLOAD_SIZE);
-        factory.setMaxRequestSize(MAX_UPLOAD_SIZE * 2);
-        factory.setFileSizeThreshold((int) (MAX_UPLOAD_SIZE / 2));
+        factory.setMaxFileSize(DataSize.ofBytes(MAX_UPLOAD_SIZE));
+        factory.setMaxRequestSize(DataSize.ofBytes(MAX_UPLOAD_SIZE * 2));
+        factory.setFileSizeThreshold(DataSize.ofBytes(MAX_UPLOAD_SIZE / 2));
         MultipartConfigElement multipartConfigElement = factory.createMultipartConfig();
         servletBean.setMultipartConfig(multipartConfigElement);
         servletBean.setAsyncSupported(true);
