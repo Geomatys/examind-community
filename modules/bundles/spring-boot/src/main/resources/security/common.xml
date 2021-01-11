@@ -12,18 +12,4 @@
 
   <import resource="classpath:/security/http-sdi.xml" />
 
-  <bean id="sessionRegistry" class="org.springframework.security.core.session.SessionRegistryImpl" />
-
-  <bean id="sessionAuthenticationStrategy" class="org.springframework.security.web.authentication.session.CompositeSessionAuthenticationStrategy">
-    <constructor-arg>
-      <list>
-        <bean class="org.springframework.security.web.authentication.session.SessionFixationProtectionStrategy">
-        </bean>
-        <bean class="org.springframework.security.web.authentication.session.RegisterSessionAuthenticationStrategy">
-          <constructor-arg ref="sessionRegistry" />
-        </bean>
-      </list>
-    </constructor-arg>
-  </bean>
-
 </beans>

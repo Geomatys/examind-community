@@ -194,7 +194,6 @@ public abstract class AbstractGrizzlyServer {
             protected void postProcessContext(Context context) {
                 super.postProcessContext(context);
 
-                //context.setSessionTimeout((int)TimeUnit.MINUTES.toMillis(10));
                 context.addApplicationListener("org.apache.tomcat.websocket.server.WsContextListener");
             }
         };

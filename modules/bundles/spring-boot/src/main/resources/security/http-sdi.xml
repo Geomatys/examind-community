@@ -28,7 +28,6 @@
         <!-- other apis requiere authentication -->
         <intercept-url pattern="/API/**" access="authenticated" />
 
-        <session-management session-authentication-strategy-ref="sessionAuthenticationStrategy" />
     </http>
 
     <http pattern="/**"

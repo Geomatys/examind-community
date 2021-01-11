@@ -28,7 +28,6 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import org.apache.sis.util.logging.Logging;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -82,12 +81,6 @@ public class AuthenticationTokenProcessingFilter extends GenericFilterBean {
         UserDetails userDetails = userDetailsExtractor.userDetails(httpRequest, httpResponse);
         try {
             if (userDetails == null) {
-
-                // hack because session stragegy perform authentication anyway. TODO refactor all security
-                final HttpSession session = httpRequest.getSession(false);
-                if (session != null) {
-                    session.invalidate();
-                }
 
                 if(!unauthorizedHandler.onUnauthorized(httpRequest, getAsHttpResponse(response))) {
                     LOGGER.warning("ATPF: unauthorized for URI:" + httpRequest.getRequestURI());

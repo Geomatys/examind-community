@@ -171,10 +171,6 @@ public class AuthRestAPI extends AbstractRestAPI{
     @RequestMapping(value="/auth/logout", method=DELETE)
     public void logout(HttpServletRequest request, HttpServletResponse response) {
         authProxy.performLogout(request, response);
-        final HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.invalidate();
-        }
         response.setStatus(HttpServletResponse.SC_NO_CONTENT);
     }
 
