@@ -4,7 +4,7 @@ angular.module('cstl-data-dashboard')
 /**
  * This controller is used by webservice-edit.js to open modal to add data into services
  */
-function DataModalController($scope, Dashboard, $modalInstance, service, exclude, Growl,Examind,$cookieStore,$filter) {
+function DataModalController($scope, Dashboard, $modalInstance, service, exclude, Growl,Examind, $filter) {
     /**
      * To fix angular bug caused by nested scope issue in modal.
      */
@@ -99,10 +99,10 @@ function DataModalController($scope, Dashboard, $modalInstance, service, exclude
                 var layerData;
                 var type = dataItem.type?dataItem.type.toLowerCase():null;
                 if (dataItem.targetStyle && dataItem.targetStyle.length > 0) {
-                    layerData = DataViewer.createLayerWithStyle($cookieStore.get('cstlUrl'),dataItem.id,layerName,
+                    layerData = DataViewer.createLayerWithStyle(window.localStorage.getItem('cstlUrl'),dataItem.id,layerName,
                         dataItem.targetStyle[0].name,null,null,type!=='vector');
                 } else {
-                    layerData = DataViewer.createLayer($cookieStore.get('cstlUrl'), dataItem.id,layerName, null,type!=='vector');
+                    layerData = DataViewer.createLayer(window.localStorage.getItem('cstlUrl'), dataItem.id,layerName, null,type!=='vector');
                 }
                 //to force the browser cache reloading styled layer.
                 layerData.get('params').ts=new Date().getTime();

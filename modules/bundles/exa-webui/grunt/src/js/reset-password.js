@@ -29,7 +29,7 @@ cstlResetPasswordApp.config(['$translateProvider', '$translatePartialLoaderProvi
         $translateProvider.preferredLanguage('en');
 
         // remember language
-        $translateProvider.useCookieStorage();
+        $translateProvider.useLocalStorage();
     }
 ]);
 
@@ -40,7 +40,7 @@ cstlResetPasswordApp.config(['$locationProvider', function ($locationProvider) {
 ]);
 
 cstlResetPasswordApp.controller("resetPasswordController", function($location, $translate, Growl, AppConfigService,
-                                                                    $cookieStore, CstlConfig, ExamindFactory){
+                                                                    ExamindFactory){
 
     var self = this;
 
@@ -51,7 +51,7 @@ cstlResetPasswordApp.controller("resetPasswordController", function($location, $
     self.password2 = '';
 
     self.reset = function(){
-        var cstlurl = $cookieStore.get(CstlConfig['cookie.cstl.url']);
+        var cstlurl = window.localStorage.getItem('cstlUrl');
         var exa = ExamindFactory.create(cstlurl);
         exa.authentication.resetPassword(self.password1, self.params.uuid).then(
             function(response){
@@ -65,6 +65,6 @@ cstlResetPasswordApp.controller("resetPasswordController", function($location, $
 
     AppConfigService.getConfigProperty('cstl', function (val) {
         cstlUrl = val;
-        $.cookie('cstlUrl', val);
+        window.localStorage.setItem('cstlUrl', val);
     });
 });

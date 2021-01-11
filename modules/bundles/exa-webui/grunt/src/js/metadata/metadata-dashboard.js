@@ -8,7 +8,7 @@ angular.module('cstl-metadata-dashboard', [
     .constant('metadataQuery', { page: 1, size: 10 ,sort: { field: 'title', order: 'ASC' } })
 
     .controller('MetadataDashboardController', function($scope,$routeParams,DashboardHelper, metadataQuery,
-                                                        $cookieStore,Growl,$window,$modal,$translate,SelectionApi,
+                                                        Growl,$window,$modal,$translate,SelectionApi,
                                                         $timeout,Permission,Examind) {
 
         var self = this;
@@ -20,7 +20,7 @@ angular.module('cstl-metadata-dashboard', [
         self.ownerFilter = $routeParams.owner || null;
         self.idFilter = Number($routeParams.id) || null;
         self.selectionApi = SelectionApi;
-        self.cstlUrl = $cookieStore.get('cstlUrl');
+        self.cstlUrl = window.localStorage.getItem('cstlUrl');
         self.hideScroll = true;
         self.searchMetadataTerm = "";
         self.alphaPattern = /^([0-9A-Za-z\u00C0-\u017F\*\?]+|\s)*$/;
@@ -1030,7 +1030,7 @@ angular.module('cstl-metadata-dashboard', [
     })
 
     .controller('MDEditionModalController', function($scope, $controller,$modalInstance,Growl,record,
-                                                     $cookieStore,$rootScope,$http, Examind) {
+                                                     $rootScope,$http, Examind) {
 
         //FIXME change self=$scope by self=this when cstl angular will be refactored
         var self = $scope;
@@ -1043,7 +1043,7 @@ angular.module('cstl-metadata-dashboard', [
         self.contentError = false;
 
         $scope.uploadImage = function(value,field) {
-            var cstlUrl = $cookieStore.get('cstlUrl');
+            var cstlUrl = window.localStorage.getItem('cstlUrl');
             if(value) {
                 var $form = $('#metadataform');
                 var fileInput = $form.find('.uploadimage');
@@ -1114,7 +1114,7 @@ angular.module('cstl-metadata-dashboard', [
     })
 
     .controller('MDConvertModalController', function($scope, $controller,$modalInstance,Growl,record,
-                                                     profileList,$cookieStore,$rootScope,$http, Examind) {
+                                                     profileList,$rootScope,$http, Examind) {
         //FIXME change self=$scope by self=this when cstl angular will be refactored
         var self = $scope;
 
@@ -1140,7 +1140,7 @@ angular.module('cstl-metadata-dashboard', [
         };
 
         $scope.uploadImage = function(value,field) {
-            var cstlUrl = $cookieStore.get('cstlUrl');
+            var cstlUrl = window.localStorage.getItem('cstlUrl');
             if(value) {
                 var $form = $('#metadataform');
                 var fileInput = $form.find('.uploadimage');
@@ -1214,7 +1214,7 @@ angular.module('cstl-metadata-dashboard', [
     })
 
     .controller('UploadMetadataModalController', function($rootScope,$scope,$controller,$modalInstance,Growl,
-                                                          $cookieStore,cfpLoadingBar,profileList,$http, Examind){
+                                                          cfpLoadingBar,profileList,$http, Examind){
         //FIXME change self=$scope by self=this when cstl angular will be refactored
         var self = $scope;
 
@@ -1297,7 +1297,7 @@ angular.module('cstl-metadata-dashboard', [
         };
 
         $scope.uploadImage = function(value,field) {
-            var cstlUrl = $cookieStore.get('cstlUrl');
+            var cstlUrl = window.localStorage.getItem('cstlUrl');
             if(value) {
                 var $form = $('#metadataform');
                 var fileInput = $form.find('.uploadimage');
@@ -1372,7 +1372,7 @@ angular.module('cstl-metadata-dashboard', [
 
     })
 
-    .controller('CreateMetadataModalController', function($rootScope,$scope, $controller,$modalInstance,Growl,profileList,$cookieStore,$http, Examind){
+    .controller('CreateMetadataModalController', function($rootScope,$scope, $controller,$modalInstance,Growl,profileList,Examind){
         var self = $scope;
 
         self.theme = 'csw';
@@ -1400,7 +1400,7 @@ angular.module('cstl-metadata-dashboard', [
         };
 
         $scope.uploadImage = function(value,field) {
-            var cstlUrl = $cookieStore.get('cstlUrl');
+            var cstlUrl = window.localStorage.getItem('cstlUrl');
             if(value) {
                 var $form = $('#metadataform');
                 var fileInput = $form.find('.uploadimage');

@@ -63,7 +63,7 @@ angular.module('cstl-services', ['webui-config','webui-utils','cstl-restapi','ex
     //  Constellation Utilities
     // -------------------------------------------------------------------------
 
-    .factory('CstlUtils', function($cookieStore, CstlConfig) {
+    .factory('CstlUtils', function(CstlConfig) {
         return {
             /**
              * Return the webapp context path.
@@ -89,15 +89,11 @@ angular.module('cstl-services', ['webui-config','webui-utils','cstl-restapi','ex
              * @returns {String} the complied url
              */
             compileUrl: function(config, url) {
-                // Acquire cookie values.
-                var cstlUrl   = $cookieStore.get(CstlConfig['cookie.cstl.url']);
+                var cstlUrl = window.localStorage.getItem('cstlUrl');
 
                 // Inject cstl-service webapp url.
                 if (angular.isDefined(cstlUrl)) {
                     url = url.replace(CstlConfig['inject.expr.ctrl.url'], cstlUrl);
-                    if(config){
-                      config.headers.access_token = $.cookie('access_token');
-                    }
                 }else if (/@cstl/.test(url)){
                   window.location.href="index.html";
                 }
@@ -541,12 +537,9 @@ angular.module('cstl-services', ['webui-config','webui-utils','cstl-restapi','ex
     //  Upload File
     // -------------------------------------------------------------------------
 
-    .filter('cstlContext', function($cookieStore) {
+    .filter('cstlContext', function() {
         return function(value, putAuth) {
-            value = $cookieStore.get('cstlUrl') + value;
-            if (putAuth === true) {
-                value += (value.indexOf('?') === -1 ? '?' : '&') + 'token=' + $cookieStore.get('access_token');
-            }
+            value = window.localStorage.getItem('cstlUrl') + value;
             return value;
         };
     })

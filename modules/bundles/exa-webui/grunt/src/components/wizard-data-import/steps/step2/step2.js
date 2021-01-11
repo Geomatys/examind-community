@@ -21,7 +21,7 @@ function Step2WizardDirective() {
     };
 }
 
-function Step2WizardController($scope, $location, $cookieStore, $q, $translate, Examind, Growl,
+function Step2WizardController($scope, $location, $translate, Examind, Growl,
                                cfpLoadingBar, DataViewerService, WizardAddDataService) {
 
     var self = this;
@@ -146,7 +146,7 @@ function Step2WizardController($scope, $location, $cookieStore, $q, $translate, 
 
         // Create the data layer instance.
         var layer = DataViewerService.createLayer(
-            $cookieStore.get('cstlUrl'),
+            window.localStorage.getItem('cstlUrl'),
             resource.id,
             resource.name,
             null,

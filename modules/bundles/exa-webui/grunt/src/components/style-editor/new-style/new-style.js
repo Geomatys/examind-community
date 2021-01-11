@@ -22,7 +22,7 @@ function newStyleDirective() {
     };
 }
 
-function NewStyleController($scope, $timeout, $translate, $cookieStore, Growl, Examind, DataViewerService) {
+function NewStyleController($scope, $translate, Growl, Examind, DataViewerService) {
     var self = this;
 
     self.selectedDataRef = $scope.selectedDataRef || {};
@@ -103,10 +103,10 @@ function NewStyleController($scope, $timeout, $translate, $cookieStore, Growl, E
 
             if (self.selectedDataRef.dataLayer) {
                 if (self.newStyle.rules.length === 0) {
-                    layerData = DataViewerService.createLayer($cookieStore.get('cstlUrl'), self.selectedDataRef.dataLayer.id,
+                    layerData = DataViewerService.createLayer(window.localStorage.getItem('cstlUrl'), self.selectedDataRef.dataLayer.id,
                         self.selectedDataRef.dataLayer.name, null, false);
                 } else {
-                    layerData = DataViewerService.createLayerWithStyle($cookieStore.get('cstlUrl'),
+                    layerData = DataViewerService.createLayerWithStyle(window.localStorage.getItem('cstlUrl'),
                         self.selectedDataRef.dataLayer.id, self.selectedDataRef.dataLayer.name,
                         self.newStyle.name, "sld_temp", null, false);
                 }

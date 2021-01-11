@@ -25,7 +25,7 @@ function existingStyleDirective() {
     };
 }
 
-function ExistingStyleController($scope, $timeout, $cookieStore, $translate, Growl, Examind, DataViewerService, PagedSearchService) {
+function ExistingStyleController($scope, $translate, Growl, Examind, DataViewerService, PagedSearchService) {
 
     var self = this;
 
@@ -112,12 +112,12 @@ function ExistingStyleController($scope, $timeout, $cookieStore, $translate, Gro
         var layerData;
 
         if (styleName) {
-            layerData = DataViewerService.createLayerWithStyle($cookieStore.get('cstlUrl'),
+            layerData = DataViewerService.createLayerWithStyle(window.localStorage.getItem('cstlUrl'),
                 self.selectedDataRef.dataLayer.id,
                 self.selectedDataRef.dataLayer.name,
                 styleName, null, null, false);
         } else {
-            layerData = DataViewerService.createLayer($cookieStore.get('cstlUrl'),
+            layerData = DataViewerService.createLayer(window.localStorage.getItem('cstlUrl'),
                 self.selectedDataRef.dataLayer.id, self.selectedDataRef.dataLayer.name, null, false);
         }
 

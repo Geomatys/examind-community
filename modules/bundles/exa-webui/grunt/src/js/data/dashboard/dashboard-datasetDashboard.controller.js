@@ -6,7 +6,6 @@ angular.module('cstl-data-dashboard')
  *
  * @param $scope
  * @param $q
- * @param $cookieStore
  * @param $modal
  * @param $location
  * @param CstlConfig
@@ -17,7 +16,7 @@ angular.module('cstl-data-dashboard')
  * @param {DatasetDashboard} DatasetDashboard
  * @constructor
  */
-function DatasetDashboardController($scope, $q, $cookieStore, $modal, $location, CstlConfig, Growl, AppConfigService, Examind, Dataset, DatasetDashboard) {
+function DatasetDashboardController($scope, $q, $modal, $location, CstlConfig, Growl, AppConfigService, Examind, Dataset, DatasetDashboard) {
 
     var self = this;
 
@@ -148,7 +147,7 @@ function DatasetDashboardController($scope, $q, $cookieStore, $modal, $location,
                 if (data.targetStyle.length) {
                     var style = data.targetStyle[0]; // get or set the style selection
                     layer = DataDashboardViewer.createLayerWithStyle(
-                        $cookieStore.get('cstlUrl'),
+                        window.localStorage.getItem('cstlUrl'),
                         data.id,
                         layerName,
                         style.name,
@@ -157,7 +156,7 @@ function DatasetDashboardController($scope, $q, $cookieStore, $modal, $location,
                         data.type !== 'VECTOR');
                 } else {
                     layer = DataDashboardViewer.createLayer(
-                        $cookieStore.get('cstlUrl'),
+                        window.localStorage.getItem('cstlUrl'),
                         data.id,
                         layerName,
                         null,

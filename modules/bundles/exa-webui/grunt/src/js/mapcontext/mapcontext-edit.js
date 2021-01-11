@@ -21,7 +21,7 @@
 angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascalprecht.translate', 'ui.bootstrap.modal', 'examind-instance'])
 
     .controller('MapContextModalController', function($scope, $modalInstance, Growl,
-                                                      ctxtToEdit, layersForCtxt, $cookieStore, Examind) {
+                                                      ctxtToEdit, layersForCtxt, Examind) {
         // item to save in the end
         $scope.ctxt = ctxtToEdit || {"crs":'EPSG:3857',"west":-35848354.76952138,
             "south":-35848354.76952139,
@@ -539,7 +539,7 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
         $scope.viewMap = function(zoomOnMapContextExtent,layerStyleObj) {
             DataViewer.initConfig();
             if ($scope.layers.toAdd && $scope.layers.toAdd.length>0) {
-                var cstlUrl = $cookieStore.get('cstlUrl');
+                var cstlUrl = window.localStorage.getItem('cstlUrl');
                 var layersToView = [];
                 for (var i=0; i<$scope.layers.toAdd.length; i++) {
                     var layObj = $scope.layers.toAdd[i];
@@ -718,7 +718,7 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
 
         $scope.initScopeMapContextEditor();
     })
-    .controller('InternalSourceMapContextController', function($scope,$filter, Dashboard, $cookieStore, Examind) {
+    .controller('InternalSourceMapContextController', function($scope,$filter, Dashboard, Examind) {
         $scope.wrap = {};
         $scope.wrap.nbbypage = 5;
         $scope.dataSelect = { all : false };
@@ -791,7 +791,7 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
             DataViewer.initConfig();
             if ($scope.selection.internalData.length >0) {
 
-                var cstlUrl = $cookieStore.get('cstlUrl');
+                var cstlUrl = window.localStorage.getItem('cstlUrl');
                 var layerName;
                 for(var i=0;i<$scope.selection.internalData.length;i++){
                     var dataItem = $scope.selection.internalData[i];
@@ -851,7 +851,7 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
         $scope.initInternalSourceMapContext();
 
     })
-    .controller('WMSSourceMapContextController', function($scope, Growl,$cookieStore,$translate,Examind) {
+    .controller('WMSSourceMapContextController', function($scope, Growl, $translate, Examind) {
 
         $scope.servicesLayers = [];
 
@@ -880,7 +880,7 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
             DataViewer.initConfig();
             var layerData;
             if($scope.selection.layer && $scope.selection.service){
-                var cstlUrl = $cookieStore.get('cstlUrl');
+                var cstlUrl = window.localStorage.getItem('cstlUrl');
                 var serviceName = ($scope.selection.layer.serviceIdentifier) ? $scope.selection.layer.serviceIdentifier : $scope.selection.service.identifier;
                 var versions = [];
                 if($scope.selection.service.versions){

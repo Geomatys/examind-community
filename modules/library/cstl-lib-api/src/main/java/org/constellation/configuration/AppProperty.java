@@ -178,6 +178,9 @@ public enum AppProperty {
 
     EXA_CACHE_CONTROL_TIME("examind.cache.control.time"),
 
+    EXA_COOKIE_DOMAIN("examind.cookie.domain"),
+
+    EXA_COOKIE_SECURE("examind.cookie.secure"),
     /**
      * Enable the cache control attribute for metadata attachment (such as quicklook or linked document).
      */

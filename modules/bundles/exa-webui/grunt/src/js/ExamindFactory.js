@@ -34,7 +34,6 @@ function Examind($http, url) {
         if (angular.isUndefined(query.headers)) {
             query.headers = {};
         }
-        query.headers.access_token = self.authentication.getToken();
         return $http(query);
     };
 
@@ -60,12 +59,6 @@ function Examind($http, url) {
                     password:password
                     }
                 }).then(function(response){
-                    //save legacy tokens
-                    $.cookie('access_token',response.data.token,{path:'/'});
-
-                    //save tokens
-                    $.cookie(self.baseUrl+'_authToken',response.data.token,{path:'/'});
-                    $.cookie(self.baseUrl+'_authUser',response.data.userId,{path:'/'});
                     return response;
                 });
         },
@@ -78,12 +71,6 @@ function Examind($http, url) {
                 method: 'DELETE',
                 url: 'auth/logout'
                 }).then(function(response){
-                    //remove legacy cookies
-                    $.removeCookie('access_token', { path: '/' });
-
-                    //remove new tokens
-                    $.removeCookie(self.baseUrl+'_authToken',{ path: '/' });
-                    $.removeCookie(self.baseUrl+'_authUser',{ path: '/' });
                     return response;
                 });
         },
@@ -122,70 +109,27 @@ function Examind($http, url) {
                 });
         },
 
-        /**
-         * Set token life.
-         *
-         * @param {int} lifespan in minutes
-         * @returns {undefined}
-         */
-        setTokenLifespan : function(lifespan) {
-            $.cookie('token_life',60 * lifespan,{path:'/'});
-            $.cookie(self.baseUrl+'_authTokenLifespan',500 * 60 * lifespan,{path:'/'});
-            console.log("Token lifespan set to " + lifespan + " minutes.");
-        },
-
-        /**
-         * Get authentication token lifespan.
-         *
-         * @returns {String}
-         */
-        getTokenLifespan : function() {
-            var lifespan = $.cookie(self.baseUrl+'_authTokenLifespan');
-            if (angular.isUndefined(lifespan)) {
-                lifespan = 30 * 60 * 1000;
-            }
-            return lifespan;
-        },
-
-        /**
+ /**
          * Set refresh token url.
          *
          * @param {type} url
          * @returns {undefined}
          */
         setTokenRefreshURL : function(url) {
-            $.cookie(self.baseUrl+'_authTokenURL',url,{path:'/'});
+             window.localStorage.setItem('cstlRefreshURL', url);
         },
-
+        
         /**
-         * Get authentication token url.
+         * Get refresh token url.
          *
          * @returns {String}
          */
         getTokenRefreshURL : function() {
-            var url = $.cookie(self.baseUrl+'_authTokenURL');
-            if (angular.isUndefined(url)) {
+            var url = window.localStorage.getItem('cstlRefreshURL');
+            if (!url) {
                 url = 'auth/extendToken';
             }
             return url;
-        },
-
-        /**
-         * Get authentication cookie.
-         *
-         * @returns {String}
-         */
-        getToken : function() {
-            return $.cookie(self.baseUrl+'_authToken');
-        },
-
-        /**
-         * Get currently authentified user.
-         *
-         * @returns {String}
-         */
-        getUser : function() {
-            return $.cookie(self.baseUrl+'_authUser');
         },
 
         /**
@@ -197,11 +141,7 @@ function Examind($http, url) {
                     url: self.authentication.getTokenRefreshURL()
                     })
                 .then(function(response){
-                    console.log("Token extended: " + response.data);
-                    //save legacy tokens
-                    $.cookie('access_token',response.data,{path:'/'});
-                    //save new tokens
-                    $.cookie(self.baseUrl+'_authToken',response.data,{path:'/'});
+                    console.log("Token extended.");
             });
         },
 

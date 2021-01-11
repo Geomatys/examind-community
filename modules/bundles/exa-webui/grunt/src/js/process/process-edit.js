@@ -880,7 +880,7 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
         }
 
     })
-    .controller('WPSSourceTaskController', function($cookieStore,$translate,Growl,SelectionWPS, Examind) {
+    .controller('WPSSourceTaskController', function($translate,Growl,SelectionWPS, Examind) {
         var self = this;
         self.chosenTab = 'cstlWPS';
         self.servicesArray = [];
@@ -890,7 +890,7 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
             processList: [],
             filtertext:''
         };
-        self.cstlUrl = $cookieStore.get('cstlUrl');
+        self.cstlUrl = window.localStorage.getItem('cstlUrl');
 
         self.switchTab = function(tab) {
             if(tab !== self.chosenTab) {

@@ -20,7 +20,7 @@
 
 angular.module('cstl-sensor-import', ['cstl-restapi', 'cstl-services', 'ui.bootstrap.modal', 'examind-instance'])
 
-    .controller('SensorAddModalController', function ($rootScope, $scope, $modalInstance, Growl, $cookieStore, cfpLoadingBar, Examind) {
+    .controller('SensorAddModalController', function ($rootScope, $scope, $modalInstance, Growl, cfpLoadingBar, Examind) {
         $scope.close = function() {
             $modalInstance.dismiss('close');
         };
@@ -31,10 +31,7 @@ angular.module('cstl-sensor-import', ['cstl-restapi', 'cstl-services', 'ui.boots
             var formData = new FormData($form[0]);
 
             $.ajax({
-                headers: {
-                 'access_token': Examind.authentication.getToken()
-                },
-                url: $cookieStore.get('cstlUrl') + "API/sensors/upload",
+                url: window.localStorage.getItem('cstlUrl') + "API/sensors/upload",
                 type: 'POST',
                 data: formData,
                 async: false,

@@ -29,9 +29,9 @@ import org.constellation.dto.UserWithRole;
  */
 public interface AuthenticationProxy {
 
-    String performLogin(String login, String password, HttpServletResponse response) throws Exception;
+    void performLogin(String login, String password, HttpServletResponse response) throws Exception;
 
-    String extendToken(HttpServletRequest request, HttpServletResponse response) throws Exception;
+    void extendToken(HttpServletRequest request, HttpServletResponse response) throws Exception;
 
     void performLogout(HttpServletRequest request, HttpServletResponse response);
 

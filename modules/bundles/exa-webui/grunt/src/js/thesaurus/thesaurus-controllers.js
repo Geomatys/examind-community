@@ -129,7 +129,7 @@ angular.module('cstl-thesaurus-controllers', [
         }
     })
 
-    .controller('ThesaurusImportController', function($scope, $rootScope, $modalInstance, $cookieStore, $translate, cfpLoadingBar, Growl, thesaurus, Examind) {
+    .controller('ThesaurusImportController', function($scope, $rootScope, $modalInstance, $translate, cfpLoadingBar, Growl, thesaurus, Examind) {
 
         var self = this;
 
@@ -153,10 +153,7 @@ angular.module('cstl-thesaurus-controllers', [
 
             self.uploading = true;
             $.ajax({
-                headers: {
-                    'access_token': Examind.authentication.getToken()
-                },
-                url: $cookieStore.get('cstlUrl') + "API/THW/"+ thesaurus.uri + "/import",
+                url: window.localStorage.getItem('cstlUrl') + "API/THW/"+ thesaurus.uri + "/import",
                 type: 'POST',
                 data: formData,
                 cache: false,

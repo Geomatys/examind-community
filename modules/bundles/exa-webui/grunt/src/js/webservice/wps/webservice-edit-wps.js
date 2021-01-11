@@ -1,12 +1,11 @@
 angular.module('cstl-webservice-edit-wps', ['cstl-restapi', 'cstl-services', 'pascalprecht.translate', 'ui.bootstrap.modal'])
 
     .controller('WPSEditController', function($scope, $routeParams,
-                                              $modal, Dashboard, Growl, Examind,
-                                              $cookieStore) {
+                                              $modal, Dashboard, Growl, Examind) {
         $scope.wrap = {};
         $scope.type = $routeParams.type;
         $scope.serviceIdentifier = $routeParams.id;
-        $scope.cstlUrl = $cookieStore.get('cstlUrl');
+        $scope.cstlUrl = window.localStorage.getItem('cstlUrl');
         $scope.url = $scope.cstlUrl + "WS/" + $scope.type + "/" + $routeParams.id;
 
         $scope.values = {

@@ -144,46 +144,18 @@ cstlAdminApp
             $translateProvider.preferredLanguage('en');
 
             // remember language
-            $translateProvider.useCookieStorage();
-
-
-            var tokenDuration = 30*60; //default is 30min halftime
-            //The idle timeout duration in seconds.
-            // After this amount of time passes without the user performing an action
-            // that triggers one of the watched DOM events, the user is considered idle.
-            if($.cookie('token_life')){
-            	tokenDuration = $.cookie('token_life')/2;
-            }else{
-            	var cookieToken = $.cookie('access_token');
-            	if(cookieToken && cookieToken.indexOf('_') !==-1){
-                    var splitArr = cookieToken.split('_');
-                    tokenDuration = splitArr[splitArr.length-1]/1000;
-            	}
-            }
-            if (Number.isNaN(tokenDuration)) {
-                tokenDuration = 30*60;
-            }
-            console.log("Token duration set to: " + tokenDuration);
-
-            $idleProvider.idleDuration(tokenDuration*2);
+            $translateProvider.useLocalStorage();
 
             //The warning duration in seconds.
             // Once a user becomes idle, the warning countdown starts at this value
             // and ticks down until it reaches 0, after which the user is considered timed out.
             $idleProvider.warningDuration(60); //1min for warning
 
-            //Must be greater than 0 seconds.
-            // This specifies how often the keepalive event
-            // is triggered and the HTTP request is issued.
-            $keepaliveProvider.interval(tokenDuration);
-
         }])
-        .run(['$rootScope', '$location', 'Examind', 'StompService','$idle', 'Permission', '$translate',
-            function($rootScope, $location, Examind, StompService, $idle, Permission, $translate) {
+        .run(['$rootScope', 'AppConfigService', 'StompService','$idle', '$keepalive','Permission', '$translate',
+            function($rootScope, AppConfigService, StompService, $idle, $keepalive, Permission, $translate) {
 
             $rootScope.authenticated=true;
-
-            $rootScope.access_token = Examind.authentication.getToken();
 
             // Call when the 401 response is returned by the client
             $rootScope.$on('event:auth-loginRequired', function() {
@@ -201,9 +173,26 @@ cstlAdminApp
                 StompService.disconnect();
             });
 
-            //starts watching for idleness, or resets the idle/warning state and continues watching.
-            $idle.watch();
+            AppConfigService.getConfig(function (config) {
+                var tokenDuration = 30 * 60; //default is 30min halftime
+                //The idle timeout duration in seconds.
+                // After this amount of time passes without the user performing an action
+                // that triggers one of the watched DOM events, the user is considered idle.
+                if (config["token.life"]) {
+                    tokenDuration = (config["token.life"] * 60) / 2;
+                }
+                if (Number.isNaN(tokenDuration)) {
+                    tokenDuration = 30 * 60;
+                }
+                console.log("Token duration set to: " + (tokenDuration / 60) + " minutes");
 
+                $idle._options().idleDuration = tokenDuration * 2;
+                $keepalive._options().interval = tokenDuration;
+
+                //starts watching for idleness, or resets the idle/warning state and continues watching.
+                $idle.watch();
+            });
+        
             // set language from user locale preferences
             Permission.promise.then(function(){
                 var account= Permission.getAccount();

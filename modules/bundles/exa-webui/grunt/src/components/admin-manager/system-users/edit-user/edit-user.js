@@ -12,8 +12,8 @@ function systemUsersEditDirective() {
     };
 }
 
-function SystemUsersEditController($rootScope, $scope, $modalInstance, $cookieStore, Growl,
-                                   cfpLoadingBar, currentAccount, user, roles, Examind) {
+function SystemUsersEditController($rootScope, $scope, $modalInstance, Growl,
+                                   cfpLoadingBar, currentAccount, user, roles) {
     var self = this;
 
     $scope.user = user.data;
@@ -48,10 +48,7 @@ function SystemUsersEditController($rootScope, $scope, $modalInstance, $cookieSt
         if ($scope.user.id) {
             //edit
             $.ajax({
-                headers: {
-                    'access_token': Examind.authentication.getToken()
-                },
-                url: $cookieStore.get('cstlUrl') + 'API/internal/users',
+                url: window.localStorage.getItem('cstlUrl') + 'API/internal/users',
                 type: 'POST',
                 data: formData,
                 async: false,
@@ -74,10 +71,7 @@ function SystemUsersEditController($rootScope, $scope, $modalInstance, $cookieSt
         } else {
             //add
             $.ajax({
-                headers: {
-                    'access_token': Examind.authentication.getToken()
-                },
-                url: $cookieStore.get('cstlUrl') + 'API/internal/users/add',
+                url: window.localStorage.getItem('cstlUrl') + 'API/internal/users/add',
                 type: 'POST',
                 data: formData,
                 async: false,

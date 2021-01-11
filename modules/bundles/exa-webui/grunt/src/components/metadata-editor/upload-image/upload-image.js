@@ -16,7 +16,7 @@ function mdUploadImageDirective() {
     };
 }
 
-function MDUploadImageController($scope, $cookieStore, $translate, Growl, Examind) {
+function MDUploadImageController($scope, $translate, Growl, Examind) {
     var self = this;
 
     // The RegEx object fot the ngPattern directive
@@ -39,7 +39,7 @@ function MDUploadImageController($scope, $cookieStore, $translate, Growl, Examin
     };
 
     self.uploadImage = function (value, field) {
-        var cstlUrl = $cookieStore.get('cstlUrl');
+        var cstlUrl = window.localStorage.getItem('cstlUrl');
 
         if (value) {
             var $form = $('#metadataform');

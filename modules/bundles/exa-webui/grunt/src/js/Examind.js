@@ -7,8 +7,8 @@
 var module = angular.module('examind-instance', ['examind-factory','webui-config']);
 
 
-module.factory('Examind', function($cookieStore, CstlConfig, ExamindFactory) {
-        return ExamindFactory.create($cookieStore.get(CstlConfig['cookie.cstl.url']));
+module.factory('Examind', function(ExamindFactory) {
+        return ExamindFactory.create(window.localStorage.getItem('cstlUrl'));
     });
     
     

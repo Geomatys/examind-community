@@ -29,13 +29,13 @@ angular.module('cstl-style-dashboard', [
     })
 
     .controller('StylesController', function(Paging,Growl,StyleSharedService,$modal,$window,
-                                             $cookieStore,Examind,STYLE_DEFAULT_QUERY) {
+                                             Examind,STYLE_DEFAULT_QUERY) {
         var self = this;
 
         self.preview = { layer: undefined, extent: undefined };
 
         self.styleOpts = {
-            cstlUrl:$cookieStore.get('cstlUrl'),
+            cstlUrl: window.localStorage.getItem('cstlUrl'),
             currentStyleId:null,
             currentDataId:null,
             currentLayerId:null
@@ -256,7 +256,7 @@ angular.module('cstl-style-dashboard', [
     })
 
     .controller('StyleImportModalController', function ($rootScope, $scope, $modalInstance,
-                                                        Growl, $cookieStore, cfpLoadingBar, Examind) {
+                                                        Growl, cfpLoadingBar, Examind) {
 
         $scope.import = {
             styleName : '',
@@ -313,10 +313,7 @@ angular.module('cstl-style-dashboard', [
             var $form = $('#uploadSLDform');
             var formData = new FormData($form[0]);
             $.ajax({
-                headers: {
-                    'access_token': Examind.authentication.getToken()
-                },
-                url: $cookieStore.get('cstlUrl') + "API/internal/styles/import",
+                url: window.localStorage.getItem('cstlUrl') + "API/internal/styles/import",
                 type: 'POST',
                 data: formData,
                 async: false,

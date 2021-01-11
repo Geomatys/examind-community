@@ -56,17 +56,17 @@ angular.module('CstlIndexApp', [
         $translatePartialLoaderProvider.addPart('ui');
 
         $translateProvider.preferredLanguage('en');
-        $translateProvider.useCookieStorage();
+        $translateProvider.useLocalStorage();
     })
 
     // -------------------------------------------------------------------------
     //  Controllers
     // -------------------------------------------------------------------------
-    .controller('HeaderController', function($scope, $http, $cookieStore, CstlConfig, AppConfigService, ExamindFactory) {
+    .controller('HeaderController', function($scope, AppConfigService, ExamindFactory) {
 
         AppConfigService.getConfig(function(config) {
             $scope.cstlURL  = config.cstl;
-            $cookieStore.put('cstlUrl', $scope.cstlURL, {});
+            window.localStorage.setItem('cstlUrl', $scope.cstlURL);
 
             $scope.cstlLoginUrl  = config.cstlLoginURL || 'login.html';
 

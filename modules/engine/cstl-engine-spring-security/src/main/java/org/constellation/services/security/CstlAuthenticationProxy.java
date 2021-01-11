@@ -19,6 +19,8 @@
 package org.constellation.services.security;
 
 import java.security.Principal;
+import java.util.AbstractMap;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -62,7 +64,7 @@ public class CstlAuthenticationProxy implements AuthenticationProxy {
     private IUserBusiness userBusiness;
 
     @Override
-    public String performLogin(String userName, String password, HttpServletResponse response) throws Exception {
+    public void performLogin(String userName, String password, HttpServletResponse response) throws Exception {
         if (authManager == null) {
             LOGGER.log(Level.WARNING, "Authentication manager no set.");
             throw new Exception("Authentication manager no set.");
@@ -75,18 +77,19 @@ public class CstlAuthenticationProxy implements AuthenticationProxy {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         final String createToken = tokenService.createToken(userName);
-        return createToken;
+        CookieUtils.addCookie(response, new AbstractMap.SimpleEntry<>("access_token", new String[] {createToken, "HttpOnly"}));
     }
 
     @Override
-    public String extendToken(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    public void extendToken(HttpServletRequest request, HttpServletResponse response) throws Exception {
         UserDetails userDetails = Utils.extractUserDetail();
-        return tokenExtender.extend(userDetails.getUsername(), request, response);
+        String newToken = tokenExtender.extend(userDetails.getUsername(), request, response);
+        CookieUtils.addCookie(response, new AbstractMap.SimpleEntry<>("access_token", new String[] {newToken, "HttpOnly"}));
     }
 
     @Override
     public void performLogout(HttpServletRequest request, HttpServletResponse response) {
-        // do nothing
+       CookieUtils.clearAuthCookies(response, Arrays.asList("access_token"));
     }
 
     @Override

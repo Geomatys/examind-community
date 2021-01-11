@@ -28,7 +28,7 @@ angular.module('cstl-webservice-edit', [
 
     .controller('WebServiceEditController', function($scope, $routeParams ,
                                                      $modal, textService, Dashboard, Growl, $filter,
-                                                     StyleSharedService, $cookieStore, $translate, Examind) {
+                                                     StyleSharedService, $translate, Examind) {
         /**
          * To fix angular bug with nested scope.
          */
@@ -38,7 +38,7 @@ angular.module('cstl-webservice-edit', [
 
         $scope.tagText = '';
         $scope.type = $routeParams.type;
-        $scope.cstlUrl = $cookieStore.get('cstlUrl');
+        $scope.cstlUrl = window.localStorage.getItem('cstlUrl');
         $scope.url = $scope.cstlUrl + "WS/" + $routeParams.type + "/" + $routeParams.id;
         $scope.urlBoxSize = Math.min($scope.url.length,100);
 
@@ -1251,7 +1251,7 @@ angular.module('cstl-webservice-edit', [
         };
     })
     .controller('Step1WMTSInternalDataController', function($scope, Dashboard,
-                                                            Examind, $cookieStore,$filter) {
+                                                            Examind, $filter) {
         /**
          * To fix angular bug with nested scope.
          */
@@ -1283,7 +1283,7 @@ angular.module('cstl-webservice-edit', [
             if (DataViewer.map) {
                 DataViewer.map.setTarget(undefined);
             }
-            var cstlUrl = $cookieStore.get('cstlUrl');
+            var cstlUrl = window.localStorage.getItem('cstlUrl');
             DataViewer.initConfig();
             if($scope.values.listSelect.length >0){
                 var layerName,providerId;
@@ -1405,7 +1405,7 @@ angular.module('cstl-webservice-edit', [
     /**
      * Controller of WMS internal data
      */
-    .controller('Step1WMSInternalDataController', function($scope, Dashboard, Growl, Examind, $cookieStore, $filter) {
+    .controller('Step1WMSInternalDataController', function($scope, Dashboard, Growl, Examind, $filter) {
         /**
          * To fix angular bug with nested scope.
          */
@@ -1431,7 +1431,7 @@ angular.module('cstl-webservice-edit', [
             if (DataViewer.map) {
                 DataViewer.map.setTarget(undefined);
             }
-            var cstlUrl = $cookieStore.get('cstlUrl');
+            var cstlUrl = window.localStorage.getItem('cstlUrl');
             DataViewer.initConfig();
             if($scope.values.listSelect.length >0){
                 var layerName,providerId;
@@ -1552,7 +1552,7 @@ angular.module('cstl-webservice-edit', [
 
     })
 
-    .controller('Step1WMTSMapContextController', function($scope, Dashboard,Growl, $cookieStore, Examind) {
+    .controller('Step1WMTSMapContextController', function($scope, Dashboard,Growl, Examind) {
         /**
          * To fix angular bug with nested scope.
          */
@@ -1602,7 +1602,7 @@ angular.module('cstl-webservice-edit', [
                 if(crsCode === 'EPSG:4326' || crsCode === 'CRS:84') {
                     DataViewer.extent=[-180, -90, 180, 90];
                 }
-                var cstlUrl = $cookieStore.get('cstlUrl');
+                var cstlUrl = window.localStorage.getItem('cstlUrl');
                 if($scope.values.selectedContext.layers && $scope.values.selectedContext.layers.length>0){
                     var layersToView = [];
                     for (var i=0; i<$scope.values.selectedContext.layers.length; i++) {

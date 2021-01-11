@@ -20,7 +20,7 @@
 
 angular.module('cstl-data-metadata', ['cstl-restapi', 'pascalprecht.translate', 'ui.bootstrap.modal', 'examind-instance'])
 
-    .controller('EditMetadataController', function ($scope, $routeParams, $location, $translate, Growl,$cookieStore,$rootScope,$modal,$http, Examind) {
+    .controller('EditMetadataController', function ($scope, $routeParams, $location, $translate, Growl, $rootScope,$modal,$http, Examind) {
         $scope.provider = $scope.provider || $routeParams.provider;
         $scope.identifier = $scope.identifier || $routeParams.identifier;
 
@@ -489,7 +489,7 @@ angular.module('cstl-data-metadata', ['cstl-restapi', 'pascalprecht.translate', 
         $scope.save2 = $scope.save2 || angular.noop;
 
         $scope.uploadImage = $scope.uploadImage || function(value,field) {
-            var cstlUrl = $cookieStore.get('cstlUrl');
+            var cstlUrl = window.localStorage.getItem('cstlUrl');
             if(value) {
                 var $form = $('#metadataform');
                 var fileInput = $form.find('.uploadimage');

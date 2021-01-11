@@ -21,7 +21,7 @@ angular.module('cstl-style-edit', [
     'examind-instance',
     'webui-utils'])
 
-    .controller('StyleModalController', function($scope,$filter, OldDashboard, $modalInstance, $cookieStore,
+    .controller('StyleModalController', function($scope,$filter, OldDashboard, $modalInstance,
                                                  Growl, newStyle, selectedLayer,selectedStyle,
                                                  serviceName, exclude, $timeout,stylechooser,$modal, rasterstyletype,
                                                  AppConfigService, Examind) {
@@ -2206,10 +2206,10 @@ angular.module('cstl-style-edit', [
                 }
                 var layerData;
                 if(styleName){
-                    layerData = DataViewer.createLayerWithStyle($cookieStore.get('cstlUrl'),$scope.dataId,$scope.layerName,
+                    layerData = DataViewer.createLayerWithStyle(window.localStorage.getItem('cstlUrl'),$scope.dataId,$scope.layerName,
                         styleName,null,null,false);
                 }else {
-                    layerData = DataViewer.createLayer($cookieStore.get('cstlUrl'),$scope.dataId,$scope.layerName, null,false);
+                    layerData = DataViewer.createLayer(window.localStorage.getItem('cstlUrl'),$scope.dataId,$scope.layerName, null,false);
                 }
                 //to force the browser cache reloading styled layer.
                 layerData.get('params').ts=new Date().getTime();
@@ -2233,9 +2233,9 @@ angular.module('cstl-style-edit', [
                     var layerData;
                     if($scope.selectedLayer){
                         if($scope.newStyle.rules.length ===0){
-                            layerData = DataViewer.createLayer($cookieStore.get('cstlUrl'),$scope.dataId,$scope.layerName,null,false);
+                            layerData = DataViewer.createLayer(window.localStorage.getItem('cstlUrl'),$scope.dataId,$scope.layerName,null,false);
                         }else {
-                            layerData = DataViewer.createLayerWithStyle($cookieStore.get('cstlUrl'),$scope.dataId,$scope.layerName,
+                            layerData = DataViewer.createLayerWithStyle(window.localStorage.getItem('cstlUrl'),$scope.dataId,$scope.layerName,
                                 $scope.newStyle.name, "sld_temp",null,false);
                         }
                     }else {
@@ -2243,14 +2243,14 @@ angular.module('cstl-style-edit', [
                         if ($scope.dataType.toLowerCase() === 'coverage') {
                             //to avoid layer disappear when rules is empty
                             if($scope.newStyle.rules.length ===0){
-                                layerData = DataViewer.createLayer($cookieStore.get('cstlUrl'),$scope.dataId,$scope.layerName,
+                                layerData = DataViewer.createLayer(window.localStorage.getItem('cstlUrl'),$scope.dataId,$scope.layerName,
                                     null,true);
                             }else {
-                                layerData = DataViewer.createLayerWithStyle($cookieStore.get('cstlUrl'),$scope.dataId,$scope.layerName,
+                                layerData = DataViewer.createLayerWithStyle(window.localStorage.getItem('cstlUrl'),$scope.dataId,$scope.layerName,
                                     $scope.newStyle.name, "sld_temp",null,false);
                             }
                         }else {
-                            layerData = DataViewer.createLayerWithStyle($cookieStore.get('cstlUrl'),$scope.dataId,$scope.layerName,
+                            layerData = DataViewer.createLayerWithStyle(window.localStorage.getItem('cstlUrl'),$scope.dataId,$scope.layerName,
                                 $scope.newStyle.name, "sld_temp",null,false);
                         }
                     }

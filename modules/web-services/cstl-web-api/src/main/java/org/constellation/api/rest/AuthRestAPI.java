@@ -26,12 +26,9 @@ import java.util.logging.Level;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.LocaleUtils;
 import org.constellation.business.IMailBusiness;
-import org.constellation.dto.TokenTransfer;
 import org.constellation.dto.UserWithRole;
 import org.constellation.dto.AcknowlegementType;
 import org.constellation.dto.user.ForgotPassword;
@@ -76,15 +73,10 @@ public class AuthRestAPI extends AbstractRestAPI{
      * @return A transfer containing the authentication token.
      */
     @RequestMapping(value="/auth/login", method=POST, produces=APPLICATION_JSON_VALUE, consumes=APPLICATION_JSON_VALUE)
-    public ResponseEntity<TokenTransfer> login(@RequestBody Login login, HttpServletResponse response) {
+    public ResponseEntity login(@RequestBody Login login, HttpServletResponse response) {
         try {
-            final String createToken = authProxy.performLogin(login.getUsername(), login.getPassword(), response);
-
-            // here we set some legacy stuff :
-            // 1) the token should not been return has it should be set in a cookie int the response
-            // 2) the user id shouls not be return either. we are supposed to know who we are by requesting our account with the token (and it seems unused by the JS)
-            return new ResponseEntity<>(new TokenTransfer(createToken, -1), HttpStatus.OK);
-
+            authProxy.performLogin(login.getUsername(), login.getPassword(), response);
+            return new ResponseEntity<>(HttpStatus.OK);
         } catch (BadCredentialsException ex) {
             return new ResponseEntity<>(UNAUTHORIZED);
         } catch (DisabledException ex) {
@@ -96,15 +88,9 @@ public class AuthRestAPI extends AbstractRestAPI{
     }
 
     @RequestMapping(value="/auth/extendToken", method=GET, produces=TEXT_PLAIN_VALUE)
-    public ResponseEntity<String> extendToken(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+    public ResponseEntity extendToken(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         try {
-            final String token = authProxy.extendToken(httpServletRequest, httpServletResponse);
-
-            // here we set some legacy stuff :
-            // 1) the token should not been return has it should be set in a cookie int the response
-            // 2) i don't know why but if i return the string in the entity, i got a 406 exception (tested in Spring boot).
-            IOUtils.write(token, httpServletResponse.getOutputStream());
-
+            authProxy.extendToken(httpServletRequest, httpServletResponse);
             return new ResponseEntity(HttpStatus.OK);
         } catch (UnknownAccountException ex) {
             return new ResponseEntity(HttpStatus.UNAUTHORIZED);

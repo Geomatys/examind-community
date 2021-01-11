@@ -31,15 +31,13 @@ import org.constellation.engine.security.AuthenticationProxy;
 public class DummyAuthenticationProxy implements AuthenticationProxy {
 
     @Override
-    public String performLogin(String login, String password, HttpServletResponse response) throws Exception {
+    public void performLogin(String login, String password, HttpServletResponse response) throws Exception {
         // do nothing
-        return null;
     }
 
     @Override
-    public String extendToken(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    public void extendToken(HttpServletRequest request, HttpServletResponse response) throws Exception {
         // do nothing
-        return null;
     }
 
     @Override

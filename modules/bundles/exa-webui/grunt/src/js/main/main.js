@@ -104,10 +104,6 @@ angular.module('cstl-main', ['cstl-restapi', 'cstl-services', 'pascalprecht.tran
                 Examind.authentication.setTokenRefreshURL(cstlRefreshURL);
             }
 
-            if (config["token.life"]) {
-                Examind.authentication.setTokenLifespan(config["token.life"]);
-            }
-
             Examind.authentication.account().then(function(response){
                 $scope.firstname = response.data.firstname;
                 $scope.lastname = response.data.lastname;
@@ -173,7 +169,7 @@ angular.module('cstl-main', ['cstl-restapi', 'cstl-services', 'pascalprecht.tran
         };
     })
 
-    .controller('UserAccountController', function($scope, $rootScope, $location, $cookieStore, $translate, Growl, cfpLoadingBar, user, roles, Examind) {
+    .controller('UserAccountController', function($scope, $rootScope, $location, $translate, Growl, cfpLoadingBar, user, roles, Examind) {
         $scope.user = user.data;
         $scope.disableEditLogin = true;
         $scope.roles = roles.data;
@@ -194,10 +190,7 @@ angular.module('cstl-main', ['cstl-restapi', 'cstl-services', 'pascalprecht.tran
                 formData.append("role", $scope.userRole);
             }
             $.ajax({
-                headers: {
-                    'access_token': Examind.authentication.getToken()
-                },
-                url: $cookieStore.get('cstlUrl') + 'API/internal/users/current',
+                url: window.localStorage.getItem('cstlUrl') + 'API/internal/users/current',
                 type: 'POST',
                 data: formData,
                 async: false,

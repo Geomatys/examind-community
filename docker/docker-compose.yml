@@ -35,9 +35,11 @@ services :
          CSTL_SECRET: examind-secret
          SPRING_PROFILES_ACTIVE: standard
          CSTL_SERVICE_URL: "http://localhost:8080/examind/WS"
+         CSTL_REFRESH_URL: "http://localhost:8080/examind/API/auth/extendToken"
          CSTL_URL: "http://localhost:8080/examind"
          CSTL_HOME: /var/examind/
          CATALINA_OPTS: "-Xms1G -Xmx4G -Dfile.encoding=UTF-8"
          JPDA_ADDRESS: 8000
          JPDA_TRANSPORT: dt_socket
+         CSTL_TOKEN_LIFE: 30
        entrypoint: catalina.sh jpda run

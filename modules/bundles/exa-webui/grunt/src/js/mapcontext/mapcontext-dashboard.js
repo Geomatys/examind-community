@@ -20,7 +20,7 @@
 
 angular.module('cstl-mapcontext-dashboard', ['cstl-restapi', 'cstl-services', 'ui.bootstrap.modal', 'examind-instance'])
 
-    .controller('MapcontextController', function($scope, Dashboard, Growl, $modal, $cookieStore, $window, Examind){
+    .controller('MapcontextController', function($scope, Dashboard, Growl, $modal, $window, Examind){
 
         var DEFAULT_PREVIEW = {
             layer: undefined,
@@ -36,7 +36,7 @@ angular.module('cstl-mapcontext-dashboard', ['cstl-restapi', 'cstl-services', 'u
 
         $scope.preview = angular.copy(DEFAULT_PREVIEW);
 
-        $scope.cstlUrl = $cookieStore.get('cstlUrl');
+        $scope.cstlUrl = window.localStorage.getItem('cstlUrl');
         $scope.hideScroll = true;
 
         $scope.values = {
@@ -163,7 +163,7 @@ angular.module('cstl-mapcontext-dashboard', ['cstl-restapi', 'cstl-services', 'u
             if(selectedContext) {
                 var mapcontextLayers = $scope.resolveLayers();
                 if (mapcontextLayers && mapcontextLayers.length>0) {
-                    var cstlUrl = $cookieStore.get('cstlUrl');
+                    var cstlUrl = window.localStorage.getItem('cstlUrl');
                     var layerGroup = new ol.layer.Group();
                     for (var i=0; i<mapcontextLayers.length; i++) {
                         var layObj = mapcontextLayers[i];

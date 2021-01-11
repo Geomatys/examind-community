@@ -80,11 +80,6 @@ angular.module('webui-config',[])
         // Injection expressions.
         'inject.expr.ctrl.url':  '@cstl/',
 
-        // Cookies.
-        'cookie.cstl.url':   'cstlUrl',
-        'cookie.auth.token': 'access_token',
-        'cookie.auth.refresh': 'refresh_token',
-
         //cstl version.
         'cstl.version': (new Date()).getFullYear(),
 

@@ -21,7 +21,7 @@ cstlLoginApp.config(['$translateProvider', '$translatePartialLoaderProvider',
         $translateProvider.preferredLanguage('en');
 
         // remember language
-        $translateProvider.useCookieStorage();
+        $translateProvider.useLocalStorage();
     }
 ]);
 
@@ -47,7 +47,7 @@ cstlLoginApp.directive('formAutofillFix', function() {
 /**
  * Login controller.
  */
-cstlLoginApp.controller("login", function($scope, $http, $modal, AppConfigService, $cookieStore, CstlConfig, ExamindFactory){
+cstlLoginApp.controller("login", function($scope, $http, $modal, AppConfigService, ExamindFactory){
 
     var cstlUrl;
     $scope.formInputs = {
@@ -57,12 +57,12 @@ cstlLoginApp.controller("login", function($scope, $http, $modal, AppConfigServic
 
     $scope.login = function(target){
         
-        var exa = ExamindFactory.create($cookieStore.get(CstlConfig['cookie.cstl.url']));
+        var exa = ExamindFactory.create(window.localStorage.getItem('cstlUrl'));
         
         exa.authentication.login($scope.formInputs.username,$scope.formInputs.password)
             .then(function(resp){
                 jQuery('#msg-error').hide();
-                if (resp.data.token) {
+                if (resp.status === 200) {
                     window.location.href= target ? target : "admin.html";
                 }
             }, function(resp){
@@ -89,16 +89,16 @@ cstlLoginApp.controller("login", function($scope, $http, $modal, AppConfigServic
 
     AppConfigService.getConfigProperty('cstl', function (val) {
         cstlUrl = val;
-        $.cookie('cstlUrl', val);
+        window.localStorage.setItem('cstlUrl', val);
     });
 })
-.controller("forgotPasswordController", function($scope, $modalInstance, $http, $translate, $cookieStore, Growl, CstlConfig, ExamindFactory){
+.controller("forgotPasswordController", function($scope, $modalInstance, $http, $translate, Growl, ExamindFactory){
         var self = this;
         self.userEmail = '';
 
         self.validate = function(){
             
-            var exa = ExamindFactory.create($cookieStore.get(CstlConfig['cookie.cstl.url']));
+            var exa = ExamindFactory.create(window.localStorage.getItem('cstlUrl'));
             
             exa.authentication.forgotPassword(self.userEmail).then(
                 function(response){
