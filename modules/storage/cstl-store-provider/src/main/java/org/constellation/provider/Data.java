@@ -35,6 +35,7 @@ import org.apache.sis.measure.Units;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.portrayal.MapItem;
 import org.apache.sis.storage.Aggregate;
+import org.apache.sis.storage.DataSet;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
@@ -213,6 +214,26 @@ public interface Data<T extends Resource> {
             }
         } catch (DataStoreException ex) {
             mp.put("identifier", "ERROR (" + ex.getMessage() + ")");
+        }
+
+        if (rs instanceof DataSet) {
+            final DataSet cdt = (DataSet) rs;
+
+            final Map<String,Object> map = new LinkedHashMap<>();
+            mp.put("DataSet", map);
+
+            map.put("class", Classes.getShortClassName(rs));
+            try {
+                final Envelope env = cdt.getEnvelope().orElse(null);
+                if (env != null) {
+                    map.put("envelope", new GeneralEnvelope(env).toString());
+                    if (env.getCoordinateReferenceSystem() != null) {
+                        map.put("crs", env.getCoordinateReferenceSystem().toWKT());
+                    }
+                }
+            } catch (DataStoreException ex) {
+                map.put("envelope", "ERROR (" + ex.getMessage() + ")");
+            }
         }
 
         if (rs instanceof FeatureSet) {

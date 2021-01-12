@@ -143,7 +143,7 @@ final class DataStoreHandle implements AutoCloseable {
     /**
      * Create a Java dynamic proxy, to create a wrapper around a resource. Such a wrapper is needed to provide custom
      * metadata for the resource.
-     * 
+     *
      * @param dataId An operator providing identifier of the associated resource in Examind system. It should be a fixed
      *               value. However, it can happen that Examind has not any entry in its administration database at the
      *               time of this call. So, we defer the id computing for the last moment, when metadata is queried.
