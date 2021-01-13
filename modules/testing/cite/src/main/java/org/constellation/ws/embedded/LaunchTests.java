@@ -74,7 +74,7 @@ public final class LaunchTests implements Runnable {
             final BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line;
             while ((line = in.readLine()) != null) {
-                System.out.println(line);
+                LOGGER.info(line);
             }
             in.close();
         } catch (IOException e) {

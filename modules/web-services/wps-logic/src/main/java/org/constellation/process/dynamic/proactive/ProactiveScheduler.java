@@ -95,7 +95,7 @@ public class ProactiveScheduler {
             }
             return res.getBody();
         } catch (HttpStatusCodeException ex) {
-            System.out.println(ex.getResponseBodyAsString());
+            LOGGER.info(ex.getResponseBodyAsString());
             throw new ProActiveException(ex, ex.getResponseBodyAsString());
         }
     }

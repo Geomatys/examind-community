@@ -116,7 +116,7 @@ public class QuartzJobListener implements JobListener, CstlJobListener {
 
     @Override
     public void jobExecutionVetoed(JobExecutionContext jec) {
-        System.out.println("veto");
+        // do nothing
     }
 
     @Override

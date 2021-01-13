@@ -389,11 +389,10 @@ public class RunPBS extends AbstractCstlProcess {
 		    // loop on recorded status
 		    for (Map.Entry<String, String> entry : status_qstat.entrySet()) {
 
-			if (lineWithJobStatus.contains(entry.getValue()))
-			    {
-				status = entry.getKey();
-				System.out.println("PBS job is " + entry.getKey());
-			    }
+			if (lineWithJobStatus.contains(entry.getValue())) {
+                            status = entry.getKey();
+                            LOGGER.info("PBS job is " + entry.getKey());
+                        }
 		    }
 
 		    if (status.equals("Other")) {

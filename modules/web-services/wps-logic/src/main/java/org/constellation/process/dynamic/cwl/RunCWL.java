@@ -253,12 +253,12 @@ public class RunCWL extends AbstractCstlProcess {
                         try (BufferedReader input1 = new BufferedReader(new InputStreamReader(pr.getInputStream()))) {
                             String line;
                             while ((line = input1.readLine()) != null) {
-                                System.out.println("REGULAR:" + line);
+                                LOGGER.info("REGULAR:" + line);
                                 results.append(line).append('\n');
                             }
-                            System.out.println("CLOSING REGULAR READING");
-                        }catch (IOException e) {
-                            e.printStackTrace();
+                            LOGGER.info("CLOSING REGULAR READING");
+                        } catch (IOException e) {
+                            LOGGER.log(Level.INFO, e.getMessage(), e);
                         }
                     }
                 }).start();
@@ -269,12 +269,12 @@ public class RunCWL extends AbstractCstlProcess {
                         try (BufferedReader input1 = new BufferedReader(new InputStreamReader(pr.getErrorStream()))) {
                             String line;
                             while ((line = input1.readLine()) != null) {
-                                System.out.println("DEBUG:" + line);
+                                LOGGER.info("DEBUG:" + line);
                                 errors.append(line).append('\n');
                             }
-                            System.out.println("CLOSING DEBUG READING");
-                        }catch (IOException e) {
-                            e.printStackTrace();
+                            LOGGER.info("CLOSING DEBUG READING");
+                        } catch (IOException e) {
+                            LOGGER.log(Level.INFO, e.getMessage(), e);
                         }
 
                     }

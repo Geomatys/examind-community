@@ -686,7 +686,7 @@ public abstract class AbstractGrizzlyServer {
         Object obj;
         try {
             if (print) {
-                System.out.println(writer.toString());
+                LOGGER.info(writer.toString());
             }
             obj = unmarshaller.unmarshal(new StringReader(writer.toString()));
             pool.recycle(unmarshaller);

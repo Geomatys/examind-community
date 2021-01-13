@@ -1182,11 +1182,11 @@ public class GeotkProcess implements WPSProcess {
                 }
 
                 if (dataValue instanceof File) {
-                    System.out.println(((File) dataValue).toPath()); // TODO ?
+                    LOGGER.info(((File) dataValue).toPath().toString()); // TODO ?
                 }
 
                 if (dataValue instanceof Path) {
-                    System.out.println((Path) dataValue);  // TODO ?
+                    LOGGER.info(((Path) dataValue).toString());  // TODO ?
                 }
             }
 

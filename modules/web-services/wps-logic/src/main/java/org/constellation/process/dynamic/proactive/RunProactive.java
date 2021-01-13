@@ -117,7 +117,7 @@ public class RunProactive extends AbstractCstlProcess {
         // Create unique id
         String uid = UUID.randomUUID().toString();
 
-        System.out.println("Starting process " + workflowName + " with uuid " + uid);
+        LOGGER.info("Starting process " + workflowName + " with uuid " + uid);
 
         ProactiveScheduler sched = new ProactiveScheduler(paURL, login, pwd, wDir);
 
@@ -125,7 +125,7 @@ public class RunProactive extends AbstractCstlProcess {
             // Configure job
             // Login
             String sessionId = sched.login();
-            System.out.println("Session ID:" + sessionId);
+            LOGGER.info("Session ID:" + sessionId);
 
             // Get workflow xml object
             String workflow = sched.getLocalWorkflow(workflowName);
@@ -135,7 +135,7 @@ public class RunProactive extends AbstractCstlProcess {
                 String identifier = e.getKey();
                 // not safe
                 identifier = identifier.substring(identifier.lastIndexOf(":") + 1, identifier.length());
-                System.out.println("INPUT: " + identifier + " = " + e.getValue());
+                LOGGER.info("INPUT: " + identifier + " = " + e.getValue());
                 workflow = ProactiveScheduler.setWorkflowVariable(workflow, identifier, (String) e.getValue());
             }
 
@@ -144,10 +144,10 @@ public class RunProactive extends AbstractCstlProcess {
                 try {
                     workflow = ProactiveScheduler.setWorkflowVariable(workflow, "wps_job_id", jobId);
                 } catch (Exception ex) {
-                    System.out.println("No wps_job_id param in workflow");
+                    LOGGER.info("No wps_job_id param in workflow");
                 }
             } else {
-                System.out.println("Not job id setted by the wps");
+                LOGGER.info("Not job id setted by the wps");
             }
 
             // Submit job
@@ -155,7 +155,7 @@ public class RunProactive extends AbstractCstlProcess {
             IOUtilities.writeString(workflow, tmp);
             File f = tmp.toFile();
             Integer jobId = sched.submitJob(sessionId, f);
-            System.out.println("Scheduler job id is " + jobId);
+            LOGGER.info("Scheduler job id is " + jobId);
 
             //self.status.set("started Job %s" % job_id, 0)
 
@@ -188,7 +188,7 @@ public class RunProactive extends AbstractCstlProcess {
                 currentReport = currentReport.replace("$4", progress*100 +"");
                 currentReport = currentReport.replace("$5", status.getJobInfo().getStatus().toString());
                 currentReport = currentReport.replace("$6", DF.format(new Date(status.getJobInfo().getFinishedTime())));
-                System.out.println(currentReport);
+                LOGGER.info(currentReport);
                 Thread.sleep(1000);
 
             } while (!(status.getJobInfo().getStatus().equals(FINISHED) ||

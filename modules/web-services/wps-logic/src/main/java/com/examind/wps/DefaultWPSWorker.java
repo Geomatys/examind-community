@@ -285,8 +285,8 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
         } catch (Exception e) {
             this.supportStorage = false;
             LOGGER.log(Level.WARNING, "The worker ({0}) does not support storage!\n" +
-                    "Cause: Error during WPS WebDav service creation : {1}", new Object[]{id, e.getMessage()});
-            e.printStackTrace();
+                    "Cause: Error during WPS storage service creation : {1}", new Object[]{id, e.getMessage()});
+            LOGGER.log(Level.FINER, e.getMessage(), e);
         }
 
         //WMS link

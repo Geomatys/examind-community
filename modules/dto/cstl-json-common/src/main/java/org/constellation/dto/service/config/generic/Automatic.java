@@ -37,7 +37,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.logging.Logger;
 
 /**
  *
@@ -54,8 +53,6 @@ public class Automatic extends AbstractConfigurationObject {
     public static final int FILESYSTEM  = 1;
     @XmlTransient
     public static final int BYID        = 2;
-
-    private static final Logger LOGGER = Logger.getLogger("org.constellation.generic.database");
 
     /**
      * The database connection informations.

@@ -32,12 +32,16 @@ import java.time.temporal.Temporal;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author Johann Sorel (Geomatys)
  */
 final class JsonViewWriter {
+
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.json.view");
 
     private final JsonFilter filter;
     private final JsonGenerator jg;
@@ -107,7 +111,7 @@ final class JsonViewWriter {
                             writer.serialize(field.get(obj));
                         }
                     } catch (IllegalArgumentException | IllegalAccessException e) {
-                        e.printStackTrace();
+                        LOGGER.log(Level.WARNING, e.getMessage(), e);
                     }
                 }
                 clazz = clazz.getSuperclass();

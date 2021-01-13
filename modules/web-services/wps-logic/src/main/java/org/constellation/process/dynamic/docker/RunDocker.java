@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 import org.constellation.business.IProcessBusiness;
 import org.constellation.process.AbstractCstlProcess;
 import org.geotoolkit.process.ProcessDescriptor;
@@ -71,11 +72,11 @@ public class RunDocker extends AbstractCstlProcess {
                 String arg = (String) inputParameters.getValue((ParameterDescriptor)desc);
                 runCommand = runCommand.replace("$" + (i + 1), arg);
 
-                System.out.println("INPUT: " + desc.getName().getCode() + " = " + arg);
+                LOGGER.info("INPUT: " + desc.getName().getCode() + " = " + arg);
             }
         }
 
-        System.out.println("RUN COMMAND:" + runCommand);
+        LOGGER.info("RUN COMMAND:" + runCommand);
 
         final List<String> results = new ArrayList<>();
         try {
@@ -89,13 +90,13 @@ public class RunDocker extends AbstractCstlProcess {
                     String line = null;
                     try {
                         while ((line = input1.readLine()) != null) {
-                            System.out.println(line);
+                            LOGGER.info(line);
                             if (line.startsWith("result:")) {
                                 results.add(line.substring(7));
                             }
                         }
-                    }catch (IOException e) {
-                        e.printStackTrace();
+                    } catch (IOException e) {
+                        LOGGER.log(Level.INFO, e.getMessage(), e);
                     }
                 }
             }).start();
@@ -117,7 +118,5 @@ public class RunDocker extends AbstractCstlProcess {
         for (GeneralParameterDescriptor desc : output.descriptors()) {
             outputParameters.getOrCreate((ParameterDescriptor) desc).setValue(result);
         }
-
-
     }
 }
