@@ -1332,7 +1332,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                     not create a 3D envelope, and let renderer get default slices.
                  */
                 for (LayerCache layer : layers) {
-                    final Date first = layer.getFirstDate();
+                    final Date first = layer.getLastDate();
                     if (first != null) {
                         time[0] = time[1] = first;
                         break;

@@ -78,6 +78,14 @@ public class LayerCache {
         return null;
     }
 
+    public Date getLastDate() throws ConstellationStoreException {
+        final DateRange dates = data.getDateRange();
+        if (dates != null) {
+            return dates.getMaxValue();
+        }
+        return null;
+    }
+
     public CoordinateReferenceSystem getCoordinateReferenceSystem() throws ConstellationStoreException {
         return data.getEnvelope().getCoordinateReferenceSystem();
     }
