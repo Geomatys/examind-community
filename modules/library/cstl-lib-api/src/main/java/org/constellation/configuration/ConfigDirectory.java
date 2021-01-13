@@ -358,7 +358,7 @@ public final class ConfigDirectory {
         return resolveInstanceDirectory(type.toLowerCase(), id);
     }
 
-    public static Collection<? extends Path> getInstanceDirectories(String typeService) throws IOException {
+    public static List<Path> getInstanceDirectories(String typeService) throws IOException {
         Path instancesDirectory = resolveInstanceServiceDirectoryByType(typeService);
         return listChildren(instancesDirectory);
     }

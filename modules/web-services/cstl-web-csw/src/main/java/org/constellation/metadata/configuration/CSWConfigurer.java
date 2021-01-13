@@ -21,7 +21,6 @@ package org.constellation.metadata.configuration;
 
 import org.constellation.dto.AcknowlegementType;
 import org.constellation.dto.service.config.csw.BriefNode;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.config.DataSourceType;
 import org.constellation.dto.service.Instance;
@@ -51,6 +50,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
+import org.constellation.business.IConfigurationBusiness;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.ICSWConfigurer;
 import org.constellation.business.IMetadataBusiness;
@@ -100,6 +100,9 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
 
     @Autowired
     protected IProviderBusiness providerBusiness;
+
+    @Autowired
+    private IConfigurationBusiness configBusiness;
 
     /**
      * Create a new {@link CSWConfigurer} instance.
@@ -164,12 +167,12 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
         final List<Path> cswInstanceDirectories = new ArrayList<>();
         if ("all".equals(id)) {
             try {
-                cswInstanceDirectories.addAll(ConfigDirectory.getInstanceDirectories("csw"));
+                cswInstanceDirectories.addAll(configBusiness.getInstanceDirectories("csw"));
             } catch (IOException e) {
                 LOGGER.log(Level.INFO, "unable to find CSW instances directories" + suffix);
             }
         } else {
-            final Path instanceDir = ConfigDirectory.getInstanceDirectory("csw", id);
+            final Path instanceDir = configBusiness.getInstanceDirectory("csw", id);
             if (instanceDir != null) {
                 cswInstanceDirectories.add(instanceDir);
             }
@@ -511,15 +514,9 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
      * @throws ConfigurationException
      */
     protected Automatic getServiceConfiguration(final String id) throws ConfigurationException {
-        final Path instanceDirectory = ConfigDirectory.getInstanceDirectory("csw", id);
         try {
             // we get the CSW configuration file
-            final Automatic config = (Automatic) serviceBusiness.getConfiguration("csw", id);
-            if (config !=  null) {
-                config.setConfigurationDirectory(instanceDirectory);
-            }
-            return config;
-
+            return (Automatic) serviceBusiness.getConfiguration("csw", id);
         } catch (ConfigurationException ex) {
             throw new ConfigurationException("Configuration exception while getting the CSW configuration for:" + id, ex.getMessage());
         } catch (IllegalArgumentException ex) {

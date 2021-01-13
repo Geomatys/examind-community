@@ -20,14 +20,11 @@ package org.constellation.admin;
 
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.TargetNotFoundException;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.ServiceStatus;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -51,14 +48,11 @@ import org.constellation.dto.service.Service;
 import org.constellation.dto.service.ServiceComplete;
 import org.constellation.repository.DataRepository;
 import org.constellation.repository.DatasetRepository;
-import org.constellation.repository.LayerRepository;
 import org.constellation.repository.ServiceRepository;
-import org.constellation.repository.ProviderRepository;
 import org.constellation.repository.ThesaurusRepository;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.constellation.security.SecurityManager;
 import org.constellation.util.Util;
-import org.geotoolkit.nio.IOUtilities;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,6 +65,7 @@ import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IProviderBusiness;
 import static org.constellation.business.ClusterMessageConstant.*;
+import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IUserBusiness;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
@@ -102,10 +97,7 @@ public class ServiceBusiness implements IServiceBusiness {
     private DatasetRepository datasetRepository;
 
     @Inject
-    private LayerRepository layerRepository;
-
-    @Inject
-    private ProviderRepository providerRepository;
+    private IConfigurationBusiness configBusiness;
 
     @Inject
     private IProviderBusiness providerBusiness;
@@ -318,11 +310,7 @@ public class ServiceBusiness implements IServiceBusiness {
         // delete from database
         serviceRepository.delete(id);
         // delete folder
-        final Path instanceDir = ConfigDirectory.getInstanceDirectory(service.getType(), service.getIdentifier());
-        if (Files.isDirectory(instanceDir)) {
-            //FIXME use deleteRecursively instead and handle exception
-            IOUtilities.deleteSilently(instanceDir);
-        }
+        configBusiness.removeInstanceDirectory(service.getType(), service.getIdentifier());
     }
 
     /**

@@ -59,6 +59,7 @@ import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.StorageConnector;
 import org.apache.sis.util.collection.Cache;
 import org.apache.sis.util.logging.Logging;
+import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasourceBusiness;
 import org.constellation.business.IMetadataBusiness;
@@ -66,7 +67,6 @@ import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.DataSourcePathComplete;
 import org.constellation.dto.DataSourcePath;
 import org.constellation.repository.DatasourceRepository;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.DataSource;
 import org.constellation.dto.DataSourceSelectedPath;
@@ -116,6 +116,9 @@ public class DatasourceBusiness implements IDatasourceBusiness {
 
     @Inject
     protected IMetadataBusiness metadataBusiness;
+
+    @Inject
+    protected IConfigurationBusiness configBusiness;
 
     private final Map<Integer, Thread> currentRunningAnalysis = new ConcurrentHashMap<>();
 
@@ -937,7 +940,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
 
         final Path providerDir;
         try {
-            providerDir = ConfigDirectory.getDataIntegratedDirectory(provId);
+            providerDir = configBusiness.getDataIntegratedDirectory(provId);
         } catch (IOException ex) {
             throw new UncheckedIOException("Cannot create provider root directory", ex);
         }

@@ -1,9 +1,27 @@
+/*
+ *    Constellation - An open source and standard compliant SDI
+ *    http://www.constellation-sdi.org
+ *
+ * Copyright 2014 Geomatys.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.constellation.metadata.index.generic;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import org.constellation.configuration.ConfigDirectory;
+import org.constellation.business.IConfigurationBusiness;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.filter.FilterParser;
 import org.constellation.filter.LuceneFilterParser;
@@ -15,6 +33,7 @@ import org.constellation.metadata.index.Indexer;
 import org.constellation.store.metadata.CSWMetadataReader;
 import org.geotoolkit.index.IndexingException;
 import org.geotoolkit.metadata.MetadataStore;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -23,6 +42,9 @@ import org.springframework.stereotype.Component;
 @Component(value = "lucene-generic")
 public class LuceneGenericIndexProvider implements IndexProvider {
 
+    @Autowired
+    private IConfigurationBusiness configBusiness;
+    
     @Override
     public String indexType() {
         return "lucene-generic";
@@ -30,12 +52,14 @@ public class LuceneGenericIndexProvider implements IndexProvider {
 
     @Override
     public Indexer getIndexer(Automatic configuration, MetadataStore mdStore, String serviceID) throws IndexingException, ConfigurationException {
-        return new GenericIndexer(mdStore, configuration.getConfigurationDirectory(), "", ((CSWMetadataReader)mdStore.getReader()).getAdditionalQueryablePathMap(), false);
+        final Path instanceDirectory = configBusiness.getInstanceDirectory("csw", serviceID);
+        return new GenericIndexer(mdStore, instanceDirectory, "", ((CSWMetadataReader)mdStore.getReader()).getAdditionalQueryablePathMap(), false);
     }
 
     @Override
     public IndexSearcher getIndexSearcher(Automatic configuration, String serviceID) throws IndexingException, ConfigurationException {
-        return new LuceneIndexSearcher(configuration.getConfigurationDirectory(), "", null, true);
+        final Path instanceDirectory = configBusiness.getInstanceDirectory("csw", serviceID);
+        return new LuceneIndexSearcher(instanceDirectory, "", null, true);
     }
 
     @Override
@@ -50,7 +74,7 @@ public class LuceneGenericIndexProvider implements IndexProvider {
 
     @Override
     public boolean refreshIndex(Automatic configuration, String serviceID, Indexer indexer, boolean asynchrone) throws ConfigurationException {
-        final Path instanceDir = ConfigDirectory.getInstanceDirectory("csw", serviceID);
+        final Path instanceDir = configBusiness.getInstanceDirectory("csw", serviceID);
         if (Files.exists(instanceDir)) {
             if (asynchrone) {
                 final Path nexIndexDir = instanceDir.resolve("index-" + System.currentTimeMillis());

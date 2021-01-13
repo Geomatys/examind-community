@@ -52,6 +52,7 @@ import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Resource;
 import org.constellation.api.TilingMode;
 import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
+import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IMetadataBusiness;
@@ -59,7 +60,6 @@ import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IPyramidBusiness;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IStyleBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.DataDescription;
 import org.constellation.dto.DataSetBrief;
@@ -136,6 +136,8 @@ public class DataRestAPI extends AbstractRestAPI{
     @Inject
     private IPyramidBusiness pyramidBusiness;
 
+    @Inject
+    private IConfigurationBusiness configBusiness;
 
     /**
      * Receive a {@link MultipartFile} which contain a data file to save on server,
@@ -166,8 +168,8 @@ public class DataRestAPI extends AbstractRestAPI{
                                      HttpServletRequest req) {
 
         try {
-            final Path uploadDirectory = getUploadDirectory();
             final int userId           = assertAuthentificated(req);
+            final Path uploadDirectory = getUploadDirectory(req);
             final String fileName;
             if (data != null) {
                 fileName = data.getOriginalFilename();
@@ -202,9 +204,8 @@ public class DataRestAPI extends AbstractRestAPI{
                 }
 
                 // 2. init provider directory
-                final Path integratedDir = ConfigDirectory.getDataIntegratedDirectory();
-                final Path providerDir   = integratedDir.resolve(providerId);
-                final Path dataDir       = providerDir.resolve(fileName);
+                final Path providerDir = configBusiness.getDataIntegratedDirectory(providerId);
+                final Path dataDir     = providerDir.resolve(fileName);
                 if (Files.exists(dataDir)) {
                     IOUtilities.deleteRecursively(dataDir);
                 }
@@ -356,15 +357,15 @@ public class DataRestAPI extends AbstractRestAPI{
 
     /**
      * Receive a {@link MultipartFile} which contain a metadata file to save on server,
-     * or a path to a file already on the server.
+     * or a path to a file already on the server.The metadata object will be extracted from the file, saved in the database
+ and then bounded to the specified data.
      *
-     * The metadata object will be extracted from the file, saved in the database
-     * and then bounded to the specified data.
      *
      *
      * @param metadata An uploaded metadata file.
      * @param dataId The data identifier.
      * @param serverMetadataPath A path to a metadata file already on the server.
+     * @param req
      *
      * @return A {@link ResponseEntity} with 200 code if upload work, 500 if not work.
      */
@@ -372,9 +373,11 @@ public class DataRestAPI extends AbstractRestAPI{
     public ResponseEntity uploadDataMetadata(
             @RequestParam(name = "metadata", required = false) MultipartFile metadata,
             @RequestParam(name = "serverMetadataPath", required = false) String serverMetadataPath,
-            @PathVariable("dataId") Integer dataId) {
+            @PathVariable("dataId") Integer dataId,
+            HttpServletRequest req) {
 
         try {
+            assertAuthentificated(req);
             Path metadataFile = null;
 
             // Server mode
@@ -384,7 +387,7 @@ public class DataRestAPI extends AbstractRestAPI{
             // Upload mode
             } else if (metadata.getOriginalFilename() != null && !metadata.getOriginalFilename().isEmpty()) {
 
-                final Path uploadDirectory = getUploadDirectory();
+                final Path uploadDirectory = getUploadDirectory(req);
                 final Path newFileMetaData = uploadDirectory.resolve(metadata.getOriginalFilename());
                 if (!metadata.isEmpty()) {
                     try (InputStream in = metadata.getInputStream()) {

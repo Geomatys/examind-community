@@ -23,7 +23,6 @@ import org.apache.sis.xml.MarshallerPool;
 import org.apache.sis.xml.Namespaces;
 import org.apache.sis.internal.xml.LegacyNamespaces;
 import org.constellation.api.ServiceDef;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.contact.Details;
 import org.constellation.filter.FilterParser;
@@ -104,7 +103,6 @@ import javax.xml.namespace.QName;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -123,6 +121,7 @@ import org.apache.sis.storage.DataStoreException;
 import static org.constellation.api.QueryConstants.SERVICE_PARAMETER;
 import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 import org.constellation.business.IClusterBusiness;
+import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.dto.service.config.csw.MetadataProviderCapabilities;
 import org.constellation.exception.ConstellationStoreException;
@@ -266,6 +265,9 @@ public class CSWworker extends AbstractWorker implements Refreshable {
     @Qualifier(value = "indexConfigHandler")
     protected IndexConfigHandler indexHandler;
 
+    @Autowired
+    protected IConfigurationBusiness configBusiness;
+
     /**
      * Build a new CSW worker with the specified configuration directory
      *
@@ -326,10 +328,6 @@ public class CSWworker extends AbstractWorker implements Refreshable {
      */
     private void init() throws MetadataIoException, IndexingException, JAXBException, ConfigurationException, ConstellationStoreException {
 
-        // we assign the configuration directory
-        final Path configDir = ConfigDirectory.getInstanceDirectory("csw", getId());
-        configuration.setConfigurationDirectory(configDir);
-
         //we initialize all the data retriever (reader/writer) and index worker
         providerId = serviceBusiness.getCSWLinkedProviders(getId());
         if (providerId == null) {
@@ -368,7 +366,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         securityFilter                = indexHandler.getSecurityFilter();
         if (profile == TRANSACTIONAL) {
             catalogueHarvester        = indexHandler.getCatalogueHarvester(configuration, mdStore);
-            harvestTaskScheduler      = new HarvestTaskScheduler(configDir, catalogueHarvester);
+            harvestTaskScheduler      = indexHandler.getHavestTaskScheduler(getId(), catalogueHarvester);
         } else {
             indexer.destroy();
         }

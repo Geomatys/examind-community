@@ -32,10 +32,10 @@ import javax.servlet.http.HttpServletResponse;
 import org.constellation.api.ServiceDef.Specification;
 import org.constellation.ws.IWSEngine;
 import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
+import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IServiceBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.StyleBrief;
 import org.constellation.dto.service.Instance;
@@ -83,6 +83,8 @@ public class ServiceRestAPI extends AbstractRestAPI {
     private ILayerBusiness layerBusiness;
     @Inject
     private IDataBusiness dataBusiness;
+    @Inject
+    private IConfigurationBusiness configBusiness;
     @Inject
     private SecurityManager securityManager;
 
@@ -179,7 +181,7 @@ public class ServiceRestAPI extends AbstractRestAPI {
 
         try {
             final ServletOutputStream output = response.getOutputStream();
-            final Path logFile = ConfigDirectory.getConfigDirectory()
+            final Path logFile = configBusiness.getConfigurationDirectory()
                     .resolve("logs")
                     .resolve(serviceType)
                     .resolve(serviceId)

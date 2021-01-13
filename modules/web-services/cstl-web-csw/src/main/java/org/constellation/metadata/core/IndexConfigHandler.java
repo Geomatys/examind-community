@@ -38,7 +38,7 @@ import org.geotoolkit.index.IndexingException;
  * @author Guilhem Legal (Geomatys)
  */
 public interface IndexConfigHandler {
-    
+
     CatalogueHarvester getCatalogueHarvester(final Automatic configuration, final MetadataStore store) throws MetadataIoException;
     
     Indexer getIndexer(final Automatic configuration, final MetadataStore mdStore, final String serviceID) throws IndexingException, ConfigurationException ;
@@ -60,4 +60,6 @@ public interface IndexConfigHandler {
     List<DataSourceType> getAvailableDatastourceType();
     
     void refreshIndex(final Automatic configuration, String serviceID, Indexer indexer, boolean asynchrone) throws IndexingException, ConfigurationException ;
+
+    HarvestTaskScheduler getHavestTaskScheduler(String serviceID, CatalogueHarvester catalogueHarvester);
 }

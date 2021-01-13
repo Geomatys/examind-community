@@ -40,6 +40,7 @@ import org.constellation.admin.listener.DefaultDataBusinessListener;
 import org.constellation.admin.util.DataCoverageUtilities;
 import org.constellation.admin.util.MetadataUtilities;
 import org.constellation.api.DataType;
+import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
@@ -47,7 +48,6 @@ import org.constellation.business.IUserBusiness;
 import org.constellation.business.listener.IDataBusinessListener;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.*;
 import org.constellation.dto.importdata.FileBean;
 import org.constellation.dto.metadata.MetadataLightBrief;
@@ -69,7 +69,6 @@ import org.constellation.repository.SensorRepository;
 import org.constellation.repository.ServiceRepository;
 import org.constellation.repository.StyleRepository;
 import org.constellation.security.SecurityManagerHolder;
-import org.constellation.token.TokenUtils;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.temporal.util.PeriodUtilities;
 import org.opengis.feature.PropertyType;
@@ -120,6 +119,9 @@ public class DataBusiness implements IDataBusiness {
      */
     @Inject
     private IUserBusiness userBusiness;
+
+    @Inject
+    private IConfigurationBusiness configBusiness;
     /**
      * Injected data repository.
      */
@@ -873,7 +875,7 @@ public class DataBusiness implements IDataBusiness {
 
                     // delete associated files in integrated folder. the file name (p.getIdentifier()) is a folder.
                     try {
-                        final Path provDir = ConfigDirectory.getDataIntegratedDirectory(providerIdentifier);
+                        final Path provDir = configBusiness.getDataIntegratedDirectory(providerIdentifier);
                         IOUtilities.deleteRecursively(provDir);
                     } catch (IOException e) {
                         LOGGER.log(Level.WARNING, "Error during delete data on FS for provider: {0}", providerIdentifier);
@@ -1036,29 +1038,6 @@ public class DataBusiness implements IDataBusiness {
     }
 
 
-    @Override
-    //FIXME RESTORE cleaning mechanism @Scheduled(fixedDelay=5*60*1000)
-    public void uploadCleaner() {
-        LOGGER.finer("Cleaner");
-        java.nio.file.Path uploadDirectory = ConfigDirectory.getUploadDirectory();
-
-        DirectoryStream.Filter<Path> tokenExpiredFilter = new DirectoryStream.Filter<Path>() {
-            @Override
-            public boolean accept(Path entry) throws IOException {
-                return TokenUtils.isExpired(entry.getFileName().toString());
-            }
-        };
-
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(uploadDirectory, tokenExpiredFilter)) {
-            for (Path path : stream) {
-                LOGGER.log(Level.INFO, "{0} expired", path.getFileName());
-                IOUtilities.deleteSilently(path);
-            }
-        } catch (IOException e) {
-            LOGGER.log(Level.WARNING, "Error during uploadDirectory browsing.", e);
-        }
-    }
-
     /**
      * {@inheritDoc }
      */
@@ -1187,7 +1166,8 @@ public class DataBusiness implements IDataBusiness {
         }
 
         // initialize metadata
-        final String xml = MetadataUtilities.fillMetadataFromProperties(dataType, metadataID, title, dataP.getResourceCRSName(), optUser, keywords);
+        final Properties prop = configBusiness.getMetadataTemplateProperties();
+        final String xml = MetadataUtilities.fillMetadataFromProperties(prop, dataType, metadataID, title, dataP.getResourceCRSName(), optUser, keywords);
         final DefaultMetadata templateMetadata = (DefaultMetadata) metadataBusiness.unmarshallMetadata(xml);
 
         DefaultMetadata mergedMetadata = Utils.mergeMetadata(templateMetadata, extractedMetadata);

@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBException;
 import org.apache.commons.io.IOUtils;
@@ -327,32 +328,26 @@ public class SensorRestAPI extends AbstractRestAPI {
      * @return A {@link ResponseEntity} with 200 code if upload work, 500 if not work.
      */
     @RequestMapping(value="/sensors/upload",method=POST,consumes=MULTIPART_FORM_DATA_VALUE,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity uploadSensor(@RequestPart("data") MultipartFile fileIs) {
-
+    public ResponseEntity uploadSensor(@RequestPart("data") MultipartFile fileIs, HttpServletRequest req) {
         final String fileName = fileIs.getOriginalFilename();
         final Path newFileData;
         try {
-            final Path uploadDirectory = getUploadDirectory();
+            assertAuthentificated(req);
+            final Path uploadDirectory = getUploadDirectory(req);
             newFileData = uploadDirectory.resolve(fileName);
             if (!fileIs.isEmpty()) {
                 try (InputStream in = fileIs.getInputStream()) {
                     Files.copy(in, newFileData, StandardCopyOption.REPLACE_EXISTING);
                 }
             }
-        } catch (IOException ex) {
-            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
-            return new ErrorMessage(ex).build();
-        }
 
-        //proceed to import sensor
-        final List<Sensor> sensorsImported;
-        try {
-            sensorsImported = proceedToImportSensor(newFileData.toAbsolutePath().toUri().toString());
-        }catch (IOException | JAXBException | ConfigurationException ex) {
-            LOGGER.log(Level.WARNING, "Error while reading sensorML file", ex);
-            return new ErrorMessage(ex).message("fail to read sensorML file").build();
+            //proceed to import sensor
+            final List<Sensor> sensorsImported = proceedToImportSensor(newFileData.toAbsolutePath().toUri().toString());
+            return new ResponseEntity(sensorsImported, OK);
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, "Error during sensor metadata upload", ex);
+            return new ErrorMessage(ex).message("Error during sensor metadata upload").build();
         }
-        return new ResponseEntity(sensorsImported, OK);
     }
 
     /**

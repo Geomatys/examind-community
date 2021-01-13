@@ -50,13 +50,13 @@ import org.apache.sis.storage.WritableAggregate;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.api.TilingMode;
 import static org.constellation.api.TilingMode.*;
+import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IMapContextBusiness;
 import org.constellation.business.IProcessBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IPyramidBusiness;
 import org.constellation.business.IStyleBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.MapContextLayersDTO;
 import org.constellation.dto.MapContextStyledLayerDTO;
@@ -132,6 +132,9 @@ public class PyramidBusiness implements IPyramidBusiness {
 
     @Inject
     protected IProviderBusiness providerBusiness;
+
+    @Inject
+    protected IConfigurationBusiness configBusiness;
 
     @Inject
     private DataRepository dataRepository;
@@ -607,7 +610,7 @@ public class PyramidBusiness implements IPyramidBusiness {
     public int createPyramidProvider(String pyramidProviderId, GenericName pyramidGname, boolean cacheTileState, TilingMode mode, String tileFormat, Envelope globalEnv, int tileSize, double[] scales) throws ConstellationException {
         try {
             //create the output folder for pyramid
-            final Path pyramidDirectory = ConfigDirectory.getDataIntegratedDirectory(pyramidProviderId);
+            final Path pyramidDirectory = configBusiness.getDataIntegratedDirectory(pyramidProviderId);
 
             final DataProviderFactory factory = DataProviders.getFactory("data-store");
             final Parameters pparams = Parameters.castOrWrap(factory.getProviderDescriptor().createValue());

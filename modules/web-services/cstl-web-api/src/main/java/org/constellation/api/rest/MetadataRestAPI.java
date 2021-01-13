@@ -1136,7 +1136,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
         final Map<String,Object> map = new HashMap<>();
         try {
             if (mdFileIs != null) {
-                final Path uploadDirectory = getUploadDirectory();
+                final Path uploadDirectory = getUploadDirectory(request);
                 final Path newFileMetaData = uploadDirectory.resolve(mdFileIs.getOriginalFilename());
 
                 try (InputStream in = mdFileIs.getInputStream()) {

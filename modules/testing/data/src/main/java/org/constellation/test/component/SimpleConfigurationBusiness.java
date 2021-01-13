@@ -1,4 +1,22 @@
-package org.constellation.admin;
+/*
+ *    Constellation - An open source and standard compliant SDI
+ *    http://www.constellation-sdi.org
+ *
+ * Copyright 2021 Geomatys.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.constellation.test.component;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -8,45 +26,20 @@ import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-
-import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.util.logging.Logging;
-import org.constellation.admin.util.MetadataUtilities;
 import org.constellation.business.IConfigurationBusiness;
-import org.constellation.business.IMetadataBusiness;
-import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.ConfigDirectory;
-import org.constellation.exception.ConfigurationException;
-import org.constellation.dto.service.Service;
-import org.constellation.repository.PropertyRepository;
-import org.constellation.repository.ServiceRepository;
 import org.constellation.token.TokenUtils;
 import org.geotoolkit.nio.IOUtilities;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-@Component("configurationBusiness")
-@Primary
-public class ConfigurationBusiness implements IConfigurationBusiness {
+/**
+ *
+ * @author Guilhem Legal (Geomatys)
+ */
+public class SimpleConfigurationBusiness implements IConfigurationBusiness {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
-
-    @Autowired
-    private PropertyRepository propertyRepository;
-
-    @Autowired
-    private ServiceRepository serviceRepository;
-
-    @Autowired
-    private IMetadataBusiness metadatabusiness;
-
-    public void init() {
-        LOGGER.info("=== Configure directory ===");
-        ConfigDirectory.init();
-    }
+    private static final Logger LOGGER = Logging.getLogger("org.constellation.test.component");
 
     @Override
     public Path getConfigurationDirectory() {
@@ -68,9 +61,6 @@ public class ConfigurationBusiness implements IConfigurationBusiness {
 
     @Override
     public void removeDataIntegratedDirectory(String providerId) {
-        if (providerId == null || providerId.isEmpty()) {
-            throw new IllegalArgumentException("ProviderId must not be null or empty");
-        }
         try {
             final Path provDir = ConfigDirectory.getDataIntegratedDirectory(providerId);
             org.geotoolkit.nio.IOUtilities.deleteRecursively(provDir);
@@ -128,43 +118,17 @@ public class ConfigurationBusiness implements IConfigurationBusiness {
 
     @Override
     public String getProperty(final String key) {
-        return propertyRepository.getValue(key, null);
+        return null; // TODO ?
     }
 
     @Override
     @Transactional
     public void setProperty(final String key, final String value) {
-        System.setProperty(key, value);
-        // FIXME continue to save in database ?
-        // create/update external configuration file to save preferences ?
-        propertyRepository.update(key, value);
-        // update metadata when service URL key is updated
-        if (AppProperty.CSTL_SERVICE_URL.getKey().equals(key)) {
-            updateServiceUrlForMetadata(value);
-        }
-    }
-
-    private void updateServiceUrlForMetadata(final String url) {
-        try {
-            final List<Service> records = serviceRepository.findAll();
-            for (Service record : records) {
-                final Object metadata = metadatabusiness.getIsoMetadataForService(record.getId());
-                if (metadata instanceof DefaultMetadata) {
-                    final DefaultMetadata servMeta = (DefaultMetadata) metadata;
-                    MetadataUtilities.updateServiceMetadataURL(record.getIdentifier(), record.getType(), url, servMeta);
-                    metadatabusiness.updateMetadata(servMeta.getFileIdentifier(), servMeta, null, null, null, null, null, "DOC");
-                } else {
-                    LOGGER.info("Service metadata is not a ISO 19139 object");
-                }
-            }
-        } catch (ConfigurationException ex) {
-            LOGGER.log(Level.WARNING, "An error occurred updating service URL", ex);
-        }
+        // TODO ?
     }
 
     @Override
     public Properties getMetadataTemplateProperties() {
         return ConfigDirectory.getMetadataTemplateProperties();
     }
-
 }

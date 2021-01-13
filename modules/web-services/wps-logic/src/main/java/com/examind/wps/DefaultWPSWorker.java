@@ -66,7 +66,6 @@ import org.apache.sis.xml.MarshallerPool;
 import org.constellation.admin.SpringHelper;
 import static org.constellation.api.QueryConstants.SERVICE_PARAMETER;
 import org.constellation.api.ServiceDef;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.contact.Details;
 import org.constellation.dto.service.config.wps.Process;
 import org.constellation.dto.service.config.wps.ProcessContext;
@@ -112,6 +111,7 @@ import org.geotoolkit.wps.xml.v200.GetStatus;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Arrays;
+import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IProcessBusiness;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
@@ -240,6 +240,9 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
     @Autowired
     private IProcessBusiness processBusiness;
 
+    @Autowired
+    private IConfigurationBusiness configBusiness;
+
     /**
      * Constructor.
      *
@@ -264,7 +267,7 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
         this.productFolderPath = null;
 
         // default output directory
-        Path configPath = ConfigDirectory.getInstanceDirectory("wps", id);
+        Path configPath = configBusiness.getInstanceDirectory("wps", id);
 
         // custom override of the output directory
         if (context != null && context.getOutputDirectory() != null && !context.getOutputDirectory().isEmpty()) {

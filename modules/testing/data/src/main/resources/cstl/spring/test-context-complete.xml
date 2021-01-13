@@ -41,7 +41,5 @@
 
   <import resource="classpath*:/cstl/spring/auto/*-context.xml" />
 
-  <!--bean class="org.constellation.admin.ConfigurationServiceInit" init-method="init" autowire="byType" /-->
-
 </beans>
 

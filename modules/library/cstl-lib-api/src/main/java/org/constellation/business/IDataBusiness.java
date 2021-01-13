@@ -372,8 +372,6 @@ public interface IDataBusiness {
 
     void linkDataToData(final int dataId, final int childId);
 
-    void uploadCleaner();
-
     boolean existsById(int dataId);
 
     Map<String, Object> getDataAssociations(int dataId);

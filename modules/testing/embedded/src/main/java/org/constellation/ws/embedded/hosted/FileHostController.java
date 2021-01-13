@@ -22,8 +22,9 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.file.Path;
 import javax.servlet.http.HttpServletResponse;
-import org.constellation.configuration.ConfigDirectory;
+import org.constellation.business.IConfigurationBusiness;
 import org.geotoolkit.nio.IOUtilities;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -36,10 +37,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class FileHostController {
 
+    @Autowired
+    private IConfigurationBusiness configBusiness;
+
     @RequestMapping(value="/{fileName}",method=GET)
     public void getDataMetadata(final @PathVariable("fileName") String fileName, HttpServletResponse response) throws Exception {
 
-        Path configDirectory = ConfigDirectory.getConfigDirectory();
+        Path configDirectory = configBusiness.getConfigurationDirectory();
         Path HostedDirectory = configDirectory.resolve("hosted");
         Path requestFile     = HostedDirectory.resolve(fileName);
 

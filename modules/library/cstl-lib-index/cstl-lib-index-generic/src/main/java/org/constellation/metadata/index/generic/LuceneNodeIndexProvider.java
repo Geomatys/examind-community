@@ -3,7 +3,7 @@ package org.constellation.metadata.index.generic;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import org.constellation.configuration.ConfigDirectory;
+import org.constellation.business.IConfigurationBusiness;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.filter.FilterParser;
 import org.constellation.filter.LuceneFilterParser;
@@ -15,6 +15,7 @@ import org.constellation.metadata.index.Indexer;
 import org.constellation.store.metadata.CSWMetadataReader;
 import org.geotoolkit.index.IndexingException;
 import org.geotoolkit.metadata.MetadataStore;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -25,6 +26,9 @@ public class LuceneNodeIndexProvider implements IndexProvider {
 
     public static final String INDEX_TYPE = "lucene-node";
 
+    @Autowired
+    private IConfigurationBusiness configBusiness;
+
     @Override
     public String indexType() {
         return INDEX_TYPE;
@@ -32,12 +36,14 @@ public class LuceneNodeIndexProvider implements IndexProvider {
 
     @Override
     public Indexer getIndexer(Automatic configuration, MetadataStore mdStore, String serviceID) throws IndexingException, ConfigurationException {
-        return new NodeIndexer(mdStore, configuration.getConfigurationDirectory(), "", ((CSWMetadataReader)mdStore.getReader()).getAdditionalQueryablePathMap(), false);
+        final Path instanceDirectory = configBusiness.getInstanceDirectory("csw", serviceID);
+        return new NodeIndexer(mdStore, instanceDirectory, "", ((CSWMetadataReader)mdStore.getReader()).getAdditionalQueryablePathMap(), false);
     }
 
     @Override
     public IndexSearcher getIndexSearcher(Automatic configuration, String serviceID) throws IndexingException, ConfigurationException {
-        return new LuceneIndexSearcher(configuration.getConfigurationDirectory(), "", null, true);
+        final Path instanceDirectory = configBusiness.getInstanceDirectory("csw", serviceID);
+        return new LuceneIndexSearcher(instanceDirectory, "", null, true);
     }
 
     @Override
@@ -52,7 +58,7 @@ public class LuceneNodeIndexProvider implements IndexProvider {
 
     @Override
     public boolean refreshIndex(Automatic configuration, String serviceID, Indexer indexer, boolean asynchrone) throws ConfigurationException {
-        final Path instanceDir = ConfigDirectory.getInstanceDirectory("csw", serviceID);
+        final Path instanceDir = configBusiness.getInstanceDirectory("csw", serviceID);
         if (Files.exists(instanceDir)) {
             if (asynchrone) {
                 final Path nexIndexDir = instanceDir.resolve("index-" + System.currentTimeMillis());

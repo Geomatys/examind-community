@@ -49,9 +49,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IUserBusiness;
 import org.constellation.dto.metadata.MetadataLightBrief;
@@ -109,6 +111,9 @@ public class DatasetBusiness implements IDatasetBusiness {
      */
     @Inject
     protected IMetadataBusiness metadataBusiness;
+
+    @Inject
+    private IConfigurationBusiness configBusiness;
 
     /**
      * Creates a new instance of {@link DatasetBusiness}.
@@ -281,8 +286,8 @@ public class DatasetBusiness implements IDatasetBusiness {
                 }
             }
         }
-
-        final String xml = MetadataUtilities.fillMetadataFromProperties(dataType, metadataID, title, crsName, optUser, keywords);
+        final Properties prop = configBusiness.getMetadataTemplateProperties();
+        final String xml = MetadataUtilities.fillMetadataFromProperties(prop, dataType, metadataID, title, crsName, optUser, keywords);
         final DefaultMetadata templateMetadata = (DefaultMetadata) metadataBusiness.unmarshallMetadata(xml);
 
         DefaultMetadata mergedMetadata;

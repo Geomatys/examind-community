@@ -46,10 +46,9 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import org.apache.sis.parameter.Parameters;
-import org.constellation.business.IProcessBusiness;
+import org.constellation.business.IConfigurationBusiness;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.process.AbstractCstlProcess;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
@@ -76,7 +75,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class RunCWL extends AbstractCstlProcess {
 
     @Autowired
-    public IProcessBusiness processBusiness;
+    private IConfigurationBusiness configBusiness;
 
     private final boolean debug = true;
 
@@ -106,7 +105,7 @@ public class RunCWL extends AbstractCstlProcess {
                 rootDir = Paths.get(sharedDir);
                 tmpDir  = rootDir.resolve("tmp");
             } else {
-                rootDir = ConfigDirectory.getUploadDirectory();
+                rootDir = configBusiness.getUploadDirectory("cwl");
                 tmpDir  = null;
             }
             execDir = rootDir.resolve(jobId);

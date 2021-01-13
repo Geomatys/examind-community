@@ -29,13 +29,11 @@ import org.apache.lucene.store.LockObtainFailedException;
 import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.BytesRef;
 import org.apache.sis.storage.DataStoreException;
-import org.constellation.dto.service.config.generic.Automatic;
 import static org.constellation.sos.io.lucene.LuceneObervationUtils.getLuceneTimeValue;
 
 import org.geotoolkit.gml.xml.AbstractGML;
 import org.geotoolkit.index.IndexingException;
 import org.geotoolkit.lucene.index.AbstractIndexer;
-import org.geotoolkit.observation.xml.Process;
 import org.geotoolkit.observation.xml.v100.MeasurementType;
 import org.geotoolkit.sos.xml.SOSMarshallerPool;
 import org.geotoolkit.swe.xml.Phenomenon;
@@ -86,14 +84,11 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
     /**
      * Creates a new SOS indexer for a FileSystem reader.
      *
-     * @param configuration A configuration object containing the database informations.Must not be null.
+     * @param dataDirectory The directory containing the data files.
+     * @param configDirectory The directory where the index will be created.
      * @param serviceID  The identifier, if there is one, of the index/service.
      * @param create
      */
-    public LuceneObservationIndexer(final Automatic configuration, final String serviceID, final boolean create) throws IndexingException {
-        this(configuration.getDataDirectory(), configuration.getConfigurationDirectory(), serviceID, create);
-    }
-
     public LuceneObservationIndexer(final Path dataDirectory, final Path configDirectory, final String serviceID, final boolean create) throws IndexingException {
         super(serviceID, configDirectory, new WhitespaceAnalyzer());
         if (Files.isDirectory(dataDirectory)) {

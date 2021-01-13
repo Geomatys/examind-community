@@ -29,8 +29,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.api.rest.ErrorMessage;
+import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IServiceBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.wps.ProcessContext;
 import org.constellation.exception.ConfigurationException;
 import org.springframework.http.HttpStatus;
@@ -55,6 +55,9 @@ public class WPSResultService {
 
     @Inject
     protected IServiceBusiness serviceBusiness;
+
+    @Inject
+    private IConfigurationBusiness configBusiness;
 
     public WPSResultService() {
     }
@@ -104,7 +107,7 @@ public class WPSResultService {
         } catch (ConfigurationException ex) {
             LOGGER.log(Level.WARNING, "Error while reading wps " + serviceId + " configuration", ex);
         }
-        return ConfigDirectory.getInstanceDirectory("wps", serviceId);
+        return configBusiness.getInstanceDirectory("wps", serviceId);
     }
 
 }

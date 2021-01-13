@@ -231,20 +231,6 @@ public class Automatic extends AbstractConfigurationObject {
     }
 
     /**
-     * @return the configurationDirectory
-     */
-    public Path getConfigurationDirectory() {
-        return configurationDirectory;
-    }
-
-    /**
-     * @param configurationDirectory the configurationDirectory to set
-     */
-    public void setConfigurationDirectory(final Path configurationDirectory) {
-        this.configurationDirectory = configurationDirectory;
-    }
-
-    /**
      * return the type of implementation.
      * @return
      */

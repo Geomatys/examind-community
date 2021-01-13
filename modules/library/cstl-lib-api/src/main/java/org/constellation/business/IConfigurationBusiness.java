@@ -18,18 +18,95 @@
  */
 package org.constellation.business;
 
+import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * @author Cédric Briançon (Geomatys)
  */
 public interface IConfigurationBusiness {
+
+    /**
+     * Return the configuration directory (CSTL_HOME).
+     *
+     * @return never {@code null}.
+     */
     Path getConfigurationDirectory();
 
+    /**
+     *
+     * Return the data directory (CSTL_DATA).
+     *
+     * @return never {@code null}.
+     */
     Path getDataDirectory();
+
+    /**
+     * Return the specific directory for the specified OGC web service.
+     * If the folder does not exist it will be created.
+     *
+     * @param type Service type (e.g : WMS, WFS, CSW, ...)
+     * @param id Service identifier.
+     *
+     * @return never {@code null}.
+     */
+    Path getInstanceDirectory(String type, String id);
+
+    /**
+     * Remove the specific directory for the specified OGC web service.
+     *
+     * @param type Service type (e.g : WMS, WFS, CSW, ...)
+     * @param id Service identifier.
+     */
+    void removeInstanceDirectory(String type, String id);
+
+    /**
+     * Return all the directories for the specified OGC web service type.
+     *
+     * @param type Service type (e.g : WMS, WFS, CSW, ...)
+     * @return
+     * @throws IOException
+     */
+    List<Path> getInstanceDirectories(String type)throws IOException;
+
+    /**
+     * Return the data integrated / provider directory.
+     * If the parameter "providerId" is {@code null}, return the complete data integrated folder.
+     * If set and if the provider folder does not exist, it will be created.
+     *
+     * @param providerId Provider identifier.
+     * @return never {@code null}.
+     *
+     * @throws IOException
+     */
+    Path getDataIntegratedDirectory(String providerId) throws IOException;
+
+    /**
+     * Remove recusively the provider directory.
+     *
+     * @param providerId Provider identifier, must not be {@code null}.
+     */
+    void removeDataIntegratedDirectory(String providerId);
+
+    /**
+     * Return the assignated user upload directory.
+     * If not exist, the folder will be created.
+     *
+     * @param userName User login.
+     *
+     * @return  never {@code null}.
+     * @throws IOException
+     */
+    Path getUploadDirectory(String userName) throws IOException;
 
     String getProperty(final String key);
 
     void setProperty(final String key, final String value);
+
+    void cleanupFileSystem();
+
+    Properties getMetadataTemplateProperties();
 
 }

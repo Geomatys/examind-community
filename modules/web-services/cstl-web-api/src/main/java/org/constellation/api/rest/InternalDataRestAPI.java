@@ -42,7 +42,6 @@ import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.DataCustomConfiguration;
 import org.constellation.dto.importdata.FileBean;
@@ -65,6 +64,7 @@ import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.nio.ZipUtilities;
 import static org.apache.sis.util.ArraysExt.contains;
 import org.constellation.admin.util.DataCoverageUtilities;
+import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IProviderBusiness.SPI_NAMES;
 import org.constellation.business.IPyramidBusiness;
 import org.geotoolkit.storage.DataStores;
@@ -110,6 +110,9 @@ public class InternalDataRestAPI extends AbstractRestAPI {
 
     @Inject
     private IPyramidBusiness pyramidBusiness;
+
+    @Inject
+    private IConfigurationBusiness configBusiness;
 
     /**
      * Give subfolder list of data from a server file path
@@ -168,10 +171,10 @@ public class InternalDataRestAPI extends AbstractRestAPI {
      * @return A {@link ResponseEntity} with 200 code if upload work, 500 if not work.
      */
     @RequestMapping(value="/internal/datas/upload/data",method=POST, consumes=MULTIPART_FORM_DATA_VALUE, produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity uploadData(@RequestParam("data") MultipartFile data) {
-
+    public ResponseEntity uploadData(@RequestParam("data") MultipartFile data, HttpServletRequest req) {
         try {
-            final Path uploadDirectory = getUploadDirectory();
+            assertAuthentificated(req);
+            final Path uploadDirectory = getUploadDirectory(req);
             final HashMap<String,String> hashMap = new HashMap<>();
             final String dataName = data.getOriginalFilename();
             final Path newFileData = uploadDirectory.resolve(dataName);
@@ -200,21 +203,22 @@ public class InternalDataRestAPI extends AbstractRestAPI {
     public ResponseEntity uploadMetadata(
             @RequestParam(name = "metadata", required = false) MultipartFile metadata,
             @RequestParam(name = "identifier", required = false) String identifier,
-            @RequestParam(name = "serverMetadataPath", required = false) String serverMetadataPath) {
+            @RequestParam(name = "serverMetadataPath", required = false) String serverMetadataPath,
+            HttpServletRequest req) {
 
-        final Map<String,String> hashMap = new HashMap<>();
-        if (identifier != null && ! identifier.isEmpty()){
-            hashMap.put("dataName", identifier);
-        } else {
-            try {
+        try {
+            assertAuthentificated(req);
+            final Map<String,String> hashMap = new HashMap<>();
+            if (identifier != null && ! identifier.isEmpty()){
+                hashMap.put("dataName", identifier);
+            } else {
                 Path metadataFile = null;
                 if (serverMetadataPath !=null && !serverMetadataPath.isEmpty()){
-
                     metadataFile = IOUtilities.toPath(serverMetadataPath);
 
                 } else  if (metadata.getOriginalFilename() != null && !metadata.getOriginalFilename().isEmpty()) {
 
-                    final Path uploadDirectory = getUploadDirectory();
+                    final Path uploadDirectory = getUploadDirectory(req);
                     final Path newFileMetaData = uploadDirectory.resolve(metadata.getOriginalFilename());
                     if (!metadata.isEmpty()) {
                         try (InputStream in = metadata.getInputStream()) {
@@ -240,16 +244,16 @@ public class InternalDataRestAPI extends AbstractRestAPI {
                     hashMap.put("metatitle", Utils.findTitle(obj));
                     hashMap.put("metaIdentifier", metaIdentifier);
                 }
-            } catch (ConstellationException | IOException ex) {
-                return new ErrorMessage(ex).build();
             }
+            //verify uniqueness of data identifier
+            final Integer prId = providerBusiness.getIDFromIdentifier(hashMap.get("dataName"));
+            if (prId!=null){
+                return new ErrorMessage().message("dataName or identifier of metadata is already used").build();
+            }
+            return new ResponseEntity(hashMap, OK);
+        } catch (Exception ex) {
+            return new ErrorMessage(ex).build();
         }
-        //verify uniqueness of data identifier
-        final Integer prId = providerBusiness.getIDFromIdentifier(hashMap.get("dataName"));
-        if (prId!=null){
-            return new ErrorMessage().message("dataName or identifier of metadata is already used").build();
-        }
-        return new ResponseEntity(hashMap, OK);
     }
 
     /**
@@ -297,7 +301,7 @@ public class InternalDataRestAPI extends AbstractRestAPI {
      * @return a {@link ResponseEntity}
      */
     @RequestMapping(value="/internal/datas/import/full",method=POST,consumes=APPLICATION_JSON_VALUE , produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity proceedToImport(@RequestBody final ParameterValues values) {
+    public ResponseEntity proceedToImport(@RequestBody final ParameterValues values, HttpServletRequest req) {
 
         final String filePathStr      = values.getValues().get("dataPath");
         final String metadataFilePath = values.getValues().get("metadataFilePath");
@@ -308,8 +312,9 @@ public class InternalDataRestAPI extends AbstractRestAPI {
 
         final ImportedData importedDataReport = new ImportedData();
         try {
-            final Path dataIntegratedDirectory = ConfigDirectory.getDataIntegratedDirectory();
-            final Path uploadFolder = getUploadDirectory();
+            assertAuthentificated(req);
+            final Path dataIntegratedDirectory = configBusiness.getDataIntegratedDirectory(null);
+            final Path uploadFolder = getUploadDirectory(req);
 
             if (metadataFilePath != null) {
                 Path metadataPath = IOUtilities.toPath(metadataFilePath);

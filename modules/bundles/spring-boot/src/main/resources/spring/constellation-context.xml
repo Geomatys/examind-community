@@ -10,7 +10,7 @@
 
   <bean id="securityManager" class="org.constellation.security.SecurityManagerHolder" factory-method="getInstance" />
 
-  <bean class="org.constellation.admin.ConfigurationServiceInit" init-method="init" autowire="byType" />
+  <bean id="configurationBusiness" class="org.constellation.admin.ConfigurationBusiness" init-method="init"/>
 
   <bean id="clusterBusiness" class="org.constellation.admin.LocalClusterBusiness" />
 

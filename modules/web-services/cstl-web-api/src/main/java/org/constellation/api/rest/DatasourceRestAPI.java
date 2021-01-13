@@ -118,11 +118,12 @@ public class DatasourceRestAPI extends AbstractRestAPI {
      * @return The assigned datasource id.
      */
     @RequestMapping(value = "/datasources", method = POST, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity create(@RequestBody final DataSource ds) {
+    public ResponseEntity create(@RequestBody final DataSource ds, HttpServletRequest req) {
         try {
+            assertAuthentificated(req);
             // 1. create new upload directory if not set for local_files datasource
             if ("local_files".equals(ds.getType()) && (ds.getUrl() == null) || ds.getUrl().isEmpty()) {
-                final Path uploadDirectory = getUploadDirectory();
+                final Path uploadDirectory = getUploadDirectory(req);
                 final Path dsDirectory = uploadDirectory.resolve(UUID.randomUUID().toString());
                 Files.createDirectory(dsDirectory);
                 ds.setUrl(dsDirectory.toUri().toString());
@@ -267,10 +268,11 @@ public class DatasourceRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value = "/datasources/upload/distant", method = POST, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity uploadDatasourceDistantFile(@RequestParam("url") String distantFile,
-            @RequestParam(name = "user", required = false) String userName, @RequestParam(name = "pwd", required = false) String pwd) {
+            @RequestParam(name = "user", required = false) String userName, @RequestParam(name = "pwd", required = false) String pwd, HttpServletRequest req) {
         try {
+            assertAuthentificated(req);
             // 1. create new upload directory
-            final Path uploadDirectory = getUploadDirectory();
+            final Path uploadDirectory = getUploadDirectory(req);
             final Path dsDirectory = uploadDirectory.resolve(UUID.randomUUID().toString());
             Files.createDirectory(dsDirectory);
 

@@ -41,7 +41,6 @@ import org.constellation.api.DataType;
 import org.constellation.api.ProviderType;
 import org.constellation.business.*;
 import static org.constellation.business.ClusterMessageConstant.*;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.ProviderBrief;
@@ -109,6 +108,9 @@ public class ProviderBusiness implements IProviderBusiness {
 
     @Inject
     private IClusterBusiness clusterBusiness;
+
+    @Inject
+    private IConfigurationBusiness configBusiness;
 
     @Override
     public List<ProviderBrief> getProviders() {
@@ -210,12 +212,7 @@ public class ProviderBusiness implements IProviderBusiness {
 
         //delete provider folder
         //TODO : not hazelcast compatible
-        try {
-            final Path provDir = ConfigDirectory.getDataIntegratedDirectory(provider.getIdentifier());
-            org.geotoolkit.nio.IOUtilities.deleteRecursively(provDir);
-        } catch (IOException e) {
-            LOGGER.log(Level.WARNING, "Error during delete data on FS for provider {0}", provider.getIdentifier());
-        }
+        configBusiness.removeDataIntegratedDirectory(provider.getIdentifier());
     }
 
     @Override

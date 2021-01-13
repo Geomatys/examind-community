@@ -14,7 +14,7 @@
 
   <bean id="cstlStyleConverterBusiness" class="org.constellation.json.component.StyleConverterBusiness" />
 
-  <bean class="org.constellation.admin.ConfigurationServiceInit" init-method="init" autowire="byType" />
+  <bean id="configurationBusiness" class="org.constellation.admin.ConfigurationBusiness" init-method="init"/>
 
   <!-- Add this line in case of hsql datasource bean id="database-conf" class="org.constellation.database.configuration.HSQLDatabaseConfiguration"/-->
 

@@ -32,16 +32,16 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.sis.util.logging.Logging;
+import org.constellation.business.IConfigurationBusiness;
 import org.constellation.dto.CstlUser;
 import org.constellation.business.IUserBusiness;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.Filter;
 import org.constellation.dto.PagedSearch;
 import org.constellation.exception.ConstellationException;
 import org.constellation.util.Util;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
@@ -51,6 +51,9 @@ public abstract class AbstractRestAPI {
 
     @Inject
     protected IUserBusiness userBusiness;
+
+    @Autowired
+    private IConfigurationBusiness configBusiness;
 
     protected static final String RENDERED_PREFIX = "rendered_";
 
@@ -74,8 +77,8 @@ public abstract class AbstractRestAPI {
         return cstlUser.get().getId();
     }
 
-    protected Path getUploadDirectory() throws IOException {
-        return ConfigDirectory.getUploadDirectory(SecurityContextHolder.getContext().getAuthentication().getName());
+    protected Path getUploadDirectory(HttpServletRequest req) throws IOException {
+        return configBusiness.getUploadDirectory(req.getUserPrincipal().getName());
     }
 
     /**

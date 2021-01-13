@@ -18,6 +18,7 @@
  */
 package org.constellation.metadata.core;
 
+import java.nio.file.Path;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.config.DataSourceType;
@@ -42,6 +43,7 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import org.constellation.business.IConfigurationBusiness;
 
 import static org.constellation.dto.service.config.generic.Automatic.*;
 
@@ -54,6 +56,9 @@ import static org.constellation.dto.service.config.generic.Automatic.*;
 @Component("indexConfigHandler")
 public class DefaultIndexConfigHandler implements IndexConfigHandler{
 
+    @Autowired
+    protected IConfigurationBusiness configBusiness;
+    
     @Autowired
     private Map<String, IndexProvider> providers;
 
@@ -177,5 +182,11 @@ public class DefaultIndexConfigHandler implements IndexConfigHandler{
     @Override
     public List<DataSourceType> getAvailableDatastourceType() {
         return Arrays.asList(DataSourceType.FILESYSTEM, DataSourceType.INTERNAL, DataSourceType.NETCDF);
+    }
+
+    @Override
+    public HarvestTaskScheduler getHavestTaskScheduler(String serviceID, CatalogueHarvester catalogueHarvester) {
+        final Path instanceDir = configBusiness.getInstanceDirectory("csw", serviceID);
+        return new HarvestTaskScheduler(instanceDir, catalogueHarvester);
     }
 }

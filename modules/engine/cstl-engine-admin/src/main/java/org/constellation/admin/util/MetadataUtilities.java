@@ -46,16 +46,13 @@ import org.opengis.metadata.extent.GeographicExtent;
 import org.opengis.metadata.identification.Identification;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.CstlUser;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.metadata.utils.MetadataFeeder;
 import org.constellation.metadata.utils.Utils;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.temporal.object.TemporalUtilities;
-import org.geotoolkit.util.NamesExt;
 import org.opengis.metadata.citation.OnlineResource;
 import org.opengis.metadata.distribution.DigitalTransferOptions;
 import org.opengis.metadata.distribution.Distribution;
-import org.opengis.util.GenericName;
 
 
 /**
@@ -202,9 +199,8 @@ public final class MetadataUtilities {
         feeder.updateServiceURL(serviceURL);
     }
 
-    public static String fillMetadataFromProperties(final String dataType, final String metadataID, final String title, final String crsName,
+    public static String fillMetadataFromProperties(final Properties prop, final String dataType, final String metadataID, final String title, final String crsName,
             final Optional<CstlUser> optUser, final List<String> keywords) {
-        final Properties prop = ConfigDirectory.getMetadataTemplateProperties();
         prop.put("fileId", metadataID);
         prop.put("dataTitle", title);
         prop.put("dataAbstract", "");

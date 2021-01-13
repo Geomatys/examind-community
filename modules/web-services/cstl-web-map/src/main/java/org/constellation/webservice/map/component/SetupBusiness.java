@@ -45,7 +45,6 @@ import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IStyleBusiness;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConfigurationRuntimeException;
 import org.constellation.process.ExamindProcessFactory;
@@ -123,13 +122,14 @@ public class SetupBusiness {
         Lock lock = clusterBusiness.acquireLock("setup-default-resources");
         lock.lock();
         LOGGER.fine("LOCK Acquired on cluster: setup-default-resources");
+        final Path DataDirectory = configurationBusiness.getDataDirectory();
         try {
             SpringHelper.executeInTransaction(new TransactionCallbackWithoutResult() {
 
                 @Override
                 protected void doInTransactionWithoutResult(TransactionStatus arg0) {
 
-                    WithDefaultResources defaultResourcesDeployed = deployDefaultResources(ConfigDirectory.getDataDirectory());
+                    WithDefaultResources defaultResourcesDeployed = deployDefaultResources(DataDirectory);
 
                     LOGGER.log(Level.INFO, "initializing default styles ...");
                     defaultResourcesDeployed.initializeDefaultStyles();
@@ -147,15 +147,11 @@ public class SetupBusiness {
             lock.unlock();
         }
 
-        if (configurationBusiness != null) {
-            //check if data analysis is required
-            String propertyValue = Application.getProperty(AppProperty.DATA_AUTO_ANALYSE);
-            boolean doAnalysis = propertyValue == null ? false : Boolean.valueOf(propertyValue);
-
-            if (doAnalysis && dataBusiness != null) {
-                LOGGER.log(Level.FINE, "Start data analysis");
-                dataCoverageJob.computeEmptyDataStatistics(true);
-            }
+        //check if data analysis is required
+        boolean doAnalysis = Application.getBooleanProperty(AppProperty.DATA_AUTO_ANALYSE, Boolean.FALSE);
+        if (doAnalysis) {
+            LOGGER.log(Level.FINE, "Start data analysis");
+            dataCoverageJob.computeEmptyDataStatistics(true);
         }
     }
 
@@ -167,15 +163,7 @@ public class SetupBusiness {
         DataProviders.dispose();
     }
 
-
-    public static Path pathTransform(final Path dst, final Path zipath) {
-        Path ret = dst;
-        for (final Path component : zipath)
-            ret = ret.resolve(component.getFileName().toString());
-        return ret;
-    }
-
-    public WithDefaultResources deployDefaultResources(final Path path) {
+    private WithDefaultResources deployDefaultResources(final Path dataDirectory) {
         try {
 
             Path zipPath = IOUtilities.getResourceAsPath(DEFAULT_RESOURCES);
@@ -184,25 +172,28 @@ public class SetupBusiness {
             Path tempZip = tempDir.resolve(zipPath.getFileName().toString());
             Files.copy(zipPath, tempZip);
 
-            ZipUtilities.unzipNIO(tempZip, path, false);
+            ZipUtilities.unzipNIO(tempZip, dataDirectory, false);
 
             IOUtilities.deleteRecursively(tempDir);
 
+            return new WithDefaultResources(dataDirectory);
         } catch (IOException | URISyntaxException e) {
             throw new ConfigurationRuntimeException("Error while deploying default ressources", e);
         }
-
-        return new WithDefaultResources();
-
     }
 
     private class WithDefaultResources {
+        
+        private final Path dataDirectory;
+        
+        WithDefaultResources(final Path dataDirectory) {
+            this.dataDirectory = dataDirectory;
+        }
         /**
          * Initialize default styles for generic data.
          */
         private void initializeDefaultStyles() {
 
-            Path dataDirectory = ConfigDirectory.getDataDirectory();
             final Path dstImages = dataDirectory.resolve("images");
             final Path markerNormal = dstImages.resolve("marker_normal.png");
             final Path markerSelected = dstImages.resolve("marker_selected.png");
@@ -281,7 +272,7 @@ public class SetupBusiness {
          * data editors.
          */
         private void initializeDefaultVectorData() {
-            final Path dst = ConfigDirectory.getDataDirectory().resolve("shapes");
+            final Path dst = dataDirectory.resolve("shapes");
 
                 final String featureStoreStr = "data-store";
                 final String shpProvName = "generic_shp";
@@ -348,7 +339,7 @@ public class SetupBusiness {
          * data editors.
          */
         private void initializeDefaultRasterData() {
-            final Path dst = ConfigDirectory.getDataDirectory().resolve("raster");
+            final Path dst = dataDirectory.resolve("raster");
 
                 final String coverageFileStr = "data-store";
                 final String tifProvName = "generic_world_tif";
