@@ -56,8 +56,10 @@ public interface IDatasourceBusiness {
      *
      * @param ds the new datasource to store.
      * @return the assigned datasource id.
+     * 
+     * @throws org.constellation.exception.ConstellationException
      */
-    Integer create(DataSource ds);
+    Integer create(DataSource ds) throws ConstellationException;
 
     /**
      * Update a Datasource.
@@ -126,38 +128,39 @@ public interface IDatasourceBusiness {
      * If no path have been already selected, automaticaly select all the paths correspounding
      * to the datasource selected store and format.
      *
-     * @param ds A datasource.
+     * @param id A datasource identifier.
+     * @throws org.constellation.exception.ConstellationException
      */
-    void recordSelectedPath(DataSource ds);
+    void recordSelectedPath(Integer id) throws ConstellationException;
 
     /**
      * Remove a recorded datasource path from the system.
      *
-     * @param ds A datasource.
+     * @param id A datasource identifier.
      * @param path The path of a file.
      */
-    void removePath(DataSource ds, String path);
+    void removePath(Integer id, String path);
 
     /**
      * Return the list of datasource path that have been selected to import by the user.
      *
-     * @param ds A datasource.
+     * @param id A datasource identifier.
      * @param limit maximum number of path returned.
      *
      * @return A list of selected datasource path.
      * @throws ConstellationException
      */
-    List<DataSourceSelectedPath> getSelectedPath(DataSource ds, Integer limit) throws ConstellationException;
+    List<DataSourceSelectedPath> getSelectedPath(Integer id, Integer limit) throws ConstellationException;
 
     /**
      * Return a datasource path that have been selected to import by the user with the specified path.
      *
-     * @param ds A datasource.
+     * @param id A datasource identifier.
      * @param path the searched path.
      *
      * @return A list of selected datasource path.
      */
-    DataSourceSelectedPath getSelectedPath(DataSource ds, String path);
+    DataSourceSelectedPath getSelectedPath(Integer id, String path) throws ConstellationException;
 
     /**
      * Return {@code true} if the specified path exist and has been selected for import by the user.
@@ -266,7 +269,7 @@ public interface IDatasourceBusiness {
      * Instanciate provider, data and metadata for the path, with the specified hidden flag.
      *
      * @param p The datasource path.
-     * @param ds The datasource.
+     * @param dsId The datasource identifier.
      * @param provConfig The provider configuration, containing various custom parameters for the datastore.
      * @param hidden A flag applied to the data and metadata created.
      * @param datasetId The dataset identifier in which the data will be inserted.
@@ -275,13 +278,13 @@ public interface IDatasourceBusiness {
      * @return informations about the generated objects.
      * @throws ConstellationException
      */
-    ResourceStoreAnalysisV3 treatDataPath(DataSourceSelectedPath p, DataSource ds, ProviderConfiguration provConfig, boolean hidden, Integer datasetId, Integer owner) throws ConstellationException;
+    ResourceStoreAnalysisV3 treatDataPath(DataSourceSelectedPath p, Integer dsId, ProviderConfiguration provConfig, boolean hidden, Integer datasetId, Integer owner) throws ConstellationException;
     
     /**
      * Analyse and treat the specified datasource select path.Instanciate provider, data and metadata for the path, with the specified hidden flag.
      *
      * @param p The datasource path.
-     * @param ds The datasource.
+     * @param dsId The datasource identifier.
      * @param provConfig The provider configuration, containing various custom parameters for the datastore.
      * @param hidden A flag applied to the data and metadata created.
      * @param datasetId The dataset identifier in which the data will be inserted.
@@ -291,7 +294,7 @@ public interface IDatasourceBusiness {
      * @return informations about the generated objects.
      * @throws ConstellationException
      */
-    ResourceStoreAnalysisV3 treatDataPath(DataSourceSelectedPath p, DataSource ds, ProviderConfiguration provConfig, boolean hidden, Integer datasetId, Integer owner, String assignedId) throws ConstellationException;
+    ResourceStoreAnalysisV3 treatDataPath(DataSourceSelectedPath p, Integer dsId, ProviderConfiguration provConfig, boolean hidden, Integer datasetId, Integer owner, String assignedId) throws ConstellationException;
 
     /**
      * Update the status of the specified datasource path.

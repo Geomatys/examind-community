@@ -324,10 +324,8 @@ public class DatasourceBusiness implements IDatasourceBusiness {
      */
     @Override
     @Transactional
-    public void removePath(DataSource ds, String path) {
-        if (ds != null) {
-            dsRepository.deletePath(ds.getId(), path);
-        }
+    public void removePath(Integer id, String path) {
+        dsRepository.deletePath(id, path);
     }
 
     private static class S63FileVisitor extends SimpleFileVisitor<Path>  {
@@ -502,7 +500,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
             recordSelectedPath(ds);
             List<DataSourceSelectedPath> selectedPaths = getSelectedPath(ds, Integer.MAX_VALUE);
             for (DataSourceSelectedPath sp : selectedPaths) {
-                ResourceStoreAnalysisV3 rsa = treatDataPath(sp, ds, provConfig, hidden, null, null);
+                ResourceStoreAnalysisV3 rsa = treatDataPath(sp, ds, provConfig, hidden, null, null, null);
                 if (rsa != null) {
                     results.add(rsa);
                 }
@@ -536,8 +534,8 @@ public class DatasourceBusiness implements IDatasourceBusiness {
      */
     @Override
     @Transactional
-    public ResourceStoreAnalysisV3 treatDataPath(DataSourceSelectedPath sp, DataSource ds, ProviderConfiguration provConfig, boolean hidden, Integer datasetId, Integer owner) throws ConstellationException {
-        return treatDataPath(sp, ds, provConfig, hidden, datasetId, owner, null);
+    public ResourceStoreAnalysisV3 treatDataPath(DataSourceSelectedPath sp, Integer dsId, ProviderConfiguration provConfig, boolean hidden, Integer datasetId, Integer owner) throws ConstellationException {
+        return treatDataPath(sp, dsId, provConfig, hidden, datasetId, owner, null);
     }
 
     /**
@@ -545,7 +543,19 @@ public class DatasourceBusiness implements IDatasourceBusiness {
      */
     @Override
     @Transactional
-    public ResourceStoreAnalysisV3 treatDataPath(DataSourceSelectedPath sp, DataSource ds, ProviderConfiguration provConfig, boolean hidden, Integer datasetId, Integer owner, String assignedId) throws ConstellationException {
+    public ResourceStoreAnalysisV3 treatDataPath(DataSourceSelectedPath sp, Integer dsId, ProviderConfiguration provConfig, boolean hidden, Integer datasetId, Integer owner, String assignedId) throws ConstellationException {
+        if (dsId != null) {
+            DataSource ds = dsRepository.findById(dsId);
+            if (ds != null) {
+                return treatDataPath(sp, ds, provConfig, hidden, datasetId, owner, assignedId);
+            } else {
+                throw new TargetNotFoundException("No datasource identified by:" + dsId);
+            }
+        }
+        return null;
+    }
+
+    private ResourceStoreAnalysisV3 treatDataPath(DataSourceSelectedPath sp, DataSource ds, ProviderConfiguration provConfig, boolean hidden, Integer datasetId, Integer owner, String assignedId) throws ConstellationException {
 
         // 1. Extract and download files
         final ResourceStore store;
@@ -844,7 +854,16 @@ public class DatasourceBusiness implements IDatasourceBusiness {
      */
     @Override
     @Transactional
-    public void recordSelectedPath(DataSource ds) {
+    public void recordSelectedPath(Integer id) throws TargetNotFoundException {
+        DataSource ds = dsRepository.findById(id);
+        if (ds != null) {
+            recordSelectedPath(ds);
+        } else {
+            throw new TargetNotFoundException("No datasource identified by:" + id);
+        }
+    }
+
+    private void recordSelectedPath(DataSource ds) {
         if (!ds.getType().equals("dynamic_url") && !ds.getType().equals("database")) {
             if (!dsRepository.hasSelectedPath(ds.getId())) {
                 List<String> storePaths = dsRepository.getPathByStoreAndFormat(ds.getId(), ds.getStoreId(), ds.getFormat(), null);
@@ -859,7 +878,16 @@ public class DatasourceBusiness implements IDatasourceBusiness {
      * {@inheritDoc}
      */
     @Override
-    public List<DataSourceSelectedPath> getSelectedPath(DataSource ds, Integer limit) throws ConstellationException {
+    public List<DataSourceSelectedPath> getSelectedPath(Integer id, Integer limit) throws ConstellationException {
+        DataSource ds = dsRepository.findById(id);
+        if (ds != null) {
+            return getSelectedPath(ds, limit);
+        } else {
+            throw new TargetNotFoundException("No datasource identified by:" + id);
+        }
+    }
+
+    private List<DataSourceSelectedPath> getSelectedPath(DataSource ds, Integer limit) throws ConstellationException {
         List<DataSourceSelectedPath> paths = new ArrayList<>();
         if (ds.getType().equals("dynamic_url") || ds.getType().equals("database")) {
             paths.add(new DataSourceSelectedPath(ds.getId(), null, AnalysisState.PENDING.name(), -1)); // special case, path will not be read
@@ -873,12 +901,20 @@ public class DatasourceBusiness implements IDatasourceBusiness {
      * {@inheritDoc}
      */
     @Override
-    public DataSourceSelectedPath getSelectedPath(DataSource ds, String path) {
-        if (ds.getType().equals("dynamic_url") || ds.getType().equals("database")) {
-            return new DataSourceSelectedPath(ds.getId(), null, AnalysisState.PENDING.name(), -1);
-        } else {
-            return dsRepository.getSelectedPath(ds.getId(), path);
+    public DataSourceSelectedPath getSelectedPath(Integer id, String path) throws ConstellationException {
+        if (id != null) {
+            DataSource ds = dsRepository.findById(id);
+            if (ds != null) {
+                if (ds.getType().equals("dynamic_url") || ds.getType().equals("database")) {
+                    return new DataSourceSelectedPath(id, null, AnalysisState.PENDING.name(), -1);
+                } else {
+                    return dsRepository.getSelectedPath(id, path);
+                }
+            } else {
+                throw new TargetNotFoundException("No datasource identified by:" + id);
+            }
         }
+        return null;
     }
 
     /**

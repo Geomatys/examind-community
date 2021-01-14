@@ -86,7 +86,7 @@ public class HarvesterCleanerProcess extends AbstractCstlProcess {
         // remove previous integration
         try {
             Set<Integer> providers = new HashSet<>();
-            List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(ds, Integer.MAX_VALUE);
+            List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(dsId, Integer.MAX_VALUE);
             for (DataSourceSelectedPath path : paths) {
                 if (coriolisMulti) {
                     // hack to remove the multiple providers created in coriolis multi mode.

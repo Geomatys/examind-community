@@ -325,12 +325,11 @@ public class DatasourceRestAPI extends AbstractRestAPI {
             storeParams.cleanupEmptyProperty();
             storeParams.propertyToMap(provConfig.getParameters());
 
-            final DataSource ds = datasourceBusiness.getDatasource(id);
-            datasourceBusiness.recordSelectedPath(ds);
-             List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(ds, 5);
+            datasourceBusiness.recordSelectedPath(id);
+             List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(id, 5);
              DatasourceAnalysisV3 outputDatas = new DatasourceAnalysisV3();
              for (DataSourceSelectedPath p : paths) {
-                 ResourceStoreAnalysisV3 store = datasourceBusiness.treatDataPath(p, ds, provConfig, true, null, null);
+                 ResourceStoreAnalysisV3 store = datasourceBusiness.treatDataPath(p, id, provConfig, true, null, null);
                  outputDatas.getStores().add(store);
              }
 

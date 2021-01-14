@@ -111,8 +111,8 @@ public class ImportData extends AbstractCstlProcess {
 
              LOGGER.info("Waiting for Datasource analysis completed");
 
-             datasourceBusiness.recordSelectedPath(ds);
-             List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(ds, Integer.MAX_VALUE);
+             datasourceBusiness.recordSelectedPath(datasourceId);
+             List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(datasourceId, Integer.MAX_VALUE);
 
              LOGGER.log(Level.INFO, "{0} files to integrate.", paths.size());
              List<Integer> outputDatas = new ArrayList<>();
@@ -130,7 +130,7 @@ public class ImportData extends AbstractCstlProcess {
                      LOGGER.log(Level.INFO, "No data / Error in file: {0}", p.getPath() + " (" + i + "/" + paths.size() + ")");
                  } else {
                      LOGGER.log(Level.INFO, "Integrating data file: {0}", p.getPath() + " (" + i + "/" + paths.size() + ")");
-                     ResourceStoreAnalysisV3 store = datasourceBusiness.treatDataPath(p, ds, provConfig, true, datasetId, userId);
+                     ResourceStoreAnalysisV3 store = datasourceBusiness.treatDataPath(p, ds.getId(), provConfig, true, datasetId, userId);
                      for (ResourceAnalysisV3 rs : store.getResources()) {
                          storeDatas.add(rs.getId());
                      }

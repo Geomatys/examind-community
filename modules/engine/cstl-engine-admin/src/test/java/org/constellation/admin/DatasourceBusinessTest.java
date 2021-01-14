@@ -131,9 +131,9 @@ public class DatasourceBusinessTest {
         datasourceBusiness.update(ds);
 
         // select all
-        datasourceBusiness.recordSelectedPath(ds);
+        datasourceBusiness.recordSelectedPath(ds.getId());
 
-        List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(ds, Integer.MAX_VALUE);
+        List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(ds.getId(), Integer.MAX_VALUE);
         Assert.assertEquals(14, paths.size());
     }
 
@@ -144,7 +144,7 @@ public class DatasourceBusinessTest {
         DataSource ds = datasourceBusiness.getByUrl(rootDir.toUri().toString());
         Assert.assertNotNull(ds);
 
-        DataSourceSelectedPath path = datasourceBusiness.getSelectedPath(ds, "/org/constellation/ws/embedded/wms111/shapefiles/BasicPolygons.shp");
+        DataSourceSelectedPath path = datasourceBusiness.getSelectedPath(ds.getId(), "/org/constellation/ws/embedded/wms111/shapefiles/BasicPolygons.shp");
         Assert.assertNotNull(path);
 
         DataStoreProvider factory = DataStores.getProviderById("shapefile");
@@ -157,7 +157,7 @@ public class DatasourceBusinessTest {
         storeParams.propertyToMap(provConfig.getParameters());
 
         boolean hidden = true;
-        ResourceStoreAnalysisV3 analysis = datasourceBusiness.treatDataPath(path, ds, provConfig, hidden, null, 1);
+        ResourceStoreAnalysisV3 analysis = datasourceBusiness.treatDataPath(path, ds.getId(), provConfig, hidden, null, 1);
         Assert.assertEquals(1, analysis.getResources().size());
     }
 

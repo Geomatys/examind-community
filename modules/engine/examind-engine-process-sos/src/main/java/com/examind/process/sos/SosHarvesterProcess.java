@@ -16,7 +16,6 @@
  */
 package com.examind.process.sos;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -183,19 +182,22 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final int dsId;
         DataSource ds = datasourceBusiness.getByUrl(sourceFolderStr);
         if (ds == null) {
-            LOGGER.info("Creating new datasource");
-
-            ds = new DataSource();
-            ds.setType(dataUri.getScheme());
-            ds.setUrl(sourceFolderStr);
-            ds.setStoreId(storeId);
-            ds.setUsername(user);
-            ds.setPwd(pwd);
-            ds.setFormat(format);
-            ds.setPermanent(Boolean.TRUE);
-            ds.setReadFromRemote(remoteRead);
-            dsId = datasourceBusiness.create(ds);
-            ds = datasourceBusiness.getDatasource(dsId);
+            try {
+                LOGGER.info("Creating new datasource");
+                ds = new DataSource();
+                ds.setType(dataUri.getScheme());
+                ds.setUrl(sourceFolderStr);
+                ds.setStoreId(storeId);
+                ds.setUsername(user);
+                ds.setPwd(pwd);
+                ds.setFormat(format);
+                ds.setPermanent(Boolean.TRUE);
+                ds.setReadFromRemote(remoteRead);
+                dsId = datasourceBusiness.create(ds);
+                ds = datasourceBusiness.getDatasource(dsId);
+            } catch (ConstellationException ex) {
+                throw new ProcessException("Error while creating datasource", this, ex);
+            }
         } else {
             LOGGER.info("Using already created datasource");
             dsId = ds.getId();
@@ -206,7 +208,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             fireAndLog("Removing previous integration", 0);
             try {
                 Set<Integer> providers = new HashSet<>();
-                List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(ds, Integer.MAX_VALUE);
+                List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(dsId, Integer.MAX_VALUE);
                 for (DataSourceSelectedPath path : paths) {
                     if (coriolisMulti) {
                         // hack to remove the multiple providers created in coriolis multi mode.
@@ -266,7 +268,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         try {
             for (FileBean child : datasourceBusiness.exploreDatasource(dsId, "/")) {
                 if (child.getName().endsWith(ext)) {
-                    if (datasourceBusiness.getSelectedPath(ds, '/' + child.getName()) == null) {
+                    if (datasourceBusiness.getSelectedPath(dsId, '/' + child.getName()) == null) {
                         datasourceBusiness.addSelectedPath(dsId, '/' + child.getName());
                     }
                 }
@@ -313,7 +315,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             provConfig.getParameters().put(FileParsingObservationStoreFactory.TYPE_COLUMN.getName().toString(), typeColumn);
 
             try {
-                datasourceBusiness.computeDatasourceStores(ds.getId(), false, storeId, true);
+                datasourceBusiness.computeDatasourceStores(dsId, false, storeId, true);
 
                 Integer datasetId = datasetBusiness.getDatasetId(datasetIdentifier);
                 if (datasetId == null)  {
@@ -321,7 +323,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                 }
 
 
-                List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(ds, Integer.MAX_VALUE);
+                List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(dsId, Integer.MAX_VALUE);
 
                 for (final DataSourceSelectedPath p : paths) {
 
@@ -338,7 +340,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                             LOGGER.log(Level.INFO, "Removing data for file: {0}", p.getPath());
                             providerBusiness.removeProvider(p.getProviderId());
                             // TODO full removal
-                            datasourceBusiness.removePath(ds, p.getPath());
+                            datasourceBusiness.removePath(dsId, p.getPath());
                             break;
                         default:
                             LOGGER.log(Level.INFO, "Integrating data file: {0}", p.getPath());
@@ -347,18 +349,18 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                             if (coriolisMulti) {
                                 provConfig.getParameters().put(FileParsingObservationStoreFactory.OBSERVATION_TYPE.getName().toString(), "Profile");
                                 provConfig.getParameters().put(FileParsingObservationStoreFactory.MAIN_COLUMN.getName().toString(), zColumn);
-                                dataToIntegrate.addAll(integratingDataFile(p, ds, provConfig, datasetId));
+                                dataToIntegrate.addAll(integratingDataFile(p, dsId, provConfig, datasetId));
                                 
                                 provConfig.getParameters().put(FileParsingObservationStoreFactory.OBSERVATION_TYPE.getName().toString(), "Timeserie");
                                 provConfig.getParameters().put(FileParsingObservationStoreFactory.MAIN_COLUMN.getName().toString(), dateColumn);
-                                dataToIntegrate.addAll(integratingDataFile(p, ds, provConfig, datasetId));
+                                dataToIntegrate.addAll(integratingDataFile(p, dsId, provConfig, datasetId));
                                 
                                 provConfig.getParameters().put(FileParsingObservationStoreFactory.OBSERVATION_TYPE.getName().toString(), "Trajectory");
                                 provConfig.getParameters().put(FileParsingObservationStoreFactory.MAIN_COLUMN.getName().toString(), dateColumn);
-                                dataToIntegrate.addAll(integratingDataFile(p, ds, provConfig, datasetId));
+                                dataToIntegrate.addAll(integratingDataFile(p, dsId, provConfig, datasetId));
                                 
                             } else {
-                                dataToIntegrate.addAll(integratingDataFile(p, ds, provConfig, datasetId));
+                                dataToIntegrate.addAll(integratingDataFile(p, dsId, provConfig, datasetId));
                             }
                             nbFileInserted++;
                     }
@@ -397,10 +399,10 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         outputParameters.getOrCreate(SosHarvesterProcessDescriptor.FILE_INSERTED).setValue(nbFileInserted);
     }
     
-    private List<Integer> integratingDataFile(DataSourceSelectedPath p, DataSource ds, ProviderConfiguration provConfig, Integer datasetId) throws ConstellationException {
+    private List<Integer> integratingDataFile(DataSourceSelectedPath p, Integer dsid, ProviderConfiguration provConfig, Integer datasetId) throws ConstellationException {
         List<Integer> dataToIntegrate = new ArrayList<>();
         int userId = 1;
-        ResourceStoreAnalysisV3 store = datasourceBusiness.treatDataPath(p, ds, provConfig, true, datasetId, userId);
+        ResourceStoreAnalysisV3 store = datasourceBusiness.treatDataPath(p, dsid, provConfig, true, datasetId, userId);
         for (ResourceAnalysisV3 resourceStore : store.getResources()) {
             final DataBrief acceptData = dataBusiness.acceptData(resourceStore.getId(), userId, false);
             dataBusiness.updateDataDataSetId(acceptData.getId(), datasetId);
