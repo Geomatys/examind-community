@@ -226,8 +226,47 @@ function Examind($http, url) {
                 url: 'admin/contact',
                 data: contact
                 });
+        },
+        
+        /**
+         * Get configuration properties.
+         *
+         * @returns {Promise}
+         */
+        getProperties : function() {
+            return self.request({
+                method: 'GET',
+                url: 'admin/properties'
+                });
+        },
+        
+        /**
+         * Get configuration property.
+         *
+         * @returns {Promise}
+         */
+        getProperty : function(key) {
+            return self.request({
+                method: 'GET',
+                url: 'admin/property/' + key
+                });
+        },
+        
+        /**
+         * update configuration property.
+         *
+         * @returns {Promise}
+         */
+        setProperty : function(key, value) {
+            return self.request({
+                method: 'POST',
+                url: 'admin/property/' + key,
+                headers: {'Accept': 'application/json'},
+                data: {
+                    value : value
+                }
+            });
         }
-
     };
 
     /**

@@ -51,6 +51,7 @@ import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.configuration.AppProperty;
+import static org.constellation.configuration.AppProperty.EXA_METADATA_VALIDATION_REQUIRE_LEVEL;
 import org.constellation.configuration.Application;
 import org.constellation.dto.metadata.Attachment;
 import org.constellation.dto.CstlUser;
@@ -1262,8 +1263,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
      * @return boolean value
      */
     private boolean isLevelRequiredForValidation() {
-        String value = configurationBusiness.getProperty("validation.require.level");
-        return value == null || Boolean.parseBoolean(value);
+        return Application.getBooleanProperty(EXA_METADATA_VALIDATION_REQUIRE_LEVEL, Boolean.TRUE);
     }
 
     /**

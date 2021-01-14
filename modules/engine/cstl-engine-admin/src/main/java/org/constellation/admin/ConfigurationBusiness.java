@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -16,6 +18,7 @@ import org.constellation.admin.util.MetadataUtilities;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.configuration.AppProperty;
+import org.constellation.configuration.Application;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.Service;
@@ -132,16 +135,44 @@ public class ConfigurationBusiness implements IConfigurationBusiness {
     }
 
     @Override
-    public String getProperty(final String key) {
-        return propertyRepository.getValue(key, null);
+    public Map<String, Object> getProperties(boolean showSecure) {
+        Map<String, Object> results = new HashMap<>();
+        for (AppProperty prop : AppProperty.values()) {
+            Object value = getProperty(prop.getKey(), null, showSecure);
+            if (value != null) results.put(prop.getKey(), value);
+        }
+        return results;
     }
 
     @Override
+    public Object getProperty(final String key, final Object fallback, boolean showSecure) {
+        // to allow the update of properties, we first look into database for override.
+        Object value = propertyRepository.getValue(key, null);
+
+        // if not fallback on
+        if (value == null) {
+            value = Application.getObjectProperty(key, fallback);
+        }
+
+        // look for secure properties
+        AppProperty prop = AppProperty.fromKey(key);
+        if (value != null && prop != null && (!showSecure && prop.isSecure())) {
+            return "<protected>";
+        }
+        return value;
+    }
+
+    /**
+     * TODO
+     * there is probably some properties that can not be update and some that needs reload of some stuff
+     * not really ready just yet
+     *
+     * @param key
+     * @param value
+     */
+    @Override
     @Transactional
     public void setProperty(final String key, final String value) {
-        System.setProperty(key, value);
-        // FIXME continue to save in database ?
-        // create/update external configuration file to save preferences ?
         propertyRepository.update(key, value);
         // update metadata when service URL key is updated
         if (AppProperty.CSTL_SERVICE_URL.getKey().equals(key)) {

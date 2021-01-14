@@ -93,8 +93,7 @@ public class DataCoverageJob implements IDataCoverageJob {
     @Scheduled(cron = "1 * * * * *")
     @Override
     public void updateDataStatistics() {
-        String propertyValue = Application.getProperty(AppProperty.DATA_AUTO_ANALYSE);
-        boolean doAnalysis = propertyValue == null ? false : Boolean.valueOf(propertyValue);
+         boolean doAnalysis = Application.getBooleanProperty(AppProperty.DATA_AUTO_ANALYSE, Boolean.TRUE);
         if (doAnalysis) {
             computeEmptyDataStatistics(false);
         }

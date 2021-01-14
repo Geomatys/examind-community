@@ -23,6 +23,9 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -52,9 +55,6 @@ public final class Application {
     private static final Logger LOGGER = Logging.getLogger("org.constellation.dto");
 
     private static final Properties APP_PROPERTIES = new Properties();
-
-    //lazy singleton to call initialization
-    private static final Application INSTANCE = new Application();
 
     private Application() {
 
@@ -148,7 +148,7 @@ public final class Application {
      * @param fallback fallback used if property not found.
      * @return property value or fallback value if not found.
      */
-    public static boolean getBooleanProperty(AppProperty key, boolean fallback) {
+    public static Boolean getBooleanProperty(AppProperty key, Boolean fallback) {
         String val = getProperty(key.getKey(), null);
         if (val != null) {
             return Boolean.parseBoolean(val);
@@ -156,8 +156,24 @@ public final class Application {
         return fallback;
     }
 
-    public static int getIntegerProperty(AppProperty key, int fallback) {
+    public static Boolean getBooleanProperty(String key, Boolean fallback) {
+        String val = getProperty(key, null);
+        if (val != null) {
+            return Boolean.parseBoolean(val);
+        }
+        return fallback;
+    }
+
+    public static Integer getIntegerProperty(AppProperty key, Integer fallback) {
         String val = getProperty(key.getKey(), null);
+        if (val != null) {
+            return Integer.parseInt(val);
+        }
+        return fallback;
+    }
+
+    public static Integer getIntegerProperty(String key, Integer fallback) {
+        String val = getProperty(key, null);
         if (val != null) {
             return Integer.parseInt(val);
         }
@@ -172,12 +188,61 @@ public final class Application {
         return null;
     }
 
-    public static long getLongProperty(AppProperty key, long fallback) {
+    public static Long getLongProperty(AppProperty key, Long fallback) {
         String val = getProperty(key.getKey(), null);
         if (val != null) {
             return Long.parseLong(val);
         }
         return fallback;
+    }
+    public static Long getLongProperty(String key, Long fallback) {
+        String val = getProperty(key, null);
+        if (val != null) {
+            return Long.parseLong(val);
+        }
+        return fallback;
+    }
+
+    public static List<String> getListProperty(AppProperty key) {
+        return getListProperty(key.getKey());
+    }
+
+    public static List<String> getListProperty(String key) {
+        List<String> results = new ArrayList<>();
+        String val = getProperty(key, null);
+        if (val != null && val.length() > 3 && val.startsWith("[") && val.endsWith("]")) {
+            val = val.substring(1, val.length() - 1);
+            String[] ss = val.split(",");
+            results.addAll(Arrays.asList(ss));
+        }
+        return results;
+    }
+
+    public static Object getObjectProperty(String key, Object fallback) {
+        AppProperty ap = AppProperty.fromKey(key);
+        if (ap != null) {
+            return getObjectProperty(ap.getKey(), ap.getType(), fallback);
+        } else {
+            return getObjectProperty(key, String.class, fallback);
+        }
+    }
+
+    public static Object getObjectProperty(AppProperty key, Object fallback) {
+        return getObjectProperty(key.getKey(), key.getType(), fallback);
+    }
+
+    private static Object getObjectProperty(String key, Class type, Object fallback) {
+        if (type == Long.class) {
+            return getLongProperty(key, (Long) fallback);
+        } else if (type == Integer.class) {
+            return getIntegerProperty(key, (Integer) fallback);
+        } else if (type == Boolean.class) {
+            return getBooleanProperty(key, (Boolean) fallback);
+        } else if (type == List.class) {
+            return getListProperty(key);
+        } else {
+            return getProperty(key, (String)fallback);
+        }
     }
 
     /**

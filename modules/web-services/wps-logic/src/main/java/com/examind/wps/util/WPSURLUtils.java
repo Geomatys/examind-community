@@ -22,9 +22,11 @@ import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import org.apache.sis.util.logging.Logging;
+import static org.constellation.configuration.AppProperty.EXA_WPS_AUTHENTICATED_URLS;
 import org.constellation.configuration.Application;
 
 /**
@@ -38,16 +40,15 @@ public class WPSURLUtils {
     private static final Map<String, String[]> AUTHENTICATED_URLS = new HashMap<>();
 
     static {
-        String value = Application.getProperty("authenticated.urls", "");
-
-        // must be in the form URLµloginµpwdµURLµloginµpwd
-        String[] values = value.split("µ");
-        for (int i = 0; i < values.length; i = i + 3) {
-            if (i + 3 > values.length) {
+        List<String> urls = Application.getListProperty(EXA_WPS_AUTHENTICATED_URLS);
+        for (String value : urls) {
+            // must be in the form URLµloginµpwd
+            String[] values = value.split("µ");
+            if (values.length != 3) {
                 LOGGER.warning("malformed authenticated.urls variable");
                 break;
             }
-            AUTHENTICATED_URLS.put(values[i], new String[] {values[i+1], values[i+2]});
+            AUTHENTICATED_URLS.put(values[0], new String[] {values[1], values[2]});
         }
     }
 

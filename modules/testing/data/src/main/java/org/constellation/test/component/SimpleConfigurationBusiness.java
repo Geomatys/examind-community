@@ -22,7 +22,9 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -117,7 +119,7 @@ public class SimpleConfigurationBusiness implements IConfigurationBusiness {
     }
 
     @Override
-    public String getProperty(final String key) {
+    public Object getProperty(final String key, final Object fallback, boolean allowSecure) {
         return null; // TODO ?
     }
 
@@ -130,5 +132,10 @@ public class SimpleConfigurationBusiness implements IConfigurationBusiness {
     @Override
     public Properties getMetadataTemplateProperties() {
         return ConfigDirectory.getMetadataTemplateProperties();
+    }
+
+    @Override
+    public Map<String, Object> getProperties(boolean showSecure) {
+        return new HashMap<>();
     }
 }

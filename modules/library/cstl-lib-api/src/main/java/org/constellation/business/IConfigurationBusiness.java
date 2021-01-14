@@ -21,6 +21,7 @@ package org.constellation.business;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -101,8 +102,37 @@ public interface IConfigurationBusiness {
      */
     Path getUploadDirectory(String userName) throws IOException;
 
-    String getProperty(final String key);
+    /**
+     * Return all the application properties set.
+     * If showSecure is not set, and if the property is marked as "secure", the value returnd will be oblitered.
+     *
+     * @param showSecure return clear value of secure property.
+     * @return all the application properties set.
+     */
+    Map<String, Object> getProperties(boolean showSecure);
 
+    /**
+     * Return an application property value :
+     *  - from database
+     *  - from environement variables
+     *
+     * If not set, return the fallback.
+     * If showSecure is not set, and if the property is marked as "secure", the value returnd will be oblitered.
+     *
+     * @param key property key.
+     * @param fallback default value if peroperty is not set.
+     * @param showSecure return clear value of secure property.
+     * 
+     * @return an application property value.
+     */
+    Object getProperty(final String key, final Object fallback, boolean showSecure);
+
+    /**
+     * Override an application property, by storig it in the database.
+     * 
+     * @param key property key.
+     * @param value property value.
+     */
     void setProperty(final String key, final String value);
 
     void cleanupFileSystem();

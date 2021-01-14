@@ -148,7 +148,7 @@ public class SetupBusiness {
         }
 
         //check if data analysis is required
-        boolean doAnalysis = Application.getBooleanProperty(AppProperty.DATA_AUTO_ANALYSE, Boolean.FALSE);
+        boolean doAnalysis = Application.getBooleanProperty(AppProperty.DATA_AUTO_ANALYSE, Boolean.TRUE);
         if (doAnalysis) {
             LOGGER.log(Level.FINE, "Start data analysis");
             dataCoverageJob.computeEmptyDataStatistics(true);

@@ -19,6 +19,7 @@
 
 package org.constellation.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -56,6 +57,12 @@ public final class SimpleValue implements Serializable {
         this.value = Double.toString(value);
     }
 
+    public SimpleValue(final Object value) {
+        if (value != null) {
+            this.value = value.toString();
+        }
+    }
+
     public void setValue(final String value) {
         this.value = value;
     }
@@ -63,15 +70,18 @@ public final class SimpleValue implements Serializable {
     public String getValue() {
         return value;
     }
-
+    
+    @JsonIgnore
     public Boolean getAsBoolean() {
         return Boolean.parseBoolean(value);
     }
 
+    @JsonIgnore
     public int getAsInt() {
         return Integer.parseInt(value);
     }
 
+    @JsonIgnore
     public double getAsDouble() {
         return Double.parseDouble(value);
     }

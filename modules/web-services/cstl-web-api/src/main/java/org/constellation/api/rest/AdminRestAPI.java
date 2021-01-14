@@ -32,6 +32,7 @@ import org.constellation.business.IConfigurationBusiness;
 import org.constellation.repository.PropertyRepository;
 import org.constellation.dto.AcknowlegementType;
 import org.constellation.dto.SimpleValue;
+import org.constellation.dto.StringList;
 import org.constellation.util.json.JsonUtils;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -74,16 +75,35 @@ public class AdminRestAPI extends AbstractRestAPI {
     }
 
     /**
+     * Get configuration properties values.
+     *
+     * @return the value of the constellation property
+     */
+    @RequestMapping(value="/admin/properties", method=GET, produces=MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity getProperties() {
+        try {
+            Map<String, Object> results = configurationBusiness.getProperties(false);
+            return new ResponseEntity(results,OK);
+        } catch(Throwable ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
+    }
+
+    /**
      * Get configuration property value.
      *
      * @param key property key
      * @return the value of the constellation property
      */
-    @RequestMapping(value="/admin/property/{key}", method=GET, produces=MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity getKey(
-            @PathVariable("key") String key) {
+    @RequestMapping(value="/admin/property/{key:.+}", method=GET, produces=MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity getProperty(@PathVariable("key") String key) {
         try {
-            return new ResponseEntity(new SimpleValue(configurationBusiness.getProperty(key)),OK);
+            Object obj = configurationBusiness.getProperty(key, null, false);
+            if (obj instanceof List) {
+                return new ResponseEntity(new StringList((List<String>) obj),OK);
+            }
+            return new ResponseEntity(new SimpleValue(obj),OK);
         } catch(Throwable ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
@@ -98,9 +118,8 @@ public class AdminRestAPI extends AbstractRestAPI {
      * @param key property key
      * @param value property value
      */
-    @RequestMapping(value="/admin/property/{key}", method=POST, produces=MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity setKey(
-            @PathVariable("key") String key,
+    @RequestMapping(value="/admin/property/{key:.+}", method=POST, produces=MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity setProperty(@PathVariable("key") String key,
             @RequestBody SimpleValue value) {
         try {
             configurationBusiness.setProperty(key, value.getValue());

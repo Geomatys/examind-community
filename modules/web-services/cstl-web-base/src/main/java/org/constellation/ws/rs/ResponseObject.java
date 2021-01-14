@@ -152,7 +152,7 @@ public class ResponseObject {
 
                 BodyBuilder builder = ResponseEntity.ok();
                 if (Application.getBooleanProperty(AppProperty.CSTL_URL, false)) {
-                    int second = Integer.parseInt(Application.getProperty(AppProperty.EXA_CACHE_CONTROL_TIME, "60"));
+                    int second = Application.getIntegerProperty(AppProperty.EXA_CACHE_CONTROL_TIME, 60);
                     builder = builder.cacheControl(CacheControl.maxAge(second, TimeUnit.SECONDS));
                 }
                 return builder.build();
@@ -198,7 +198,7 @@ public class ResponseObject {
             }
             BodyBuilder builder = ResponseEntity.status(status);//.headers(responseHeaders);
             if (Application.getBooleanProperty(AppProperty.EXA_DISABLE_NO_CACHE, false)) {
-                int second = Integer.parseInt(Application.getProperty(AppProperty.EXA_CACHE_CONTROL_TIME, "60"));
+                int second = Application.getIntegerProperty(AppProperty.EXA_CACHE_CONTROL_TIME, 60);
                 // does not work
                 //builder = builder.cacheControl(CacheControl.maxAge(second, TimeUnit.SECONDS));
                 // does not work either
