@@ -139,4 +139,6 @@ public interface IConfigurationBusiness {
 
     Properties getMetadataTemplateProperties();
 
+    boolean allowedFilesystemAccess(String path);
+
 }

@@ -203,4 +203,22 @@ public class ConfigurationBusiness implements IConfigurationBusiness {
         return ConfigDirectory.getMetadataTemplateProperties();
     }
 
+    @Override
+    public boolean allowedFilesystemAccess(String path) {
+        List<String> allowedPaths = Application.getListProperty(AppProperty.EXA_ALLOWED_FS_PATH);
+        // if not set, the entire filesystem is available
+        if (allowedPaths.isEmpty()) {
+            allowedPaths.add("file:///");
+        }
+        // CSTL_HOME id always allowed
+        allowedPaths.add(ConfigDirectory.getConfigDirectory().toUri().toString());
+
+        for (String allowedPath : allowedPaths) {
+            if (path.startsWith(allowedPath)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

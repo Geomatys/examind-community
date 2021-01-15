@@ -138,4 +138,9 @@ public class SimpleConfigurationBusiness implements IConfigurationBusiness {
     public Map<String, Object> getProperties(boolean showSecure) {
         return new HashMap<>();
     }
+
+    @Override
+    public boolean allowedFilesystemAccess(String path) {
+        return true;
+    }
 }

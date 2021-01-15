@@ -28,7 +28,6 @@ import javax.naming.Reference;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.FileVisitResult;
@@ -37,7 +36,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -171,11 +169,6 @@ public final class ConfigDirectory {
             }
         }
         return path;
-    }
-
-    public static Path getUserHomeDirectory() {
-        final String home = System.getProperty("user.home");
-        return Paths.get(home);
     }
 
     /**

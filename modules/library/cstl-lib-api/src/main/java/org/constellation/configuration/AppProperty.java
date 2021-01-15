@@ -202,7 +202,9 @@ public enum AppProperty {
 
     EXA_METADATA_VALIDATION_REQUIRE_LEVEL("exa.metadata.validation.require.level", false, Boolean.class),
     
-    EXA_WPS_AUTHENTICATED_URLS("exa.wps.authenticated.urls", true, List.class);
+    EXA_WPS_AUTHENTICATED_URLS("exa.wps.authenticated.urls", true, List.class),
+    
+    EXA_ALLOWED_FS_PATH("exa.allowed.fs.path", false, List.class);
 
     private final String key;
     private final boolean secure;

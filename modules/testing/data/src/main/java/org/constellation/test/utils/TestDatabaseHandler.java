@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,8 +46,13 @@ public class TestDatabaseHandler {
         hasLocalDatabase();
     }
 
+    private static Path getUserHomeDirectory() {
+        final String home = System.getProperty("user.home");
+        return Paths.get(home);
+    }
+
     public static boolean hasLocalDatabase() {
-        final Path home = ConfigDirectory.getUserHomeDirectory();
+        final Path home = getUserHomeDirectory();
         if (home != null && Files.isDirectory(home)) {
             final Path cstlTestPropFile = home.resolve("cstl-test.properties");
             if (Files.exists(cstlTestPropFile)) {

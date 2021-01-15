@@ -82,6 +82,7 @@ import org.constellation.exception.TargetNotFoundException;
 import org.constellation.provider.DataProviders;
 import org.constellation.util.FileSystemReference;
 import org.constellation.util.FileSystemUtilities;
+import org.constellation.ws.UnauthorizedException;
 import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.storage.DataStores;
@@ -129,9 +130,12 @@ public class DatasourceBusiness implements IDatasourceBusiness {
      */
     @Override
     @Transactional
-    public Integer create(DataSource ds) {
+    public Integer create(DataSource ds) throws ConstellationException {
         if (ds.getId() != null) {
-            throw new IllegalArgumentException("Cannot create a datasource with an ID already set.");
+            throw new ConfigurationException("Cannot create a datasource with an ID already set.");
+        }
+        if (("file".equals(ds.getType()) || "local_files".equals(ds.getType())) && !configBusiness.allowedFilesystemAccess(ds.getUrl())) {
+            throw new UnauthorizedException("You are not authorize to access this filesystem path");
         }
         if (ds.getDateCreation() == null) {
             ds.setDateCreation(System.currentTimeMillis());
@@ -147,7 +151,10 @@ public class DatasourceBusiness implements IDatasourceBusiness {
      */
     @Override
     @Transactional
-    public void update(DataSource ds) {
+    public void update(DataSource ds) throws ConstellationException {
+        if (("file".equals(ds.getType()) || "local_files".equals(ds.getType())) && !configBusiness.allowedFilesystemAccess(ds.getUrl())) {
+            throw new UnauthorizedException("You are not authorize to access this filesystem path");
+        }
         dsRepository.update(ds);
     }
 
@@ -395,6 +402,20 @@ public class DatasourceBusiness implements IDatasourceBusiness {
                 } finally {
                     closeFileSystem(ds);
                 } break;
+            case "file" :
+                if (ds.getUrl() == null) return "Missing url.";
+                if (!configBusiness.allowedFilesystemAccess(ds.getUrl())) {
+                     return "You are not authorize to access this filesystem path";
+                }
+                try {
+                    final Path p = getDataSourcePath(ds, "/");
+                    if (!Files.exists(p)) {
+                         return "path does not exists";
+                    }
+                } catch (Exception ex) {
+                    LOGGER.warning(ex.getMessage());
+                    return ex.getMessage();
+                }
             default: break;
         }
         return "OK";
