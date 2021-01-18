@@ -102,7 +102,7 @@ public class FlywaySpring {
                 if (liquibaseInstalled) {
                     if (liquibaseUpToDate) {
                         //start after 1.1.0.0
-                        flyway.setBaselineVersion(MigrationVersion.fromVersion("1.1.0.0"));
+                        flyway.setBaselineVersion(MigrationVersion.fromVersion("1.1.0.0"));//NOSONAR
                         LOGGER.info("Previous installation with Liquibase detected and up to date, start migration from 1.1.0.0 patch");
                     } else {
                         throw new ConfigurationRuntimeException("Previous database installation found but not up to date, " +

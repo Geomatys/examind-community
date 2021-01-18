@@ -16,16 +16,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.store.observation.db;
+package org.constellation.util;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
-import org.geotoolkit.observation.ObservationStoreException;
-import static org.geotoolkit.observation.Utils.getTimeValue;
+import org.geotoolkit.temporal.object.ISODateParser;
 
 /**
  *
@@ -64,6 +66,11 @@ public class FilterSQLRequest {
     
     public FilterSQLRequest delete(int start, int end) {
         this.sqlRequest.delete(start, end);
+        return this;
+    }
+
+    public FilterSQLRequest deleteCharAt(int index) {
+        this.sqlRequest.deleteCharAt(index);
         return this;
     }
     
@@ -165,11 +172,7 @@ public class FilterSQLRequest {
             } else if (p.type == Double.class || p.type == Integer.class || p.type == Integer.class) {
                 s = StringUtils.replaceOnce(s, "?", p.value.toString());
             } else if (p.type == Timestamp.class) {
-                try {
-                    s = StringUtils.replaceOnce(s, "?", "'" + getTimeValue((Timestamp)p.value) + "'");
-                } catch (ObservationStoreException ex) {
-                    throw new IllegalArgumentException(ex.getMessage());
-                }
+                s = StringUtils.replaceOnce(s, "?", "'" + getTimeValue((Timestamp)p.value) + "'");
             }
         }
         return s;
@@ -183,5 +186,12 @@ public class FilterSQLRequest {
             this.value = value;
             this.type = type;
         }
+    }
+
+    public static String getTimeValue(final Date time) {
+        if (time == null)  {
+            throw new IllegalArgumentException("TimePosition value must not be null");
+        }
+        return new Timestamp(time.getTime()).toString();
     }
 }

@@ -46,6 +46,9 @@ import org.geotoolkit.thw.model.ISOLanguageCode;
 import org.geotoolkit.thw.model.ScoredConcept;
 import org.geotoolkit.thw.model.Thesaurus;
 import static org.constellation.dto.thesaurus.SearchMode.*;
+import org.constellation.thesaurus.api.ThesaurusException;
+import org.constellation.util.FilterSQLRequest;
+import org.constellation.util.Util;
 
 /**
  *
@@ -121,9 +124,12 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
 
     protected final boolean derby;
 
-    public ThesaurusDatabase(final DataSource datasource, final String schema, final boolean derby) {
+    public ThesaurusDatabase(final DataSource datasource, final String schema, final boolean derby) throws ThesaurusException {
         this.datasource    = datasource;
         this.derby         = derby;
+        if (Util.containsForbiddenCharacter(schema)) {
+            throw new ThesaurusException("Invalid schema prefix value");
+        }
         this.schema        = schema;
         if (derby) {
             likeOperator   = "LIKE";
@@ -172,7 +178,7 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
     private List<ISOLanguageCode> readLanguage() throws SQLException {
         final List<ISOLanguageCode> response = new ArrayList<>();
         try (Connection c = datasource.getConnection();
-             PreparedStatement stmt = c.prepareStatement("SELECT \"language_iso\"  FROM \"" + schema + "\".\"language\"");
+             PreparedStatement stmt = c.prepareStatement("SELECT \"language_iso\"  FROM \"" + schema + "\".\"language\"");//NOSONAR
              ResultSet result = stmt.executeQuery()) {
             while (result.next()) {
                 response.add(ISOLanguageCode.fromCode(result.getString(1)));
@@ -183,7 +189,7 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
 
     private void readProperty() throws SQLException {
         try (Connection c = datasource.getConnection();
-             PreparedStatement stmt = c.prepareStatement("SELECT \"uri\", \"name\", \"description\", \"enable\", \"defaultLang\"  FROM \"" + schema + "\".\"propriete_thesaurus\"");
+             PreparedStatement stmt = c.prepareStatement("SELECT \"uri\", \"name\", \"description\", \"enable\", \"defaultLang\"  FROM \"" + schema + "\".\"propriete_thesaurus\"");//NOSONAR
              ResultSet result = stmt.executeQuery()) {
 
             if (result.next()) {
@@ -286,17 +292,28 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
         return response;
     }
 
-    protected String getLanguageFilter(final ISOLanguageCode language, boolean where) {
-        final StringBuilder languageFilter = new StringBuilder();
+    protected FilterSQLRequest appendLanguageFilter(final ISOLanguageCode language, boolean where, FilterSQLRequest request) {
         if (where) {
-            languageFilter.append("WHERE ");
+            request.append(" WHERE ");
         } else {
-            languageFilter.append("AND ");
+            request.append(" AND ");
         }
         if (language != null) {
-            languageFilter.append("\"langage_iso\"='").append(language.getTwoLetterCode().toLowerCase()).append("' ");
+            request.append("\"langage_iso\"=").appendValue(language.getTwoLetterCode().toLowerCase()).append(" ");
         }
-        return languageFilter.toString();
+        return request;
+    }
+
+    protected FilterSQLRequest appendThemeFilter(final List<String> themes, FilterSQLRequest request) {
+        if (themes != null && !themes.isEmpty()) {
+            request.append(" AND \"thesaurus_origine\" IN (");
+            for (String theme : themes) {
+                request.appendValue(theme).append(",");
+            }
+            request.deleteCharAt(request.length() - 1);
+            request.append(")");
+        }
+        return request;
     }
 
     /**
@@ -309,19 +326,19 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
     @Override
     public List<ScoredConcept> search(final String brutTerm, final ISOLanguageCode language) {
         final List<ScoredConcept> matchingConcept = new ArrayList<>();
-        final String languageFilter               = getLanguageFilter(language, false);
 
-        try (Connection c    = datasource.getConnection();
-             Statement stmt  = c.createStatement()) {
+        try (Connection c = datasource.getConnection()) {
 
             final String term     = brutTerm.replace("'", "''");
 
             // first we search fo full matching => score 1.0
-            String query     = "SELECT \"uri_concept\" FROM \"" + schema + "\".\"terme_completion\" "
-                                + "WHERE \"label\"='" + term + "' "
-                                + languageFilter;
+            FilterSQLRequest query = new FilterSQLRequest("SELECT \"uri_concept\" FROM \"" + schema + "\".\"terme_completion\" WHERE ");
+            query.append("\"label\"=").appendValue(term);
+            appendLanguageFilter(language, false, query);
+            
             boolean stop = false;
-            try (ResultSet result = stmt.executeQuery(query)) {
+            try (final PreparedStatement pstmt = query.fillParams(c.prepareStatement(query.getRequest()));
+                 ResultSet result = pstmt.executeQuery()) {
                 while (result.next()) {
                     stop        = true;
                     String uric = result.getString(1);
@@ -335,12 +352,12 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
             }
 
             // second we search fo full matching case insensitive => score 0.9
-            String tmp = term.toUpperCase();
-            query      = "SELECT \"uri_concept\" FROM \"" + schema + "\".\"terme_completion\" "
-                        + "WHERE upper(\"label\") = '" + tmp + "'"
-                        + languageFilter;
+            query = new FilterSQLRequest("SELECT \"uri_concept\" FROM \"" + schema + "\".\"terme_completion\" WHERE ");
+            query.append("upper(\"label\") = ").appendValue(term.toUpperCase());
+            appendLanguageFilter(language, false, query);
 
-            try (ResultSet result = stmt.executeQuery(query)) {
+            try (final PreparedStatement pstmt = query.fillParams(c.prepareStatement(query.getRequest()));
+                 ResultSet result = pstmt.executeQuery()) {
 
                 while (result.next()) {
                     stop        = true;
@@ -355,7 +372,7 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
             }
 
             // then we search for mispelled matching => score 0.8
-            tmp = term;
+            String tmp = term;
             for (char[] spe : language.getSpecialCharacter()) {
                 for (char s : spe) {
                     if (tmp.indexOf(s) != -1) {
@@ -363,12 +380,13 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
                     }
                 }
             }
-            query = "SELECT \"uri_concept\" FROM \"" + schema + "\".\"terme_completion\" "
-                    + "WHERE \"label\" " + likeOperator + " '" + tmp + "' "
-                    + languageFilter;
+            query = new FilterSQLRequest("SELECT \"uri_concept\" FROM \"" + schema + "\".\"terme_completion\" WHERE ");
+            query.append("\"label\" " + likeOperator + " ").append(tmp);
+            appendLanguageFilter(language, false, query);
             LOGGER.log(Level.FINER, "Mispelled Query:{0}", query);
 
-            try (ResultSet result = stmt.executeQuery(query)) {
+            try (final PreparedStatement pstmt = query.fillParams(c.prepareStatement(query.getRequest()));
+                 ResultSet result = pstmt.executeQuery()) {
                 while (result.next()) {
                     stop        = true;
                     String uric = result.getString(1);
@@ -382,11 +400,12 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
             }
 
             // then we search fo partial matching => score 0.7
-            query = "SELECT \"uri_concept\" FROM \"" + schema + "\".\"terme_completion\" "
-                    + "WHERE \"label\" " + likeOperator + " '%" + term + "%'"
-                    + languageFilter;
+            query = new FilterSQLRequest("SELECT \"uri_concept\" FROM \"" + schema + "\".\"terme_completion\" WHERE ");
+            query.append("\"label\" " + likeOperator + " ").appendValue('%' + term + '%');
+            appendLanguageFilter(language, false, query);
 
-            try (ResultSet result = stmt.executeQuery(query)) {
+            try (final PreparedStatement pstmt = query.fillParams(c.prepareStatement(query.getRequest()));
+                 ResultSet result = pstmt.executeQuery()) {
                 while (result.next()) {
                     stop        = true;
                     String uric = result.getString(1);
@@ -419,7 +438,7 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
     /**
      * Try to find the concept matching the specified term.
      *
-     * @param brutTerm The term to search.
+     * @param term The term to search.
      * @param searchMode The mode used to search.
      * @param geometric Special flag for geometric thesaurus.
      * @param themes If not {@code null} add a theme filter to the search.
@@ -428,48 +447,37 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
      * @return
      */
     @Override
-    public List<Concept> search(final String brutTerm, final int searchMode, final boolean geometric, final List<String> themes, final ISOLanguageCode language) {
+    public List<Concept> search(final String term, final int searchMode, final boolean geometric, final List<String> themes, final ISOLanguageCode language) {
         final List<Concept> matchingConcept = new ArrayList<>();
 
-        final StringBuilder themeFilter = new StringBuilder();
-        if (themes != null && !themes.isEmpty()) {
-            themeFilter.append(" AND \"thesaurus_origine\" IN (");
-            for (String theme : themes) {
-                themeFilter.append("'").append(theme).append("',");
-            }
-            themeFilter.deleteCharAt(themeFilter.length() - 1);
-            themeFilter.append(')');
-        }
-
-        final String languageFilter = getLanguageFilter(language, false);
-        final StringBuilder query   = new StringBuilder();
-        final String term = brutTerm.replace("'", "''");
-
+        final StringBuilder sb = new StringBuilder();
         if (geometric) {
-            query.append(" SELECT t.\"uri_concept\" FROM \"").append(schema).append("\".\"terme_completion\" t, \"").append(schema).append("\".\"concept\" c");
-            query.append(" WHERE c.\"uri_concept\" = t.\"uri_concept\"");
-            query.append(" AND c.\"layer_associe\" != 'NULL' ");
+            sb.append(" SELECT t.\"uri_concept\" FROM \"").append(schema).append("\".\"terme_completion\" t, \"").append(schema).append("\".\"concept\" c");
+            sb.append(" WHERE c.\"uri_concept\" = t.\"uri_concept\"");
+            sb.append(" AND c.\"layer_associe\" != 'NULL' ");
         } else {
-            query.append("SELECT \"uri_concept\" FROM \"").append(schema).append("\".\"terme_completion\" ");
+            sb.append("SELECT \"uri_concept\" FROM \"").append(schema).append("\".\"terme_completion\" ");
         }
+        final String queryPrefix = sb.toString();
 
-        try (Connection c   = datasource.getConnection();
-             Statement stmt = c.createStatement()) {
-
+        try (Connection c   = datasource.getConnection()) {
 
             if (searchMode == NO_WILD_CHAR || searchMode == AUTO_SEARCH) {
 
-                final StringBuilder currentQuery = new StringBuilder();
+                final FilterSQLRequest query = new FilterSQLRequest(queryPrefix);
                 if (geometric) {
-                    currentQuery.append(query.toString()).append(" AND \"label\"='").append(term).append("' ").append(languageFilter);
+                    query.append(" AND ");
                 } else {
-                    currentQuery.append(query.toString()).append(" WHERE \"label\"='").append(term).append("'").append(languageFilter);
+                    query.append(" WHERE ");
                 }
-                currentQuery.append(themeFilter.toString());
+                query.append("\"label\"=").appendValue(term).append(" ");
+                appendLanguageFilter(language, false, query);
+                appendThemeFilter(themes, query);
 
                 boolean stop = false;
 
-                try (ResultSet result = stmt.executeQuery(currentQuery.toString())) {
+                try (final PreparedStatement pstmt = query.fillParams(c.prepareStatement(query.getRequest()));
+                     final ResultSet result = pstmt.executeQuery()) {
                     while (result.next()) {
                         stop = true;
                         String uric = result.getString(1);
@@ -486,16 +494,19 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
             }
 
             if (searchMode == PREFIX_REGEX || searchMode == AUTO_SEARCH) {
-                final StringBuilder currentQuery = new StringBuilder();
+                final FilterSQLRequest query = new FilterSQLRequest(queryPrefix);
                 if (geometric) {
-                    currentQuery.append(query.toString()).append(" AND \"label\" ").append(likeOperator).append(" '%").append(term).append("' ").append(languageFilter);
+                    query.append(" AND ");
                 } else {
-                    currentQuery.append(query.toString()).append(" WHERE \"label\" ").append(likeOperator).append(" '%").append(term).append("' ").append(languageFilter);
+                    query.append(" WHERE ");
                 }
-                currentQuery.append(themeFilter.toString());
+                query.append("\"label\" ").append(likeOperator).appendValue("%" + term).append(" ");
+                appendLanguageFilter(language, false, query);
+                appendThemeFilter(themes, query);
 
                 boolean stop = false;
-                try (ResultSet result = stmt.executeQuery(currentQuery.toString())) {
+                try (final PreparedStatement pstmt = query.fillParams(c.prepareStatement(query.getRequest()));
+                     final ResultSet result = pstmt.executeQuery()) {
                     while (result.next()) {
                         stop        = true;
                         String uric = result.getString(1);
@@ -513,16 +524,19 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
 
             if (searchMode == SUFFIX_REGEX || searchMode == AUTO_SEARCH) {
 
-                final StringBuilder currentQuery = new StringBuilder();
+                final FilterSQLRequest query = new FilterSQLRequest(queryPrefix);
                 if (geometric) {
-                    currentQuery.append(query.toString()).append(" AND \"label\" ").append(likeOperator ).append(" '").append(term ).append("%' ").append(languageFilter);
+                    query.append(" AND ");
                 } else {
-                    currentQuery.append(query.toString()).append(" WHERE \"label\" ").append(likeOperator ).append(" '").append(term).append("%'").append(languageFilter);
+                    query.append(" WHERE ");
                 }
-                currentQuery.append(themeFilter.toString());
+                query.append("\"label\" ").append(likeOperator).appendValue(term + "%").append(" ");
+                appendLanguageFilter(language, false, query);
+                appendThemeFilter(themes, query);
 
                 boolean stop = false;
-                try (ResultSet result = stmt.executeQuery(currentQuery.toString())) {
+                try (final PreparedStatement pstmt = query.fillParams(c.prepareStatement(query.getRequest()));
+                     final ResultSet result = pstmt.executeQuery()) {
                     while (result.next()) {
                         stop = true;
                         String uric = result.getString(1);
@@ -540,16 +554,19 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
 
             if (searchMode == PREFIX_SUFFIX_REGEX || searchMode == AUTO_SEARCH) {
 
-                final StringBuilder currentQuery = new StringBuilder();
+                final FilterSQLRequest query = new FilterSQLRequest(queryPrefix);
                 if (geometric) {
-                    currentQuery.append(query.toString()).append(" AND \"label\" ").append(likeOperator).append(" '%").append(term ).append("%' ").append(languageFilter);
+                    query.append(" AND ");
                 } else {
-                    currentQuery.append(query.toString()).append(" WHERE \"label\" ").append(likeOperator).append(" '%").append(term).append("%'").append(languageFilter);
+                    query.append(" WHERE ");
                 }
-                currentQuery.append(themeFilter.toString());
+                query.append("\"label\" ").append(likeOperator).appendValue("%" + term + "%").append(" ");
+                appendLanguageFilter(language, false, query);
+                appendThemeFilter(themes, query);
 
                 boolean stop = false;
-                try (ResultSet result = stmt.executeQuery(currentQuery.toString())) {
+                try (final PreparedStatement pstmt = query.fillParams(c.prepareStatement(query.getRequest()));
+                     final ResultSet result = pstmt.executeQuery()) {
                     while (result.next()) {
                         stop        = true;
                         String uric = result.getString(1);
@@ -565,7 +582,7 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
                 }
             }
         } catch (SQLException ex) {
-            LOGGER.log(Level.WARNING, "exception in search:" + ex.getMessage() + '\n' + " for query: " + query.toString(), ex);
+            LOGGER.log(Level.WARNING, "exception in search:" + ex.getMessage() + '\n' + " for query: " + sb.toString(), ex);
         }
         return matchingConcept;
     }
@@ -584,32 +601,22 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
     public List<String> searchLabels(final String brutTerm, final int searchMode, final List<String> themes, final ISOLanguageCode language) {
         final List<String> results = new ArrayList<>();
 
-        final StringBuilder themeFilter = new StringBuilder();
-        if (themes != null && !themes.isEmpty()) {
-            themeFilter.append(" AND \"thesaurus_origine\" IN (");
-            for (String theme : themes) {
-                themeFilter.append("'").append(theme).append("',");
-            }
-            themeFilter.deleteCharAt(themeFilter.length() - 1);
-            themeFilter.append(')');
-        }
-
-        final String languageFilter = getLanguageFilter(language, false);
-        final StringBuilder query   = new StringBuilder();
+        final String queryPrefix = "SELECT \"label\" FROM \"" + schema + "\".\"terme_completion\" ";
 
         try (Connection c      = datasource.getConnection();
              Statement stmt    = c.createStatement()) {
 
-            final String term = brutTerm.replace("'", "''");
-            query.append("SELECT \"label\" FROM \"").append(schema).append("\".\"terme_completion\" ");
-
-
             if (searchMode == NO_WILD_CHAR || searchMode == AUTO_SEARCH) {
 
-                final String currentQuery = query.toString() + " WHERE \"label\"='" + term + "'" + themeFilter.toString() + languageFilter;
+                final FilterSQLRequest query = new FilterSQLRequest(queryPrefix);
+                query.append(" WHERE \"label\"=").appendValue(brutTerm);
+                appendLanguageFilter(language, false, query);
+                appendThemeFilter(themes, query);
+                
                 boolean stop = false;
 
-                try (ResultSet result = stmt.executeQuery(currentQuery)) {
+                try (final PreparedStatement pstmt = query.fillParams(c.prepareStatement(query.getRequest()));
+                     final ResultSet result = pstmt.executeQuery()) {
                     while (result.next()) {
                         stop = true;
                         results.add(result.getString(1));
@@ -621,10 +628,14 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
             }
 
             if (searchMode == PREFIX_REGEX || searchMode == AUTO_SEARCH) {
-                final String currentQuery = query.toString() + " WHERE \"label\" " + likeOperator + " '%" + term + "' " + themeFilter.toString() + languageFilter;
+                final FilterSQLRequest query = new FilterSQLRequest(queryPrefix);
+                query.append(" WHERE \"label\" " + likeOperator).appendValue("%" + brutTerm);
+                appendLanguageFilter(language, false, query);
+                appendThemeFilter(themes, query);
                 boolean stop = false;
 
-                try (ResultSet result = stmt.executeQuery(currentQuery)) {
+                try (final PreparedStatement pstmt = query.fillParams(c.prepareStatement(query.getRequest()));
+                     final ResultSet result = pstmt.executeQuery()) {
                     while (result.next()) {
                         stop        = true;
                         results.add(result.getString(1));
@@ -637,10 +648,14 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
 
             if (searchMode == SUFFIX_REGEX || searchMode == AUTO_SEARCH) {
 
-                final String currentQuery = query.toString() + " WHERE \"label\" " + likeOperator + " '" + term + "%'" + themeFilter.toString() + languageFilter;
+                final FilterSQLRequest query = new FilterSQLRequest(queryPrefix);
+                query.append(" WHERE \"label\" " + likeOperator).appendValue(brutTerm + "%");
+                appendLanguageFilter(language, false, query);
+                appendThemeFilter(themes, query);
                 boolean stop = false;
 
-                try (ResultSet result = stmt.executeQuery(currentQuery)) {
+                try (final PreparedStatement pstmt = query.fillParams(c.prepareStatement(query.getRequest()));
+                     final ResultSet result = pstmt.executeQuery()) {
                     while (result.next()) {
                         stop = true;
                         results.add(result.getString(1));
@@ -653,10 +668,14 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
 
             if (searchMode == PREFIX_SUFFIX_REGEX || searchMode == AUTO_SEARCH) {
 
-                final String currentQuery = query.toString() + " WHERE \"label\" " + likeOperator + " '%" + term + "%'" + themeFilter.toString() + languageFilter;
+                final FilterSQLRequest query = new FilterSQLRequest(queryPrefix);
+                query.append(" WHERE \"label\" " + likeOperator).appendValue("%" + brutTerm + "%");
+                appendLanguageFilter(language, false, query);
+                appendThemeFilter(themes, query);
                 boolean stop = false;
 
-                try (ResultSet result = stmt.executeQuery(currentQuery)) {
+                try (final PreparedStatement pstmt = query.fillParams(c.prepareStatement(query.getRequest()));
+                     final ResultSet result = pstmt.executeQuery()) {
                     while (result.next()) {
                         stop        = true;
                         results.add(result.getString(1));
@@ -668,7 +687,7 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
             }
 
         } catch (SQLException ex) {
-            LOGGER.log(Level.WARNING, "exception in search:" + ex.getMessage() + '\n' + " for query: " + query.toString(), ex);
+            LOGGER.log(Level.WARNING, "exception in search:" + ex.getMessage(), ex);
         }
         return results;
     }
@@ -846,7 +865,7 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
         }
         try (Connection c = datasource.getConnection();
              Statement stmt = c.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
+             ResultSet rs = stmt.executeQuery(query)) {//NOSONAR
 
             while (rs.next()) {
                 final String conceptURI = rs.getString(1);
@@ -861,26 +880,26 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
     @Override
     public List<Concept> getTopMostConcepts(final List<String> themes, final ISOLanguageCode language) {
         final List<Concept> result = new ArrayList<>();
-        final String query;
+        final FilterSQLRequest query;
         if (themes == null || themes.isEmpty()) {
-            query = "SELECT \"objet\" FROM \"" + schema + "\".\"" + TABLE_NAME + "\" WHERE \"predicat\"='http://www.w3.org/2004/02/skos/core#hasTopConcept'";
+            query = new FilterSQLRequest("SELECT \"objet\" FROM \"" + schema + "\".\"" + TABLE_NAME + "\" WHERE \"predicat\"='http://www.w3.org/2004/02/skos/core#hasTopConcept'");
         } else {
-            String themeValue = "";
-            for (String theme : themes) {
-                themeValue = "'" + theme + "',";
-            }
-            themeValue = themeValue.substring(0, themeValue.length() - 1);
-
-            query = "SELECT \"objet\" "
+            query = new FilterSQLRequest("SELECT \"objet\" "
                   + "FROM \"" + schema + "\".\"" + TABLE_NAME + "\" p,\"" + schema + "\".\"terme_completion\" t "
                   + "WHERE \"predicat\"='http://www.w3.org/2004/02/skos/core#hasTopConcept' "
                   + "AND p.\"objet\"=t.\"uri_concept\" "
-                  + "AND t.\"thesaurus_origine\" IN (" + themeValue + ")";
+                  + "AND t.\"thesaurus_origine\" IN (");
+
+            for (String theme : themes) {
+                query.appendValue(theme).append(",");
+            }
+            query.deleteCharAt(query.length() - 1);
+            query.append(")");
         }
 
         try (Connection c = datasource.getConnection();
-             Statement stmt = c.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
+             final PreparedStatement pstmt = query.fillParams(c.prepareStatement(query.getRequest()));
+             final ResultSet rs = pstmt.executeQuery()) {
 
             while (rs.next()) {
                 final String conceptURI = rs.getString(1);
@@ -898,7 +917,7 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
         final String query = "SELECT DISTINCT \"uri_concept\" FROM \"" + schema + "\".\"terme_completion\"";
         try (Connection c = datasource.getConnection();
              Statement stmt = c.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
+             ResultSet rs = stmt.executeQuery(query)) {//NOSONAR
 
             while (rs.next()) {
                 final String conceptURI = rs.getString(1);
@@ -937,12 +956,12 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
     @Override
     public List<String> getAllLabels(final int limit, final ISOLanguageCode language) {
         final List<String> response = new ArrayList<>();
-        final String languageFilter = getLanguageFilter(language, true);
-        final String query          = "SELECT \"label\" FROM \"" + schema + "\".\"terme_completion\" " + languageFilter;
+        final FilterSQLRequest query = new FilterSQLRequest("SELECT \"label\" FROM \"" + schema + "\".\"terme_completion\" ");
+        appendLanguageFilter(language, true, query);
 
         try (Connection c = datasource.getConnection();
-             Statement stmt = c.createStatement();
-             ResultSet result = stmt.executeQuery(query)) {
+             final PreparedStatement pstmt = query.fillParams(c.prepareStatement(query.getRequest()));
+             final ResultSet result = pstmt.executeQuery()) {
 
             while (result.next()) {
                 if (limit > 0 && response.size() < limit) {
@@ -967,12 +986,12 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
     @Override
     public List<String> getAllPreferedLabels(final int limit, final ISOLanguageCode language) {
         final List<String> response = new ArrayList<>();
-        final String languageFilter = getLanguageFilter(language, false);
-        final String query          = "SELECT \"label\" FROM \"" + schema + "\".\"terme_completion\" WHERE \"type_terme\"='prefLabel'" + languageFilter;
+        final FilterSQLRequest query = new FilterSQLRequest("SELECT \"label\" FROM \"" + schema + "\".\"terme_completion\" WHERE \"type_terme\"='prefLabel'");
+        appendLanguageFilter(language, false, query);
 
         try (Connection c = datasource.getConnection();
-             Statement stmt = c.createStatement();
-             ResultSet result = stmt.executeQuery(query)) {
+             final PreparedStatement pstmt = query.fillParams(c.prepareStatement(query.getRequest()));
+             final ResultSet result = pstmt.executeQuery()) {
 
             while (result.next()) {
                 if (limit > 0 && response.size() < limit) {
@@ -997,17 +1016,14 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
      */
     @Override
     public List<Word> getWords(final List<Word> buffer, final ISOLanguageCode language) {
-        final List<Word> result = (buffer != null) ? buffer : new ArrayList<Word>();
-        final String languageFilter;
+        final List<Word> result = (buffer != null) ? buffer : new ArrayList<>();
+        final FilterSQLRequest query = new FilterSQLRequest("SELECT \"label\", \"thesaurus_origine\", \"uri_concept\" FROM \"" + schema + "\".\"terme_completion\" ");
         if (language != null) {
-            languageFilter = getLanguageFilter(language, true);
-        } else {
-            languageFilter = "";
+            appendLanguageFilter(language, true, query);
         }
-        final String query   = "SELECT \"label\", \"thesaurus_origine\", \"uri_concept\" FROM \"" + schema + "\".\"terme_completion\" " + languageFilter;
         try (Connection c = datasource.getConnection();
-             Statement stmt = c.createStatement();
-             ResultSet res = stmt.executeQuery(query)) {
+             final PreparedStatement pstmt = query.fillParams(c.prepareStatement(query.getRequest()));
+             final ResultSet res = pstmt.executeQuery()) {
 
             while (res.next()) {
                 final String label = res.getString(1).replace("\"", "\\\"");
@@ -1090,7 +1106,7 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
                     + "WHERE \"uri_concept\"=?";
 
         try (Connection c = datasource.getConnection();
-             PreparedStatement stmt = c.prepareStatement(query)) {
+             PreparedStatement stmt = c.prepareStatement(query)) {//NOSONAR
             stmt.setString(1, uriConcept);
             try (ResultSet res = stmt.executeQuery()) {
                 if (res.next()) {
@@ -1149,7 +1165,7 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
 
     public String getConceptPrefLabel(final String uriConcept, final String language) {
         try (Connection con = datasource.getConnection();
-             PreparedStatement stmt = con.prepareStatement("SELECT \"label\" FROM \"" + schema + "\".\"terme_completion\" WHERE \"uri_concept\"=?");) {
+             PreparedStatement stmt = con.prepareStatement("SELECT \"label\" FROM \"" + schema + "\".\"terme_completion\" WHERE \"uri_concept\"=?");) {//NOSONAR
             stmt.setString(1, uriConcept);
             String label = null;
             try (ResultSet rs = stmt.executeQuery()) {
@@ -1181,7 +1197,7 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
                 " GROUP BY pc.objet, tc.label, tc.type_terme, tc.langage_iso";
 
         try (Connection con = datasource.getConnection();
-             PreparedStatement stmt = con.prepareStatement(selectNarrowers)) {
+             PreparedStatement stmt = con.prepareStatement(selectNarrowers)) {//NOSONAR
 
             stmt.setString(1, conceptUri);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -1233,9 +1249,9 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
                 " WHERE pc.uri_concept = ?";
 
         try (Connection con = datasource.getConnection();
-             PreparedStatement termsStmt = con.prepareStatement(selectTerms);
-             PreparedStatement hasTopStmt = con.prepareStatement(selectHasTop);
-             PreparedStatement relationsStmt = con.prepareStatement(selectRelations)) {
+             PreparedStatement termsStmt = con.prepareStatement(selectTerms);//NOSONAR
+             PreparedStatement hasTopStmt = con.prepareStatement(selectHasTop);//NOSONAR
+             PreparedStatement relationsStmt = con.prepareStatement(selectRelations)) {//NOSONAR
 
             boolean found = false;
             FullConcept fullConcept = new FullConcept(conceptUri);

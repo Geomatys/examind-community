@@ -42,8 +42,6 @@ public interface SecurityManager {
 
     void logout();
 
-    void runAs(String login);
-
     void reset();
 }
 

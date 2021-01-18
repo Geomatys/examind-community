@@ -48,6 +48,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import org.constellation.thesaurus.api.ThesaurusException;
 
 /**
  *
@@ -55,7 +56,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
  */
 public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements WriteableThesaurus {
 
-    public ThesaurusDatabaseWriter(final DataSource datasource, final String schema, final boolean derby) {
+    public ThesaurusDatabaseWriter(final DataSource datasource, final String schema, final boolean derby) throws ThesaurusException {
         super(datasource, schema, derby);
     }
 
@@ -102,7 +103,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
 
     private void writeProperty(final String uriconcept, final String property, final String value, final Connection connection) throws SQLException {
         if (value == null) {return;}
-        try (PreparedStatement stmt = connection.prepareStatement("INSERT INTO \"" + schema + "\".\"" + TABLE_NAME + "\" VALUES (?, ?, ?, NULL)")) {
+        try (PreparedStatement stmt = connection.prepareStatement("INSERT INTO \"" + schema + "\".\"" + TABLE_NAME + "\" VALUES (?, ?, ?, NULL)")) {//NOSONAR
             stmt.setString(1, uriconcept);
             stmt.setString(2, property);
             stmt.setString(3, value);
@@ -112,12 +113,14 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
 
     private void updateProperty(final String uriconcept, final String property, final Object value, final Connection connection) throws SQLException {
         final boolean update;
-        try (Statement stmt = connection.createStatement();
-             ResultSet result = stmt.executeQuery(
-                "SELECT \"uri_concept\" FROM  \"" + schema + "\".\"" + TABLE_NAME + "\" " +
-                "WHERE \"uri_concept\"='" + uriconcept +"' " +
-                "AND \"predicat\"='" + property + "'")) {
-            update = result.next();
+        final String query = "SELECT \"uri_concept\" FROM  \"" + schema + "\".\"" + TABLE_NAME + "\" "
+                           + "WHERE \"uri_concept\"=? AND \"predicat\"=?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {//NOSONAR
+            stmt.setString(1, uriconcept);
+            stmt.setString(2, property);
+            try (ResultSet result = stmt.executeQuery()) {
+                update = result.next();
+            }
         }
 
         final String stringValue;
@@ -138,11 +141,11 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
         }
 
         if (update) {
-
             if (stringValue != null) {
-                try (PreparedStatement upStmt = connection.prepareStatement("UPDATE \"" + schema + "\".\"" + TABLE_NAME + "\" "
-                        + "SET \"objet\"=? "
-                        + "WHERE  \"uri_concept\"=? AND \"predicat\"=?")) {
+                final String upQuery = "UPDATE \"" + schema + "\".\"" + TABLE_NAME + "\" "
+                                     + "SET \"objet\"=? "
+                                     + "WHERE  \"uri_concept\"=? AND \"predicat\"=?";
+                try (PreparedStatement upStmt = connection.prepareStatement(upQuery)) {//NOSONAR
                     upStmt.setString(1, stringValue);
                     upStmt.setString(2, uriconcept);
                     upStmt.setString(3, property);
@@ -157,15 +160,14 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
     }
 
     private void deleteReference(final String uriconcept, final Connection connection) throws SQLException {
-        try (PreparedStatement deleteStmt = connection.prepareStatement("DELETE FROM \"" + schema + "\".\"" + TABLE_NAME + "\" WHERE  \"objet\"=?")) {
+        try (PreparedStatement deleteStmt = connection.prepareStatement("DELETE FROM \"" + schema + "\".\"" + TABLE_NAME + "\" WHERE  \"objet\"=?")) {//NOSONAR
             deleteStmt.setString(1, uriconcept);
             deleteStmt.executeUpdate();
         }
     }
 
     private void deleteProperty(final String uriconcept, final String property, final Connection connection) throws SQLException {
-        try (PreparedStatement deleteStmt = connection.prepareStatement("DELETE FROM \"" + schema + "\".\"" + TABLE_NAME + "\" "
-                + "WHERE  \"uri_concept\"=? AND \"predicat\"=?")) {
+        try (PreparedStatement deleteStmt = connection.prepareStatement("DELETE FROM \"" + schema + "\".\"" + TABLE_NAME + "\" WHERE  \"uri_concept\"=? AND \"predicat\"=?")) {//NOSONAR
             deleteStmt.setString(1, uriconcept);
             deleteStmt.setString(2, property);
             deleteStmt.executeUpdate();
@@ -173,8 +175,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
     }
 
     private void deleteAllProperty(final String uriconcept, final Connection connection) throws SQLException {
-        try (PreparedStatement deleteStmt = connection.prepareStatement("DELETE FROM \"" + schema + "\".\"" + TABLE_NAME + "\" "
-                + "WHERE  \"uri_concept\"=?")) {
+        try (PreparedStatement deleteStmt = connection.prepareStatement("DELETE FROM \"" + schema + "\".\"" + TABLE_NAME + "\" WHERE  \"uri_concept\"=?")) {//NOSONAR
             deleteStmt.setString(1, uriconcept);
             deleteStmt.executeUpdate();
         }
@@ -182,8 +183,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
 
     private void deleteLanguage(final ISOLanguageCode language) throws SQLException {
         try (Connection connection = datasource.getConnection();
-             PreparedStatement deleteStmt = connection.prepareStatement("DELETE FROM \"" + schema + "\".\"language\" "
-                + "WHERE  \"language_iso\"=?")) {
+             PreparedStatement deleteStmt = connection.prepareStatement("DELETE FROM \"" + schema + "\".\"language\" WHERE  \"language_iso\"=?")) {//NOSONAR
             deleteStmt.setString(1, language.getTwoLetterCode().toLowerCase());
             deleteStmt.executeUpdate();
         }
@@ -201,8 +201,9 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
     public void addLanguage(final ISOLanguageCode currentLanguage) throws SQLException {
         if (!languages.contains(currentLanguage)) {
             try (Connection connection = datasource.getConnection();
-                 Statement stmt = connection.createStatement()) {
-                stmt.executeUpdate("INSERT INTO \"" + schema + "\".\"language\" VALUES ('" + currentLanguage.getTwoLetterCode().toLowerCase() + "', 1)");
+                 PreparedStatement stmt = connection.prepareStatement("INSERT INTO \"" + schema + "\".\"language\" VALUES (?, 1)")) {//NOSONAR
+                stmt.setString(1, currentLanguage.getTwoLetterCode().toLowerCase());
+                stmt.executeUpdate();
             }
             languages.add(currentLanguage);
         }
@@ -224,14 +225,13 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
         }
 
         if (deleteBefore) {
-            try (PreparedStatement deleteStmt = connection.prepareStatement("DELETE FROM \"" + schema + "\".\"" + table + "\" "
-                    + "WHERE  \"uri_concept\"=? AND \"type_terme\"=?")) {
+            try (PreparedStatement deleteStmt = connection.prepareStatement("DELETE FROM \"" + schema + "\".\"" + table + "\" WHERE  \"uri_concept\"=? AND \"type_terme\"=?")) {//NOSONAR
                 deleteStmt.setString(1, uriconcept);
                 deleteStmt.setString(2, property);
                 deleteStmt.executeUpdate();
             }
         }
-        try (PreparedStatement stmt = connection.prepareStatement("INSERT INTO \"" + schema + "\".\"" + table + "\"" + " VALUES (?, ?, ?, ?, ?)")) {
+        try (PreparedStatement stmt = connection.prepareStatement("INSERT INTO \"" + schema + "\".\"" + table + "\"" + " VALUES (?, ?, ?, ?, ?)")) {//NOSONAR
             for (Value value : values) {
                 //we verify that the language is already registred otherwise we record it
                 lookForLanguageRegistration(value.getLang());
@@ -258,8 +258,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
         } else {
             table = "terme_localisation";
         }
-        try (PreparedStatement deleteStmt = connection.prepareStatement("DELETE FROM \"" + schema + "\".\"" + table + "\" "
-                + "WHERE  \"uri_concept\"=?")) {
+        try (PreparedStatement deleteStmt = connection.prepareStatement("DELETE FROM \"" + schema + "\".\"" + table + "\" WHERE  \"uri_concept\"=?")) {//NOSONAR
             deleteStmt.setString(1, uriconcept);
             deleteStmt.executeUpdate();
         }
@@ -267,10 +266,8 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
 
     private void deleteAllTermForLanguage(final ISOLanguageCode language) throws SQLException {
         try (Connection connection = datasource.getConnection();
-             PreparedStatement deleteStmt = connection.prepareStatement("DELETE FROM \"" + schema + "\".\"terme_completion\" "
-                    + "WHERE  \"langage_iso\"=?");
-             PreparedStatement deleteStmt2 = connection.prepareStatement("DELETE FROM \"" + schema + "\".\"terme_localisation\" "
-                    + "WHERE  \"langage_iso\"=?");) {
+             PreparedStatement deleteStmt  = connection.prepareStatement("DELETE FROM \"" + schema + "\".\"terme_completion\" WHERE  \"langage_iso\"=?");//NOSONAR
+             PreparedStatement deleteStmt2 = connection.prepareStatement("DELETE FROM \"" + schema + "\".\"terme_localisation\" WHERE  \"langage_iso\"=?")) {//NOSONAR
 
             deleteStmt.setString(1, language.getTwoLetterCode().toLowerCase());
             deleteStmt.executeUpdate();
@@ -397,7 +394,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
 
     @Override
     public void deleteConceptCascad(final Concept concept) throws SQLException {
-        deleteConceptCascad(concept, new HashMap<String, Concept>());
+        deleteConceptCascad(concept, new HashMap<>());
     }
 
     private void deleteConceptCascad(final Concept concept, final Map<String, Concept> alreadyProcess) throws SQLException {
@@ -444,6 +441,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
      *
      * @param conceptUri the concept uri
      */
+    @Override
     public void deleteConcept(String conceptUri) {
         try {
             deleteConcept(new Concept(conceptUri));
@@ -457,6 +455,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
      *
      * @param conceptUri the concept uri
      */
+    @Override
     public void deleteConceptCascade(String conceptUri) {
         try {
             deleteConceptCascad(new Concept(conceptUri));
@@ -472,17 +471,16 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
      */
     public void insertConcept(FullConcept fullConcept) {
 
-        String insertRelation = "INSERT INTO \"" + schema + "\".propriete_concept" +
-                " (uri_concept, predicat, objet) VALUES (?, ?, ?)";
+        String insertRelation = "INSERT INTO \"" + schema + "\".propriete_concept (uri_concept, predicat, objet) VALUES (?, ?, ?)";
 
         String insertComplTerm = "INSERT INTO \"" + schema + "\".terme_completion VALUES (?, ?, ?, ?, ?)";
 
         String insertLocalTerm = "INSERT INTO \"" + schema + "\".terme_localisation VALUES (?, ?, ?, ?, ?)";
 
         try (Connection con = datasource.getConnection();
-             PreparedStatement relationStmt = con.prepareStatement(insertRelation);
-             PreparedStatement complTermStmt = con.prepareStatement(insertComplTerm);
-             PreparedStatement lacalTermStmt = con.prepareStatement(insertLocalTerm)) {
+             PreparedStatement relationStmt = con.prepareStatement(insertRelation);//NOSONAR
+             PreparedStatement complTermStmt = con.prepareStatement(insertComplTerm);//NOSONAR
+             PreparedStatement lacalTermStmt = con.prepareStatement(insertLocalTerm)) {//NOSONAR
 
             // Type.
             relationStmt.setString(1, fullConcept.getUri());
@@ -627,8 +625,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
     @Override
     public void updateThesaurusProperties() throws SQLException {
         try (Connection connection = datasource.getConnection();
-             PreparedStatement upStmt = connection.prepareStatement("UPDATE \"" + schema + "\".\"propriete_thesaurus\" "
-                + "SET \"uri\"=?, \"name\"=?, \"description\"=?, \"enable\"=?, \"defaultLang\"=?")) {
+             PreparedStatement upStmt = connection.prepareStatement("UPDATE \"" + schema + "\".\"propriete_thesaurus\" SET \"uri\"=?, \"name\"=?, \"description\"=?, \"enable\"=?, \"defaultLang\"=?")) {//NOSONAR
             final int enable;
             if (state) {
                 enable = 1;
@@ -664,12 +661,15 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
             }
             runner.run(sql);
             if (languages != null) {
-                for (ISOLanguageCode language : languages) {
-                    runner.run("INSERT INTO \"" + schema + "\".\"language\" VALUES ('" + language.getTwoLetterCode().toLowerCase() + "', 1);");
+                try (PreparedStatement stmt = connection.prepareStatement("INSERT INTO \"" + schema + "\".\"language\" VALUES (?, 1)")) {//NOSONAR
+                    for (ISOLanguageCode language : languages) {
+                        stmt.setString(1, language.getTwoLetterCode().toLowerCase());
+                        stmt.executeUpdate();
+                    }
                 }
             }
             runner.close(false);
-            try (PreparedStatement stmt = connection.prepareStatement("INSERT INTO \"" + schema + "\".\"propriete_thesaurus\" VALUES (?, ?, ?, ?, 1)")) {
+            try (PreparedStatement stmt = connection.prepareStatement("INSERT INTO \"" + schema + "\".\"propriete_thesaurus\" VALUES (?, ?, ?, ?, 1)")) {//NOSONAR
                 stmt.setString(1, uri);
                 stmt.setString(2, name);
                 stmt.setString(3, description);
@@ -685,25 +685,19 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
 
     @Override
     public void delete() throws SQLException {
-        try (Connection connection = datasource.getConnection()) {
-            final ScriptRunner runner;
+        try (Connection connection = datasource.getConnection();
+             Statement stmt = connection.createStatement()) {
             if (derby) {
-                runner = new DerbySqlScriptRunner(connection);
-                runner.run("DROP TABLE \"" + schema +"\".\"language\";");
-                runner.run("DROP TABLE \"" + schema +"\".\"propriete_concept\";");
-                runner.run("DROP TABLE \"" + schema +"\".\"propriete_thesaurus\";");
-                runner.run("DROP TABLE \"" + schema +"\".\"terme_completion\";");
-                runner.run("DROP TABLE \"" + schema +"\".\"terme_localisation\";");
-                runner.run("DROP SCHEMA \"" + schema +"\" RESTRICT;");
+                stmt.executeUpdate("DROP TABLE \"" + schema +"\".\"language\"");//NOSONAR
+                stmt.executeUpdate("DROP TABLE \"" + schema +"\".\"propriete_concept\"");//NOSONAR
+                stmt.executeUpdate("DROP TABLE \"" + schema +"\".\"propriete_thesaurus\"");//NOSONAR
+                stmt.executeUpdate("DROP TABLE \"" + schema +"\".\"terme_completion\"");//NOSONAR
+                stmt.executeUpdate("DROP TABLE \"" + schema +"\".\"terme_localisation\"");//NOSONAR
+                stmt.executeUpdate("DROP SCHEMA \"" + schema +"\" RESTRICT");//NOSONAR
             } else {
-                runner = new ScriptRunner(connection);
-                runner.run("DROP SCHEMA \"" + schema + "\" CASCADE;");
+                stmt.executeUpdate("DROP SCHEMA \"" + schema + "\" CASCADE");//NOSONAR
             }
-            runner.close(false);
-        } catch (IOException ex) {
-            // should never happen
-            LOGGER.log(Level.WARNING, "IOException while deleting thesaurus", ex);
-        }
+        } 
     }
 
     @Override
@@ -719,12 +713,10 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
         /*
          * 1) look for concept with no broader
          */
+        final String query = " SELECT distinct \"uri_concept\" FROM \"" + schema + "\".\"propriete_concept\"  WHERE \"uri_concept\" NOT IN ("
+                           + " SELECT distinct \"uri_concept\" FROM \"" + schema + "\".\"propriete_concept\" WHERE \"predicat\"='http://www.w3.org/2004/02/skos/core#broader')";
         try (Connection connection = datasource.getConnection();
-             PreparedStatement stmt = connection.prepareStatement(" SELECT distinct \"uri_concept\" " +
-                    " FROM \"" + schema + "\".\"propriete_concept\" " +
-                    " WHERE \"uri_concept\" NOT IN (" +
-                    " SELECT distinct \"uri_concept\" FROM \"" + schema + "\".\"propriete_concept\" " +
-                    " WHERE \"predicat\"='http://www.w3.org/2004/02/skos/core#broader')");
+             PreparedStatement stmt = connection.prepareStatement(query);//NOSONAR
             ResultSet result = stmt.executeQuery()) {
             while (result.next()) {
                 topConcepts.add(readConcept(result.getString(1), false, connection, null));

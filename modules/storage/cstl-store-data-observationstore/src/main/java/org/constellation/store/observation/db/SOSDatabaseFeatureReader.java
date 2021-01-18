@@ -13,7 +13,9 @@ import org.apache.sis.feature.builder.AttributeTypeBuilder;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
 import org.apache.sis.internal.feature.AttributeConvention;
 import org.apache.sis.referencing.CRS;
+import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.logging.Logging;
+import org.constellation.util.Util;
 import org.geotoolkit.storage.feature.FeatureReader;
 import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
 import org.geotoolkit.data.om.OMFeatureTypes;
@@ -40,15 +42,18 @@ class SOSDatabaseFeatureReader implements FeatureReader {
     protected final String schemaPrefix;
     
     @SuppressWarnings("squid:S2095")
-    SOSDatabaseFeatureReader(Connection cnx, boolean isPostgres, final FeatureType type, final String schemaPrefix) throws SQLException {
+    SOSDatabaseFeatureReader(Connection cnx, boolean isPostgres, final FeatureType type, final String schemaPrefix) throws SQLException, DataStoreException {
         this.type = type;
         this.cnx = cnx;
+        if (Util.containsForbiddenCharacter(schemaPrefix)) {
+            throw new DataStoreException("Invalid schema prefix value");
+        }
         this.schemaPrefix = schemaPrefix;
         final PreparedStatement stmtAll;
         if (isPostgres) {
-            stmtAll = cnx.prepareStatement("SELECT \"id\", \"name\", \"description\", \"sampledfeature\", st_asBinary(\"shape\"), \"crs\" FROM \"" + schemaPrefix + "om\".\"sampling_features\"");
+            stmtAll = cnx.prepareStatement("SELECT \"id\", \"name\", \"description\", \"sampledfeature\", st_asBinary(\"shape\"), \"crs\" FROM \"" + schemaPrefix + "om\".\"sampling_features\"");//NOSONAR
         } else {
-            stmtAll = cnx.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"sampling_features\"");
+            stmtAll = cnx.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"sampling_features\"");//NOSONAR
         }
         result = stmtAll.executeQuery();
 

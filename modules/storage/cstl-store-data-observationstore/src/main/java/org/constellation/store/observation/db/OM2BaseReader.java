@@ -43,6 +43,7 @@ import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.api.CommonConstants;
+import org.constellation.util.Util;
 import org.geotoolkit.geometry.jts.SRIDGenerator;
 import org.geotoolkit.gml.JTStoGeometry;
 import org.geotoolkit.gml.xml.Envelope;
@@ -108,7 +109,7 @@ public class OM2BaseReader {
     protected static final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
     protected static final SimpleDateFormat format2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S");
 
-    public OM2BaseReader(final Map<String, Object> properties, final String schemaPrefix, final boolean cacheEnabled, final boolean isPostgres, final boolean timescaleDB) {
+    public OM2BaseReader(final Map<String, Object> properties, final String schemaPrefix, final boolean cacheEnabled, final boolean isPostgres, final boolean timescaleDB) throws DataStoreException {
         this.isPostgres = isPostgres;
         this.timescaleDB = timescaleDB;
         final String phenID = (String) properties.get(CommonConstants.PHENOMENON_ID_BASE);
@@ -133,6 +134,9 @@ public class OM2BaseReader {
         if (schemaPrefix == null) {
             this.schemaPrefix = "";
         } else {
+            if (Util.containsForbiddenCharacter(schemaPrefix)) {
+                throw new DataStoreException("Invalid schema prefix value");
+            }
             this.schemaPrefix = schemaPrefix;
         }
         this.cacheEnabled = cacheEnabled;
@@ -177,8 +181,8 @@ public class OM2BaseReader {
             final byte[] b;
             final int srid;
             try (final PreparedStatement stmt = (isPostgres) ?
-                c.prepareStatement("SELECT \"id\", \"name\", \"description\", \"sampledfeature\", st_asBinary(\"shape\"), \"crs\" FROM \"" + schemaPrefix + "om\".\"sampling_features\" WHERE \"id\"=?") :
-                c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"sampling_features\" WHERE \"id\"=?")) {
+                c.prepareStatement("SELECT \"id\", \"name\", \"description\", \"sampledfeature\", st_asBinary(\"shape\"), \"crs\" FROM \"" + schemaPrefix + "om\".\"sampling_features\" WHERE \"id\"=?") ://NOSONAR
+                c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"sampling_features\" WHERE \"id\"=?")) {//NOSONAR
                 stmt.setString(1, id);
                 try (final ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
@@ -258,7 +262,7 @@ public class OM2BaseReader {
         }
         try {
             // look for composite phenomenon
-            try (final PreparedStatement stmt = c.prepareStatement("SELECT \"component\" FROM \"" + schemaPrefix + "om\".\"components\" WHERE \"phenomenon\"=? ORDER BY \"order\" ASC")) {
+            try (final PreparedStatement stmt = c.prepareStatement("SELECT \"component\" FROM \"" + schemaPrefix + "om\".\"components\" WHERE \"phenomenon\"=? ORDER BY \"order\" ASC")) {//NOSONAR
                 stmt.setString(1, observedProperty);
                 try(final ResultSet rs = stmt.executeQuery()) {
                     final List<Phenomenon> phenomenons = new ArrayList<>();
@@ -294,7 +298,7 @@ public class OM2BaseReader {
         }
         try {
             // look for composite phenomenon
-            try (final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"observed_properties\" WHERE \"id\"=?")) {
+            try (final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"observed_properties\" WHERE \"id\"=?")) {//NOSONAR
                 stmt.setString(1, observedProperty);
                 try(final ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
@@ -326,7 +330,7 @@ public class OM2BaseReader {
 
     protected List<Field> readFields(final String procedureID, final Connection c) throws SQLException {
         final List<Field> results = new ArrayList<>();
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? ORDER BY \"order\"")) {
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? ORDER BY \"order\"")) {//NOSONAR
             stmt.setString(1, procedureID);
             try(final ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -341,7 +345,7 @@ public class OM2BaseReader {
     }
 
     protected Field getTimeField(final String procedureID, final Connection c) throws SQLException {
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"field_type\"='Time' ORDER BY \"order\"")) {
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"field_type\"='Time' ORDER BY \"order\"")) {//NOSONAR
             stmt.setString(1, procedureID);
             try (final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -365,7 +369,7 @@ public class OM2BaseReader {
      * @throws SQLException
      */
     protected Field getMainField(final String procedureID, final Connection c) throws SQLException {
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"order\"=1")) {
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"order\"=1")) {//NOSONAR
             stmt.setString(1, procedureID);
             try (final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -390,7 +394,7 @@ public class OM2BaseReader {
      */
     protected List<Field> getPosFields(final String procedureID, final Connection c) throws SQLException {
         final List<Field> results = new ArrayList<>();
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND (\"field_name\"='lat' OR \"field_name\"='lon') ORDER BY \"order\" DESC")) {
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND (\"field_name\"='lat' OR \"field_name\"='lon') ORDER BY \"order\" DESC")) {//NOSONAR
             stmt.setString(1, procedureID);
             try (final ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -406,7 +410,7 @@ public class OM2BaseReader {
     }
 
     protected Field getFieldForPhenomenon(final String procedureID, final String phenomenon, final Connection c) throws SQLException {
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND (\"field_definition\"= ?)")) {
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND (\"field_definition\"= ?)")) {//NOSONAR
             stmt.setString(1, procedureID);
             stmt.setString(2, phenomenon);
             try(final ResultSet rs = stmt.executeQuery()) {
@@ -422,7 +426,7 @@ public class OM2BaseReader {
     }
 
     protected int getPIDFromObservation(final String obsIdentifier, final Connection c) throws SQLException {
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"pid\" FROM \"" + schemaPrefix + "om\".\"observations\", \"" + schemaPrefix + "om\".\"procedures\" p WHERE \"identifier\"=? AND \"procedure\"=p.\"id\"")) {
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"pid\" FROM \"" + schemaPrefix + "om\".\"observations\", \"" + schemaPrefix + "om\".\"procedures\" p WHERE \"identifier\"=? AND \"procedure\"=p.\"id\"")) {//NOSONAR
             stmt.setString(1, obsIdentifier);
             try(final ResultSet rs = stmt.executeQuery()) {
                 int pid = -1;
@@ -435,7 +439,7 @@ public class OM2BaseReader {
     }
 
     protected int getPIDFromProcedure(final String procedure, final Connection c) throws SQLException {
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"pid\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"pid\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {//NOSONAR
             stmt.setString(1, procedure);
             try(final ResultSet rs = stmt.executeQuery()) {
                 int pid = -1;
@@ -448,7 +452,7 @@ public class OM2BaseReader {
     }
     
     protected String getProcedureOMType(final String procedure, final Connection c) throws SQLException {
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"om_type\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"om_type\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {//NOSONAR
             stmt.setString(1, procedure);
             try(final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -460,7 +464,7 @@ public class OM2BaseReader {
     }
 
     protected String getProcedureFromObservation(final String obsIdentifier, final Connection c) throws SQLException {
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"procedure\" FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"identifier\"=?")) {
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"procedure\" FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"identifier\"=?")) {//NOSONAR
             stmt.setString(1, obsIdentifier);
             try(final ResultSet rs = stmt.executeQuery()) {
                 String pid = null;
@@ -473,7 +477,7 @@ public class OM2BaseReader {
     }
 
     protected String getProcedureParent(final String procedureId, final Connection c) throws SQLException {
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"parent\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"parent\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {//NOSONAR
             stmt.setString(1, procedureId);
             try(final ResultSet rs = stmt.executeQuery()) {
                 String parent = null;

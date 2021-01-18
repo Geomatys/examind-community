@@ -56,6 +56,7 @@ import org.apache.sis.storage.event.StoreEvent;
 import org.apache.sis.storage.event.StoreListener;
 import org.apache.sis.storage.event.StoreListeners;
 import org.constellation.api.CommonConstants;
+import org.constellation.util.Util;
 import org.geotoolkit.storage.event.FeatureStoreContentEvent;
 import org.geotoolkit.data.om.OMFeatureTypes;
 import static org.geotoolkit.data.om.OMFeatureTypes.*;
@@ -153,6 +154,9 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
             if (sp == null) {
                 this.schemaPrefix = "";
             } else {
+                if (Util.containsForbiddenCharacter(sp)) {
+                    throw new DataStoreException("Invalid schema prefix value");
+                }
                 this.schemaPrefix = sp;
             }
 

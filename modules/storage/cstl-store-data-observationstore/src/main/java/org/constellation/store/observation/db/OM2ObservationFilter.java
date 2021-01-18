@@ -19,6 +19,7 @@
 
 package org.constellation.store.observation.db;
 
+import org.constellation.util.FilterSQLRequest;
 import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.observation.ObservationFilterReader;
@@ -1051,7 +1052,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
     public boolean existProcedure(String procedure) {
         try(final Connection c   = source.getConnection();
-            final PreparedStatement stmt = c.prepareStatement("SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {
+            final PreparedStatement stmt = c.prepareStatement("SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {//NOSONAR
             stmt.setString(1, procedure);
 
             try (final ResultSet rs   = stmt.executeQuery()) {
@@ -1097,7 +1098,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         if (foi != null) {
             request = request + " AND \"foi\"=?";
         }
-        try(final PreparedStatement stmt = c.prepareStatement(request)) {
+        try(final PreparedStatement stmt = c.prepareStatement(request)) {//NOSONAR
             stmt.setString(1, procedure);
             stmt.setString(2, observedProperty);
             if (foi != null) {

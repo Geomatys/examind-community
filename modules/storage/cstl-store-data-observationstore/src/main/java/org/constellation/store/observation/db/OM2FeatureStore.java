@@ -57,6 +57,7 @@ import org.apache.sis.storage.WritableFeatureSet;
 import org.apache.sis.util.logging.Logging;
 import static org.constellation.store.observation.db.OM2FeatureStoreFactory.SCHEMA_PREFIX;
 import static org.constellation.store.observation.db.OM2FeatureStoreFactory.SGBDTYPE;
+import org.constellation.util.Util;
 import org.geotoolkit.storage.feature.FeatureReader;
 import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
 import org.geotoolkit.storage.feature.FeatureWriter;
@@ -108,13 +109,16 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
 
     private final List<Resource> components = new ArrayList<>();
 
-    public OM2FeatureStore(final ParameterValueGroup params, final ManageableDataSource source) {
+    public OM2FeatureStore(final ParameterValueGroup params, final ManageableDataSource source) throws DataStoreException {
         this.parameters = Parameters.castOrWrap(params);
         this.source = source;
         Object sgbdtype = parameters.getMandatoryValue(SGBDTYPE);
         isPostgres = !("derby".equals(sgbdtype));
         String sc = parameters.getValue(SCHEMA_PREFIX);
         if (sc != null) {
+            if (Util.containsForbiddenCharacter(sc)) {
+                throw new DataStoreException("Invalid schema prefix value");
+            }
             schemaPrefix = sc;
         } else {
             schemaPrefix = "";
@@ -179,7 +183,7 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
         PreparedStatement stmtLastId = null;
         try {
             cnx = getConnection();
-            stmtLastId = cnx.prepareStatement("SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"procedures\" ORDER BY \"id\" ASC");
+            stmtLastId = cnx.prepareStatement("SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"procedures\" ORDER BY \"id\" ASC");//NOSONAR
             try (final ResultSet result = stmtLastId.executeQuery()) {
                 // keep the last
                 String id = null;
@@ -237,9 +241,9 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
             cnx = getConnection();
             final PreparedStatement stmtAll;
             if (isPostgres) {
-                stmtAll = cnx.prepareStatement("SELECT  \"id\", \"postgis\".st_asBinary(\"shape\"), \"crs\" FROM \"" + schemaPrefix + "om\".\"procedures\"");
+                stmtAll = cnx.prepareStatement("SELECT  \"id\", \"postgis\".st_asBinary(\"shape\"), \"crs\" FROM \"" + schemaPrefix + "om\".\"procedures\"");//NOSONAR
             } else {
-                stmtAll = cnx.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedures\"");
+                stmtAll = cnx.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedures\"");//NOSONAR
             }
             result = stmtAll.executeQuery();
         }
@@ -357,7 +361,7 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
                 return;
             }
 
-            try (PreparedStatement stmtDelete = cnx.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\" = ?")) {
+            try (PreparedStatement stmtDelete = cnx.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\" = ?")) {//NOSONAR
 
                 stmtDelete.setString(1, FeatureExt.getId(candidate).getID());
                 stmtDelete.executeUpdate();
@@ -413,7 +417,7 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
             PreparedStatement stmtWrite = null;
             try {
                 cnx = getConnection();
-                stmtWrite = cnx.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"procedures\" VALUES(?,?,?)");
+                stmtWrite = cnx.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"procedures\" VALUES(?,?,?)");//NOSONAR
 
                 while (features.hasNext()) {
                     final Feature feature = features.next();
@@ -476,7 +480,7 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
                     }
                 }
             } catch (SQLException ex) {
-                Logger.getLogger(OM2FeatureStore.class.getName()).log(Level.SEVERE, null, ex);
+                LOGGER.log(Level.SEVERE, null, ex);
             }
             return match;
         }

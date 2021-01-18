@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.feature.FeatureExt;
 import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
@@ -25,7 +26,7 @@ class SOSDatabaseFeatureWriter extends SOSDatabaseFeatureReader implements Featu
 
     Feature candidate = null;
 
-    SOSDatabaseFeatureWriter(Connection cnx, boolean isPostgres, final FeatureType type, final String schemaPrefix) throws SQLException {
+    SOSDatabaseFeatureWriter(Connection cnx, boolean isPostgres, final FeatureType type, final String schemaPrefix) throws SQLException, DataStoreException {
         super(cnx, isPostgres, type, schemaPrefix);
     }
 
@@ -47,7 +48,7 @@ class SOSDatabaseFeatureWriter extends SOSDatabaseFeatureReader implements Featu
             return;
         }
 
-        try (PreparedStatement stmtDelete = cnx.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"sampling_features\" WHERE \"id\" = ?")) {
+        try (PreparedStatement stmtDelete = cnx.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"sampling_features\" WHERE \"id\" = ?")) {//NOSONAR
             stmtDelete.setString(1, FeatureExt.getId(candidate).getID());
             stmtDelete.executeUpdate();
         } catch (SQLException ex) {

@@ -19,7 +19,6 @@
 package org.constellation.metadata.core;
 
 import com.codahale.metrics.annotation.Timed;
-import org.apache.sis.util.logging.MonolineFormatter;
 import org.apache.sis.xml.MarshallerPool;
 import org.apache.sis.xml.Namespaces;
 import org.apache.sis.internal.xml.LegacyNamespaces;
@@ -118,7 +117,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.concurrent.locks.Lock;
-import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import org.apache.sis.storage.DataStoreException;
 
@@ -1654,29 +1652,6 @@ public class CSWworker extends AbstractWorker implements Refreshable {
             result.append(qn.getPrefix()).append(qn.getLocalPart()).append('\n');
         }
         return result.toString();
-    }
-
-    /**
-     * Redirect the logs into the specified folder.
-     * if the parameter ID is null or empty it create a file named "cstl-csw.log"
-     * else the file is named "ID-cstl-csw.log"
-     *
-     * @param id The ID of the service in a case of multiple sos server.
-     * @param filePath The path to the log folder.
-     */
-    private void initLogger(String id, String filePath) {
-        try {
-            if (id != null && !id.isEmpty()) {
-                id = id + '-';
-            }
-            final FileHandler handler = new FileHandler(filePath + '/'+ id + "cstl-csw.log");
-            handler.setFormatter(new MonolineFormatter(handler));
-            LOGGER.addHandler(handler);
-        } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE, "IO exception while trying to separate CSW Logs:{0}", ex.getMessage());
-        } catch (SecurityException ex) {
-            LOGGER.log(Level.SEVERE, "Security exception while trying to separate CSW Logs{0}", ex.getMessage());
-        }
     }
 
     /**

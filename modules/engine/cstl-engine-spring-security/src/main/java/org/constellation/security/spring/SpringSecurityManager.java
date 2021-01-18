@@ -22,13 +22,10 @@ import org.constellation.security.IncorrectCredentialsException;
 import org.constellation.security.NoSecurityManagerException;
 import org.constellation.security.SecurityManager;
 import org.constellation.security.UnknownAccountException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -90,15 +87,6 @@ public class SpringSecurityManager implements SecurityManager {
     public void login(final String login, final String pass)
             throws UnknownAccountException, IncorrectCredentialsException {
 
-    }
-
-    @Override
-    public void runAs(String login) {
-        //FIXME add role from DB.
-        Collection<SimpleGrantedAuthority> auths = new ArrayList<>();
-        auths.add(new SimpleGrantedAuthority("cstl-admin"));
-        Authentication authentication = new UsernamePasswordAuthenticationToken("admin", "admin", auths);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
     @Override

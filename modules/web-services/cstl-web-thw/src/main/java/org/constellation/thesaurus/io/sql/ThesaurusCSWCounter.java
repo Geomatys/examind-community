@@ -25,7 +25,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -41,6 +40,8 @@ import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import org.constellation.thesaurus.api.IThesaurusCSWCounter;
 import org.constellation.thesaurus.util.HTTPCommunicator;
+import org.constellation.util.FilterSQLRequest;
+import org.constellation.util.Util;
 import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.csw.xml.CSWMarshallerPool;
 import org.geotoolkit.csw.xml.ResultType;
@@ -178,17 +179,22 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
 
     protected void updateTermCount(final int serviceID, final String uriConcept, final String label, final List<String> aggregatedIdentifiers, final String language,
             final String termTableName, final String aggregatedTableName, final Connection c) {
-        try (PreparedStatement updateTCStmt = c.prepareStatement("UPDATE \"th_base\".\"" + termTableName + "\" "
-                                                               + "SET \"aggregated_count\"=? "
-                                                               + "WHERE \"label\"=? "
-                                                               + "AND \"service\"=? "
-                                                               + "AND \"language\"=? "
-                                                               + "AND \"uri_concept\"=?");
-            final PreparedStatement updateTIdStmt = c.prepareStatement("UPDATE \"th_base\".\"" + aggregatedTableName + "\" "
-                                                                     + "SET \"identifier\"=? "
-                                                                     + "WHERE \"label\"=? "
-                                                                     + "AND \"service\"=? "
-                                                                     + "AND \"uri_concept\"=? ")) {
+        if (Util.containsForbiddenCharacter(termTableName) || Util.containsForbiddenCharacter(aggregatedTableName)) {
+            throw new IllegalArgumentException("Invalid tableName value");
+        }
+        final String upTCquey = "UPDATE \"th_base\".\"" + termTableName + "\" "
+                              + "SET \"aggregated_count\"=? "
+                              + "WHERE \"label\"=? "
+                              + "AND \"service\"=? "
+                              + "AND \"language\"=? "
+                              + "AND \"uri_concept\"=?";
+        final String upTIquey = "UPDATE \"th_base\".\"" + aggregatedTableName + "\" "
+                              + "SET \"identifier\"=? "
+                              + "WHERE \"label\"=? "
+                              + "AND \"service\"=? "
+                              + "AND \"uri_concept\"=? ";
+        try (PreparedStatement updateTCStmt = c.prepareStatement(upTCquey);//NOSONAR
+            final PreparedStatement updateTIdStmt = c.prepareStatement(upTIquey)) {//NOSONAR
             updateTCStmt.setInt(1, aggregatedIdentifiers.size());
             updateTCStmt.setString(2, label);
             updateTCStmt.setInt(3, serviceID);
@@ -221,8 +227,11 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
             final String language, final String theme, final String termTableName, final String aggregatedTableName, final String uriThesaurus, final Connection c) {
         try {
             LOGGER.log(Level.FINER, "storing count for:{0} = {1} Aggregated = {2}", new Object[]{label, count, aggregatedIdentifiers.size()});
+            if (Util.containsForbiddenCharacter(termTableName) || Util.containsForbiddenCharacter(aggregatedTableName)) {
+                throw new IllegalArgumentException("Invalid tableName value");
+            }
 
-            try (PreparedStatement insertTermCountStatement = c.prepareStatement("INSERT INTO \"th_base\".\"" + termTableName + "\" VALUES (?,?,?,?,?,?,?,?)")) {
+            try (PreparedStatement insertTermCountStatement = c.prepareStatement("INSERT INTO \"th_base\".\"" + termTableName + "\" VALUES (?,?,?,?,?,?,?,?)")) {//NOSONAR
                 insertTermCountStatement.setString(1, label);
                 insertTermCountStatement.setInt(2, serviceID);
                 insertTermCountStatement.setString(3, language);
@@ -239,7 +248,7 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
                 sb.append(id).append(';');
             }
 
-            try (PreparedStatement insertTermIdStatement = c.prepareStatement("INSERT INTO \"th_base\".\"" + aggregatedTableName + "\" VALUES (?,?,?,?,?,?)")) {
+            try (PreparedStatement insertTermIdStatement = c.prepareStatement("INSERT INTO \"th_base\".\"" + aggregatedTableName + "\" VALUES (?,?,?,?,?,?)")) {//NOSONAR
                 insertTermIdStatement.setString(1, label);
                 insertTermIdStatement.setInt(2, serviceID);
                 insertTermIdStatement.setString(3, sb.toString());
@@ -298,13 +307,13 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
         } else {
             countColumn = "count";
         }
-        final StringBuilder request = new StringBuilder("SELECT \"uri_concept\", \"label\", \"");
+        final FilterSQLRequest request = new FilterSQLRequest("SELECT \"uri_concept\", \"label\", \"");
         request.append(countColumn);
         request.append("\" FROM \"th_base\".\"term_count\" tc, \"th_base\".\"linked_service\" ls");
         /*
          * 1) Language selection
          */
-        request.append(" WHERE \"language\"='").append(language.toUpperCase(Locale.US)).append("'");
+        request.append(" WHERE \"language\"=").appendValue(language.toUpperCase(Locale.US));
 
         /*
          * 2) If the specified CSW are null we search for all.
@@ -312,10 +321,10 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
         if (csw != null && !csw.isEmpty()) {
             request.append(" AND (");
             for (String cswUrl : csw) {
-                request.append("\"url\"='").append(cswUrl).append("' OR ");
+                request.append("\"url\"=").appendValue(cswUrl).append(" OR ");
             }
             request.delete(request.length() - 4, request.length());
-            request.append(')');
+            request.append(")");
         }
 
         /*
@@ -324,10 +333,10 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
         if (ignoreCsw != null && !ignoreCsw.isEmpty()) {
             request.append(" AND (");
             for (String cswUrl : ignoreCsw) {
-                request.append("\"url\"!='").append(cswUrl).append("' AND ");
+                request.append("\"url\"!=").appendValue(cswUrl).append(" AND ");
             }
             request.delete(request.length() - 5, request.length());
-            request.append(')');
+            request.append(")");
         }
 
         /*
@@ -336,17 +345,17 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
         if (themes != null && !themes.isEmpty()) {
             request.append(" AND (");
             for (String theme : themes) {
-                request.append("\"theme\"='").append(theme).append("' OR ");
+                request.append("\"theme\"=").appendValue(theme).append(" OR ");
             }
             request.delete(request.length() - 4, request.length());
-            request.append(')');
+            request.append(")");
         }
 
         /*
          * 5) we filter on the keyword.
          * @TODO use searchModel
          */
-        request.append(" AND \"label\" ").append(likeOperator).append("'").append(keyword).append("%'");
+        request.append(" AND \"label\" ").append(likeOperator).appendValue(keyword + "%");
 
         /*
          * 6) we exclude the zero occurence count for non aggregated.
@@ -365,19 +374,18 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
 
         request.append(" AND (");
         for (String thesaurus : thesaurusList) {
-            request.append("\"uri_thesaurus\"='").append(thesaurus).append("' OR ");
+            request.append("\"uri_thesaurus\"=").appendValue(thesaurus).append(" OR ");
         }
         request.delete(request.length() - 4, request.length());
-        request.append(')');
-
+        request.append(")");
 
         /*
          * 8) we execute the request
          */
-        final String requestValue = request.toString();
+        
         try (Connection c = datasource.getConnection();
-             Statement stmt = c.createStatement();
-             ResultSet rs = stmt.executeQuery(requestValue)){
+             final PreparedStatement pstmt = request.fillParams(c.prepareStatement(request.getRequest()));
+             ResultSet rs = pstmt.executeQuery()){
 
             while (rs.next()) {
                 final String uri_concept = rs.getString(1);
@@ -391,7 +399,7 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
                 }
             }
         } catch (SQLException ex) {
-            LOGGER.log(Level.WARNING, "SQL exception while executing:" + requestValue, ex);
+            LOGGER.log(Level.WARNING, "SQL exception while executing:" + request.toString(), ex);
         }
 
         /*
@@ -407,27 +415,26 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
     public Integer getNumeredCountForTerm(final String uriConcept, final String term, final String language, final List<String> csw, final String theme) {
         Integer result = null;
         try (Connection c = datasource.getConnection()) {
-            final StringBuilder sb = new StringBuilder("SELECT \"count\" FROM \"th_base\".\"term_count\" WHERE \"label\"=? AND \"language\"=? AND \"uri_concept\"=? ");
+            final FilterSQLRequest sb = new FilterSQLRequest("SELECT \"count\" FROM \"th_base\".\"term_count\" WHERE ");
+            sb.append("\"label\"=").appendValue(term);
+            sb.append("\"language\"=").appendValue(language.toUpperCase());
+            sb.append("\"uri_concept\"=").appendValue(uriConcept);
             if (csw != null && !csw.isEmpty()) {
                 sb.append(" AND (");
                 for (String url : csw) {
                     final String cswId = getCswID(url, c);
-                    sb.append("\"service\"='").append(cswId).append("' OR ");
+                    sb.append("\"service\"=").appendValue(cswId).append(" OR ");
                 }
                 sb.delete(sb.length() - 4, sb.length());
                 sb.append(" )");
             }
-            try (PreparedStatement stmt = c.prepareStatement(sb.toString())) {
-                stmt.setString(1, term);
-                stmt.setString(2, language.toUpperCase());
-                stmt.setString(3, uriConcept);
-                try (ResultSet rs = stmt.executeQuery()) {
-                    while (rs.next()) {
-                        if (result == null) {
-                            result = 0;
-                        }
-                        result += rs.getInt(1);
+            try (final PreparedStatement pstmt = sb.fillParams(c.prepareStatement(sb.getRequest()));
+                 final ResultSet rs            = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    if (result == null) {
+                        result = 0;
                     }
+                    result += rs.getInt(1);
                 }
             }
         } catch (SQLException ex) {
@@ -440,27 +447,26 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
     public Integer getAggregatedCountForTerm(final String uriConcept, final String term, final String language, final List<String> csw, final String theme) {
         Integer result = null;
         try (Connection c = datasource.getConnection()) {
-            final StringBuilder sb = new StringBuilder("SELECT \"aggregated_count\" FROM \"th_base\".\"term_count\" WHERE \"label\"=? AND \"language\"=? AND \"uri_concept\"=? ");
+            final FilterSQLRequest sb = new FilterSQLRequest("SELECT \"aggregated_count\" FROM \"th_base\".\"term_count\" WHERE ");
+            sb.append("\"label\"=").appendValue(term);
+            sb.append("\"language\"=").appendValue(language.toUpperCase());
+            sb.append("\"uri_concept\"=").appendValue(uriConcept);
             if (csw != null && !csw.isEmpty()) {
                 sb.append(" AND (");
                 for (String url : csw) {
                     final String cswId = getCswID(url, c);
-                    sb.append("\"service\"='").append(cswId).append("' OR ");
+                    sb.append("\"service\"=").appendValue(cswId).append(" OR ");
                 }
                 sb.delete(sb.length() - 4, sb.length());
                 sb.append(" )");
             }
-            try (PreparedStatement stmt = c.prepareStatement(sb.toString())) {
-                stmt.setString(1, term);
-                stmt.setString(2, language.toUpperCase());
-                stmt.setString(3, uriConcept);
-                try (ResultSet rs = stmt.executeQuery()) {
-                    while (rs.next()) {
-                        if (result == null) {
-                            result = 0;
-                        }
-                        result += rs.getInt(1);
+            try (final PreparedStatement pstmt = sb.fillParams(c.prepareStatement(sb.getRequest()));
+                 final ResultSet rs            = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    if (result == null) {
+                        result = 0;
                     }
+                    result += rs.getInt(1);
                 }
             }
         } catch (SQLException ex) {
@@ -498,25 +504,24 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
     public List<String> getAggregatedIdsForTerm(final String uriConcept, final String prefLabel, final String language, final List<String> csw, final String theme) {
         final List<String> results =  new ArrayList<>();
         try (Connection c = datasource.getConnection()) {
-            final StringBuilder sb = new StringBuilder("SELECT \"identifier\" FROM \"th_base\".\"aggregated_identifier\" WHERE \"label\"=? AND \"uri_concept\"=? AND \"language\"=?");
+            final FilterSQLRequest sb = new FilterSQLRequest("SELECT \"identifier\" FROM \"th_base\".\"aggregated_identifier\" WHERE ");
+            sb.append("\"label\"=").appendValue(prefLabel);
+            sb.append("\"language\"=").appendValue(language.toUpperCase());
+            sb.append("\"uri_concept\"=").appendValue(uriConcept);
             if (csw != null && !csw.isEmpty()) {
                 sb.append(" AND (");
                 for (String url : csw) {
                     final String cswId = getCswID(url, c);
-                    sb.append("\"service\"='").append(cswId).append("' OR ");
+                    sb.append("\"service\"=").appendValue(cswId).append(" OR ");
                 }
                 sb.delete(sb.length() - 4, sb.length());
                 sb.append(" )");
             }
-            try (PreparedStatement stmt = c.prepareStatement(sb.toString())) {
-                stmt.setString(1, prefLabel);
-                stmt.setString(2, uriConcept);
-                stmt.setString(3, language);
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        final String idList = rs.getString(1);
-                        results.addAll(Arrays.asList(idList.split(";")));
-                    }
+            try (final PreparedStatement pstmt = sb.fillParams(c.prepareStatement(sb.getRequest()));
+                 final ResultSet rs            = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    final String idList = rs.getString(1);
+                    results.addAll(Arrays.asList(idList.split(";")));
                 }
             }
         } catch (SQLException ex) {

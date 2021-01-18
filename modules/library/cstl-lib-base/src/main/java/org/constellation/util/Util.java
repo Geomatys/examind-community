@@ -255,4 +255,14 @@ public final class Util {
         }
         return processAuthority;
     }
+
+    /**
+     * return true if the specified string contains forbidden SQL characters, leading to potential SQL injection.
+     * 
+     * @param s
+     * @return
+     */
+    public static boolean containsForbiddenCharacter(String s) {
+        return s.contains("'") || s.contains("/") || s.contains("--") || s.contains("\"") || s.contains("*");
+    }
 }

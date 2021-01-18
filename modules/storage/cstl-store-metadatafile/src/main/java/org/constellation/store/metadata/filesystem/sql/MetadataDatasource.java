@@ -33,6 +33,7 @@ import java.util.logging.Logger;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import org.geotoolkit.internal.sql.ScriptRunner;
+import org.geotoolkit.metadata.MetadataIoException;
 import org.geotoolkit.nio.IOUtilities;
 
 /**
@@ -47,8 +48,11 @@ public class MetadataDatasource {
 
     private final String storeID;
 
-    public MetadataDatasource(final DataSource source, final String storeID) {
+    public MetadataDatasource(final DataSource source, final String storeID) throws MetadataIoException {
         this.source = source;
+        if (Util.containsForbiddenCharacter(storeID)) {
+            throw new MetadataIoException("Invalid store id value");
+        }
         this.storeID = storeID;
     }
 
@@ -58,8 +62,9 @@ public class MetadataDatasource {
      * @return a {@link org.constellation.store.metadata.filesystem.sql.Session} instance
      *
      * @throws  SQLException if a database access error occurs
+     * @throws org.apache.sis.storage.DataStoreException
      */
-    public Session createSession() throws SQLException {
+    public Session createSession() throws SQLException, MetadataIoException {
         final Connection c = source.getConnection();
         setup(c);
         return new Session(c, storeID);
@@ -68,7 +73,7 @@ public class MetadataDatasource {
     public void destroySchema() throws SQLException {
         try (final Connection c = source.getConnection();
              Statement stmt = c.createStatement()) {
-            stmt.executeUpdate("DROP SCHEMA \"" + storeID + "\" CASCADE");
+            stmt.executeUpdate("DROP SCHEMA \"" + storeID + "\" CASCADE");//NOSONAR
         }
     }
 

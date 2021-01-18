@@ -77,10 +77,13 @@ public class OM2DatabaseCreator {
 
     public static boolean structurePresent(final DataSource source, final String schemaPrefix) {
         if (source != null) {
+            if (Util.containsForbiddenCharacter(schemaPrefix)) {
+                throw new IllegalArgumentException("Invalid schema prefix value");
+            }
             try (final Connection con = source.getConnection();
                  final Statement stmt = con.createStatement()) {
 
-                try (final ResultSet resultObs = stmt.executeQuery("SELECT * FROM \"" + schemaPrefix + "om\".\"observed_properties\"")) {
+                try (final ResultSet resultObs = stmt.executeQuery("SELECT * FROM \"" + schemaPrefix + "om\".\"observed_properties\"")) {//NOSONAR
                     resultObs.next();
                 }
 
@@ -116,8 +119,11 @@ public class OM2DatabaseCreator {
 
     private static boolean newVersionTableMissing(final Connection con, final String schemaPrefix) {
         if (con != null) {
+            if (Util.containsForbiddenCharacter(schemaPrefix)) {
+                throw new IllegalArgumentException("Invalid schema prefix value");
+            }
             try (final Statement stmt = con.createStatement();
-                 final ResultSet result = stmt.executeQuery("SELECT * FROM \"" + schemaPrefix + "om\".\"version\"")) {
+                 final ResultSet result = stmt.executeQuery("SELECT * FROM \"" + schemaPrefix + "om\".\"version\"")) {//NOSONAR
                 result.next();
                 return false;
             } catch(SQLException ex) {
@@ -128,11 +134,14 @@ public class OM2DatabaseCreator {
     }
 
     private static void updateTableVersion(final Connection con, final String schemaPrefix) throws SQLException {
+        if (Util.containsForbiddenCharacter(schemaPrefix)) {
+            throw new IllegalArgumentException("Invalid schema prefix value");
+        }
         if (newVersionTableMissing(con, schemaPrefix)) {
             try (Statement stmt = con.createStatement()) {
-                stmt.executeUpdate("CREATE TABLE \"" + schemaPrefix + "om\".\"version\" (\"number\"   character varying(10) NOT NULL);");
-                stmt.executeUpdate("INSERT INTO \"" + schemaPrefix + "om\".\"version\" VALUES ('1.0.5');");
-                stmt.executeUpdate("ALTER TABLE \"" + schemaPrefix + "om\".\"version\" ADD CONSTRAINT version_pk PRIMARY KEY (\"number\");");
+                stmt.executeUpdate("CREATE TABLE \"" + schemaPrefix + "om\".\"version\" (\"number\"   character varying(10) NOT NULL);");//NOSONAR
+                stmt.executeUpdate("INSERT INTO \"" + schemaPrefix + "om\".\"version\" VALUES ('1.0.5');");//NOSONAR
+                stmt.executeUpdate("ALTER TABLE \"" + schemaPrefix + "om\".\"version\" ADD CONSTRAINT version_pk PRIMARY KEY (\"number\");");//NOSONAR
             }
         }
     }
@@ -168,8 +177,11 @@ public class OM2DatabaseCreator {
     }
 
     private static String getVersion(final Connection con, final String schemaPrefix) throws SQLException {
+        if (Util.containsForbiddenCharacter(schemaPrefix)) {
+            throw new IllegalArgumentException("Invalid schema prefix value");
+        }
         try (final Statement stmt = con.createStatement();
-             final ResultSet result = stmt.executeQuery("SELECT * FROM \"" + schemaPrefix + "om\".\"version\"")) {
+             final ResultSet result = stmt.executeQuery("SELECT * FROM \"" + schemaPrefix + "om\".\"version\"")) {//NOSONAR
             if (result.next()) {
                 return result.getString(1);
             }

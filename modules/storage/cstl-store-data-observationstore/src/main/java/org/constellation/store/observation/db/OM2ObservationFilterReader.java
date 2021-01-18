@@ -19,6 +19,7 @@
 
 package org.constellation.store.observation.db;
 
+import org.constellation.util.FilterSQLRequest;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
 import java.sql.Connection;

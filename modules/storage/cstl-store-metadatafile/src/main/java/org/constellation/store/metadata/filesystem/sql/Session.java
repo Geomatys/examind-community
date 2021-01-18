@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.constellation.util.Util;
+import org.geotoolkit.metadata.MetadataIoException;
 
 /**
  *
@@ -47,14 +49,17 @@ public class Session implements Closeable {
 
     private PreparedStatement updateStatement = null;
 
-    public Session(final Connection con, final String schema) {
+    public Session(final Connection con, final String schema) throws MetadataIoException {
         this.con = con;
+        if (Util.containsForbiddenCharacter(schema)) {
+            throw new MetadataIoException("Invalid schema value");
+        }
         this.schema = schema;
     }
 
     public boolean needAnalyze() {
         boolean result  = true;
-        try (final PreparedStatement stmt = con.prepareStatement("SELECT count(\"identifier\") FROM \"" + schema + "\".\"records\"");
+        try (final PreparedStatement stmt = con.prepareStatement("SELECT count(\"identifier\") FROM \"" + schema + "\".\"records\"");//NOSONAR
              final ResultSet rs = stmt.executeQuery()) {
             int count = 0;
             if (rs.next()) {
@@ -82,7 +87,7 @@ public class Session implements Closeable {
     public void putRecord(final String identifier, final String path) throws SQLException {
         try {
             if (insertStatement == null) {
-                insertStatement = con.prepareStatement("INSERT INTO \"" + schema + "\".\"records\" VALUES (?,?)");
+                insertStatement = con.prepareStatement("INSERT INTO \"" + schema + "\".\"records\" VALUES (?,?)");//NOSONAR
             }
             insertStatement.setString(1, identifier);
             insertStatement.setString(2, path);
@@ -96,7 +101,7 @@ public class Session implements Closeable {
     public void updateRecord(final String identifier, final String path) throws SQLException {
         try {
             if (updateStatement == null) {
-                updateStatement = con.prepareStatement("UPDATE \"" + schema + "\".\"records\" SET \"path\" = ? WHERE \"identifier\"=?");
+                updateStatement = con.prepareStatement("UPDATE \"" + schema + "\".\"records\" SET \"path\" = ? WHERE \"identifier\"=?");//NOSONAR
             }
             updateStatement.setString(1, path);
             updateStatement.setString(2, identifier);
@@ -108,7 +113,7 @@ public class Session implements Closeable {
     }
 
     public void removeRecord(final String identifier) throws SQLException {
-        try (final PreparedStatement stmt = con.prepareStatement("DELETE FROM \"" + schema + "\".\"records\" WHERE \"identifier\"=?")) {
+        try (final PreparedStatement stmt = con.prepareStatement("DELETE FROM \"" + schema + "\".\"records\" WHERE \"identifier\"=?")) {//NOSONAR
             stmt.setString(1, identifier);
             stmt.executeUpdate();
         } catch (SQLException unexpected) {
@@ -118,7 +123,7 @@ public class Session implements Closeable {
 
     public int getCount() throws SQLException {
         int count = 0;
-        try (final PreparedStatement stmt = con.prepareStatement("SELECT COUNT(*) FROM \"" + schema + "\".\"records\"");
+        try (final PreparedStatement stmt = con.prepareStatement("SELECT COUNT(*) FROM \"" + schema + "\".\"records\"");//NOSONAR
              final ResultSet rs = stmt.executeQuery()) {
             if (rs.next()) {
                 count = rs.getInt(1);
@@ -131,7 +136,7 @@ public class Session implements Closeable {
 
     public String getPathForRecord(final String identifier) throws SQLException {
         String result  = null;
-        try (final PreparedStatement stmt = con.prepareStatement("SELECT \"path\" FROM \"" + schema + "\".\"records\" WHERE \"identifier\"=?")) {
+        try (final PreparedStatement stmt = con.prepareStatement("SELECT \"path\" FROM \"" + schema + "\".\"records\" WHERE \"identifier\"=?")) {//NOSONAR
             stmt.setString(1, identifier);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -146,7 +151,7 @@ public class Session implements Closeable {
 
     public boolean existRecord(final String identifier) throws SQLException {
         boolean result  = false;
-        try (final PreparedStatement stmt = con.prepareStatement("SELECT \"path\" FROM \"" + schema + "\".\"records\" WHERE \"identifier\"=?")) {
+        try (final PreparedStatement stmt = con.prepareStatement("SELECT \"path\" FROM \"" + schema + "\".\"records\" WHERE \"identifier\"=?")) {//NOSONAR
             stmt.setString(1, identifier);
             try (ResultSet rs = stmt.executeQuery()) {
                 result = rs.next();
@@ -159,7 +164,7 @@ public class Session implements Closeable {
 
     public List<String> getRecordList() throws SQLException {
         final List<String> results  = new ArrayList<>();
-        try (final PreparedStatement stmt = con.prepareStatement("SELECT \"identifier\" FROM \"" + schema + "\".\"records\"");
+        try (final PreparedStatement stmt = con.prepareStatement("SELECT \"identifier\" FROM \"" + schema + "\".\"records\"");//NOSONAR
              final ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 results.add(rs.getString(1));
@@ -173,7 +178,7 @@ public class Session implements Closeable {
 
     public ResultSet getRecordIterator() {
         try {
-            final PreparedStatement stmt = con.prepareStatement("SELECT \"identifier\" FROM \"" + schema + "\".\"records\"");
+            final PreparedStatement stmt = con.prepareStatement("SELECT \"identifier\" FROM \"" + schema + "\".\"records\"");//NOSONAR
             return stmt.executeQuery();
 
         } catch (SQLException unexpected) {
@@ -184,7 +189,7 @@ public class Session implements Closeable {
 
     public ResultSet getPathIterator() {
         try {
-            final PreparedStatement stmt = con.prepareStatement("SELECT \"path\" FROM \"" + schema + "\".\"records\"");
+            final PreparedStatement stmt = con.prepareStatement("SELECT \"path\" FROM \"" + schema + "\".\"records\"");//NOSONAR
             return stmt.executeQuery();
 
         } catch (SQLException unexpected) {
@@ -195,7 +200,7 @@ public class Session implements Closeable {
 
     public ResultSet getIterator() {
         try {
-            final PreparedStatement stmt = con.prepareStatement("SELECT \"identifier\", \"path\" FROM \"" + schema + "\".\"records\"");
+            final PreparedStatement stmt = con.prepareStatement("SELECT \"identifier\", \"path\" FROM \"" + schema + "\".\"records\"");//NOSONAR
             return stmt.executeQuery();
 
         } catch (SQLException unexpected) {
@@ -220,7 +225,7 @@ public class Session implements Closeable {
     }
 
     public int clear() {
-        try (final PreparedStatement stmt = con.prepareStatement("DELETE FROM \"" + schema + "\".\"records\"")) {
+        try (final PreparedStatement stmt = con.prepareStatement("DELETE FROM \"" + schema + "\".\"records\"")) {//NOSONAR
 
             return stmt.executeUpdate();
         } catch (SQLException unexpected) {
