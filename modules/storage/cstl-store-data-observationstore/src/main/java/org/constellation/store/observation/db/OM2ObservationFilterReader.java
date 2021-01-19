@@ -420,7 +420,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     public List<Observation> getObservations(final Map<String,String> hints) throws DataStoreException {
         boolean includeIDInDataBlock  = false;
         boolean includeTimeForProfile = false;
-        ResultBuilder.Mode resultMode = ResultBuilder.Mode.CSV;
+        ResultMode resultMode = ResultMode.CSV;
         String version = "2.0.0";
         if (hints != null) {
             if (hints.containsKey("version")) {
@@ -434,7 +434,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             }
             if (hints.containsKey("directResultArray")) {
                 if (Boolean.parseBoolean(hints.get("directResultArray"))) {
-                    resultMode = ResultBuilder.Mode.DATA_ARRAY;
+                    resultMode = ResultMode.DATA_ARRAY;
                 }
             }
         }
@@ -878,15 +878,15 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     fields = readFields(currentProcedure, c);
                 }
                 if ("resultArray".equals(responseFormat)) {
-                    values = new ResultBuilder(ResultBuilder.Mode.DATA_ARRAY, null, false);
+                    values = new ResultBuilder(ResultMode.DATA_ARRAY, null, false);
                 } else if ("text/csv".equals(responseFormat)) {
-                    values = new ResultBuilder(ResultBuilder.Mode.CSV, getCsvTextEncoding("2.0.0"), true);
+                    values = new ResultBuilder(ResultMode.CSV, getCsvTextEncoding("2.0.0"), true);
                     // Add the header
                     values.appendHeaders(fields);
                 } else if ("count".equals(responseFormat)) {
-                    values = new ResultBuilder(ResultBuilder.Mode.COUNT, null, false);
+                    values = new ResultBuilder(ResultMode.COUNT, null, false);
                 } else {
-                    values = new ResultBuilder(ResultBuilder.Mode.CSV, getDefaultTextEncoding("2.0.0"), false);
+                    values = new ResultBuilder(ResultMode.CSV, getDefaultTextEncoding("2.0.0"), false);
                 }
                 while (rs.next()) {
                     values.newBlock();
@@ -978,13 +978,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                  final ResultSet rs = pstmt.executeQuery()) {
 
                 if ("resultArray".equals(responseFormat)) {
-                    values = new ResultBuilder(ResultBuilder.Mode.DATA_ARRAY, null, false);
+                    values = new ResultBuilder(ResultMode.DATA_ARRAY, null, false);
                 } else if ("text/csv".equals(responseFormat)) {
-                    values = new ResultBuilder(ResultBuilder.Mode.CSV, getCsvTextEncoding("2.0.0"), true);
+                    values = new ResultBuilder(ResultMode.CSV, getCsvTextEncoding("2.0.0"), true);
                     // Add the header
                     values.appendHeaders(fields);
                 } else {
-                    values = new ResultBuilder(ResultBuilder.Mode.CSV, getDefaultTextEncoding("2.0.0"), false);
+                    values = new ResultBuilder(ResultMode.CSV, getDefaultTextEncoding("2.0.0"), false);
                 }
                 final Map<Object, long[]> times = getMainFieldStep(fieldRequest, fields.get(0), c, width);
 
@@ -1182,13 +1182,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                  final ResultSet rs            = pstmt.executeQuery()) {
 
                 if ("resultArray".equals(responseFormat)) {
-                    values = new ResultBuilder(ResultBuilder.Mode.DATA_ARRAY, null, false);
+                    values = new ResultBuilder(ResultMode.DATA_ARRAY, null, false);
                 } else if ("text/csv".equals(responseFormat)) {
-                    values = new ResultBuilder(ResultBuilder.Mode.CSV, getCsvTextEncoding("2.0.0"), true);
+                    values = new ResultBuilder(ResultMode.CSV, getCsvTextEncoding("2.0.0"), true);
                     // Add the header
                     values.appendHeaders(fields);
                 } else {
-                    values = new ResultBuilder(ResultBuilder.Mode.CSV, getDefaultTextEncoding("2.0.0"), false);
+                    values = new ResultBuilder(ResultMode.CSV, getDefaultTextEncoding("2.0.0"), false);
                 }
 
                 while (rs.next()) {
@@ -1854,10 +1854,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
         @Override
         public boolean equals(Object obj) {
-            TripleKey that = (TripleKey) obj;
-            return this.i == that.i &&
-                   this.j == that.j &&
-                   this.t == that.t;
+            if (obj instanceof TripleKey) {
+                TripleKey that = (TripleKey) obj;
+                return this.i == that.i &&
+                       this.j == that.j &&
+                       this.t == that.t;
+            }
+            return false;
         }
 
         @Override
@@ -2136,15 +2139,15 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         return result;
     }
 
-    private static class ResultBuilder {
+    private static enum ResultMode {
+        DATA_ARRAY,
+        CSV,
+        COUNT
+    }
 
-        private static enum Mode {
-            DATA_ARRAY,
-            CSV,
-            COUNT
-        }
+    private class ResultBuilder {
 
-        private final Mode mode;
+        private final ResultMode mode;
         private final boolean csvHack;
         private boolean emptyLine;
 
@@ -2158,7 +2161,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         private int count = 0;
 
 
-        public ResultBuilder(Mode mode, final TextBlock encoding, boolean csvHack) {
+        public ResultBuilder(ResultMode mode, final TextBlock encoding, boolean csvHack) {
             this.mode = mode;
             this.csvHack = csvHack;
             this.encoding = encoding;
@@ -2280,7 +2283,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             }
         }
 
-        public Mode getMode() {
+        public ResultMode getMode() {
             return mode;
         }
     }

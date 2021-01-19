@@ -147,15 +147,15 @@ public enum ServiceDef {
     /**
      * Compare the current version with another version number.
      *
-     * @param str A string containing a version number.
+     * @param v A version number.
      *
      * @see org.apache.sis.util.Version#compareTo(org.apache.sis.util.Version)
      *
      * @return A negative value if this version is lower than the supplied version, a positive
      *         value if it is higher, or 0 if they are equal.
      */
-    public int compareTo(String str) {
-        return version.compareTo(new Version(str));
+    public int compareTo(Version v) {
+        return version.compareTo(v);
     }
 
     /**
@@ -360,7 +360,7 @@ public enum ServiceDef {
 
         @Override
         public int compare(ServiceDef o1, ServiceDef o2) {
-            return o2.version.toString().compareTo(o1.version.toString());
+            return o2.version.compareTo(o1.version);
         }
 
     }

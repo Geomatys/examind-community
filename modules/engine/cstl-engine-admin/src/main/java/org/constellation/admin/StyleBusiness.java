@@ -575,8 +575,8 @@ public class StyleBusiness implements IStyleBusiness {
                 }
             } else if (layer instanceof MutableUserLayer) {
                 final MutableUserLayer mnl = (MutableUserLayer) layer;
-                for (final MutableStyle stl : mnl.styles()) {
-                    return stl;
+                if (mnl.styles() != null && !mnl.styles().isEmpty()) {
+                    return mnl.styles().get(0);
                 }
             }
         }

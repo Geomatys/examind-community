@@ -350,34 +350,34 @@ public final class Utils {
                         }
 
                     } else {
-                        Method getter = null;
                         if (currentObject != null) {
                             /*
                              * we use the getter to determinate the parameter class.
                              */
-                            getter = ReflectionUtilities.getGetterFromName(attributeName, currentObject.getClass());
-                        }
+                            Class objClass = currentObject.getClass();
+                            Method getter = ReflectionUtilities.getGetterFromName(attributeName,objClass);
 
-                        Class parameterClass;
-                        if (getter != null) {
-                            parameterClass = getter.getReturnType();
-                        } else {
-                            parameterClass = String.class;
-                        }
-
-                        Method setter = ReflectionUtilities.getSetterFromName(attributeName, parameterClass, currentObject.getClass());
-                        if (setter != null) {
-                            // if the parameter is a string collection
-                            if (parameterClass.equals(List.class)) {
-                                ReflectionUtilities.invokeMethod(setter, currentObject, Arrays.asList(identifier));
-                            } else if (parameterClass.equals(InternationalString.class)) {
-                                ReflectionUtilities.invokeMethod(setter, currentObject, new SimpleInternationalString(identifier));
+                            Class parameterClass;
+                            if (getter != null) {
+                                parameterClass = getter.getReturnType();
                             } else {
-                                ReflectionUtilities.invokeMethod(setter, currentObject, identifier);
+                                parameterClass = String.class;
                             }
-                            return;
-                        } else if (object instanceof ISOMetadata && "uuid".equals(attributeName)) {
-                            ((ISOMetadata)object).getIdentifierMap().putSpecialized(IdentifierSpace.UUID, UUID.fromString(identifier));
+
+                            Method setter = ReflectionUtilities.getSetterFromName(attributeName, parameterClass, objClass);
+                            if (setter != null) {
+                                // if the parameter is a string collection
+                                if (parameterClass.equals(List.class)) {
+                                    ReflectionUtilities.invokeMethod(setter, currentObject, Arrays.asList(identifier));
+                                } else if (parameterClass.equals(InternationalString.class)) {
+                                    ReflectionUtilities.invokeMethod(setter, currentObject, new SimpleInternationalString(identifier));
+                                } else {
+                                    ReflectionUtilities.invokeMethod(setter, currentObject, identifier);
+                                }
+                                return;
+                            } else if (object instanceof ISOMetadata && "uuid".equals(attributeName)) {
+                                ((ISOMetadata)object).getIdentifierMap().putSpecialized(IdentifierSpace.UUID, UUID.fromString(identifier));
+                            }
                         }
                     }
                 }
@@ -497,31 +497,29 @@ public final class Utils {
                         }
 
                     } else {
-                        Method getter = null;
                         if (currentObject != null) {
                             /*
                              * we use the getter to determinate the parameter class.
                              */
-                            getter = ReflectionUtilities.getGetterFromName(attributeName, currentObject.getClass());
-                        }
-
-                        Class parameterClass;
-                        if (getter != null) {
-                            parameterClass = getter.getReturnType();
-                        } else {
-                            parameterClass = String.class;
-                        }
-                        Method setter = ReflectionUtilities.getSetterFromName(attributeName, parameterClass, currentObject.getClass());
-                        if (setter != null) {
-                            // if the parameter is a string collection
-                            if (parameterClass.equals(List.class)) {
-                                ReflectionUtilities.invokeMethod(setter, currentObject, Arrays.asList(title));
-                            } else if (parameterClass.equals(InternationalString.class)){
-                                ReflectionUtilities.invokeMethod(setter, currentObject, new SimpleInternationalString(title));
+                            Method getter = ReflectionUtilities.getGetterFromName(attributeName, currentObject.getClass());
+                            Class parameterClass;
+                            if (getter != null) {
+                                parameterClass = getter.getReturnType();
                             } else {
-                                ReflectionUtilities.invokeMethod(setter, currentObject, title);
+                                parameterClass = String.class;
                             }
-                            return;
+                            Method setter = ReflectionUtilities.getSetterFromName(attributeName, parameterClass, currentObject.getClass());
+                            if (setter != null) {
+                                // if the parameter is a string collection
+                                if (parameterClass.equals(List.class)) {
+                                    ReflectionUtilities.invokeMethod(setter, currentObject, Arrays.asList(title));
+                                } else if (parameterClass.equals(InternationalString.class)){
+                                    ReflectionUtilities.invokeMethod(setter, currentObject, new SimpleInternationalString(title));
+                                } else {
+                                    ReflectionUtilities.invokeMethod(setter, currentObject, title);
+                                }
+                                return;
+                            }
                         }
                     }
                 }

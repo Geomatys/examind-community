@@ -163,7 +163,7 @@ public class LayerContext extends AbstractConfigurationObject {
         int hash = 3;
         hash = 97 * hash + (this.mainLayer != null ? this.mainLayer.hashCode() : 0);
         hash = 97 * hash + (this.security != null ? this.security.hashCode() : 0);
-        hash = 97 * hash + (this.customParameters != null ? this.customParameters.hashCode() : 0);
+        hash = 97 * hash +  this.customParameters.hashCode();
         hash = 97 * hash + (this.supportedLanguages != null ? this.supportedLanguages.hashCode() : 0);
         hash = 97 * hash + (this.getFeatureInfoCfgs != null ? this.getFeatureInfoCfgs.hashCode() : 0);
         return hash;

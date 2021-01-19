@@ -17,12 +17,6 @@
  * limitations under the License.
  */
 package org.constellation.dto.metadata;
-
-
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
-import java.util.TimeZone;
 /**
  *
  * @author Guilhem Legal (Geomatys)
@@ -30,20 +24,6 @@ import java.util.TimeZone;
 public class JsonMetadataConstants {
 
     public static final String DATE_READ_ONLY = "DATE.readonly";
-
-    /**
-     * The object to use for parsing dates of the form "2014-09-11".
-     * Usage of this format shall be synchronized on {@code DATE_FORMAT}.
-     */
-    public static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-    static {
-        DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
-    }
-
-    public static final DateFormat DATE_HOUR_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
-    static {
-        DATE_HOUR_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
-    }
 
     public static String cleanNumeratedPath(final String numeratedPath) {
         String s = numeratedPath.replaceAll("\\[[0-9]*\\]", "");

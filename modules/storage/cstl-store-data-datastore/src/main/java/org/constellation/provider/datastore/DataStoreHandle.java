@@ -135,6 +135,7 @@ final class DataStoreHandle implements AutoCloseable {
 
     private Data create(final String dataName, Date version) throws DataStoreException {
         final Resource rs = tryProxify(dataName, store.findResource(dataName));
+        if (rs == null) throw new DataStoreException("Unable to find a resource named:" + dataName);
         final GenericName targetName = rs.getIdentifier()
                 .orElseThrow(() -> new DataStoreException("Only named datasets should be available from provider"));
         if (rs instanceof GridCoverageResource) {

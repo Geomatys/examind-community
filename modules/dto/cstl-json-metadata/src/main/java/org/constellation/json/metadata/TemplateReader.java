@@ -432,7 +432,7 @@ public class TemplateReader extends AbstractTemplateHandler {
     /**
      * Converts the given value to an instance of the given class before to store in the metadata object.
      */
-    private static Object convert(final String identifier, final Class<?> type, Object value) throws ParseException {
+    private Object convert(final String identifier, final Class<?> type, Object value) throws ParseException {
         if (type == Date.class) {
             return toDate(value, identifier);
         }
@@ -530,7 +530,7 @@ public class TemplateReader extends AbstractTemplateHandler {
     /**
      * Returns the given value as a date.
      */
-    private static Date toDate(final Object value, final String identifier) throws ParseException {
+    private Date toDate(final Object value, final String identifier) throws ParseException {
         if (value == null) {
             return null;
         }
@@ -545,12 +545,12 @@ public class TemplateReader extends AbstractTemplateHandler {
         }
         try {
             if (t.indexOf(':') < 0) {
-                synchronized (JsonMetadataConstants.DATE_FORMAT) {
-                    return JsonMetadataConstants.DATE_FORMAT.parse((String) value);
+                synchronized (dateFormat) {
+                    return dateFormat.parse((String) value);
                 }
             } else {
-                synchronized (JsonMetadataConstants.DATE_HOUR_FORMAT) {
-                    return JsonMetadataConstants.DATE_HOUR_FORMAT.parse((String) value);
+                synchronized (dateHourFormat) {
+                    return dateHourFormat.parse((String) value);
                 }
             }
         } catch (java.text.ParseException e) {

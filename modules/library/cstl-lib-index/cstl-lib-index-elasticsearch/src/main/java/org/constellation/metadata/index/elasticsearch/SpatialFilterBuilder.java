@@ -6,15 +6,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import static org.constellation.api.CommonConstants.QUERY_CONSTRAINT;
 import org.constellation.filter.FilterParserException;
 import org.constellation.filter.FilterParserUtils;
-import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
-import org.geotoolkit.geometry.isoonjts.spatialschema.geometry.JTSGeometry;
 import org.geotoolkit.gml.JTStoGeometry;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.Coordinates;
@@ -198,17 +194,12 @@ public class SpatialFilterBuilder {
                 }
             // gml geometry
             } else  if (inGeom instanceof AbstractGeometry) {
-                final AbstractGeometry ab =  (AbstractGeometry)inGeom;
 
                 // supported geometric object: point, line, polygon :
-                if (ab instanceof Point || ab instanceof LineString || ab instanceof Polygon || ab instanceof Envelope) {
-                    gmlGeometry = ab;
-
-                } else if (ab == null) {
-                   throw new IllegalArgumentException("null value in BinarySpatialOp type");
-
+                if (inGeom instanceof Point || inGeom instanceof LineString || inGeom instanceof Polygon || inGeom instanceof Envelope) {
+                    gmlGeometry = inGeom;
                 } else {
-                    throw new IllegalArgumentException("unknow BinarySpatialOp type:" + ab.getClass().getSimpleName());
+                    throw new IllegalArgumentException("unknow BinarySpatialOp type:" + inGeom.getClass().getSimpleName());
                 }
             }
 

@@ -106,8 +106,8 @@ public class OM2BaseReader {
      */
     private final Map<String, Phenomenon> cachedPhenomenon = new HashMap<>();
 
-    protected static final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-    protected static final SimpleDateFormat format2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S");
+    protected final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+    protected final SimpleDateFormat format2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S");
 
     public OM2BaseReader(final Map<String, Object> properties, final String schemaPrefix, final boolean cacheEnabled, final boolean isPostgres, final boolean timescaleDB) throws DataStoreException {
         this.isPostgres = isPostgres;
@@ -271,14 +271,16 @@ public class OM2BaseReader {
                         phenomenons.add(getSinglePhenomenon(version, phenID, c));
                     }
                     org.geotoolkit.swe.xml.Phenomenon base = getSinglePhenomenon(version, observedProperty, c);
-                    Phenomenon result;
-                    if (phenomenons.isEmpty()) {
-                        result = base;
-                    } else {
-                        result = buildCompositePhenomenon(version, id, base.getName().getCode(), base.getDescription(), phenomenons);
-                    }
-                    if (cacheEnabled) {
-                        cachedPhenomenon.put(key, result);
+                    Phenomenon result = null;
+                    if (base != null) {
+                        if (phenomenons.isEmpty()) {
+                            result = base;
+                        } else {
+                            result = buildCompositePhenomenon(version, id, base.getName().getCode(), base.getDescription(), phenomenons);
+                        }
+                        if (cacheEnabled) {
+                            cachedPhenomenon.put(key, result);
+                        }
                     }
                     return result;
                 }

@@ -191,17 +191,6 @@ public final class Util {
         return null;
     }
 
-    public static DataReference getStyleReference(final String styleID, List<DataReference> styles) {
-        if (styles != null) {
-            for (DataReference styleRef : styles) {
-                if (Util.getLayerId(styleRef).tip().toString().equals(styleID)) {
-                    return styleRef;
-                }
-            }
-        }
-        return null;
-    }
-
     public static StyleReference findStyleReference(final String styleID, List<StyleReference> styles) {
         if (styles != null) {
             for (StyleReference styleRef : styles) {

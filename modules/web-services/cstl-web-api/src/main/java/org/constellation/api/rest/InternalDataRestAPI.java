@@ -212,7 +212,7 @@ public class InternalDataRestAPI extends AbstractRestAPI {
 
                     metadataFile = IOUtilities.toPath(serverMetadataPath);
 
-                } else  if (!metadata.getOriginalFilename().isEmpty()) {
+                } else  if (metadata.getOriginalFilename() != null && !metadata.getOriginalFilename().isEmpty()) {
 
                     final Path uploadDirectory = getUploadDirectory();
                     final Path newFileMetaData = uploadDirectory.resolve(metadata.getOriginalFilename());

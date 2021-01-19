@@ -1113,7 +1113,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             Field mainField = null;
             for (Field field : fields) {
                 if (Util.containsForbiddenCharacter(field.fieldName)) {
-                    throw new DataStoreException("Invalide field name");
+                    throw new DataStoreException("Invalid field name");
                 }
                 sb.append('"').append(field.fieldName).append("\" ").append(field.getSQLType(isPostgres, firstField && timescaleDB));
                 // main field should not be null (timescaledb compatibility)
@@ -1126,7 +1126,10 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             }
             sb.setCharAt(sb.length() - 1, ' ');
             sb.append(")");
-            
+
+            if (mainField == null) {
+                throw new DataStoreException("No main field was found");
+            }
             
             try(final Statement stmt = c.createStatement()) {
                 stmt.executeUpdate(sb.toString());

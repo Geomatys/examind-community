@@ -39,7 +39,6 @@ import org.constellation.dto.StatInfo;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.AbstractData;
 import org.constellation.provider.DataProviders;
-import org.constellation.util.StoreUtilities;
 
 /**
  *
@@ -87,7 +86,7 @@ public class DefaultObservationData extends AbstractData implements ObservationD
         final ObservationDataDescription description = new ObservationDataDescription();
         try {
 
-            final FeatureSet fs = (FeatureSet) StoreUtilities.findResource((DataStore) store, getName().toString());
+            final FeatureSet fs = (FeatureSet) findResource(store, getName());
 
             final Envelope envelope = FeatureStoreUtilities.getEnvelope(fs);
             DataProviders.fillGeographicDescription(envelope, description);
@@ -105,7 +104,7 @@ public class DefaultObservationData extends AbstractData implements ObservationD
 
     private static Resource findResource(ObservationStore source, GenericName searchedOne) {
         try {
-            return StoreUtilities.findResource((DataStore) source, searchedOne.toString());
+            return ((DataStore) source).findResource(searchedOne.toString());
         } catch (Exception ex) {
             throw new IllegalArgumentException("Unable to find a resource:" + searchedOne, ex);
         }

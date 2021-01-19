@@ -19,6 +19,7 @@
 package org.constellation;
 
 import org.constellation.api.ServiceDef;
+import org.constellation.api.ServiceDef.Version;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -44,7 +45,7 @@ public class ServiceDefTest {
     public void testCompareTo() {
         assertTrue(ServiceDef.WMS_1_3_0_SLD.compareTo(ServiceDef.WMS_1_1_1_SLD) > 0);
         assertTrue(ServiceDef.CSW_2_0_2.compareTo(ServiceDef.CSW_2_0_2) == 0);
-        assertTrue(ServiceDef.WCS_1_0_0.compareTo("1.1.1") < 0);
+        assertTrue(ServiceDef.WCS_1_0_0.compareTo(new Version("1.1.1")) < 0);
     }
 
     @Test

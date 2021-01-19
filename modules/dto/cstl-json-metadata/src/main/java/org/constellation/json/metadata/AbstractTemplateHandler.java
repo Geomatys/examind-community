@@ -18,8 +18,12 @@
  */
 package org.constellation.json.metadata;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.logging.Logger;
 import org.apache.sis.metadata.KeyNamePolicy;
 import org.apache.sis.metadata.MetadataStandard;
@@ -53,6 +57,13 @@ public class AbstractTemplateHandler {
     protected final MetadataStandard standard;
 
     /**
+     * The object to use for parsing dates of the form "2014-09-11".
+     * Usage of this format shall be synchronized on {@code DATE_FORMAT}.
+     */
+    protected final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+    protected final DateFormat dateHourFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+
+    /**
      * The default value to give to the {@code specialized} of {@link TemplateReader} constructor.
      */
     public static final Map<Class<?>, Class<?>> DEFAULT_SPECIALIZED;
@@ -71,13 +82,14 @@ public class AbstractTemplateHandler {
     protected Map<Class<?>, Class<?>> specialized;
 
     public AbstractTemplateHandler(final MetadataStandard standard) {
-        this.standard = standard;
-        this.specialized = DEFAULT_SPECIALIZED;
+        this(standard, DEFAULT_SPECIALIZED);
     }
 
     public AbstractTemplateHandler(final MetadataStandard standard, Map<Class<?>, Class<?>> specialized) {
         this.standard = standard;
         this.specialized = specialized;
+        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        dateHourFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
     protected Map<String,Object> asMap(final Object metadata) {

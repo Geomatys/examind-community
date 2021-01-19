@@ -149,7 +149,7 @@ public class FilterSQLRequest {
                 stmt.setInt(i, (Integer) p.value);
             } else if (p.type == Double.class) {
                 stmt.setDouble(i, (Double) p.value);
-            } else if (p.type == Double.class) {
+            } else if (p.type == Long.class) {
                 stmt.setLong(i, (Long) p.value);
             } else {
                 stmt.setString(i, (String) p.value);
@@ -169,7 +169,7 @@ public class FilterSQLRequest {
         for (Param p : params) {
             if (p.type == String.class) {
                 s = StringUtils.replaceOnce(s, "?", "'" + p.value.toString() + "'");
-            } else if (p.type == Double.class || p.type == Integer.class || p.type == Integer.class) {
+            } else if (p.type == Double.class || p.type == Integer.class || p.type == Long.class) {
                 s = StringUtils.replaceOnce(s, "?", p.value.toString());
             } else if (p.type == Timestamp.class) {
                 s = StringUtils.replaceOnce(s, "?", "'" + getTimeValue((Timestamp)p.value) + "'");

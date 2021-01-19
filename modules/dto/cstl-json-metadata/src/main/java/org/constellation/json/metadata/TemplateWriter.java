@@ -37,8 +37,6 @@ import org.apache.sis.metadata.AbstractMetadata;
 import org.apache.sis.metadata.MetadataStandard;
 import org.apache.sis.util.CharSequences;
 import org.apache.sis.util.iso.Types;
-import static org.constellation.dto.metadata.JsonMetadataConstants.DATE_FORMAT;
-import static org.constellation.dto.metadata.JsonMetadataConstants.DATE_HOUR_FORMAT;
 import static org.constellation.dto.metadata.JsonMetadataConstants.DATE_READ_ONLY;
 
 import org.constellation.dto.metadata.RootObj;
@@ -242,7 +240,7 @@ public class TemplateWriter extends AbstractTemplateHandler {
         return false;
     }
 
-    private static String valueToString(final ValueNode n, final Object value, final boolean applyDefault, final boolean overwrite) {
+    private String valueToString(final ValueNode n, final Object value, final boolean applyDefault, final boolean overwrite) {
         final String p;
         // Null or empty collection
         if (value == null || value instanceof Collection) {
@@ -269,8 +267,8 @@ public class TemplateWriter extends AbstractTemplateHandler {
                 p = Types.getStandardName(value.getClass()) + '.' + Types.getCodeName((ControlledVocabulary) value);
             } else if (value instanceof Date) {
                 if (DATE_READ_ONLY.equals(n.render)) {
-                    synchronized (DATE_HOUR_FORMAT) {
-                        String dateTime = DATE_HOUR_FORMAT.format(value);
+                    synchronized (dateHourFormat) {
+                        String dateTime = dateHourFormat.format(value);
                         // remove uneccesary time
                         if (dateTime.endsWith(" 00:00:00")) {
                             p = dateTime.substring(0, dateTime.lastIndexOf(" 00:00:00"));
@@ -279,8 +277,8 @@ public class TemplateWriter extends AbstractTemplateHandler {
                         }
                     }
                 } else {
-                    synchronized (DATE_FORMAT) {
-                        p = DATE_FORMAT.format(value);
+                    synchronized (dateFormat) {
+                        p = dateFormat.format(value);
                     }
                 }
             } else if (value instanceof Locale) {
