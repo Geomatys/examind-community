@@ -33,6 +33,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.inject.Named;
 import javax.measure.Unit;
 import javax.xml.bind.JAXBException;
@@ -40,6 +41,7 @@ import org.apache.sis.cql.CQLException;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.internal.storage.query.SimpleQuery;
+import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.internal.util.UnmodifiableArrayList;
 import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.measure.Range;
@@ -54,7 +56,12 @@ import org.apache.sis.referencing.cs.AxesConvention;
 import org.apache.sis.referencing.cs.DefaultCoordinateSystemAxis;
 import org.apache.sis.referencing.datum.DefaultEngineeringDatum;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.FeatureSet;
+import org.apache.sis.storage.Query;
+import org.apache.sis.storage.Resource;
+import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import org.apache.sis.xml.MarshallerPool;
+import static org.constellation.api.CommonConstants.DEFAULT_CRS;
 import org.constellation.api.ServiceDef;
 import org.constellation.dto.Reference;
 import org.constellation.dto.StyleReference;
@@ -69,6 +76,16 @@ import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
+import static org.constellation.map.core.WMSConstant.EXCEPTION_111_BLANK;
+import static org.constellation.map.core.WMSConstant.EXCEPTION_111_INIMAGE;
+import static org.constellation.map.core.WMSConstant.EXCEPTION_130_BLANK;
+import static org.constellation.map.core.WMSConstant.EXCEPTION_130_INIMAGE;
+import static org.constellation.map.core.WMSConstant.KEY_BBOX;
+import static org.constellation.map.core.WMSConstant.KEY_ELEVATION;
+import static org.constellation.map.core.WMSConstant.KEY_EXTRA_PARAMETERS;
+import static org.constellation.map.core.WMSConstant.KEY_LAYER;
+import static org.constellation.map.core.WMSConstant.KEY_LAYERS;
+import static org.constellation.map.core.WMSConstant.KEY_TIME;
 import org.constellation.map.featureinfo.FeatureInfoFormat;
 import org.constellation.map.featureinfo.FeatureInfoUtilities;
 import org.constellation.portrayal.CstlPortrayalService;
@@ -89,10 +106,12 @@ import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.ext.legend.DefaultLegendService;
 import org.geotoolkit.display2d.ext.legend.LegendTemplate;
 import org.geotoolkit.display2d.service.CanvasDef;
+import org.geotoolkit.display2d.service.DefaultPortrayalService;
 import org.geotoolkit.display2d.service.OutputDef;
 import org.geotoolkit.display2d.service.SceneDef;
 import org.geotoolkit.factory.Hints;
 import org.geotoolkit.filter.FilterFactoryImpl;
+import org.geotoolkit.filter.visitor.ListingPropertyVisitor;
 import org.geotoolkit.inspire.xml.vs.ExtendedCapabilitiesType;
 import org.geotoolkit.inspire.xml.vs.LanguageType;
 import org.geotoolkit.inspire.xml.vs.LanguagesType;
@@ -101,6 +120,15 @@ import org.geotoolkit.map.MapContext;
 import org.geotoolkit.map.MapItem;
 import org.geotoolkit.map.MapLayer;
 import org.geotoolkit.ows.xml.OWSExceptionCode;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.CURRENT_UPDATE_SEQUENCE;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_FORMAT;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_POINT;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_UPDATE_SEQUENCE;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.LAYER_NOT_DEFINED;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.LAYER_NOT_QUERYABLE;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.STYLE_NOT_DEFINED;
 import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.se.xml.v110.OnlineResourceType;
 import org.geotoolkit.sld.MutableLayer;
@@ -116,9 +144,19 @@ import org.geotoolkit.sld.xml.v110.TypeNameType;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.temporal.util.PeriodUtilities;
 import org.geotoolkit.wms.xml.*;
+import static org.geotoolkit.wms.xml.WmsXmlFactory.createBoundingBox;
+import static org.geotoolkit.wms.xml.WmsXmlFactory.createDimension;
+import static org.geotoolkit.wms.xml.WmsXmlFactory.createGeographicBoundingBox;
+import static org.geotoolkit.wms.xml.WmsXmlFactory.createLayer;
+import static org.geotoolkit.wms.xml.WmsXmlFactory.createLegendURL;
+import static org.geotoolkit.wms.xml.WmsXmlFactory.createLogoURL;
+import static org.geotoolkit.wms.xml.WmsXmlFactory.createOnlineResource;
+import static org.geotoolkit.wms.xml.WmsXmlFactory.createStyle;
 import org.geotoolkit.wms.xml.v111.LatLonBoundingBox;
 import org.geotoolkit.wms.xml.v130.Capability;
+import org.opengis.feature.Feature;
 import org.opengis.filter.Filter;
+import org.opengis.filter.FilterFactory;
 import org.opengis.filter.expression.Expression;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.extent.GeographicBoundingBox;
@@ -133,37 +171,6 @@ import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
-
-import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
-import static org.constellation.api.CommonConstants.DEFAULT_CRS;
-import static org.constellation.map.core.WMSConstant.EXCEPTION_111_BLANK;
-import static org.constellation.map.core.WMSConstant.EXCEPTION_111_INIMAGE;
-import static org.constellation.map.core.WMSConstant.EXCEPTION_130_BLANK;
-import static org.constellation.map.core.WMSConstant.EXCEPTION_130_INIMAGE;
-import static org.constellation.map.core.WMSConstant.KEY_BBOX;
-import static org.constellation.map.core.WMSConstant.KEY_ELEVATION;
-import static org.constellation.map.core.WMSConstant.KEY_EXTRA_PARAMETERS;
-import static org.constellation.map.core.WMSConstant.KEY_LAYER;
-import static org.constellation.map.core.WMSConstant.KEY_LAYERS;
-import static org.constellation.map.core.WMSConstant.KEY_TIME;
-import org.geotoolkit.display2d.service.DefaultPortrayalService;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.CURRENT_UPDATE_SEQUENCE;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_FORMAT;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_POINT;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_UPDATE_SEQUENCE;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.LAYER_NOT_DEFINED;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.LAYER_NOT_QUERYABLE;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.STYLE_NOT_DEFINED;
-import static org.geotoolkit.wms.xml.WmsXmlFactory.createBoundingBox;
-import static org.geotoolkit.wms.xml.WmsXmlFactory.createDimension;
-import static org.geotoolkit.wms.xml.WmsXmlFactory.createGeographicBoundingBox;
-import static org.geotoolkit.wms.xml.WmsXmlFactory.createLayer;
-import static org.geotoolkit.wms.xml.WmsXmlFactory.createLegendURL;
-import static org.geotoolkit.wms.xml.WmsXmlFactory.createLogoURL;
-import static org.geotoolkit.wms.xml.WmsXmlFactory.createOnlineResource;
-import static org.geotoolkit.wms.xml.WmsXmlFactory.createStyle;
 
 /**
  * A WMS worker for a local WMS service which handles requests from REST
@@ -198,6 +205,8 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
      * Only Elevation dimension.
      */
     private static final List<String> VERTICAL_DIM = UnmodifiableArrayList.wrap(new String[] {"UP", "DOWN"});
+
+    private static final String PROP_EXTRADIMENSIONS = "extraDims";
 
     /**
      * List of FeatureInfo mimeTypes
@@ -755,15 +764,23 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
     /**
      * Get extra dimensions from a {@link FeatureMapLayer}.
      *
-     * @param fml {@link FeatureMapLayer}
+     * @param fml {@link MapLayer}
      * @param queryVersion Version of the request.
      * @return A list of extra dimensions, never {@code null}
      * @throws DataStoreException
      */
-    private List<AbstractDimension> getExtraDimensions(final FeatureMapLayer fml, final String queryVersion) throws DataStoreException {
-        final List<AbstractDimension> dimensions = new ArrayList<>();
-        for(FeatureMapLayer.DimensionDef ddef : fml.getExtraDimensions()){
-            final Collection<Range> collRefs = fml.getDimensionRange(ddef);
+    private List<AbstractDimension> getExtraDimensions(final MapLayer fml, final String queryVersion) throws DataStoreException {
+        final Resource resource = fml.getResource();
+        final List<DimensionDef> dims = (List<DimensionDef>) fml.getUserProperties().get(PROP_EXTRADIMENSIONS);
+        if (dims == null || !(resource instanceof FeatureSet)) return new ArrayList<>();
+
+        final List<AbstractDimension> dimensions = new ArrayList<>(dims.size());
+        final FeatureSet fs = (FeatureSet) resource;
+
+        for (DimensionDef ddef : dims) {
+            final Collection<Range> collRefs;
+            collRefs = getDimensionRange(fs, ddef.lower, ddef.upper);
+
             // Transform it to a set in order to filter same values
             final Set<Range> refs = new HashSet<>();
             for (Range ref : collRefs) {
@@ -789,9 +806,9 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             }
 
             final String sortedValues = sortValues(values.toString().split(","));
-            final String unitSymbol = ddef.getCrs().getCoordinateSystem().getAxis(0).getUnit().toString();
+            final String unitSymbol = ddef.crs.getCoordinateSystem().getAxis(0).getUnit().toString();
             final String unit = unitSymbol;
-            final String axisName = ddef.getCrs().getCoordinateSystem().getAxis(0).getName().getCode();
+            final String axisName = ddef.crs.getCoordinateSystem().getAxis(0).getName().getCode();
             final String defaut = "";
 
             final AbstractDimension dim = (queryVersion.equals(ServiceDef.WMS_1_1_1_SLD.version.toString())) ?
@@ -1261,6 +1278,12 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         // 2. VIEW
         final Envelope refEnv = buildRequestedViewEnvelope(getMap, layersCache);
         final double azimuth = getMap.getAzimuth();
+        //apply extra dimension filters
+        try {
+            applyDimFilter(sdef.getContext(), refEnv);
+        } catch (DataStoreException ex) {
+            return handleExceptions(getMap, errorInImage, errorBlank, ex, NO_APPLICABLE_CODE, null);
+        }
 
         // 3. CANVAS
         final Dimension canvasDimension = getMap.getSize();
@@ -1555,39 +1578,126 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                 fml.setQuery(query);
             }
 
-            for(DimensionDefinition ddef : layerFnD.getDimensions()){
-
+            final List<DimensionDef> defs = new ArrayList<>();
+            for (DimensionDefinition ddef : layerFnD.getDimensions()) {
                 try {
                     final String crsname = ddef.getCrs();
                     final Expression lower = CQL.parseExpression(ddef.getLower());
                     final Expression upper = CQL.parseExpression(ddef.getUpper());
-                    final CoordinateReferenceSystem crs;
+                    final CoordinateReferenceSystem dimCrs;
 
-                    if("elevation".equalsIgnoreCase(crsname)){
-                        crs = CommonCRS.Vertical.ELLIPSOIDAL.crs();
-                    }else if("temporal".equalsIgnoreCase(crsname)){
-                        crs = CommonCRS.Temporal.JAVA.crs();
-                    }else{
+                    if ("elevation".equalsIgnoreCase(crsname)) {
+                        dimCrs = CommonCRS.Vertical.ELLIPSOIDAL.crs();
+                    } else if ("temporal".equalsIgnoreCase(crsname)) {
+                        dimCrs = CommonCRS.Temporal.JAVA.crs();
+                    } else {
                         final EngineeringDatum customDatum = new DefaultEngineeringDatum(Collections.singletonMap("name", crsname));
                         final CoordinateSystemAxis csAxis = new DefaultCoordinateSystemAxis(Collections.singletonMap("name", crsname), "u", AxisDirection.valueOf(crsname), Units.UNITY);
                         final AbstractCS customCs = new AbstractCS(Collections.singletonMap("name", crsname), csAxis);
-                        crs = new DefaultEngineeringCRS(Collections.singletonMap("name", crsname), customDatum, customCs);
+                        dimCrs = new DefaultEngineeringCRS(Collections.singletonMap("name", crsname), customDatum, customCs);
                     }
 
-                    final FeatureMapLayer.DimensionDef fdef = new FeatureMapLayer.DimensionDef(crs, lower, upper);
-                    fml.getExtraDimensions().add(fdef);
-
+                    defs.add(new DimensionDef(dimCrs, lower, upper));
                 } catch (CQLException ex) {
                     LOGGER.log(Level.WARNING, null, ex);
                 }
             }
 
+            fml.getUserProperties().put(PROP_EXTRADIMENSIONS, defs);
         }
 
         if (item instanceof MapContext) {
             for (MapItem layer : ((MapContext) item).getComponents()) {
                 applyLayerFiltersAndDims(layer, userLogin);
             }
+        }
+    }
+
+    /**
+     * Apply extra dimension filters.
+     */
+    private static void applyDimFilter(MapItem item, Envelope box) throws DataStoreException {
+        if (item instanceof MapContext) {
+            for (MapItem mi : ((MapContext) item).getComponents()) {
+                applyDimFilter(mi, box);
+            }
+        } else if (item instanceof MapLayer) {
+            applyDimFilter((MapLayer) item, box);
+        }
+    }
+    /**
+     * Apply extra dimension filters.
+     */
+    private static void applyDimFilter(MapLayer layer, Envelope box) throws DataStoreException {
+        Resource resource = layer.getResource();
+        if (!(resource instanceof FeatureSet)) return;
+
+        final List<DimensionDef> defs = (List<DimensionDef>) layer.getUserProperties().get(PROP_EXTRADIMENSIONS);
+        if (defs == null || defs.isEmpty()) return;
+
+        FeatureSet fs = (FeatureSet) resource;
+
+        final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
+        Filter filter = Filter.INCLUDE;
+        for (final DimensionDef def : defs) {
+            final Envelope dimEnv;
+            try {
+                dimEnv = Envelopes.transform(box, def.crs);
+            } catch (TransformException ex) {
+                continue;
+            }
+
+            final Filter dimFilter = ff.and(
+                    ff.lessOrEqual(ff.literal(dimEnv.getMinimum(0)), def.lower),
+                    ff.greaterOrEqual(ff.literal(dimEnv.getMaximum(0)), def.upper));
+            filter = ff.and(filter, dimFilter);
+        }
+
+        //combine with previous query
+        Query query = layer.getQuery();
+        if (query == null) {
+            fs = fs.subset(query);
+        } else if (query instanceof SimpleQuery) {
+            SimpleQuery q = (SimpleQuery) query;
+            SimpleQuery cp = q.clone();
+            cp.setFilter(ff.and(cp.getFilter(), filter));
+            layer.setQuery(cp);
+        } else {
+            LOGGER.log(Level.WARNING, "Can not combine dimension filter with query " + query);
+        }
+    }
+
+    /**
+     * Get all values of given extra dimension.
+     * @return collection never null, can be empty.
+     */
+    private static Collection<Range> getDimensionRange(FeatureSet fs, Expression lower, Expression upper) throws DataStoreException {
+
+        final Set<String> properties = new HashSet<>();
+        lower.accept(ListingPropertyVisitor.VISITOR, properties);
+        upper.accept(ListingPropertyVisitor.VISITOR, properties);
+
+        final SimpleQuery qb = new SimpleQuery();
+        final List<SimpleQuery.Column> columns = new ArrayList<>();
+        final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
+        for (String property : properties) {
+            columns.add(new SimpleQuery.Column(ff.property(property)));
+        }
+        qb.setColumns(columns.toArray(new SimpleQuery.Column[0]));
+        final FeatureSet col = fs.subset(qb);
+
+        try (Stream<Feature> stream = col.features(false)) {
+            return stream
+                    .map(f -> {
+                        return new Range(
+                                Comparable.class,
+                                lower.evaluate(f, Comparable.class),
+                                true,
+                                upper.evaluate(f, Comparable.class),
+                                true
+                        );
+                    })
+                    .collect(Collectors.toList());
         }
     }
 
@@ -1619,4 +1729,15 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
 
     }
 
+    private static final class DimensionDef {
+        private final CoordinateReferenceSystem crs;
+        private final Expression lower;
+        private final Expression upper;
+
+        public DimensionDef(CoordinateReferenceSystem crs, Expression lower, Expression upper) {
+            this.crs = crs;
+            this.lower = lower;
+            this.upper = upper;
+        }
+    }
 }
