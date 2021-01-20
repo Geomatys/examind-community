@@ -598,7 +598,9 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
 
             final GridCoverage cov = origin.read(gg);
             final org.geotoolkit.process.Process process = new Statistics(cov, false);
-            process.addListener(new DataStatisticsListener(dataId, dataRepository));
+            if (dataRepository != null) {
+                process.addListener(new DataStatisticsListener(dataId, dataRepository));
+            }
             final Parameters out = Parameters.castOrWrap(process.call());
             return out.getMandatoryValue(StatisticsDescriptor.OUTCOVERAGE);
         } catch(Exception ex) {

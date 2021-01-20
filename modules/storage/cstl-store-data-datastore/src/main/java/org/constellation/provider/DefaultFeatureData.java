@@ -45,11 +45,9 @@ import org.opengis.util.GenericName;
 import org.apache.sis.internal.feature.AttributeConvention;
 import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.measure.MeasurementRange;
-import org.apache.sis.storage.DataSet;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
-import org.apache.sis.storage.Resource;
 
 import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.storage.feature.FeatureStoreUtilities;
@@ -64,7 +62,6 @@ import org.constellation.dto.FeatureDataDescription;
 import org.constellation.dto.PropertyDescription;
 import org.constellation.dto.StatInfo;
 import org.constellation.exception.ConstellationStoreException;
-import org.constellation.util.StoreUtilities;
 import org.locationtech.jts.geom.Geometry;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
@@ -391,16 +388,13 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
     @Override
     public String getResourceCRSName() throws ConstellationStoreException {
         try {
-            final Resource ft = StoreUtilities.findResource(store, getName().toString());
-            if (ft instanceof DataSet) {
-                Envelope env = FeatureStoreUtilities.getEnvelope((DataSet) ft);
-                if (env != null) {
-                    final CoordinateReferenceSystem crs = env.getCoordinateReferenceSystem();
-                    if (crs != null) {
-                        final String crsIdentifier = ReferencingUtilities.lookupIdentifier(crs, true);
-                        if (crsIdentifier != null) {
-                            return crsIdentifier;
-                        }
+            Envelope env = getEnvelope();
+            if (env != null) {
+                final CoordinateReferenceSystem crs = env.getCoordinateReferenceSystem();
+                if (crs != null) {
+                    final String crsIdentifier = ReferencingUtilities.lookupIdentifier(crs, true);
+                    if (crsIdentifier != null) {
+                        return crsIdentifier;
                     }
                 }
             }

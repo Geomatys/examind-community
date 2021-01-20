@@ -12,8 +12,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import javax.xml.bind.Unmarshaller;
 import org.apache.sis.referencing.CRS;
+import org.apache.sis.storage.DataStore;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.ProviderType;
 import org.constellation.business.IProviderBusiness;
@@ -25,6 +27,8 @@ import org.constellation.provider.DataProviders;
 import org.constellation.provider.ProviderParameters;
 import static org.constellation.provider.ProviderParameters.getOrCreate;
 import org.constellation.util.Util;
+import org.geotoolkit.coverage.worldfile.FileCoverageProvider;
+import org.geotoolkit.data.shapefile.ShapefileFolderProvider;
 import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
@@ -57,61 +61,63 @@ public final class TestEnvironment {
     public enum TestResource {
 
         //image
-        DATA("org/constellation/data/image", null),
+        DATA("org/constellation/data/image", null, null),
 
-        PNG("org/constellation/data/image/SSTMDE200305.png", TestEnvironment::createCoverageFileProvider),
-        TIF("org/constellation/data/image/martinique.tif", TestEnvironment::createTifProvider),
+        PNG("org/constellation/data/image/SSTMDE200305.png", TestEnvironment::createCoverageFileProvider, TestEnvironment::createFileCoverageStore),
+        TIF("org/constellation/data/image/martinique.tif", TestEnvironment::createTifProvider, TestEnvironment::createFileCoverageStore),
 
-        NETCDF("org/constellation/netcdf/2005092200_sst_21-24.en.nc", TestEnvironment::createNCProvider),
+        NETCDF("org/constellation/netcdf/2005092200_sst_21-24.en.nc", TestEnvironment::createNCProvider, null),
 
-        SQL_SCRIPTS("org/constellation/sql", null),
+        SQL_SCRIPTS("org/constellation/sql", null, null),
 
-        WFS110_AGGREGATE("org/constellation/ws/embedded/wfs110/aggregate", TestEnvironment::createAggregateProvider),
-        WFS110_ENTITY("org/constellation/ws/embedded/wfs110/entity", TestEnvironment::createEntityGenericGMLProvider),
-        WFS110_PRIMITIVE("org/constellation/ws/embedded/wfs110/primitive", TestEnvironment::createPrimitiveGMLProvider),
-        WFS110_CITE_GMLSF0("org/constellation/ws/embedded/wfs110/cite-gmlsf0.xsd", null),
+        WFS110_AGGREGATE("org/constellation/ws/embedded/wfs110/aggregate", TestEnvironment::createAggregateProvider, null),
+        WFS110_ENTITY("org/constellation/ws/embedded/wfs110/entity", TestEnvironment::createEntityGenericGMLProvider, null),
+        WFS110_PRIMITIVE("org/constellation/ws/embedded/wfs110/primitive", TestEnvironment::createPrimitiveGMLProvider, null),
+        WFS110_CITE_GMLSF0("org/constellation/ws/embedded/wfs110/cite-gmlsf0.xsd", null, null),
 
-        WMS111_SHAPEFILES("org/constellation/ws/embedded/wms111/shapefiles", TestEnvironment::createShapefileProvider),
-        WMS111_STYLES("org/constellation/ws/embedded/wms111/styles", null),
+        WMS111_SHAPEFILES("org/constellation/ws/embedded/wms111/shapefiles", TestEnvironment::createShapefileProvider, TestEnvironment::createShapefileStore),
+        WMS111_STYLES("org/constellation/ws/embedded/wms111/styles", null, null),
 
-        SHAPEFILES("org/constellation/data/shapefiles", TestEnvironment::createShapefileProvider),
+        SHAPEFILES("org/constellation/data/shapefiles", TestEnvironment::createShapefileProvider, TestEnvironment::createShapefileStore),
 
         // Observation and mesurement providers
-        OM2_FEATURE_DB(null, TestEnvironment::createOM2FeatureProvider),
-        OM2_DB(null, TestEnvironment::createOM2DatabaseProvider),
-        OM_XML("org/constellation/xml/sos/single-observations.xml", TestEnvironment::createOMFileProvider),
-        OM_GENERIC_DB("org/constellation/xml/sos/generic-config.xml", TestEnvironment::createOMGenericDBProvider),
-        OM_LUCENE(null,  TestEnvironment::createOMLuceneProvider),
+        OM2_FEATURE_DB(null, TestEnvironment::createOM2FeatureProvider, null),
+        OM2_DB(null, TestEnvironment::createOM2DatabaseProvider, null),
+        OM_XML("org/constellation/xml/sos/single-observations.xml", TestEnvironment::createOMFileProvider, null),
+        OM_GENERIC_DB("org/constellation/xml/sos/generic-config.xml", TestEnvironment::createOMGenericDBProvider, null),
+        OM_LUCENE(null,  TestEnvironment::createOMLuceneProvider, null),
 
         // Sensor Providers
-        SENSOR_FILE(null, TestEnvironment::createSensorFileProvider),
-        SENSOR_INTERNAL(null, TestEnvironment::createSensorInternalProvider),
+        SENSOR_FILE(null, TestEnvironment::createSensorFileProvider, null),
+        SENSOR_INTERNAL(null, TestEnvironment::createSensorInternalProvider, null),
 
         // metadata providers
-        METADATA_FILE(null, TestEnvironment::createMetadataFileProvider),
-        METADATA_NTCDF(null, TestEnvironment::createMetadataNetCDFProvider),
-        METADATA_INTERNAL(null, TestEnvironment::createMetadataInternalProvider),
+        METADATA_FILE(null, TestEnvironment::createMetadataFileProvider, null),
+        METADATA_NTCDF(null, TestEnvironment::createMetadataNetCDFProvider, null),
+        METADATA_INTERNAL(null, TestEnvironment::createMetadataInternalProvider, null),
 
         // feature database
-        FEATURE_DATABASE(null, TestEnvironment::createFeatDBProvider),
+        FEATURE_DATABASE(null, TestEnvironment::createFeatDBProvider, null),
 
         //xml files
-        XML("org/constellation/xml", null),
-        XML_METADATA("org/constellation/xml/metadata", null),
-        XML_SML("org/constellation/xml/sml", null),
-        XML_SOS("org/constellation/xml/sos", null),
+        XML("org/constellation/xml", null, null),
+        XML_METADATA("org/constellation/xml/metadata", null, null),
+        XML_SML("org/constellation/xml/sml", null, null),
+        XML_SOS("org/constellation/xml/sos", null, null),
 
         //json files
-        JSON_FEATURE("org/constellation/ws/embedded/json/feature.json", TestEnvironment::createGeoJsonProvider),
-        JSON_FEATURE_COLLECTION("org/constellation/ws/embedded/json/featureCollection.json", TestEnvironment::createGeoJsonProvider);
+        JSON_FEATURE("org/constellation/ws/embedded/json/feature.json", TestEnvironment::createGeoJsonProvider, null),
+        JSON_FEATURE_COLLECTION("org/constellation/ws/embedded/json/featureCollection.json", TestEnvironment::createGeoJsonProvider, null);
 
         private final String path;
 
         private final BiFunction<IProviderBusiness, Path, Integer> createProvider;
+        private final Function<Path, DataStore> createStore;
 
-        TestResource(String path, BiFunction<IProviderBusiness, Path, Integer> createProvider) {
+        TestResource(String path, BiFunction<IProviderBusiness, Path, Integer> createProvider, Function<Path, DataStore> createStore) {
             this.path = path;
             this.createProvider = createProvider;
+            this.createStore= createStore;
         }
     }
 
@@ -186,6 +192,14 @@ public final class TestEnvironment {
            }
            throw new ConstellationRuntimeException("Missing test resource:" + tr.name());
         }
+
+        public DataStore createStore(TestResource tr) {
+           DeployedTestResource dpr = resources.get(tr);
+           if (dpr != null) {
+               return dpr.createStore();
+           }
+           throw new ConstellationRuntimeException("Missing test resource:" + tr.name());
+        }
     }
 
     public static class DeployedTestResource {
@@ -199,6 +213,10 @@ public final class TestEnvironment {
 
         public Integer createProvider(IProviderBusiness providerBusiness) {
             return tr.createProvider.apply(providerBusiness, dataDir);
+        }
+
+        public DataStore createStore() {
+            return tr.createStore.apply(dataDir);
         }
     }
 
@@ -238,6 +256,17 @@ public final class TestEnvironment {
             config.parameter("path").setValue(p.toUri());
 
             return providerBusiness.storeProvider(providerIdentifier, null, ProviderType.LAYER, "data-store", source);
+        } catch (Exception ex) {
+            throw new ConstellationRuntimeException(ex);
+        }
+    }
+
+    private static DataStore createShapefileStore(Path p) {
+        try {
+            ShapefileFolderProvider provider = new ShapefileFolderProvider();
+            ParameterValueGroup params = provider.getOpenParameters().createValue();
+            params.parameter("path").setValue(p);
+            return provider.open(params);
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
         }
@@ -375,6 +404,17 @@ public final class TestEnvironment {
             config.parameter("type").setValue("AUTO");
 
             return providerBusiness.storeProvider(providerIdentifier, null, ProviderType.LAYER, "data-store", source);
+        } catch (Exception ex) {
+            throw new ConstellationRuntimeException(ex);
+        }
+    }
+
+    private static DataStore createFileCoverageStore(Path p) {
+        try {
+            FileCoverageProvider provider = new FileCoverageProvider();
+            ParameterValueGroup params = provider.getOpenParameters().createValue();
+            params.parameter("path").setValue(p);
+            return provider.open(params);
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
         }

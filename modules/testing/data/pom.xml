@@ -81,6 +81,18 @@
             <artifactId>geotk-index</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.geotoolkit</groupId>
+            <artifactId>geotk-feature-shapefile</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.geotoolkit</groupId>
+            <artifactId>geotk-coverage-worldfile</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.geotoolkit</groupId>
+            <artifactId>geotk-coverage-geotiff</artifactId>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <scope>compile</scope>
