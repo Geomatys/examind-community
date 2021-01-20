@@ -1,6 +1,6 @@
 <!-- We need one String parameter with no restriction -->
 <div ng-if="parameter.restriction.enumeration.length == 0">
-    <input id="{{replaceStr(parameter.id)}}" class="form-control" ng-required="parameter.mandatory" type="text"
+    <input id="{{replaceStr(parameter.id)}}" class="form-control" ng-required="parameter.mandatory" type="{{parameter.ext.hidden ? 'password' : 'text'}}"
            value="{{parameter.default}}" name="{{parameter.name}}" ng-model="parameter.save[$index]"/>
 </div>
 
