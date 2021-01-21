@@ -35,6 +35,7 @@ import org.constellation.dto.DataSourceSelectedPath;
 import org.constellation.dto.ProviderConfiguration;
 import org.constellation.dto.importdata.ResourceStoreAnalysisV3;
 import org.constellation.exception.ConstellationException;
+import org.constellation.provider.DataProviders;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
 import org.geotoolkit.storage.DataStores;
@@ -43,9 +44,6 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.opengis.parameter.GeneralParameterDescriptor;
-import org.opengis.parameter.ParameterDescriptor;
-import org.opengis.parameter.ParameterDescriptorGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
@@ -150,7 +148,7 @@ public class DatasourceBusinessTest {
         DataStoreProvider factory = DataStores.getProviderById("shapefile");
 
         Assert.assertNotNull(factory);
-        final DataCustomConfiguration.Type storeParams = buildDatastoreConfiguration(factory, "data-store", null);
+        final DataCustomConfiguration.Type storeParams = DataProviders.buildDatastoreConfiguration(factory, "data-store", null);
         storeParams.setSelected(true);
         final ProviderConfiguration provConfig = new ProviderConfiguration(storeParams.getCategory(), storeParams.getId());
         storeParams.cleanupEmptyProperty();
@@ -159,39 +157,5 @@ public class DatasourceBusinessTest {
         boolean hidden = true;
         ResourceStoreAnalysisV3 analysis = datasourceBusiness.treatDataPath(path, ds.getId(), provConfig, hidden, null, 1);
         Assert.assertEquals(1, analysis.getResources().size());
-    }
-
-    private static DataCustomConfiguration.Type buildDatastoreConfiguration(DataStoreProvider factory, String category, String tag) {
-        final String id    = factory.getOpenParameters().getName().getCode();
-        final String title = String.valueOf(factory.getShortName());
-        String description = null;
-        if (factory.getOpenParameters().getDescription() != null) {
-            description = String.valueOf(factory.getOpenParameters().getDescription());
-        }
-        final  DataCustomConfiguration.Property property = toDataStorePojo(factory.getOpenParameters());
-        return new DataCustomConfiguration.Type(id, title, category, tag, description, property);
-    }
-
-    private static DataCustomConfiguration.Property toDataStorePojo(GeneralParameterDescriptor desc){
-        final DataCustomConfiguration.Property prop = new DataCustomConfiguration.Property();
-        prop.setId(desc.getName().getCode());
-        if(desc.getDescription()!=null) prop.setDescription(String.valueOf(desc.getDescription()));
-        prop.setOptional(desc.getMinimumOccurs()==0);
-
-        if(desc instanceof ParameterDescriptorGroup){
-            final ParameterDescriptorGroup d = (ParameterDescriptorGroup)desc;
-            for(GeneralParameterDescriptor child : d.descriptors()){
-                prop.getProperties().add(toDataStorePojo(child));
-            }
-        }else if(desc instanceof ParameterDescriptor){
-            final ParameterDescriptor d = (ParameterDescriptor)desc;
-            final Object defaut = d.getDefaultValue();
-            if(defaut!=null && DataCustomConfiguration.MARSHALLABLE.contains(defaut.getClass())){
-                prop.setValue(defaut);
-            }
-            prop.setType(d.getValueClass().getSimpleName());
-        }
-
-        return prop;
     }
 }

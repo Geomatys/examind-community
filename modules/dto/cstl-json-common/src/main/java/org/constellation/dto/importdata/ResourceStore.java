@@ -27,10 +27,10 @@ import java.util.Objects;
  */
 public class ResourceStore {
     
-    public String id;
-    public String file;
-    public List<String> files;
-    public boolean indivisible;
+    public final String id;
+    public final String file;
+    public final List<String> files;
+    public final boolean indivisible;
 
     public ResourceStore(String id, String file, List<String> files, boolean indivisible) {
         this.id = id;

@@ -74,9 +74,8 @@ public class PortrayalMessageConverter implements HttpMessageConverter<Portrayal
 
     @Override
     public void write(PortrayalResponse r, MediaType contentType, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
-        try {
-            final ByteArrayOutputStream out = new ByteArrayOutputStream();
-
+        try (final ByteArrayOutputStream out = new ByteArrayOutputStream()){
+            
             OutputDef outdef = r.getOutputDef();
             if(outdef == null){
                 List<String> outFormats = outputMessage.getHeaders().get("Content-Type");

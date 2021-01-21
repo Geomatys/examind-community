@@ -28,9 +28,9 @@ import java.util.Map;
  */
 public class PathType {
 
-    public List<String> paths;
-    public Class type;
-    public Map<String, String> prefixMapping;
+    public final List<String> paths;
+    public final Class type;
+    public final Map<String, String> prefixMapping;
 
     public PathType(Class type, List<String> paths, Map<String, String> prefixMapping) {
         this.type = type;

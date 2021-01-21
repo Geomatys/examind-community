@@ -42,28 +42,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class DataCustomConfiguration {
 
-    public static final Set<Class> MARSHALLABLE = new HashSet<>();
-    static {
-        MARSHALLABLE.add(boolean.class);
-        MARSHALLABLE.add(byte.class);
-        MARSHALLABLE.add(char.class);
-        MARSHALLABLE.add(short.class);
-        MARSHALLABLE.add(int.class);
-        MARSHALLABLE.add(long.class);
-        MARSHALLABLE.add(float.class);
-        MARSHALLABLE.add(double.class);
-        MARSHALLABLE.add(Boolean.class);
-        MARSHALLABLE.add(Byte.class);
-        MARSHALLABLE.add(Character.class);
-        MARSHALLABLE.add(Short.class);
-        MARSHALLABLE.add(Integer.class);
-        MARSHALLABLE.add(Long.class);
-        MARSHALLABLE.add(Float.class);
-        MARSHALLABLE.add(Double.class);
-        MARSHALLABLE.add(String.class);
-        MARSHALLABLE.add(Date.class);
-    }
-
     @XmlElementWrapper(name="types")
     @XmlElement(name="Type")
     private List<Type> types;

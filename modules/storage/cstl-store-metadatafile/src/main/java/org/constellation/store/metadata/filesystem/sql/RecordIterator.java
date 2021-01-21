@@ -68,7 +68,7 @@ public class RecordIterator implements CloseableIterator<RecordInfo> {
 
         DocumentBuilder candidate = null;
         try {
-            NodeUtilities.secureFactory(dbf);
+            NodeUtilities.secureFactory(dbf);//NOSONAR
             candidate = dbf.newDocumentBuilder();
         } catch (ParserConfigurationException ex) {
             LOGGER.log(Level.WARNING, "error while building XML DocumentBuilder", ex);

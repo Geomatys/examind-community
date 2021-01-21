@@ -1693,8 +1693,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     query.setFilter(cleanFilter);
                     totalUpdated = totalUpdated + (int) FeatureStoreUtilities.getCount(fs.subset(query)).intValue();
 
-                    FeatureWriter fw = ((FeatureStore)data.getStore()).getFeatureWriter(QueryBuilder.filtered(layer.getName().tip().toString(), filter));
-                    try {
+                    try (FeatureWriter fw = ((FeatureStore)data.getStore()).getFeatureWriter(QueryBuilder.filtered(layer.getName().tip().toString(), filter))) {
                         while (fw.hasNext()) {
                             Feature feat = fw.next();
                             for (Entry<String, Object> entry : values.entrySet()) {
@@ -1703,8 +1702,6 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                             }
                             fw.write();
                         }
-                    } finally {
-                        fw.close();
                     }
                 } catch (ConstellationStoreException | DataStoreException ex) {
                     throw new CstlServiceException(ex);

@@ -75,7 +75,7 @@ public final class ConfigDirectory {
             private Path home;
             private Path data;
             private Path dataIntegrated;
-            public Path dataServices;
+            private Path dataServices;
 
             private URI homeLocation;
             private URI dataLocation;

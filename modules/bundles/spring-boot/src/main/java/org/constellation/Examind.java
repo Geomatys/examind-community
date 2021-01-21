@@ -55,7 +55,7 @@ import org.springframework.web.servlet.DispatcherServlet;
 @ImportResource({"classpath*:spring/applicationContext.xml"})
 public class Examind extends SpringBootServletInitializer {
 
-    public static String[] CSTL_SPRING_PACKAGE = new String[] {
+    private static final String[] CSTL_SPRING_PACKAGE = new String[] {
             "org.constellation.configuration.ws",
             "org.constellation.map.ws.rs",
             "org.constellation.metadata.ws.rs",
@@ -68,21 +68,6 @@ public class Examind extends SpringBootServletInitializer {
             "org.constellation.metadata.ws.rs.provider",
             "org.constellation.wps.ws.rs",
             "org.constellation.thesaurus.ws.rs"};
-
-    public static String CSTL_JERSEY_PACKAGE =
-            "org.constellation.configuration.ws;\n" +
-            "org.constellation.map.ws.rs;\n" +
-            "org.constellation.metadata.ws.rs;\n" +
-            "org.constellation.ws.rs.provider;\n" +
-            "org.constellation.coverage.ws.rs;\n" +
-            "org.constellation.wfs.ws.rs;\n" +
-            "org.constellation.sos.ws.rs;\n" +
-            "org.constellation.sos.ws.rs.provider;\n" +
-            "org.constellation.wmts.ws.rs;\n" +
-            "org.constellation.metadata.ws.rs.provider;\n" +
-            "org.constellation.wps.ws.rs;\n" +
-            "org.constellation.thesaurus.ws.rs";
-
 
     public static void main(String[] args) {
         SpringApplication.run(Examind.class, args);

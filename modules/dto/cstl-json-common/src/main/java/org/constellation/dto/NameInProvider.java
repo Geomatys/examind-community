@@ -28,11 +28,11 @@ import org.opengis.util.GenericName;
  */
 public class NameInProvider {
 
-    public Integer layerId;
-    public GenericName name;
-    public Integer providerID;
-    public String alias;
-    public Date dataVersion;
+    public final Integer layerId;
+    public final GenericName name;
+    public final Integer providerID;
+    public final String alias;
+    public final Date dataVersion;
 
     public NameInProvider(final Integer layerId, final GenericName name, final Integer providerID, final Date dataVersion, final String alias) {
         this.layerId = layerId;

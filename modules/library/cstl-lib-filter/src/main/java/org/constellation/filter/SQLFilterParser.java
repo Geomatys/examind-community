@@ -124,9 +124,10 @@ public class SQLFilterParser extends AbstractFilterParser {
             }
         }
         if (response != null) {
-            response.nbField = nbField - 1;
-            if (executeSelect)
+            response.setNbField(nbField -1);
+            if (executeSelect) {
                 response.createSelect();
+            }
         }
         // TODO use typeNames
         return response;
@@ -155,7 +156,7 @@ public class SQLFilterParser extends AbstractFilterParser {
                 if (child instanceof ComparisonOperator) {
                     final SQLQuery query = new SQLQuery(treatComparisonOperator((ComparisonOperator) child));
                     if (operator.equalsIgnoreCase("OR")) {
-                        query.nbField = nbField -1;
+                        query.setNbField(nbField -1);
                         query.createSelect();
                         queryBuilder.append('(').append(query.getTextQuery());
                         queryBuilder.append(") UNION ");
@@ -187,7 +188,7 @@ public class SQLFilterParser extends AbstractFilterParser {
                             writeOperator = false;
                         } else  {
                             if (operator.equalsIgnoreCase("OR")) {
-                                query.nbField = nbField -1;
+                                query.setNbField(nbField -1);
                                 query.createSelect();
                                 queryBuilder.append('(').append(query.getTextQuery());
                                 queryBuilder.append(") UNION ");

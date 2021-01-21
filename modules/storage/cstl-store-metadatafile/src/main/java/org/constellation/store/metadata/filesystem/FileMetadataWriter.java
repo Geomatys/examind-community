@@ -136,7 +136,7 @@ public class FileMetadataWriter extends AbstractMetadataWriter {
             }
 
             TransformerFactory tf = TransformerFactory.newInstance();
-            NodeUtilities.secureFactory(tf);
+            NodeUtilities.secureFactory(tf);//NOSONAR
             Transformer transformer = tf.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");

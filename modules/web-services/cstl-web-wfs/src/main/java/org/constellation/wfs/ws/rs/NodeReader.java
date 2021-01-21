@@ -62,7 +62,7 @@ public class NodeReader implements HttpMessageConverter<Node>{
     public Node read(Class<? extends Node> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            NodeUtilities.secureFactory(dbf);
+            NodeUtilities.secureFactory(dbf);//NOSONAR
             DocumentBuilder db = dbf.newDocumentBuilder();
             Document doc = db.parse(him.getBody());
             return doc.getDocumentElement();

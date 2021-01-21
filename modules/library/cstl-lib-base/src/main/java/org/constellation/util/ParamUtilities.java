@@ -101,7 +101,7 @@ public final class ParamUtilities extends Static {
         final Document document;
         try (InputStream stream = toInputStream(input)) {
             final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            NodeUtilities.secureFactory(factory);
+            NodeUtilities.secureFactory(factory);//NOSONAR
             //This is the fix to treat namespace backward compatibility
             factory.setNamespaceAware(true);
             final DocumentBuilder constructeur = factory.newDocumentBuilder();

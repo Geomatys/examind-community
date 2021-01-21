@@ -669,7 +669,7 @@ public class TemplateReader extends AbstractTemplateHandler {
 
     private static class ReservedObjects {
 
-        public Map<String, Map<String, List<Object>>> objects = new HashMap<>();
+        private final Map<String, Map<String, List<Object>>> objects = new HashMap<>();
 
         public boolean isReserved(final ValueNode node, final Object obj) {
             if (node.blockName != null) {

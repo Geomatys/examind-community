@@ -27,9 +27,9 @@ import org.constellation.api.PathType;
  */
 public class SpecificQueryablePart {
 
-    public Map<String, PathType> queryable;
-    public String type;
-    public boolean spatial;
+    public final Map<String, PathType> queryable;
+    public final String type;
+    public final boolean spatial;
 
     public SpecificQueryablePart(Map<String, PathType> queryable, String type, boolean spatial) {
         this.queryable = queryable;

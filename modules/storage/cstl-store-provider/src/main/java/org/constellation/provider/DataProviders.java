@@ -760,6 +760,28 @@ public final class DataProviders extends Static{
         description.setBoundingBox(new double[]{lower[0], lower[1], upper[0], upper[1]});
     }
 
+    private static final Set<Class> MARSHALLABLE = new HashSet<>();
+    static {
+        MARSHALLABLE.add(boolean.class);
+        MARSHALLABLE.add(byte.class);
+        MARSHALLABLE.add(char.class);
+        MARSHALLABLE.add(short.class);
+        MARSHALLABLE.add(int.class);
+        MARSHALLABLE.add(long.class);
+        MARSHALLABLE.add(float.class);
+        MARSHALLABLE.add(double.class);
+        MARSHALLABLE.add(Boolean.class);
+        MARSHALLABLE.add(Byte.class);
+        MARSHALLABLE.add(Character.class);
+        MARSHALLABLE.add(Short.class);
+        MARSHALLABLE.add(Integer.class);
+        MARSHALLABLE.add(Long.class);
+        MARSHALLABLE.add(Float.class);
+        MARSHALLABLE.add(Double.class);
+        MARSHALLABLE.add(String.class);
+        MARSHALLABLE.add(Date.class);
+    }
+
     public static DataCustomConfiguration.Type buildDatastoreConfiguration(DataStoreProvider factory, String category, String tag) {
         final String id    = factory.getOpenParameters().getName().getCode();
         final String title = String.valueOf(factory.getShortName());
@@ -785,7 +807,7 @@ public final class DataProviders extends Static{
         }else if(desc instanceof ParameterDescriptor){
             final ParameterDescriptor d = (ParameterDescriptor)desc;
             final Object defaut = d.getDefaultValue();
-            if(defaut!=null && DataCustomConfiguration.MARSHALLABLE.contains(defaut.getClass())){
+            if(defaut!=null && MARSHALLABLE.contains(defaut.getClass())){
                 prop.setValue(defaut);
             }
             prop.setType(d.getValueClass().getSimpleName());

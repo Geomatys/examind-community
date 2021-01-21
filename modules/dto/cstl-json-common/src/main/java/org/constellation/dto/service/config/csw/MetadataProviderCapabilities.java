@@ -39,4 +39,18 @@ public class MetadataProviderCapabilities {
     public boolean deleteSupported;
 
     public boolean updateSupported;
+
+    public MetadataProviderCapabilities() {
+        
+    }
+    
+    public MetadataProviderCapabilities(List<QName> additionalQueryable, List<String> acceptedResourceType,
+            List<QName> supportedTypeNames, boolean writeSupported, boolean deleteSupported, boolean updateSupported) {
+        this.additionalQueryable = additionalQueryable;
+        this.acceptedResourceType = acceptedResourceType;
+        this.supportedTypeNames = supportedTypeNames;
+        this.writeSupported = writeSupported;
+        this.deleteSupported = deleteSupported;
+        this.updateSupported = updateSupported;
+    }
 }

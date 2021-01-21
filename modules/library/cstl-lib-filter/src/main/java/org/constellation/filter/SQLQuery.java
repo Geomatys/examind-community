@@ -34,7 +34,7 @@ public class SQLQuery implements SpatialQuery {
 
     private String query;
 
-    public int nbField;
+    private int nbField;
 
     private final Query spatialQuery;
 
@@ -68,9 +68,17 @@ public class SQLQuery implements SpatialQuery {
         return null;
     }
 
+    public int getNbField() {
+        return nbField;
+    }
+
+    public void setNbField(int nbField) {
+        this.nbField = nbField;
+    }
+
     public void createSelect() {
         final StringBuilder select = new StringBuilder("SELECT distinct \"identifier\" FROM \"Storage\".\"Records\" ");
-        for (int i = 1; i <= nbField; i++) {
+        for (int i = 1; i <= getNbField(); i++) {
             select.append(" , \"Storage\".\"TextValues\" v").append(i);
         }
         select.append(" WHERE ");

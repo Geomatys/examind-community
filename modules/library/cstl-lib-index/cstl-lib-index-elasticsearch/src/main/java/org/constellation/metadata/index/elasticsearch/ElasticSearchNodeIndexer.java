@@ -147,7 +147,7 @@ public class ElasticSearchNodeIndexer extends ElasticSearchIndexer<Node> {
     }
 
     private static class TermValue {
-        public String term;
+        public final String term;
 
         public List<Object> value;
 

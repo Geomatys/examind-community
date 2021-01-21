@@ -1085,7 +1085,7 @@ public class NetCDFMetadataReader extends AbstractMetadataReader implements CSWM
         try {
             final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             dbf.setNamespaceAware(true);
-            NodeUtilities.secureFactory(dbf);
+            NodeUtilities.secureFactory(dbf);//NOSONAR
             final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
             final Document document = docBuilder.newDocument();
             final Marshaller marshaller = EBRIMMarshallerPool.getInstance().acquireMarshaller();

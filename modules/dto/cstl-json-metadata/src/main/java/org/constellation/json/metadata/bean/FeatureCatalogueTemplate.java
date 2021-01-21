@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
 @Component("profile_default_feature_catalogue")
 public class FeatureCatalogueTemplate extends Template {
 
-    public static String NAME = "profile_default_feature_catalogue";
+    private static final String NAME = "profile_default_feature_catalogue";
 
     public FeatureCatalogueTemplate() {
         super(FeatureCatalogueStandard.ISO_19110, "org/constellation/json/metadata/profile_feature_catalogue.json");

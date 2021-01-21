@@ -18,8 +18,6 @@
  */
 package org.constellation.dto.service.config.sos;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,17 +27,23 @@ import java.util.Map;
  */
 public class SOSProviderCapabilities {
 
-    public Map<String, List<String>> responseFormats = new HashMap<>();
+    public final Map<String, List<String>> responseFormats;
+    public final List<String> responseModes;
+    public final List<String> queryableResultProperties;
+    public final boolean isBoundedObservation;
+    public final boolean computeCollectionBound;
+    public final boolean isDefaultTemplateTime;
+    public final boolean hasFilter;
 
-    public List<String> responseModes= new ArrayList<>();
-
-    public List<String> queryableResultProperties = new ArrayList<>();
-
-    public boolean isBoundedObservation = false;
-
-    public boolean computeCollectionBound = false;
-
-    public boolean isDefaultTemplateTime = false;
-
-    public boolean hasFilter = false;
+    public SOSProviderCapabilities(Map<String, List<String>> responseFormats , List<String> responseModes,
+            List<String> queryableResultProperties , boolean isBoundedObservation, boolean computeCollectionBound,
+            boolean isDefaultTemplateTime, boolean hasFilter) {
+        this.responseFormats = responseFormats;
+        this.responseModes = responseModes;
+        this.queryableResultProperties = queryableResultProperties;
+        this.isBoundedObservation = isBoundedObservation;
+        this.computeCollectionBound = computeCollectionBound;
+        this.isDefaultTemplateTime = isDefaultTemplateTime;
+        this.hasFilter = hasFilter;
+    }
 }

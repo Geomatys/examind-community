@@ -33,7 +33,7 @@ public class DynamicRangeSymbolizer implements Symbolizer {
     /**
      * Channels lists
      */
-    public List<DynamicRangeChannel> channels = new ArrayList<>(0);
+    private List<DynamicRangeChannel> channels = new ArrayList<>(0);
 
     /**
      * Symbolizer description

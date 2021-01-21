@@ -29,7 +29,6 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import javax.xml.XMLConstants;
 import org.constellation.util.NodeUtilities;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
@@ -69,7 +68,7 @@ public class NodeWriter implements HttpMessageConverter<Node> {
     public void write(Node t, MediaType contentType, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
         try {
             TransformerFactory tf = TransformerFactory.newInstance();
-            NodeUtilities.secureFactory(tf);
+            NodeUtilities.secureFactory(tf);//NOSONAR
             Transformer transformer = tf.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.transform(new DOMSource(t), new StreamResult(outputMessage.getBody()));

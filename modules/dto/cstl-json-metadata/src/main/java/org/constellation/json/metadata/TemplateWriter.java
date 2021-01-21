@@ -70,7 +70,7 @@ public class TemplateWriter extends AbstractTemplateHandler {
     public RootObj writeTemplate(final RootObj template, final Object metadata, final boolean prune, final boolean overwrite) throws ParseException {
         final TemplateTree tree  = TemplateTree.getTreeFromRootObj(template);
 
-        fillValueWithMetadata(tree, tree.getRoot(), metadata, new HashMap<String, Set<Object>>(), prune, overwrite);
+        fillValueWithMetadata(tree, tree.getRoot(), metadata, new HashMap<>(), prune, overwrite);
         if (prune) {
             TemplateTree.pruneTree(tree, tree.getRoot());
         }
@@ -189,7 +189,7 @@ public class TemplateWriter extends AbstractTemplateHandler {
                     return null;
                 }
             }
-            final ValueNode candidate = extractSubTreeFromMetadata(new ValueNode(node), metadata, new HashMap<String, Set<Object>>());
+            final ValueNode candidate = extractSubTreeFromMetadata(new ValueNode(node), metadata, new HashMap<>());
             if (matchNode(node, candidate)) {
                 exclude(excluded, node, metadata);
                 return metadata;
@@ -316,16 +316,5 @@ public class TemplateWriter extends AbstractTemplateHandler {
 
     private static boolean isExcluded(final Map<String, Set<Object>> excluded, final ValueNode node, final Object obj) {
         return excluded.containsKey(node.path) && excluded.get(node.path).contains(obj);
-    }
-
-    private static class NumeratedCollectionElement {
-        public int index;
-        public Object obj;
-
-        public NumeratedCollectionElement(int index, Object obj) {
-            this.index = index;
-            this.obj   = obj;
-        }
-
     }
 }

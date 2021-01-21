@@ -60,17 +60,6 @@ import org.springframework.context.annotation.DependsOn;
 @DependsOn("database-initer")
 public class JooqDataRepository extends AbstractJooqRespository<DataRecord, org.constellation.database.api.jooq.tables.pojos.Data> implements DataRepository {
 
-    /**
-     * Field list use to return a lighten reference to Data object
-     */
-    public static final Field[] REF_FIELDS = new Field[]{
-            DATA.ID,
-            DATA.NAMESPACE,
-            DATA.NAME,
-            DATA.TYPE,
-            DATA.SUBTYPE,
-            DATA.PROVIDER};
-
     public JooqDataRepository() {
         super(org.constellation.database.api.jooq.tables.pojos.Data.class, DATA);
     }

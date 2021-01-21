@@ -330,7 +330,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
 
     private static class S63FileVisitor extends SimpleFileVisitor<Path>  {
 
-        public boolean serialPresent = false;
+        private boolean serialPresent = false;
 
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {

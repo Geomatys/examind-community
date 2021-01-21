@@ -454,23 +454,34 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     @Override
     public SOSProviderCapabilities getCapabilities() throws ConstellationStoreException {
         if (capabilities == null) {
-            capabilities = new SOSProviderCapabilities();
             try {
                 ObservationReader reader = ((ObservationStore)getMainStore()).getReader();
+                Map<String, List<String>> responseFormats = new HashMap<>();
+                List<String> responseModes= new ArrayList<>();
                 if (reader != null) {
-                    capabilities.responseFormats = reader.getResponseFormats();
-                    reader.getResponseModes().stream().forEach(rm -> capabilities.responseModes.add(rm.value()));
+                    responseFormats = reader.getResponseFormats();
+                    reader.getResponseModes().stream().forEach(rm -> responseModes.add(rm.value()));
                 }
+                List<String> queryableResultProperties = new ArrayList<>();
+                boolean isBoundedObservation = false;
+                boolean computeCollectionBound = false;
+                boolean isDefaultTemplateTime = false;
+                boolean hasFilter = false;
                 ObservationFilterReader filter = ((ObservationStore)getMainStore()).getFilter();
                 if (filter != null) {
-                    capabilities.queryableResultProperties = filter.supportedQueryableResultProperties();
-                    capabilities.isBoundedObservation      = filter.isBoundedObservation();
-                    capabilities.computeCollectionBound    = filter.computeCollectionBound();
-                    capabilities.isDefaultTemplateTime     = filter.isDefaultTemplateTime();
-                    capabilities.hasFilter                 = true;
-                } else {
-                    capabilities.hasFilter                 = false;
+                    queryableResultProperties = filter.supportedQueryableResultProperties();
+                    isBoundedObservation      = filter.isBoundedObservation();
+                    computeCollectionBound    = filter.computeCollectionBound();
+                    isDefaultTemplateTime     = filter.isDefaultTemplateTime();
+                    hasFilter                 = true;
                 }
+                capabilities = new SOSProviderCapabilities(responseFormats,
+                                                           responseModes,
+                                                           queryableResultProperties,
+                                                           isBoundedObservation,
+                                                           computeCollectionBound,
+                                                           isDefaultTemplateTime,
+                                                           hasFilter);
             } catch (DataStoreException ex) {
                 throw new ConstellationStoreException(ex);
             }
