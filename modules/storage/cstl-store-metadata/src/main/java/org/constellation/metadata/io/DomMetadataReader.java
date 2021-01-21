@@ -1611,25 +1611,4 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                     INVALID_PARAMETER_VALUE, "propertyName");
         }
     }
-
-    /**
-     * Return the list of Additional queryable element.
-     */
-    @Override
-    public List<QName> getAdditionalQueryableQName() {
-        List<QName> addQnames = new ArrayList<>();
-        for (Object addQname : additionalQueryable.keySet()) {
-            addQnames.add(new QName((String)addQname));
-        }
-        return addQnames;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Map<String, PathType> getAdditionalQueryablePathMap() {
-        return additionalQueryable;
-    }
-
 }

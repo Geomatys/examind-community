@@ -22,10 +22,7 @@ package org.constellation.store.metadata;
 
 import org.geotoolkit.csw.xml.DomainValues;
 
-import javax.xml.namespace.QName;
 import java.util.List;
-import java.util.Map;
-import org.constellation.api.PathType;
 import org.geotoolkit.metadata.MetadataIoException;
 import org.geotoolkit.metadata.MetadataReader;
 
@@ -50,16 +47,6 @@ public interface CSWMetadataReader extends MetadataReader {
      * @return a list of values the specified fields specified.
      */
     public List<String> getFieldDomainofValuesForMetadata(String token, String identifier) throws MetadataIoException ;
-
-    /**
-     * @return the list of QName for additional queryable element.
-     */
-    List<QName> getAdditionalQueryableQName();
-
-    /**
-     * @return the list of path for the additional queryable element.
-     */
-    Map<String, PathType> getAdditionalQueryablePathMap();
 
     /**
      * Execute a SQL query and return the result as a List of identifier;

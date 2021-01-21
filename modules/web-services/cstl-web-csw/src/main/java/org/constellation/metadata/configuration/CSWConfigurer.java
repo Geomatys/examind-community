@@ -19,7 +19,6 @@
 
 package org.constellation.metadata.configuration;
 
-import org.constellation.dto.AcknowlegementType;
 import org.constellation.dto.service.config.csw.BriefNode;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.config.DataSourceType;
@@ -43,6 +42,7 @@ import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -57,6 +57,7 @@ import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.exception.ConstellationException;
+import org.constellation.exception.TargetNotFoundException;
 import org.constellation.metadata.core.IndexConfigHandler;
 import org.constellation.metadata.core.MetadataStoreWrapper;
 import org.constellation.metadata.utils.Utils;
@@ -113,25 +114,21 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
     }
 
     @Override
-    public AcknowlegementType refreshIndex(final String id, final boolean asynchrone, final boolean forced) throws ConstellationException {
+    public boolean refreshIndex(final String id, final boolean asynchrone, final boolean forced) throws ConstellationException {
         if (isIndexing(id) && !forced) {
-            final AcknowlegementType refused = new AcknowlegementType("Failure",
-                    "An indexation is already started for this service:" + id);
-            return refused;
+            throw new ConfigurationException( "An indexation is already started for this service.");
         } else if (indexing && forced) {
             AbstractIndexer.stopIndexation(Arrays.asList(id));
         }
 
         startIndexation(id);
-        AcknowlegementType ack;
         try {
-            ack = refreshIndex(asynchrone, id);
+            return refreshIndex(asynchrone, id);
         } catch (IndexingException ex) {
             throw new ConfigurationException(ex);
         } finally {
             endIndexation(id);
         }
-        return ack;
     }
 
     /**
@@ -143,7 +140,7 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
      * @return
      * @throws CstlServiceException
      */
-    private AcknowlegementType refreshIndex(final boolean asynchrone, final String id) throws ConstellationException, IndexingException {
+    private boolean refreshIndex(final boolean asynchrone, final String id) throws ConstellationException, IndexingException {
         String suffix = "";
         if (asynchrone) {
             suffix = " (asynchrone)";
@@ -160,31 +157,15 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
             if (serviceBusiness.getServiceIdByIdentifierAndType("csw", id) != null) {
                 cswInstances = Arrays.asList(id);
             } else {
-                return new AcknowlegementType("Failure", "there is no service " + id);
+                throw new TargetNotFoundException("there is no service " + id);
             }
         }
-
-
-        final List<Path> cswInstanceDirectories = new ArrayList<>();
-        if ("all".equals(id)) {
-            try {
-                cswInstanceDirectories.addAll(configBusiness.getInstanceDirectories("csw"));
-            } catch (IOException e) {
-                LOGGER.log(Level.INFO, "unable to find CSW instances directories" + suffix);
-            }
-        } else {
-            final Path instanceDir = configBusiness.getInstanceDirectory("csw", id);
-            if (instanceDir != null) {
-                cswInstanceDirectories.add(instanceDir);
-            }
-        }
-
         if (!asynchrone) {
             synchroneIndexRefresh(cswInstances, true);
         } else {
             asynchroneIndexRefresh(cswInstances);
         }
-        return new AcknowlegementType("Success", "CSW index successfully recreated");
+        return true;
     }
 
     /**
@@ -232,9 +213,9 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
      * @throws ConfigurationException
      */
     @Override
-    public AcknowlegementType addToIndex(final String id, final List<String> identifierList) throws ConstellationException {
+    public boolean addToIndex(final String id, final List<String> identifierList) throws ConstellationException {
         if (identifierList.isEmpty()) {
-            return new AcknowlegementType("Success", "warning: identifier list empty");
+            return false;
         }
         LOGGER.fine("Add to index requested");
 
@@ -269,7 +250,7 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
         } else {
             throw new ConfigurationException("Unable to get a store for the id:" + id);
         }
-        return new AcknowlegementType("Success", "The specified record have been added to the CSW index");
+        return true;
     }
 
     /**
@@ -282,9 +263,9 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
      * @throws ConfigurationException
      */
     @Override
-    public AcknowlegementType removeFromIndex(final String id, final List<String> identifierList) throws ConfigurationException {
+    public boolean removeFromIndex(final String id, final List<String> identifierList) throws ConfigurationException {
         if (identifierList.isEmpty()) {
-            return new AcknowlegementType("Success", "warning: identifier list empty");
+            return false;
         }
         LOGGER.finer("Remove from index requested");
 
@@ -304,9 +285,7 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
         } else {
             throw new ConfigurationException("Unable to create an indexer for the id:" + id);
         }
-
-        final String msg = "The specified record have been remove from the CSW index";
-        return new AcknowlegementType("Success", msg);
+        return true;
     }
 
 
@@ -317,18 +296,17 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
      * @return an Acknowledgment.
      */
     @Override
-    public AcknowlegementType stopIndexation(final String id) {
+    public boolean stopIndexation(final String id) {
         LOGGER.info("\n stop indexation requested \n");
-        if (isIndexing(id)) {
-            return new AcknowlegementType("Success", "There is no indexation to stop");
-        } else {
-            AbstractIndexer.stopIndexation(Arrays.asList(id));
-            return new AcknowlegementType("Success", "The indexation have been stopped");
-        }
+        if (!isIndexing(id)) {
+            return true;
+        } 
+        AbstractIndexer.stopIndexation(Arrays.asList(id));
+        return true;
     }
 
     @Override
-    public AcknowlegementType importRecords(final String id, final Path f, final String fileName) throws ConstellationException {
+    public boolean importRecords(final String id, final Path f, final String fileName) throws ConstellationException {
         LOGGER.finer("Importing record");
         final List<Path> files;
         if (fileName.endsWith("zip")) {
@@ -348,42 +326,58 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
                     final Node n = NodeUtilities.getNodeFromPath(importedFile);
                     String metadataID = Utils.findIdentifierNode(n);
                     metadataBusiness.updateMetadata(metadataID, n, null, null, null, null, getProviderID(id), "DOC");
+                    metadataBusiness.linkMetadataIDToCSW(metadataID, id);
+
                 } else {
                     throw new ConfigurationException("An imported file is null");
                 }
             }
-            final String msg = "The specified record have been imported in the CSW";
-            return new AcknowlegementType("Success", msg);
+            return true;
         } catch (SAXException | ParserConfigurationException | IOException ex) {
             LOGGER.log(Level.WARNING, "Exception while unmarshalling imported file", ex);
         }
-        return new AcknowlegementType("Error", "An error occurs during the process");
+        return false;
     }
 
     @Override
-    public AcknowlegementType importRecord(final String id, final Node n) throws ConstellationException {
-        LOGGER.fine("Importing record");
+    public boolean importRecord(String id, String metadataId) throws ConstellationException {
+        if (metadataBusiness.existInternalMetadata(metadataId, true, false, null)) {
+            metadataBusiness.linkMetadataIDToCSW(metadataId, id);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean importRecords(String id, Collection<String> metadataIds) throws ConstellationException {
+        for (String metadataId : metadataIds) {
+            if (metadataBusiness.existInternalMetadata(metadataId, true, false, null)) {
+                metadataBusiness.linkMetadataIDToCSW(metadataId, id);
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public boolean importRecord(final String id, final Node n) throws ConstellationException {
         final int providerID = getProviderID(id);
         String metadataID = Utils.findIdentifierNode(n);
         metadataBusiness.updateMetadata(metadataID, n, null, null, null, null, providerID, "DOC");
-
-        return new AcknowlegementType("Success", "The specified record have been imported in the CSW");
+        metadataBusiness.linkMetadataIDToCSW(metadataID, id);
+        return true;
     }
 
     @Override
-    public AcknowlegementType removeRecords(final String identifier) throws ConstellationException {
-        final boolean deleted = metadataBusiness.deleteMetadata(identifier);
-        if (deleted) {
-            final String msg = "The specified record has been deleted from the CSW";
-            return new AcknowlegementType("Success", msg);
-        } else {
-            final String msg = "The specified record has not been deleted from the CSW";
-            return new AcknowlegementType("Failure", msg);
+    public boolean removeRecords(final String id, final String metadataId) throws ConstellationException {
+        if (metadataBusiness.isLinkedMetadataToCSW(metadataId, id)) {
+            metadataBusiness.unlinkMetadataIDToCSW(metadataId, id);
+            return true;
         }
+        return false;
     }
 
     @Override
-    public AcknowlegementType removeAllRecords(final String id) throws ConstellationException {
+    public boolean removeAllRecords(final String id) throws ConstellationException {
         final MetadataStore store = getMetadataStore(id);
         final List<Integer> metaIDS = new ArrayList<>();
         try {
@@ -395,20 +389,12 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
         } catch (MetadataIoException ex) {
             throw new ConfigurationException(ex);
         }
-        final String msg = "All records have been deleted from the CSW";
-        return new AcknowlegementType("Success", msg);
+        return true;
     }
 
     @Override
-    public AcknowlegementType metadataExist(final String id, final String metadataID) throws ConfigurationException {
-        final boolean exist = metadataBusiness.isLinkedMetadataToCSW(metadataID, id);
-        if (exist) {
-            final String msg = "The specified record exist in the CSW";
-            return new AcknowlegementType("Exist", msg);
-        } else {
-            final String msg = "The specified record does not exist in the CSW";
-            return new AcknowlegementType("Not Exist", msg);
-        }
+    public boolean metadataExist(final String id, final String metadataID) throws ConfigurationException {
+        return metadataBusiness.isLinkedMetadataToCSW(metadataID, id);
     }
 
     @Override
@@ -487,7 +473,7 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
     }
 
     @Override
-    public AcknowlegementType removeIndex(String id) throws ConfigurationException {
+    public boolean removeIndex(String id) throws ConfigurationException {
         try {
             String requestUUID = UUID.randomUUID().toString();
             MetadataStore store = getMetadataStore(id);
@@ -497,7 +483,7 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
         } catch (ConfigurationException | SQLException | IOException ex) {
            throw new ConfigurationException(ex);
         }
-        return new AcknowlegementType("Success", "CSW index successfully destroyed");
+        return true;
     }
 
     /**

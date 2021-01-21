@@ -19,8 +19,8 @@
 package org.constellation.ws;
 
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
-import org.constellation.dto.AcknowlegementType;
 import org.constellation.dto.service.config.csw.BriefNode;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.StringList;
@@ -33,7 +33,7 @@ import org.w3c.dom.Node;
  */
 public interface ICSWConfigurer extends IOGCConfigurer {
 
-    AcknowlegementType refreshIndex(final String id, final boolean asynchrone, final boolean forced) throws ConstellationException;
+    boolean refreshIndex(final String id, final boolean asynchrone, final boolean forced) throws ConstellationException;
 
     /**
      * Add some CSW record to the index.
@@ -44,7 +44,7 @@ public interface ICSWConfigurer extends IOGCConfigurer {
      * @return
      * @throws ConfigurationException
      */
-    AcknowlegementType addToIndex(final String id, final List<String> identifierList) throws ConstellationException;
+    boolean addToIndex(final String id, final List<String> identifierList) throws ConstellationException;
 
     /**
      * Remove some CSW record to the index.
@@ -55,9 +55,9 @@ public interface ICSWConfigurer extends IOGCConfigurer {
      * @return
      * @throws ConfigurationException
      */
-    AcknowlegementType removeFromIndex(final String id, final List<String> identifierList) throws ConfigurationException;
+    boolean removeFromIndex(final String id, final List<String> identifierList) throws ConfigurationException;
 
-    AcknowlegementType removeIndex(final String id) throws ConfigurationException;
+    boolean removeIndex(final String id) throws ConfigurationException;
 
     /**
      * Stop all the indexation going on.
@@ -65,17 +65,21 @@ public interface ICSWConfigurer extends IOGCConfigurer {
      * @param id identifier of the CSW service.
      * @return an Acknowledgment.
      */
-    AcknowlegementType stopIndexation(final String id);
+    boolean stopIndexation(final String id);
 
-    AcknowlegementType importRecords(final String id, final Path f, final String fileName) throws ConstellationException ;
+    boolean importRecord(final String id, final String metadataId) throws ConstellationException ;
 
-    AcknowlegementType importRecord(final String id, final Node n) throws ConstellationException;
+    boolean importRecords(final String id, final Collection<String> metadataIds) throws ConstellationException ;
 
-    AcknowlegementType removeRecords(final String identifier) throws ConstellationException;
+    boolean importRecords(final String id, final Path f, final String fileName) throws ConstellationException ;
 
-    AcknowlegementType removeAllRecords(final String id) throws ConstellationException;
+    boolean importRecord(final String id, final Node n) throws ConstellationException;
 
-    AcknowlegementType metadataExist(final String id, final String metadataID) throws ConfigurationException;
+    boolean removeRecords(final String id, final String metadataId) throws ConstellationException;
+
+    boolean removeAllRecords(final String id) throws ConstellationException;
+
+    boolean metadataExist(final String id, final String metadataID) throws ConfigurationException;
 
     List<BriefNode> getMetadataList(final String id, final int count, final int startIndex) throws ConfigurationException;
 

@@ -219,22 +219,6 @@ public abstract class GenericMetadataReader extends GenericReader implements CSW
         return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<QName> getAdditionalQueryableQName() {
-        return new ArrayList<>();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Map<String, PathType> getAdditionalQueryablePathMap() {
-        return new HashMap<>();
-    }
-
     @Override
     public List<MetadataType> getSupportedDataTypes() {
         return Arrays.asList(MetadataType.ISO_19115,

@@ -144,6 +144,7 @@ import org.geotoolkit.storage.DataStores;
 import org.opengis.parameter.ParameterValueGroup;
 import static org.constellation.business.ClusterMessageConstant.*;
 import org.constellation.exception.NotRunningServiceException;
+import org.constellation.exception.TargetNotFoundException;
 
 /**
  * Business facade for metadata.
@@ -522,16 +523,18 @@ public class MetadataBusiness implements IMetadataBusiness {
      * {@inheritDoc}
      */
     @Override
-    public boolean isLinkedMetadataToCSW(final int metadataID, final int cswID) {
-        return metadataRepository.isLinkedMetadata(metadataID, cswID);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isLinkedMetadataToCSW(final String metadataID, final String cswID) {
-        return metadataRepository.isLinkedMetadata(metadataID, cswID);
+    public boolean isLinkedMetadataToCSW(final String metadataID, final String cswID) throws ConfigurationException {
+        final Service service = serviceRepository.findByIdentifierAndType(cswID, "csw");
+        if (service != null) {
+            final Automatic config = getCSWConfig(service);
+            final boolean partial = config.getBooleanParameter(CSW_CONFIG_PARTIAL, false);
+            if (partial) {
+                return metadataRepository.isLinkedMetadata(metadataID, cswID);
+            }
+            return true;
+        } else {
+            throw new TargetNotFoundException("Unable to find a csw service:" + cswID);
+        }
     }
 
     @Override
@@ -555,22 +558,30 @@ public class MetadataBusiness implements IMetadataBusiness {
      */
     @Override
     @Transactional
-    public void linkMetadataIDToCSW(final String metadataId, final String cswIdentifier)  throws ConfigurationException {
+    public void linkMetadataIDToCSW(final String metadataId, final String cswIdentifier)  throws ConstellationException {
         final Service service = serviceRepository.findByIdentifierAndType(cswIdentifier, "csw");
         if (service != null) {
-            final boolean partial;
-            try {
-                final Unmarshaller um = GenericDatabaseMarshallerPool.getInstance().acquireUnmarshaller();
-                final Automatic config = (Automatic) um.unmarshal(new StringReader(service.getConfig()));
-                partial = config.getBooleanParameter(CSW_CONFIG_PARTIAL, false);
-                GenericDatabaseMarshallerPool.getInstance().recycle(um);
-            } catch (JAXBException ex) {
-                throw new ConfigurationException("Error while reading CSW configuration", ex);
-            }
+            final Automatic config = getCSWConfig(service);
+            final boolean partial = config.getBooleanParameter(CSW_CONFIG_PARTIAL, false);
             if (partial) {
                 metadataRepository.addMetadataToCSW(metadataId, service.getId());
+                refreshCSWIndex(cswIdentifier, new ArrayList<>(), Arrays.asList(metadataId));
             }
+        } else {
+            throw new TargetNotFoundException("Unable to find a csw service:" + cswIdentifier);
         }
+    }
+
+    private Automatic getCSWConfig(final Service service) throws ConfigurationException {
+        try {
+            final Unmarshaller um = GenericDatabaseMarshallerPool.getInstance().acquireUnmarshaller();
+            final Automatic config = (Automatic) um.unmarshal(new StringReader(service.getConfig()));
+            GenericDatabaseMarshallerPool.getInstance().recycle(um);
+            return config;
+        } catch (JAXBException ex) {
+            throw new ConfigurationException("Error while reading CSW configuration", ex);
+        }
+
     }
 
     /**
@@ -578,10 +589,17 @@ public class MetadataBusiness implements IMetadataBusiness {
      */
     @Override
     @Transactional
-    public void unlinkMetadataIDToCSW(final String metadataId, final String cswIdentifier) {
-        final Integer service = serviceRepository.findIdByIdentifierAndType(cswIdentifier, "csw");
+    public void unlinkMetadataIDToCSW(final String metadataId, final String cswIdentifier) throws ConstellationException {
+        final Service service = serviceRepository.findByIdentifierAndType(cswIdentifier, "csw");
         if (service != null) {
-            metadataRepository.removeDataFromCSW(metadataId, service);
+            final Automatic config = getCSWConfig(service);
+            final boolean partial = config.getBooleanParameter(CSW_CONFIG_PARTIAL, false);
+            if (partial) {
+                metadataRepository.removeDataFromCSW(metadataId, service.getId());
+                refreshCSWIndex(cswIdentifier, Arrays.asList(metadataId), new ArrayList<>());
+            }
+        } else {
+            throw new TargetNotFoundException("Unable to find a csw service:" + cswIdentifier);
         }
     }
 
@@ -979,62 +997,61 @@ public class MetadataBusiness implements IMetadataBusiness {
      */
     @Override
     public void updateCSWIndex(final List<MetadataWithState> metadatas, final boolean update) throws ConstellationException {
-        if (metadatas.isEmpty()) return;
-        try {
-            final List<Service> services = serviceRepository.findByType("csw");
-            for (Service service : services) {
+        if (metadatas.isEmpty()) {
+            return;
+        }
+        final List<Service> services = serviceRepository.findByType("csw");
+        for (Service service : services) {
 
-                final Unmarshaller um = GenericDatabaseMarshallerPool.getInstance().acquireUnmarshaller();
-                // read config to determine CSW type
-                final Automatic conf = (Automatic) um.unmarshal(new StringReader(service.getConfig()));
-                GenericDatabaseMarshallerPool.getInstance().recycle(um);
-                boolean partial       = conf.getBooleanParameter(CSW_CONFIG_PARTIAL, false);
-                boolean onlyPublished = conf.getBooleanParameter(CSW_CONFIG_ONLY_PUBLISHED, false);
+            // read config to determine CSW type
+            final Automatic conf = getCSWConfig(service);
+            boolean partial = conf.getBooleanParameter(CSW_CONFIG_PARTIAL, false);
+            boolean onlyPublished = conf.getBooleanParameter(CSW_CONFIG_ONLY_PUBLISHED, false);
 
-                final List<String> identifierToRemove = new ArrayList<>();
-                final List<String> identifierToUpdate = new ArrayList<>();
-                boolean needRefresh = false;
+            final List<String> identifierToRemove = new ArrayList<>();
+            final List<String> identifierToUpdate = new ArrayList<>();
+            boolean needRefresh = false;
 
-                for (MetadataWithState metadata : metadatas) {
+            for (MetadataWithState metadata : metadatas) {
 
-                    if (serviceRepository.isLinkedMetadataProviderAndService(service.getId(), metadata.getProviderId())) {
+                if (serviceRepository.isLinkedMetadataProviderAndService(service.getId(), metadata.getProviderId())) {
 
-                        // if the csw take all the metadata or if the metadata is linked to the service
-                        if (!partial || (partial && isLinkedMetadataToCSW(metadata.getId(), service.getId()))) {
+                    // if the csw take all the metadata or if the metadata is linked to the service
+                    if (!partial || (partial && metadataRepository.isLinkedMetadata(metadata.getId(), service.getId()))) {
 
-
-                            if ((!onlyPublished && !metadata.isPreviousHiddenState()) || (onlyPublished && metadata.isPreviousPublishState())) {
-                                identifierToRemove.add(metadata.getMetadataId());
+                        if ((!onlyPublished && !metadata.isPreviousHiddenState()) || (onlyPublished && metadata.isPreviousPublishState())) {
+                            identifierToRemove.add(metadata.getMetadataId());
+                            needRefresh = true;
+                        }
+                        if (update) {
+                            if (!metadata.getIsHidden() && (!onlyPublished || (onlyPublished && metadata.getIsPublished()))) {
+                                identifierToUpdate.add(metadata.getMetadataId());
                                 needRefresh = true;
-                            }
-                            if (update) {
-                                if (!metadata.getIsHidden() && (!onlyPublished || (onlyPublished && metadata.getIsPublished()))){
-                                    identifierToUpdate.add(metadata.getMetadataId());
-                                    needRefresh = true;
-                                }
                             }
                         }
                     }
                 }
-                if (needRefresh) {
-                    try {
-                        ICSWConfigurer configurer = (ICSWConfigurer) wsengine.newInstance(ServiceDef.Specification.CSW);
-                        configurer.removeFromIndex(service.getIdentifier(), identifierToRemove);
-                        configurer.addToIndex(service.getIdentifier(), identifierToUpdate);
-
-                        //send refresh message to services
-                        final ClusterMessage message = clusterBusiness.createRequest(SRV_MESSAGE_TYPE_ID,false);
-                        message.put(KEY_ACTION, SRV_VALUE_ACTION_REFRESH);
-                        message.put(SRV_KEY_TYPE, "CSW");
-                        message.put(KEY_IDENTIFIER, service.getIdentifier());
-                        clusterBusiness.publish(message);
-                    } catch (NotRunningServiceException ex) {
-                        LOGGER.warning("Unable to refresh CSW index.\n" + ex.getMessage());
-                    }
-                }
             }
-        } catch (JAXBException ex) {
-            throw new ConfigurationException("Error while updating internal CSW index", ex);
+            if (needRefresh) {
+                refreshCSWIndex(service.getIdentifier(), identifierToRemove, identifierToUpdate);
+            }
+        }
+    }
+    
+    private void refreshCSWIndex(String cswIdentifier, List<String> identifierToRemove, List<String> identifierToUpdate) throws ConstellationException {
+        try {
+            ICSWConfigurer configurer = (ICSWConfigurer) wsengine.newInstance(ServiceDef.Specification.CSW);
+            configurer.removeFromIndex(cswIdentifier, identifierToRemove);
+            configurer.addToIndex(cswIdentifier, identifierToUpdate);
+
+            //send refresh message to services
+            final ClusterMessage message = clusterBusiness.createRequest(SRV_MESSAGE_TYPE_ID, false);
+            message.put(KEY_ACTION, SRV_VALUE_ACTION_REFRESH);
+            message.put(SRV_KEY_TYPE, "CSW");
+            message.put(KEY_IDENTIFIER, cswIdentifier);
+            clusterBusiness.publish(message);
+        } catch (NotRunningServiceException ex) {
+            LOGGER.warning("Unable to refresh CSW index.\n" + ex.getMessage());
         }
     }
 

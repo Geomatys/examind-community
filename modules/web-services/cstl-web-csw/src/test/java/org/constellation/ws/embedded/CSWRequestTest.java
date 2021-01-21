@@ -77,6 +77,7 @@ import org.apache.sis.xml.XML;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.AcknowlegementType;
+import org.constellation.dto.metadata.MetadataBrief;
 import org.constellation.dto.service.Instance;
 import org.constellation.dto.service.InstanceReport;
 import org.constellation.dto.service.ServiceProtocol;
@@ -185,8 +186,13 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
                 fsStore2 = (FileSystemMetadataStore) DataProviders.getProvider(pr).getMainStore();
 
                 final Automatic config = new Automatic();
+                config.putParameter("partial", "true");
                 Integer defId = serviceBusiness.create("csw", "default", config, null, null);
                 serviceBusiness.linkCSWAndProvider(defId, pr);
+                List<MetadataBrief> metadatas = metadataBusiness.getByProviderId(pr, null);
+                for (MetadataBrief m : metadatas) {
+                    metadataBusiness.linkMetadataIDToCSW(m.getMetadataId(), "default");
+                }
                 serviceBusiness.start(defId);
 
                 createDataset("meta1.xml", "42292_5p_19900609195600");
@@ -924,7 +930,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         obj = unmarshallJsonResponseDelete(conec, AcknowlegementType.class);
 
         assertTrue(obj instanceof AcknowlegementType);
-        AcknowlegementType expResult = new AcknowlegementType("Success",  "The specified record have been remove from the CSW index");
+        AcknowlegementType expResult = new AcknowlegementType("Success",  "The specified record have been removed from the CSW index");
         assertEquals(expResult, obj);
 
 

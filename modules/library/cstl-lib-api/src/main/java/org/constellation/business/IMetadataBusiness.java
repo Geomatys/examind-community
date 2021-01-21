@@ -174,26 +174,18 @@ public interface IMetadataBusiness {
      *
      * @param metadataId Identifier of the geotk metadata object.
      * @param cswIdentifier identifer of the CSW instance.
-     * @throws org.constellation.exception.ConfigurationException
+     * @throws org.constellation.exception.ConstellationException
      */
-    void linkMetadataIDToCSW(final String metadataId, final String cswIdentifier) throws ConfigurationException;
+    void linkMetadataIDToCSW(final String metadataId, final String cswIdentifier) throws ConstellationException;
 
     /**
      * Remove the link beetween a CSW service and a metadata.
      *
      * @param metadataId Identifier of the geotk metadata object.
      * @param cswIdentifier identifer of the CSW instance.
+     * @throws org.constellation.exception.ConstellationException
      */
-    void unlinkMetadataIDToCSW(final String metadataId, final String cswIdentifier);
-
-    /**
-     * Return {@code true} if the specified metadata is linked to the specified CSW service.
-     * @param metadataID Identifier of the metadata pojo.
-     * @param cswID identifer of the CSW instance.
-     *
-     * @return {@code true} if the specified metadata is linked to the specified CSW service.
-     */
-    boolean isLinkedMetadataToCSW(final int metadataID, final int cswID);
+    void unlinkMetadataIDToCSW(final String metadataId, final String cswIdentifier) throws ConstellationException;
 
     /**
      * Return {@code true} if the specified metadata is linked to the specified CSW service.
@@ -214,7 +206,7 @@ public interface IMetadataBusiness {
      *
      * @return {@code true} if the specified metadata is linked to the specified CSW service.
      */
-    boolean isLinkedMetadataToCSW(final String metadataID, final String cswID);
+    boolean isLinkedMetadataToCSW(final String metadataID, final String cswID) throws ConfigurationException;
 
     MetadataLists getMetadataCodeLists();
 

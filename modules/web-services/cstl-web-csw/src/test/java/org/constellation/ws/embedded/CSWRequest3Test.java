@@ -78,6 +78,7 @@ import org.constellation.dto.AcknowlegementType;
 import org.constellation.dto.contact.AccessConstraint;
 import org.constellation.dto.contact.Contact;
 import org.constellation.dto.contact.Details;
+import org.constellation.dto.metadata.MetadataBrief;
 import org.constellation.dto.service.Instance;
 import org.constellation.dto.service.InstanceReport;
 import org.constellation.dto.service.ServiceProtocol;
@@ -199,8 +200,13 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
                                         true, "eng");
 
                 final Automatic config = new Automatic();
+                config.putParameter("partial", "true");
                 Integer defId = serviceBusiness.create("csw", "default", config, d, null);
                 serviceBusiness.linkCSWAndProvider(defId, pr);
+                List<MetadataBrief> metadatas = metadataBusiness.getByProviderId(pr, null);
+                for (MetadataBrief m : metadatas) {
+                    metadataBusiness.linkMetadataIDToCSW(m.getMetadataId(), "default");
+                }
                 serviceBusiness.start(defId);
 
                 createDataset("meta1.xml", "42292_5p_19900609195600");
@@ -1131,8 +1137,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
         assertEquals(15, response.getSearchResults().getNumberOfRecordsMatched());
 
-        // remove data
-         // add a metadata to the index
+        // remove a metadata from the index
         niUrl = new URL("http://localhost:" +  getCurrentPort() + "/API/CSW/default/record/urn_test00");
         conec = niUrl.openConnection();
         obj = unmarshallJsonResponseDelete(conec, AcknowlegementType.class);
@@ -1140,7 +1145,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         expResult = new AcknowlegementType("Success",  "The specified record has been deleted from the CSW");
         assertEquals(expResult, obj);
 
-         // add a metadata to the index
+        // remove a metadata from the index
         niUrl = new URL("http://localhost:" +  getCurrentPort() + "/API/CSW/default/record/urn_test01");
         conec = niUrl.openConnection();
         obj = unmarshallJsonResponseDelete(conec, AcknowlegementType.class);
@@ -1257,8 +1262,55 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         assertEquals(13, response.getSearchResults().getNumberOfRecordsMatched());
     }
 
+    /* not working yet
     @Test
     @Order(order=16)
+    public void testCSWAddInternalToCSW() throws Exception {
+        if (System.getProperty("os.name", "").startsWith("Windows")) {
+            return;
+        }
+        initServer();
+        
+        // first we make a getRecords request to count the number of record
+        URL niUrl = new URL(getCswURL() + "request=getRecords&version=3.0.0&service=CSW&typenames=csw:Record");
+
+        URLConnection conec = niUrl.openConnection();
+
+        Object obj = unmarshallResponse(conec);
+
+        assertTrue(obj instanceof GetRecordsResponseType);
+        GetRecordsResponseType response = (GetRecordsResponseType) obj;
+
+        assertEquals(13, response.getSearchResults().getNumberOfRecordsMatched());
+
+        // add a metadata to the service
+        niUrl = new URL("http://localhost:" +  getCurrentPort() + "/API/CSW/default/records");
+
+        // for a POST request
+        conec = niUrl.openConnection();
+
+        postJsonRequestObject(conec, new StringList(Arrays.asList("urn:uuid:e8df05c2-d923-4a05-acce-2b20a27c0e58")));
+        obj = unmarshallJsonResponse(conec, AcknowlegementType.class);
+
+        assertTrue(obj instanceof AcknowlegementType);
+        AcknowlegementType expResult = new AcknowlegementType("Success",  "The specified records have been imported in the CSW");
+        assertEquals(expResult, obj);
+
+         // verify that the number of record have increased
+        niUrl = new URL(getCswURL() + "request=getRecords&version=3.0.0&service=CSW&typenames=csw:Record");
+
+        conec = niUrl.openConnection();
+
+        obj = unmarshallResponse(conec);
+
+        assertTrue(obj instanceof GetRecordsResponseType);
+        response = (GetRecordsResponseType) obj;
+
+        assertEquals(14, response.getSearchResults().getNumberOfRecordsMatched());
+    }*/
+
+    @Test
+    @Order(order=17)
     public void testCSWRemoveFromIndex() throws Exception {
         if (System.getProperty("os.name", "").startsWith("Windows")) {
             return;
@@ -1286,7 +1338,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         obj = unmarshallJsonResponseDelete(conec, AcknowlegementType.class);
 
         assertTrue(obj instanceof AcknowlegementType);
-        AcknowlegementType expResult = new AcknowlegementType("Success",  "The specified record have been remove from the CSW index");
+        AcknowlegementType expResult = new AcknowlegementType("Success",  "The specified record have been removed from the CSW index");
         assertEquals(expResult, obj);
 
         //clear the csw cache
@@ -1332,7 +1384,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=17)
+    @Order(order=18)
     public void testCSWRemoveAll() throws Exception {
         if (System.getProperty("os.name", "").startsWith("Windows")) {
             return;
@@ -1383,7 +1435,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=18)
+    @Order(order=19)
     public void testListAvailableService() throws Exception {
         initServer();
 

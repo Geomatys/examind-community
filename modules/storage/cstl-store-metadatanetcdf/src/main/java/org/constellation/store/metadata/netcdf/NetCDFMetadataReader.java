@@ -1064,22 +1064,6 @@ public class NetCDFMetadataReader extends AbstractMetadataReader implements CSWM
                 MetadataType.ISO_19110);
     }
 
-    /**
-     * Return the list of Additional queryable element.
-     */
-    @Override
-    public List<QName> getAdditionalQueryableQName() {
-        return new ArrayList<>();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Map<String, PathType> getAdditionalQueryablePathMap() {
-        return new HashMap<>();
-    }
-
     protected Node writeObjectInNode(final Object obj, final MetadataType mode) throws MetadataIoException {
         final boolean replace = mode == MetadataType.ISO_19115;
         try {

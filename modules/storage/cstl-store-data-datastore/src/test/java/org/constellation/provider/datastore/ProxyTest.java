@@ -261,11 +261,6 @@ public class ProxyTest {
         }
 
         @Override
-        public boolean isLinkedMetadataToCSW(int metadataID, int cswID) {
-            throw new UnsupportedOperationException("Not supported yet"); // "Alexis Manin (Geomatys)" on 23/03/2020
-        }
-
-        @Override
         public boolean isLinkedMetadataToCSW(String metadataID, String cswID, boolean partial, boolean includeService, boolean onlyPublished) {
             throw new UnsupportedOperationException("Not supported yet"); // "Alexis Manin (Geomatys)" on 23/03/2020
         }

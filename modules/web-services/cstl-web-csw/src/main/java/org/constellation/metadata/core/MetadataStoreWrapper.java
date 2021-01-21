@@ -35,7 +35,7 @@ import org.constellation.admin.SpringHelper;
 import static org.constellation.api.CommonConstants.CSW_CONFIG_ONLY_PUBLISHED;
 import static org.constellation.api.CommonConstants.CSW_CONFIG_PARTIAL;
 import org.constellation.business.IMetadataBusiness;
-import org.constellation.exception.ConfigurationException;
+import org.constellation.exception.ConstellationException;
 import org.constellation.metadata.utils.Utils;
 import org.constellation.store.metadata.AbstractCstlMetadataStore;
 import org.constellation.store.metadata.CSWMetadataReader;
@@ -203,7 +203,11 @@ public class MetadataStoreWrapper extends AbstractCstlMetadataStore {
     public boolean deleteMetadata(String metadataID) throws MetadataIoException {
         boolean deleted = wrapped.deleteMetadata(metadataID);
         if (partial) {
-            metadataBusiness.unlinkMetadataIDToCSW(metadataID, serviceID);
+            try {
+                metadataBusiness.unlinkMetadataIDToCSW(metadataID, serviceID);
+            } catch (ConstellationException ex) {
+                throw new MetadataIoException(ex);
+            }
         }
         return deleted;
     }
@@ -214,7 +218,7 @@ public class MetadataStoreWrapper extends AbstractCstlMetadataStore {
             final String identifier = Utils.findIdentifier(obj);
             try {
                 metadataBusiness.linkMetadataIDToCSW(identifier, serviceID);
-            } catch (ConfigurationException ex) {
+            } catch (ConstellationException ex) {
                 throw new MetadataIoException(ex);
             }
         }

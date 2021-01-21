@@ -13,7 +13,6 @@ import org.constellation.metadata.index.IndexProvider;
 import org.constellation.metadata.index.IndexSearcher;
 import org.constellation.metadata.index.Indexer;
 import org.constellation.store.metadata.AbstractCstlMetadataStore;
-import org.constellation.store.metadata.CSWMetadataReader;
 import org.geotoolkit.index.IndexingException;
 import org.geotoolkit.metadata.MetadataStore;
 import org.springframework.beans.factory.annotation.Autowired;

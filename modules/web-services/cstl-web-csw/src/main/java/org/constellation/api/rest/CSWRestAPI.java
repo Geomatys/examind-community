@@ -104,14 +104,17 @@ public class CSWRestAPI {
             final @RequestParam(name="forced", defaultValue = "false") boolean forced) {
         try {
             final CSWConfigurer conf = getConfigurer();
-            final AcknowlegementType ack = conf.refreshIndex(id, asynchrone, forced);
-            if (!asynchrone && ack.getStatus().equals("Success")) {
-                ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType("csw", id);
-                if (s != null) {
-                    serviceBusiness.restart(s.getId());
+            final boolean ack = conf.refreshIndex(id, asynchrone, forced);
+            if (ack) {
+                if (!asynchrone) {
+                    ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType("csw", id);
+                    if (s != null) {
+                        serviceBusiness.restart(s.getId());
+                    }
                 }
+                return new ResponseEntity(new AcknowlegementType("Success", "CSW index successfully recreated"), OK);
             }
-            return new ResponseEntity(ack, OK);
+            return new ResponseEntity(new AcknowlegementType("Failure", null), OK);
         } catch (Throwable ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
@@ -122,7 +125,11 @@ public class CSWRestAPI {
     public ResponseEntity AddToIndex(final @PathVariable("id") String id, final @PathVariable("metaID") String metaID) {
         try {
             final List<String> identifiers = StringUtilities.toStringList(metaID);
-            return new ResponseEntity(getConfigurer().addToIndex(id, identifiers), OK);
+            boolean ok = getConfigurer().addToIndex(id, identifiers);
+            if (ok) {
+                return new ResponseEntity(new AcknowlegementType("Success", "The specified record have been added to the CSW index"), OK);
+            }
+            return new ResponseEntity(new AcknowlegementType("Failure", null), OK);
         } catch (Throwable ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
@@ -133,7 +140,11 @@ public class CSWRestAPI {
     public ResponseEntity removeFromIndex(final @PathVariable("id") String id, final @PathVariable("metaID") String metaID) {
         try {
             final List<String> identifiers = StringUtilities.toStringList(metaID);
-            return new ResponseEntity(getConfigurer().removeFromIndex(id, identifiers), OK);
+            boolean ok = getConfigurer().removeFromIndex(id, identifiers);
+            if (ok) {
+                return new ResponseEntity(new AcknowlegementType("Success", "The specified record have been removed from the CSW index"), OK);
+            }
+            return new ResponseEntity(new AcknowlegementType("Failure", null), OK);
         } catch (Throwable ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
@@ -156,7 +167,25 @@ public class CSWRestAPI {
         try {
             Path p = Files.createTempFile("import", "meta");
             IOUtilities.writeStream(request.getInputStream(), p);
-            return new ResponseEntity(getConfigurer().importRecords(id, p, fileName), OK);
+            boolean ok = getConfigurer().importRecords(id, p, fileName);
+            if (ok) {
+                return new ResponseEntity(new AcknowlegementType("Success", "The specified record have been imported in the CSW"), OK);
+            }
+            return new ResponseEntity(new AcknowlegementType("Failure", null), OK);
+        } catch (Throwable ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
+    }
+
+    @RequestMapping(value="/CSW/{id}/records",method=POST, produces=APPLICATION_JSON_VALUE, consumes=APPLICATION_JSON_VALUE)
+    public ResponseEntity importRecord(final @PathVariable("id") String id, final @RequestBody StringList metadataIds, final HttpServletRequest request) {
+        try {
+            boolean ok = getConfigurer().importRecords(id, metadataIds.getList());
+            if (ok) {
+                return new ResponseEntity(new AcknowlegementType("Success", "The specified records have been imported in the CSW"), OK);
+            }
+            return new ResponseEntity(new AcknowlegementType("Failure", null), OK);
         } catch (Throwable ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
@@ -177,7 +206,11 @@ public class CSWRestAPI {
     @RequestMapping(value="/CSW/{id}/record/{metaID}",method=DELETE,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity removeMetadata(final @PathVariable("id") String id, final @PathVariable("metaID") String metaID) {
         try {
-            return new ResponseEntity(getConfigurer().removeRecords(metaID), OK);
+            boolean ok = getConfigurer().removeRecords(id, metaID);
+            if (ok) {
+                return new ResponseEntity(new AcknowlegementType("Success", "The specified record has been deleted from the CSW"), OK);
+            }
+            return new ResponseEntity(new AcknowlegementType("Failure", null), OK);
         } catch (Throwable ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
@@ -187,7 +220,11 @@ public class CSWRestAPI {
     @RequestMapping(value="/CSW/{id}/records",method=DELETE,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity removeAllMetadata(final @PathVariable("id") String id) {
         try {
-            return new ResponseEntity(getConfigurer().removeAllRecords(id), OK);
+            boolean ok = getConfigurer().removeAllRecords(id);
+            if (ok) {
+                return new ResponseEntity(new AcknowlegementType("Success", "All records have been deleted from the CSW"), OK);
+            }
+            return new ResponseEntity(new AcknowlegementType("Failure", null), OK);
         } catch (Throwable ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();

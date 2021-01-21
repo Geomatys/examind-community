@@ -62,8 +62,8 @@ public class RemoveMetadaProcess extends AbstractCstlProcess {
         try {
             final IWSEngine engine = SpringHelper.getBean(IWSEngine.class);
             final ICSWConfigurer configurer = (ICSWConfigurer) engine.newInstance(ServiceDef.Specification.CSW);
-            if (configurer.metadataExist(serviceID, metadataID).getStatus().equalsIgnoreCase("Exist")) {
-                configurer.removeRecords(metadataID);
+            if (configurer.metadataExist(serviceID, metadataID)) {
+                configurer.removeRecords(serviceID, metadataID);
             }
         } catch (ConstellationException ex) {
             throw new ProcessException(ex.getMessage(), this, ex);
