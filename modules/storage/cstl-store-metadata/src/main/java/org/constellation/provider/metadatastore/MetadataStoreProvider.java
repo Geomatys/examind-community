@@ -20,6 +20,7 @@ package org.constellation.provider.metadatastore;
 
 import java.net.URI;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -29,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
+import javax.xml.namespace.QName;
 
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
@@ -105,17 +107,19 @@ public class MetadataStoreProvider extends AbstractDataProvider implements Metad
     @Override
     public MetadataProviderCapabilities getCapabilities() throws ConstellationStoreException {
         if (capabilities == null) {
-            capabilities = new MetadataProviderCapabilities();
             final MetadataStore store = getMainStore();
-            capabilities.additionalQueryable = store.getAdditionalQueryableQName();
-            capabilities.writeSupported      = store.writeSupported();
-            capabilities.deleteSupported     = store.deleteSupported();
-            capabilities.updateSupported     = store.updateSupported();
-            final List<MetadataType> supportedDataTypes = store.getSupportedDataTypes();
-            for (MetadataType metaType : supportedDataTypes) {
-                capabilities.supportedTypeNames.addAll(metaType.typeNames);
-                capabilities.acceptedResourceType.add(metaType.namespace);
+            List<String> acceptedResourceType = new ArrayList<>();
+            List<QName> supportedTypeNames    = new ArrayList<>();
+            for (MetadataType metaType : store.getSupportedDataTypes()) {
+                supportedTypeNames.addAll(metaType.typeNames);
+                acceptedResourceType.add(metaType.namespace);
             }
+            capabilities = new MetadataProviderCapabilities(store.getAdditionalQueryableQName(),
+                                                            acceptedResourceType,
+                                                            supportedTypeNames,
+                                                            store.writeSupported(),
+                                                            store.deleteSupported(),
+                                                            store.updateSupported());
         }
         return capabilities;
     }

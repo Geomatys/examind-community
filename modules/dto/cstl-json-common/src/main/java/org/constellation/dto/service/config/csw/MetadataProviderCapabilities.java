@@ -18,7 +18,6 @@
  */
 package org.constellation.dto.service.config.csw;
 
-import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
@@ -28,22 +27,18 @@ import javax.xml.namespace.QName;
  */
 public class MetadataProviderCapabilities {
 
-    public List<QName> additionalQueryable = new ArrayList<>();
+    public final List<QName> additionalQueryable;
 
-    public List<String> acceptedResourceType = new ArrayList<>();
+    public final List<String> acceptedResourceType;
 
-    public List<QName> supportedTypeNames = new ArrayList<>();
+    public final List<QName> supportedTypeNames;
 
-    public boolean writeSupported;
+    public final boolean writeSupported;
 
-    public boolean deleteSupported;
+    public final boolean deleteSupported;
 
-    public boolean updateSupported;
+    public final boolean updateSupported;
 
-    public MetadataProviderCapabilities() {
-        
-    }
-    
     public MetadataProviderCapabilities(List<QName> additionalQueryable, List<String> acceptedResourceType,
             List<QName> supportedTypeNames, boolean writeSupported, boolean deleteSupported, boolean updateSupported) {
         this.additionalQueryable = additionalQueryable;

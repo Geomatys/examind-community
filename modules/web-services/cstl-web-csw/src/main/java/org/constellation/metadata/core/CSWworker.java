@@ -371,11 +371,9 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         } else {
             indexer.destroy();
         }
-        supportedTypeNames    = new ArrayList<>();
-        acceptedResourceType = new ArrayList<>();
         MetadataProviderCapabilities mpc = metaProvider.getCapabilities();
-        supportedTypeNames.addAll(mpc.supportedTypeNames);
-        acceptedResourceType.addAll(mpc.acceptedResourceType);
+        supportedTypeNames    = mpc.supportedTypeNames;
+        acceptedResourceType  = mpc.acceptedResourceType;
 
         initializeSupportedSchemaLanguage();
         initializeRecordSchema();
