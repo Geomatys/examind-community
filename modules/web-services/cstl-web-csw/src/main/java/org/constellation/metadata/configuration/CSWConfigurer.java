@@ -375,11 +375,6 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
         return new AcknowlegementType("Success", "The specified record have been imported in the CSW");
     }
 
-    public boolean canImportInternalData(String id) throws ConfigurationException {
-        final MetadataStore store = getMetadataStore(id);
-        return store.getWriter().canImportInternalData();
-    }
-
     @Override
     public AcknowlegementType removeRecords(final String identifier) throws ConfigurationException {
         final boolean deleted = metadataBusiness.deleteMetadata(identifier);

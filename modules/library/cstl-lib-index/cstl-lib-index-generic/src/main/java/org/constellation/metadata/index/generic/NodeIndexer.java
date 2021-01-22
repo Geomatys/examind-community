@@ -298,7 +298,7 @@ public class NodeIndexer extends AbstractCSWIndexer<Node> {
 
     @Override
     protected boolean useEntryIterator() {
-        return store.getReader().useEntryIterator();
+        return store.supportEntryIterator();
     }
 
     @Override

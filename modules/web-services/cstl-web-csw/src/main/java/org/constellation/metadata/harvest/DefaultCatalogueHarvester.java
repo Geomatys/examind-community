@@ -216,9 +216,10 @@ public class DefaultCatalogueHarvester extends CatalogueHarvester {
     @Override
     public int[] harvestCatalogue(String sourceURL) throws MalformedURLException, IOException, CstlServiceException {
 
-        if (store.getWriter() == null)
+        if (!store.writeSupported()) {
             throw new CstlServiceException("The Service can not write into the database",
                                           OPERATION_NOT_SUPPORTED, "Harvest");
+        }
 
         //first we make a getCapabilities(GET) request to see what service version we have
         Object distantCapabilities = sendRequest(sourceURL + "?request=GetCapabilities&service=CSW", null);

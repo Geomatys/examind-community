@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.logging.Level;
 import javax.xml.namespace.QName;
 import org.apache.sis.metadata.ModifiableMetadata;
 import org.apache.sis.metadata.iso.DefaultIdentifier;
@@ -95,11 +94,6 @@ public class NetCDFMetadataStore extends AbstractCstlMetadataStore implements Re
     }
 
     @Override
-    public List<QName> getAdditionalQueryableQName() {
-        return reader.getAdditionalQueryableQName();
-    }
-
-    @Override
     public String[] executeEbrimSQLQuery(String sqlQuery) throws MetadataIoException {
         return reader.executeEbrimSQLQuery(sqlQuery);
     }
@@ -107,11 +101,6 @@ public class NetCDFMetadataStore extends AbstractCstlMetadataStore implements Re
     @Override
     public List<DomainValues> getFieldDomainofValues(String propertyNames) throws MetadataIoException {
         return reader.getFieldDomainofValues(propertyNames);
-    }
-
-    @Override
-    public void setLogLevel(Level level) {
-        if (reader != null) reader.setLogLevel(level);
     }
 
     @Override
@@ -146,6 +135,11 @@ public class NetCDFMetadataStore extends AbstractCstlMetadataStore implements Re
 
     @Override
     public boolean deleteSupported() {
+        return false;
+    }
+
+    @Override
+    public boolean writeSupported() {
         return false;
     }
 

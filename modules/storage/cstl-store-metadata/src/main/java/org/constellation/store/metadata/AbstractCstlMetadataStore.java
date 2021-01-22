@@ -19,6 +19,7 @@
 package org.constellation.store.metadata;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -108,5 +109,18 @@ public abstract class AbstractCstlMetadataStore extends MetadataStore {
     @Override
     public boolean existMetadata(String identifier) throws MetadataIoException {
         return getReader().existMetadata(identifier);
+    }
+
+    public Map<String, PathType> getAdditionalQueryable() {
+        return additionalQueryable;
+    }
+
+    @Override
+    public List<QName> getAdditionalQueryableQName() {
+        List<QName> addQnames = new ArrayList<>();
+        for (Object addQname : additionalQueryable.keySet()) {
+            addQnames.add(new QName((String)addQname));
+        }
+        return addQnames;
     }
 }

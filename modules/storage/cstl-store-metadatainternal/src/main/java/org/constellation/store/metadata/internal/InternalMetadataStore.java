@@ -21,7 +21,6 @@ package org.constellation.store.metadata.internal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import javax.xml.namespace.QName;
 import org.apache.sis.metadata.ModifiableMetadata;
 import org.apache.sis.metadata.iso.DefaultIdentifier;
@@ -89,17 +88,6 @@ public class InternalMetadataStore extends AbstractCstlMetadataStore {
     }
 
     @Override
-    public void setLogLevel(Level level) {
-        if (reader != null) reader.setLogLevel(level);
-        if (writer != null) writer.setLogLevel(level);
-    }
-
-    @Override
-    public List<QName> getAdditionalQueryableQName() {
-        return reader.getAdditionalQueryableQName();
-    }
-
-    @Override
     public String[] executeEbrimSQLQuery(String sqlQuery) throws MetadataIoException {
         return reader.executeEbrimSQLQuery(sqlQuery);
     }
@@ -157,6 +145,11 @@ public class InternalMetadataStore extends AbstractCstlMetadataStore {
 
     @Override
     public boolean deleteSupported() {
+        return true;
+    }
+
+    @Override
+    public boolean writeSupported() {
         return true;
     }
 }

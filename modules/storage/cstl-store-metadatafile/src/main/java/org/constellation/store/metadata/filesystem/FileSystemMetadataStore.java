@@ -24,7 +24,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import javax.sql.DataSource;
 import javax.xml.namespace.QName;
 import org.apache.sis.metadata.ModifiableMetadata;
@@ -116,17 +115,6 @@ public class FileSystemMetadataStore extends AbstractCstlMetadataStore implement
     }
 
     @Override
-    public void setLogLevel(Level level) {
-        if (reader != null) reader.setLogLevel(level);
-        if (writer != null) writer.setLogLevel(level);
-    }
-
-    @Override
-    public List<QName> getAdditionalQueryableQName() {
-        return reader.getAdditionalQueryableQName();
-    }
-
-    @Override
     public String[] executeEbrimSQLQuery(String sqlQuery) throws MetadataIoException {
         return reader.executeEbrimSQLQuery(sqlQuery);
     }
@@ -178,6 +166,11 @@ public class FileSystemMetadataStore extends AbstractCstlMetadataStore implement
 
     @Override
     public boolean deleteSupported() {
+        return true;
+    }
+
+    @Override
+    public boolean writeSupported() {
         return true;
     }
 

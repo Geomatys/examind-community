@@ -104,17 +104,12 @@ public class MetadataStoreWrapper extends AbstractCstlMetadataStore {
 
     @Override
     public CSWMetadataReader getReader() {
-        return (CSWMetadataReader) wrapped.getReader();
+        throw new IllegalArgumentException("GetReader should never been called on metadata store wrapper");
     }
 
     @Override
     public MetadataWriter getWriter() {
-        return wrapped.getWriter();
-    }
-
-    @Override
-    public void setLogLevel(Level level) {
-        wrapped.setLogLevel(level);
+        throw new IllegalArgumentException("GetWriter should never been called on metadata store wrapper");
     }
 
     @Override
@@ -252,6 +247,11 @@ public class MetadataStoreWrapper extends AbstractCstlMetadataStore {
     }
 
     @Override
+    public boolean writeSupported() {
+        return wrapped.writeSupported();
+    }
+
+    @Override
     public void close() throws DataStoreException {
         wrapped.close();
     }
@@ -292,5 +292,15 @@ public class MetadataStoreWrapper extends AbstractCstlMetadataStore {
      */
     public Integer getProviderID() {
         return providerID;
+    }
+
+    @Override
+    public void clearCache() {
+        wrapped.clearCache();
+    }
+
+    @Override
+    public boolean supportEntryIterator() {
+        return wrapped.supportEntryIterator();
     }
 }

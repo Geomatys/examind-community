@@ -35,7 +35,6 @@ import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.GenericName;
 
 import org.apache.sis.internal.storage.ResourceOnFileSystem;
-import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.ArraysExt;
 
@@ -50,7 +49,6 @@ import org.geotoolkit.util.collection.CloseableIterator;
 
 import org.constellation.api.DataType;
 import org.constellation.dto.service.config.csw.MetadataProviderCapabilities;
-import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.AbstractDataProvider;
@@ -110,7 +108,7 @@ public class MetadataStoreProvider extends AbstractDataProvider implements Metad
             capabilities = new MetadataProviderCapabilities();
             final MetadataStore store = getMainStore();
             capabilities.additionalQueryable = store.getAdditionalQueryableQName();
-            capabilities.writeSupported      = store.getWriter() != null;
+            capabilities.writeSupported      = store.writeSupported();
             capabilities.deleteSupported     = store.deleteSupported();
             capabilities.updateSupported     = store.updateSupported();
             final List<MetadataType> supportedDataTypes = store.getSupportedDataTypes();

@@ -30,6 +30,7 @@ import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.metadata.index.IndexProvider;
 import org.constellation.metadata.index.IndexSearcher;
 import org.constellation.metadata.index.Indexer;
+import org.constellation.store.metadata.AbstractCstlMetadataStore;
 import org.constellation.store.metadata.CSWMetadataReader;
 import org.geotoolkit.index.IndexingException;
 import org.geotoolkit.metadata.MetadataStore;
@@ -53,7 +54,7 @@ public class LuceneGenericIndexProvider implements IndexProvider {
     @Override
     public Indexer getIndexer(Automatic configuration, MetadataStore mdStore, String serviceID) throws IndexingException, ConfigurationException {
         final Path instanceDirectory = configBusiness.getInstanceDirectory("csw", serviceID);
-        return new GenericIndexer(mdStore, instanceDirectory, "", ((CSWMetadataReader)mdStore.getReader()).getAdditionalQueryablePathMap(), false);
+        return new GenericIndexer(mdStore, instanceDirectory, "", ((AbstractCstlMetadataStore)mdStore).getAdditionalQueryable(), false);
     }
 
     @Override

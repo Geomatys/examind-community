@@ -124,6 +124,7 @@ import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.dto.service.config.csw.MetadataProviderCapabilities;
+import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import static org.constellation.metadata.core.CSWConstants.ALL;
 import static org.constellation.metadata.core.CSWConstants.CSW;
@@ -1584,7 +1585,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
 
         try {
             indexSearcher.refresh();
-            mdStore.getReader().clearCache();
+            mdStore.clearCache();
         } catch (IndexingException ex) {
             throw new CstlServiceException("The service does not succeed to refresh the index after deleting documents:" + ex.getMessage(),
                     NO_APPLICABLE_CODE);
@@ -1691,7 +1692,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
     public void refresh() throws CstlServiceException {
         try {
             indexSearcher.refresh();
-            mdStore.getReader().clearCache();
+            mdStore.clearCache();
         } catch (IndexingException ex) {
             throw new CstlServiceException("Error while refreshing cache", ex, NO_APPLICABLE_CODE);
         }

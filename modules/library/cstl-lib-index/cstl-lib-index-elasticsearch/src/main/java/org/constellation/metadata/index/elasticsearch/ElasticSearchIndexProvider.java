@@ -13,6 +13,7 @@ import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.metadata.index.IndexProvider;
 import org.constellation.metadata.index.IndexSearcher;
 import org.constellation.metadata.index.Indexer;
+import org.constellation.store.metadata.AbstractCstlMetadataStore;
 import org.constellation.store.metadata.CSWMetadataReader;
 import org.geotoolkit.index.IndexingException;
 import org.geotoolkit.metadata.MetadataStore;
@@ -47,7 +48,7 @@ public class ElasticSearchIndexProvider implements IndexProvider {
             Map<String, Object> infos = ElasticSearchClient.getServerInfo("http://" + host + ":9200");
             clusterName = (String) infos.get("cluster_name");
         }
-        return new ElasticSearchNodeIndexer(mdStore, host, clusterName, serviceID, ((CSWMetadataReader)mdStore.getReader()).getAdditionalQueryablePathMap(), true);
+        return new ElasticSearchNodeIndexer(mdStore, host, clusterName, serviceID, ((AbstractCstlMetadataStore)mdStore).getAdditionalQueryable(), true);
     }
 
     @Override

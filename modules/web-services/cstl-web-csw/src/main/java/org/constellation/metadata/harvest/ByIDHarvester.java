@@ -131,7 +131,7 @@ public class ByIDHarvester extends CatalogueHarvester {
     @Override
     public int[] harvestCatalogue(String sourceURL) throws MalformedURLException, IOException, CstlServiceException, SQLException {
 
-        if (store.getWriter() == null) {
+        if (!store.writeSupported()) {
             throw new CstlServiceException("The Service can not write into the database",
                                           OPERATION_NOT_SUPPORTED, "Harvest");
         }

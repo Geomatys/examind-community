@@ -171,8 +171,8 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
             LOGGER.log(Level.INFO, "starting indexing...");
             createMapping();
 
-            if (store.getReader().useEntryIterator()) {
-                final Iterator<E> entries = (Iterator<E>) store.getReader().getEntryIterator();
+            if (store.supportEntryIterator()) {
+                final Iterator<E> entries = (Iterator<E>) store.getEntryIterator();
                 while (entries.hasNext()) {
                     if (!stopIndexing && !indexationToStop.contains(indexName)) {
 
