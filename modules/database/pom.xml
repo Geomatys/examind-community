@@ -22,7 +22,6 @@
         <module>cstl-database-model</module>
         <module>cstl-database-api</module>
         <module>cstl-database-impl</module>
-        <module>cstl-filesystem-repository</module>
     </modules>
 
 </project>
