@@ -689,7 +689,7 @@ public class ServiceBusiness implements IServiceBusiness {
     }
 
     @Override
-    public Integer getCSWLinkedProviders(String identifier) {
+    public List<Integer> getCSWLinkedProviders(String identifier) {
         final Integer serviceID = serviceRepository.findIdByIdentifierAndType(identifier, "csw");
         if (serviceID != null) {
             return serviceRepository.getLinkedMetadataProvider(serviceID);

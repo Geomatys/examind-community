@@ -76,7 +76,7 @@ public interface ServiceRepository extends AbstractRepository {
 
     void removelinkedSensors(int serviceId);
 
-    Integer getLinkedMetadataProvider(int serviceId);
+    List<Integer> getLinkedMetadataProvider(int serviceId);
 
     void linkMetadataProvider(int serviceId, int providerID, boolean allMetadata);
 

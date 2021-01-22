@@ -543,14 +543,15 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
     ////--------------------------------------------------------------------///
 
     @Override
-    public Integer getLinkedMetadataProvider(int serviceId) {
+    public List<Integer> getLinkedMetadataProvider(int serviceId) {
+        List<Integer> results = new ArrayList<>();
         for (Integer pid : byMetaProvider.keySet()) {
             Service s = byMetaProvider.get(pid);
             if (s.getId() == serviceId) {
-                return pid;
+                results.add(pid);
             }
         }
-        return null;
+        return results;
     }
 
     @Override

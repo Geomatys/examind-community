@@ -1262,7 +1262,6 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         assertEquals(13, response.getSearchResults().getNumberOfRecordsMatched());
     }
 
-    /* not working yet
     @Test
     @Order(order=16)
     public void testCSWAddInternalToCSW() throws Exception {
@@ -1307,7 +1306,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         response = (GetRecordsResponseType) obj;
 
         assertEquals(14, response.getSearchResults().getNumberOfRecordsMatched());
-    }*/
+    }
 
     @Test
     @Order(order=17)
@@ -1327,7 +1326,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         assertTrue(obj instanceof GetRecordsResponseType);
         GetRecordsResponseType response = (GetRecordsResponseType) obj;
 
-        assertEquals(13, response.getSearchResults().getNumberOfRecordsMatched());
+        assertEquals(14, response.getSearchResults().getNumberOfRecordsMatched());
 
         // remove metadata from the index
         niUrl = new URL("http://localhost:" + getCurrentPort() + "/API/CSW/default/index/urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f");
@@ -1357,7 +1356,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         assertTrue(obj instanceof GetRecordsResponseType);
         response = (GetRecordsResponseType) obj;
 
-        assertEquals(12, response.getSearchResults().getNumberOfRecordsMatched());
+        assertEquals(13, response.getSearchResults().getNumberOfRecordsMatched());
 
         // restore previous context
         niUrl = new URL("http://localhost:" +  getCurrentPort() + "/API/CSW/default/index/refresh");
@@ -1380,7 +1379,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         assertTrue(obj instanceof GetRecordsResponseType);
         response = (GetRecordsResponseType) obj;
 
-        assertEquals(13, response.getSearchResults().getNumberOfRecordsMatched());
+        assertEquals(14, response.getSearchResults().getNumberOfRecordsMatched());
     }
 
     @Test
@@ -1401,9 +1400,9 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         assertTrue(obj instanceof GetRecordsResponseType);
         GetRecordsResponseType response = (GetRecordsResponseType) obj;
 
-        assertEquals(13, response.getSearchResults().getNumberOfRecordsMatched());
+        assertEquals(14, response.getSearchResults().getNumberOfRecordsMatched());
 
-         // remove  all metadata from the index
+         // remove all metadata from the index
         niUrl = new URL("http://localhost:" + getCurrentPort() + "/API/CSW/default/records");
 
         // for a POST request
@@ -1464,13 +1463,17 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         obj = unmarshallJsonResponse(conec, InstanceReport.class);
 
         assertTrue(obj instanceof InstanceReport);
+        InstanceReport result2 = (InstanceReport) obj;
 
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("3.0.0", "2.0.2", "2.0.0");
         instances.add(new Instance(1, "csw2",    "Constellation CSW Server", "CS-W 2.0.2/AP ISO19115/19139 for service, datasets and applications", "csw", versions, 1, ServiceStatus.STARTED, "null/csw/csw2"));
         instances.add(new Instance(2, "default", "Constellation CSW Server", "CS-W 2.0.2/AP ISO19115/19139 for service, datasets and applications", "csw", versions, 0, ServiceStatus.STARTED, "null/csw/default"));
         InstanceReport expResult2 = new InstanceReport(instances);
-        assertEquals(expResult2, obj);
+
+        assertEquals(expResult2.getInstance("csw2"), result2.getInstance("csw2"));
+        assertEquals(expResult2.getInstance("default"), result2.getInstance("default"));
+        assertEquals(expResult2, result2);
     }
 
     public void createDataset(String resourceName, String identifier) throws Exception {

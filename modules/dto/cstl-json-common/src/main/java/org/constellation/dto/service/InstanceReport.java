@@ -59,10 +59,10 @@ public class InstanceReport {
         return instances;
     }
 
-    public Instance getInstance(final String name) {
+    public Instance getInstance(final String identifier) {
         if (instances != null) {
             for (Instance instance : instances) {
-                if (instance.getName().equals(name)) {
+                if (instance.getIdentifier().equals(identifier)) {
                     return instance;
                 }
             }

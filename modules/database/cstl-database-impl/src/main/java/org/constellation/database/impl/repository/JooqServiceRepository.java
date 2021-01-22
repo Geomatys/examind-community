@@ -392,9 +392,9 @@ public class JooqServiceRepository extends AbstractJooqRespository<ServiceRecord
     }
 
     @Override
-    public Integer getLinkedMetadataProvider(int serviceId) {
+    public List<Integer> getLinkedMetadataProvider(int serviceId) {
         return dsl.select(PROVIDER_X_CSW.PROVIDER_ID).from(Arrays.asList(PROVIDER_X_CSW))
-                .where(PROVIDER_X_CSW.CSW_ID.eq(serviceId)).fetchOneInto(Integer.class);
+                .where(PROVIDER_X_CSW.CSW_ID.eq(serviceId)).fetchInto(Integer.class);
     }
 
     @Override

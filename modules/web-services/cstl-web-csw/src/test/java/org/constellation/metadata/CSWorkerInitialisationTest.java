@@ -234,7 +234,7 @@ public class CSWorkerInitialisationTest {
         } catch (CstlServiceException ex) {
             assertEquals(ex.getExceptionCode(), NO_APPLICABLE_CODE);
             assertEquals(ex.getMessage(),
-                    "The service is not running.\nCause:No linked metadata Provider");
+                    "The service is not running.\nCause:No linked metadata Providers");
             exceptionLaunched = true;
         }
 

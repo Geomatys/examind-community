@@ -324,7 +324,7 @@ public interface IServiceBusiness {
      */
     void linkServiceAndProvider(final Integer serviceID, final Integer providerID);
 
-    Integer getCSWLinkedProviders(final String serviceID);
+    List<Integer> getCSWLinkedProviders(final String serviceID);
 
     void linkCSWAndProvider(Integer serviceID, Integer providerID);
 

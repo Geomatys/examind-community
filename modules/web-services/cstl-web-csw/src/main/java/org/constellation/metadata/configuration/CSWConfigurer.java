@@ -47,6 +47,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -225,16 +226,13 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
             //hack for FS CSW
             reloadFSProvider(store);
 
-            final MetadataStore origStore = store.getOriginalStore();
             String requestUUID = UUID.randomUUID().toString();
             Indexer indexer = getIndexer(id, store, requestUUID);
             if (indexer != null) {
                 try {
                     for (String identifier : identifierList) {
-                        final RecordInfo obj = origStore.getMetadata(identifier, MetadataType.NATIVE);
-                        if (obj == null) {
-                            throw new ConfigurationException("Unable to find the metadata: " + identifier);
-                        }
+                        final RecordInfo obj = store.getMetadataFromOriginalStore(identifier, MetadataType.NATIVE)
+                                .orElseThrow(() -> new ConfigurationException("Unable to find the metadata: " + identifier));
                         synchronized(indexer) {
                             indexer.indexDocument(obj.node);
                         }
@@ -379,13 +377,11 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
     @Override
     public boolean removeAllRecords(final String id) throws ConstellationException {
         final MetadataStore store = getMetadataStore(id);
-        final List<Integer> metaIDS = new ArrayList<>();
         try {
             final List<String> metas = store.getAllIdentifiers();
             for (String meta : metas) {
-                metaIDS.add(metadataBusiness.getMetadataPojo(meta).getId());
+                metadataBusiness.unlinkMetadataIDToCSW(meta, id);
             }
-            metadataBusiness.deleteMetadata(metaIDS);
         } catch (MetadataIoException ex) {
             throw new ConfigurationException(ex);
         }
@@ -664,25 +660,32 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
      */
     protected MetadataStoreWrapper getMetadataStore(final String serviceID) throws ConfigurationException {
         final Automatic config   = getServiceConfiguration(serviceID);
-        final Integer providerID = serviceBusiness.getCSWLinkedProviders(serviceID);
-        if (providerID != null) {
+        final List<Integer> providerIDs = serviceBusiness.getCSWLinkedProviders(serviceID);
+        final Map<Integer, MetadataStore> wrappeds = new HashMap<>();
+        for (Integer providerID : providerIDs) {
             try {
                 final MetadataStore originalStore = (MetadataStore) DataProviders.getProvider(providerID).getMainStore();
-                return new MetadataStoreWrapper(serviceID, originalStore, config.getCustomparameters(), providerID);
+                wrappeds.put(providerID, originalStore);
             } catch (ConstellationStoreException ex) {
                 throw new ConfigurationException(ex);
             }
-        } else {
-            throw new ConfigurationException("there is no metadata store correspounding to this ID:" + serviceID);
         }
+        return new MetadataStoreWrapper(serviceID, wrappeds, config.getCustomparameters());
     }
 
+    /**
+     * Return the first provider id linked to this service.
+     *
+     * @param serviceID A csw service identifier.
+     *
+     * @throws ConfigurationException if there is no metadata provider linked to this service.
+     */
     protected int getProviderID(final String serviceID) throws ConfigurationException {
-        final Integer providerID     = serviceBusiness.getCSWLinkedProviders(serviceID);
-        if (providerID != null) {
-            return providerID;
+        final List<Integer> providerIDs  = serviceBusiness.getCSWLinkedProviders(serviceID);
+        if (!providerIDs.isEmpty()) {
+            return providerIDs.get(0);
         } else {
-            throw new ConfigurationException("there is no providere correspounding to this ID:" + serviceID);
+            throw new ConfigurationException("there is no metadata provider linked with this sevice: " + serviceID);
         }
     }
 
@@ -747,13 +750,15 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
     }
 
     private void reloadFSProvider(MetadataStoreWrapper store) throws ConstellationException {
-        if (store.getOriginalStore() instanceof FileSystemMetadataStore) {
-            try {
-                ((FileSystemMetadataStore)store.getOriginalStore()).analyzeFileSystem(true);
-            } catch (MetadataIoException ex) {
-                throw new ConfigurationException(ex);
+        for (Entry<Integer, MetadataStore> storeEntry : store.getOriginalStores().entrySet()) {
+            if (storeEntry.getValue() instanceof FileSystemMetadataStore) {
+                try {
+                    ((FileSystemMetadataStore) storeEntry.getValue()).analyzeFileSystem(true);
+                } catch (MetadataIoException ex) {
+                    throw new ConfigurationException(ex);
+                }
+                providerBusiness.reload(storeEntry.getKey());
             }
-            providerBusiness.reload(store.getProviderID());
         }
     }
 }

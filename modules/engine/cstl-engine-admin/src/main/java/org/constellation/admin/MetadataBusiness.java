@@ -493,9 +493,9 @@ public class MetadataBusiness implements IMetadataBusiness {
             if (partial) {
                 results.addAll(metadataRepository.findMetadataIDByCswId(service, includeService, onlyPublished, type, false));
             } else {
-                Integer provider = serviceRepository.getLinkedMetadataProvider(service);
-                if (provider != null) {
-                    results.addAll(metadataRepository.findMetadataIDByProviderId(provider, includeService, onlyPublished, type, false));
+                List<Integer> providers = serviceRepository.getLinkedMetadataProvider(service);
+                for (Integer pid : providers) {
+                    results.addAll(metadataRepository.findMetadataIDByProviderId(pid, includeService, onlyPublished, type, false));
                 }
             }
         }
@@ -510,9 +510,9 @@ public class MetadataBusiness implements IMetadataBusiness {
             if (partial) {
                 count = metadataRepository.countMetadataByCswId(service, includeService, onlyPublished, type, false);
             } else {
-               Integer provider = serviceRepository.getLinkedMetadataProvider(service);
-               if (provider != null) {
-                    count = metadataRepository.countMetadataByProviderId(provider, includeService, onlyPublished, type, false);
+               List<Integer> providers = serviceRepository.getLinkedMetadataProvider(service);
+               for (Integer pid : providers) {
+                    count += metadataRepository.countMetadataByProviderId(pid, includeService, onlyPublished, type, false);
                }
             }
         }
@@ -544,9 +544,11 @@ public class MetadataBusiness implements IMetadataBusiness {
         } else {
             final Integer service = serviceRepository.findIdByIdentifierAndType(cswID, "csw");
             if (service != null) {
-                Integer provider = serviceRepository.getLinkedMetadataProvider(service);
-                if (provider != null) {
-                    return metadataRepository.isLinkedMetadata(metadataID, provider, includeService, onlyPublished);
+                List<Integer> providers = serviceRepository.getLinkedMetadataProvider(service);
+                for (Integer pid : providers) {
+                    if (metadataRepository.isLinkedMetadata(metadataID, pid, includeService, onlyPublished)) {
+                        return true;
+                    }
                 }
             }
         }
@@ -561,11 +563,19 @@ public class MetadataBusiness implements IMetadataBusiness {
     public void linkMetadataIDToCSW(final String metadataId, final String cswIdentifier)  throws ConstellationException {
         final Service service = serviceRepository.findByIdentifierAndType(cswIdentifier, "csw");
         if (service != null) {
-            final Automatic config = getCSWConfig(service);
-            final boolean partial = config.getBooleanParameter(CSW_CONFIG_PARTIAL, false);
-            if (partial) {
-                metadataRepository.addMetadataToCSW(metadataId, service.getId());
-                refreshCSWIndex(cswIdentifier, new ArrayList<>(), Arrays.asList(metadataId));
+            final Metadata meta = metadataRepository.findByMetadataId(metadataId);
+            if (meta != null) {
+                final Automatic config = getCSWConfig(service);
+                final boolean partial = config.getBooleanParameter(CSW_CONFIG_PARTIAL, false);
+                if (partial) {
+                    metadataRepository.addMetadataToCSW(metadataId, service.getId());
+                    if (!serviceRepository.isLinkedMetadataProviderAndService(service.getId(), meta.getProviderId())) {
+                        serviceRepository.linkMetadataProvider(service.getId(), meta.getProviderId(), false);
+                    }
+                    refreshCSWIndex(cswIdentifier, new ArrayList<>(), Arrays.asList(metadataId));
+                }
+            } else {
+                throw new TargetNotFoundException("Unable to find a metadata:" + metadataId);
             }
         } else {
             throw new TargetNotFoundException("Unable to find a csw service:" + cswIdentifier);

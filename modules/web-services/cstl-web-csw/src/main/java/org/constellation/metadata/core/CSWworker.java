@@ -84,7 +84,6 @@ import org.geotoolkit.ows.xml.AbstractServiceIdentification;
 import org.geotoolkit.ows.xml.AbstractServiceProvider;
 import org.geotoolkit.ows.xml.Sections;
 import org.geotoolkit.ows.xml.v100.SectionsType;
-import org.apache.sis.storage.DataStore;
 import org.geotoolkit.util.StringUtilities;
 import org.geotoolkit.xml.AnchoredMarshallerPool;
 import org.geotoolkit.xsd.xml.v2001.XSDMarshallerPool;
@@ -116,6 +115,7 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
+import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 
 import static org.constellation.api.QueryConstants.SERVICE_PARAMETER;
@@ -123,8 +123,6 @@ import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IMetadataBusiness;
-import org.constellation.dto.service.config.csw.MetadataProviderCapabilities;
-import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import static org.constellation.metadata.core.CSWConstants.ALL;
 import static org.constellation.metadata.core.CSWConstants.CSW;
@@ -142,9 +140,7 @@ import static org.constellation.metadata.CSWQueryable.DUBLIN_CORE_QUERYABLE;
 import static org.constellation.metadata.CSWQueryable.ISO_QUERYABLE;
 import org.constellation.metadata.legacy.MetadataConfigurationUpgrade;
 import org.constellation.metadata.utils.Utils;
-import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
-import org.constellation.provider.MetadataProvider;
 import org.constellation.ws.MimeType;
 import org.geotoolkit.metadata.MetadataStore;
 import org.constellation.ws.Refreshable;
@@ -186,14 +182,8 @@ import org.w3._2005.atom.FeedType;
 public class CSWworker extends AbstractWorker implements Refreshable {
 
     @Autowired
-    private IMetadataBusiness metadataBusiness;
-
-    @Autowired
     private IClusterBusiness clusterBusiness;
 
-    private Integer providerId;
-
-    private MetadataProvider metaProvider;
     /**
      * A Database reader.
      */
@@ -311,7 +301,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
                 msg = ex.getMessage();
             }
             startError(msg, ex);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             startError(ex.getLocalizedMessage(), ex);
         }
     }
@@ -326,18 +316,20 @@ public class CSWworker extends AbstractWorker implements Refreshable {
     private void init() throws MetadataIoException, IndexingException, JAXBException, ConfigurationException, ConstellationStoreException {
 
         //we initialize all the data retriever (reader/writer) and index worker
-        providerId = serviceBusiness.getCSWLinkedProviders(getId());
-        if (providerId == null) {
-            throw new ConfigurationException("No linked metadata Provider");
+        List<Integer> providerIds = serviceBusiness.getCSWLinkedProviders(getId());
+        if (providerIds == null || providerIds.isEmpty()) {
+            throw new ConfigurationException("No linked metadata Providers");
         }
-        final DataProvider provider = DataProviders.getProvider(providerId);
-        final DataStore ds = provider.getMainStore();
-        if (!(ds instanceof MetadataStore) || !(provider instanceof MetadataProvider)) {
-            throw new ConfigurationException("Linked metadata provider is not a Metadata provider");
+        final Map<Integer, MetadataStore> wrappeds = new HashMap<>();
+        for (Integer providerID : providerIds) {
+            final DataStore originalStore = DataProviders.getProvider(providerID).getMainStore();
+            if (originalStore instanceof MetadataStore) {
+                wrappeds.put(providerID, (MetadataStore) originalStore);
+            } else {
+                LOGGER.log(Level.WARNING, "Unsupported provider type with id = " + providerID + ". It will be ignored");
+            }
         }
-        metaProvider = (MetadataProvider) provider;
-        final MetadataStore originalStore = (MetadataStore) ds;
-        mdStore = new MetadataStoreWrapper(getId(), originalStore, configuration.getCustomparameters(), providerId);
+        mdStore = new MetadataStoreWrapper(getId(), wrappeds, configuration.getCustomparameters());
 
         profile = configuration.getProfile();
         Lock lock = clusterBusiness.acquireLock("csw-indexation-" + getId());
@@ -367,10 +359,13 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         } else {
             indexer.destroy();
         }
-        MetadataProviderCapabilities mpc = metaProvider.getCapabilities();
-        supportedTypeNames    = mpc.supportedTypeNames;
-        acceptedResourceType  = mpc.acceptedResourceType;
-
+        supportedTypeNames    = new ArrayList<>();
+        acceptedResourceType = new ArrayList<>();
+        final List<MetadataType> supportedDataTypes = mdStore.getSupportedDataTypes();
+        for (MetadataType metaType : supportedDataTypes) {
+            supportedTypeNames.addAll(metaType.typeNames);
+            acceptedResourceType.add(metaType.namespace);
+        }
         initializeSupportedSchemaLanguage();
         initializeRecordSchema();
         initializeAnchorsMap();
@@ -412,7 +407,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
     private void initializeAnchorsMap() throws JAXBException {
         if (EBRIMMarshallerPool.getInstance() instanceof AnchoredMarshallerPool) {
             final AnchoredMarshallerPool pool = (AnchoredMarshallerPool) EBRIMMarshallerPool.getInstance();
-            final Map<String, URI> concepts = metaProvider.getConceptMap();
+            final Map<String, URI> concepts = mdStore.getConceptMap();
             int nbWord = 0;
             for (Entry<String, URI> entry: concepts.entrySet()) {
                 pool.addAnchor(entry.getKey(),entry.getValue());
@@ -1326,7 +1321,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
                     try {
                         String metadataID = Utils.findIdentifierNode(record);
                         boolean update = mdStore.existMetadata(metadataID);
-                        metadataBusiness.updateMetadata(metadataID, record, null, null, null, null, providerId, "DOC");
+                        mdStore.storeMetadata(record);
 
                         if (update) {
                             totalUpdated++;
@@ -1344,7 +1339,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
                             insertResults.add(CswXmlFactory.createInsertResult(version, objs, null));
                         }
 
-                    } catch (MetadataIoException | ConstellationException ex) {
+                    } catch (MetadataIoException ex) {
                         CodeList execptionCode = null;// ex.getExceptionCode(); TODO lost code
                         if (execptionCode == null) {
                             execptionCode = NO_APPLICABLE_CODE;
@@ -1381,7 +1376,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
 
                     try {
                         for (String metadataID : results) {
-                            final boolean deleted = metadataBusiness.deleteMetadata(metadataID);
+                            final boolean deleted = mdStore.deleteMetadata(metadataID);
                             if (!deleted) {
                                 throw new CstlServiceException("The service does not succeed to delete the metadata:" + metadataID,
                                                   NO_APPLICABLE_CODE);
@@ -1389,7 +1384,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
                                 totalDeleted++;
                             }
                         }
-                    } catch (ConstellationException ex) {
+                    } catch (MetadataIoException ex) {
                         CodeList execptionCode = null; // ex.getExceptionCode(); TODO los exception code
                         if (execptionCode == null) {
                             execptionCode = NO_APPLICABLE_CODE;
@@ -1433,10 +1428,10 @@ public class CSWworker extends AbstractWorker implements Refreshable {
                             boolean updated;
                             if (updateRequest.getAny() != null) {
                                 final Node any = CSWUtils.transformToNode(updateRequest.getAny(), indexHandler.getMarshallerPool());
-                                metadataBusiness.deleteMetadata(metadataID);
-                                updated = metadataBusiness.updateMetadata(metadataID, any, null, null, null, null, providerId, "DOC") != null;
+                                mdStore.deleteMetadata(metadataID);
+                                updated = mdStore.storeMetadata(any);
                             } else {
-                                updated = metadataBusiness.updatePartialMetadata(metadataID, updateRequest.getRecordPropertyMap(), providerId);
+                                updated = mdStore.updateMetadata(metadataID, updateRequest.getRecordPropertyMap());
                             }
                             if (!updated) {
                                 throw new CstlServiceException("The service does not succeed to update the metadata:" + metadataID,
@@ -1445,7 +1440,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
                                 totalUpdated++;
                             }
                         }
-                    } catch (ConstellationException ex) {
+                    } catch (MetadataIoException ex) {
                         CodeList execptionCode = null; // ex.getExceptionCode(); TODO lost exception code
                         if (execptionCode == null) {
                             execptionCode = NO_APPLICABLE_CODE;

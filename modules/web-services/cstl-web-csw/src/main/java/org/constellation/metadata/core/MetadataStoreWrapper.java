@@ -20,10 +20,16 @@ package org.constellation.metadata.core;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -71,16 +77,13 @@ public class MetadataStoreWrapper extends AbstractCstlMetadataStore {
 
     private final String serviceID;
 
-    private final Integer providerID;
+    private final Map<Integer, MetadataStore> wrappeds;
 
-    private final MetadataStore wrapped;
-
-    public MetadataStoreWrapper(final String serviceID, final MetadataStore wrapped, final Map configuration, final Integer providerID) {
+    public MetadataStoreWrapper(final String serviceID, final Map<Integer, MetadataStore> wrappeds, final Map configuration) {
         super(null);
         SpringHelper.injectDependencies(this);
-        this.wrapped    = wrapped;
+        this.wrappeds    = wrappeds;
         this.serviceID  = serviceID;
-        this.providerID = providerID;
         if (configuration.get(CSW_CONFIG_PARTIAL) != null) {
             this.partial       = Boolean.parseBoolean((String) configuration.get(CSW_CONFIG_PARTIAL));
         } else {
@@ -98,8 +101,8 @@ public class MetadataStoreWrapper extends AbstractCstlMetadataStore {
         }
     }
 
-    public MetadataStore getOriginalStore() {
-        return wrapped;
+    public Map<Integer, MetadataStore> getOriginalStores() {
+        return wrappeds;
     }
 
     @Override
@@ -114,17 +117,38 @@ public class MetadataStoreWrapper extends AbstractCstlMetadataStore {
 
     @Override
     public List<MetadataType> getSupportedDataTypes() {
-        return wrapped.getSupportedDataTypes();
+        Set<MetadataType> results = new HashSet<>();
+        for (MetadataStore store : wrappeds.values()) {
+            results.addAll(store.getSupportedDataTypes());
+        }
+        return new ArrayList<>(results);
     }
 
     @Override
     public Map<String, URI> getConceptMap() {
-        return wrapped.getConceptMap();
+        Map<String, URI> results = new HashMap<>();
+        for (MetadataStore store : wrappeds.values()) {
+            results.putAll(store.getConceptMap());
+        }
+        return results;
     }
 
     @Override
     public List<QName> getAdditionalQueryableQName() {
-        return wrapped.getAdditionalQueryableQName();
+        Set<QName> results = new HashSet<>();
+        for (MetadataStore store : wrappeds.values()) {
+            results.addAll(store.getAdditionalQueryableQName());
+        }
+        return new ArrayList<>(results);
+    }
+
+    public Optional<RecordInfo> getMetadataFromOriginalStore(String identifier, MetadataType mode) throws MetadataIoException {
+        for (MetadataStore store : wrappeds.values()) {
+            if (store.existMetadata(identifier)) {
+                return Optional.of(store.getMetadata(identifier, mode));
+            }
+        }
+        return Optional.empty();
     }
 
     @Override
@@ -135,7 +159,11 @@ public class MetadataStoreWrapper extends AbstractCstlMetadataStore {
     @Override
     public RecordInfo getMetadata(String identifier, MetadataType mode, ElementSetType type, List<QName> elementName) throws MetadataIoException {
         if (metadataBusiness.isLinkedMetadataToCSW(identifier, serviceID, partial, displayServiceMetadata, onlyPublished)) {
-            return wrapped.getMetadata(identifier, mode, type, elementName);
+            for (MetadataStore store : wrappeds.values()) {
+                if (store.existMetadata(identifier)) {
+                    return store.getMetadata(identifier, mode, type, elementName);
+                }
+            }
         }
         return null;
     }
@@ -150,7 +178,11 @@ public class MetadataStoreWrapper extends AbstractCstlMetadataStore {
         final List<RecordInfo> result = new ArrayList<>();
         final List<String> metadataIds = metadataBusiness.getLinkedMetadataIDs(serviceID, partial, displayServiceMetadata, onlyPublished, "DOC");
         for (String metadataID : metadataIds) {
-            result.add(wrapped.getMetadata(metadataID, MetadataType.NATIVE));
+            for (MetadataStore store : wrappeds.values()) {
+                if (store.existMetadata(metadataID)) {
+                    result.add(store.getMetadata(metadataID, MetadataType.NATIVE));
+                }
+            }
         }
         return result;
     }
@@ -172,7 +204,11 @@ public class MetadataStoreWrapper extends AbstractCstlMetadataStore {
 
     @Override
     public String[] executeEbrimSQLQuery(String sqlQuery) throws MetadataIoException {
-        return wrapped.executeEbrimSQLQuery(sqlQuery);
+        List<String> results = new ArrayList<>();
+        for (MetadataStore store : wrappeds.values()) {
+            results.addAll(Arrays.asList(store.executeEbrimSQLQuery(sqlQuery)));
+        }
+        return results.toArray(new String[results.size()]);
     }
 
     @Override
@@ -185,7 +221,9 @@ public class MetadataStoreWrapper extends AbstractCstlMetadataStore {
             final String token = tokens.nextToken().trim();
             final List<String> values = new ArrayList<>();
             for (String identifier : identifiers) {
-                values.addAll(((AbstractCstlMetadataStore)wrapped).getFieldDomainofValuesForMetadata(token, identifier));
+                for (MetadataStore store : wrappeds.values()) {
+                    values.addAll(((AbstractCstlMetadataStore)store).getFieldDomainofValuesForMetadata(token, identifier));
+                }
             }
             Collections.sort(values);
             final DomainValuesType value      = new DomainValuesType(null, token, values, METADATA_QNAME);
@@ -196,43 +234,75 @@ public class MetadataStoreWrapper extends AbstractCstlMetadataStore {
 
     @Override
     public Metadata getMetadata() throws DataStoreException {
-        return wrapped.getMetadata();
+        throw new IllegalArgumentException("getMetadata should never been called on metadata store wrapper");
     }
 
     @Override
     public boolean deleteMetadata(String metadataID) throws MetadataIoException {
-        boolean deleted = wrapped.deleteMetadata(metadataID);
-        if (partial) {
-            try {
-                metadataBusiness.unlinkMetadataIDToCSW(metadataID, serviceID);
-            } catch (ConstellationException ex) {
-                throw new MetadataIoException(ex);
-            }
+        try {
+            return metadataBusiness.deleteMetadata(metadataID);
+        } catch (ConstellationException ex) {
+            throw new MetadataIoException(ex);
         }
-        return deleted;
     }
     @Override
     public boolean storeMetadata(Node obj) throws MetadataIoException {
-        boolean success = wrapped.storeMetadata(obj);
-        if (success) {
-            final String identifier = Utils.findIdentifier(obj);
-            try {
-                metadataBusiness.linkMetadataIDToCSW(identifier, serviceID);
-            } catch (ConstellationException ex) {
-                throw new MetadataIoException(ex);
+        final String metadataID = Utils.findIdentifier(obj);
+        try {
+            Integer trProviderId = null;
+            for (Entry<Integer, MetadataStore> entry : wrappeds.entrySet()) {
+                if (entry.getValue().existMetadata(metadataID)) {
+                     metadataBusiness.updateMetadata(metadataID, obj, null, null, null, null, entry.getKey(), "DOC");
+                     metadataBusiness.linkMetadataIDToCSW(metadataID, serviceID);
+                     return true;
+                } else if (entry.getValue().writeSupported()) {
+                    // record a potential RW store for a non update case
+                    trProviderId = entry.getKey();
+                }
             }
+            if (trProviderId != null) {
+                metadataBusiness.updateMetadata(metadataID, obj, null, null, null, null, trProviderId, "DOC");
+                metadataBusiness.linkMetadataIDToCSW(metadataID, serviceID);
+                return true;
+            }
+            return false;
+        } catch (ConstellationException ex) {
+            throw new MetadataIoException(ex);
         }
-        return success;
     }
 
     @Override
     public boolean replaceMetadata(String metadataID, Node any) throws MetadataIoException {
-        return wrapped.replaceMetadata(metadataID, any);
+        try {
+            if (metadataBusiness.isLinkedMetadataToCSW(metadataID, serviceID, partial, displayServiceMetadata, onlyPublished)) {
+                for (Entry<Integer, MetadataStore> entry : wrappeds.entrySet()) {
+                    if (entry.getValue().existMetadata(metadataID)) {
+                        metadataBusiness.updateMetadata(metadataID, any, null, null, null, null, entry.getKey(), "DOC");
+                        return true;
+                    }
+                }
+            }
+            return false;
+        } catch (ConstellationException ex) {
+            throw new MetadataIoException(ex);
+        }
     }
 
     @Override
     public boolean updateMetadata(String metadataID, Map<String, Object> properties) throws MetadataIoException {
-        return wrapped.updateMetadata(metadataID, properties);
+        try {
+            if (metadataBusiness.isLinkedMetadataToCSW(metadataID, serviceID, partial, displayServiceMetadata, onlyPublished)) {
+                for (Entry<Integer, MetadataStore> entry : wrappeds.entrySet()) {
+                    if (entry.getValue().existMetadata(metadataID)) {
+                        metadataBusiness.updatePartialMetadata(metadataID, properties, entry.getKey());
+                        return true;
+                    }
+                }
+            }
+            return false;
+        } catch (ConstellationException ex) {
+            throw new MetadataIoException(ex);
+        }
     }
 
     @Override
@@ -242,28 +312,50 @@ public class MetadataStoreWrapper extends AbstractCstlMetadataStore {
 
     @Override
     public boolean updateSupported() {
-        return wrapped.updateSupported();
+        // return true if at least one store supports it.
+        // but its not ideal
+        for (MetadataStore ms : wrappeds.values()) {
+            if (ms.updateSupported()) return true;
+        }
+        return false;
     }
 
     @Override
     public boolean deleteSupported() {
-        return wrapped.deleteSupported();
+        // return true if at least one store supports it.
+        // but its not ideal
+        for (MetadataStore ms : wrappeds.values()) {
+            if (ms.deleteSupported()) return true;
+        }
+        return false;
     }
 
     @Override
     public boolean writeSupported() {
-        return wrapped.writeSupported();
+        // return true if at least one store supports it.
+        // here we can consider that if one store is transactional,
+        // the new metadata will be stored in it
+        for (MetadataStore ms : wrappeds.values()) {
+            if (ms.writeSupported()) return true;
+        }
+        return false;
     }
 
     @Override
     public void close() throws DataStoreException {
-        wrapped.close();
+        for (MetadataStore ms : wrappeds.values()) {
+            ms.close();
+        }
     }
 
     @Override
-    public List<String> getFieldDomainofValuesForMetadata(String token, String identifier) throws MetadataIoException {
-        if (metadataBusiness.isLinkedMetadataToCSW(identifier, serviceID, partial, displayServiceMetadata, onlyPublished)) {
-            return ((AbstractCstlMetadataStore)wrapped).getFieldDomainofValuesForMetadata(token, identifier);
+    public List<String> getFieldDomainofValuesForMetadata(String token, String metadataID) throws MetadataIoException {
+        if (metadataBusiness.isLinkedMetadataToCSW(metadataID, serviceID, partial, displayServiceMetadata, onlyPublished)) {
+            for (MetadataStore store : wrappeds.values()) {
+                if (store.existMetadata(metadataID)) {
+                    return ((AbstractCstlMetadataStore)store).getFieldDomainofValuesForMetadata(token, metadataID);
+                }
+            }
         }
         return null;
     }
@@ -291,20 +383,15 @@ public class MetadataStoreWrapper extends AbstractCstlMetadataStore {
         };
     }
 
-    /**
-     * @return the providerID
-     */
-    public Integer getProviderID() {
-        return providerID;
+    @Override
+    public boolean supportEntryIterator() {
+        return true;
     }
 
     @Override
     public void clearCache() {
-        wrapped.clearCache();
-    }
-
-    @Override
-    public boolean supportEntryIterator() {
-        return wrapped.supportEntryIterator();
+        for (MetadataStore ms : wrappeds.values()) {
+            ms.clearCache();
+        }
     }
 }

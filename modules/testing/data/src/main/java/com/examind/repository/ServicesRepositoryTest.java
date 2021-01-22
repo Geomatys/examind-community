@@ -173,12 +173,14 @@ public class ServicesRepositoryTest extends AbstractRepositoryTest {
         Assert.assertTrue(serviceRepository.isLinkedMetadataProviderAndService(sid2, pid2));
         Assert.assertFalse(serviceRepository.isLinkedMetadataProviderAndService(sid2, pid3));
 
-        Assert.assertEquals(pid2, serviceRepository.getLinkedMetadataProvider(sid2));
+        List<Integer> providers = serviceRepository.getLinkedMetadataProvider(sid2);
+        Assert.assertEquals(1, providers.size());
+        Assert.assertEquals(pid2, providers.get(0));
         Assert.assertEquals(s2, serviceRepository.getLinkedMetadataService(pid2));
 
         serviceRepository.removelinkedMetadataProvider(sid2);
         Assert.assertFalse(serviceRepository.isLinkedMetadataProviderAndService(sid2, pid2));
-        Assert.assertNull(serviceRepository.getLinkedMetadataProvider(sid2));
+        Assert.assertTrue(serviceRepository.getLinkedMetadataProvider(sid2).isEmpty());
         Assert.assertNull(serviceRepository.getLinkedMetadataService(pid2));
 
         /**
