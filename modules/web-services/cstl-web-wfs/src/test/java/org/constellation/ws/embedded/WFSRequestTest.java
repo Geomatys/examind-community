@@ -50,13 +50,7 @@ import org.geotoolkit.wfs.xml.v110.QueryType;
 import org.geotoolkit.wfs.xml.v110.TransactionResponseType;
 import org.geotoolkit.wfs.xml.v110.TransactionSummaryType;
 import org.geotoolkit.wfs.xml.v110.WFSCapabilitiesType;
-import org.geotoolkit.wfs.xml.v200.DescribeStoredQueriesResponseType;
-import org.geotoolkit.wfs.xml.v200.DescribeStoredQueriesType;
-import org.geotoolkit.wfs.xml.v200.GetPropertyValueType;
-import org.geotoolkit.wfs.xml.v200.ListStoredQueriesResponseType;
-import org.geotoolkit.wfs.xml.v200.ListStoredQueriesType;
-import org.geotoolkit.wfs.xml.v200.MemberPropertyType;
-import org.geotoolkit.wfs.xml.v200.ValueCollectionType;
+import org.geotoolkit.wfs.xml.v200.*;
 import org.geotoolkit.xsd.xml.v2001.Schema;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -84,11 +78,6 @@ import org.constellation.dto.service.InstanceReport;
 import org.constellation.dto.service.ServiceStatus;
 
 import org.geotoolkit.ogc.xml.v200.ResourceIdType;
-import org.geotoolkit.wfs.xml.v200.ActionResultsType;
-import org.geotoolkit.wfs.xml.v200.CreateStoredQueryResponseType;
-import org.geotoolkit.wfs.xml.v200.CreatedOrModifiedFeatureType;
-import org.geotoolkit.wfs.xml.v200.DropStoredQueryResponseType;
-import org.geotoolkit.wfs.xml.v200.StoredQueryListItemType;
 import org.constellation.provider.DataProvider;
 import org.constellation.test.utils.TestDatabaseHandler;
 import org.constellation.test.utils.TestEnvironment.TestResource;
@@ -166,6 +155,33 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
     private static final String WFS_GETFEATURE_CITE2 = "service=WFS&version=1.1.0&request=GetFeature&typename=sf:PrimitiveGeoFeature&namespace=xmlns(sf=http://cite.opengeospatial.org/gmlsf)&filter=%3Cogc:Filter%20xmlns:ogc=%22http://www.opengis.net/ogc%22%3E%3Cogc:PropertyIsEqualTo%3E%3Cogc:PropertyName%3E*%5B1%5D%3C/ogc:PropertyName%3E%3Cogc:Literal%3Edescription-f001%3C/ogc:Literal%3E%3C/ogc:PropertyIsEqualTo%3E%3C/ogc:Filter%3E";
 
     private static final String WFS_GETFEATURE_CITE3 = "service=WFS&version=1.1.0&request=GetFeature&typename=sf:PrimitiveGeoFeature&namespace=xmlns(sf=http://cite.opengeospatial.org/gmlsf)&filter=%3Cogc:Filter%20xmlns:ogc=%22http://www.opengis.net/ogc%22%3E%3Cogc:PropertyIsEqualTo%3E%3Cogc:PropertyName%3E*%5B1%5D%3C/ogc:PropertyName%3E%3Cogc:Literal%3Edescription-wrong%3C/ogc:Literal%3E%3C/ogc:PropertyIsEqualTo%3E%3C/ogc:Filter%3E";
+
+    private static final String WFS_GETFEATURE_ISLIKE_MATCHCASE_DEFAULT = "request=getFeature&service=WFS&version=2.0.0&"
+            + "typenames=gml:Bridges&namespace=xmlns(gml=http://www.opengis.net/gml)"
+            + "filter=%3Cfes:PropertyIsLike%20wildCard=%22*%22%20singleChar%3D%22%C2%A3%22%20escapeChar%3D%22!%22%3E"
+            + "%3Cfes:PropertyIsLike%3E"
+            + "%3Cfes:ValueReference%3Egml:name%3C/fes:ValueReference%3E"
+            + "%3Cfes:Literal%3ECam%20Bridge%3C/fes:Literal%3E"
+            + "%3C/fes:PropertyIsLike%3E"
+            + "%3C/fes:Filter%3E";
+
+    private static final String WFS_GETFEATURE_ISLIKE_MATCHCASE_TRUE = "request=getFeature&service=WFS&version=2.0.0&"
+            + "typenames=gml:Bridges&namespace=xmlns(gml=http://www.opengis.net/gml)"
+            + "filter=%3Cfes:PropertyIsLike%20wildCard=%22*%22%20singleChar%3D%22%C2%A3%22%20escapeChar%3D%22!%22%20matchCase=%22true%22%3E"
+            + "%3Cfes:PropertyIsLike%3E"
+            + "%3Cfes:ValueReference%3Egml:name%3C/fes:ValueReference%3E"
+            + "%3Cfes:Literal%3ECam%20Bridge%3C/fes:Literal%3E"
+            + "%3C/fes:PropertyIsLike%3E"
+            + "%3C/fes:Filter%3E";
+
+    private static final String WFS_GETFEATURE_ISLIKE_MATCHCASE_FALSE = "request=getFeature&service=WFS&version=2.0.0&"
+            + "typenames=gml:Bridges&namespace=xmlns(gml=http://www.opengis.net/gml)"
+            + "filter=%3Cfes:PropertyIsLike%20wildCard=%22*%22%20singleChar%3D%22%C2%A3%22%20escapeChar%3D%22!%22%20matchCase=%22false%22%3E"
+            + "%3Cfes:PropertyIsLike%3E"
+            + "%3Cfes:ValueReference%3Egml:name%3C/fes:ValueReference%3E"
+            + "%3Cfes:Literal%3ECAM%20brIDge%3C/fes:Literal%3E"
+            + "%3C/fes:PropertyIsLike%3E"
+            + "%3C/fes:Filter%3E";
 
     private static String EPSG_VERSION;
 
@@ -1971,6 +1987,45 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
         InstanceReport expResult2 = new InstanceReport(instances);
         assertEquals(expResult2, obj);
 
+    }
+
+    @Test
+    @Order(order = 33)
+    public void testWFSGetFeatureIsLikeMatchCaseDefault() throws Exception {
+        final URL getfeatsUrl;
+        getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_ISLIKE_MATCHCASE_DEFAULT);
+
+        String result = getStringResponse(getfeatsUrl);
+        result = result.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
+        result = result.replaceAll("EPSG:9.7:", "epsg::");
+        String expected = getStringFromFile("org/constellation/wfs/xml/bridgeCollection-2v2.xml");
+        domCompare(result, expected);
+    }
+
+    @Test
+    @Order(order = 34)
+    public void testWFSGetFeatureIsLikeMatchCaseTrue() throws Exception {
+        final URL getfeatsUrl;
+        getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_ISLIKE_MATCHCASE_TRUE);
+
+        String result = getStringResponse(getfeatsUrl);
+        result = result.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
+        result = result.replaceAll("EPSG:9.7:", "epsg::");
+        String expected = getStringFromFile("org/constellation/wfs/xml/bridgeCollection-2v2.xml");
+        domCompare(result, expected);
+    }
+
+    @Test
+    @Order(order = 35)
+    public void testWFSGetFeatureIsLikeMatchCaseFalse() throws Exception {
+        final URL getfeatsUrl;
+        getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_ISLIKE_MATCHCASE_FALSE);
+
+        String result = getStringResponse(getfeatsUrl);
+        result = result.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
+        result = result.replaceAll("EPSG:9.7:", "epsg::");
+        String expected = getStringFromFile("org/constellation/wfs/xml/bridgeCollection-2v2.xml");
+        domCompare(result, expected);
     }
 
     private boolean isJSONValid(String test) {
