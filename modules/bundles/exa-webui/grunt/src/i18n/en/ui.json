@@ -1181,6 +1181,7 @@
   "service.edit.dashboard.wmts.action.addnewlayer.button": "Add new layer",
   "service.edit.dashboard.wmts.select.source": "Select how to build the layer",
   "service.edit.dashboard.wmts.select.internal": "Select one or more data in the list",
+  "service.edit.dashboard.wms.select": "Select one or more metadata in the list",
   "service.edit.dashboard.wmts.select.mapcontext": "Select one mapcontext in the list",
   "service.edit.dashboard.wmts.select.byInternalData": "Map layers",
   "service.edit.dashboard.wmts.select.byMapcontext": "Map context",

@@ -288,6 +288,7 @@ angular.module('cstl-webservice-create', [
                 self.source.customparameters["es-url"] = self.guiConfig.cswEsURL;
                 if(self.guiConfig.cswMode === 'filesystem') {
                     self.source.dataDirectory = self.guiConfig.cswDataDirectory;
+                    self.source.customparameters.partial = true;
                 }
                 self.source.indexType = self.guiConfig.cswIndexType;
 

@@ -1403,7 +1403,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         assertEquals(14, response.getSearchResults().getNumberOfRecordsMatched());
 
          // remove all metadata from the index
-        niUrl = new URL("http://localhost:" + getCurrentPort() + "/API/CSW/default/records");
+        niUrl = new URL("http://localhost:" + getCurrentPort() + "/API/CSW/default/records/all");
 
         // for a POST request
         conec = niUrl.openConnection();

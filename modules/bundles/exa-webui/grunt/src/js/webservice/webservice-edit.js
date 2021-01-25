@@ -82,27 +82,28 @@ angular.module('cstl-webservice-edit', [
         };
 
         Examind.ogcServices.getMetadata($scope.type,
-                                        $routeParams.id,
-                                        $scope.getCurrentLang()).then(
-            function(response){//on success
+            $routeParams.id,
+            $scope.getCurrentLang()).then(
+            function (response) {//on success
                 $scope.metadata = response.data;
                 $scope.versions = $scope.getVersionsForType();
                 if($scope.versions.length>0){
                     for(var i=0;i<$scope.versions.length;i++){
                         var version = $scope.versions[i];
-                        version.checked = ($scope.metadata.versions.indexOf(version.id)!==-1);
+                        version.checked = ($scope.metadata.versions.indexOf(version.id) !== -1);
                     }
                 }
-            },function(response){//on error
-                Growl('error','Error','Unable to get service metadata');
+            }, function (response) {//on error
+                Growl('error', 'Error', 'Unable to get service metadata');
             }
         );
 
         $scope.tabdata = true;
         $scope.tabdesc = false;
         $scope.tabmetadata = false;
+        $scope.canAddMetadataFlag = false;
 
-        $scope.selectTab = function(item) {
+        $scope.selectTab = function (item) {
             if (item === 'tabdata') {
                 $scope.tabdata = true;
                 $scope.tabdesc = false;
@@ -127,6 +128,12 @@ angular.module('cstl-webservice-edit', [
                 $scope.service = service.data;
 
                 if ($scope.type === 'csw') {
+                    Examind.ogcServices.getConfig("csw", $scope.service.identifier)
+                        .then(function (response) {
+                            $scope.canAddMetadataFlag = response.data.customparameters.partial;
+                        }, function (error) {
+                            console.error(error);
+                        });
                     Examind.csw.getRecordsCount($routeParams.id).then(function(max) {
                         Examind.csw.getRecords($routeParams.id, max.data.value, 0).then(function(response) {
                             Dashboard($scope, response.data, false);
@@ -142,7 +149,7 @@ angular.module('cstl-webservice-edit', [
                             );
                         });
                     });
-                } else if ($scope.type === 'sos' || $scope.type === 'sts' ) {
+                } else if ($scope.type === 'sos' || $scope.type === 'sts') {
                     Examind.sensorServices.getSensorsTree($scope.service.id).then(
                     function(sensors) {
                         Dashboard($scope, sensors.data.children, false);
@@ -159,7 +166,7 @@ angular.module('cstl-webservice-edit', [
                         $scope.wrap.filtertype = "";
                         setTimeout(function(){
                             $scope.showLayerDashboardMap();
-                        },300);
+                        }, 300);
                     });
                 }
             });
@@ -192,7 +199,7 @@ angular.module('cstl-webservice-edit', [
             if (!$scope.tagText || $scope.tagText === '' || $scope.tagText.length === 0) {
                 return;
             }
-            if ($scope.metadata.keywords ===null){
+            if ($scope.metadata.keywords === null) {
                 $scope.metadata.keywords = [];
             }
             $scope.metadata.keywords.push($scope.tagText);
@@ -383,7 +390,44 @@ angular.module('cstl-webservice-edit', [
             });
         };
 
-        $scope.deleteLayer = function() {
+        $scope.canAddMetadata = function (){
+           return $scope.canAddMetadataFlag;
+        };
+
+        $scope.showMetadataModalCSW = function () {
+            var modal = $modal.open({
+                templateUrl: 'views/webservice/csw/modalAddMetadata.html',
+                controller: 'CSWAddMetadataModalController',
+                resolve: {
+                    service: function () {
+                        return $scope.service;
+                    }
+                }
+            });
+            modal.result.then(function () {
+                Examind.csw.getRecordsCount($routeParams.id).then(function (max) {
+                    Examind.csw.getRecords($routeParams.id, max.data.value, 0).then(function (response) {
+                        Dashboard($scope, response.data, false);
+                        $scope.wrap.filtertype = "";
+
+                        var mdIds = [];
+                        for (var i = 0; i < response.data.length; i++) {
+                            mdIds.push(response.data[i].identifier);
+                        }
+                        Examind.metadata.getAssociatedData(mdIds).then(
+                            function (response) {
+                                $scope.relatedDatas = response.data;
+                            },
+                            function () {
+                                Growl('error', 'Error', 'Unable to get related data for metadata');
+                            }
+                        );
+                    });
+                });
+            });
+        };
+
+        $scope.deleteLayer = function () {
             var keymsg = "dialog.message.confirm.delete.layer";
             if ($scope.selected) {
                 var dlg = $modal.open({
@@ -537,6 +581,7 @@ angular.module('cstl-webservice-edit', [
                                         $scope.wrap.filtertype = "";
                                     });
                                 });
+                                $scope.selected = null;
                             }, function() { Growl('error','Error','Failed to delete metadata'); }
                         );
                     }
@@ -1359,8 +1404,199 @@ angular.module('cstl-webservice-edit', [
             $modalInstance.close();
         };
     })
-    .controller('Step1WMTSInternalDataController', function($scope, Dashboard,
-                                                            Examind, $filter) {
+    .controller('CSWAddMetadataModalController', function ($scope, $modalInstance, service,
+                                                           Growl, Examind, DashboardHelper, metadataQuery, SelectionApi) {
+        $scope.service = service;
+        $scope.selectionApi = SelectionApi;
+        $scope.selectedAll = false;
+        $scope.searchMetadataTerm = {
+            value: ""
+        };
+        $scope.filterCollection = {
+            name: '',
+            matchedList: []
+        };
+
+        $scope.updateCollectionMatched = function () {
+            Examind.metadata.search(
+                {
+                    page: 1,
+                    size: 10,
+                    sort: {field: 'title', order: 'ASC'},
+                    text: $scope.filterCollection.name,
+                    filters: [{field: 'profile', value: 'profile_collection'}]
+                }, {type: 'DOC'}).then(
+                function success(response) {
+                    $scope.filterCollection.matchedList = response.data.content;
+                },
+                function error(response) {
+                    Growl('error', 'Error', 'An error occurred when getting collection list!');
+                    $scope.filterCollection.matchedList = [];
+                }
+            );
+        };
+
+        $scope.sortBy = function (wraper, field) {
+            wraper.ordertype = field;
+            wraper.orderreverse = !wraper.orderreverse;
+        };
+
+        $scope.callSearchMDForTerm = function(term){
+            $scope.query.text = term;
+            $scope.setPage(1);
+            Examind.metadata.searchIds($scope.query,{type:'DOC'}).then(
+                function success(response) {
+                    $scope.allFilteredIds = response.data;
+                }
+            );
+        };
+
+        $scope.callSearchMD = function(){
+            $scope.callSearchMDForTerm($scope.searchMetadataTerm.value);
+        };
+
+        /**
+         * Init function called once the page loaded.
+         */
+        $scope.init = function () {
+            $scope.searchMetadataTerm.value = "";
+
+            //init autocompletion for collection
+            $scope.filterCollection.name = '';
+            $scope.filterCollection.matchedList = [];
+            $scope.updateCollectionMatched();
+
+            //init with owner filter if param exists in the url
+            var toSend = {"filters": [{"field": "!csw_id", "value": $scope.service.id}]};
+
+            DashboardHelper.call($scope, Examind.metadata.search, angular.extend(toSend, angular.copy(metadataQuery)), null, {type: 'DOC'});
+            $scope.search();
+
+            //update array of filtered ids
+            Examind.metadata.searchIds($scope.query, {type: 'DOC'}).then(
+                function success(response) {
+                    $scope.allFilteredIds = response.data;
+                }
+            );
+        };
+
+        $scope.smallMode = true;
+
+        $scope.toggleItemSelection = function (item) {
+            $scope.selectionApi.toggle(item);
+            $scope.selectedAll = ($scope.selectionApi.getLength() > 0) && ($scope.selectionApi.getLength() === $scope.allFilteredIds.total);
+        };
+
+        $scope.isSelectedItem = function (item) {
+            return $scope.selectionApi.isExist(item);
+        };
+
+        $scope.toggleSelectAll = function () {
+            if ($scope.selectedAll) {
+                $scope.selectedAll = false;
+                $scope.selectionApi.clear();
+            } else {
+                Examind.metadata.searchIds($scope.query, {type: 'DOC'}).then(
+                    function success(response) {
+                        $scope.selectedAll = true;
+                        $scope.allFilteredIds = response.data;
+                        if (response.data.list) {
+                            angular.forEach(response.data.list, function (item) {
+                                $scope.selectionApi.add(item);
+                            });
+                        }
+                    }
+                );
+            }
+        };
+
+        $scope.filterBy = function(field,value) {
+            $scope.updateFilterBy(field,value);
+            $scope.setPage(1);
+            //update array of ids
+            Examind.metadata.searchIds($scope.query,{type:'DOC'}).then(
+                function success(response) {
+                    $scope.allFilteredIds = response.data;
+                }
+            );
+        };
+
+        $scope.resetFilters = function(){
+            $scope.query = angular.copy(metadataQuery);
+            $scope.setPage(1);
+            //update array of ids
+            Examind.metadata.searchIds($scope.query,{type:'DOC'}).then(
+                function success(response) {
+                    $scope.allFilteredIds = response.data;
+                }
+            );
+            $scope.selectedAll = false;
+            $scope.selectionApi.clear();
+            $scope.searchMetadataTerm.value = "";
+        };
+
+        $scope.updateFilterBy = function(field,value) {
+            if($scope.query.filters){
+                var filterExists=false;
+                for(var i=0;i<$scope.query.filters.length;i++) {
+                    if($scope.query.filters[i].field === field) {
+                        $scope.query.filters[i].value = value;
+                        filterExists=true;
+                        break;
+                    }
+                }
+                if(!filterExists){
+                    $scope.query.filters.push({"field":field,"value":value});
+                }
+            }else {
+                $scope.query.filters = [];
+                $scope.query.filters.push({"field":field,"value":value});
+            }
+        };
+
+        $scope.getFilter = function(field) {
+            if($scope.query.filters){
+                for(var i=0;i<$scope.query.filters.length;i++) {
+                    if($scope.query.filters[i].field === field) {
+                        return $scope.query.filters[i].value;
+                    }
+                }
+            }
+            return null;
+        };
+
+        $scope.finish = function () {
+            Examind.csw.addRecords($scope.service.identifier,
+                {
+                    list: $scope.selectionApi.getList().map(function (item) {
+                        return item.metadataId;
+                    })
+                })
+                .then(function () {
+                    Growl('success', 'Success', 'Metadata successfully added to service ' + $scope.service.name);
+                    $scope.close();
+                }, function (err) {
+                    console.log(err);
+                    Growl('error', 'Error', 'Metadata failed to be added to service ' + $scope.service.name);
+                    $scope.dismiss();
+                });
+        };
+
+        $scope.dismiss = function () {
+            $modalInstance.dismiss('close');
+        };
+
+        $scope.close = function () {
+            $modalInstance.close();
+        };
+
+        $scope.$on("$destroy", function () {
+            $scope.selectionApi.clear();
+        });
+
+        $scope.init();
+    })
+    .controller('Step1WMTSInternalDataController', function($scope, Dashboard, Examind, $filter) {
         /**
          * To fix angular bug with nested scope.
          */

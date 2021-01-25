@@ -1294,6 +1294,7 @@
   "service.edit.dashboard.wmts.action.addnewlayer.button": "Ajouter une couche",
   "service.edit.dashboard.wmts.select.source": "Choisir un mode de création de la couche",
   "service.edit.dashboard.wmts.select.internal": "Choisir une ou plusieurs données",
+  "service.edit.dashboard.wms.select": "Choisir une ou plusieurs metadonnées",
   "service.edit.dashboard.wmts.select.mapcontext": "Choisir une composition cartographique",
   "service.edit.dashboard.wmts.select.byInternalData": "Couche des données",
   "service.edit.dashboard.wmts.select.byMapcontext": "Composition cartographique",

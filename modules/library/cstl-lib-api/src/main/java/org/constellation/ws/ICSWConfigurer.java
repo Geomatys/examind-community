@@ -159,7 +159,18 @@ public interface ICSWConfigurer extends IOGCConfigurer {
      * @throws TargetNotFoundException If the csw service or the metadata does not exist.
      * @throws ConstellationException If something went wrong during the removal.
      */
-    boolean removeRecords(final String id, final String metadataId) throws ConstellationException;
+    boolean removeRecord(final String id, final String metadataId) throws ConstellationException;
+
+    /**
+     * Remove the specified records from the CSW service.
+     *
+     * @param id identifier of the CSW service.
+     * @param metadataIds identifiers of the metadata to remove.
+     *
+     * @throws TargetNotFoundException If the csw service or the metadata does not exist.
+     * @throws ConstellationException If something went wrong during the removal.
+     */
+    void removeRecords(final String id, final Collection<String> metadataIds) throws ConstellationException;
 
     /**
      * Remove all the records from the CSW service.

@@ -204,9 +204,9 @@ public class CSWRestAPI {
     }
 
     @RequestMapping(value="/CSW/{id}/record/{metaID}",method=DELETE,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity removeMetadata(final @PathVariable("id") String id, final @PathVariable("metaID") String metaID) {
+    public ResponseEntity removeRecord(final @PathVariable("id") String id, final @PathVariable("metaID") String metaID) {
         try {
-            boolean ok = getConfigurer().removeRecords(id, metaID);
+            boolean ok = getConfigurer().removeRecord(id, metaID);
             if (ok) {
                 return new ResponseEntity(new AcknowlegementType("Success", "The specified record has been deleted from the CSW"), OK);
             }
@@ -218,7 +218,18 @@ public class CSWRestAPI {
     }
 
     @RequestMapping(value="/CSW/{id}/records",method=DELETE,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity removeAllMetadata(final @PathVariable("id") String id) {
+    public ResponseEntity removeRecords(final @PathVariable("id") String id, final @RequestBody StringList metadataIds) {
+        try {
+            getConfigurer().removeRecords(id, metadataIds.getList());
+            return new ResponseEntity(new AcknowlegementType("Success", "The specified records has been deleted from the CSW"), OK);
+        } catch (Throwable ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
+    }
+
+    @RequestMapping(value="/CSW/{id}/records/all",method=DELETE,produces=APPLICATION_JSON_VALUE)
+    public ResponseEntity removeAllrecords(final @PathVariable("id") String id) {
         try {
             boolean ok = getConfigurer().removeAllRecords(id);
             if (ok) {

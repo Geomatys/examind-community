@@ -359,7 +359,7 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
      * {@inheritDoc}
      */
     @Override
-    public boolean removeRecords(final String id, final String metadataId) throws ConstellationException {
+    public boolean removeRecord(final String id, final String metadataId) throws ConstellationException {
         if (metadataBusiness.isLinkedMetadataToCSW(metadataId, id)) {
             metadataBusiness.unlinkMetadataIDToCSW(metadataId, id);
             return true;
@@ -370,6 +370,15 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
     /**
      * {@inheritDoc}
      */
+    @Override
+    public void removeRecords(final String id, final Collection<String> metadataIds) throws ConstellationException {
+        for (String metadataId : metadataIds) {
+            if (metadataBusiness.isLinkedMetadataToCSW(metadataId, id)) {
+                metadataBusiness.unlinkMetadataIDToCSW(metadataId, id);
+            }
+        }
+    }
+
     @Override
     public boolean removeAllRecords(final String id) throws ConstellationException {
         final MetadataStore store = getMetadataStore(id);

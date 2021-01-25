@@ -1,0 +1,388 @@
+<div id="chooseMetadataModalCSW" class="modal-dialog modal-dialog-resp-height modal-dialog-sld">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" ng-click="dismiss()">×</button>
+            <h4 class="modal-title"
+                translate="service.edit.dashboard.wms.select">Select one or more metadata in the list</h4>
+        </div>
+        <div class="modal-body modal-body-style">
+            <div class="row" id="metadataDashboardPanel">
+                <div class="dashboard dashboard-wmts-internal list-style-modal">
+                    <div class="navbar sort-navbar" style="margin-bottom: 6px;">
+                        <div class="navbar-inner">
+                            <ul class="nav nav-style">
+                                <li ng-click="sortBy('title'); setPage(1)">
+                                    <a>
+                                        <span translate="label.title">Title</span>
+                                        <i class="fa" ng-class="getOrderIcon('title')"></i>
+                                    </a>
+                                </li>
+                                <li class="divider-vertical"></li>
+                                <li ng-click="sortBy('updateDate'); setPage(1)">
+                                    <a>
+                                        <span translate="label.date">Date</span>
+                                        <i class="fa" ng-class="getOrderIcon('updateDate')"></i>
+                                    </a>
+                                </li>
+                                <li class="divider-vertical"></li>
+                                <li class="dropdown pointer"
+                                    ng-class="{'filter-enabled':(getFilter('owner')!==null && getFilter('owner')!=='_all') || getFilter('group')==='_mygroup'}">
+                                    <a class="dropdown-toggle" data-toggle="dropdown">
+                                        <span>
+                                            <span class="hidden-tablet"
+                                                  translate="label.owner">Owner</span>
+                                            <b class="fa fa-caret-down"></b>
+                                        </span>
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a ng-class="{'filter_active' : getFilter('owner')==='_me'}"
+                                               ng-click="updateFilterBy('group',null);filterBy('owner','_me')">
+                                                <span translate="label.mdfilter.owner.me">Me</span>
+                                            </a>
+                                        </li>
+                                        <li ng-hide="hideGroupFilter">
+                                            <a ng-class="{'filter_active' : getFilter('group')==='_mygroup'}"
+                                               ng-click="updateFilterBy('owner',null);filterBy('group','_mygroup')">
+                                                <span translate="label.mdfilter.owner.mygroup">My group</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a ng-class="{'filter_active' : getFilter('owner')==='_all'}"
+                                               ng-click="updateFilterBy('group',null);filterBy('owner','_all')">
+                                                <span translate="label.mdfilter.owner.all">All</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li class="divider-vertical"></li>
+                                <li class="dropdown pointer"
+                                    ng-class="{'filter-enabled':getFilter('profile')!==null && getFilter('profile')!=='_all'}">
+                                    <a class="dropdown-toggle" data-toggle="dropdown">
+                                        <span>
+                                            <span class="hidden-tablet"
+                                                  translate="label.mdfilter.profile.header">Profile</span>
+                                            <b class="fa fa-caret-down"></b>
+                                        </span>
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li ng-repeat="profile in profileList">
+                                            <a ng-class="{'filter_active' : getFilter('profile')===profile.name}"
+                                               ng-click="filterBy('profile',profile.name)">
+                                                <span>{{profile.name | translate}}</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a ng-class="{'filter_active' : getFilter('profile')==='_all'}"
+                                               ng-click="filterBy('profile','_all')">
+                                                <span translate="label.mdfilter.profile.all">All</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li class="divider-vertical"></li>
+                                <li class="dropdown pointer"
+                                    ng-class="{'filter-enabled':getFilter('level')!==null && getFilter('level')!=='_all'}">
+                                    <a class="dropdown-toggle" data-toggle="dropdown">
+                                        <span>
+                                            <span class="hidden-tablet"
+                                                  translate="label.mdfilter.completion.header">Completion</span>
+                                            <b class="fa fa-caret-down"></b>
+                                        </span>
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a ng-class="{'filter_active' : getFilter('level')==='NONE'}"
+                                               ng-click="filterBy('level','NONE')">
+                                                <span translate="label.mdfilter.completion.none">None</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a ng-class="{'filter_active' : getFilter('level')==='ELEMENTARY'}"
+                                               ng-click="filterBy('level','ELEMENTARY')">
+                                                <span translate="label.mdfilter.completion.elementary">Elementary</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a ng-class="{'filter_active' : getFilter('level')==='EXTENDED'}"
+                                               ng-click="filterBy('level','EXTENDED')">
+                                                <span translate="label.mdfilter.completion.extended">Extended</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a ng-class="{'filter_active' : getFilter('level')==='COMPLETE'}"
+                                               ng-click="filterBy('level','COMPLETE')">
+                                                <span translate="label.mdfilter.completion.completed">Completed</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a ng-class="{'filter_active' : getFilter('level')==='_all'}"
+                                               ng-click="filterBy('level','_all')">
+                                                <span translate="label.mdfilter.completion.all">All</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li class="divider-vertical"></li>
+                                <li class="dropdown pointer"
+                                    ng-class="{'filter-enabled':getFilter('validated')!==null && getFilter('validated')!=='_all'}">
+                                    <a class="dropdown-toggle" data-toggle="dropdown">
+                                        <span>
+                                            <span class="hidden-tablet"
+                                                  translate="label.mdfilter.validity.header">Validity</span>
+                                            <b class="fa fa-caret-down"></b>
+                                        </span>
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a ng-class="{'filter_active' : getFilter('validated')==='true'}"
+                                               ng-click="updateFilterBy('validation_required',null);filterBy('validated','true')">
+                                                <span translate="label.mdfilter.validity.true">Validated</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a ng-class="{'filter_active' : getFilter('validation_required')==='REQUIRED'}"
+                                               ng-click="updateFilterBy('validation_required','REQUIRED');filterBy('validated','false')">
+                                                <span translate="label.mdfilter.validity.requested">Waiting for validation</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a ng-class="{'filter_active' : getFilter('validation_required')==='NONE'}"
+                                               ng-click="updateFilterBy('validation_required','NONE');filterBy('validated','false')">
+                                                <span translate="label.mdfilter.validity.notRequested">Not submitted for validation</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a ng-class="{'filter_active' : getFilter('validation_required')==='REJECTED'}"
+                                               ng-click="updateFilterBy('validation_required','REJECTED');filterBy('validated','false')">
+                                                <span translate="label.mdfilter.validity.rejected">Rejected validation</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a ng-class="{'filter_active' : getFilter('validated')==='_all'}"
+                                               ng-click="updateFilterBy('validation_required',null);filterBy('validated','_all')">
+                                                <span translate="label.mdfilter.validity.all">All</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li class="divider-vertical"></li>
+                                <li class="dropdown pointer"
+                                    ng-class="{'filter-enabled':getFilter('published')!==null && getFilter('published')!=='_all'}">
+                                    <a class="dropdown-toggle" data-toggle="dropdown">
+                                    <span>
+                                        <span class="hidden-tablet"
+                                              translate="label.mdfilter.published.header">Publication</span>
+                                        <b class="fa fa-caret-down"></b>
+                                    </span>
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a ng-class="{'filter_active' : getFilter('published')==='true'}"
+                                               ng-click="filterBy('published','true')">
+                                                <span translate="label.mdfilter.published.true">Published</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a ng-class="{'filter_active' : getFilter('published')==='false'}"
+                                               ng-click="filterBy('published','false')">
+                                                <span translate="label.mdfilter.published.false">Not published</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a ng-class="{'filter_active' : getFilter('published')==='_all'}"
+                                               ng-click="filterBy('published','_all')">
+                                                <span translate="label.mdfilter.published.all">All</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li class="divider-vertical"></li>
+                            </ul>
+                            <button type="button"
+                                    ng-click="resetFilters();"
+                                    title="{{'label.search.refresh' | translate }}"
+                                    class="btn btn-xs btn-info btn-csw">
+                                <i class="fa fa-times"></i>
+                            </button>
+                            <div class="pull-right quick-search-panel">
+                                <div class="col-sm-7 pull-right input-group"
+                                     style="padding-left: 5px;padding-right: 5px;">
+                                    <input type="text"
+                                           class="searchbox search-query form-control form-control-fix"
+                                           ng-model="searchMetadataTerm.value"
+                                           onkeyup="if(event.keyCode == 13){$('.mdsearchbtn').click(); return false;}"
+                                           placeholder="{{'label.search' | translate}}..."/>
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-info btn-csw mdsearchbtn"
+                                                type="button"
+                                                ng-click="callSearchMD();"
+                                                title="{{'label.search' | translate}}"
+                                                style="height: 30px;margin: 0;">
+                                            <i class="glyphicon glyphicon-search" style="vertical-align: top;"></i>
+                                        </button>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dash-inner modal-inner-list" style="padding: 0 10px; border-radius: 5px;">
+                        <div id="list" data-role="list" style="margin-bottom: 0">
+                            <div class="pagination-wrapper pagination-csw" style="padding: 8px 0">
+                                <div class="row" style="margin: 0;">
+                                    <strong class="col-md-6">
+                                        <span class="nb-results pull-left">{{page.total || 0}}&nbsp;</span>
+                                        <span class="nb-results"
+                                              translate="label.count.metadata">available metadata</span>
+                                    </strong>
+                                </div>
+                                <div class="row" style="margin: 5px 0 0 0;">
+                                    <div class="col-xs-3"
+                                         style="padding: 0;">
+                                        <a class="btn btn-default"
+                                           ng-click="toggleSelectAll()">
+                                                <span class="fa"
+                                                      ng-class="{'fa-check-square-o':selectedAll,'fa-square-o':!selectedAll}"></span>
+                                            {{'label.select.all' | translate}}
+                                        </a>
+                                    </div>
+                                    <div class="col-xs-7" style="text-align: center; padding-right: 115px;">
+                                        <div style="margin: 2px 0 0 15px;padding: 0;"
+                                             page-switcher="{page:page.number,size:page.size,count:page.total}"
+                                             on-select-page="setPage(page)"></div>
+                                    </div>
+                                    <div class="pull-right col-xs-2" style="padding: 0;">
+                                        <select class="nb-per-page input-small form-control pull-right"
+                                                ng-model="query.size"
+                                                ng-change="setPage(1);">
+                                            <option value="5">5</option>
+                                            <option value="10">10</option>
+                                            <option value="20">20</option>
+                                            <option value="50">50</option>
+                                            <option value="100">100</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="item-list">
+                                <div
+                                        ng-repeat="item in page.content"
+                                        ng-class="{'col-xs-6':smallMode}"
+                                        style="padding-left:0;">
+                                    <div class="item metadata"
+                                         ng-class="{'metadata-image':item.type=='profile_dataset','selected':isSelectedItem(item),'style-small':smallMode}"
+                                         ng-click="toggleItemSelection(item)"
+                                         ng-cloak>
+                                        <div class="top">
+                                            <span class="item-title csw-title"
+                                                title="{{item.title}}">{{item.title ? item.title : '&nbsp;'}}
+                                            </span>
+                                            <div class="pull-right cell-state">
+                                                <span>
+                                <i class="fa"
+                                   ng-class="{'fa-check icon-state-success':item.isValidated,'fa-close icon-state-fail':!item.isValidated}"></i>{{'label.mdfilter.validity.true' | translate}}</span>
+                                                <span>
+                                                    <i class="fa"
+                                                       ng-class="{'fa-check icon-state-success':item.isPublished,'fa-close icon-state-fail':!item.isPublished}"></i>
+                                                    {{'label.mdfilter.published.true' | translate}}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="bottom">
+                                            <div ng-class="{'hidden':!smallMode}">
+                                                <div class="block tooltipicon"
+                                                     style="margin-top:0;text-shadow: none;">
+                                                    <i class="fa fa-calendar"
+                                                       tooltip data-placement="top"
+                                                       title="{{item.updateDate | date:'yyyy-MM-dd HH:mm:ss'}}"></i>
+                                                </div>
+                                                <div class="block tooltipicon"
+                                                     style="margin-top:0;text-shadow: none;">
+                                                    <i class="fa fa-user"
+                                                       tooltip data-placement="top"
+                                                       title="{{item.user.login}}"></i>
+                                                </div>
+                                                <div class="block tooltipicon"
+                                                     style="margin-top:0;text-shadow: none;">
+                                                    <i class="fa fa-file-powerpoint-o"
+                                                       tooltip data-placement="top"
+                                                       title="{{item.type | translate}}"></i>
+                                                </div>
+                                                <div class="block tooltipicon"
+                                                     style="margin-top:0;text-shadow: none;">
+                                                    <i class="fa fa-tasks"
+                                                       tooltip data-placement="top"
+                                                       title="{{item.levelCompletion | translate}}"></i>
+                                                </div>
+                                            </div>
+                                            <div ng-class="{'hidden':smallMode}">
+                                                <div class="block">
+                                                    <i class="fa fa-calendar"></i>{{item.updateDate | date:'yyyy-MM-dd HH:mm:ss'}}
+                                                </div>
+                                                <div class="block">
+                                                    <i class="fa fa-user"></i>{{item.user.login}}
+                                                </div>
+                                                <div class="block"
+                                                     style="overflow: hidden;text-overflow: ellipsis;white-space: nowrap;width:140px;">
+                                <span title="{{item.type | translate}}">
+                                    <i class="fa fa-file-powerpoint-o"></i>{{item.type | translate}}
+                                </span>
+                                                </div>
+                                                <div class="block">
+                                                    <i class="fa fa-tasks"></i>{{item.levelCompletion | translate}}
+                                                </div>
+                                            </div>
+                                            <div class="block mdprogress-bar" style="height:30px;text-shadow:none;"
+                                                 ng-if="item.mdCompletion">
+                                                <div style="width:60px;margin-top:10px;"
+                                                     tooltip-html-unsafe="{{'data.listing.metadata.completion' | translate}}"
+                                                     tooltip-placement="top">
+                                                    <progressbar max="100"
+                                                                 value="item.mdCompletion"
+                                                                 animate="true"
+                                                                 class="progress-striped"
+                                                                 style="margin: 0;height:12px;"
+                                                                 type="{{item.mdCompletion<25?'danger':item.mdCompletion<50?'warning':item.mdCompletion<75?'info':'success'}}">
+                                                        <span style="font-size: 10px;position: absolute;top:0;left:12px;">{{item.mdCompletion}}%</span>
+                                                    </progressbar>
+                                                </div>
+                                            </div>
+                                            <div ng-if="item.validationRequired != 'REQUIRED'"
+                                                 ng-class="{'sprite-bothstate-half':(item.isPublished && !item.isValidated) || (!item.isPublished && item.isValidated),'sprite-bothstate-fail':!item.isPublished && !item.isValidated,'sprite-bothstate-success':item.isPublished && item.isValidated}">
+                                                <i class="fa fa-frown-o"
+                                                   ng-if="item.validationRequired == 'REJECTED'"
+                                                   style="position: absolute;bottom: 1px;right: -5px;"
+                                                   title="{{'label.metadata.validation.rejected' | translate }}"></i>
+                                            </div>
+                                            <div ng-if="item.validationRequired == 'REQUIRED'"
+                                                 class="sprite-bothstate-none">
+                                                <i class="fa fa-envelope-o"
+                                                   style="position: absolute;bottom: 1px;right: -5px;"
+                                                   title="{{'label.metadata.validation.inProgress' | translate }}"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer modal-footer-list-data">
+            <div class="col-xs-6 pull-right">
+                <button type="button"
+                        class="btn btn-default"
+                        ng-click="dismiss()"
+                        translate="label.close">Close
+                </button>
+                <button type="button"
+                        ng-disabled="selectionApi.getLength() === 0"
+                        class="btn btn-add"
+                        ng-click="finish()"
+                        translate="label.finish">Finish
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

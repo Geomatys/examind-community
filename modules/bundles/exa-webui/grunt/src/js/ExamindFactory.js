@@ -2421,6 +2421,20 @@ function Examind($http, url) {
                 headers: {'Accept': 'application/json'}
             });
         },
+        
+        /**
+         * Add the specified records in a csw service.
+         *
+         * @returns {Promise}
+         */
+        addRecords : function (serviceId, metadataIds) {
+            return self.request({
+                method: 'POST',
+                url: 'CSW/' + serviceId + '/records',
+                headers: {'Accept': 'application/json'},
+                data: metadataIds
+            });
+        },
 
         /**
          * Remove the specified record from csw service.
@@ -2432,6 +2446,20 @@ function Examind($http, url) {
                 method: 'DELETE',
                 url: 'CSW/' + serviceId + '/record/' + recordId,
                 headers: {'Accept': 'application/json'}
+            });
+        },
+        
+         /**
+         * Remove the specified records from csw service.
+         *
+         * @returns {Promise}
+         */
+        deleteRecords : function(serviceId, recordIds) {
+            return self.request({
+                method: 'DELETE',
+                url: 'CSW/' + serviceId + '/records',
+                headers: {'Accept': 'application/json'},
+                data: recordIds
             });
         },
 
