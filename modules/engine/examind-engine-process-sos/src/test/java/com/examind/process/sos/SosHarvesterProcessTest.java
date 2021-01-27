@@ -18,11 +18,16 @@
  */
 package com.examind.process.sos;
 
+import com.examind.process.admin.AdminProcessRegistry;
+import com.examind.process.admin.yamlReader.ProcessFromYamlProcessDescriptor;
 import com.examind.sensor.component.SensorServiceBusiness;
 import com.examind.sts.core.STSWorker;
 import java.io.File;
+import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -48,6 +53,7 @@ import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.process.ServiceProcessReference;
 import org.constellation.dto.service.ServiceComplete;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
+import org.constellation.exception.ConstellationException;
 import org.constellation.process.ExamindProcessFactory;
 import org.constellation.sos.core.SOSworker;
 import org.constellation.test.utils.Order;
@@ -66,7 +72,9 @@ import org.geotoolkit.gml.xml.v311.TimePeriodType;
 import org.geotoolkit.gml.xml.v321.PointType;
 import org.geotoolkit.internal.geojson.binding.GeoJSONFeature;
 import org.geotoolkit.internal.geojson.binding.GeoJSONGeometry.GeoJSONPoint;
+import org.geotoolkit.process.Process;
 import org.geotoolkit.process.ProcessDescriptor;
+import org.geotoolkit.process.ProcessException;
 import org.geotoolkit.process.ProcessFinder;
 import org.geotoolkit.sampling.xml.SamplingFeature;
 import org.geotoolkit.sos.xml.Capabilities;
@@ -98,6 +106,7 @@ import org.opengis.observation.Observation;
 import org.opengis.observation.ObservationCollection;
 import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
+import org.opengis.util.NoSuchIdentifierException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -1896,7 +1905,7 @@ public class SosHarvesterProcessTest {
         Assert.assertNotNull(sensorBusiness.getSensor("1901290"));
         Assert.assertNotNull(sensorBusiness.getSensor("1901689"));
         Assert.assertNotNull(sensorBusiness.getSensor("1901710"));
-        
+
         
        /*
         * fifth extracted procedure with only measure 1 (PROFILE)
@@ -1980,6 +1989,137 @@ public class SosHarvesterProcessTest {
         nbMeasure = getNbMeasure(stsWorker, "1901689");
         Assert.assertEquals(503, nbMeasure);
         
+    }
+
+    /**
+     * Same test as harvesterCSVCoriolisProfileSingleTest but the process SosHarvester is called from the ProcessFromYamlProcess.
+     */
+    @Test
+    @Order(order = 8)
+    public void harvesterCSVCoriolisProfileSingleFromYamlTest() throws ConstellationException, NoSuchIdentifierException, ProcessException, IOException, ParseException {
+        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
+        Assert.assertNotNull(sc);
+
+        sensorServBusiness.removeAllSensors(sc.getId());
+
+        SOSworker worker = (SOSworker) wsEngine.buildWorker("sos", "default");
+        worker.setServiceUrl("http://localhost/examind/");
+
+        STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
+        stsWorker.setServiceUrl("http://localhost/examind/");
+
+        int prev = getNbOffering(worker, 0);
+
+        Assert.assertEquals(12, prev);
+
+        String sensorId = "urn:sensor:bgdata";
+
+        String datasetId = "SOS_DATA";
+
+        // Create a temporary yaml file.
+        Path tempFile = Files.createTempFile(null, null);
+        List<String> listYamlParameter = Arrays.asList(
+                "process name: sosHarvester",
+                "data folder: "+bigdataDirectory.toUri().toString(),
+                "SOS service:",
+                "   service:",
+                "      identifier: default",
+                "      type: sos",
+                "dataset identifier: "+datasetId,
+                "procedure id: "+sensorId,
+                "#procedure column: test string",
+                "Observation Type: Profile",
+                "separator: ','",
+                "main column: z_value",
+                "date column: station_date",
+                "date format: yyyy-MM-dd'T'HH:mm:ss'Z'",
+                "longitude column: longitude",
+                "latitude column: latitude",
+                "measure columns:",
+                "- '30'",
+                "- '35'",
+                "- '66'",
+                "remove previous integration: true",
+                "Store Id: observationCsvCoriolisFile",
+                "Format: 'text/csv; subtype=\"om\"'",
+                "value column: parameter_value",
+                "code columns:",
+                "- parameter_code",
+                "type column : file_type"
+        );
+        Files.write(tempFile, listYamlParameter, StandardOpenOption.APPEND);
+
+        ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(AdminProcessRegistry.NAME, "yamlReader");
+        ParameterValueGroup in = desc.getInputDescriptor().createValue();
+
+        in.parameter(ProcessFromYamlProcessDescriptor.DATA_FOLDER_NAME).setValue(tempFile);
+        Process process = desc.createProcess(in); // Create the process
+
+        process.call();// Call the process.
+
+        // verify that the dataset has been created
+        Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
+
+        // verify that the sensor has been created
+        Assert.assertNotNull(sensorBusiness.getSensor(sensorId));
+
+        ObservationOffering offp = getOffering(worker, sensorId);
+        Assert.assertNotNull(offp);
+
+        Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
+        TimePeriodType time = (TimePeriodType) offp.getTime();
+
+        Assert.assertEquals("2020-03-24T00:25:47.000", time.getBeginPosition().getValue());
+        Assert.assertEquals("2020-03-24T08:48:00.000", time.getEndPosition().getValue());
+
+        Assert.assertEquals(11, offp.getFeatureOfInterestIds().size());
+
+        List<SamplingFeature> fois  = getFeatureOfInterest(worker, offp.getFeatureOfInterestIds());
+        verifySamplingFeatureNotSame(fois);
+        String foi = verifySamplingFeature(fois, 68.2395, -61.4234);
+
+        Assert.assertNotNull(foi);
+
+        verifyAllObservedProperties(stsWorker, sensorId, Arrays.asList("30", "35", "66"));
+
+
+        Object o = worker.getObservation(new GetObservationType("2.0.0", "SOS",Arrays.asList(offp.getId()), null, Arrays.asList(sensorId), null, null, null,null));
+        Assert.assertTrue(o instanceof ObservationCollection);
+
+        ObservationCollection oc = (ObservationCollection)o;
+
+        String observedProperty = null;
+        for (Observation obs : oc.getMember()) {
+            if (obs.getFeatureOfInterest() instanceof SamplingFeature) {
+                SamplingFeature sf = (SamplingFeature) obs.getFeatureOfInterest();
+                if (sf.getId().equals(foi)) {
+                    observedProperty = ((Phenomenon)obs.getObservedProperty()).getName().getCode();
+                }
+            }
+        }
+        Assert.assertNotNull(observedProperty);
+
+        /*
+         * Verify an inserted profile
+         */
+        GetResultResponseType gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
+        String expectedResult = getResourceAsString("com/examind/process/sos/bigdata-datablock-values.txt");
+        Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
+
+        GetHistoricalLocations hl = new GetHistoricalLocations();
+        hl.getExtraFilter().put("procedure", sensorId);
+        hl.getExpand().add("Locations");
+        HistoricalLocationsResponse response = stsWorker.getHistoricalLocations(hl);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+        Assert.assertEquals(11, response.getValue().size());
+
+        HistoricalLocation loc1 = response.getValue().get(0);
+        verifyHistoricalLocation(loc1, sdf, "2020-03-24T00:25:47Z", -35.27835, -3.61021);
+
+        int nbMeasure = getNbMeasure(stsWorker, sensorId);
+        Assert.assertEquals(9566, nbMeasure);
     }
     
     private static List<String> getObservedProperties(STSWorker stsWorker, String sensorId) throws CstlServiceException {

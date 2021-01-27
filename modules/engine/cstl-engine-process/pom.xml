@@ -67,7 +67,6 @@
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>com.examind.community</groupId>
             <artifactId>cstl-test-data</artifactId>
@@ -79,6 +78,15 @@
             <artifactId>cstl-engine-spring-security</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.hk2.external</groupId>
+            <artifactId>javax.inject</artifactId>
         </dependency>
 
     </dependencies>
