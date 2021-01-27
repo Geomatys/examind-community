@@ -5,7 +5,7 @@
                     aria-haspopup="true" aria-expanded="false">
                 <span ng-show="!remoteCtrl.remote.protocol">{{'wiz.data.import.step1.label.protocol' | translate}}</span>
                 <span ng-show="remoteCtrl.remote.protocol">
-                    {{remoteCtrl.remote.protocol.i18n? (remoteCtrl.remote.protocol.i18n | translate) : remoteCtrl.remote.protocol.name}}
+                    {{remoteCtrl.remote.protocol.i18n ? (remoteCtrl.remote.protocol.i18n | translate) : remoteCtrl.remote.protocol.name}}
                 </span>
                 <span class="caret"></span>
             </button>
@@ -13,14 +13,20 @@
                 <li ng-repeat="protocol in remoteCtrl.urlProtocols">
                     <a ng-click="remoteCtrl.selectProtocol(protocol)"
                        ng-class="{'selected-protocol-dropdown' : remoteCtrl.isSelectedProtocol(protocol.id)}">
-                        {{protocol.i18n? (protocol.i18n | translate) : protocol.name}}
+                        {{protocol.i18n ? (protocol.i18n | translate) : protocol.name}}
                     </a>
                 </li>
             </ul>
         </div>
         <input type="text" class="form-control"
+               ng-if="!remoteCtrl.showAllowedFSList"
+               ng-disabled="remoteCtrl.disableInputUrl"
                placeholder="URL..."
                ng-model="remoteCtrl.remote.url"/>
+
+        <select class="form-control" ng-if="remoteCtrl.showAllowedFSList" ng-model="remoteCtrl.remote.url">
+            <option ng-repeat="path in remoteCtrl.allowedFS" value="{{path}}">{{path}}</option>
+        </select>
     </div>
 </form>
 <div class="protocol-content">
@@ -113,7 +119,8 @@
                            ng-model="remoteCtrl.advConfig.showAdvConfig"
                            ng-disabled="!remoteCtrl.canShowProviderConfigProperties()"
                            type="checkbox"/>
-                    <label class="tgl-btn" ng-class="{'disabled':!remoteCtrl.canShowProviderConfigProperties()}" for="showAdvanced"></label>
+                    <label class="tgl-btn" ng-class="{'disabled':!remoteCtrl.canShowProviderConfigProperties()}"
+                           for="showAdvanced"></label>
                 </div>
             </div>
             <div class="pull-right">
@@ -132,7 +139,7 @@
     </div>
     <div class="well url-bloc-info" ng-show="!remoteCtrl.remote.protocol">
         <p class="step_desc">
-            {{'wiz.data.import.step1.msg.aboutcloud' |translate}}
+            {{'wiz.data.import.step1.msg.aboutcloud' | translate}}
         </p>
     </div>
 </div>

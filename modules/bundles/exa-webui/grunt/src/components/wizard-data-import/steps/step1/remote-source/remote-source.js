@@ -96,6 +96,8 @@ function RemoteSourceController($scope, $translate, Examind, Growl, cfpLoadingBa
         hideResetBtn: true
     };
 
+    self.disableInputUrl = false;
+
     // List of the default supported protocols for the remote source
     self.defaultUrlProtocols = [
         {
@@ -155,6 +157,8 @@ function RemoteSourceController($scope, $translate, Examind, Growl, cfpLoadingBa
     self.selectProtocol = function (protocol) {
         // Delete the old data source and clean all the parameters.
         self.deleteDataSource();
+        self.disableInputUrl = false;
+        self.showAllowedFSList = false;
 
         if (angular.isUndefined(self.remote.url)) {
             self.remote.protocol = protocol;
@@ -169,6 +173,25 @@ function RemoteSourceController($scope, $translate, Examind, Growl, cfpLoadingBa
             if (!self.remote.protocol.isDefaultProtocol) {
                 self.formSchema.schema = self.storesSchemas[self.remote.protocol.id];
             }
+        }
+
+        if (self.remote.protocol.id === 'file') {
+            Examind.admin.getAllowedFS()
+                .then(function (response) {
+                        console.log(response.data.list);
+                        self.allowedFS = response.data.list;
+                        if (self.allowedFS && self.allowedFS.length === 1) {
+                            self.remote.url = self.allowedFS[0];
+                            self.disableInputUrl = true
+                        } else if (self.allowedFS && self.allowedFS.length > 1) {
+                            self.remote.url = self.allowedFS[0];
+                            self.showAllowedFSList = true;
+                        }
+                    },
+                    function (err) {
+                        console.error(err);
+                    });
+
         }
     };
 
@@ -202,28 +225,28 @@ function RemoteSourceController($scope, $translate, Examind, Growl, cfpLoadingBa
             case 'ftp':
             case 's3' :
             case 'smb':
-            case 'file': 
+            case 'file':
             case 'gcs':
                 dataSource = {
                     type: self.remote.protocol.id,
                     url: self.remote.url,
                     readFromRemote: self.remote.protocol.readFromRemote
                 };
-                if(self.remote.protocol.connection) {
+                if (self.remote.protocol.connection) {
                     dataSource.username = self.remote.protocol.connection.login;
                     dataSource.pwd = self.remote.protocol.connection.password;
                 }
                 //TODO temporary fix error for ftp url witch should never end with '/' this should be fixed in server side, see issue EXSERV-356.
-                if(dataSource.type === 'ftp' && dataSource.url && endsWith(dataSource.url,"/")) {
-                    dataSource.url = dataSource.url.substr(0,dataSource.url.length-1);
+                if (dataSource.type === 'ftp' && dataSource.url && endsWith(dataSource.url, "/")) {
+                    dataSource.url = dataSource.url.substr(0, dataSource.url.length - 1);
                 }
                 //fix file protocol if missing
-                if(dataSource.type === 'file' && dataSource.url.indexOf('file://')!==0) {
-                    dataSource.url = 'file://'+dataSource.url;
+                if (dataSource.type === 'file' && dataSource.url.indexOf('file://') !== 0) {
+                    dataSource.url = 'file://' + dataSource.url;
                 }
                 explore = true;
                 var reg = new RegExp('file:\/*$');
-                if(dataSource.type === 'file' && reg.test(dataSource.url)) { //do not show root machine
+                if (dataSource.type === 'file' && reg.test(dataSource.url)) { //do not show root machine
                     create = false;
                 } else {
                     create = true;
@@ -309,7 +332,7 @@ function RemoteSourceController($scope, $translate, Examind, Growl, cfpLoadingBa
         return self.remote.protocol.id !== 'http' && self.remote.protocol.id !== 'https' && self.remote.protocol.id !== 'ftp';
     };
 
-    self.getBtnLabelFor = function(protocolId) {
+    self.getBtnLabelFor = function (protocolId) {
         switch (protocolId) {
             case 'http':
             case 'https':

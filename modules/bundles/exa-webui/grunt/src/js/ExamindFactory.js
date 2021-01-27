@@ -23,7 +23,7 @@ function Examind($http, url) {
     /**
      * Prepare a request, updating url and adding token.
      *
-     * @param {type} query $http request content
+     * @param {{method: string, url: string}} query $http request content
      * @returns {Promise}
      */
     self.request = function(query) {
@@ -265,6 +265,18 @@ function Examind($http, url) {
                 data: {
                     value : value
                 }
+            });
+        },
+
+        /**
+         * Get Allowed File System Paths
+         *
+         * @returns {Promise}
+         */
+        getAllowedFS: function () {
+            return self.request({
+                method: 'GET',
+                url: 'admin/property/exa.allowed.fs.path'
             });
         }
     };
