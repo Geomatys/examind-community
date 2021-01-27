@@ -16,10 +16,9 @@ import org.apache.sis.util.iso.Names;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
-import org.geotoolkit.map.FeatureMapLayer;
 import org.geotoolkit.map.MapBuilder;
-import org.geotoolkit.map.MapContext;
-import org.geotoolkit.map.MapLayer;
+import org.apache.sis.portrayal.MapLayers;
+import org.apache.sis.portrayal.MapLayer;
 import org.geotoolkit.storage.memory.InMemoryFeatureSet;
 import org.geotoolkit.storage.memory.InMemoryGridCoverageResource;
 
@@ -28,7 +27,7 @@ import org.geotoolkit.storage.memory.InMemoryGridCoverageResource;
  */
 class GetFeatureInfoContext {
 
-    final MapContext context = MapBuilder.createContext(CommonCRS.defaultGeographic());;
+    final MapLayers context = MapBuilder.createContext(CommonCRS.defaultGeographic());;
     Dimension canvasSize = new Dimension(16, 16);
     Envelope displayEnvelope = new ImmutableEnvelope(new double[]{-180, -90}, new double[]{180, 90}, CommonCRS.defaultGeographic());
     Rectangle selection = new Rectangle(canvasSize);
@@ -43,8 +42,8 @@ class GetFeatureInfoContext {
      * @param dataset Set of features for the dataset.
      * @return Created layer for further configuration.
      */
-    public FeatureMapLayer createLayer(String name, FeatureType datatype, List<Feature> dataset) {
-        final FeatureMapLayer layer = MapBuilder.createFeatureLayer(new InMemoryFeatureSet(datatype, dataset));
+    public MapLayer createLayer(String name, FeatureType datatype, List<Feature> dataset) {
+        final MapLayer layer = MapBuilder.createFeatureLayer(new InMemoryFeatureSet(datatype, dataset));
         prepareLayer(name, layer);
 
         return layer;
@@ -52,7 +51,6 @@ class GetFeatureInfoContext {
 
     private void prepareLayer(String name, MapLayer layer) {
         layer.setIdentifier(name);
-        layer.setSelectable(true);
         layer.setVisible(true);
 
         context.getComponents().add(layer);

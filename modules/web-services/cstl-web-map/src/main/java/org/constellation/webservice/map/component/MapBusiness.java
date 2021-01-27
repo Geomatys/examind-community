@@ -40,8 +40,8 @@ import org.geotoolkit.display2d.service.OutputDef;
 import org.geotoolkit.display2d.service.SceneDef;
 import org.geotoolkit.factory.Hints;
 import org.geotoolkit.map.MapBuilder;
-import org.geotoolkit.map.MapContext;
-import org.geotoolkit.map.MapItem;
+import org.apache.sis.portrayal.MapLayers;
+import org.apache.sis.portrayal.MapItem;
 import org.geotoolkit.sld.xml.Specification;
 import org.geotoolkit.sld.xml.StyleXmlIO;
 import org.geotoolkit.style.MutableStyle;
@@ -237,8 +237,8 @@ public class MapBusiness {
                 mapItem = (MapItem) layer.getMapLayer(style, null);
             }
 
-            final MapContext mapContext = MapBuilder.createContext();
-            mapContext.items().add(mapItem);
+            final MapLayers mapContext = MapBuilder.createContext();
+            mapContext.getComponents().add(mapItem);
 
             // Inputs.
             final SceneDef sceneDef = new SceneDef(mapContext, DEFAULT_HINTS);

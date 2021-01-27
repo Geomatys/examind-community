@@ -35,7 +35,8 @@ import static org.constellation.provider.AbstractData.LOGGER;
 import org.apache.sis.util.collection.BackingStoreException;
 import org.constellation.exception.ConstellationStoreException;
 import org.geotoolkit.cql.CQL;
-import org.geotoolkit.map.MapLayer;
+import org.apache.sis.portrayal.MapLayer;
+import org.geotoolkit.map.MapBuilder;
 import org.geotoolkit.style.MutableStyle;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
@@ -127,8 +128,8 @@ public abstract class DefaultGeoData<T extends Resource> extends AbstractData<T>
         } else {
             throw new IllegalArgumentException("Only MutableStyle implementation is acepted");
         }
-        final MapLayer layer = new MapLayer(origin);
-        layer.setStyle(style);
+        final MapLayer layer = MapBuilder.createLayer(origin);
+        if (style != null) layer.setStyle(style);
         
         final String title = getName().tip().toString();
         layer.setIdentifier(title);

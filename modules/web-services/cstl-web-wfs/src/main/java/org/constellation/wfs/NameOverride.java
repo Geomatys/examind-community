@@ -48,6 +48,11 @@ public class NameOverride extends Static {
         }
 
         @Override
+        public Object getValueOrFallback(String s, Object o) {
+            return decorated.getValueOrFallback(s, o);
+        }
+
+        @Override
         public void setProperty(Property property) throws IllegalArgumentException {
             decorated.setProperty(property);
         }

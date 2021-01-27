@@ -37,7 +37,7 @@ import java.util.logging.Level;
 
 import org.apache.sis.storage.GridCoverageResource;
 import org.constellation.map.featureinfo.dto.LayerError;
-import org.geotoolkit.map.MapLayer;
+import org.apache.sis.portrayal.MapLayer;
 import org.opengis.feature.Feature;
 import org.opengis.util.GenericName;
 

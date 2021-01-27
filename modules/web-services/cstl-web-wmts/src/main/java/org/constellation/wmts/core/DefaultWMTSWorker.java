@@ -72,7 +72,7 @@ import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
 import org.geotoolkit.geometry.jts.JTSEnvelope2D;
-import org.geotoolkit.map.MapContext;
+import org.apache.sis.portrayal.MapLayers;
 import org.geotoolkit.ows.xml.AbstractCapabilitiesCore;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.*;
 import org.geotoolkit.ows.xml.v110.AcceptFormatsType;
@@ -628,7 +628,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
         final SceneDef sdef = new SceneDef();
 
         try {
-            final MapContext context = PortrayalUtil.createContext(layer, style, params);
+            final MapLayers context = PortrayalUtil.createContext(layer, style, params);
             sdef.setContext(context);
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex, NO_APPLICABLE_CODE);

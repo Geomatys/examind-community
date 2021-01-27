@@ -38,7 +38,7 @@ import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
 import org.geotoolkit.feature.FeatureExt;
-import org.geotoolkit.map.MapLayer;
+import org.apache.sis.portrayal.MapLayer;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureAssociationRole;

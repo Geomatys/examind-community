@@ -27,7 +27,7 @@ import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.storage.GridCoverageResource;
 import org.geotoolkit.display2d.canvas.RenderingContext2D;
 import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
-import org.geotoolkit.map.MapLayer;
+import org.apache.sis.portrayal.MapLayer;
 import org.locationtech.jts.geom.Geometry;
 import org.opengis.feature.Feature;
 import org.opengis.feature.PropertyNotFoundException;

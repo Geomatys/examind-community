@@ -58,7 +58,7 @@ import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.geometry.isoonjts.JTSUtils;
 import org.geotoolkit.geometry.jts.JTSEnvelope2D;
 import org.geotoolkit.internal.jaxb.ObjectFactory;
-import org.geotoolkit.map.MapLayer;
+import org.apache.sis.portrayal.MapLayer;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
 import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.util.DateRange;

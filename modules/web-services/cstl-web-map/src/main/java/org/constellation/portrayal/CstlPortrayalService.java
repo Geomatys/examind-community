@@ -32,6 +32,11 @@ import org.geotoolkit.display2d.service.VisitDef;
 
 
 /**
+ * TODO: check if this overlay is really needed. It does weird stuff like clearing MapLayers object after use.
+ * Points to check:
+ *  - Is MapLayers clearing really needed ?
+ *  - Does it contain any benefit / overriden behavior to default Geotk portrayal service ?
+ *
  * Service class to portray or work with two dimensional scenes defined by a
  * scene definition, a view definition, and a canvas definition.
  *
@@ -85,7 +90,7 @@ public final class CstlPortrayalService {
                 throw new PortrayalException(ex);
             }
         } finally {
-            sdef.getContext().layers().clear();
+            sdef.getContext().getComponents().clear();
         }
 
     }
@@ -117,7 +122,7 @@ public final class CstlPortrayalService {
             }
         }finally{
             visitDef.getVisitor().endVisit();
-            sdef.getContext().layers().clear();
+            sdef.getContext().getComponents().clear();
         }
 
     }
@@ -177,7 +182,7 @@ public final class CstlPortrayalService {
         } catch(Exception ex) {
             throw new PortrayalException(ex);
         } finally {
-            sdef.getContext().layers().clear();
+            sdef.getContext().getComponents().clear();
         }
     }
 

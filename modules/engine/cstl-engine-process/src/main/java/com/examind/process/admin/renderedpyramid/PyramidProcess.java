@@ -5,17 +5,19 @@ import com.examind.process.admin.AdminProcessRegistry;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.sis.parameter.ParameterBuilder;
+import org.apache.sis.portrayal.MapLayers;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.iso.ResourceInternationalString;
+import org.geotoolkit.map.MapBuilder;
 import org.geotoolkit.storage.multires.MultiResolutionResource;
 import org.geotoolkit.storage.multires.TileGenerator;
 import org.geotoolkit.display2d.MapContextTileGenerator;
 import org.geotoolkit.factory.Hints;
 import org.geotoolkit.image.interpolation.InterpolationCase;
-import org.geotoolkit.map.MapContext;
-import org.geotoolkit.map.MapLayer;
+import org.apache.sis.portrayal.MapLayers;
+import org.apache.sis.portrayal.MapLayer;
 import org.geotoolkit.process.ProcessException;
 import org.geotoolkit.processing.AbstractProcess;
 import org.geotoolkit.processing.AbstractProcessDescriptor;
@@ -36,7 +38,7 @@ import org.springframework.stereotype.Component;
 public class PyramidProcess extends AbstractProcessDescriptor implements AdminProcessDescriptor {
 
     public static final String BUNDLE_LOCATION = "com/examind/process/admin/renderedpyramid/bundle";
-    protected static final ParameterDescriptor<MapContext> MAPCONTEXT;
+    protected static final ParameterDescriptor<MapLayers> MAPCONTEXT;
     protected static final ParameterDescriptor<MultiResolutionResource> RESOURCE;
     protected static final ParameterDescriptor<InterpolationCase> INTERPOLATION;
     protected static final ParameterDescriptor<String> MODE;
@@ -52,7 +54,7 @@ public class PyramidProcess extends AbstractProcessDescriptor implements AdminPr
 
         MAPCONTEXT = builder.addName("mapcontext")
                 .setRequired(true)
-                .create(MapContext.class, null);
+                .create(MapLayers.class, null);
 
         RESOURCE = builder.addName("resource")
                 .setRequired(true)
@@ -91,7 +93,7 @@ public class PyramidProcess extends AbstractProcessDescriptor implements AdminPr
         @Override
         protected void execute() throws ProcessException {
 
-            final MapContext context = inputParameters.getMandatoryValue(MAPCONTEXT);
+            final MapLayers context = inputParameters.getMandatoryValue(MAPCONTEXT);
             final MultiResolutionResource resource = inputParameters.getMandatoryValue(RESOURCE);
             final InterpolationCase interpolation = inputParameters.getMandatoryValue(INTERPOLATION);
             final String mode = inputParameters.getMandatoryValue(MODE);
@@ -101,8 +103,8 @@ public class PyramidProcess extends AbstractProcessDescriptor implements AdminPr
                 case "rgb" : generator = new MapContextTileGenerator(context, new Hints(Hints.KEY_ANTIALIASING, Hints.VALUE_ANTIALIAS_ON)); break;
                 case "data" : {
                     final List<GridCoverageResource> resources = new ArrayList<>();
-                    for (MapLayer layer : context.layers()) {
-                        Resource res = layer.getResource();
+                    for (MapLayer layer : MapBuilder.getLayers(context)) {
+                        Resource res = layer.getData();
                         if (res instanceof GridCoverageResource) {
                             final GridCoverageResource candidate = (GridCoverageResource) res;
                             resources.add(candidate);

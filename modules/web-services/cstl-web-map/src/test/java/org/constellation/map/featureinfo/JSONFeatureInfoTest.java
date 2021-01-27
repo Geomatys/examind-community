@@ -134,7 +134,7 @@ public class JSONFeatureInfoTest {
              new float[] {1.1f, 1.1f},
              new float[] {2.2f, 2.2f}
         }), new Dimension(2, 2));
-        builder.flipAxis(1);
+        builder.flipGridAxis(1);
         final GetFeatureInfoContext ctx = new GetFeatureInfoContext();
         ctx.selection = new Rectangle(1, 1);
         ctx.createLayer("myCoverage", builder.build());

@@ -36,7 +36,7 @@ import org.geotoolkit.display.canvas.RenderingContext;
 import org.geotoolkit.display2d.GO2Hints;
 import org.geotoolkit.display2d.GraphicVisitor;
 import org.geotoolkit.display2d.canvas.RenderingContext2D;
-import org.geotoolkit.renderer.Presentation;
+import org.apache.sis.internal.map.Presentation;
 import org.geotoolkit.display2d.primitive.ProjectedCoverage;
 import org.geotoolkit.display2d.primitive.ProjectedFeature;
 import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
@@ -44,7 +44,7 @@ import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.DefaultPortrayalService;
 import org.geotoolkit.display2d.service.SceneDef;
 import org.geotoolkit.display2d.service.VisitDef;
-import org.geotoolkit.map.MapLayer;
+import org.apache.sis.portrayal.MapLayer;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.feature.Feature;
@@ -142,12 +142,12 @@ public abstract class AbstractFeatureInfoFormat implements FeatureInfoFormat {
             public void visit(Presentation graphic, RenderingContext context, SearchArea area) {
                 if(graphic == null ) return;
 
-                final Feature feature = graphic.getFeature();
+                final Object candidate = graphic.getCandidate();
                 final MapLayer layer = graphic.getLayer();
-                final Resource resource = (layer == null) ? null : layer.getResource();
+                final Resource resource = (layer == null) ? null : layer.getData();
 
-                if (feature != null){
-                    nextProjectedFeature(layer, feature, (RenderingContext2D) context, (SearchAreaJ2D) area);
+                if (candidate instanceof Feature) {
+                    nextProjectedFeature(layer, (Feature) candidate, (RenderingContext2D) context, (SearchAreaJ2D) area);
                 } else if (resource instanceof GridCoverageResource) {
                     nextProjectedCoverage(layer, (GridCoverageResource) resource, (RenderingContext2D) context, (SearchAreaJ2D) area);
                 }
@@ -232,7 +232,7 @@ public abstract class AbstractFeatureInfoFormat implements FeatureInfoFormat {
         if (ml.getUserProperties().containsKey("layerName")) {
             return (GenericName) ml.getUserProperties().get("layerName");
         } else {
-            final Resource ref = ml.getResource();
+            final Resource ref = ml.getData();
             try {
                 return ref.getIdentifier().orElseThrow(() -> new RuntimeException("Cannot extract resource identifier"));
             } catch (DataStoreException e) {

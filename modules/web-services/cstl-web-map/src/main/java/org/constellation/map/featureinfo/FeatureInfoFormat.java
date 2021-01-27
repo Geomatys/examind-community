@@ -77,14 +77,14 @@ public interface FeatureInfoFormat {
 
     /**
      * Set the list of {@link LayerCache} from which the {@link SceneDef}
-     * {@link org.geotoolkit.map.MapContext} was build.
+     * {@link org.apache.sis.portrayal.MapLayers} was build.
      * @param layers
      */
     public void setLayers(List<LayerCache> layers);
 
     /**
      * Get the list of {@link LayerCache} from which the {@link SceneDef}
-     * {@link org.geotoolkit.map.MapContext} was build.
+     * {@link org.apache.sis.portrayal.MapLayers} was build.
      * @return layers or null
      */
     public List<LayerCache> getLayers();

@@ -60,7 +60,8 @@ import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.geometry.jts.JTSEnvelope2D;
-import org.geotoolkit.map.MapLayer;
+import org.apache.sis.portrayal.MapLayer;
+import org.geotoolkit.map.MapBuilder;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
@@ -166,8 +167,8 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
 
         final Profile profil = new Profile();
 
-        for (MapLayer layer : sdef.getContext().layers()) {
-            Resource resource = layer.getResource();
+        for (MapLayer layer : MapBuilder.getLayers(sdef.getContext())) {
+            Resource resource = layer.getData();
             if (resource instanceof GridCoverageResource) {
                 final GridCoverageResource ressource = (GridCoverageResource) resource;
                 try {

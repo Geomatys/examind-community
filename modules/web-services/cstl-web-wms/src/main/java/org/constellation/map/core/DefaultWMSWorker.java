@@ -115,10 +115,10 @@ import org.geotoolkit.filter.visitor.ListingPropertyVisitor;
 import org.geotoolkit.inspire.xml.vs.ExtendedCapabilitiesType;
 import org.geotoolkit.inspire.xml.vs.LanguageType;
 import org.geotoolkit.inspire.xml.vs.LanguagesType;
-import org.geotoolkit.map.FeatureMapLayer;
-import org.geotoolkit.map.MapContext;
-import org.geotoolkit.map.MapItem;
-import org.geotoolkit.map.MapLayer;
+import org.apache.sis.portrayal.MapLayers;
+import org.apache.sis.portrayal.MapItem;
+import org.apache.sis.portrayal.MapLayer;
+import org.geotoolkit.map.MapBuilder;
 import org.geotoolkit.ows.xml.OWSExceptionCode;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.CURRENT_UPDATE_SEQUENCE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_FORMAT;
@@ -503,13 +503,12 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                        final MapItem mi = (MapItem) geoLayer.getMapLayer(null, null);
                        applyLayerFiltersAndDims(mi, userLogin);
 
-                       if (mi instanceof MapContext) {
-                           final MapContext mc = (MapContext) mi;
+                       if (mi instanceof MapLayers) {
+                           final MapLayers mc = (MapLayers) mi;
                            final List<AbstractDimension> dimensionsToAdd = new ArrayList<>();
-                           for (final MapLayer candidateLayer : mc.layers()) {
-                               if (candidateLayer instanceof FeatureMapLayer) {
-                                   final FeatureMapLayer fml = (FeatureMapLayer) candidateLayer;
-                                   final List<AbstractDimension> extraDimsToAdd = getExtraDimensions(fml, queryVersion);
+                           for (final MapLayer candidateLayer : MapBuilder.getLayers(mc)) {
+                               if (candidateLayer.getData() instanceof FeatureSet) {
+                                   final List<AbstractDimension> extraDimsToAdd = getExtraDimensions(candidateLayer, queryVersion);
                                    for (AbstractDimension newExtraDim : extraDimsToAdd) {
                                        boolean exist = false;
                                        for (AbstractDimension oldExtraDim : dimensionsToAdd) {
@@ -529,11 +528,9 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                            if (!dimensionsToAdd.isEmpty()) {
                                dimensions.addAll(dimensionsToAdd);
                            }
-                       }
-
-                       if (mi instanceof FeatureMapLayer) {
-                           final FeatureMapLayer fml = (FeatureMapLayer) mi;
-                           dimensions.addAll(getExtraDimensions(fml, queryVersion));
+                       } else if (mi instanceof MapLayer) {
+                           final MapLayer ml = (MapLayer) mi;
+                           if (ml.getData() instanceof FeatureSet) dimensions.addAll(getExtraDimensions(ml, queryVersion));
                        }
 
                    } catch (ConstellationStoreException | DataStoreException ex) {
@@ -762,7 +759,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
     }
 
     /**
-     * Get extra dimensions from a {@link FeatureMapLayer}.
+     * Get extra dimensions from a {@link MapLayer} containing a {@link FeatureSet}.
      *
      * @param fml {@link MapLayer}
      * @param queryVersion Version of the request.
@@ -770,7 +767,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
      * @throws DataStoreException
      */
     private List<AbstractDimension> getExtraDimensions(final MapLayer fml, final String queryVersion) throws DataStoreException {
-        final Resource resource = fml.getResource();
+        final Resource resource = fml.getData();
         final List<DimensionDef> dims = (List<DimensionDef>) fml.getUserProperties().get(PROP_EXTRADIMENSIONS);
         if (dims == null || !(resource instanceof FeatureSet)) return new ArrayList<>();
 
@@ -998,7 +995,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         final SceneDef sdef = new SceneDef();
 
         try {
-            final MapContext context = PortrayalUtil.createContext(layersCache, styles, params);
+            final MapLayers context = PortrayalUtil.createContext(layersCache, styles, params);
             sdef.setContext(context);
             //apply layercontext filters
             applyLayerFiltersAndDims(context, userLogin);
@@ -1266,7 +1263,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         }
 
         try {
-            final MapContext context = PortrayalUtil.createContext(layersCache, styles, params);
+            final MapLayers context = PortrayalUtil.createContext(layersCache, styles, params);
             //apply layercontext filters
             applyLayerFiltersAndDims(context, userLogin);
 
@@ -1553,17 +1550,16 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
 
     /**
      * Apply and transform recursively configuration {@link org.opengis.filter.Filter} and
-     * {@link org.constellation.dto.service.config.wxs.DimensionDefinition} to all {@link org.geotoolkit.map.FeatureMapLayer} in
-     * input {@link org.geotoolkit.map.MapItem}.
-     * This method will only work on Feature layers.
+     * {@link org.constellation.dto.service.config.wxs.DimensionDefinition} to all {@link MapLayer map layers}
+     * whose data is a {@link FeatureSet} in input {@link org.apache.sis.portrayal.MapItem}.
      *
      * @param item root mapItem
      * @param userLogin login used to get configuration.
      */
     private void applyLayerFiltersAndDims(final MapItem item, final String userLogin) throws DataStoreException {
-
-        if (item instanceof FeatureMapLayer) {
-            final FeatureMapLayer fml = (FeatureMapLayer)item;
+        if (item instanceof MapLayer) {
+            final MapLayer fml = (MapLayer)item;
+            if (!(fml.getData() instanceof FeatureSet)) return;
             Integer lid = (Integer) fml.getUserProperties().get("layerId");
             final FilterAndDimension layerFnD = getLayerFilterDimensions(lid);
             if (layerFnD.getFilter() != null) {
@@ -1604,10 +1600,8 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             }
 
             fml.getUserProperties().put(PROP_EXTRADIMENSIONS, defs);
-        }
-
-        if (item instanceof MapContext) {
-            for (MapItem layer : ((MapContext) item).getComponents()) {
+        } else if (item instanceof MapLayers) {
+            for (MapItem layer : ((MapLayers) item).getComponents()) {
                 applyLayerFiltersAndDims(layer, userLogin);
             }
         }
@@ -1617,8 +1611,8 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
      * Apply extra dimension filters.
      */
     private static void applyDimFilter(MapItem item, Envelope box) throws DataStoreException {
-        if (item instanceof MapContext) {
-            for (MapItem mi : ((MapContext) item).getComponents()) {
+        if (item instanceof MapLayers) {
+            for (MapItem mi : ((MapLayers) item).getComponents()) {
                 applyDimFilter(mi, box);
             }
         } else if (item instanceof MapLayer) {
@@ -1629,7 +1623,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
      * Apply extra dimension filters.
      */
     private static void applyDimFilter(MapLayer layer, Envelope box) throws DataStoreException {
-        Resource resource = layer.getResource();
+        Resource resource = layer.getData();
         if (!(resource instanceof FeatureSet)) return;
 
         final List<DimensionDef> defs = (List<DimensionDef>) layer.getUserProperties().get(PROP_EXTRADIMENSIONS);

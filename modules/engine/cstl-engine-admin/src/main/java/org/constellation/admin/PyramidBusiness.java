@@ -39,6 +39,7 @@ import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.measure.NumberRange;
 import org.apache.sis.parameter.Parameters;
+import org.apache.sis.portrayal.MapLayer;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.crs.AbstractCRS;
 import org.apache.sis.referencing.cs.AxesConvention;
@@ -81,8 +82,8 @@ import org.geotoolkit.coverage.xmlstore.XMLCoverageResource;
 import org.geotoolkit.coverage.xmlstore.XMLCoverageStore;
 import org.geotoolkit.coverage.xmlstore.XMLCoverageStoreFactory;
 import org.geotoolkit.map.MapBuilder;
-import org.geotoolkit.map.MapContext;
-import org.geotoolkit.map.MapItem;
+import org.apache.sis.portrayal.MapLayers;
+import org.apache.sis.portrayal.MapItem;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
 import org.geotoolkit.process.Process;
@@ -176,7 +177,7 @@ public class PyramidBusiness implements IPyramidBusiness {
              *    - Calculate the global envelope.
              */
             GeneralEnvelope globalEnv = null;
-            final MapContext context = MapBuilder.createContext();
+            final MapLayers context = MapBuilder.createContext();
             for (final DataBrief db : briefs) {
                 final String providerIdentifier = db.getProvider();
                 final String dataName = db.getName();
@@ -221,7 +222,7 @@ public class PyramidBusiness implements IPyramidBusiness {
                 }
 
                 try {
-                    context.items().add((MapItem) inData.getMapLayer(style, null));
+                    context.getComponents().add((MapItem) inData.getMapLayer(style, null));
                 } catch (ConstellationStoreException ex) {
                     LOGGER.log(Level.WARNING, "Failed to create map context layer for data " + ex.getMessage(), ex);
                     continue;
@@ -352,7 +353,7 @@ public class PyramidBusiness implements IPyramidBusiness {
             scales[i] = scales[i - 1] / 2.0;
         }
 
-        final MapContext context = MapBuilder.createContext();
+        final MapLayers context = MapBuilder.createContext();
 
         for (final MapContextStyledLayerDTO layer : mc.getLayers()) {
 
@@ -370,7 +371,7 @@ public class PyramidBusiness implements IPyramidBusiness {
                 final String serviceVersion = layer.getExternalServiceVersion() != null ? layer.getExternalServiceVersion() : "1.3.0";
                 final WebMapClient wmsServer = new WebMapClient(serviceUrl, WMSVersion.getVersion(serviceVersion));
                 final WMSResource wmsLayer = new WMSResource(wmsServer, dataName);
-                context.items().add(MapBuilder.createCoverageLayer(wmsLayer));
+                context.getComponents().add(MapBuilder.createCoverageLayer(wmsLayer));
                 continue;
             }
             //get data
@@ -405,7 +406,7 @@ public class PyramidBusiness implements IPyramidBusiness {
 
             try {
                 //if style is null, a default style will be used in maplayer.
-                context.items().add((MapItem) inData.getMapLayer(style, null));
+                context.getComponents().add((MapItem) inData.getMapLayer(style, null));
             } catch (ConstellationStoreException ex) {
                 LOGGER.log(Level.WARNING, "Failed to create map context item for data " + ex.getMessage(), ex);
             }
@@ -602,8 +603,8 @@ public class PyramidBusiness implements IPyramidBusiness {
                 throw new ConstellationException("No pyramid data has been created.");
             }
 
-            final MapContext context = MapBuilder.createContext();
-            context.layers().add(MapBuilder.createCoverageLayer(inRef));
+            final MapLayers context = MapBuilder.createContext();
+            context.getComponents().add(MapBuilder.createCoverageLayer(inRef));
 
             //add task in scheduler
             final TilingContext t = buildTilingProcess(userId, outRef, context, "data");
@@ -629,7 +630,7 @@ public class PyramidBusiness implements IPyramidBusiness {
         }
     }
 
-    private TilingContext buildTilingProcess(Integer userId, MultiResolutionResource outRef, MapContext context, String mode) throws ConstellationException {
+    private TilingContext buildTilingProcess(Integer userId, MultiResolutionResource outRef, MapLayers context, String mode) throws ConstellationException {
         try {
             final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor("administration", "gen-pyramid");
             final ParameterValueGroup input = desc.getInputDescriptor().createValue();

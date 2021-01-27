@@ -118,7 +118,7 @@ import org.geotoolkit.gmlcov.geotiff.xml.v100.ParametersType;
 import org.geotoolkit.gmlcov.xml.v100.AbstractDiscreteCoverageType;
 import org.geotoolkit.gmlcov.xml.v100.ObjectFactory;
 import org.geotoolkit.image.io.metadata.SpatialMetadata;
-import org.geotoolkit.map.MapContext;
+import org.apache.sis.portrayal.MapLayers;
 import org.geotoolkit.ows.xml.AbstractCapabilitiesCore;
 import org.geotoolkit.ows.xml.AbstractOperationsMetadata;
 import org.geotoolkit.ows.xml.AbstractServiceIdentification;
@@ -1047,7 +1047,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 style = null;
             }
             try {
-                final MapContext context = PortrayalUtil.createContext(layer, style, renderParameters);
+                final MapLayers context = PortrayalUtil.createContext(layer, style, renderParameters);
                 sdef.setContext(context);
             } catch (ConstellationStoreException ex) {
                 throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
@@ -1289,7 +1289,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 style = null;
             }
             try {
-                final MapContext context = PortrayalUtil.createContext(layer, style, new HashMap<>());
+                final MapLayers context = PortrayalUtil.createContext(layer, style, new HashMap<>());
                 sdef.setContext(context);
             } catch (ConstellationStoreException ex) {
                 throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
