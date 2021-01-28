@@ -649,6 +649,12 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
                 }
             }
             return namesCond;
+        } else if ("csw_id".equals(key)) {
+            int cswId = (int) value;
+            return METADATA.ID.in(dsl.select(METADATA_X_CSW.METADATA_ID).from(METADATA_X_CSW).where(METADATA_X_CSW.CSW_ID.eq(cswId)));
+        } else if ("!csw_id".equals(key)) {
+            int cswId = (int) value;
+            return METADATA.ID.notIn(dsl.select(METADATA_X_CSW.METADATA_ID).from(METADATA_X_CSW).where(METADATA_X_CSW.CSW_ID.eq(cswId)));
         } else if ("OR".equals(key)) {
             List<Entry<String, Object>> values =  (List<Entry<String, Object>>) value;
             Condition c = null;

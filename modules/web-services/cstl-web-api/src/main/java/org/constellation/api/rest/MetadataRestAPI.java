@@ -262,7 +262,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
 
             return new AbstractMap.SimpleEntry<>(f.getField(), Boolean.parseBoolean(value));
 
-        } else if ("parent".equals(f.getField()) || "id".equals(f.getField())) {
+        } else if ("parent".equals(f.getField()) || "id".equals(f.getField()) || "csw_id".equals(f.getField()) || "!csw_id".equals(f.getField())) {
             try {
                 final int intVal = Integer.valueOf(value);
                 return new AbstractMap.SimpleEntry<>(f.getField(), intVal);
