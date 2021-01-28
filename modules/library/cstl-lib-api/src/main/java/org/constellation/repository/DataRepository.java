@@ -69,17 +69,7 @@ public interface DataRepository extends AbstractRepository {
 
     Data findByIdentifierWithEmptyMetadata(String localPart);
 
-    List<Data> getCswLinkedData(final int cswId);
-
-    void addDataToCSW(final int serviceID, final int dataID);
-
-    void removeDataFromCSW(final int serviceID, final int dataID);
-
-    void removeDataFromAllCSW(final int dataID);
-
-    void removeAllDataFromCSW(final int serviceID);
-
-    void linkDataToData(final int dataId, final int childId);
+   void linkDataToData(final int dataId, final int childId);
 
     List<Data> getDataLinkedData(final int dataId);
 
@@ -97,24 +87,7 @@ public interface DataRepository extends AbstractRepository {
      * @param styleId style id candidate
      * @return a list of full {@link Data}
      */
-    List<Data> getFullDataByLinkedStyle(final int styleId);
-
-    /**
-     * Retrieve all Data linked to given style id.
-     * Returned data objects are lighten view of Data table with only :
-     * <ul>
-     *     <li>id</li>
-     *     <li>name</li>
-     *     <li>namespace</li>
-     *     <li>provider</li>
-     *     <li>type</li>
-     *     <li>subtype</li>
-     * </ul>
-     *
-     * @param styleId style id candidate
-     * @return a list of full {@link Data}
-     */
-    List<Data> getRefDataByLinkedStyle(final int styleId);
+    List<Data> getDataByLinkedStyle(final int styleId);
 
     Integer getDatasetId(int dataId);
 

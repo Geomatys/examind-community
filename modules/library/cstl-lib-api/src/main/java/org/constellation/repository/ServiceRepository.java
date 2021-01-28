@@ -84,6 +84,8 @@ public interface ServiceRepository extends AbstractRepository {
 
     void removelinkedMetadataProvider(int serviceId);
 
+    void removelinkedMetadatas(int serviceId);
+
     boolean isLinkedMetadataProviderAndService(int serviceId, int providerID);
 
     public String getImplementation(Integer serviceId);

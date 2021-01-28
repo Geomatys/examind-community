@@ -541,26 +541,6 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
     ////--------------------------------------------------------------------///
 
     @Override
-    public void addDataToCSW(int serviceID, int dataID) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void removeDataFromCSW(int serviceID, int dataID) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void removeDataFromAllCSW(int dataID) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void removeAllDataFromCSW(int serviceID) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
     public List<Data> findByServiceId(Integer id) {
         List<Data> results = new ArrayList<>();
         List<Layer> layers = layerRepository.findByServiceId(id);

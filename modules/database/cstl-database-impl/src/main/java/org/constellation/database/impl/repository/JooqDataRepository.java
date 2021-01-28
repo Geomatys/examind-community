@@ -271,56 +271,6 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, org.
     }
 
     @Override
-    public List<Data> getCswLinkedData(final int cswId) {
-        return convertDataListToDto(dsl.select(DATA.fields())
-                                   .from(DATA, METADATA, METADATA_X_CSW)
-                                   .where(METADATA.DATA_ID.eq(DATA.ID))
-                                   .and(METADATA_X_CSW.METADATA_ID.eq(METADATA.ID))
-                                   .and(METADATA_X_CSW.CSW_ID.eq(cswId))
-                                   .fetchInto(org.constellation.database.api.jooq.tables.pojos.Data.class));
-    }
-
-    @Override
-    @Transactional(propagation = Propagation.MANDATORY)
-    public void addDataToCSW(final int serviceID, final int dataID) {
-        final List<Metadata> metadatas = dsl.select().from(METADATA).where(METADATA.DATA_ID.eq(dataID)).fetchInto(Metadata.class);
-        for (Metadata metadata : metadatas) {
-            final MetadataXCsw dxc = dsl.select().from(METADATA_X_CSW).where(METADATA_X_CSW.CSW_ID.eq(serviceID)).and(METADATA_X_CSW.METADATA_ID.eq(metadata.getId())).fetchOneInto(MetadataXCsw.class);
-            if (dxc == null) {
-                MetadataXCswRecord newRecord = dsl.newRecord(METADATA_X_CSW);
-                newRecord.setCswId(serviceID);
-                newRecord.setMetadataId(metadata.getId());
-                newRecord.store();
-                newRecord.into(MetadataXCsw.class);
-            }
-        }
-    }
-
-    @Override
-    @Transactional(propagation = Propagation.MANDATORY)
-    public void removeDataFromCSW(int serviceID, int dataID) {
-        final List<Metadata> metadatas = dsl.select().from(METADATA).where(METADATA.DATA_ID.eq(dataID)).fetchInto(Metadata.class);
-        for (Metadata metadata : metadatas) {
-            dsl.delete(METADATA_X_CSW).where(METADATA_X_CSW.CSW_ID.eq(serviceID)).and(METADATA_X_CSW.METADATA_ID.eq(metadata.getId())).execute();
-        }
-    }
-
-    @Override
-    @Transactional(propagation = Propagation.MANDATORY)
-    public void removeDataFromAllCSW(int dataID) {
-        final List<Metadata> metadatas = dsl.select().from(METADATA).where(METADATA.DATA_ID.eq(dataID)).fetchInto(Metadata.class);
-        for (Metadata metadata : metadatas) {
-            dsl.delete(METADATA_X_CSW).where(METADATA_X_CSW.METADATA_ID.eq(metadata.getId())).execute();
-        }
-    }
-
-    @Override
-    @Transactional(propagation = Propagation.MANDATORY)
-    public void removeAllDataFromCSW(int serviceID) {
-        dsl.delete(METADATA_X_CSW).where(METADATA_X_CSW.CSW_ID.eq(serviceID)).execute();
-    }
-
-    @Override
     public void linkDataToData(final int dataId, final int childId) {
         final DataXData dxd = dsl.select().from(DATA_X_DATA).where(DATA_X_DATA.DATA_ID.eq(dataId)).and(DATA_X_DATA.CHILD_ID.eq(childId)).fetchOneInto(DataXData.class);
         if (dxd == null) {
@@ -360,20 +310,8 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, org.
      * {@inheritDoc}
      */
     @Override
-    public List<Data> getFullDataByLinkedStyle(final int styleId) {
+    public List<Data> getDataByLinkedStyle(final int styleId) {
         return convertDataListToDto(dsl.select(DATA.fields())
-                                   .from(DATA)
-                                   .join(STYLED_DATA).onKey(STYLED_DATA.DATA)
-                                   .where(STYLED_DATA.STYLE.eq(styleId))
-                                   .fetchInto(org.constellation.database.api.jooq.tables.pojos.Data.class));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<Data> getRefDataByLinkedStyle(final int styleId) {
-        return convertDataListToDto(dsl.select()//dsl.select(REF_FIELDS)
                                    .from(DATA)
                                    .join(STYLED_DATA).onKey(STYLED_DATA.DATA)
                                    .where(STYLED_DATA.STYLE.eq(styleId))

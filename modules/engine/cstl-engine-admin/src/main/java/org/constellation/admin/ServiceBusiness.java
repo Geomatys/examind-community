@@ -46,7 +46,6 @@ import org.constellation.exception.ConstellationPersistenceException;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.service.Service;
 import org.constellation.dto.service.ServiceComplete;
-import org.constellation.repository.DataRepository;
 import org.constellation.repository.DatasetRepository;
 import org.constellation.repository.ServiceRepository;
 import org.constellation.repository.ThesaurusRepository;
@@ -73,6 +72,7 @@ import org.constellation.dto.service.config.wps.ProcessContext;
 import org.constellation.dto.service.config.wps.Processes;
 import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
 import org.constellation.dto.service.config.wxs.LayerContext;
+import org.constellation.repository.MetadataRepository;
 import org.constellation.ws.MimeType;
 
 @Component
@@ -91,7 +91,7 @@ public class ServiceBusiness implements IServiceBusiness {
     private ServiceRepository serviceRepository;
 
     @Inject
-    private DataRepository dataRepository;
+    private MetadataRepository metadatarepository;
 
     @Inject
     private DatasetRepository datasetRepository;
@@ -295,9 +295,8 @@ public class ServiceBusiness implements IServiceBusiness {
 
         // TODO remove special cases
         if (service.getType().equalsIgnoreCase("csw")) {
-            dataRepository.removeAllDataFromCSW(id);
-            datasetRepository.removeAllDatasetFromCSW(id);
             serviceRepository.removelinkedMetadataProvider(id);
+            serviceRepository.removelinkedMetadatas(id);
         } else if (service.getType().equalsIgnoreCase("sos") || service.getType().equalsIgnoreCase("sts")) {
             List<Integer> linkedProviders = serviceRepository.getLinkedSensorProviders(id, null);
             serviceRepository.removelinkedSensorProviders(id);

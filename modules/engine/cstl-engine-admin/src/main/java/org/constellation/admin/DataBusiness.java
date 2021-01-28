@@ -347,8 +347,8 @@ public class DataBusiness implements IDataBusiness {
      * {@inheritDoc}
      */
     @Override
-    public List<DataBrief> getDataRefsFromStyleId(final Integer styleId) {
-        final List<Data> dataList = dataRepository.getRefDataByLinkedStyle(styleId);
+    public List<DataBrief> getDataFromStyleId(final Integer styleId) {
+        final List<Data> dataList = dataRepository.getDataByLinkedStyle(styleId);
         if (dataList != null) {
             return toDataRef(dataList);
         }

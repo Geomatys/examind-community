@@ -48,12 +48,6 @@ public interface DatasetRepository extends AbstractRepository {
 
     List<DataSet> getCswLinkedDataset(final int cswId);
 
-    void addDatasetToCSW(final int serviceID, final int datasetID);
-
-    void removeDatasetFromCSW(final int serviceID, final int datasetID);
-
-    void removeAllDatasetFromCSW(final int serviceID);
-
     boolean existsByName(String datasetName);
 
     Map.Entry<Integer, List<DataSet>> filterAndGet(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage);

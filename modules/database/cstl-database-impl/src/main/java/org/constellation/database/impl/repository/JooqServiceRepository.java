@@ -419,7 +419,11 @@ public class JooqServiceRepository extends AbstractJooqRespository<ServiceRecord
         dsl.delete(PROVIDER_X_CSW).where(PROVIDER_X_CSW.CSW_ID.eq(serviceId)).execute();
     }
 
-
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void removelinkedMetadatas(int serviceId) {
+        dsl.delete(METADATA_X_CSW).where(METADATA_X_CSW.CSW_ID.eq(serviceId)).execute();
+    }
 
     @Override
     public boolean isLinkedMetadataProviderAndService(int serviceId, int providerID) {

@@ -24,9 +24,7 @@ import java.util.HashMap;
 import org.constellation.database.api.jooq.tables.Data;
 import org.constellation.database.api.jooq.tables.pojos.Dataset;
 import org.constellation.database.api.jooq.tables.pojos.Metadata;
-import org.constellation.database.api.jooq.tables.pojos.MetadataXCsw;
 import org.constellation.database.api.jooq.tables.records.DatasetRecord;
-import org.constellation.database.api.jooq.tables.records.MetadataXCswRecord;
 import org.constellation.repository.DatasetRepository;
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -156,37 +154,6 @@ public class JooqDatasetRepository extends AbstractJooqRespository<DatasetRecord
                 .and(DATASET.ID.eq(METADATA.DATASET_ID))
                 .and(METADATA_X_CSW.CSW_ID.eq(cswId)).and(METADATA.DATASET_ID.isNotNull())
                 .fetchInto(Dataset.class));
-    }
-
-    @Override
-    @Transactional(propagation = Propagation.MANDATORY)
-    public void addDatasetToCSW(final int serviceID, final int datasetID) {
-        final Metadata metadata = dsl.select().from(METADATA).where(METADATA.DATASET_ID.eq(datasetID)).fetchOneInto(Metadata.class);
-        if (metadata != null) {
-            final MetadataXCsw dxc = dsl.select().from(METADATA_X_CSW).where(METADATA_X_CSW.CSW_ID.eq(serviceID)).and(METADATA_X_CSW.METADATA_ID.eq(metadata.getId())).fetchOneInto(MetadataXCsw.class);
-            if (dxc == null) {
-                MetadataXCswRecord newRecord = dsl.newRecord(METADATA_X_CSW);
-                newRecord.setCswId(serviceID);
-                newRecord.setMetadataId(metadata.getId());
-                newRecord.store();
-                newRecord.into(MetadataXCsw.class);
-            }
-        }
-    }
-
-    @Override
-    @Transactional(propagation = Propagation.MANDATORY)
-    public void removeDatasetFromCSW(int serviceID, int datasetID) {
-        final Metadata metadata = dsl.select().from(METADATA).where(METADATA.DATASET_ID.eq(datasetID)).fetchOneInto(Metadata.class);
-        if (metadata != null) {
-            dsl.delete(METADATA_X_CSW).where(METADATA_X_CSW.CSW_ID.eq(serviceID)).and(METADATA_X_CSW.METADATA_ID.eq(metadata.getId())).execute();
-        }
-    }
-
-    @Override
-    @Transactional(propagation = Propagation.MANDATORY)
-    public void removeAllDatasetFromCSW(int serviceID) {
-        dsl.delete(METADATA_X_CSW).where(METADATA_X_CSW.CSW_ID.eq(serviceID)).execute();
     }
 
     @Override

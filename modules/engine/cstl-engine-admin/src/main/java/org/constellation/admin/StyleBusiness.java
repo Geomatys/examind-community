@@ -287,7 +287,7 @@ public class StyleBusiness implements IStyleBusiness {
         }
         bean.setDate(style.getDate());
         //get linked data references
-        final List<DataBrief> dataList = dataBusiness.getDataRefsFromStyleId(styleId);
+        final List<DataBrief> dataList = dataBusiness.getDataFromStyleId(styleId);
         bean.setDataList(dataList);
 
         // get linked layers references

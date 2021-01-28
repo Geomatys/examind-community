@@ -209,21 +209,6 @@ public class FileSystemDatasetRepository extends AbstractFileSystemRepository  i
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    @Override
-    public void addDatasetToCSW(int serviceID, int datasetID) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void removeDatasetFromCSW(int serviceID, int datasetID) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void removeAllDatasetFromCSW(int serviceID) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
     ////--------------------------------------------------------------------///
     ////------------------------    SEARCH         -------------------------///
     ////--------------------------------------------------------------------///
