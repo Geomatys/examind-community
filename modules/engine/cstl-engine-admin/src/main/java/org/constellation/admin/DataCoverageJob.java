@@ -109,28 +109,22 @@ public class DataCoverageJob implements IDataCoverageJob {
 
         List<Integer> dataWithoutStats = new ArrayList<>();
         for (final Data data : dataList) {
-
-            //compute statistics only on coverage data not rendered and without previous statistic computed.
-            if (DataType.COVERAGE.name().equals(data.getType()) && !"pyramid".equalsIgnoreCase(data.getSubtype()) &&
-                    (data.getRendered() == null || !data.getRendered())) {
-
-                String state = data.getStatsState();
-                if (isInit) {
-                    //rerun statistic for error and pending states
-                    if ("PENDING".equalsIgnoreCase(state) || "ERROR".equalsIgnoreCase(state)) {
-                        SpringHelper.executeInTransaction(new TransactionCallbackWithoutResult() {
-                            @Override
-                            protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
-                                dataRepository.updateStatistics(data.getId(), null, null);
-                            }
-                        });
-                        dataWithoutStats.add(data.getId());
-                    }
-                }
-
-                if (state == null || state.isEmpty()) {
+            String state = data.getStatsState();
+            if (isInit) {
+                //rerun statistic for error and pending states
+                if ("PENDING".equalsIgnoreCase(state) || "ERROR".equalsIgnoreCase(state)) {
+                    SpringHelper.executeInTransaction(new TransactionCallbackWithoutResult() {
+                        @Override
+                        protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
+                            dataRepository.updateStatistics(data.getId(), null, null);
+                        }
+                    });
                     dataWithoutStats.add(data.getId());
                 }
+            }
+
+            if (state == null || state.isEmpty()) {
+                dataWithoutStats.add(data.getId());
             }
         }
 
@@ -145,7 +139,18 @@ public class DataCoverageJob implements IDataCoverageJob {
     @Override
     @Async
     public void asyncUpdateDataStatistics(final int dataId) {
+        updateDataStatistics(dataId);
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void syncUpdateDataStatistics(final int dataId) {
+        updateDataStatistics(dataId);
+    }
+
+    private void updateDataStatistics(final int dataId) {
         Data data = dataRepository.findById(dataId);
         if (data == null) {
             LOGGER.log(Level.WARNING, "Can't compute coverage statistics on data id " + dataId +
@@ -153,9 +158,10 @@ public class DataCoverageJob implements IDataCoverageJob {
             return;
         }
         try {
-            if (DataType.COVERAGE.name().equals(data.getType())
-                    && (data.getRendered() == null || !data.getRendered())
-                    && data.getStatsState() == null) {
+            if (DataType.COVERAGE.name().equals(data.getType())    &&
+               (data.getRendered() == null || !data.getRendered()) &&
+               (!"pyramid".equalsIgnoreCase(data.getSubtype()))    &&
+               (data.getStatsState() == null)) {
 
                 LOGGER.log(Level.INFO, "Start computing data " + dataId + " "+data.getName()+" coverage statistics.");
 

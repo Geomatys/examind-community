@@ -40,6 +40,13 @@ public interface IDataCoverageJob {
      * @param dataId
      */
     void asyncUpdateDataStatistics(final int dataId);
+
+    /**
+     * Synchronous method that compute ImageStatistics for a given data and store result into database.
+     * This method doesn't affect non coverage data.
+     * @param dataId
+     */
+    void syncUpdateDataStatistics(final int dataId);
     
     /**
      * Search for data without statistics and launch analysis on them.

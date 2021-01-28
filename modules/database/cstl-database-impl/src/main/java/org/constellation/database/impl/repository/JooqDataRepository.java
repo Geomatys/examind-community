@@ -339,7 +339,7 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, org.
                                    .where(DATA_X_DATA.DATA_ID.eq(dataId))
                                    .fetchInto(org.constellation.database.api.jooq.tables.pojos.Data.class));
     }
-    
+
     @Override
     public Integer getParent(Integer id) {
         return dsl.select(DATA_X_DATA.DATA_ID)
@@ -386,6 +386,8 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, org.
                                    .from(DATA)
                                    .where(DATA.TYPE.eq("COVERAGE"))
                                    .and(DATA.RENDERED.isNull().or(DATA.RENDERED.isFalse()))
+                                   .and(DATA.SUBTYPE.isNull().orNot(DATA.SUBTYPE.equalIgnoreCase("pyramid")))
+                                   .and(DATA.HIDDEN.isFalse())
                                    .fetchInto(org.constellation.database.api.jooq.tables.pojos.Data.class));
     }
 
@@ -414,7 +416,7 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, org.
     public Integer getDatasetId(int dataId) {
         return dsl.select(DATA.DATASET_ID).from(DATA).where(DATA.ID.eq(dataId)).fetchOneInto(Integer.class);
     }
-    
+
     @Override
     public Integer getProviderId(int dataId) {
         return dsl.select(DATA.PROVIDER).from(DATA).where(DATA.ID.eq(dataId)).fetchOneInto(Integer.class);

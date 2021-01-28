@@ -34,7 +34,7 @@ public interface DataRepository extends AbstractRepository {
     Data findById(int dataId);
 
     Integer create(Data data);
-    
+
     Integer getParent(Integer id);
 
     int delete(String namespaceURI, String localPart, int providerId);
@@ -117,9 +117,9 @@ public interface DataRepository extends AbstractRepository {
     List<Data> getRefDataByLinkedStyle(final int styleId);
 
     Integer getDatasetId(int dataId);
-    
+
     Integer getProviderId(int dataId);
-    
+
     void updateOwner(int dataId, int newOwner);
 
     Map.Entry<Integer, List<Data>> filterAndGet(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage);

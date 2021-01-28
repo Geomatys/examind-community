@@ -836,19 +836,16 @@ public class DataBusiness implements IDataBusiness {
                 dataRepository.update(data);
 
 
-                // 3. unlink from csw
-                dataRepository.removeDataFromAllCSW(dataID);
-
-                // 4. remove metadata
+                // 3. remove metadata
                 metadataBusiness.deleteDataMetadata(dataID);
 
-                // 5. remove data files
+                // 4. remove data files
                 if (removeFiles) {
                     final DataProvider dataProvider = DataProviders.getProvider(providerID);
                     dataProvider.remove(data.getNamespace(), data.getName());
                 }
 
-                // 6. cleanup provider if empty
+                // 5. cleanup provider if empty
                 boolean remove = true;
                 List<Data> providerData = dataRepository.findByProviderId(providerID);
                 for (Data pdata : providerData) {
