@@ -71,6 +71,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
+import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.xml.bind.Marshaller;
 import javax.measure.format.ParserException;
@@ -561,21 +562,32 @@ public class MetadataBusiness implements IMetadataBusiness {
     @Override
     @Transactional
     public void linkMetadataIDToCSW(final String metadataId, final String cswIdentifier)  throws ConstellationException {
+        linkMetadataIDsToCSW(Arrays.asList(metadataId), cswIdentifier);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public void linkMetadataIDsToCSW(final List<String> metadataIds, final String cswIdentifier)  throws ConstellationException {
         final Service service = serviceRepository.findByIdentifierAndType(cswIdentifier, "csw");
         if (service != null) {
-            final Metadata meta = metadataRepository.findByMetadataId(metadataId);
-            if (meta != null) {
-                final Automatic config = getCSWConfig(service);
-                final boolean partial = config.getBooleanParameter(CSW_CONFIG_PARTIAL, false);
-                if (partial) {
-                    metadataRepository.addMetadataToCSW(metadataId, service.getId());
-                    if (!serviceRepository.isLinkedMetadataProviderAndService(service.getId(), meta.getProviderId())) {
-                        serviceRepository.linkMetadataProvider(service.getId(), meta.getProviderId(), false);
+            final Automatic config = getCSWConfig(service);
+            final boolean partial = config.getBooleanParameter(CSW_CONFIG_PARTIAL, false);
+            if (partial) {
+                for (String metadataId : metadataIds) {
+                    final Metadata meta = metadataRepository.findByMetadataId(metadataId);
+                    if (meta != null) {
+                        metadataRepository.addMetadataToCSW(metadataId, service.getId());
+                        if (!serviceRepository.isLinkedMetadataProviderAndService(service.getId(), meta.getProviderId())) {
+                            serviceRepository.linkMetadataProvider(service.getId(), meta.getProviderId(), false);
+                        }
+                    } else {
+                        throw new TargetNotFoundException("Unable to find a metadata:" + metadataId);
                     }
-                    refreshCSWIndex(cswIdentifier, new ArrayList<>(), Arrays.asList(metadataId));
                 }
-            } else {
-                throw new TargetNotFoundException("Unable to find a metadata:" + metadataId);
+                refreshCSWIndex(cswIdentifier, new ArrayList<>(), metadataIds);
             }
         } else {
             throw new TargetNotFoundException("Unable to find a csw service:" + cswIdentifier);
@@ -600,13 +612,24 @@ public class MetadataBusiness implements IMetadataBusiness {
     @Override
     @Transactional
     public void unlinkMetadataIDToCSW(final String metadataId, final String cswIdentifier) throws ConstellationException {
+        unlinkMetadataIDsToCSW(Arrays.asList(metadataId), cswIdentifier);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public void unlinkMetadataIDsToCSW(final List<String> metadataIds, final String cswIdentifier) throws ConstellationException {
         final Service service = serviceRepository.findByIdentifierAndType(cswIdentifier, "csw");
         if (service != null) {
             final Automatic config = getCSWConfig(service);
             final boolean partial = config.getBooleanParameter(CSW_CONFIG_PARTIAL, false);
             if (partial) {
-                metadataRepository.removeDataFromCSW(metadataId, service.getId());
-                refreshCSWIndex(cswIdentifier, Arrays.asList(metadataId), new ArrayList<>());
+                for (String metadataId : metadataIds) {
+                    metadataRepository.removeDataFromCSW(metadataId, service.getId());
+                }
+                refreshCSWIndex(cswIdentifier, metadataIds, new ArrayList<>());
             }
         } else {
             throw new TargetNotFoundException("Unable to find a csw service:" + cswIdentifier);
@@ -911,9 +934,9 @@ public class MetadataBusiness implements IMetadataBusiness {
     @Transactional
     public void deleteDataMetadata(final int dataId) throws ConstellationException {
         final List<Metadata> metas = metadataRepository.findByDataId(dataId);
-        for (Metadata meta : metas) {
-            deleteMetadata(meta.getId());
-        }
+        List<Integer> metaIds = metas.stream().map(m -> m.getId()).collect(Collectors.toList());
+        deleteMetadata(metaIds);
+        
     }
 
     /**

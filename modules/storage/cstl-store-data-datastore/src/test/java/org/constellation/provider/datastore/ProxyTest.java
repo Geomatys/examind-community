@@ -665,5 +665,15 @@ public class ProxyTest {
         public List<MetadataLightBrief> getMetadataBriefForDataset(int datasetId) {
             throw new UnsupportedOperationException("Not supported yet"); // "Alexis Manin (Geomatys)" on 23/03/2020
         }
+
+        @Override
+        public void linkMetadataIDsToCSW(List<String> metadataIds, String cswIdentifier) throws ConstellationException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public void unlinkMetadataIDsToCSW(List<String> metadataIds, String cswIdentifier) throws ConstellationException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
     }
 }

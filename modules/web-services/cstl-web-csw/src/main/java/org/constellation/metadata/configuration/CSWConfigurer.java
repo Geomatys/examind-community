@@ -348,11 +348,7 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
 
     @Override
     public boolean importRecords(String id, Collection<String> metadataIds) throws ConstellationException {
-        for (String metadataId : metadataIds) {
-            if (metadataBusiness.existInternalMetadata(metadataId, true, false, null)) {
-                metadataBusiness.linkMetadataIDToCSW(metadataId, id);
-            }
-        }
+        metadataBusiness.linkMetadataIDsToCSW(new ArrayList<>(metadataIds), id);
         return true;
     }
 

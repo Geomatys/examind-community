@@ -179,6 +179,15 @@ public interface IMetadataBusiness {
     void linkMetadataIDToCSW(final String metadataId, final String cswIdentifier) throws ConstellationException;
 
     /**
+     * Build a link beetween a CSW service and multiple metadata.
+     *
+     * @param metadataIds List of metadata identifiers.
+     * @param cswIdentifier identifer of the CSW instance.
+     * @throws org.constellation.exception.ConstellationException
+     */
+    void linkMetadataIDsToCSW(final List<String> metadataIds, final String cswIdentifier) throws ConstellationException;
+
+    /**
      * Remove the link beetween a CSW service and a metadata.
      *
      * @param metadataId Identifier of the geotk metadata object.
@@ -186,6 +195,15 @@ public interface IMetadataBusiness {
      * @throws org.constellation.exception.ConstellationException
      */
     void unlinkMetadataIDToCSW(final String metadataId, final String cswIdentifier) throws ConstellationException;
+
+    /**
+     * Remove the link beetween a CSW service and a metadata.
+     *
+     * @param metadataIds List of metadata identifiers.
+     * @param cswIdentifier identifer of the CSW instance.
+     * @throws org.constellation.exception.ConstellationException
+     */
+    void unlinkMetadataIDsToCSW(final List<String> metadataIds, final String cswIdentifier) throws ConstellationException;
 
     /**
      * Return {@code true} if the specified metadata is linked to the specified CSW service.
