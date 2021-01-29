@@ -266,7 +266,7 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
             }
             return self.datas;
         };
-        
+
         self.getAllMapContexts = function() {
             if (self.mapcontext === null) {
                 initMapContexts();
@@ -583,9 +583,11 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
         };
 
         $scope.save = function(form) {
-            if(form.$invalid) {
-                Growl('error', 'Error', 'Form is invalid, make sure you have entered all fields.');
-                return false;
+            if (form.$invalid) {
+                if (!form.$error || !form.$error.required[0].$modelValue) {
+                    Growl('error', 'Error', 'Form is invalid, make sure you have entered all fields.');
+                    return false;
+                }
             }
             if (!$scope.task.processAuthority && !$scope.task.processCode) {
                 //we are in add mode
