@@ -242,25 +242,25 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
 
                 pid = testResource.createProvider(TestResource.WMS111_SHAPEFILES, providerBusiness);
 
-                Integer d8  = dataBusiness.create(new QName("http://www.opengis.net/gml", "BuildingCenters"), pid, "VECTOR", false, true, true, null, null);
-                Integer d9  = dataBusiness.create(new QName("http://www.opengis.net/gml", "BasicPolygons"),   pid, "VECTOR", false, true, true, null, null);
-                Integer d10 = dataBusiness.create(new QName("http://www.opengis.net/gml", "Bridges"),         pid, "VECTOR", false, true, true, null, null);
-                Integer d11 = dataBusiness.create(new QName("http://www.opengis.net/gml", "Streams"),         pid, "VECTOR", false, true, true, null, null);
-                Integer d12 = dataBusiness.create(new QName("http://www.opengis.net/gml", "Lakes"),           pid, "VECTOR", false, true, true, null, null);
-                Integer d13 = dataBusiness.create(new QName("http://www.opengis.net/gml", "NamedPlaces"),     pid, "VECTOR", false, true, true, null, null);
-                Integer d14 = dataBusiness.create(new QName("http://www.opengis.net/gml", "Buildings"),       pid, "VECTOR", false, true, true, null, null);
-                Integer d15 = dataBusiness.create(new QName("http://www.opengis.net/gml", "RoadSegments"),    pid, "VECTOR", false, true, true, null, null);
-                Integer d16 = dataBusiness.create(new QName("http://www.opengis.net/gml", "DividedRoutes"),   pid, "VECTOR", false, true, true, null, null);
-                Integer d17 = dataBusiness.create(new QName("http://www.opengis.net/gml", "Forests"),         pid, "VECTOR", false, true, true, null, null);
-                Integer d18 = dataBusiness.create(new QName("http://www.opengis.net/gml", "MapNeatline"),     pid, "VECTOR", false, true, true, null, null);
-                Integer d19 = dataBusiness.create(new QName("http://www.opengis.net/gml", "Ponds"),           pid, "VECTOR", false, true, true, null, null);
+                Integer d8  = dataBusiness.create(new QName("BuildingCenters"), pid, "VECTOR", false, true, true, null, null);
+                Integer d9  = dataBusiness.create(new QName("BasicPolygons"),   pid, "VECTOR", false, true, true, null, null);
+                Integer d10 = dataBusiness.create(new QName("Bridges"),         pid, "VECTOR", false, true, true, null, null);
+                Integer d11 = dataBusiness.create(new QName("Streams"),         pid, "VECTOR", false, true, true, null, null);
+                Integer d12 = dataBusiness.create(new QName("Lakes"),           pid, "VECTOR", false, true, true, null, null);
+                Integer d13 = dataBusiness.create(new QName("NamedPlaces"),     pid, "VECTOR", false, true, true, null, null);
+                Integer d14 = dataBusiness.create(new QName("Buildings"),       pid, "VECTOR", false, true, true, null, null);
+                Integer d15 = dataBusiness.create(new QName("RoadSegments"),    pid, "VECTOR", false, true, true, null, null);
+                Integer d16 = dataBusiness.create(new QName("DividedRoutes"),   pid, "VECTOR", false, true, true, null, null);
+                Integer d17 = dataBusiness.create(new QName("Forests"),         pid, "VECTOR", false, true, true, null, null);
+                Integer d18 = dataBusiness.create(new QName("MapNeatline"),     pid, "VECTOR", false, true, true, null, null);
+                Integer d19 = dataBusiness.create(new QName("Ponds"),           pid, "VECTOR", false, true, true, null, null);
 
                 pid = testResource.createProvider(TestResource.OM2_FEATURE_DB, providerBusiness);
                 Integer d20 = dataBusiness.create(new QName("http://www.opengis.net/sampling/1.0", "SamplingPoint"), pid, "VECTOR", false, true, true, null, null);
 
                 // for aliased layer
                 pid = testResource.createProvider(TestResource.JSON_FEATURE, providerBusiness);
-                Integer d23 = dataBusiness.create(new QName("http://www.opengis.net/gml", "feature"), pid, "VECTOR", false, true, true, null, null);
+                Integer d23 = dataBusiness.create(new QName("feature"), pid, "VECTOR", false, true, true, null, null);
 
                 final LayerContext config = new LayerContext();
                 config.getCustomParameters().put("transactionSecurized", "false");
@@ -269,69 +269,68 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
                 Integer defId = serviceBusiness.create("wfs", "default", config, null, null);
 
                 if (localdb_active) {
-                   layerBusiness.add(d1, null, defId, null);
-                   layerBusiness.add(d2, null, defId, null);
-                   layerBusiness.add(d3, null, defId, null);
-                   layerBusiness.add(d4, null, defId, null);
+                   layerBusiness.add(d1, null, "http://cite.opengeospatial.org/gmlsf2", "AggregateGeoFeature", defId, null);
+                   layerBusiness.add(d2, null, "http://cite.opengeospatial.org/gmlsf2", "PrimitiveGeoFeature", defId, null);
+                   layerBusiness.add(d3, null, "http://cite.opengeospatial.org/gmlsf2", "EntitéGénérique",     defId, null);
+                   layerBusiness.add(d4, null, "http://cite.opengeospatial.org/gmlsf2", "CustomSQLQuery",      defId, null);
                }
 
-                layerBusiness.add(d5, null, defId, null);
-                layerBusiness.add(d6, null, defId, null);
-                layerBusiness.add(d7, null, defId, null);
+                layerBusiness.add(d5, null, "http://cite.opengeospatial.org/gmlsf", "PrimitiveGeoFeature", defId, null);
+                layerBusiness.add(d6, null, "http://cite.opengeospatial.org/gmlsf", "EntitéGénérique",     defId, null);
+                layerBusiness.add(d7, null, "http://cite.opengeospatial.org/gmlsf", "AggregateGeoFeature", defId, null);
 
-                layerBusiness.add(d20,   null, defId, null);
-                layerBusiness.add(d8,    null, defId, null);
-                layerBusiness.add(d9,    null, defId, null);
-                layerBusiness.add(d10,   null, defId, null);
-                layerBusiness.add(d11,   null, defId, null);
-                layerBusiness.add(d12,   null, defId, null);
-                layerBusiness.add(d13,   null, defId, null);
-                layerBusiness.add(d14,   null, defId, null);
-                layerBusiness.add(d15,   null, defId, null);
-                layerBusiness.add(d16,   null, defId, null);
-                layerBusiness.add(d17,   null, defId, null);
-                layerBusiness.add(d18,   null, defId, null);
-                layerBusiness.add(d19,   null, defId, null);
-                layerBusiness.add(d23,   "JS2", defId, null);
+                layerBusiness.add(d20,   null, "http://www.opengis.net/sampling/1.0", "SamplingPoint",   defId, null);
+                layerBusiness.add(d8,    null, "http://www.opengis.net/gml",          "BuildingCenters", defId, null);
+                layerBusiness.add(d9,    null, "http://www.opengis.net/gml",          "BasicPolygons",   defId, null);
+                layerBusiness.add(d10,   null, "http://www.opengis.net/gml",          "Bridges",         defId, null);
+                layerBusiness.add(d11,   null, "http://www.opengis.net/gml",          "Streams",         defId, null);
+                layerBusiness.add(d12,   null, "http://www.opengis.net/gml",          "Lakes",           defId, null);
+                layerBusiness.add(d13,   null, "http://www.opengis.net/gml",          "NamedPlaces",     defId, null);
+                layerBusiness.add(d14,   null, "http://www.opengis.net/gml",          "Buildings",       defId, null);
+                layerBusiness.add(d15,   null, "http://www.opengis.net/gml",          "RoadSegments",    defId, null);
+                layerBusiness.add(d16,   null, "http://www.opengis.net/gml",          "DividedRoutes",   defId, null);
+                layerBusiness.add(d17,   null, "http://www.opengis.net/gml",          "Forests",         defId, null);
+                layerBusiness.add(d18,   null, "http://www.opengis.net/gml",          "MapNeatline",     defId, null);
+                layerBusiness.add(d19,   null, "http://www.opengis.net/gml",          "Ponds",           defId, null);
+                layerBusiness.add(d23,   "JS2", "http://www.opengis.net/gml",         "feature",         defId, null);
 
                 Integer testId = serviceBusiness.create("wfs", "test", config, null, null);
-                layerBusiness.add(d5, null, testId, null);
-                layerBusiness.add(d6, null, testId, null);
-                layerBusiness.add(d7, null, testId, null);
+                layerBusiness.add(d5, null, "http://cite.opengeospatial.org/gmlsf", "PrimitiveGeoFeature", testId, null);
+                layerBusiness.add(d6, null, "http://cite.opengeospatial.org/gmlsf", "EntitéGénérique",     testId, null);
+                layerBusiness.add(d7, null, "http://cite.opengeospatial.org/gmlsf", "AggregateGeoFeature", testId, null);
 
-                layerBusiness.add(d20,   null, testId, null);
-                layerBusiness.add(d8,    null, testId, null);
-                layerBusiness.add(d9,    null, testId, null);
-                layerBusiness.add(d10,   null, testId, null);
-                layerBusiness.add(d11,   null, testId, null);
-                layerBusiness.add(d12,   null, testId, null);
-                layerBusiness.add(d13,   null, testId, null);
-                layerBusiness.add(d14,   null, testId, null);
-                layerBusiness.add(d15,   null, testId, null);
-                layerBusiness.add(d16,   null, testId, null);
-                layerBusiness.add(d17,   null, testId, null);
-                layerBusiness.add(d18,   null, testId, null);
-                layerBusiness.add(d19,   null, testId, null);
-
+                layerBusiness.add(d20,   null, "http://www.opengis.net/sampling/1.0", "SamplingPoint",   testId, null);
+                layerBusiness.add(d8,    null, "http://www.opengis.net/gml",          "BuildingCenters", testId, null);
+                layerBusiness.add(d9,    null, "http://www.opengis.net/gml",          "BasicPolygons",   testId, null);
+                layerBusiness.add(d10,   null, "http://www.opengis.net/gml",          "Bridges",         testId, null);
+                layerBusiness.add(d11,   null, "http://www.opengis.net/gml",          "Streams",         testId, null);
+                layerBusiness.add(d12,   null, "http://www.opengis.net/gml",          "Lakes",           testId, null);
+                layerBusiness.add(d13,   null, "http://www.opengis.net/gml",          "NamedPlaces",     testId, null);
+                layerBusiness.add(d14,   null, "http://www.opengis.net/gml",          "Buildings",       testId, null);
+                layerBusiness.add(d15,   null, "http://www.opengis.net/gml",          "RoadSegments",    testId, null);
+                layerBusiness.add(d16,   null, "http://www.opengis.net/gml",          "DividedRoutes",   testId, null);
+                layerBusiness.add(d17,   null, "http://www.opengis.net/gml",          "Forests",         testId, null);
+                layerBusiness.add(d18,   null, "http://www.opengis.net/gml",          "MapNeatline",     testId, null);
+                layerBusiness.add(d19,   null, "http://www.opengis.net/gml",          "Ponds",           testId, null);
 
                 final LayerContext config2 = new LayerContext();
                 config2.getCustomParameters().put("transactionSecurized", "false");
                 config2.getCustomParameters().put("transactional", "true");
 
                 Integer test1Id = serviceBusiness.create("wfs", "test1", config, null, null);
-                layerBusiness.add(d20,   null, test1Id, null);
-                layerBusiness.add(d8,    null, test1Id, null);
-                layerBusiness.add(d9,    null, test1Id, null);
-                layerBusiness.add(d10,   null, test1Id, null);
-                layerBusiness.add(d11,   null, test1Id, null);
-                layerBusiness.add(d12,   null, test1Id, null);
-                layerBusiness.add(d13,   null, test1Id, null);
-                layerBusiness.add(d14,   null, test1Id, null);
-                layerBusiness.add(d15,   null, test1Id, null);
-                layerBusiness.add(d16,   null, test1Id, null);
-                layerBusiness.add(d17,   null, test1Id, null);
-                layerBusiness.add(d18,   null, test1Id, null);
-                layerBusiness.add(d19,   null, test1Id, null);
+                layerBusiness.add(d20,   null, "http://www.opengis.net/sampling/1.0", "SamplingPoint",   test1Id, null);
+                layerBusiness.add(d8,    null, "http://www.opengis.net/gml",          "BuildingCenters", test1Id, null);
+                layerBusiness.add(d9,    null, "http://www.opengis.net/gml",          "BasicPolygons",   test1Id, null);
+                layerBusiness.add(d10,   null, "http://www.opengis.net/gml",          "Bridges",         test1Id, null);
+                layerBusiness.add(d11,   null, "http://www.opengis.net/gml",          "Streams",         test1Id, null);
+                layerBusiness.add(d12,   null, "http://www.opengis.net/gml",          "Lakes",           test1Id, null);
+                layerBusiness.add(d13,   null, "http://www.opengis.net/gml",          "NamedPlaces",     test1Id, null);
+                layerBusiness.add(d14,   null, "http://www.opengis.net/gml",          "Buildings",       test1Id, null);
+                layerBusiness.add(d15,   null, "http://www.opengis.net/gml",          "RoadSegments",    test1Id, null);
+                layerBusiness.add(d16,   null, "http://www.opengis.net/gml",          "DividedRoutes",   test1Id, null);
+                layerBusiness.add(d17,   null, "http://www.opengis.net/gml",          "Forests",         test1Id, null);
+                layerBusiness.add(d18,   null, "http://www.opengis.net/gml",          "MapNeatline",     test1Id, null);
+                layerBusiness.add(d19,   null, "http://www.opengis.net/gml",          "Ponds",           test1Id, null);
 
 
                 EPSG_VERSION = CRS.getVersion("EPSG").toString();

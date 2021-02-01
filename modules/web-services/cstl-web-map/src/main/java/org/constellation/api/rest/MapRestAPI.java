@@ -66,8 +66,10 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.constellation.business.IUserBusiness;
+import javax.xml.namespace.QName;
 
 import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
@@ -153,8 +155,12 @@ public class MapRestAPI {
     @RequestMapping(value="/MAP/{spec}/{id}/layer",method=PUT, consumes=APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
     public ResponseEntity addLayer(final @PathVariable("spec") String spec, final @PathVariable("id") String id, final @RequestBody AddLayer layer) {
         try {
-            layerBusiness.add(layer);
-            return new ResponseEntity(AcknowlegementType.success("Layer \"" + layer.getLayerId() + "\" successfully added to " + spec + " service \"" + id + "\"."), OK);
+            Integer sid = serviceBusiness.getServiceIdByIdentifierAndType(spec, id);
+            if (sid == null) return new ResponseEntity(String.format("Target service %s/%s does not exist", spec, id), NOT_FOUND);
+            DataBrief db = dataBusiness.getDataBrief(new QName(layer.getLayerNamespace(), layer.getLayerId()), layer.getProviderId());
+            if (db == null) return new ResponseEntity("Target data not found",NOT_FOUND);
+            layerBusiness.add(db.getId(), layer.getLayerAlias(), layer.getLayerNamespace(), layer.getLayerId(), sid, null);
+            return new ResponseEntity(AcknowlegementType.success(String.format("Layer \"%s\" sucessfully added to %s service %s.", layer.getLayerId(), spec, id)), OK);
         } catch(Throwable ex){
             return new ErrorMessage(ex).build();
         }
@@ -163,14 +169,12 @@ public class MapRestAPI {
     /**
      * Adds a new layer to a "map" service instance.
      *
-     * @param spec the service type
-     * @param id the service identifier
      * @param layer the layer to be added
      */
     @RequestMapping(value="/MAP/layer/add",method=PUT, consumes=APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
     public ResponseEntity addLayer(final @RequestBody org.constellation.dto.Layer layer) {
         try {
-            Integer layerId = layerBusiness.add(layer.getDataId(), layer.getAlias(), layer.getService(), null);
+            Integer layerId = layerBusiness.add(layer.getDataId(), layer.getNamespace(), layer.getName(), layer.getAlias(), layer.getService(), null);
             return new ResponseEntity(AcknowlegementType.success("Layer \"" + layerId + "\" successfully added to service \"" + layer.getService() + "\"."), OK);
         } catch(Throwable ex){
             return new ErrorMessage(ex).build();
@@ -206,7 +210,7 @@ public class MapRestAPI {
     public ResponseEntity updateLayerTitle(final @PathVariable("layerid") Integer layerId, final @RequestParam("title") String title) {
         try {
             layerBusiness.updateLayerTitle(layerId, title);
-            return new ResponseEntity(AcknowlegementType.success("Layer \"" + layerId + "\" title successfully updated."), OK);
+            return new ResponseEntity("Layer \"" + layerId + "\" title successfully updated.", OK);
         } catch(Throwable ex){
             return new ErrorMessage(ex).build();
         }

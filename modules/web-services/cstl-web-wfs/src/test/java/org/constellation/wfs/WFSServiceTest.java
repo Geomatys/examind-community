@@ -116,7 +116,7 @@ public class WFSServiceTest {
                 config.getCustomParameters().put("transactional", "true");
 
                 Integer defId = serviceBusiness.create("wfs", "default", config, null, null);
-                layerBusiness.add(d, null, defId, null);
+                layerBusiness.add(d, null, "http://www.opengis.net/sampling/1.0", "SamplingPoint", defId, null);
 
                 serviceBusiness.start(defId);
 

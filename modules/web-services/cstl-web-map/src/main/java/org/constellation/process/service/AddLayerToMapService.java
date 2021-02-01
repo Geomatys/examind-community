@@ -125,7 +125,9 @@ public class AddLayerToMapService extends AbstractCstlProcess {
         final String providerID = layerRef.getProviderOrServiceId();
         final Date dataVersion = layerRef.getDataVersion();
         final GenericName layerName = Util.getLayerId(layerRef);
-        final QName layerQName = new QName(NamesExt.getNamespace(layerName), layerName.tip().toString());
+        final String namespace = NamesExt.getNamespace(layerName);
+        final String name = layerName.tip().toString();
+        final QName layerQName = new QName(namespace, name);
 
         //create future new layer
         final Layer newLayer = new Layer(layerQName);
@@ -178,7 +180,7 @@ public class AddLayerToMapService extends AbstractCstlProcess {
             if (sid != null) {
                 DataBrief db = dataBusiness.getDataBrief(layerQName, providerID);
                 if (db != null) {
-                    layerBusiness.add(db.getId(), layerAlias, sid, newLayer);
+                    layerBusiness.add(db.getId(), layerAlias, namespace, name, sid, newLayer);
                 }
             }
         } catch (ConstellationException ex) {

@@ -101,19 +101,7 @@ final class DataStoreHandle implements AutoCloseable {
 
     Data fetch(final GenericName dataName, final Date version) throws DataStoreException {
         final GenericName key = forceAbsolutePath(dataName);
-        CachedData data;
-        /* HACK: we should not search with tip only. However, some WMS unit tests fail without this. So, why manage such
-         * a case ? My intuition is that even if origin data-store does not provide any namespace for its datasets,
-         * someone along the way enforce it due to some OGC standard specification.
-         * Moreover, it is not a bad thing to be permissive here, because the FeatureNaming index does not allow for any
-         * ambiguity, enforcing strong security. Here, we are robust to any user mistake on data namespace, as long as
-         * only one name in the system match what he asked.
-         */
-        try {
-            data = index.get(store, key.tip().toString());
-        } catch (IllegalNameException e) {
-            data = index.get(store, key.toString());
-        }
+        final CachedData data = index.get(store, key.toString());
         return data.getOrCreate(version);
     }
 

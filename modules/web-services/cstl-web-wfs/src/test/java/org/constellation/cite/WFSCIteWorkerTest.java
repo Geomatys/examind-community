@@ -144,9 +144,9 @@ public class WFSCIteWorkerTest {
                 Details details = new Details(serviceId, serviceId, null, null, Arrays.asList("1.1.0"), null, null, true, "en");
 
                 Integer sid = serviceBusiness.create("wfs", serviceId, config, details, null);
-                layerBusiness.add(d1, null, sid, null);
-                layerBusiness.add(d2, null, sid, null);
-                layerBusiness.add(d3, null, sid, null);
+                layerBusiness.add(d1, null, "http://cite.opengeospatial.org/gmlsf", "PrimitiveGeoFeature", sid, null);
+                layerBusiness.add(d2, null, "http://cite.opengeospatial.org/gmlsf", "EntitéGénérique",     sid, null);
+                layerBusiness.add(d3, null, "http://cite.opengeospatial.org/gmlsf", "AggregateGeoFeature", sid, null);
 
                 worker = new DefaultWFSWorker(serviceId);
                 initialized = true;

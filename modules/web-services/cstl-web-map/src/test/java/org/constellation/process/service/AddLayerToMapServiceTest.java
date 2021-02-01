@@ -217,6 +217,8 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
 
             layerBusiness.add(dataId,
                               "Europe-costlines",
+                              null,
+                              "Europe-costlines",
                               serviceId,
                               layer);
 
@@ -284,6 +286,8 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
             layer1.setGetFeatureInfoCfgs(gfi);
             layerBusiness.add(countriesDataId,
                               "Europe-costlines",
+                               null,
+                              "Europe-costlines",
                               serviceId,
                               layer1);
 
@@ -293,6 +297,8 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
             layer2.setGetFeatureInfoCfgs(gfi);
             layerBusiness.add(cityDataId,
                               null,
+                              null,
+                              "city",
                               serviceId,
                               layer2);
 

@@ -38,7 +38,7 @@ public interface ILayerBusiness {
 
     Integer add(AddLayer layer) throws ConfigurationException;
 
-    Integer add(int dataId, String alias, int serviceId, Layer config) throws ConfigurationException;
+    Integer add(int dataId, String alias, String namespace, String name, int serviceId, Layer config) throws ConfigurationException;
 
     /**
      * Update the title of a lyer

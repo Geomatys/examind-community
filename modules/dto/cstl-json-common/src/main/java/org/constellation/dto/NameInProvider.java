@@ -29,27 +29,30 @@ import org.opengis.util.GenericName;
 public class NameInProvider {
 
     public final Integer layerId;
-    public final GenericName name;
+    public final GenericName layerName;
     public final Integer providerID;
     public final String alias;
     public final Date dataVersion;
+    public final GenericName dataName;
 
-    public NameInProvider(final Integer layerId, final GenericName name, final Integer providerID, final Date dataVersion, final String alias) {
+    public NameInProvider(final Integer layerId, final GenericName name, final Integer providerID, final Date dataVersion, final String alias, final GenericName dataName) {
         this.layerId = layerId;
-        this.name = name;
+        this.layerName = name;
         this.providerID = providerID;
         this.dataVersion= dataVersion;
         this.alias = alias;
+        this.dataName = dataName;
     }
 
     @Override
     public int hashCode() {
         int hash = 7;
         hash = 83 * hash + Objects.hashCode(this.layerId);
-        hash = 83 * hash + Objects.hashCode(this.name);
+        hash = 83 * hash + Objects.hashCode(this.layerName);
         hash = 83 * hash + Objects.hashCode(this.providerID);
         hash = 83 * hash + Objects.hashCode(this.alias);
         hash = 83 * hash + Objects.hashCode(this.dataVersion);
+        hash = 83 * hash + Objects.hashCode(this.dataName);
         return hash;
     }
 
@@ -63,8 +66,9 @@ public class NameInProvider {
             return Objects.equals(this.layerId,     that.layerId) &&
                    Objects.equals(this.alias,       that.alias) &&
                    Objects.equals(this.dataVersion, that.dataVersion) &&
-                   Objects.equals(this.name,        that.name) &&
-                   Objects.equals(this.providerID,  that.providerID);
+                   Objects.equals(this.layerName,   that.layerName) &&
+                   Objects.equals(this.providerID,  that.providerID) &&
+                   Objects.equals(this.dataName,    that.dataName);
         }
         return false;
     }

@@ -30,10 +30,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
+import java.util.logging.Logger;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
+import org.apache.sis.util.logging.Logging;
 import org.constellation.business.ClusterMessage;
 import static org.constellation.business.ClusterMessageConstant.*;
 import org.constellation.business.IClusterBusiness;
@@ -100,6 +102,8 @@ public class LayerBusiness implements ILayerBusiness {
     @Autowired
     protected IClusterBusiness clusterBusiness;
 
+    private static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
+
     /**
      * Lazy loaded map of {@link MapFactory} found in classLoader.
      */
@@ -151,7 +155,7 @@ public class LayerBusiness implements ILayerBusiness {
                 }
             }
 
-            return add(data, alias, service, null);
+            return add(data, alias, namespace, name, service, null);
         } else {
             throw new TargetNotFoundException("Unable to find a service:" + serviceId);
         }
@@ -159,20 +163,14 @@ public class LayerBusiness implements ILayerBusiness {
 
     @Override
     @Transactional
-    public Integer add(int dataId, String alias,
+    public Integer add(int dataId, String alias, String namespace, String name,
              int serviceId, org.constellation.dto.service.config.wxs.Layer config) throws ConfigurationException {
 
         final Service service = serviceBusiness.getServiceById(serviceId, null);
 
         if (service !=null) {
 
-            final Data data = dataRepository.findById(dataId);
-            if(data == null) {
-                throw new TargetNotFoundException("Unable to find data for id:" + dataId);
-            }
-
-            String namespace = data.getNamespace();
-            if (namespace.isEmpty()) {
+            if (namespace != null && namespace.isEmpty()) {
                 // Prevents adding empty layer namespace, put null instead
                 namespace = null;
             }
@@ -181,18 +179,18 @@ public class LayerBusiness implements ILayerBusiness {
             if (alias != null) {
                 layer = layerRepository.findByServiceIdAndAlias(serviceId, alias);
             } else {
-                layer = layerRepository.findByServiceIdAndDataId(service.getId(), data.getId());
+                layer = layerRepository.findByServiceIdAndDataId(service.getId(), dataId);
             }
             boolean update = true;
             if (layer == null) {
                 update = false;
                 layer = new Layer();
             }
-            layer.setName(data.getName());
+            layer.setName(name);
             layer.setNamespace(namespace);
             layer.setAlias(alias);
             layer.setService(service.getId());
-            layer.setDataId(data.getId());
+            layer.setDataId(dataId);
             layer.setDate(new Date(System.currentTimeMillis()));
             Optional<CstlUser> user = userBusiness.findOne(securityManager.getCurrentUserLogin());
             if(user.isPresent()) {
@@ -209,7 +207,7 @@ public class LayerBusiness implements ILayerBusiness {
                 layerID = layer.getId();
             }
 
-            for (int styleID : styleRepository.getStyleIdsForData(data.getId())) {
+            for (int styleID : styleRepository.getStyleIdsForData(dataId)) {
                 styleRepository.linkStyleToLayer(styleID, layerID);
             }
 
@@ -385,15 +383,20 @@ public class LayerBusiness implements ILayerBusiness {
         final LayerSecurityFilter securityFilter = getSecurityFilter(serviceId);
         final List<Layer> layers   = layerRepository.findByServiceId(serviceId);
         for (Layer layer : layers) {
-            final GenericName name = NamesExt.create(layer.getNamespace(), layer.getName());
-            final Integer providerId = dataRepository.getProviderId(layer.getDataId());
-             Date version = null;
+            final GenericName layerName = NamesExt.create(layer.getNamespace(), layer.getName());
+            Date version = null;
             /* TODO how to get version?
               if (layer.getVersion() != null) {
                 version = new Date(layer.getVersion());
             }*/
-            if (securityFilter.allowed(login, layer.getId())) {
-                response.add(new NameInProvider(layer.getId(), name, providerId, version, layer.getAlias()));
+            final Data db = dataRepository.findById(layer.getDataId());
+            if (db != null) {
+                final GenericName dataName = NamesExt.create(db.getNamespace(), db.getName());
+                if (securityFilter.allowed(login, layer.getId())) {
+                    response.add(new NameInProvider(layer.getId(), layerName, db.getProviderId(), version, layer.getAlias(), dataName));
+                }
+            } else {
+                LOGGER.warning("Unable to find a data (id = " + layer.getDataId() + ") for the layer:" + layerName);
             }
         }
         return response;
@@ -463,13 +466,18 @@ public class LayerBusiness implements ILayerBusiness {
             final GenericName layerName = NamesExt.create(layer.getNamespace(), layer.getName());
             final LayerSecurityFilter securityFilter = getSecurityFilter(serviceId);
             if (securityFilter.allowed(login, layer.getId())) {
-                final Integer providerId = dataRepository.getProviderId(layer.getDataId());
                 Date version = null;
                 /* TODO how to get version?
                   if (layer.getVersion() != null) {
                     version = new Date(layer.getVersion());
                 }*/
-                return new NameInProvider(layer.getId(), layerName, providerId, version, layer.getAlias());
+                final Data db = dataRepository.findById(layer.getDataId());
+                if (db != null) {
+                    final GenericName dataName = NamesExt.create(db.getNamespace(), db.getName());
+                    return new NameInProvider(layer.getId(), layerName, db.getProviderId(), version, layer.getAlias(), dataName);
+                } else {
+                    throw new ConfigurationException("Unable to find a data (id = " + layer.getDataId() + ") for the layer:" + layerName);
+                }
             } else {
                 throw new ConfigurationException("Not allowed to see this layer.");
             }
@@ -489,13 +497,18 @@ public class LayerBusiness implements ILayerBusiness {
             final GenericName layerName = NamesExt.create(layer.getNamespace(), layer.getName());
             final LayerSecurityFilter securityFilter = getSecurityFilter(serviceId);
             if (securityFilter.allowed(login, layer.getId())) {
-                final Integer providerId = dataRepository.getProviderId(layer.getDataId());
                 Date version = null;
                 /* TODO how to get version?
                   if (layer.getVersion() != null) {
                     version = new Date(layer.getVersion());
                 }*/
-                return new NameInProvider(layerId, layerName, providerId, version, layer.getAlias());
+                final Data db = dataRepository.findById(layer.getDataId());
+                if (db != null) {
+                    final GenericName dataName = NamesExt.create(db.getNamespace(), db.getName());
+                    return new NameInProvider(layerId, layerName, db.getProviderId(), version, layer.getAlias(), dataName);
+                } else {
+                    throw new ConfigurationException("Unable to find a data (id = " + layer.getDataId() + ") for the layer:" + layerName);
+                }
             } else {
                 throw new ConfigurationException("Not allowed to see this layer.");
             }

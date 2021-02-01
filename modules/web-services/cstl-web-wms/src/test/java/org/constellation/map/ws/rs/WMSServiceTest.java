@@ -130,35 +130,36 @@ public class WMSServiceTest {
 
                 pid = testResource.createProvider(TestResource.WMS111_SHAPEFILES, providerBusiness);
 
-                Integer d1  = dataBusiness.create(new QName("http://www.opengis.net/gml", "BuildingCenters"), pid, "VECTOR", false, true, true, null, null);
-                Integer d2  = dataBusiness.create(new QName("http://www.opengis.net/gml", "BasicPolygons"),   pid, "VECTOR", false, true, true, null, null);
-                Integer d3  = dataBusiness.create(new QName("http://www.opengis.net/gml", "Bridges"),         pid, "VECTOR", false, true, true, null, null);
-                Integer d4  = dataBusiness.create(new QName("http://www.opengis.net/gml", "Streams"),         pid, "VECTOR", false, true, true, null, null);
-                Integer d5  = dataBusiness.create(new QName("http://www.opengis.net/gml", "Lakes"),           pid, "VECTOR", false, true, true, null, null);
-                Integer d6  = dataBusiness.create(new QName("http://www.opengis.net/gml", "NamedPlaces"),     pid, "VECTOR", false, true, true, null, null);
-                Integer d7  = dataBusiness.create(new QName("http://www.opengis.net/gml", "Buildings"),       pid, "VECTOR", false, true, true, null, null);
-                Integer d8  = dataBusiness.create(new QName("http://www.opengis.net/gml", "RoadSegments"),    pid, "VECTOR", false, true, true, null, null);
-                Integer d9  = dataBusiness.create(new QName("http://www.opengis.net/gml", "DividedRoutes"),   pid, "VECTOR", false, true, true, null, null);
-                Integer d10 = dataBusiness.create(new QName("http://www.opengis.net/gml", "Forests"),         pid, "VECTOR", false, true, true, null, null);
-                Integer d11 = dataBusiness.create(new QName("http://www.opengis.net/gml", "MapNeatline"),     pid, "VECTOR", false, true, true, null, null);
-                Integer d12 = dataBusiness.create(new QName("http://www.opengis.net/gml", "Ponds"),           pid, "VECTOR", false, true, true, null, null);
+                Integer d1  = dataBusiness.create(new QName("BuildingCenters"), pid, "VECTOR", false, true, true, null, null);
+                Integer d2  = dataBusiness.create(new QName("BasicPolygons"),   pid, "VECTOR", false, true, true, null, null);
+                Integer d3  = dataBusiness.create(new QName("Bridges"),         pid, "VECTOR", false, true, true, null, null);
+                Integer d4  = dataBusiness.create(new QName("Streams"),         pid, "VECTOR", false, true, true, null, null);
+                Integer d5  = dataBusiness.create(new QName("Lakes"),           pid, "VECTOR", false, true, true, null, null);
+                Integer d6  = dataBusiness.create(new QName("NamedPlaces"),     pid, "VECTOR", false, true, true, null, null);
+                Integer d7  = dataBusiness.create(new QName("Buildings"),       pid, "VECTOR", false, true, true, null, null);
+                Integer d8  = dataBusiness.create(new QName("RoadSegments"),    pid, "VECTOR", false, true, true, null, null);
+                Integer d9  = dataBusiness.create(new QName("DividedRoutes"),   pid, "VECTOR", false, true, true, null, null);
+                Integer d10 = dataBusiness.create(new QName("Forests"),         pid, "VECTOR", false, true, true, null, null);
+                Integer d11 = dataBusiness.create(new QName("MapNeatline"),     pid, "VECTOR", false, true, true, null, null);
+                Integer d12 = dataBusiness.create(new QName("Ponds"),           pid, "VECTOR", false, true, true, null, null);
 
                 final LayerContext config = new LayerContext();
 
                 Integer defId = serviceBusiness.create("wms", "default", config, null, null);
-                layerBusiness.add(d,         null, defId, null);
-                layerBusiness.add(d1,        null, defId, null);
-                layerBusiness.add(d2,        null, defId, null);
-                layerBusiness.add(d3,        null, defId, null);
-                layerBusiness.add(d4,        null, defId, null);
-                layerBusiness.add(d5,        null, defId, null);
-                layerBusiness.add(d6,        null, defId, null);
-                layerBusiness.add(d7,        null, defId, null);
-                layerBusiness.add(d8,        null, defId, null);
-                layerBusiness.add(d9,        null, defId, null);
-                layerBusiness.add(d10,       null, defId, null);
-                layerBusiness.add(d11,       null, defId, null);
-                layerBusiness.add(d12,       null, defId, null);
+                layerBusiness.add(d,    null,  null,                        "SSTMDE200305",     defId, null);
+                layerBusiness.add(d1,   null, "http://www.opengis.net/gml", "BuildingCenters",  defId, null);
+                layerBusiness.add(d2,   null, "http://www.opengis.net/gml", "BasicPolygons",    defId, null);
+                layerBusiness.add(d3,   null, "http://www.opengis.net/gml", "Bridges",          defId, null);
+                layerBusiness.add(d4,   null, "http://www.opengis.net/gml", "Streams",          defId, null);
+                layerBusiness.add(d5,   null, "http://www.opengis.net/gml", "Lakes",            defId, null);
+                layerBusiness.add(d6,   null, "http://www.opengis.net/gml", "NamedPlaces",      defId, null);
+                layerBusiness.add(d7,   null, "http://www.opengis.net/gml", "Buildings",        defId, null);
+                layerBusiness.add(d8,   null, "http://www.opengis.net/gml", "RoadSegments",     defId, null);
+                layerBusiness.add(d9,   null, "http://www.opengis.net/gml", "DividedRoutes",    defId, null);
+                layerBusiness.add(d10,  null, "http://www.opengis.net/gml", "Forests",          defId, null);
+                layerBusiness.add(d11,  null, "http://www.opengis.net/gml", "MapNeatline",      defId, null);
+                layerBusiness.add(d12,  null, "http://www.opengis.net/gml", "Ponds",            defId, null);
+
                 serviceBusiness.start(defId);
 
                 // let the worker start

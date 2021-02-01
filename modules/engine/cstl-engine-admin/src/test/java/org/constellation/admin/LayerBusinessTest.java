@@ -148,7 +148,7 @@ public class LayerBusinessTest {
         final Details frDetails = new Details("name", "identifier", Arrays.asList("keyword1", "keyword2"), "description", Arrays.asList("version1"), new Contact(), new AccessConstraint(), true, "FR");
         Integer sid = serviceBusiness.create("wms", "default", new LayerContext(), frDetails, 1);
 
-        Integer lid = layerBusiness.add(db.getId(), "SSTM", sid, null);
+        Integer lid = layerBusiness.add(db.getId(), "SSTM", "some nmsp",  "SSTM", sid, null);
 
         Assert.assertNotNull(lid);
 
@@ -156,7 +156,7 @@ public class LayerBusinessTest {
         Assert.assertEquals(12, briefs.size());
 
         for (DataBrief vdb : briefs) {
-           layerBusiness.add(vdb.getId(), null, sid, null);
+           layerBusiness.add(vdb.getId(), null, vdb.getNamespace(), vdb.getName(), sid, null);
         }
     }
 

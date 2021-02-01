@@ -31,16 +31,16 @@ public class NameInProviderComparator  implements Comparator<NameInProvider>{
     @Override
     public int compare(final NameInProvider o1, final NameInProvider o2) {
         if (o1 != null && o2 != null) {
-            String nmsp1 = NamesExt.getNamespace(o1.name);
-            String nmsp2 = NamesExt.getNamespace(o2.name);
+            String nmsp1 = NamesExt.getNamespace(o1.layerName);
+            String nmsp2 = NamesExt.getNamespace(o2.layerName);
             if (nmsp1 != null && nmsp2 != null) {
                 if (nmsp1.equals(nmsp2)) {
-                    return o1.name.tip().toString().compareTo(o2.name.tip().toString());
+                    return o1.layerName.tip().toString().compareTo(o2.layerName.tip().toString());
                 } else {
                     return nmsp1.compareTo(nmsp2);
                 }
             }
-            return o1.name.tip().toString().compareTo(o2.name.tip().toString());
+            return o1.layerName.tip().toString().compareTo(o2.layerName.tip().toString());
         }
         return -1;
     }

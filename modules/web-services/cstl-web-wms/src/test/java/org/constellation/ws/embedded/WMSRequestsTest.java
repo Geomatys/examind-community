@@ -480,34 +480,34 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 pid = TestEnvironment.createAggregateProvider(providerBusiness, "aggData", Arrays.asList(did, did2));
                 providerBusiness.createOrUpdateData(pid, null, false);
                 List<DataBrief> dbs = dataBusiness.getDataBriefsFromProviderId(pid, null, true, false, false, null, null);
-                Integer aggd = dbs.get(0).getId();
+                DataBrief aggd = dbs.get(0);
 
                 // shapefile datastore
                 pid = testResource.createProvider(TestResource.WMS111_SHAPEFILES, providerBusiness);
 
-                Integer d1  = dataBusiness.create(new QName("http://www.opengis.net/gml", "BuildingCenters"), pid, "VECTOR", false, true, true,null, null);
-                Integer d2  = dataBusiness.create(new QName("http://www.opengis.net/gml", "BasicPolygons"),   pid, "VECTOR", false, true, true,null, null);
-                Integer d3  = dataBusiness.create(new QName("http://www.opengis.net/gml", "Bridges"),         pid, "VECTOR", false, true, true,null, null);
-                Integer d4  = dataBusiness.create(new QName("http://www.opengis.net/gml", "Streams"),         pid, "VECTOR", false, true, true,null, null);
-                Integer d5  = dataBusiness.create(new QName("http://www.opengis.net/gml", "Lakes"),           pid, "VECTOR", false, true, true,null, null);
-                Integer d6  = dataBusiness.create(new QName("http://www.opengis.net/gml", "NamedPlaces"),     pid, "VECTOR", false, true, true,null, null);
-                Integer d7  = dataBusiness.create(new QName("http://www.opengis.net/gml", "Buildings"),       pid, "VECTOR", false, true, true,null, null);
-                Integer d8  = dataBusiness.create(new QName("http://www.opengis.net/gml", "RoadSegments"),    pid, "VECTOR", false, true, true,null, null);
-                Integer d9  = dataBusiness.create(new QName("http://www.opengis.net/gml", "DividedRoutes"),   pid, "VECTOR", false, true, true,null, null);
-                Integer d10 = dataBusiness.create(new QName("http://www.opengis.net/gml", "Forests"),         pid, "VECTOR", false, true, true,null, null);
-                Integer d11 = dataBusiness.create(new QName("http://www.opengis.net/gml", "MapNeatline"),     pid, "VECTOR", false, true, true,null, null);
-                Integer d12 = dataBusiness.create(new QName("http://www.opengis.net/gml", "Ponds"),           pid, "VECTOR", false, true, true,null, null);
+                Integer d1  = dataBusiness.create(new QName("BuildingCenters"), pid, "VECTOR", false, true, true,null, null);
+                Integer d2  = dataBusiness.create(new QName("BasicPolygons"),   pid, "VECTOR", false, true, true,null, null);
+                Integer d3  = dataBusiness.create(new QName("Bridges"),         pid, "VECTOR", false, true, true,null, null);
+                Integer d4  = dataBusiness.create(new QName("Streams"),         pid, "VECTOR", false, true, true,null, null);
+                Integer d5  = dataBusiness.create(new QName("Lakes"),           pid, "VECTOR", false, true, true,null, null);
+                Integer d6  = dataBusiness.create(new QName("NamedPlaces"),     pid, "VECTOR", false, true, true,null, null);
+                Integer d7  = dataBusiness.create(new QName("Buildings"),       pid, "VECTOR", false, true, true,null, null);
+                Integer d8  = dataBusiness.create(new QName("RoadSegments"),    pid, "VECTOR", false, true, true,null, null);
+                Integer d9  = dataBusiness.create(new QName("DividedRoutes"),   pid, "VECTOR", false, true, true,null, null);
+                Integer d10 = dataBusiness.create(new QName("Forests"),         pid, "VECTOR", false, true, true,null, null);
+                Integer d11 = dataBusiness.create(new QName("MapNeatline"),     pid, "VECTOR", false, true, true,null, null);
+                Integer d12 = dataBusiness.create(new QName("Ponds"),           pid, "VECTOR", false, true, true,null, null);
 
                 // we add two times a new geojson provider in order to create 2 layer with same name but different alias
                 pid = testResource.createProvider(TestResource.JSON_FEATURE, providerBusiness);
                 providerBusiness.createOrUpdateData(pid, null, false);
                 dbs = dataBusiness.getDataBriefsFromProviderId(pid, null, true, false, false, null, null);
-                Integer d13 = dbs.get(0).getId();
+                DataBrief d13 = dbs.get(0);
 
                 pid = testResource.createProvider(TestResource.JSON_FEATURE, providerBusiness);
                 providerBusiness.createOrUpdateData(pid, null, false);
                 dbs = dataBusiness.getDataBriefsFromProviderId(pid, null, true, false, false, null, null);
-                Integer d14 = dbs.get(0).getId();
+                DataBrief d14 = dbs.get(0);
                 
                 // netcdf datastore
                 pid = testResource.createProvider(TestResource.NETCDF, providerBusiness);
@@ -521,32 +521,33 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 details.getServiceConstraints().setLayerLimit(100);
                 serviceBusiness.setInstanceDetails("wms", "default", details, "eng", true);
 
-                layerBusiness.add(did,  null, defId, null);
-                layerBusiness.add(did2, null, defId, null);
-                layerBusiness.add(did3, "SST", defId, null);
-                layerBusiness.add(d1,   null, defId, null);
-                layerBusiness.add(d2,   null, defId, null);
-                layerBusiness.add(d3,   null, defId, null);
-                layerBusiness.add(d4,   null, defId, null);
-                layerBusiness.add(d5,   null, defId, null);
-                layerBusiness.add(d6,   null, defId, null);
-                layerBusiness.add(d7,   null, defId, null);
-                layerBusiness.add(d8,   null, defId, null);
-                layerBusiness.add(d9,   null, defId, null);
-                layerBusiness.add(d10,  null, defId, null);
-                layerBusiness.add(d11,  null, defId, null);
-                layerBusiness.add(d12,  null, defId, null);
-                layerBusiness.add(aggd, null, defId, null);
-                layerBusiness.add(d13,  "JS1", defId, null);
-                layerBusiness.add(d14,  "JS2", defId, null);
-                layerBusiness.add(d15, null, defId, null);
+                layerBusiness.add(did,  null,  null, "SSTMDE200305",     defId, null);
+                layerBusiness.add(did2, null,  null, "martinique",       defId, null);
+                layerBusiness.add(did3, "SST", null, "SSTMDE200305",     defId, null);
+                layerBusiness.add(d1,   null,  null, "BuildingCenters",  defId, null);
+                layerBusiness.add(d2,   null,  null, "BasicPolygons",    defId, null);
+                layerBusiness.add(d3,   null,  null, "Bridges",          defId, null);
+                layerBusiness.add(d4,   null,  null, "Streams",          defId, null);
+                layerBusiness.add(d5,   null,  null, "Lakes",            defId, null);
+                layerBusiness.add(d6,   null,  null, "NamedPlaces",      defId, null);
+                layerBusiness.add(d7,   null,  null, "Buildings",        defId, null);
+                layerBusiness.add(d8,   null,  null, "RoadSegments",     defId, null);
+                layerBusiness.add(d9,   null,  null, "DividedRoutes",    defId, null);
+                layerBusiness.add(d10,  null,  null, "Forests",          defId, null);
+                layerBusiness.add(d11,  null,  null, "MapNeatline",      defId, null);
+                layerBusiness.add(d12,  null,  null, "Ponds",            defId, null);
+
+                layerBusiness.add(aggd.getId(),  null, aggd.getNamespace(), aggd.getName(),     defId, null);
+                layerBusiness.add(d13.getId(),  "JS1", d13.getNamespace(),  d13.getName(),      defId, null);
+                layerBusiness.add(d14.getId(),  "JS2", d14.getNamespace(),  d14.getName(),      defId, null);
+                layerBusiness.add(d15,  null, null, "sea_water_temperature", defId, null);
 
                 final LayerContext config2 = new LayerContext();
                 config2.setSupportedLanguages(new Languages(Arrays.asList(new Language("fre"), new Language("eng", true))));
                 config2.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());
 
                 Integer wm1Id = serviceBusiness.create("wms", "wms1", config2, null, null);
-                layerBusiness.add(d5, null, wm1Id, null);
+                layerBusiness.add(d5, null, "http://www.opengis.net/gml", "Lakes",               wm1Id, null);
 
                 final Details serviceEng = new Details();
                 serviceEng.setDescription("Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.");
@@ -582,19 +583,19 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 details3.setVersions(Arrays.asList("1.3.0"));
 
                 Integer wm2Id = serviceBusiness.create("wms", "wms2", config3, details3, null);
-                layerBusiness.add(did, null, wm2Id, null);
-                layerBusiness.add(d1,  null, wm2Id, null);
-                layerBusiness.add(d2,  null, wm2Id, null);
-                layerBusiness.add(d3,  null, wm2Id, null);
-                layerBusiness.add(d4,  null, wm2Id, null);
-                layerBusiness.add(d5,  null, wm2Id, null);
-                layerBusiness.add(d6,  null, wm2Id, null);
-                layerBusiness.add(d7,  null, wm2Id, null);
-                layerBusiness.add(d8,  null, wm2Id, null);
-                layerBusiness.add(d9,  null, wm2Id, null);
-                layerBusiness.add(d10, null, wm2Id, null);
-                layerBusiness.add(d11, null, wm2Id, null);
-                layerBusiness.add(d12, null, wm2Id, null);
+                layerBusiness.add(did,  null,  null,                        "SSTMDE200305",     wm2Id, null);
+                layerBusiness.add(d1,   null, "http://www.opengis.net/gml", "BuildingCenters",  wm2Id, null);
+                layerBusiness.add(d2,   null, "http://www.opengis.net/gml", "BasicPolygons",    wm2Id, null);
+                layerBusiness.add(d3,   null, "http://www.opengis.net/gml", "Bridges",          wm2Id, null);
+                layerBusiness.add(d4,   null, "http://www.opengis.net/gml", "Streams",          wm2Id, null);
+                layerBusiness.add(d5,   null, "http://www.opengis.net/gml", "Lakes",            wm2Id, null);
+                layerBusiness.add(d6,   null, "http://www.opengis.net/gml", "NamedPlaces",      wm2Id, null);
+                layerBusiness.add(d7,   null, "http://www.opengis.net/gml", "Buildings",        wm2Id, null);
+                layerBusiness.add(d8,   null, "http://www.opengis.net/gml", "RoadSegments",     wm2Id, null);
+                layerBusiness.add(d9,   null, "http://www.opengis.net/gml", "DividedRoutes",    wm2Id, null);
+                layerBusiness.add(d10,  null, "http://www.opengis.net/gml", "Forests",          wm2Id, null);
+                layerBusiness.add(d11,  null, "http://www.opengis.net/gml", "MapNeatline",      wm2Id, null);
+                layerBusiness.add(d12,  null, "http://www.opengis.net/gml", "Ponds",            wm2Id, null);
 
                 final WMSPortrayal port = new WMSPortrayal();
 

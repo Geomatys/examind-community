@@ -276,11 +276,11 @@ public abstract class LayerWorker extends AbstractWorker {
         try {
             final DataProvider provider = DataProviders.getProvider(nip.providerID);
             if (nip.dataVersion != null) {
-                LOGGER.log(Level.FINE, "Provider with name = {0} and version = {1}", new Object[]{nip.name, nip.dataVersion});
-                return provider.get(nip.name, nip.dataVersion);
+                LOGGER.log(Level.FINE, "Data with name = {0} and version = {1}", new Object[]{nip.dataName, nip.dataVersion});
+                return provider.get(nip.dataName, nip.dataVersion);
             }else{
-                LOGGER.log(Level.FINE, "Provider with name = {0}", nip.name);
-                return provider.get(nip.name);
+                LOGGER.log(Level.FINE, "Provider with name = {0}", nip.dataName);
+                return provider.get(nip.dataName);
             }
         } catch (Exception ex) {
             LOGGER.log(Level.INFO, "Exception in getData() : "+ex.getMessage(), ex);
@@ -325,7 +325,7 @@ public abstract class LayerWorker extends AbstractWorker {
             if (nip.alias != null) {
                 layerName = NamesExt.create(nip.alias);
             } else {
-                layerName = nip.name;
+                layerName = nip.layerName;
             }
             List<StyleReference> styles = new ArrayList<>();
             Layer configuration;
@@ -342,7 +342,7 @@ public abstract class LayerWorker extends AbstractWorker {
                     styles,
                     configuration);
         } else {
-            throw new CstlServiceException("Unable to find  the Layer named:{" + NamesExt.getNamespace(nip.name) + '}' + nip.name.tip().toString() + " in the provider proxy", NO_APPLICABLE_CODE);
+            throw new CstlServiceException("Unable to find  the Layer named:{" + NamesExt.getNamespace(nip.layerName) + '}' + nip.layerName.tip().toString() + " in the provider proxy", NO_APPLICABLE_CODE);
         }
     }
 }

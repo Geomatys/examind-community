@@ -2361,7 +2361,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             if (nop.alias != null) {
                 results.add(NamesExt.create(nop.alias));
             } else {
-                results.add(nop.name);
+                results.add(nop.layerName);
             }
         }
         return results;
