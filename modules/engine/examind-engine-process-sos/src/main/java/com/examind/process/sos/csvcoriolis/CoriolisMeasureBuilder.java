@@ -50,22 +50,6 @@ public class CoriolisMeasureBuilder {
      
      private final List<String> sortedMeasureColumns;
      
-     private final static Map<String, String> codesMeasure;
-     
-     static {
-        codesMeasure = new HashMap<>();
-        codesMeasure.put("30", "measure1");
-        codesMeasure.put("35", "measure2");
-        codesMeasure.put("66", "measure3");
-        codesMeasure.put("70", "measure4");
-        codesMeasure.put("64", "measure5");
-        codesMeasure.put("65", "measure6");
-        codesMeasure.put("169", "measure7");
-        codesMeasure.put("193", "measure8");
-        codesMeasure.put("577", "measure9");
-        codesMeasure.put("584", "measure10");
-    }
-     
      public CoriolisMeasureBuilder(String observationType, DateFormat sdf, List<String> sortedMeasureColumns) {
          this.observationType = observationType;
          this.sdf = sdf;
@@ -104,11 +88,9 @@ public class CoriolisMeasureBuilder {
         
         // add measure code
         try {
-            String currentMeasureCodeLabel = codesMeasure.get(measureCode);
-            if (currentMeasureCodeLabel != null && !currentMeasureCodeLabel.isEmpty() && sortedMeasureColumns.contains(currentMeasureCodeLabel)) {
+            if (measureCode != null && !measureCode.isEmpty() && sortedMeasureColumns.contains(measureCode)) {
                 LinkedHashMap<String, Double> row = mmb.get(mainValue);
-
-                row.put(currentMeasureCodeLabel, Double.parseDouble(mesureValue));
+                row.put(measureCode, Double.parseDouble(mesureValue));
                 mmb.put(mainValue, row);
             }
         } catch (NumberFormatException ex) {

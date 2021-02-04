@@ -147,7 +147,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
         this.foiColumn = foiColumn;
         this.procedureColumn = procedureColumn;
         this.extractUom = extractUom;
-        
+
         if (procedureId == null && procedureColumn == null) {
             this.procedureId = IOUtilities.filenameWithoutExtension(dataFile);
         } else if (procedureId == null) {
@@ -381,7 +381,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                         LOGGER.info("skipping line due to none expected variable present.");
                         continue;
                     }
-                    
+
                     // look for current procedure (for observation separation)
                     if (procIndex != -1) {
                         currentProc = procedureId + line[procIndex];
@@ -446,7 +446,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                         }
 
                         procedure.spatialBound.merge(currentSpaBound);
-                        
+
 
                         // reset single observation related variables
                         currentCount    = 0;
@@ -583,7 +583,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                     procedure.spatialBound.addLocation(new Date(entry.getKey()), buildGeom(entry.getValue()));
                 }
                 procedure.spatialBound.merge(currentSpaBound);
-                
+
                 return result;
             }
             throw new DataStoreException("csv headers not found");

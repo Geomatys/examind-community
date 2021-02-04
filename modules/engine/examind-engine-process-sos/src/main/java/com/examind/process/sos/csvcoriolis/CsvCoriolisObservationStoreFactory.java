@@ -37,6 +37,7 @@ import org.geotoolkit.storage.ResourceType;
 import org.geotoolkit.storage.StoreMetadataExt;
 import org.geotoolkit.storage.feature.FileFeatureStoreFactory;
 import org.geotoolkit.util.NamesExt;
+import org.geotoolkit.util.StringUtilities;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
@@ -123,13 +124,15 @@ public class CsvCoriolisObservationStoreFactory extends FileParsingObservationSt
         final Set<String> measureColumns = measureCols.getValue() == null ?
                 Collections.emptySet() : new HashSet<>(Arrays.asList(measureCols.getValue().split(measureColumnsSeparator)));
         final String valueColumn = (String) params.parameter(VALUE_COLUMN.getName().toString()).getValue();
-        final String codeColumn = (String) params.parameter(CODE_COLUMN.getName().toString()).getValue();
+        final ParameterValue<String> codeCols = (ParameterValue<String>) params.parameter(CODE_COLUMN.getName().toString());
+        final Set<String> codeColumns = codeCols.getValue() == null ?
+                Collections.emptySet() : new HashSet<>(Arrays.asList(codeCols.getValue().split(measureColumnsSeparator)));
         final String typeColumn = (String) params.parameter(TYPE_COLUMN.getName().toString()).getValue();
         try {
             return new CsvCoriolisObservationStore(Paths.get(uri),
                     separator, readType(uri, separator, dateColumn, longitudeColumn, latitudeColumn, measureColumns),
                     mainColumn, dateColumn, dateFormat, longitudeColumn, latitudeColumn, measureColumns, observationType,
-                    foiColumn, procedureId, procedureColumn, extractUom, valueColumn, codeColumn, typeColumn);
+                    foiColumn, procedureId, procedureColumn, extractUom, valueColumn, codeColumns, typeColumn);
         } catch (IOException ex) {
             LOGGER.log(Level.WARNING, "problem opening csv file", ex);
             throw new DataStoreException(ex);

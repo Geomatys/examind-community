@@ -119,7 +119,12 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final String storeId = inputParameters.getValue(STORE_ID);
         final String format = inputParameters.getValue(FORMAT);
         final String valueColumn = inputParameters.getValue(VALUE_COLUMN);
-        final String codeColumn = inputParameters.getValue(CODE_COLUMN);
+        final List<String> codeColumns = new ArrayList<>();
+        for (GeneralParameterValue param : inputParameters.values()) {
+            if (param.getDescriptor().getName().getCode().equals(CODE_COLUMN.getName().getCode())) {
+                codeColumns.add(((ParameterValue)param).stringValue());
+            }
+        }
         final String typeColumn = inputParameters.getValue(TYPE_COLUMN);
 
         /*
@@ -298,6 +303,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             storeParams.propertyToMap(provConfig.getParameters());
 
             provConfig.getParameters().put(CSVProvider.SEPARATOR.getName().toString(), separator);
+            //provConfig.getParameters().put(FileParsingObservationStoreFactory.DELIMITER.getName().toString(), delimiter);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.MAIN_COLUMN.getName().toString(), mainColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.DATE_COLUMN.getName().toString(), dateColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.DATE_FORMAT.getName().toString(), dateFormat);
@@ -311,7 +317,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             provConfig.getParameters().put(FileParsingObservationStoreFactory.EXTRACT_UOM.getName().toString(), Boolean.toString(extractUom));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_COLUMN.getName().toString(), procedureColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.VALUE_COLUMN.getName().toString(), valueColumn);
-            provConfig.getParameters().put(FileParsingObservationStoreFactory.CODE_COLUMN.getName().toString(), codeColumn);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.CODE_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(codeColumns));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.TYPE_COLUMN.getName().toString(), typeColumn);
 
             try {

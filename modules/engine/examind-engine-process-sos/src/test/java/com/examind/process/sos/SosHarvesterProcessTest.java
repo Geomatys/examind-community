@@ -195,6 +195,7 @@ public class SosHarvesterProcessTest {
         writeResourceDataFile(multiPlatDirectory,   "com/examind/process/sos/multiplatform-2.csv", "multiplatform-2.csv");
 
         writeResourceDataFile(bigdataDirectory, "com/examind/process/sos/bigdata-1.csv", "bigdata-1.csv");
+
     }
 
     @PostConstruct
@@ -1207,13 +1208,13 @@ public class SosHarvesterProcessTest {
         in.parameter(SosHarvesterProcessDescriptor.LONGITUDE_COLUMN_NAME).setValue("longitude");
 
         ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
-        val1.setValue("measure1");
+        val1.setValue("30");
         in.values().add(val1);
         ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
-        val2.setValue("measure2");
+        val2.setValue("35");
         in.values().add(val2);
         ParameterValue val3 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
-        val3.setValue("measure3");
+        val3.setValue("66");
         in.values().add(val3);
 
         in.parameter(SosHarvesterProcessDescriptor.VALUE_COLUMN_NAME).setValue("parameter_value");
@@ -1251,7 +1252,7 @@ public class SosHarvesterProcessTest {
         
         Assert.assertNotNull(foi);
         
-        verifyAllObservedProperties(stsWorker, sensorId, Arrays.asList("measure1", "measure2", "measure3"));
+        verifyAllObservedProperties(stsWorker, sensorId, Arrays.asList("30", "35", "66"));
         
 
         Object o = worker.getObservation(new GetObservationType("2.0.0", "SOS",Arrays.asList(offp.getId()), null, Arrays.asList(sensorId), null, null, null,null));
@@ -1333,13 +1334,13 @@ public class SosHarvesterProcessTest {
         in.parameter(SosHarvesterProcessDescriptor.LONGITUDE_COLUMN_NAME).setValue("longitude");
 
         ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
-        val1.setValue("measure1");
+        val1.setValue("30");
         in.values().add(val1);
         ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
-        val2.setValue("measure2");
+        val2.setValue("35");
         in.values().add(val2);
         ParameterValue val3 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
-        val3.setValue("measure3");
+        val3.setValue("66");
         in.values().add(val3);
 
         in.parameter(SosHarvesterProcessDescriptor.VALUE_COLUMN_NAME).setValue("parameter_value");
@@ -1460,7 +1461,7 @@ public class SosHarvesterProcessTest {
         List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(sos.getId(), null);
         for (String sid : sensorIds) {
             if (sid.startsWith("urn:template:")) {
-                verifyObservedProperties(stsWorker, sid, Arrays.asList("measure1", "measure2", "measure3"));
+                verifyObservedProperties(stsWorker, sid, Arrays.asList("30", "35", "66"));
             }
         }
     }
@@ -1502,10 +1503,10 @@ public class SosHarvesterProcessTest {
         in.parameter(SosHarvesterProcessDescriptor.LONGITUDE_COLUMN_NAME).setValue("longitude");
 
         ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
-        val1.setValue("measure1");
+        val1.setValue("30");
         in.values().add(val1);
         ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
-        val2.setValue("measure2");
+        val2.setValue("35");
         in.values().add(val2);
 
         in.parameter(SosHarvesterProcessDescriptor.VALUE_COLUMN_NAME).setValue("parameter_value");
@@ -1554,7 +1555,7 @@ public class SosHarvesterProcessTest {
         
         Assert.assertEquals(1, offp.getObservedProperties().size());
         String observedProperty = offp.getObservedProperties().get(0);
-        Assert.assertEquals("measure2", observedProperty);
+        Assert.assertEquals("35", observedProperty);
         
         /*
         * Verify an inserted data
@@ -1599,7 +1600,7 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(1, offp.getObservedProperties().size());
         observedProperty = offp.getObservedProperties().get(0);
 
-        Assert.assertEquals("measure2", observedProperty);
+        Assert.assertEquals("35", observedProperty);
         /*
         * Verify an inserted data
         */
@@ -1646,8 +1647,8 @@ public class SosHarvesterProcessTest {
         List<String> observedProperties = getObservedProperties(stsWorker, "urn:template:1801573");
         
         Assert.assertEquals(2, observedProperties.size());
-        Assert.assertEquals("measure1", observedProperties.get(0));
-        Assert.assertEquals("measure2", observedProperties.get(1));
+        Assert.assertEquals("30", observedProperties.get(0));
+        Assert.assertEquals("35", observedProperties.get(1));
         
         nbMeasure = getNbMeasure(stsWorker, "urn:template:1801573");
         Assert.assertEquals(600, nbMeasure);
@@ -1672,7 +1673,7 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(1, offp.getObservedProperties().size());
         observedProperty = offp.getObservedProperties().get(0);
 
-        Assert.assertEquals("measure2", observedProperty);
+        Assert.assertEquals("35", observedProperty);
         
         nbMeasure = getNbMeasure(stsWorker, "urn:template:2100914");
         Assert.assertEquals(4, nbMeasure);
@@ -1681,7 +1682,7 @@ public class SosHarvesterProcessTest {
         List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(sc.getId(), null);
         for (String sid : sensorIds) {
             if (sid.startsWith("urn:template:")) {
-                verifyObservedProperties(stsWorker, sid, Arrays.asList("measure1", "measure2"));
+                verifyObservedProperties(stsWorker, sid, Arrays.asList("30", "35"));
             }
         }
         
@@ -1727,10 +1728,10 @@ public class SosHarvesterProcessTest {
         in.parameter(SosHarvesterProcessDescriptor.LONGITUDE_COLUMN_NAME).setValue("longitude");
 
         ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
-        val1.setValue("measure1");
+        val1.setValue("30");
         in.values().add(val1);
         ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
-        val2.setValue("measure2");
+        val2.setValue("35");
         in.values().add(val2);
 
         in.parameter(SosHarvesterProcessDescriptor.VALUE_COLUMN_NAME).setValue("parameter_value");
@@ -1779,7 +1780,7 @@ public class SosHarvesterProcessTest {
         
         Assert.assertEquals(1, offp.getObservedProperties().size());
         String observedProperty = offp.getObservedProperties().get(0);
-        Assert.assertEquals("measure2", observedProperty);
+        Assert.assertEquals("35", observedProperty);
         
         /*
         * Verify an inserted data
@@ -1823,7 +1824,7 @@ public class SosHarvesterProcessTest {
         
         Assert.assertEquals(1, offp.getObservedProperties().size());
         observedProperty = offp.getObservedProperties().get(0);
-        Assert.assertEquals("measure2", observedProperty);
+        Assert.assertEquals("35", observedProperty);
         
         /*
         * Verify an inserted data
@@ -1870,8 +1871,8 @@ public class SosHarvesterProcessTest {
         List<String> observedProperties = getObservedProperties(stsWorker, "1801573");
         
         Assert.assertEquals(2, observedProperties.size());
-        Assert.assertEquals("measure1", observedProperties.get(0));
-        Assert.assertEquals("measure2", observedProperties.get(1));
+        Assert.assertEquals("30", observedProperties.get(0));
+        Assert.assertEquals("35", observedProperties.get(1));
         
 
         nbMeasure = getNbMeasure(stsWorker, "1801573");
@@ -1896,7 +1897,7 @@ public class SosHarvesterProcessTest {
         
         Assert.assertEquals(1, offp.getObservedProperties().size());
         observedProperty = offp.getObservedProperties().get(0);
-        Assert.assertEquals("measure2", observedProperty);
+        Assert.assertEquals("35", observedProperty);
         
         nbMeasure = getNbMeasure(stsWorker, "2100914");
         Assert.assertEquals(4, nbMeasure);

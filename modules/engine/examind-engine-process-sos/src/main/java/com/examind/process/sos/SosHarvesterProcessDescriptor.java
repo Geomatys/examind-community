@@ -229,13 +229,15 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(false)
             .create(String.class, null);
 
-    public static final String CODE_COLUMN_NAME = "code column";
-    public static final String CODE_COLUMN_DESC = "code column";
-    public static final ParameterDescriptor<String> CODE_COLUMN = PARAM_BUILDER
-            .addName(CODE_COLUMN_NAME)
-            .setRemarks(CODE_COLUMN_DESC)
-            .setRequired(false)
-            .create(String.class, null);
+    public static final String CODE_COLUMN_NAME = "code columns";
+    public static final String CODE_COLUMN_DESC = "code columns";
+    public static final ParameterDescriptor<String> CODE_COLUMN = new ExtendedParameterDescriptor<>(
+            CODE_COLUMN_NAME,
+            CODE_COLUMN_DESC,
+            0, 92,
+            String.class,
+            null, null, null
+    );
     
     public static final String TYPE_COLUMN_NAME = "type column";
     public static final String TYPE_COLUMN_DESC = "type column";

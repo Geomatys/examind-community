@@ -17,6 +17,7 @@
 
 package com.examind.process.sos.csvcoriolis;
 
+import com.google.common.collect.Lists;
 import com.opencsv.CSVReader;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.sis.geometry.GeneralDirectPosition;
@@ -96,6 +97,8 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
     // timeSeries / trajectory / profiles
     private final String observationType;
 
+    private final char delimiter;
+
     
     /**
      * Act as a single sensor ID if no procedureColumn is supplied.
@@ -107,7 +110,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
     private final boolean extractUom;
 
     private final String valueColumn;
-    private final String codeColumn;
+    private final Set<String> codeColumns;
     private final String typeColumn;
 
     /**
@@ -123,7 +126,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
      * @param measureColumns the names (headers) of the measure columns
      * @param foiColumn the name (header) of the feature of interest column
      * @param valueColumn the name (header) of the measure column
-     * @param codeColumn the name (header) of the code measure column
+     * @param codeColumns the names (header) of the code measure columns
      * 
      * @throws DataStoreException
      * @throws MalformedURLException
@@ -131,9 +134,10 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
     public CsvCoriolisObservationStore(final Path observationFile, final char separator, final FeatureType featureType,
                                        final String mainColumn, final String dateColumn, final String dateTimeformat, final String longitudeColumn, final String latitudeColumn,
                                        final Set<String> measureColumns, String observationType, String foiColumn, final String procedureId, final String procedureColumn,
-                                       final boolean extractUom, final String valueColumn, final String codeColumn, final String typeColumn) throws DataStoreException, MalformedURLException {
+                                       final boolean extractUom, final String valueColumn, final Set<String> codeColumns, final String typeColumn) throws DataStoreException, MalformedURLException {
         super(observationFile, separator, featureType);
         dataFile = observationFile;
+        this.delimiter = separator;
         this.mainColumn = mainColumn;
         this.dateColumn = dateColumn;
         this.dateFormat = dateTimeformat;
@@ -145,8 +149,9 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
         this.procedureColumn = procedureColumn;
         this.extractUom = extractUom;
         this.valueColumn = valueColumn;
-        this.codeColumn = codeColumn;
+        this.codeColumns = codeColumns;
         this.typeColumn = typeColumn;
+
         if (procedureId == null && procedureColumn == null) {
             this.procedureId = IOUtilities.filenameWithoutExtension(dataFile);
         } else if (procedureId == null) {
@@ -180,7 +185,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
 
         final Set<GenericName> result = new HashSet();
         // open csv file
-        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile))) {
+        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), delimiter, '"')) { // TODO : replace '"' by an input.
 
             final Iterator<String[]> it = reader.iterator();
 
@@ -248,8 +253,8 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
         int obsCpt = 0;
         final String fileName = dataFile.getFileName().toString();
         
-        // open csv file
-        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile))) {
+        // open csv file with a delimiter set as process SosHarvester input.
+        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), delimiter, '"')) { // TODO : replace '"' by an input.
 
             final Iterator<String[]> it = reader.iterator();
 
@@ -266,7 +271,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                 int foiIndex = -1;
                 int procIndex = -1;
                 int valueColumnIndex = -1;
-                int codeColumnIndex = -1;
+                List<Integer> codeColumnIndexes = new ArrayList<>();
                 int typeColumnIndex = -1;
 
                 // read headers
@@ -293,9 +298,9 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                         ignoredFields.add(longitudeIndex);
                     } else if (header.equals(valueColumn)) {
                         valueColumnIndex = i;
-                    } else if (header.equals(codeColumn)) {
-                        codeColumnIndex = i;
-                        ignoredFields.add(codeColumnIndex);
+                    } else if (codeColumns.contains(header)) {
+                        codeColumnIndexes.add(i);
+                        ignoredFields.add(i);
                     } else if (header.equals(typeColumn)) {
                         typeColumnIndex = i;
                         ignoredFields.add(typeColumnIndex);
@@ -306,12 +311,9 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                         ignoredFields.add(i);
                     }
                 }
-                
-                if (typeColumnIndex == -1) {
-                    throw new DataStoreException("missing column type:" + typeColumn);
-                }
-                if (codeColumnIndex == -1) {
-                    throw new DataStoreException("Unexpected column code:" + codeColumn);
+
+                if (codeColumnIndexes.isEmpty()) {
+                    throw new DataStoreException("Unexpected columns code:" + Arrays.toString(codeColumns.toArray()));
                 }
                 if (valueColumnIndex == -1) {
                     throw new DataStoreException("Unexpected column value:" + valueColumn);
@@ -369,7 +371,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                     for (int i = 0; i < line.length; i++) {
                         if(i != mainIndex && Arrays.binarySearch(skippedIndices, i) < 0) {
                             try {
-                                Double.parseDouble(line[i]);
+                                Double.parseDouble(line[i].replaceAll(",", "."));
                                 empty = false;
                                 break;
                             } catch (NumberFormatException ex) {
@@ -386,7 +388,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                     }
                     
                     // checks if row matches the observed data types
-                    if (!line[typeColumnIndex].equals(obsTypeCode)) continue;
+                    if (typeColumnIndex!=-1 && !line[typeColumnIndex].equals(obsTypeCode)) continue;
                     
                     // look for current procedure (for observation separation)
                     if (procIndex != -1) {
@@ -503,7 +505,12 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                     b- build measure map
                     =====================*/
                     try {
-                        mmb.parseLine(line[mainIndex], currentTime, line[codeColumnIndex], line[valueColumnIndex], count, valueColumnIndex);
+                        // Concatenate values from input code columns
+                        String concatenatedCodeColumnsValues = "";
+                        for (Integer codeColumnIndex : codeColumnIndexes) {
+                            concatenatedCodeColumnsValues += line[codeColumnIndex];
+                        }
+                        mmb.parseLine(line[mainIndex], currentTime, concatenatedCodeColumnsValues, line[valueColumnIndex], count, valueColumnIndex);
                     } catch (ParseException | NumberFormatException ex) {
                         LOGGER.warning(String.format("Problem parsing date/double for main field at line %d and column %d (value='%s'). skipping line...", count, mainIndex, line[mainIndex]));
                         continue;
@@ -536,7 +543,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                 MeasureStringBuilder msb = mmb.buildMeasureStringBuilderFromMap(measureColumnFound, obsTypeCode.equals("PR"));
 
                 buildObservation(result, procedureID, oid, sp, measureColumnFound, sortedMeasureColumns, phenomenons, currentCount, currentSpaBound, msb, historicalPositions);
-                
+
                 return result;
             }
             throw new DataStoreException("csv headers not found");
