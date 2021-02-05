@@ -38,10 +38,6 @@ public interface SecurityManager {
 
     boolean hasRole(final String role);
 
-    void login(final String login, final String pass) throws UnknownAccountException, IncorrectCredentialsException;
-
-    void logout();
-
     void reset();
 }
 

@@ -37,9 +37,12 @@ import org.constellation.configuration.Application;
 
 /**
  *
- * @author Olivier (Geomatys)
+ * @author Olivier Nougier (Geomatys)
  */
 public class TokenUtils {
+
+    public static final String ACCESS_TOKEN = "access_token";
+    public static final String REFRESH_TOKEN = "refresh_token";
 
     private static final char[] HEX = {
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
@@ -117,7 +120,6 @@ public class TokenUtils {
         if (null == access_token) {
             return null;
         }
-
         String[] parts = access_token.split(TOKEN_SEPARATOR);
         return parts[0];
     }
@@ -153,47 +155,18 @@ public class TokenUtils {
     public static boolean shouldBeExtended(String access_token) {
         String[] parts = access_token.split(TOKEN_SEPARATOR);
         long expires = Long.parseLong(parts[1]);
-
         return expires < System.currentTimeMillis() + tokenHalfLife;
     }
 
-
     /**
-     * Extract access_token from header, parameter or cookies.
-     * @param request
-     * @return
+     * Extract the specified parameter from query parameters.
+     *
+     * @param httpRequest The incoming request.
+     * @param name The parameter name to extract.
+     *
+     * @return {@code null} if not found.
      */
-    public static String extractAccessToken(HttpServletRequest request) {
-        return extract(request, "access_token");
-    }
-
-    /**
-     * Extract value of header, parameter or cookie for a given name.
-     * @param request
-     * @param name
-     * @return
-     */
-    public static String extract(HttpServletRequest request, String name) {
-        String value = headers(request, name);
-        if (value != null) {
-            LOGGER.log(Level.FINE, "Extract token from header: " + value);
-            return value;
-        }
-        value = queryString(request, name);
-        if (value != null) {
-            LOGGER.log(Level.FINE, "Extract token from query string: " + value);
-            return value;
-        }
-        return cookie(request, name);
-
-    }
-
-
-    private static String queryString(HttpServletRequest httpRequest, String name) {
-
-        /*
-         * If access_token not found get it from request query string 'name' parameter
-         */
+    public static String extractFromQueryParameters(HttpServletRequest httpRequest, String name) {
         String queryString = httpRequest.getQueryString();
         if (StringUtils.isNotBlank(queryString)) {
             int tokenIndex = queryString.indexOf(name+"=");
@@ -201,43 +174,59 @@ public class TokenUtils {
                 tokenIndex += (name + "=").length();
                 int tokenEndIndex = queryString.indexOf('&', tokenIndex);
                 String access_token;
-                if (tokenEndIndex == -1)
+                if (tokenEndIndex == -1) {
                     access_token = queryString.substring(tokenIndex);
-                else
+                } else {
                     access_token = queryString.substring(tokenIndex, tokenEndIndex);
-                LOGGER.log(Level.FINE, "QueryString: " + access_token + " (" + httpRequest.getRequestURI() + ")");
+                }
                 return access_token;
             }
         }
         return null;
     }
 
-    private static String cookie(HttpServletRequest httpRequest, String name) {
+    /**
+     * Extract the specified parameter from request cookies.
+     *
+     * @param httpRequest The incoming request.
+     * @param name The parameter name to extract.
+     *
+     * @return {@code null} if not found.
+     */
+    public static String extractFromCookie(HttpServletRequest httpRequest, String name) {
         /* Extract from cookie */
         Cookie[] cookies = httpRequest.getCookies();
-        if (cookies != null)
+        if (cookies != null) {
             for (Cookie cookie : cookies) {
                 if (name.equals(cookie.getName())) {
                     try {
                         String value = URLDecoder.decode(cookie.getValue(), "UTF-8");
-                        LOGGER.log(Level.FINE, "Cookie: " + value + " (" + httpRequest.getRequestURI() + ")");
-                        if(StringUtils.isNotBlank(value))
+                        if (StringUtils.isNotBlank(value)) {
                           return value;
+                        }
                     } catch (UnsupportedEncodingException e) {
                         LOGGER.log(Level.SEVERE, e.getMessage(), e);
                     }
                 }
             }
-        LOGGER.log(Level.FINE, "Fail to extract token.");
+        }
         return null;
     }
 
-    private static String headers(HttpServletRequest httpRequest, String name) {
+    /**
+     * Extract the specified parameter from http headers.
+     *
+     * @param httpRequest The incoming request.
+     * @param name The parameter name to extract.
+     *
+     * @return {@code null} if not found.
+     */
+    public static String extractFromHeaders(HttpServletRequest httpRequest, String name) {
         String value = httpRequest.getHeader(name);
         if (value != null) {
-            LOGGER.log(Level.FINE, "Header: " + value + " (" + httpRequest.getRequestURI() + ")");
-            if(StringUtils.isNotBlank(value))
-               return value;
+            if (StringUtils.isNotBlank(value)) {
+                return value;
+            }
         }
         return null;
     }
@@ -254,27 +243,6 @@ public class TokenUtils {
             result[j++] = HEX[(0x0F & bytes[i])];
         }
 
-        return result;
-    }
-
-    private static byte[] decode(CharSequence s) {
-        int nChars = s.length();
-
-        if (nChars % 2 != 0) {
-            throw new IllegalArgumentException("Hex-encoded string must have an even number of characters");
-        }
-
-        byte[] result = new byte[nChars / 2];
-
-        for (int i = 0; i < nChars; i += 2) {
-            int msb = Character.digit(s.charAt(i), 16);
-            int lsb = Character.digit(s.charAt(i+1), 16);
-
-            if (msb < 0 || lsb < 0) {
-                throw new IllegalArgumentException("Non-hex character in input: " + s);
-            }
-            result[i / 2] = (byte) ((msb << 4) | lsb);
-        }
         return result;
     }
 }

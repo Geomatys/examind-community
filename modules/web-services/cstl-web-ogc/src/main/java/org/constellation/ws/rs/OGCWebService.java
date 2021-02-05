@@ -19,7 +19,6 @@
 package org.constellation.ws.rs;
 
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.logging.Level;
 import javax.annotation.PreDestroy;
@@ -32,9 +31,6 @@ import org.constellation.admin.SpringHelper;
 import org.constellation.api.ServiceDef;
 import org.constellation.api.ServiceDef.Specification;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
-import org.constellation.security.IncorrectCredentialsException;
-import org.constellation.security.SecurityManagerHolder;
-import org.constellation.security.UnknownAccountException;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.IWSEngine;
 import org.constellation.ws.Worker;
@@ -138,18 +134,6 @@ public abstract class OGCWebService<W extends Worker> extends AbstractWebService
      */
     @Override
     public ResponseObject treatIncomingRequest(final Object request) {
-        try {
-              processAuthentication();
-        } catch (UnknownAccountException ex) {
-            LOGGER.log(Level.FINER, "Unknow acount", ex);
-            SecurityManagerHolder.getInstance().logout();
-            return new ResponseObject(HttpStatus.UNAUTHORIZED);
-        } catch (IncorrectCredentialsException ex) {
-            LOGGER.log(Level.FINER, "incorrect password", ex);
-            SecurityManagerHolder.getInstance().logout();
-            return new ResponseObject(HttpStatus.UNAUTHORIZED);
-        }
-
         final Object objectRequest;
         if (request instanceof JAXBElement) {
             objectRequest = ((JAXBElement) request).getValue();
@@ -194,31 +178,6 @@ public abstract class OGCWebService<W extends Worker> extends AbstractWebService
             return worker;
         }
         return null;
-    }
-
-    private void processAuthentication() throws UnknownAccountException, IncorrectCredentialsException{
-
-        final String authorization = getHeaderValue("authorization");
-        if (authorization != null) {
-            if (authorization.startsWith("Basic ")) {
-                final String toDecode = authorization.substring(6);
-                try {
-                    final String logPass = new String(Base64.getDecoder().decode(toDecode));
-                    final int separatorIndex = logPass.indexOf(":");
-                    if (separatorIndex != -1) {
-                        final String login = logPass.substring(0, separatorIndex);
-                        final String passw = logPass.substring(separatorIndex + 1);
-                        SecurityManagerHolder.getInstance().login(login, passw);
-                    } else {
-                        LOGGER.warning("separator missing in authorization header");
-                    }
-                } catch (IllegalArgumentException ex) {
-                    LOGGER.log(Level.WARNING, "IO exception while cdecoding basic authentication", ex);
-                }
-            } else {
-                LOGGER.info("only basic authorization are handled for now");
-            }
-        }
     }
 
     /**

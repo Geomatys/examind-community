@@ -18,38 +18,47 @@
  */
 package org.constellation.services.security;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Base64;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.sis.util.logging.Logging;
+import org.constellation.configuration.AppProperty;
+import org.constellation.configuration.Application;
 
 import org.constellation.engine.security.UserDetailsExtractor;
 import org.constellation.services.component.TokenService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.codec.Base64;
-import org.springframework.util.StringUtils;
 
 public class CstlUserDetailsExtractor implements UserDetailsExtractor{
-
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.services.security");
-
 
     private UserDetailsService userDetailsService;
 
     private TokenService tokenService;
 
+    @Autowired
+    @Qualifier("authenticationManager")
+    private AuthenticationManager authManager;
+
     @Override
-    public UserDetails userDetails(HttpServletRequest httpServletRequest, HttpServletResponse response) {
-
-        UserDetails userDetails = fromToken(httpServletRequest);
-        if (userDetails == null )
-            userDetails = fromBasicAuth(httpServletRequest);
-        return userDetails;
+    public UserDetails userDetails(HttpServletRequest request, HttpServletResponse response) {
+        String userName = tokenService.getUserName(request);
+        if (userName == null) {
+            boolean basic = Application.getBooleanProperty(AppProperty.EXA_ENABLE_BASIC_AUTH, false);
+            if (basic) {
+                userName = getUserNameFromBasicAuth(request);
+            }
+        }
+        if (userName != null) {
+            return userDetailsService.loadUserByUsername(userName);
+        }
+        return null;
     }
-
 
     public UserDetailsService getUserDetailsService() {
         return userDetailsService;
@@ -70,45 +79,26 @@ public class CstlUserDetailsExtractor implements UserDetailsExtractor{
         this.tokenService = tokenService;
     }
 
-
-    private UserDetails fromBasicAuth(HttpServletRequest httpRequest) {
-        String userName = basicAuth(httpRequest);
-        if (userName == null)
-            return null;
-        try {
-            return userDetailsService.loadUserByUsername(userName);
-        } catch (UsernameNotFoundException ex) {
-            LOGGER.log(Level.FINER, "Unable to find the user "+userName, ex);
-            return null;
-        }
-
-    }
-
-    private UserDetails fromToken(HttpServletRequest httpRequest) {
-        String userName = tokenService.getUserName(httpRequest);
-        if (userName == null)
-            return null;
-        return userDetailsService.loadUserByUsername(userName);
-    }
-
-    private String basicAuth(HttpServletRequest httpRequest) {
+    private String getUserNameFromBasicAuth(HttpServletRequest httpRequest) {
         String header = httpRequest.getHeader("Authorization");
-        if (StringUtils.hasLength(header) && header.length() > 6) {
+        if (header != null && header.length() > 6) {
             assert header.substring(0, 6).equals("Basic ");
-            // will contain "Ym9iOnNlY3JldA=="
             String basicAuthEncoded = header.substring(6);
-            // will contain "bob:secret"
-            String basicAuthAsString = new String(Base64.decode(basicAuthEncoded.getBytes()));
-
-            int indexOf = basicAuthAsString.indexOf(':');
+            String userpwd = new String(Base64.getDecoder().decode(basicAuthEncoded.getBytes()));
+            int indexOf = userpwd.indexOf(':');
             if (indexOf != -1) {
-                String username = basicAuthAsString.substring(0, indexOf);
-                LOGGER.finer("Basic auth: " + username);
-                return username;
+                String userName = userpwd.substring(0, indexOf);
+                String password = userpwd.substring(indexOf + 1);
+                try {
+                    final UsernamePasswordAuthenticationToken at = new UsernamePasswordAuthenticationToken(userName, password);
+                    final Authentication authentication = this.authManager.authenticate(at);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    return userName;
+                } catch (Exception ex) {
+                    //
+                }
             }
         }
         return null;
     }
-
-
 }

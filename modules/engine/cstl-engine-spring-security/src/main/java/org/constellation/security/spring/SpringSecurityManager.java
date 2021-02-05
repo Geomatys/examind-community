@@ -18,10 +18,8 @@
  */
 package org.constellation.security.spring;
 
-import org.constellation.security.IncorrectCredentialsException;
 import org.constellation.security.NoSecurityManagerException;
 import org.constellation.security.SecurityManager;
-import org.constellation.security.UnknownAccountException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -47,8 +45,7 @@ public class SpringSecurityManager implements SecurityManager {
 
     @Override
     public boolean isAuthenticated() {
-        Authentication authentication = SecurityContextHolder.getContext()
-                .getAuthentication();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null) {
             return false;
         }
@@ -72,8 +69,7 @@ public class SpringSecurityManager implements SecurityManager {
 
     @Override
     public boolean hasRole(final String role) {
-        Authentication authentication = SecurityContextHolder.getContext()
-                .getAuthentication();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         for (GrantedAuthority grantedAuthority : authorities) {
             if (grantedAuthority.getAuthority().equals(role)) {
@@ -84,19 +80,7 @@ public class SpringSecurityManager implements SecurityManager {
     }
 
     @Override
-    public void login(final String login, final String pass)
-            throws UnknownAccountException, IncorrectCredentialsException {
-
-    }
-
-    @Override
-    public void logout() {
-
-    }
-
-    @Override
     public void reset() {
         SecurityContextHolder.getContext().setAuthentication(null);
-
     }
 }

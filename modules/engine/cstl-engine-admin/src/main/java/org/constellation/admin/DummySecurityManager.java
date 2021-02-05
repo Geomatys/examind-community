@@ -21,7 +21,6 @@ package org.constellation.admin;
 
 import org.constellation.security.IncorrectCredentialsException;
 import org.constellation.security.SecurityManager;
-import org.constellation.security.UnknownAccountException;
 
 /**
  *
@@ -50,15 +49,5 @@ import org.constellation.security.UnknownAccountException;
     }
 
     @Override
-    public void login(String login, String pass) throws UnknownAccountException, IncorrectCredentialsException {
-        //do nothing
-    }
-
-    @Override
-    public void logout() {
-        //do nothing
-    }
-
     public void reset(){};
-
 }

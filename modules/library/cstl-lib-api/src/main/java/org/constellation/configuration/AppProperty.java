@@ -204,7 +204,10 @@ public enum AppProperty {
     
     EXA_WPS_AUTHENTICATED_URLS("exa.wps.authenticated.urls", true, List.class),
     
-    EXA_ALLOWED_FS_PATH("exa.allowed.fs.path", false, List.class);
+    EXA_ALLOWED_FS_PATH("exa.allowed.fs.path", false, List.class),
+
+    EXA_ENABLE_BASIC_AUTH("examind.enable.basic.auth", false, Boolean.class),
+    EXA_ENABLE_PARAM_TOKEN("examind.enable.param.token", false, Boolean.class);
 
     private final String key;
     private final boolean secure;

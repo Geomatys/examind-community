@@ -33,7 +33,7 @@ import org.constellation.engine.security.AuthenticationProxy;
 import org.constellation.engine.security.Utils;
 import org.constellation.services.component.TokenService;
 import org.constellation.token.TokenExtender;
-import org.constellation.token.TokenUtils;
+import static org.constellation.token.TokenUtils.ACCESS_TOKEN;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -77,19 +77,19 @@ public class CstlAuthenticationProxy implements AuthenticationProxy {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         final String createToken = tokenService.createToken(userName);
-        CookieUtils.addCookie(response, new AbstractMap.SimpleEntry<>("access_token", new String[] {createToken, "HttpOnly"}));
+        CookieUtils.addCookie(response, new AbstractMap.SimpleEntry<>(ACCESS_TOKEN, new String[] {createToken, "HttpOnly"}));
     }
 
     @Override
     public void extendToken(HttpServletRequest request, HttpServletResponse response) throws Exception {
         UserDetails userDetails = Utils.extractUserDetail();
         String newToken = tokenExtender.extend(userDetails.getUsername(), request, response);
-        CookieUtils.addCookie(response, new AbstractMap.SimpleEntry<>("access_token", new String[] {newToken, "HttpOnly"}));
+        CookieUtils.addCookie(response, new AbstractMap.SimpleEntry<>(ACCESS_TOKEN, new String[] {newToken, "HttpOnly"}));
     }
 
     @Override
     public void performLogout(HttpServletRequest request, HttpServletResponse response) {
-       CookieUtils.clearAuthCookies(response, Arrays.asList("access_token"));
+       CookieUtils.clearAuthCookies(response, Arrays.asList(ACCESS_TOKEN));
     }
 
     @Override
@@ -98,13 +98,6 @@ public class CstlAuthenticationProxy implements AuthenticationProxy {
         String username = null;
         if (userPrincipal != null) {
             username = userPrincipal.getName();
-        } else {
-            final String token = TokenUtils.extractAccessToken(request);
-            if (token != null) {
-                username = TokenUtils.getUserNameFromToken(token);
-            } else {
-                LOGGER.log(Level.WARNING,"No token in request");
-            }
         }
         if (username == null || username.isEmpty()) {
             return Optional.empty();
