@@ -263,7 +263,10 @@ public class PyramidBusiness implements IPyramidBusiness {
             }
 
             if (globalEnv != null && coordsys != null) {
-                globalEnv.intersect(CRS.getDomainOfValidity(coordsys));
+                Envelope domain = CRS.getDomainOfValidity(coordsys);
+                if (domain != null) {
+                    globalEnv.intersect(domain);
+                }
             }
 
             final String providerId = UUID.randomUUID().toString();
@@ -488,40 +491,39 @@ public class PyramidBusiness implements IPyramidBusiness {
             final List<SampleDimension> sampleDimensions = inRef.getSampleDimensions();
             if (sampleDimensions != null) {
                 final int nbBand = sampleDimensions.size();
-                boolean hasCategories = false;
                 for (int i = 0; i < nbBand; i++) {
-                    hasCategories = hasCategories || sampleDimensions.get(i).getCategories() != null;
-                }
-
-                if (!hasCategories) {
-                    //no sample dimension categories, we force some categories
-                    //this is a bypass solution to avoid black border images in pyramids
-                    //note : we need a pyramid storage model that doesn't produce any pixels
-                    //outside the original coverage area
-                    GridGeometry gg = inRef.getGridGeometry();
-                    RenderedImage img = readSmallImage(inRef, gg);
-
-                    final List<SampleDimension> newDims = new ArrayList<>();
-                    for (int i = 0; i < nbBand; i++) {
-                        final SampleDimension sd = sampleDimensions.get(i);
-                        final int dataType = img.getSampleModel().getDataType();
-                        NumberRange range;
-                        switch (dataType) {
-                            case DataBuffer.TYPE_BYTE : range = NumberRange.create(0, true, 255, true); break;
-                            case DataBuffer.TYPE_SHORT : range = NumberRange.create(Short.MIN_VALUE, true, Short.MAX_VALUE, true); break;
-                            case DataBuffer.TYPE_USHORT : range = NumberRange.create(0, true, 0xFFFF, true); break;
-                            case DataBuffer.TYPE_INT : range = NumberRange.create(Integer.MIN_VALUE, true, Integer.MAX_VALUE, true); break;
-                            default : range = NumberRange.create(-Double.MAX_VALUE, true, +Double.MAX_VALUE, true); break;
-                        }
-
-                        final SampleDimension nsd = new SampleDimension.Builder()
-                                .setName(sd.getName())
-                                .addQuantitative("data", range, (MathTransform1D) MathTransforms.linear(1, 0), sd.getUnits().orElse(null))
-                                .build();
-                        newDims.add(nsd);
+                    if (sampleDimensions.get(i).getCategories() != null) {
+                        return inRef;
                     }
-                    inRef = new ForcedSampleDimensionsCoverageResource(inRef, newDims);
                 }
+
+                //no sample dimension categories, we force some categories
+                //this is a bypass solution to avoid black border images in pyramids
+                //note : we need a pyramid storage model that doesn't produce any pixels
+                //outside the original coverage area
+                GridGeometry gg = inRef.getGridGeometry();
+                RenderedImage img = readSmallImage(inRef, gg);
+
+                final List<SampleDimension> newDims = new ArrayList<>();
+                for (int i = 0; i < nbBand; i++) {
+                    final SampleDimension sd = sampleDimensions.get(i);
+                    final int dataType = img.getSampleModel().getDataType();
+                    NumberRange range;
+                    switch (dataType) {
+                        case DataBuffer.TYPE_BYTE : range = NumberRange.create(0, true, 255, true); break;
+                        case DataBuffer.TYPE_SHORT : range = NumberRange.create(Short.MIN_VALUE, true, Short.MAX_VALUE, true); break;
+                        case DataBuffer.TYPE_USHORT : range = NumberRange.create(0, true, 0xFFFF, true); break;
+                        case DataBuffer.TYPE_INT : range = NumberRange.create(Integer.MIN_VALUE, true, Integer.MAX_VALUE, true); break;
+                        default : range = NumberRange.create(-Double.MAX_VALUE, true, +Double.MAX_VALUE, true); break;
+                    }
+
+                    final SampleDimension nsd = new SampleDimension.Builder()
+                            .setName(sd.getName())
+                            .addQuantitative("data", range, (MathTransform1D) MathTransforms.linear(1, 0), sd.getUnits().orElse(null))
+                            .build();
+                    newDims.add(nsd);
+                }
+                inRef = new ForcedSampleDimensionsCoverageResource(inRef, newDims);
             }
         } catch (DataStoreException ex) {
             throw new ConstellationException("Failed to extract no-data values for resampling " + ex.getMessage(),ex);

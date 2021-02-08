@@ -38,6 +38,7 @@ import org.constellation.exception.ConfigurationException;
 
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
+import org.constellation.exception.TargetNotFoundException;
 import org.constellation.provider.AbstractDataProvider;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviderFactory;
@@ -162,8 +163,16 @@ public abstract class ComputedResourceProvider extends AbstractDataProvider {
         final DataRepository repo = SpringHelper.getBean(DataRepository.class);
         for (Integer dataId : dataIds) {
             org.constellation.dto.Data d = repo.findById(dataId);
-            Data dp = DataProviders.getProviderData(d.getProviderId(), d.getNamespace(), d.getName());
-            results.add(dp);
+            if (d != null) {
+                Data dp = DataProviders.getProviderData(d.getProviderId(), d.getNamespace(), d.getName());
+                if (dp != null) {
+                    results.add(dp);
+                } else {
+                    throw new TargetNotFoundException("No data found in provider named: {" + d.getNamespace() + "} " + d.getName());
+                }
+            } else {
+                throw new TargetNotFoundException("No data found with id:" + dataId);
+            }
         }
         return results;
     }

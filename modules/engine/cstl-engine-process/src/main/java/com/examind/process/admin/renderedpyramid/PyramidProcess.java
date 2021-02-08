@@ -109,14 +109,12 @@ public class PyramidProcess extends AbstractProcessDescriptor implements AdminPr
                 case "RENDERED" : generator = new MapContextTileGenerator(context, new Hints(Hints.KEY_ANTIALIASING, Hints.VALUE_ANTIALIAS_ON)); break;
                 case "CONFORM" : {
                     GridCoverageResource singleRes = null;
-                    List<AggregatedCoverageResource.VirtualBand> bands = new ArrayList<>();
+                    List<GridCoverageResource> bands = new ArrayList<>();
                     for (MapLayer layer : MapBuilder.getLayers(context)) {
                         Resource res = layer.getData();
                         if (res instanceof GridCoverageResource) {
                             singleRes = (GridCoverageResource) res;
-                            VirtualBand v = new VirtualBand();
-                            v.setSources(new Source(singleRes, 0));
-                            bands.add(v);
+                            bands.add(singleRes);
                         }
                     }
                     
@@ -130,7 +128,7 @@ public class PyramidProcess extends AbstractProcessDescriptor implements AdminPr
                             } else {
                                 throw new ProcessException("Missing CRS on map context", this);
                             }
-                            singleRes = new AggregatedCoverageResource(bands, Mode.ORDER, crs);
+                            singleRes = AggregatedCoverageResource.create(crs, bands.toArray(new GridCoverageResource[bands.size()]));
                         } catch (DataStoreException | TransformException ex) {
                             throw new ProcessException(ex.getMessage(), this, ex);
                         }

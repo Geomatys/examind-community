@@ -172,7 +172,18 @@ public final class DataProviders extends Static{
 
         return provider;
     }
-    
+
+    /**
+     * Return a {@link Data} in the specified Provider.
+     *
+     * @param providerId Provider identifier.
+     * @param namespace Namespace of the data.
+     * @param name Name of the data.
+     * 
+     * @return The matching {@link Data} or {@code null} idf the provider does not contains this data.
+     *
+     * @throws ConfigurationException If the Provider does not exist.
+     */
     public synchronized static Data getProviderData(final int providerId, final String namespace, final String name) throws ConfigurationException {
         final DataProvider inProvider;
         try {
