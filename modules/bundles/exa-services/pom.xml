@@ -379,7 +379,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
-                <version>2.6</version>
                 <configuration>
                     <warName>exa-services</warName>
                     <webResources>
@@ -409,9 +408,9 @@
                             <description>EXAMIND REST ${project.version} Documentation</description>
                             <doclet>org.calrissian.restdoclet.RestDoclet</doclet>
                             <docletArtifact>
-                                <groupId>org.calrissian.restdoclet</groupId>
+                                <groupId>com.geomatys.restdoclet</groupId>
                                 <artifactId>rest-doclet</artifactId>
-                                <version>1.0.1-dfe332d</version>
+                                <version>2.0.1</version>
                             </docletArtifact>
                             <useStandardDocletOptions>false</useStandardDocletOptions>
                             <dependencySourceIncludes>
