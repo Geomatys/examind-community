@@ -24,6 +24,6 @@
     <a:link href="http://localhost:9090/WS/csw/urn:uuid:e8df05c2-d923-4a05-acce-2b20a27c0e58/descriptionDocument.xml" rel="search" type="application/opensearchdescription+xml" title="Granule search"/>
     <a:summary>Blabla bla.</a:summary>
     <dc:identifier>urn:uuid:e8df05c2-d923-4a05-acce-2b20a27c0e58</dc:identifier>
-    <georss:box>13.754 60.042 17.92 68.41</georss:box>
+    <georss:box>60.042 13.754 68.41 17.92</georss:box>
   </a:entry>
 </a:feed>

@@ -45,7 +45,7 @@
             Product Unit : Kelvin</a:summary>
     <a:updated>2018-11-18T00:00:00.000+01:00</a:updated>
     <dc:identifier>L2-LST</dc:identifier>
-    <georss:box>-180.0 -90.0 180.0 90.0</georss:box>
+    <georss:box>-90.0 -180.0 90.0 180.0</georss:box>
   </a:entry>
   <a:entry>
     <a:id>urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f</a:id>
@@ -62,7 +62,7 @@
     <a:link href="http://localhost:9090/WS/csw/default?request=GetRecordbyid&amp;service=CSW&amp;version=3.0.0&amp;id=urn:uuid:1ef30a8b-876d-4828-9246-c37ab4510bbd&amp;outputschema=http://www.opengis.net/cat/csw/2.0.2" rel="alternate" type="application/xml" title="Native format"/>
     <a:summary>Proin sit amet justo. In justo. Aenean adipiscing nulla id tellus.</a:summary>
     <dc:identifier>urn:uuid:1ef30a8b-876d-4828-9246-c37ab4510bbd</dc:identifier>
-    <georss:box>13.754 60.042 17.92 68.41</georss:box>
+    <georss:box>60.042 13.754 68.41 17.92</georss:box>
   </a:entry>
   <a:entry>
     <a:id>urn:uuid:66ae76b7-54ba-489b-a582-0f0633d96493</a:id>

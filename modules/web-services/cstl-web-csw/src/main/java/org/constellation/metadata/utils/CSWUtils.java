@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -45,9 +44,7 @@ import static org.constellation.metadata.core.CSWConstants.ACCEPTED_OUTPUT_FORMA
 import org.constellation.util.NodeUtilities;
 import org.geotoolkit.csw.xml.CSWMarshallerPool;
 import org.geotoolkit.csw.xml.GetRecordsRequest;
-import org.geotoolkit.csw.xml.Record;
 import org.geotoolkit.csw.xml.v202.RecordType;
-import org.geotoolkit.dublincore.xml.AbstractSimpleLiteral;
 import org.geotoolkit.dublincore.xml.v2.elements.SimpleLiteral;
 import org.geotoolkit.metadata.MetadataType;
 import org.geotoolkit.metadata.RecordInfo;
@@ -57,7 +54,6 @@ import org.geotoolkit.ops.xml.v110.Url;
 import org.geotoolkit.ows.xml.AbstractDomain;
 import org.geotoolkit.ows.xml.AbstractOperation;
 import org.geotoolkit.ows.xml.AbstractOperationsMetadata;
-import org.geotoolkit.ows.xml.BoundingBox;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.geotoolkit.temporal.object.ISODateParser;
 import org.opengis.filter.Filter;
@@ -312,82 +308,6 @@ public class CSWUtils {
         }
     }
 
-    public static EntryType getEntryFromRecord(Record record) {
-        ISODateParser parser = new ISODateParser();
-
-        EntryType entry = new EntryType();
-        if (record.getIdentifier() != null) {
-            entry.addId(new IdType(record.getIdentifierStringValue()));
-        }
-        if (record.getTitle()!= null) {
-            entry.addTitle(new TextType(record.getTitleStringValue()));
-        }
-        if (record.getCreatorStringValue() != null) {
-            entry.addAuthor(new PersonType(record.getTitleStringValue(), null, null));
-        }
-        for (AbstractSimpleLiteral sub : record.getSubject()) {
-            entry.addCategory(new CategoryType(sub.getFirstValue(), sub.getScheme()));
-        }
-        if (record.getAbstractStringValue() != null) {
-            entry.addSummary(new TextType(record.getAbstractStringValue()));
-        }
-        for (AbstractSimpleLiteral sub : record.getContributor()) {
-            entry.addContributor(new PersonType(sub.getFirstValue(), null, null));
-        }
-        if (record.getDate()!= null) {
-            try {
-                GregorianCalendar c = new GregorianCalendar();
-                c.setTime(parser.parseToDate(record.getDateStringValue()));
-                XMLGregorianCalendar xgcal = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
-                entry.addUpdated(new DateTimeType(xgcal));
-            } catch (DatatypeConfigurationException ex) {
-                LOGGER.log(Level.WARNING, null, ex);
-            }
-        }
-
-        org.geotoolkit.dublincore.xml.v2.elements.ObjectFactory dcFactory = new org.geotoolkit.dublincore.xml.v2.elements.ObjectFactory();
-
-        if (record.getTemporalExtentRange().length == 2) {
-            Date start = new Date(record.getTemporalExtentRange()[0]);
-            Date end   = new Date(record.getTemporalExtentRange()[1]);
-            String content = ISO8601_FORMAT.format(start) + "/" + ISO8601_FORMAT.format(end);
-            entry.getAuthorOrCategoryOrContent().add(dcFactory.createDate(new SimpleLiteral(content)));
-        } else if (record.getTemporalExtentRange().length == 1) {
-            Date time = new Date(record.getTemporalExtentRange()[0]);
-            entry.getAuthorOrCategoryOrContent().add(dcFactory.createDate(new SimpleLiteral(ISO8601_FORMAT.format(time))));
-        }
-
-        // TODO source ?
-
-        if (record.getLanguage() != null) {
-            entry.setLang(record.getLanguage().getFirstValue());
-        }
-        for (AbstractSimpleLiteral sub : record.getRights()) {
-            entry.addRight(new TextType(sub.getFirstValue()));
-        }
-        Object bboxObj = record.getBoundingBox();
-        if (bboxObj instanceof List) {
-            for (Object bb : (List)bboxObj) {
-                if (bb instanceof JAXBElement) {
-                    bb = ((JAXBElement)bb).getValue();
-                }
-                if (bb instanceof BoundingBox) {
-                    entry.addBox((BoundingBox) bb);
-                }
-            }
-        } else if (bboxObj instanceof JAXBElement) {
-            bboxObj = ((JAXBElement)bboxObj).getValue();
-            if (bboxObj instanceof BoundingBox) {
-                entry.addBox((BoundingBox) bboxObj);
-            }
-        } else if (bboxObj instanceof BoundingBox) {
-            entry.addBox((BoundingBox) bboxObj);
-        }
-
-        // TODO relation
-        return entry;
-    }
-
     /**
      * @deprecated remove when the information will be availlable in RecordInfo.isISOTransformable
      */
@@ -496,18 +416,16 @@ public class CSWUtils {
             String[] lo = lowers.get(0).split(" ");
             String[] up = uppers.get(0).split(" ");
             if (lo.length == 2 && up.length == 2) {
-                entry.addBox(Arrays.asList(Double.parseDouble(lo[1]),
-                                           Double.parseDouble(lo[0]),
-                                           Double.parseDouble(up[1]),
-                                           Double.parseDouble(up[0])));
+                entry.addBox(Arrays.asList(Double.parseDouble(lo[0]),
+                                           Double.parseDouble(lo[1]),
+                                           Double.parseDouble(up[0]),
+                                           Double.parseDouble(up[1])));
             }
         }
 
         // TODO relation
         return entry;
     }
-
-    private static final ObjectFactory OBJ_ATOM_FACT = new ObjectFactory();
 
     public static void addNavigationRequest(GetRecordsRequest request, FeedType feed, String selfRequest) {
         int startPosition = request.getStartPosition();
@@ -545,7 +463,7 @@ public class CSWUtils {
 
     }
 
-    private static String START_PARAM = "startPosition=";
+    private static final String START_PARAM = "startPosition=";
 
     private static String replaceStartPosition(String request, int startPosition) {
         int index = request.indexOf(START_PARAM);
