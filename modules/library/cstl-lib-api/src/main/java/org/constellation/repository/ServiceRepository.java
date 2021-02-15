@@ -20,6 +20,7 @@ package org.constellation.repository;
 
 import java.util.List;
 import java.util.Map;
+import org.constellation.dto.LinkedProvider;
 
 import org.constellation.dto.service.Service;
 import org.constellation.dto.ServiceReference;
@@ -76,7 +77,7 @@ public interface ServiceRepository extends AbstractRepository {
 
     void removelinkedSensors(int serviceId);
 
-    List<Integer> getLinkedMetadataProvider(int serviceId);
+    List<LinkedProvider> getLinkedMetadataProvider(int serviceId);
 
     void linkMetadataProvider(int serviceId, int providerID, boolean allMetadata);
 
@@ -86,7 +87,7 @@ public interface ServiceRepository extends AbstractRepository {
 
     void removelinkedMetadatas(int serviceId);
 
-    boolean isLinkedMetadataProviderAndService(int serviceId, int providerID);
+    LinkedProvider isLinkedMetadataProviderAndService(int serviceId, int providerID);
 
     public String getImplementation(Integer serviceId);
 

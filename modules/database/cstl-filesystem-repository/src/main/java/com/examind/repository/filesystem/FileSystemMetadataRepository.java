@@ -235,14 +235,16 @@ public class FileSystemMetadataRepository extends AbstractFileSystemRepository i
     }
 
     @Override
-    public List<String> findMetadataID(boolean includeService, boolean onlyPublished, Integer providerId, String type) {
+    public List<String> findMetadataID(boolean includeService, boolean onlyPublished, Integer providerId, String type, Boolean hidden) {
         List<String> results = new ArrayList<>();
         for (MetadataComplete m : byId.values()) {
             if (includeService || m.getServiceId() == null) {
                 if (!onlyPublished || m.getIsPublished()) {
                     if (providerId == null || providerId.equals(m.getProviderId())) {
                         if (type == null || type.equals(m.getType())) {
-                            results.add(m.getMetadataId());
+                            if (hidden == null || hidden.equals(m.getIsHidden())) {
+                                results.add(m.getMetadataId());
+                            }
                         }
                     }
                 }
@@ -571,7 +573,7 @@ public class FileSystemMetadataRepository extends AbstractFileSystemRepository i
     }
 
     @Override
-    public int countMetadataByCswId(Integer id, boolean includeService, boolean onlyPublished, String type, Boolean hidden) {
+    public int countLinkedMetadata(Integer id, Integer providerId, boolean includeService, boolean onlyPublished, String type, Boolean hidden) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -754,6 +756,11 @@ public class FileSystemMetadataRepository extends AbstractFileSystemRepository i
 
     @Override
     public int countInCompletionRange(Map<String, Object> filterMap, int minCompletion, int maxCompletion) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public List<String> findLinkedMetadataID(Integer serviceID, Integer providerID, boolean includeService, boolean onlyPublished, String type, Boolean hidden) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

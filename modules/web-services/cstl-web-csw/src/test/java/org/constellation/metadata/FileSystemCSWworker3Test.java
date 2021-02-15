@@ -140,7 +140,7 @@ public class FileSystemCSWworker3Test extends CSWWorker3Test {
                                         new Contact(), new AccessConstraint(),
                                         true, "eng");
                 Integer sid = serviceBusiness.create("csw", "default", configuration, d, null);
-                serviceBusiness.linkCSWAndProvider(sid, pr);
+                serviceBusiness.linkCSWAndProvider(sid, pr, true);
 
                 fillPoolAnchor((AnchoredMarshallerPool) pool);
                 Unmarshaller u = pool.acquireUnmarshaller();

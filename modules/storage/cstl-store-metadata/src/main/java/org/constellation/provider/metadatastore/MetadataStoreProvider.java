@@ -72,7 +72,7 @@ public class MetadataStoreProvider extends IndexedNameDataProvider implements Me
      */
     @Override
     public synchronized MetadataStore getMainStore(){
-        if(store==null){
+        if (store==null) {
             store = createBaseStore();
         }
         return store;
@@ -120,24 +120,25 @@ public class MetadataStoreProvider extends IndexedNameDataProvider implements Me
     @Override
     protected synchronized void visit() {
         store = createBaseStore();
-
-        try {
-            Iterator<String> it = store.getIdentifierIterator();
-            while (it.hasNext()) {
-                GenericName name = NamesExt.create(it.next());
-                if (!index.contains(name)) {
-                    index.add(name);
+        if (store != null) {
+            try {
+                Iterator<String> it = store.getIdentifierIterator();
+                while (it.hasNext()) {
+                    GenericName name = NamesExt.create(it.next());
+                    if (!index.contains(name)) {
+                        index.add(name);
+                    }
                 }
-            }
-            if (it instanceof CloseableIterator) {
-                ((CloseableIterator)it).close();
-            }
+                if (it instanceof CloseableIterator) {
+                    ((CloseableIterator)it).close();
+                }
 
-        } catch (MetadataIoException ex) {
-            //Looks like we failed to retrieve the list of featuretypes,
-            //the layers won't be indexed and the getCapability
-            //won't be able to find thoses layers.
-            LOGGER.log(Level.SEVERE, "Failed to retrive list of available sensor names.", ex);
+            } catch (MetadataIoException ex) {
+                //Looks like we failed to retrieve the list of featuretypes,
+                //the layers won't be indexed and the getCapability
+                //won't be able to find thoses layers.
+                LOGGER.log(Level.SEVERE, "Failed to retrive list of available sensor names.", ex);
+            }
         }
     }
 
@@ -272,8 +273,10 @@ public class MetadataStoreProvider extends IndexedNameDataProvider implements Me
         final MetadataStore store = getMainStore();
         boolean result = false;
         try {
-            result = store.deleteMetadata(metadataID);
-            reload();
+            if (store != null) {
+                result = store.deleteMetadata(metadataID);
+                reload();
+            }
         } catch (MetadataIoException ex) {
             LOGGER.log(Level.INFO, "Unable to delete a metadata in provider:" + id, ex);
         }

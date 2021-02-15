@@ -296,13 +296,41 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
     }
 
     @Override
-    public int countMetadataByCswId(final Integer id, final boolean includeService, final boolean onlyPublished, final String type,
+    public List<String> findLinkedMetadataID(Integer serviceID, Integer providerID, boolean includeService, boolean onlyPublished, String type, Boolean hidden) {
+        SelectConditionStep<Record1<String>> query =
+               dsl.select(METADATA.METADATA_ID).from(METADATA, METADATA_X_CSW)
+                  .where(METADATA_X_CSW.CSW_ID.eq(serviceID))
+                  .and(METADATA_X_CSW.METADATA_ID.eq(METADATA.ID));
+
+        if (providerID != null) {
+            query = query.and(METADATA.PROVIDER_ID.eq(providerID));
+        }
+        if (!includeService) {
+            query = query.and(METADATA.SERVICE_ID.isNull());
+        }
+        if (onlyPublished) {
+            query = query.and(METADATA.IS_PUBLISHED.eq(Boolean.TRUE));
+        }
+        if (type != null) {
+            query = query.and(METADATA.TYPE.eq(type));
+        }
+        if (hidden != null) {
+            query = query.and(METADATA.IS_HIDDEN.eq(hidden));
+        }
+        return query.fetchInto(String.class);
+    }
+
+    @Override
+    public int countLinkedMetadata(final Integer serviceID, final Integer providerID, final boolean includeService, final boolean onlyPublished, final String type,
             final Boolean hidden) {
         SelectConditionStep<Record1<String>> query =
                dsl.select(METADATA.METADATA_ID).from(METADATA, METADATA_X_CSW)
                   .where(METADATA_X_CSW.METADATA_ID.eq(METADATA.ID))
-                  .and(METADATA_X_CSW.CSW_ID.eq(id));
+                  .and(METADATA_X_CSW.CSW_ID.eq(serviceID));
 
+        if (providerID != null) {
+            query = query.and(METADATA.PROVIDER_ID.eq(providerID));
+        }
         if (!includeService) {
             query = query.and(METADATA.SERVICE_ID.isNull());
         }
@@ -341,7 +369,8 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
     }
 
     @Override
-    public List<String> findMetadataID(final boolean includeService, final boolean onlyPublished, final Integer providerId, final String type) {
+    public List<String> findMetadataID(final boolean includeService, final boolean onlyPublished, final Integer providerId, final String type,
+            final Boolean hidden) {
         SelectJoinStep<Record1<String>> query =  dsl.select(METADATA.METADATA_ID).from(METADATA);
         if (includeService && !onlyPublished && providerId == null && type == null) {
             return query.fetchInto(String.class);
@@ -369,6 +398,13 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
                     filterQuery = query.where(METADATA.TYPE.eq(type));
                 } else {
                     filterQuery = filterQuery.and(METADATA.TYPE.eq(type));
+                }
+            }
+            if (hidden != null) {
+                if (filterQuery == null) {
+                    filterQuery = query.where(METADATA.IS_HIDDEN.eq(hidden));
+                } else {
+                    filterQuery = filterQuery.and(METADATA.IS_HIDDEN.eq(hidden));
                 }
             }
             return filterQuery.fetchInto(String.class);
@@ -638,6 +674,10 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
             return METADATA.DATESTAMP.greaterOrEqual((Long) value);
         } else if ("type".equals(key)) {
             return METADATA.TYPE.eq((String) value);
+        } else if ("includeService".equals(key)) {
+            if (!(Boolean)value) {
+                return METADATA.SERVICE_ID.isNull();
+            }
         } else if ("name".equals(key)) {
             Condition namesCond = null;
             List<String> names = (List<String>) value;

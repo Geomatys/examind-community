@@ -134,7 +134,7 @@ public class TreeCloseTest {
                 configuration.putParameter("transactionSecurized", "false");
 
                 Integer sid = serviceBusiness.create("csw", "default", configuration, null, null);
-                serviceBusiness.linkCSWAndProvider(sid, pr);
+                serviceBusiness.linkCSWAndProvider(sid, pr, true);
 
                 if (!Files.isDirectory(dataDirectory)) {
                     throw new Exception("the data directory does no longer exist");

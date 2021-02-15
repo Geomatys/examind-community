@@ -144,6 +144,7 @@ import org.constellation.ws.IWSEngine;
 import org.geotoolkit.storage.DataStores;
 import org.opengis.parameter.ParameterValueGroup;
 import static org.constellation.business.ClusterMessageConstant.*;
+import org.constellation.dto.LinkedProvider;
 import org.constellation.exception.NotRunningServiceException;
 import org.constellation.exception.TargetNotFoundException;
 
@@ -470,7 +471,7 @@ public class MetadataBusiness implements IMetadataBusiness {
      */
     @Override
     public List<String> getMetadataIds(final boolean includeService, final boolean onlyPublished, final Integer providerID, final String type) {
-        return metadataRepository.findMetadataID(includeService, onlyPublished, providerID, type);
+        return metadataRepository.findMetadataID(includeService, onlyPublished, providerID, type, false);
     }
 
     @Override
@@ -492,12 +493,17 @@ public class MetadataBusiness implements IMetadataBusiness {
         final Integer service = serviceRepository.findIdByIdentifierAndType(cswIdentifier, "csw");
         if (service != null) {
             if (partial) {
-                results.addAll(metadataRepository.findMetadataIDByCswId(service, includeService, onlyPublished, type, false));
-            } else {
-                List<Integer> providers = serviceRepository.getLinkedMetadataProvider(service);
-                for (Integer pid : providers) {
-                    results.addAll(metadataRepository.findMetadataIDByProviderId(pid, includeService, onlyPublished, type, false));
+                List<LinkedProvider> providers = serviceRepository.getLinkedMetadataProvider(service);
+                for (LinkedProvider provider : providers) {
+                    if (provider.isAllEntry()) {
+                        results.addAll(metadataRepository.findMetadataIDByProviderId(provider.getId(), includeService, onlyPublished, type, false));
+                    } else {
+                        results.addAll(metadataRepository.findLinkedMetadataID(service, provider.getId(), includeService, onlyPublished, type, false));
+                    }
                 }
+            // for non-partial CSW, all metadata are linked
+            } else {
+                results.addAll(metadataRepository.findMetadataID(includeService, onlyPublished, null, type, false));
             }
         }
         return results;
@@ -509,12 +515,21 @@ public class MetadataBusiness implements IMetadataBusiness {
         final Integer service = serviceRepository.findIdByIdentifierAndType(cswIdentifier, "csw");
         if (service != null) {
             if (partial) {
-                count = metadataRepository.countMetadataByCswId(service, includeService, onlyPublished, type, false);
-            } else {
-               List<Integer> providers = serviceRepository.getLinkedMetadataProvider(service);
-               for (Integer pid : providers) {
-                    count += metadataRepository.countMetadataByProviderId(pid, includeService, onlyPublished, type, false);
+               List<LinkedProvider> providers = serviceRepository.getLinkedMetadataProvider(service);
+               for (LinkedProvider provider : providers) {
+                   if (provider.isAllEntry()) {
+                        count += metadataRepository.countMetadataByProviderId(provider.getId(), includeService, onlyPublished, type, false);
+                   } else {
+                       count += metadataRepository.countLinkedMetadata(service, provider.getId(), includeService, onlyPublished, type, false);
+                   }
                }
+            // for non-partial CSW, all metadata are linked
+            } else {
+               final Map<String,Object> filterMap = new HashMap<>();
+               filterMap.put("published", onlyPublished);
+               filterMap.put("type", type);
+               filterMap.put("includeService", includeService);
+               count = metadataRepository.countTotalMetadata(filterMap);
             }
         }
         return count;
@@ -529,27 +544,32 @@ public class MetadataBusiness implements IMetadataBusiness {
         if (service != null) {
             final Automatic config = getCSWConfig(service);
             final boolean partial = config.getBooleanParameter(CSW_CONFIG_PARTIAL, false);
-            if (partial) {
-                return metadataRepository.isLinkedMetadata(metadataID, cswID);
-            }
-            return true;
+            return isLinkedMetadataToCSW(metadataID, cswID, partial, true, false);
         } else {
             throw new TargetNotFoundException("Unable to find a csw service:" + cswID);
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isLinkedMetadataToCSW(final String metadataID, final String cswID, final boolean partial, final boolean includeService, final boolean onlyPublished) {
-        if (partial) {
-            return metadataRepository.isLinkedMetadata(metadataID, cswID, includeService, onlyPublished);
-        } else {
-            final Integer service = serviceRepository.findIdByIdentifierAndType(cswID, "csw");
-            if (service != null) {
-                List<Integer> providers = serviceRepository.getLinkedMetadataProvider(service);
-                for (Integer pid : providers) {
-                    if (metadataRepository.isLinkedMetadata(metadataID, pid, includeService, onlyPublished)) {
+        final Integer service = serviceRepository.findIdByIdentifierAndType(cswID, "csw");
+        if (service != null) {
+            Metadata m = metadataRepository.findByMetadataId(metadataID);
+            if (m != null) {
+                if (partial) {
+                    LinkedProvider lp = serviceRepository.isLinkedMetadataProviderAndService(service, m.getProviderId());
+                    if (lp != null) {
+                        if (!lp.isAllEntry()) {
+                            return metadataRepository.isLinkedMetadata(metadataID, cswID, includeService, onlyPublished);
+                        }
                         return true;
                     }
+                // for non-partial CSW, all metadata are linked
+                } else {
+                    return true;
                 }
             }
         }
@@ -575,12 +595,15 @@ public class MetadataBusiness implements IMetadataBusiness {
         if (service != null) {
             final Automatic config = getCSWConfig(service);
             final boolean partial = config.getBooleanParameter(CSW_CONFIG_PARTIAL, false);
+
+            // link between metadata and service are only use for partial CSW service.
             if (partial) {
                 for (String metadataId : metadataIds) {
                     final Metadata meta = metadataRepository.findByMetadataId(metadataId);
                     if (meta != null) {
                         metadataRepository.addMetadataToCSW(metadataId, service.getId());
-                        if (!serviceRepository.isLinkedMetadataProviderAndService(service.getId(), meta.getProviderId())) {
+                        // if not already linked we link the provider and the service
+                        if (serviceRepository.isLinkedMetadataProviderAndService(service.getId(), meta.getProviderId()) == null) {
                             serviceRepository.linkMetadataProvider(service.getId(), meta.getProviderId(), false);
                         }
                     } else {
@@ -626,10 +649,38 @@ public class MetadataBusiness implements IMetadataBusiness {
             final Automatic config = getCSWConfig(service);
             final boolean partial = config.getBooleanParameter(CSW_CONFIG_PARTIAL, false);
             if (partial) {
+                List<String> idToremove = new ArrayList<>();
                 for (String metadataId : metadataIds) {
-                    metadataRepository.removeDataFromCSW(metadataId, service.getId());
+                    /**
+                     * Multiple case to handle here:
+                     *  1) The metadata is not linked
+                     *      => we do not throw exception, but ignore the request
+                     *  2) The metadata provider is not in "allEntry" mode
+                     *      => we unlink the metadata
+                     *  3) The metadata provider is in "allEntry" mode :
+                     *      => we change the provider mode to not "allEntry"
+                     *      => we link every other metadata of this provider to the CSW
+                     */
+                    Metadata meta = metadataRepository.findByMetadataId(metadataId);
+                    LinkedProvider lp = serviceRepository.isLinkedMetadataProviderAndService(service.getId(), meta.getProviderId());
+                    if (lp != null) {
+                        if (!lp.isAllEntry()) {
+                            metadataRepository.removeDataFromCSW(metadataId, service.getId());
+                        } else {
+                            serviceRepository.linkMetadataProvider(service.getId(), lp.getId(), false);
+                            List<Metadata> metas = metadataRepository.findByProviderId(lp.getId(), "DOC");
+                            for (Metadata m : metas) {
+                                if (!metadataId.equals(m.getMetadataId())) {
+                                    metadataRepository.addMetadataToCSW(m.getMetadataId(), service.getId());
+                                }
+                            }
+                        }
+                        idToremove.add(metadataId);
+                    }
                 }
-                refreshCSWIndex(cswIdentifier, metadataIds, new ArrayList<>());
+                refreshCSWIndex(cswIdentifier, idToremove, new ArrayList<>());
+            } else {
+                throw new ConfigurationException("A metadata can not be unlinked from a non-partial CSW.");
             }
         } else {
             throw new TargetNotFoundException("Unable to find a csw service:" + cswIdentifier);
@@ -997,10 +1048,10 @@ public class MetadataBusiness implements IMetadataBusiness {
     @Override
     @Transactional
     public void deleteFromProvider(int identifier) throws ConstellationException {
-        List<Metadata> metas = metadataRepository.findByProviderId(identifier, null);
-        for (Metadata meta : metas) {
-            deleteMetadata(meta.getId());
-        }
+        deleteMetadata(metadataRepository.findByProviderId(identifier, null)
+                                         .stream()
+                                         .map(m -> m.getId())
+                                         .collect(Collectors.toList()));
     }
 
     /**
@@ -1047,23 +1098,28 @@ public class MetadataBusiness implements IMetadataBusiness {
 
             for (MetadataWithState metadata : metadatas) {
 
-                if (serviceRepository.isLinkedMetadataProviderAndService(service.getId(), metadata.getProviderId())) {
+                LinkedProvider lp = serviceRepository.isLinkedMetadataProviderAndService(service.getId(), metadata.getProviderId());
+                
+                /* Matching case :
+                 * - The CSW take all the system metadata
+                 * - The CSW is partial :
+                 *     -- all the provider's metadata are linked
+                 *     -- the specified metadata is linked
+                 */
+                if (!partial || (partial && lp != null && (lp.isAllEntry() || metadataRepository.isLinkedMetadata(metadata.getId(), service.getId())))) {
 
-                    // if the csw take all the metadata or if the metadata is linked to the service
-                    if (!partial || (partial && metadataRepository.isLinkedMetadata(metadata.getId(), service.getId()))) {
-
-                        if ((!onlyPublished && !metadata.isPreviousHiddenState()) || (onlyPublished && metadata.isPreviousPublishState())) {
-                            identifierToRemove.add(metadata.getMetadataId());
+                    if ((!onlyPublished && !metadata.isPreviousHiddenState()) || (onlyPublished && metadata.isPreviousPublishState())) {
+                        identifierToRemove.add(metadata.getMetadataId());
+                        needRefresh = true;
+                    }
+                    if (update) {
+                        if (!metadata.getIsHidden() && (!onlyPublished || (onlyPublished && metadata.getIsPublished()))) {
+                            identifierToUpdate.add(metadata.getMetadataId());
                             needRefresh = true;
-                        }
-                        if (update) {
-                            if (!metadata.getIsHidden() && (!onlyPublished || (onlyPublished && metadata.getIsPublished()))) {
-                                identifierToUpdate.add(metadata.getMetadataId());
-                                needRefresh = true;
-                            }
                         }
                     }
                 }
+                
             }
             if (needRefresh) {
                 refreshCSWIndex(service.getIdentifier(), identifierToRemove, identifierToUpdate);

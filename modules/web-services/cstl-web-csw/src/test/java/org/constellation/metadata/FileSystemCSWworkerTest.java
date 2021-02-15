@@ -127,7 +127,7 @@ public class FileSystemCSWworkerTest extends CSWworkerTest {
                 configuration.putParameter("transactionSecurized", "false");
 
                 Integer sid = serviceBusiness.create("csw", "default", configuration, null, null);
-                serviceBusiness.linkCSWAndProvider(sid, pr);
+                serviceBusiness.linkCSWAndProvider(sid, pr, true);
 
                 fillPoolAnchor((AnchoredMarshallerPool) pool);
                 Unmarshaller u = pool.acquireUnmarshaller();

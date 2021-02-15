@@ -116,7 +116,7 @@ public class InternalCSWworker3Test extends CSWWorker3Test {
                                         new Contact(), new AccessConstraint(),
                                         true, "eng");
                 Integer sid = serviceBusiness.create("csw", "default", configuration, d, null);
-                serviceBusiness.linkCSWAndProvider(sid, internalPID);
+                serviceBusiness.linkCSWAndProvider(sid, internalPID, true);
 
                 worker = new CSWworker("default");
                 initialized = true;

@@ -124,7 +124,7 @@ public class NetCDFCSWWorker3Test extends CSWWorker3Test {
                                         true, "eng");
 
                 Integer sid = serviceBusiness.create("csw", "default", configuration, d, null);
-                serviceBusiness.linkCSWAndProvider(sid, pr);
+                serviceBusiness.linkCSWAndProvider(sid, pr, true);
 
                 pool = EBRIMMarshallerPool.getInstance();
                 fillPoolAnchor((AnchoredMarshallerPool) pool);

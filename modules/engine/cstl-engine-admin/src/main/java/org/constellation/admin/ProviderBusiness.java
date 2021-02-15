@@ -609,11 +609,14 @@ public class ProviderBusiness implements IProviderBusiness {
 
                 final List<MetadataBrief> metadatas = metadataBusiness.getByProviderId(pr.getId(), "DOC");
                 // Remove no longer existing metadatas.
+                List<Integer> toRemove = new ArrayList<>();
                 for (final MetadataBrief metadata : metadatas) {
                     if (!keys.contains(NamesExt.create(metadata.getFileIdentifier()))) {
-                        metadataBusiness.deleteMetadata(metadata.getId());
+                        toRemove.add(metadata.getId());
                     }
                 }
+                metadataBusiness.deleteMetadata(toRemove);
+
                 // Add not registered new metadata.
                 Set<GenericName> copyKeys = new HashSet<>(keys);
                 for (final GenericName key : copyKeys) {

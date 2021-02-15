@@ -41,6 +41,7 @@ import javax.xml.bind.JAXBException;
 import org.constellation.api.ServiceDef;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.Layer;
+import org.constellation.dto.LinkedProvider;
 import org.constellation.dto.ServiceReference;
 import org.constellation.dto.StringList;
 import org.constellation.dto.service.Service;
@@ -65,6 +66,7 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
     private final Map<Integer, Map<String, String>> extraConfigs = new HashMap<>();
     private final Map<Integer, Service> byMetaProvider = new HashMap<>();
     private final Map<Integer, List<Service>> bySensorProvider = new HashMap<>();
+    private final Map<Integer, List<LinkedProvider>> linkedProviders = new HashMap<>();
 
     @Autowired
     private LayerRepository layerRepository;
@@ -115,14 +117,21 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
 
                     Path servMetaProvDir = getDirectory(SERVICE_X_META_PROV_DIR);
                     try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(servMetaProvDir)) {
-                        for (Path sensorProvFile : directoryStream) {
-                            StringList sensorList = (StringList) getObjectFromPath(sensorProvFile, pool);
-                            String fileName = sensorProvFile.getFileName().toString();
+                        for (Path metaProvFile : directoryStream) {
+                            StringList metaList = (StringList) getObjectFromPath(metaProvFile, pool);
+                            String fileName = metaProvFile.getFileName().toString();
                             Integer providerId = Integer.parseInt(fileName.substring(0, fileName.length() - 4));
                             // only one
                             Service linked = null;
-                            for (Integer servId : getIntegerList(sensorList)) {
+                            for (Integer servId : getIntegerList(metaList)) {
                                 linked = byId.get(servId);
+                                if (linkedProviders.containsKey(servId)) {
+                                    linkedProviders.get(servId).add(new LinkedProvider(providerId, true));// todo handle allEntry
+                                } else {
+                                    List<LinkedProvider> lp = new ArrayList<>();
+                                    lp.add(new LinkedProvider(providerId, true));
+                                    linkedProviders.put(servId, lp);
+                                }
                             }
                             byMetaProvider.put(providerId, linked);
                         }
@@ -543,15 +552,11 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
     ////--------------------------------------------------------------------///
 
     @Override
-    public List<Integer> getLinkedMetadataProvider(int serviceId) {
-        List<Integer> results = new ArrayList<>();
-        for (Integer pid : byMetaProvider.keySet()) {
-            Service s = byMetaProvider.get(pid);
-            if (s.getId() == serviceId) {
-                results.add(pid);
-            }
+    public List<LinkedProvider> getLinkedMetadataProvider(int serviceId) {
+        if (linkedProviders.containsKey(serviceId)) {
+            return linkedProviders.get(serviceId);
         }
-        return results;
+        return new ArrayList<>();
     }
 
     @Override
@@ -560,9 +565,15 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
     }
 
     @Override
-    public boolean isLinkedMetadataProviderAndService(int serviceId, int providerID) {
-        Service s = byMetaProvider.get(providerID);
-        return s != null && s.getId().equals(serviceId);
+    public LinkedProvider isLinkedMetadataProviderAndService(int serviceId, int providerID) {
+        if (linkedProviders.containsKey(serviceId)) {
+            for (LinkedProvider lp : linkedProviders.get(serviceId)) {
+                if (lp.getId().equals(providerID)) {
+                    return lp;
+                }
+            }
+        }
+        return null;
     }
 
     @Override
@@ -587,6 +598,14 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
 
                         // update memory
                         byMetaProvider.put(providerID,  byId.get(serviceId));
+                        if (linkedProviders.containsKey(serviceId)) {
+                            linkedProviders.get(serviceId).add(new LinkedProvider(providerID, true));// todo handle allEntry
+                        } else {
+                            List<LinkedProvider> lp = new ArrayList<>();
+                            lp.add(new LinkedProvider(providerID, true));
+                            linkedProviders.put(serviceId, lp);
+                        }
+
                     }
                 }
             }
@@ -600,6 +619,10 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
 
                 // update memory
                 byMetaProvider.put(providerID, byId.get(serviceId));
+
+                List<LinkedProvider> lp = new ArrayList<>();
+                lp.add(new LinkedProvider(serviceId, true));
+                linkedProviders.put(serviceId, lp);
             }
         } catch (IOException | JAXBException ex) {
             LOGGER.log(Level.WARNING, "Error while linking sensor and service", ex);
@@ -626,6 +649,9 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
                     // update memory
                     byMetaProvider.remove(currentProvId);
                 }
+            }
+            if (linkedProviders.containsKey(serviceId)) {
+                linkedProviders.get(serviceId).clear();
             }
         } catch (IOException | JAXBException ex) {
             LOGGER.log(Level.WARNING, "Error while unlinking metadata providers", ex);

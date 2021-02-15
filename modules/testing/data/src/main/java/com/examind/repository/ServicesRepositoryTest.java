@@ -24,6 +24,7 @@ import java.util.Map;
 import org.constellation.dto.service.Service;
 import org.constellation.repository.ServiceRepository;
 import org.constellation.dto.CstlUser;
+import org.constellation.dto.LinkedProvider;
 import org.constellation.dto.ServiceReference;
 import org.constellation.repository.DataRepository;
 import org.constellation.repository.LayerRepository;
@@ -170,16 +171,16 @@ public class ServicesRepositoryTest extends AbstractRepositoryTest {
         /**
          * metadata provider link.
          */
-        Assert.assertTrue(serviceRepository.isLinkedMetadataProviderAndService(sid2, pid2));
-        Assert.assertFalse(serviceRepository.isLinkedMetadataProviderAndService(sid2, pid3));
+        Assert.assertNotNull(serviceRepository.isLinkedMetadataProviderAndService(sid2, pid2));
+        Assert.assertNull(serviceRepository.isLinkedMetadataProviderAndService(sid2, pid3));
 
-        List<Integer> providers = serviceRepository.getLinkedMetadataProvider(sid2);
+        List<LinkedProvider> providers = serviceRepository.getLinkedMetadataProvider(sid2);
         Assert.assertEquals(1, providers.size());
-        Assert.assertEquals(pid2, providers.get(0));
+        Assert.assertEquals(pid2, providers.get(0).getId());
         Assert.assertEquals(s2, serviceRepository.getLinkedMetadataService(pid2));
 
         serviceRepository.removelinkedMetadataProvider(sid2);
-        Assert.assertFalse(serviceRepository.isLinkedMetadataProviderAndService(sid2, pid2));
+        Assert.assertNull(serviceRepository.isLinkedMetadataProviderAndService(sid2, pid2));
         Assert.assertTrue(serviceRepository.getLinkedMetadataProvider(sid2).isEmpty());
         Assert.assertNull(serviceRepository.getLinkedMetadataService(pid2));
 

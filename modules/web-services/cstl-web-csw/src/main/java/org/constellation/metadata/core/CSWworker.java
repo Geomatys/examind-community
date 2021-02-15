@@ -279,7 +279,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
 
             // legacy
             MetadataConfigurationUpgrade upgrader = new MetadataConfigurationUpgrade();
-            upgrader.upgradeConfiguration(getServiceId());
+            upgrader.upgradeConfiguration(getServiceId(), serviceID);
 
             // we initialize the filterParsers
             init();

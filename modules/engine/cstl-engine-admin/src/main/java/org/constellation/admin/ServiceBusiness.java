@@ -60,6 +60,7 @@ import java.util.Optional;
 import org.constellation.business.ClusterMessage;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IProviderBusiness;
@@ -691,7 +692,7 @@ public class ServiceBusiness implements IServiceBusiness {
     public List<Integer> getCSWLinkedProviders(String identifier) {
         final Integer serviceID = serviceRepository.findIdByIdentifierAndType(identifier, "csw");
         if (serviceID != null) {
-            return serviceRepository.getLinkedMetadataProvider(serviceID);
+            return serviceRepository.getLinkedMetadataProvider(serviceID).stream().map(lp -> lp.getId()).collect(Collectors.toList());
         }
         return null;
     }
@@ -703,10 +704,13 @@ public class ServiceBusiness implements IServiceBusiness {
 
     @Override
     @Transactional
-    public void linkCSWAndProvider(Integer serviceID, Integer providerID) {
+    public void linkCSWAndProvider(Integer serviceID, Integer providerID, boolean allEntry) {
         if (serviceID != null && providerID != null) {
-            if (!serviceRepository.isLinkedMetadataProviderAndService(serviceID, providerID)) {
-                serviceRepository.linkMetadataProvider(serviceID, providerID, true);
+            if (serviceRepository.isLinkedMetadataProviderAndService(serviceID, providerID) == null) {
+                serviceRepository.linkMetadataProvider(serviceID, providerID, allEntry);
+            } else {
+                // update in case the mode "allEntry" has changed
+                serviceRepository.linkMetadataProvider(serviceID, providerID, allEntry);
             }
         }
     }

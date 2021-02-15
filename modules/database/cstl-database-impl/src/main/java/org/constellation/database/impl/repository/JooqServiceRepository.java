@@ -50,6 +50,8 @@ import static org.constellation.database.api.jooq.Tables.SENSORED_DATA;
 import static org.constellation.database.api.jooq.Tables.SERVICE;
 import static org.constellation.database.api.jooq.Tables.SERVICE_DETAILS;
 import static org.constellation.database.api.jooq.Tables.SERVICE_EXTRA_CONFIG;
+import org.constellation.database.api.jooq.tables.pojos.ProviderXCsw;
+import org.constellation.dto.LinkedProvider;
 import org.springframework.context.annotation.DependsOn;
 
 @Component
@@ -392,18 +394,25 @@ public class JooqServiceRepository extends AbstractJooqRespository<ServiceRecord
     }
 
     @Override
-    public List<Integer> getLinkedMetadataProvider(int serviceId) {
-        return dsl.select(PROVIDER_X_CSW.PROVIDER_ID).from(Arrays.asList(PROVIDER_X_CSW))
-                .where(PROVIDER_X_CSW.CSW_ID.eq(serviceId)).fetchInto(Integer.class);
+    public List<LinkedProvider> getLinkedMetadataProvider(int serviceId) {
+        return convertPXCListToDto(dsl.select().from(Arrays.asList(PROVIDER_X_CSW))
+                .where(PROVIDER_X_CSW.CSW_ID.eq(serviceId)).fetchInto(ProviderXCsw.class));
     }
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public void linkMetadataProvider(int serviceId, int providerID, boolean allMetadata) {
-        dsl.insertInto(PROVIDER_X_CSW).set(PROVIDER_X_CSW.CSW_ID, serviceId)
-                                      .set(PROVIDER_X_CSW.PROVIDER_ID, providerID)
-                                      .set(PROVIDER_X_CSW.ALL_METADATA, allMetadata)
+        if (isLinkedMetadataProviderAndService(serviceId, providerID) == null) {
+            dsl.insertInto(PROVIDER_X_CSW).set(PROVIDER_X_CSW.CSW_ID, serviceId)
+                                          .set(PROVIDER_X_CSW.PROVIDER_ID, providerID)
+                                          .set(PROVIDER_X_CSW.ALL_METADATA, allMetadata)
+                                          .execute();
+        } else {
+            dsl.update(PROVIDER_X_CSW).set(PROVIDER_X_CSW.ALL_METADATA, allMetadata)
+                                      .where(PROVIDER_X_CSW.CSW_ID.eq(serviceId))
+                                      .and(PROVIDER_X_CSW.PROVIDER_ID.eq(providerID))
                                       .execute();
+        }
     }
 
     @Override
@@ -426,11 +435,12 @@ public class JooqServiceRepository extends AbstractJooqRespository<ServiceRecord
     }
 
     @Override
-    public boolean isLinkedMetadataProviderAndService(int serviceId, int providerID) {
-        return dsl.selectCount().from(PROVIDER_X_CSW)
+    public LinkedProvider isLinkedMetadataProviderAndService(int serviceId, int providerID) {
+        return convertIntoPXCDto(dsl
+                .select().from(PROVIDER_X_CSW)
                 .where(PROVIDER_X_CSW.PROVIDER_ID.eq(providerID))
                 .and(PROVIDER_X_CSW.CSW_ID.eq(serviceId))
-                .fetchOne(0, Integer.class) > 0;
+                .fetchOneInto( ProviderXCsw.class));
     }
 
     @Override
@@ -459,6 +469,21 @@ public class JooqServiceRepository extends AbstractJooqRespository<ServiceRecord
             serviceDTO.setVersions(service.getVersions());
             serviceDTO.setImpl(service.getImpl());
             return serviceDTO;
+        }
+        return null;
+    }
+
+    private List<LinkedProvider> convertPXCListToDto(List<org.constellation.database.api.jooq.tables.pojos.ProviderXCsw> daos) {
+        List<LinkedProvider> results = new ArrayList<>();
+        for (org.constellation.database.api.jooq.tables.pojos.ProviderXCsw dao : daos) {
+            results.add(convertIntoPXCDto(dao));
+        }
+        return results;
+    }
+
+    private LinkedProvider convertIntoPXCDto(final org.constellation.database.api.jooq.tables.pojos.ProviderXCsw pxc) {
+        if (pxc != null) {
+            return new LinkedProvider(pxc.getProviderId(), pxc.getAllMetadata());
         }
         return null;
     }

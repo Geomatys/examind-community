@@ -70,7 +70,7 @@ public class MetadataConfigurationUpgrade {
         SpringHelper.injectDependencies(this);
     }
 
-    public void upgradeConfiguration(final Integer id) throws ConfigurationException {
+    public void upgradeConfiguration(final Integer id, final String identifier) throws ConfigurationException {
 
         Lock lock = clusterBusiness.acquireLock("upgrade-csw-configuration");
         lock.lock();
@@ -117,7 +117,7 @@ public class MetadataConfigurationUpgrade {
                         }
 
                         if (candidatePID == null) {
-                            final String providerIdentifier = UUID.randomUUID().toString();
+                            final String providerIdentifier = "csw-" + identifier + "-" + UUID.randomUUID().toString();
                             final DataProviderFactory factory = DataProviders.getFactory("metadata-store");
                             final ParameterValueGroup sourcef = factory.getProviderDescriptor().createValue();
                             sourcef.parameter("id").setValue(providerIdentifier);
@@ -147,7 +147,7 @@ public class MetadataConfigurationUpgrade {
                         protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
                             try {
                                 serviceBusiness.setConfiguration(id, config);
-                                serviceBusiness.linkCSWAndProvider(id, providerID);
+                                serviceBusiness.linkCSWAndProvider(id, providerID, true);
                             } catch (ConfigurationException ex) {
                                 LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
                             }

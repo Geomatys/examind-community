@@ -65,15 +65,17 @@ public interface MetadataRepository extends AbstractRepository {
      */
     List<String> findByTitlePrefix(String title);
 
-    List<String> findMetadataIDByCswId(final Integer id, final boolean includeService, final boolean onlyPublished, final String type, final Boolean hidden);
+    List<String> findMetadataIDByCswId(final Integer serviceID, final boolean includeService, final boolean onlyPublished, final String type, final Boolean hidden);
 
-    List<String> findMetadataIDByProviderId(final Integer id, final boolean includeService, final boolean onlyPublished, final String type, final Boolean hidden);
+    List<String> findMetadataIDByProviderId(final Integer providerID, final boolean includeService, final boolean onlyPublished, final String type, final Boolean hidden);
+    
+    List<String> findLinkedMetadataID(final Integer serviceID, final Integer providerID, final boolean includeService, final boolean onlyPublished, final String type, final Boolean hidden);
 
-    int countMetadataByCswId(final Integer id, final boolean includeService, final boolean onlyPublished, final String type, final Boolean hidden);
+    int countLinkedMetadata(final Integer serviceId, final Integer providerId, final boolean includeService, final boolean onlyPublished, final String type, final Boolean hidden);
 
     int countMetadataByProviderId(final Integer id, final boolean includeService, final boolean onlyPublished, final String type, final Boolean hidden);
 
-    List<String> findMetadataID(final boolean includeService, final boolean onlyPublished, final Integer providerId, final String type);
+    List<String> findMetadataID(final boolean includeService, final boolean onlyPublished, final Integer providerId, final String type, final Boolean hidden);
 
     int countMetadata(final boolean includeService, final boolean onlyPublished, final Integer providerID, final String type);
 
