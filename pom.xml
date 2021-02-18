@@ -52,7 +52,7 @@
         <hazelcast.version>3.5.4</hazelcast.version>
         <hsql.version>2.5.0</hsql.version>
         <httpclient.version>4.5.10</httpclient.version><!-- neccesary for json style build ucar related issue -->
-        <jackson.version>2.10.3</jackson.version>
+        <jackson.version>2.12.1</jackson.version>
         <javax.annotation-api.version>1.2</javax.annotation-api.version>
         <javax.el.version>2.2</javax.el.version>
         <javax.inject.version>2.3.0-b10</javax.inject.version>
