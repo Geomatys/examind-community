@@ -99,6 +99,8 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
 
     private final char delimiter;
 
+    private final char quotechar;
+
     
     /**
      * Act as a single sensor ID if no procedureColumn is supplied.
@@ -131,13 +133,14 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
      * @throws DataStoreException
      * @throws MalformedURLException
      */
-    public CsvCoriolisObservationStore(final Path observationFile, final char separator, final FeatureType featureType,
+    public CsvCoriolisObservationStore(final Path observationFile, final char separator, final char quotechar, final FeatureType featureType,
                                        final String mainColumn, final String dateColumn, final String dateTimeformat, final String longitudeColumn, final String latitudeColumn,
                                        final Set<String> measureColumns, String observationType, String foiColumn, final String procedureId, final String procedureColumn,
                                        final boolean extractUom, final String valueColumn, final Set<String> codeColumns, final String typeColumn) throws DataStoreException, MalformedURLException {
         super(observationFile, separator, featureType);
         dataFile = observationFile;
         this.delimiter = separator;
+        this.quotechar = quotechar;
         this.mainColumn = mainColumn;
         this.dateColumn = dateColumn;
         this.dateFormat = dateTimeformat;
@@ -185,7 +188,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
 
         final Set<GenericName> result = new HashSet();
         // open csv file
-        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), delimiter, '"')) { // TODO : replace '"' by an input.
+        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), delimiter, quotechar)) {
 
             final Iterator<String[]> it = reader.iterator();
 
@@ -254,7 +257,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
         final String fileName = dataFile.getFileName().toString();
         
         // open csv file with a delimiter set as process SosHarvester input.
-        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), delimiter, '"')) { // TODO : replace '"' by an input.
+        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), delimiter, quotechar)) {
 
             final Iterator<String[]> it = reader.iterator();
 

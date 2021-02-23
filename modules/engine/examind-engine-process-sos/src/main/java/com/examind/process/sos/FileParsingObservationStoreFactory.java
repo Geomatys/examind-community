@@ -115,6 +115,10 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
             .setRequired(false)
             .create(String.class, null);
 
+    public static final ParameterDescriptor<String> CHARQUOTE = PARAM_BUILDER
+            .addName("char quote")
+            .setRequired(false)
+            .create(String.class, null);
 
     @Override
     public DataStore open(StorageConnector sc) throws DataStoreException {

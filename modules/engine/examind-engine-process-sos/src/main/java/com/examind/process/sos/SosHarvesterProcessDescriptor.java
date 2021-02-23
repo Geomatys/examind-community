@@ -247,9 +247,17 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(false)
             .create(String.class, null);
 
+    public static final String CHARQUOTE_NAME = "quote character";
+    public static final String CHARQUOTE_DESC = "quote character";
+    public static final ParameterDescriptor<String> CHARQUOTE = PARAM_BUILDER
+            .addName(CHARQUOTE_NAME)
+            .setRemarks(CHARQUOTE_DESC)
+            .setRequired(false)
+            .create(String.class, null);
+
     public static final ParameterDescriptorGroup INPUT_DESC =
             PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, REMOTE_READ, SERVICE_ID, DATASET_IDENTIFIER, PROCEDURE_ID, PROCEDURE_COLUMN, OBS_TYPE,
-                    SEPARATOR, MAIN_COLUMN, Z_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, MEASURE_COLUMNS, REMOVE_PREVIOUS, EXTRACT_UOM,
+                    SEPARATOR, CHARQUOTE, MAIN_COLUMN, Z_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, MEASURE_COLUMNS, REMOVE_PREVIOUS, EXTRACT_UOM,
                     STORE_ID, FORMAT, VALUE_COLUMN, CODE_COLUMN, TYPE_COLUMN);
 
     public static final String FILE_INSERTED_NAME = "Files inserted number";

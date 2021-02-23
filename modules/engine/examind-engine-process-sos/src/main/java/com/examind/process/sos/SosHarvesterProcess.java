@@ -151,6 +151,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final boolean removePrevious = inputParameters.getValue(REMOVE_PREVIOUS);
 
         final String separator = inputParameters.getValue(SEPARATOR);
+        final String charQuote = inputParameters.getValue(CHARQUOTE);
         final String mainColumn = inputParameters.getValue(MAIN_COLUMN);
         final String dateColumn = inputParameters.getValue(DATE_COLUMN);
         final String dateFormat = inputParameters.getValue(DATE_FORMAT);
@@ -303,7 +304,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             storeParams.propertyToMap(provConfig.getParameters());
 
             provConfig.getParameters().put(CSVProvider.SEPARATOR.getName().toString(), separator);
-            //provConfig.getParameters().put(FileParsingObservationStoreFactory.DELIMITER.getName().toString(), delimiter);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.CHARQUOTE.getName().toString(), charQuote);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.MAIN_COLUMN.getName().toString(), mainColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.DATE_COLUMN.getName().toString(), dateColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.DATE_FORMAT.getName().toString(), dateFormat);

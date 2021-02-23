@@ -83,7 +83,7 @@ public class CsvCoriolisObservationStoreFactory extends FileParsingObservationSt
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR
             = PARAM_BUILDER.addName(NAME).addName("ObservationCsvCoriolisFileParameters").createGroup(IDENTIFIER, NAMESPACE, CSVProvider.PATH, CSVProvider.SEPARATOR,
                     MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, MEASURE_COLUMNS, MEASURE_COLUMNS_SEPARATOR, FOI_COLUMN, OBSERVATION_TYPE,
-                    PROCEDURE_ID, PROCEDURE_COLUMN, EXTRACT_UOM, VALUE_COLUMN, CODE_COLUMN, TYPE_COLUMN);
+                    PROCEDURE_ID, PROCEDURE_COLUMN, EXTRACT_UOM, VALUE_COLUMN, CODE_COLUMN, TYPE_COLUMN, CHARQUOTE);
 
 
     private static ParameterDescriptorGroup parameters(final String name, final int minimumOccurs) {
@@ -110,6 +110,11 @@ public class CsvCoriolisObservationStoreFactory extends FileParsingObservationSt
 
         final URI uri = (URI) params.parameter(CSVProvider.PATH.getName().toString()).getValue();
         final char separator = (Character) params.parameter(CSVProvider.SEPARATOR.getName().toString()).getValue();
+        final String quotecharString = (String) params.parameter(CHARQUOTE.getName().toString()).getValue();
+        char quotechar = 0;
+        if (quotecharString != null) {
+            quotechar = quotecharString.charAt(0);
+        }
         final String mainColumn = (String) params.parameter(MAIN_COLUMN.getName().toString()).getValue();
         final String dateColumn = (String) params.parameter(DATE_COLUMN.getName().toString()).getValue();
         final String dateFormat = (String) params.parameter(DATE_FORMAT.getName().toString()).getValue();
@@ -130,7 +135,7 @@ public class CsvCoriolisObservationStoreFactory extends FileParsingObservationSt
         final String typeColumn = (String) params.parameter(TYPE_COLUMN.getName().toString()).getValue();
         try {
             return new CsvCoriolisObservationStore(Paths.get(uri),
-                    separator, readType(uri, separator, dateColumn, longitudeColumn, latitudeColumn, measureColumns),
+                    separator, quotechar, readType(uri, separator, dateColumn, longitudeColumn, latitudeColumn, measureColumns),
                     mainColumn, dateColumn, dateFormat, longitudeColumn, latitudeColumn, measureColumns, observationType,
                     foiColumn, procedureId, procedureColumn, extractUom, valueColumn, codeColumns, typeColumn);
         } catch (IOException ex) {
