@@ -17,6 +17,7 @@
 package com.examind.process.sos;
 
 import org.apache.sis.parameter.ParameterBuilder;
+import org.geotoolkit.data.csv.CSVProvider;
 import org.geotoolkit.processing.AbstractProcessDescriptor;
 import org.geotoolkit.process.Process;
 import org.geotoolkit.process.ProcessDescriptor;
@@ -112,8 +113,16 @@ public class HarvesterPreProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(false)
             .create(String.class, null);
 
+    public static final String SEPARATOR_NAME = CSVProvider.SEPARATOR.getName().getCode();
+    public static final String SEPARATOR_DESC = CSVProvider.SEPARATOR.getName().getCode();
+    public static final ParameterDescriptor<String> SEPARATOR = PARAM_BUILDER
+            .addName(SEPARATOR_NAME)
+            .setRemarks(SEPARATOR_DESC)
+            .setRequired(true)
+            .create(String.class, ",");
+
     public static final ParameterDescriptorGroup INPUT_DESC =
-            PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, OBS_TYPE, TASK_NAME, FORMAT, VALUE_COLUMN, CODE_COLUMN, TYPE_COLUMN);
+            PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, OBS_TYPE, TASK_NAME, FORMAT, VALUE_COLUMN, CODE_COLUMN, TYPE_COLUMN, SEPARATOR);
 
     public static final String PROCESS_ID_NAME = "process.id";
     private static final String PROCESS_ID_REMARKS = "The assigned identifier of the deployed process.";

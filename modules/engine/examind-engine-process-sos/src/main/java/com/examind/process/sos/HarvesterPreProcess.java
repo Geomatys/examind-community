@@ -97,6 +97,7 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         final String valueColumn    = inputParameters.getValue(HarvesterPreProcessDescriptor.VALUE_COLUMN);
         final String codeColumn     = inputParameters.getValue(HarvesterPreProcessDescriptor.CODE_COLUMN);
         final String typeColumn     = inputParameters.getValue(HarvesterPreProcessDescriptor.TYPE_COLUMN);
+        final String separator      = inputParameters.getValue(HarvesterPreProcessDescriptor.SEPARATOR);
         final Set<String> codes = new HashSet<>();
 
         if (format == null) {
@@ -218,7 +219,7 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         final Parameter PCparam = new Parameter(PROCEDURE_COLUMN_NAME, String.class, PROCEDURE_COLUMN_DESC, PROCEDURE_COLUMN_DESC, 0, 1, null, headers);
         inputs.add(PCparam);
 
-        final Parameter SPparam = new Parameter(SEPARATOR_NAME, String.class, SEPARATOR_DESC, SEPARATOR_DESC, 1, 1, ",");
+        final Parameter SPparam = new Parameter(SEPARATOR_NAME, String.class, SEPARATOR_DESC, SEPARATOR_DESC, 1, 1, separator);
         inputs.add(SPparam);
 
         String defaultMainCol = null;
