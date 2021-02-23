@@ -54,6 +54,7 @@ import org.constellation.dto.importdata.FileBean;
 import org.constellation.dto.ProviderConfiguration;
 import org.constellation.dto.importdata.ResourceStoreAnalysisV3;
 import org.constellation.dto.importdata.StoreFormat;
+import org.constellation.exception.ConstellationException;
 import org.constellation.process.data.ImportDataDescriptor;
 import org.constellation.util.ParamUtilities;
 import org.constellation.util.Util;
@@ -81,6 +82,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
+ * Various API related to datasource management.
+ * 
  * @author Guilhem Legal (Geomatys)
  */
 @RestController
@@ -92,6 +95,12 @@ public class DatasourceRestAPI extends AbstractRestAPI {
     @Inject
     private IProcessBusiness processBusiness;
 
+    /**
+     * Return the {@link DataSource} with the specified id.
+     *
+     * @param id The {@link DataSource} id.
+     * @return The {@link DataSource} or {@code null} if the datasource does not exist.
+     */
     @RequestMapping(value = "/datasources/{id}", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getDatasource(@PathVariable("id") int id) {
         try {
@@ -102,6 +111,12 @@ public class DatasourceRestAPI extends AbstractRestAPI {
         }
     }
 
+    /**
+     * Create a new {@link DataSource}.
+     *
+     * @param ds The {@link DataSource} to store in the system.
+     * @return The assigned datasource id.
+     */
     @RequestMapping(value = "/datasources", method = POST, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity create(@RequestBody final DataSource ds) {
         try {
@@ -119,6 +134,12 @@ public class DatasourceRestAPI extends AbstractRestAPI {
         }
     }
 
+    /**
+     * Update the {@link DataSource} identifier by {@link DataSource#getId()}
+     * 
+     * @param ds The {@link DataSource} to update.
+     * @return
+     */
     @RequestMapping(value = "/datasources", method = PUT, consumes = APPLICATION_JSON_VALUE)
     public ResponseEntity update(@RequestBody final DataSource ds) {
         try {
@@ -130,6 +151,12 @@ public class DatasourceRestAPI extends AbstractRestAPI {
         }
     }
 
+    /**
+     * Remove the {@link DataSource} with the specified id.
+     *
+     * @param id The {@link DataSource} id.
+     * @return 
+     */
     @RequestMapping(value = "/datasources/{id}", method = DELETE)
     public ResponseEntity deleteDatasource(@PathVariable("id") int id) {
         try {
@@ -141,6 +168,14 @@ public class DatasourceRestAPI extends AbstractRestAPI {
         }
     }
 
+    /**
+     * Test if the url pointed by the specified {@link DataSource} is reachable.
+     * The datasource does not have to be recorded in the system to test it.
+     *
+     * @param ds The {@link DataSource} to test.
+     * @param response
+     * @return
+     */
     @RequestMapping(value = "/datasources/test", method = POST, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity testDatasource(@RequestBody final DataSource ds,  HttpServletResponse response) {
         try {
@@ -152,6 +187,13 @@ public class DatasourceRestAPI extends AbstractRestAPI {
         }
     }
 
+    /**
+     * Upload a file into the specified {@link DataSource}.
+     * 
+     * @param id The {@link DataSource} id.
+     * @param uploadedFile a file to upload on the service.
+     * @return
+     */
     @RequestMapping(value = "/datasources/{id}/upload", method = POST, consumes = MULTIPART_FORM_DATA_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity uploadDatasourceFile(@PathVariable("id") int id, @RequestParam("file") MultipartFile uploadedFile) {
         try {
@@ -181,6 +223,48 @@ public class DatasourceRestAPI extends AbstractRestAPI {
         }
     }
 
+    /**
+     * Remove the specified file in the specified {@link DataSource}.
+     *
+     * @param id The {@link DataSource} id.
+     * @param file The file path to remove from the datasource.
+     * @return
+     */
+    @RequestMapping(value = "/datasources/{id}/remove", method = DELETE, produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity removeDatasourceFile(@PathVariable("id") int id, @RequestParam("file") String file) {
+        try {
+            // 1. retrieve the upload directory
+            final DataSource ds = datasourceBusiness.getDatasource(id);
+            final Path dsDirectory = Paths.get(new URI(ds.getUrl()));
+
+            // 2. remove file to upload directory
+            final Path newFile = dsDirectory.resolve(file);
+            if (Files.exists(newFile)) {
+                IOUtilities.deleteRecursively(newFile);
+            } else {
+                throw new ConstellationException("The specified file does not exist in the datasource.");
+            }
+
+            // 3. reset the analyse state
+            datasourceBusiness.updateDatasourceAnalysisState(id, IDatasourceBusiness.AnalysisState.NOT_STARTED.name());
+
+            return new ResponseEntity(OK);
+        } catch (Throwable ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
+    }
+
+    /**
+     * Upload the specified distant file (pointed by an url) and build a new {@link DataSource}.
+     * Support Basic authentication when username/pwd are supplied.
+     * 
+     * @param distantFile An url pointing to an online file.
+     * @param userName Optional Basic authentication username.
+     * @param pwd Optional Basic authentication password.
+     * 
+     * @return The assigned datasource id.
+     */
     @RequestMapping(value = "/datasources/upload/distant", method = POST, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity uploadDatasourceDistantFile(@RequestParam("url") String distantFile,
             @RequestParam(name = "user", required = false) String userName, @RequestParam(name = "pwd", required = false) String pwd) {
@@ -224,8 +308,20 @@ public class DatasourceRestAPI extends AbstractRestAPI {
         }
     }
 
+    /**
+     * Upload the specified distant file (pointed by an url) into a {@link DataSource}.
+     * Support Basic authentication when username/pwd are supplied.
+     *
+     * @param id The {@link DataSource} id.
+     * @param distantFile An url pointing to an online file.
+     * @param userName Optional Basic authentication username.
+     * @param pwd Optional Basic authentication password.
+     *
+     * @return 
+     */
     @RequestMapping(value = "/datasources/{id}/upload/distant", method = POST, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity uploadDatasourceDistantFile(@PathVariable("id") int id, @RequestParam("url") String distantFile) {
+    public ResponseEntity uploadDatasourceDistantFile(@PathVariable("id") int id, @RequestParam("url") String distantFile,
+            @RequestParam(name = "user", required = false) String userName, @RequestParam(name = "pwd", required = false) String pwd) {
         try {
             // 1. retrieve the upload directory
             final DataSource ds = datasourceBusiness.getDatasource(id);
@@ -245,7 +341,14 @@ public class DatasourceRestAPI extends AbstractRestAPI {
             }
 
             final URL url = new URL(distantFile);
-            try (InputStream in = url.openStream()) {
+            URLConnection conn = url.openConnection();
+            if (userName != null && !userName.isEmpty() && pwd != null && !pwd.isEmpty()) {
+                String user_pass = userName + ":" + pwd;
+                String encoded = Base64.getEncoder().encodeToString(user_pass.getBytes());
+                conn.setRequestProperty("Authorization", "Basic " + encoded);
+            }
+
+            try (InputStream in = conn.getInputStream()) {
                 Files.copy(in, newFile, StandardCopyOption.REPLACE_EXISTING);
 
                 // 2.1 unzip if needed
@@ -265,6 +368,14 @@ public class DatasourceRestAPI extends AbstractRestAPI {
         }
     }
 
+    /**
+     * Explore a {@link DataSource} from the specified sub path (default "/").
+     * return a list of {@link FileBean} for each file in the pointed directory.
+     *
+     * @param id The {@link DataSource} id.
+     * @param path Sub path to explore (default "/"). Must point to a directory.
+     * @return
+     */
     @RequestMapping(value = "/datasources/{id}/explore", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity explore(@PathVariable("id") int id, @RequestParam(name = "path", required = false, defaultValue = "/") String path) {
         try {
@@ -275,6 +386,19 @@ public class DatasourceRestAPI extends AbstractRestAPI {
         }
     }
 
+    /**
+     * Perform an analysis on each file a {@link DataSource}.
+     * If deep is set to false, perform it only in the first level.
+     * If async is set to true, this method wil return an empty results, and perform the analysis operation in background.
+     *
+     * Then return a list of {@link StoreFormat} detected in the datasource.
+     *
+     * @param id The {@link DataSource} id.
+     * @param async Asynchrous mode, default to {@code false}
+     * @param deep Deep mode, default to {@code false}
+     * 
+     * @return A list of {@link StoreFormat} detected in the datasource, or an empty result if set to asynchrous.
+     */
     @RequestMapping(value = "/datasources/{id}/stores", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getDatasourceStores(@PathVariable("id") int id, @RequestParam(name = "async", required = false, defaultValue = "false") Boolean async,
                                                @RequestParam(name = "deep", required = false, defaultValue = "false") Boolean deep) {
@@ -293,6 +417,19 @@ public class DatasourceRestAPI extends AbstractRestAPI {
         }
     }
 
+    /**
+     * Return the {@link AnalysisState} of the specified {@link DataSource}.
+     *
+     * return values are :
+     *  - PENDING
+     *  - COMPLETED
+     *  - NOT_STARTED
+     *  - ERROR
+     * 
+     * @param id The {@link DataSource} id.
+     * @param response
+     * @return return the current state of analysis of the datasource.
+     */
     @RequestMapping(value = "/datasources/{id}/analysis/state", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getDatasourceAnalysisState(@PathVariable("id") int id,  HttpServletResponse response) {
         try {
@@ -304,6 +441,16 @@ public class DatasourceRestAPI extends AbstractRestAPI {
         }
     }
 
+    /**
+     * Return the result of the {@link DataSource} analysis.
+     * Combined with the specified store params it will return a list of stores and resources,
+     * for each selected file, that can be integrated as data by Examind.
+     *
+     * @param id The {@link DataSource} id.
+     * @param storeParams Datastore parameters to apply to the matching files candidates of the datasource.
+     * 
+     * @return a List of store and resources.
+     */
     @RequestMapping(value = "/datasources/{id}/analysisV3", method = POST, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getDatasourceAnalysisV3(@PathVariable("id") int id, @RequestBody final DataCustomConfiguration.Type storeParams) {
         try {
@@ -318,6 +465,18 @@ public class DatasourceRestAPI extends AbstractRestAPI {
         }
     }
 
+    /**
+     * Return a sampled result of the {@link DataSource} analysis.
+     * Combined with the specified store params it will return a list of stores and resources,
+     * for (some) selected file, that can be integrated as data by Examind.
+     *
+     * The result will be limited to the first 5 file encountered.
+     *
+     * @param id The {@link DataSource} id.
+     * @param storeParams Datastore parameters to apply to the matching files candidates of the datasource.
+     *
+     * @return a limited (5 at most) List of store and resources.
+     */
     @RequestMapping(value = "/datasources/{id}/analysis/sample", method = POST, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getDatasourceAnalysisSample(@PathVariable("id") int id, @RequestBody final DataCustomConfiguration.Type storeParams) {
         try {
@@ -341,6 +500,14 @@ public class DatasourceRestAPI extends AbstractRestAPI {
         }
     }
 
+    /**
+     * Launch the complete "Import Data" process in batch mode.
+     *
+     * @param id The {@link DataSource} id.
+     * @param params All the parameters required for an import data.
+     * @param req
+     * @return
+     */
     @RequestMapping(value = "/datasources/{id}/analysis/batch", method = POST, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getDatasourceAnalysisBatch(@PathVariable("id") int id, @RequestBody final BatchAnalysis params, HttpServletRequest req) {
         try {
@@ -384,6 +551,13 @@ public class DatasourceRestAPI extends AbstractRestAPI {
         }
     }
 
+    /**
+     * Record the files selection within the {@link DataSource} that we want to integrated
+     *
+     * @param id The {@link DataSource} id.
+     * @param paths A list of {@link FileBean} we want to be integrated.
+     * @return
+     */
     @RequestMapping(value = "/datasources/{id}/selectedPath", method = POST, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity setSelectedPaths(@PathVariable("id") int id, @RequestBody List<FileBean> paths) {
         try {
