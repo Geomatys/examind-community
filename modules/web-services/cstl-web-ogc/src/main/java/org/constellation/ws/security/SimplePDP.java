@@ -47,9 +47,9 @@ public final class SimplePDP {
 
     /**
      * Engine that will launch the evaluation of the rule.
-     */
+     
     private static final ScriptEngine SCRIPT_ENGINE =
-            new ScriptEngineManager().getEngineByName("JavaScript");
+            new ScriptEngineManager().getEngineByName("JavaScript");*/
 
     /**
      * The rule to decide whether a request should be accepted or not.
@@ -76,11 +76,13 @@ public final class SimplePDP {
     public boolean isAuthorized(final String ip, final String referer) {
         final String toEvaluate = replaceVariablesInRule(ip, referer);
         boolean result = false;
+        /*
+         TODO find a JDK15 compliant way to do this if we want to keep it.
         try {
             result = (Boolean)SCRIPT_ENGINE.eval(toEvaluate);
         } catch (ScriptException ex) {
             LOGGER.log(Level.INFO, "Error trying to evaluate the expression :"+ result, ex);
-        }
+        }*/
         return result;
     }
 

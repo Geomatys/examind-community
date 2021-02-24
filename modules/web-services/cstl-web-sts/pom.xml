@@ -17,7 +17,6 @@
     <description>
         HTTP service facade for an OGC Sensor Things service.
     </description>
-
     <dependencies>
         <dependency>
             <groupId>com.examind.community</groupId>

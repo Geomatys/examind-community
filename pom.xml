@@ -35,8 +35,8 @@
         <examind.services.packages>all</examind.services.packages>
 
         <!-- associated projects dependencies -->
-        <sis.build.helper.version>0.8</sis.build.helper.version>    <!-- Modified by JDK9 profile. -->
-
+        <sis.build.helper.version>${sis.version}</sis.build.helper.version>
+        
         <!-- third party dependencies versions -->
         <codahale.metrics.version>3.0.1</codahale.metrics.version>
         <commons-io.version>2.7</commons-io.version>
@@ -76,6 +76,10 @@
         <woodstox.version>4.1.2</woodstox.version>
         <xstream.version>1.4.18</xstream.version>
         <log4j.version>2.16.0</log4j.version>
+        <!-- @{argLine} necessary for jacoco generation, we must declare
+         an empty property to avoid a surefire exception if we run any other
+         maven phase which doesn't activate jacoco -->
+        <argLine></argLine>
     </properties>
 
     <!--
@@ -271,33 +275,6 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <profiles>
-        <profile>
-            <id>JDK9</id>
-            <activation>
-                <jdk>[1.9,)</jdk>
-            </activation>
-            <properties>
-                <sis.build.helper.version>${sis.version}</sis.build.helper.version>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                        <configuration>
-                            <release>8</release>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 
     <dependencyManagement>
         <dependencies>
@@ -1277,7 +1254,7 @@
                         <configuration>
                             <rules>
                                 <requireJavaVersion>
-                                    <version>1.8</version>
+                                    <version>17</version>
                                 </requireJavaVersion>
                                 <dependencyConvergence/>
                                 <bannedDependencies>
@@ -1295,6 +1272,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
+                    <release>8</release>
                     <source>1.8</source>        <!-- The -source argument for the Java compiler.   -->
                     <target>1.8</target>        <!-- The -target argument for the Java compiler.   -->
                     <debug>true</debug>         <!-- Whether to include debugging information.     -->
@@ -1347,7 +1325,14 @@
                     <systemPropertyVariables>
                         <spring.profiles.active>${spring.profiles.active}</spring.profiles.active>
                     </systemPropertyVariables>
-                </configuration>
+                    <!-- Required by JAI codec plugins. -->
+                    <argLine>
+                      <!-- @{argLine} necessary for jacoco generation, because we added more parameters -->
+                      @{argLine}
+                      --add-opens java.base/sun.security.action=ALL-UNNAMED
+                      --add-opens java.desktop/sun.awt.image=ALL-UNNAMED
+                    </argLine>
+                  </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.sis.core</groupId>

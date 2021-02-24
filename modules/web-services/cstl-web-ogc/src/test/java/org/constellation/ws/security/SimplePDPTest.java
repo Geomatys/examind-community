@@ -18,7 +18,7 @@
  */
 package org.constellation.ws.security;
 
-import org.junit.Test;
+import org.junit.Ignore;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -42,8 +42,8 @@ public class SimplePDPTest {
     /**
      * Verify the IP address fields in the rule.
      */
-    @Test
-    public void isAuthorizedRule1Test() {
+    @Ignore
+    public void isAuthorizedRule1Ignore() {
         final SimplePDP pdp = new SimplePDP(RULE1);
         assertTrue(pdp.isAuthorized("127.0.0.1", ""));
     }
@@ -51,8 +51,8 @@ public class SimplePDPTest {
     /**
      * Ensures a bad IP address makes the PDP return {@code false}.
      */
-    @Test
-    public void isNotAuthorizedRule1Test() {
+    @Ignore
+    public void isNotAuthorizedRule1Ignore() {
         final SimplePDP pdp = new SimplePDP(RULE1);
         assertFalse(pdp.isAuthorized("17.15.25.3", "test"));
     }
@@ -60,8 +60,8 @@ public class SimplePDPTest {
     /**
      * Verify both IP address and referer fields.
      */
-    @Test
-    public void isAuthorizedRule2Test() {
+    @Ignore
+    public void isAuthorizedRule2Ignore() {
         final SimplePDP pdp = new SimplePDP(RULE2);
         assertTrue(pdp.isAuthorized("127.0.0.1", "http://localhost:8080/en/test/constellation"));
     }
@@ -69,8 +69,8 @@ public class SimplePDPTest {
     /**
      * Ensures that a referer url which is not contained in the rule makes the PDP return {@code false}.
      */
-    @Test
-    public void isNotAuthorizedRule2Test() {
+    @Ignore
+    public void isNotAuthorizedRule2Ignore() {
         final SimplePDP pdp = new SimplePDP(RULE2);
         assertFalse(pdp.isAuthorized("127.0.0.1", "http://localhost:8080/fr/test"));
     }
@@ -78,8 +78,8 @@ public class SimplePDPTest {
     /**
      * Verify the IP address and that the referer url is contained in the rule.
      */
-    @Test
-    public void isAuthorizedRule3Test() {
+    @Ignore
+    public void isAuthorizedRule3Ignore() {
         final SimplePDP pdp = new SimplePDP(RULE3);
         assertTrue(pdp.isAuthorized("17.15.25.3", "http://localhost:8080/fr/web/guest/test"));
     }
@@ -87,8 +87,8 @@ public class SimplePDPTest {
     /**
      * Ensures that a referer url which is not contained in the rule makes the PDP return {@code false}.
      */
-    @Test
-    public void isNotAuthorizedRule3Test() {
+    @Ignore
+    public void isNotAuthorizedRule3Ignore() {
         final SimplePDP pdp = new SimplePDP(RULE3);
         assertFalse(pdp.isAuthorized("17.15.25.3", "http://localhost:8080/fr/web/guest/test2"));
     }

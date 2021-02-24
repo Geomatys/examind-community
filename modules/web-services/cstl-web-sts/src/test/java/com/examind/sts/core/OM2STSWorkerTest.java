@@ -79,6 +79,7 @@ import org.geotoolkit.sts.json.STSCapabilities;
 import org.geotoolkit.sts.json.STSResponse;
 import org.geotoolkit.sts.json.SensorsResponse;
 import org.geotoolkit.sts.json.UnitOfMeasure;
+import org.geotoolkit.util.DeltaComparable;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -223,7 +224,8 @@ public class OM2STSWorkerTest {
                 .iotSelfLink("http://test.geomatys.com/sts/default/FeaturesOfInterest(station-001)")
                 .observationsIotNavigationLink("http://test.geomatys.com/sts/default/FeaturesOfInterest(station-001)/Observations")
                 .feature(feature);
-        Assert.assertEquals(expResult, result);
+        Assert.assertTrue(DeltaComparable.equals(expResult.getFeature(), result.getFeature(), 0.0001f));
+        Assert.assertTrue(DeltaComparable.equals(expResult, result, 0.0001f));
 
         /*
          * expand observations
@@ -387,10 +389,10 @@ public class OM2STSWorkerTest {
 
         Assert.assertEquals(expResult.getDatastream().getPhenomenonTime(), result.getDatastream().getPhenomenonTime());
         Assert.assertNotNull(result.getDatastream());
-        Assert.assertEquals(expResult.getDatastream().getIotId(), result.getDatastream().getIotId());
-        Assert.assertEquals(expResult.getDatastream(), result.getDatastream());
-        Assert.assertEquals(expResult.getFeatureOfInterest(), result.getFeatureOfInterest());
-        Assert.assertEquals(expResult, result);
+        Assert.assertTrue(DeltaComparable.equals(expResult.getDatastream().getObservedArea(), result.getDatastream().getObservedArea(), 0.0001f));
+        Assert.assertTrue(DeltaComparable.equals(expResult.getDatastream(), result.getDatastream(), 0.0001f));
+        Assert.assertTrue(DeltaComparable.equals(expResult.getFeatureOfInterest(), result.getFeatureOfInterest(), 0.0001f));
+        Assert.assertTrue(DeltaComparable.equals(expResult, result, 0.0001f));
 
        /*
         * http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:304-2-1)/FeaturesOfInterest
@@ -400,7 +402,7 @@ public class OM2STSWorkerTest {
 
         FeatureOfInterestsResponse foiResult = worker.getFeatureOfInterests(gfRequest);
         Assert.assertEquals(1, foiResult.getValue().size());
-        Assert.assertEquals(expFoi, foiResult.getValue().get(0));
+        Assert.assertTrue(DeltaComparable.equals(expFoi, foiResult.getValue().get(0), 0.0001f));
 
        /*
         * http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:304-2-1)/Datastreams
@@ -410,7 +412,7 @@ public class OM2STSWorkerTest {
 
        DatastreamsResponse dsResult = worker.getDatastreams(gdRequest);
        Assert.assertEquals(1, dsResult.getValue().size());
-       Assert.assertEquals(expDatas, dsResult.getValue().get(0));
+       Assert.assertTrue(DeltaComparable.equals(expDatas, dsResult.getValue().get(0), 0.0001f));
 
     }
 
@@ -1215,7 +1217,8 @@ public class OM2STSWorkerTest {
                 .observationsIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:10-2)/Observations")
                 .sensorIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:10-2)/Sensors")
                 .observedArea(polygon);
-        Assert.assertEquals(expResult, result);
+        Assert.assertTrue(DeltaComparable.equals(expResult.getObservedArea(), result.getObservedArea(), 0.0001f));
+        Assert.assertTrue(DeltaComparable.equals(expResult, result, 0.0001f));
 
         /*
          * expand obs property, sensor, observation
@@ -1312,7 +1315,8 @@ public class OM2STSWorkerTest {
             Assert.assertEquals(expResult.getObservations().get(i),       result.getObservations().get(i));
         }
         Assert.assertEquals(expResult.getObservations(),     result.getObservations());
-        Assert.assertEquals(expResult, result);
+        Assert.assertTrue(DeltaComparable.equals(expResult.getObservedArea(), result.getObservedArea(), 0.0001f));
+        Assert.assertTrue(DeltaComparable.equals(expResult, result, 0.0001f));
     }
 
     @Test
@@ -1337,8 +1341,9 @@ public class OM2STSWorkerTest {
                 .observationsIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-id-2)/Observations")
                 .sensorIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-id-2)/Sensors")
                 .observedArea(point);
-        Assert.assertEquals(expResult, result);
 
+        Assert.assertTrue(DeltaComparable.equals(expResult.getObservedArea(), result.getObservedArea(), 0.0001f));
+        Assert.assertTrue(DeltaComparable.equals(expResult, result, 0.0001f));
         /*
          * expand obs property, sensor, observation
          */
@@ -1425,7 +1430,8 @@ public class OM2STSWorkerTest {
             Assert.assertEquals(expResult.getObservations().get(i),       result.getObservations().get(i));
         }
         Assert.assertEquals(expResult.getObservations(),     result.getObservations());
-        Assert.assertEquals(expResult, result);
+        Assert.assertTrue(DeltaComparable.equals(expResult.getObservedArea(), result.getObservedArea(), 0.0001f));
+        Assert.assertTrue(DeltaComparable.equals(expResult, result, 0.0001f));
     }
 
     @Test
@@ -1510,7 +1516,8 @@ public class OM2STSWorkerTest {
         Assert.assertEquals(expResult.getMultiObservationDataTypes(), result.getMultiObservationDataTypes());
         Assert.assertEquals(expResult.getObservationType(), result.getObservationType());
         Assert.assertEquals(expResult.getUnitOfMeasurement(), result.getUnitOfMeasurement());
-        Assert.assertEquals(expResult, result);
+        Assert.assertTrue(DeltaComparable.equals(expResult.getObservedArea(), result.getObservedArea(), 0.0001f));
+        Assert.assertTrue(DeltaComparable.equals(expResult, result, 0.0001f));
 
         /*
          * expand obs property, sensor, observation
@@ -1610,8 +1617,8 @@ public class OM2STSWorkerTest {
         Assert.assertEquals(expResult.getSensor(),                    result.getSensor());
         Assert.assertEquals(expResult.getMultiObservationDataTypes(), result.getMultiObservationDataTypes());
         Assert.assertEquals(expResult.getObservedProperties(),        result.getObservedProperties());
-        Assert.assertEquals(expResult, result);
-
+        Assert.assertTrue(DeltaComparable.equals(expResult.getObservedArea(), result.getObservedArea(), 0.0001f));
+        Assert.assertTrue(DeltaComparable.equals(expResult, result, 0.0001f));
 
        /*
         * http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/ObservedProperties
@@ -1685,10 +1692,11 @@ public class OM2STSWorkerTest {
                 expResult.setMultiObservationDataTypes(Arrays.asList("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement"));
                 expResult.setObservedArea(polygon);
 
+        Assert.assertTrue(DeltaComparable.equals(expResult.getObservedArea(), result.getObservedArea(), 0.0001f));
         Assert.assertEquals(expResult.getMultiObservationDataTypes(), result.getMultiObservationDataTypes());
         Assert.assertEquals(expResult.getObservationType(), result.getObservationType());
         Assert.assertEquals(expResult.getUnitOfMeasurement(), result.getUnitOfMeasurement());
-        Assert.assertEquals(expResult, result);
+        Assert.assertTrue(DeltaComparable.equals(expResult, result, 0.0001f));
 
         /*
          * expand obs property, sensor, observation
@@ -1791,7 +1799,8 @@ public class OM2STSWorkerTest {
         Assert.assertEquals(expResult.getSensor(),                    result.getSensor());
         Assert.assertEquals(expResult.getMultiObservationDataTypes(), result.getMultiObservationDataTypes());
         Assert.assertEquals(expResult.getObservedProperties(),        result.getObservedProperties());
-        Assert.assertEquals(expResult, result);
+        Assert.assertTrue(DeltaComparable.equals(expResult.getObservedArea(), result.getObservedArea(), 0.0001f));
+        Assert.assertTrue(DeltaComparable.equals(expResult, result, 0.0001f));
 
     }
 
@@ -1820,10 +1829,11 @@ public class OM2STSWorkerTest {
                 expResult.setMultiObservationDataTypes(Arrays.asList("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement"));
                 expResult.setObservedArea(point);
 
+        Assert.assertTrue(DeltaComparable.equals(expResult.getObservedArea(), result.getObservedArea(), 0.0001f));
         Assert.assertEquals(expResult.getMultiObservationDataTypes(), result.getMultiObservationDataTypes());
         Assert.assertEquals(expResult.getObservationType(), result.getObservationType());
         Assert.assertEquals(expResult.getUnitOfMeasurement(), result.getUnitOfMeasurement());
-        Assert.assertEquals(expResult, result);
+        Assert.assertTrue(DeltaComparable.equals(expResult, result, 0.0001f));
 
         /*
          * expand obs property, sensor, observation
@@ -1915,7 +1925,8 @@ public class OM2STSWorkerTest {
         Assert.assertEquals(expResult.getSensor(),                    result.getSensor());
         Assert.assertEquals(expResult.getMultiObservationDataTypes(), result.getMultiObservationDataTypes());
         Assert.assertEquals(expResult.getObservedProperties(),        result.getObservedProperties());
-        Assert.assertEquals(expResult, result);
+        Assert.assertTrue(DeltaComparable.equals(expResult.getObservedArea(), result.getObservedArea(), 0.0001f));
+        Assert.assertTrue(DeltaComparable.equals(expResult, result, 0.0001f));
 
     }
 
