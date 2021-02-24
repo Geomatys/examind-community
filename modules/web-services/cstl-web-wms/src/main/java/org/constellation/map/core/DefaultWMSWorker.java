@@ -118,6 +118,8 @@ import org.apache.sis.portrayal.MapItem;
 import org.apache.sis.portrayal.MapLayer;
 import org.geotoolkit.filter.FilterUtilities;
 import org.apache.sis.util.Version;
+import org.constellation.configuration.AppProperty;
+import org.constellation.configuration.Application;
 import org.geotoolkit.map.MapBuilder;
 import org.geotoolkit.ows.xml.OWSExceptionCode;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.CURRENT_UPDATE_SEQUENCE;
@@ -201,6 +203,11 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         ISO8601_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
+    private static final DateFormat ISO8601_NO_MS_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    static {
+        ISO8601_NO_MS_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
+
     /**
      * Only Elevation dimension.
      */
@@ -275,6 +282,18 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
     @Override
     public AbstractWMSCapabilities getCapabilities(String version) throws CstlServiceException {
         return getCapabilities(new GetCapabilities(new Version(version)));
+    }
+
+    /**
+     * return a date formmatter depending on configuration flags.
+     * @return 
+     */
+    private DateFormat getDateFormatter() {
+        boolean noMs = Application.getBooleanProperty(AppProperty.EXA_WMS_NO_MS, false);
+        if (noMs) {
+            return ISO8601_NO_MS_FORMAT;
+        }
+        return ISO8601_FORMAT;
     }
 
     /**
@@ -421,11 +440,14 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             try {
                 final SortedSet<Date> dates = data.getAvailableTimes();
                 if (!dates.isEmpty()) {
-                    final PeriodUtilities periodFormatter = new PeriodUtilities(ISO8601_FORMAT);
-                    final String defaut = ISO8601_FORMAT.format(dates.last());
-                    AbstractDimension dim = createDimension(queryVersion, "time", "ISO8601", defaut, null);
-                    dim.setValue(periodFormatter.getDatesRespresentation(dates));
-                    dimensions.add(dim);
+                    final DateFormat df = getDateFormatter();
+                    synchronized (df) {
+                        final PeriodUtilities periodFormatter = new PeriodUtilities(df);
+                        final String defaut = df.format(dates.last());
+                        AbstractDimension dim = createDimension(queryVersion, "time", "ISO8601", defaut, null);
+                        dim.setValue(periodFormatter.getDatesRespresentation(dates));
+                        dimensions.add(dim);
+                    }
                 }
             } catch (ConstellationStoreException ex) {
                 LOGGER.log(Level.WARNING, "Error retrieving dates values for the layer :"+ data.getName(), ex);

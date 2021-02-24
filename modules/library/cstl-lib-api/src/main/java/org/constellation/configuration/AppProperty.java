@@ -216,7 +216,12 @@ public enum AppProperty {
     /**
      * if set to true, bbox will be fetched and returned during new inserted data analysis.
      */
-    EXA_ADD_DATA_BBOX_ANALISIS("examind.add.data.bbox.analisis", false, Boolean.class);
+    EXA_ADD_DATA_BBOX_ANALISIS("examind.add.data.bbox.analisis", false, Boolean.class),
+
+    /**
+     * If set to true, WMS capabilities will not display millisecond (for external tools compatibility)
+     */
+    EXA_WMS_NO_MS("examind.wms.no.ms", false, Boolean.class);
 
     private final String key;
     private final boolean secure;
