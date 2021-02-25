@@ -370,7 +370,7 @@ public class CSWRestAPI {
     }
 
     @RequestMapping(value="/CSW/{serviceID}/mapper",method=GET,produces=TEXT_HTML_VALUE)
-    public ResponseEntity getMapperContent(@PathVariable("serviceID") final String serviceID) {
+    public ResponseEntity getMapperContent(@PathVariable("serviceID") final String serviceID, HttpServletResponse response) {
         try {
             final CSWConfigurer configurer = getConfigurer();
             final Map<Integer, NamedEnvelope> map =  configurer.getMapperContent(serviceID);
@@ -379,7 +379,8 @@ public class CSWRestAPI {
                 s.append("<tr><td>").append(Integer.toString(entry.getKey())).append("</td><td>").append(entry.getValue().toString()).append("</td></tr>");
             }
             s.append("</table></body></html>");
-            return new ResponseEntity(s.toString(), OK);
+            IOUtils.write(s.toString(), response.getOutputStream());
+            return new ResponseEntity(OK);
         } catch (Throwable ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
@@ -387,11 +388,12 @@ public class CSWRestAPI {
     }
 
     @RequestMapping(value="/CSW/{serviceID}/tree",method=GET,produces=TEXT_PLAIN_VALUE)
-    public ResponseEntity getTreeRepresentation(@PathVariable("serviceID") final String serviceID) {
+    public ResponseEntity getTreeRepresentation(@PathVariable("serviceID") final String serviceID, HttpServletResponse response) {
         try {
             final CSWConfigurer configurer = getConfigurer();
             final String result =  configurer.getTreeRepresentation(serviceID);
-            return new ResponseEntity(result, OK);
+            IOUtils.write(result, response.getOutputStream());
+            return new ResponseEntity(OK);
         } catch (Throwable ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
