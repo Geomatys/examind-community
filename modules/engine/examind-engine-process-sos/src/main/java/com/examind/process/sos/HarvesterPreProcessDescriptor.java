@@ -23,6 +23,7 @@ import org.geotoolkit.process.Process;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.apache.sis.util.iso.SimpleInternationalString;
 import org.constellation.process.ExamindProcessFactory;
+import org.geotoolkit.utility.parameter.ExtendedParameterDescriptor;
 
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
@@ -97,13 +98,15 @@ public class HarvesterPreProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(false)
             .create(String.class, null);
 
-    public static final String CODE_COLUMN_NAME = "code column";
-    public static final String CODE_COLUMN_DESC = "code column";
-    public static final ParameterDescriptor<String> CODE_COLUMN = PARAM_BUILDER
-            .addName(CODE_COLUMN_NAME)
-            .setRemarks(CODE_COLUMN_DESC)
-            .setRequired(false)
-            .create(String.class, null);
+    public static final String CODE_COLUMN_NAME = "code columns";
+    public static final String CODE_COLUMN_DESC = "code columns";
+    public static final ParameterDescriptor<String> CODE_COLUMN = new ExtendedParameterDescriptor<>(
+            CODE_COLUMN_NAME,
+            CODE_COLUMN_DESC,
+            0, 92,
+            String.class,
+            null, null, null
+    );
     
     public static final String TYPE_COLUMN_NAME = "type column";
     public static final String TYPE_COLUMN_DESC = "type column";
@@ -121,8 +124,16 @@ public class HarvesterPreProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(true)
             .create(String.class, ",");
 
+    public static final String CHARQUOTE_NAME = "quote character";
+    public static final String CHARQUOTE_DESC = "quote character";
+    public static final ParameterDescriptor<String> CHARQUOTE = PARAM_BUILDER
+            .addName(CHARQUOTE_NAME)
+            .setRemarks(CHARQUOTE_DESC)
+            .setRequired(false)
+            .create(String.class, null);
+
     public static final ParameterDescriptorGroup INPUT_DESC =
-            PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, OBS_TYPE, TASK_NAME, FORMAT, VALUE_COLUMN, CODE_COLUMN, TYPE_COLUMN, SEPARATOR);
+            PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, OBS_TYPE, TASK_NAME, FORMAT, VALUE_COLUMN, CODE_COLUMN, TYPE_COLUMN, SEPARATOR, CHARQUOTE);
 
     public static final String PROCESS_ID_NAME = "process.id";
     private static final String PROCESS_ID_REMARKS = "The assigned identifier of the deployed process.";

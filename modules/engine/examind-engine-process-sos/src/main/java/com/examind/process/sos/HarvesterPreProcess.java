@@ -29,7 +29,6 @@ import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.logging.Level;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.constellation.business.IProcessBusiness;
 import org.constellation.dto.process.ChainProcess;
@@ -52,6 +51,8 @@ import org.geotoolkit.processing.chain.model.ElementProcess;
 import org.geotoolkit.processing.chain.model.Parameter;
 import org.geotoolkit.processing.chain.model.StringMapList;
 import org.geotoolkit.processing.chain.model.StringList;
+import org.opengis.parameter.GeneralParameterValue;
+import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -63,22 +64,6 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
 
     @Autowired
     private IProcessBusiness processBusiness;
-
-    private final static Map<String, String> codesMeasure;
-
-    static {
-        codesMeasure = new HashMap<>();
-        codesMeasure.put("30", "measure1");
-        codesMeasure.put("35", "measure2");
-        codesMeasure.put("66", "measure3");
-        codesMeasure.put("70", "measure4");
-        codesMeasure.put("64", "measure5");
-        codesMeasure.put("65", "measure6");
-        codesMeasure.put("169", "measure7");
-        codesMeasure.put("193", "measure8");
-        codesMeasure.put("577", "measure9");
-        codesMeasure.put("584", "measure10");
-    }
 
     public HarvesterPreProcess(final ProcessDescriptor desc, final ParameterValueGroup input) {
         super(desc,input);
@@ -95,9 +80,17 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         String format                = inputParameters.getValue(HarvesterPreProcessDescriptor.FORMAT);
 
         final String valueColumn    = inputParameters.getValue(HarvesterPreProcessDescriptor.VALUE_COLUMN);
-        final String codeColumn     = inputParameters.getValue(HarvesterPreProcessDescriptor.CODE_COLUMN);
         final String typeColumn     = inputParameters.getValue(HarvesterPreProcessDescriptor.TYPE_COLUMN);
         final String separator      = inputParameters.getValue(HarvesterPreProcessDescriptor.SEPARATOR);
+        final String charquote      = inputParameters.getValue(HarvesterPreProcessDescriptor.CHARQUOTE);
+
+        final List<String> codeColumns = new ArrayList<>();
+        for (GeneralParameterValue param : inputParameters.values()) {
+            if (param.getDescriptor().getName().getCode().equals(HarvesterPreProcessDescriptor.CODE_COLUMN.getName().getCode())) {
+                codeColumns.add(((ParameterValue)param).stringValue());
+            }
+        }
+
         final Set<String> codes = new HashSet<>();
 
         if (format == null) {
@@ -110,8 +103,8 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
 
         if (coriolis) {
             ext = ".csv";
-            if (valueColumn == null || codeColumn == null || typeColumn == null) {
-                throw new ProcessException("The value column, code column or type column can't be null", this);
+            if (valueColumn == null || codeColumns.isEmpty()) {
+                throw new ProcessException("The value column, code column can't be null", this);
             }
         } else {
             if (observationType == null) {
@@ -162,7 +155,7 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
                 }
 
                 for (Path child : children) {
-                    String[] currentHeaders = extractHeaders(child, format);
+                    String[] currentHeaders = extractHeaders(child, format, separator.charAt(0));
                     if (headers != null && !Arrays.equals(headers, currentHeaders)) {
                         throw new ProcessException("Inconsistent dataset, the different files does not have the same headers", this);
                     }
@@ -170,7 +163,7 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
 
                     // extract codes
                     if (coriolis) {
-                        Set<String> currentCodes = extractCodes(child, codeColumn);
+                        Set<String> currentCodes = extractCodes(child, codeColumns, separator.charAt(0));
                         codes.addAll(currentCodes);
                     }
                 }
@@ -221,6 +214,9 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
 
         final Parameter SPparam = new Parameter(SEPARATOR_NAME, String.class, SEPARATOR_DESC, SEPARATOR_DESC, 1, 1, separator);
         inputs.add(SPparam);
+
+        final Parameter CQparam = new Parameter(CHARQUOTE_NAME, String.class, CHARQUOTE_DESC, CHARQUOTE_DESC, charquote != null ? 1 : 0, 1, charquote);
+        inputs.add(CQparam);
 
         String defaultMainCol = null;
         if ("Timeserie".equals(observationType) || "Trajectory".equals(observationType)) {
@@ -280,10 +276,10 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
             final Parameter VCparam = new Parameter(VALUE_COLUMN_NAME, String.class, VALUE_COLUMN_DESC, VALUE_COLUMN_DESC, 1, 1, valueColumn);
             inputs.add(VCparam);
 
-            final Parameter CCparam = new Parameter(CODE_COLUMN_NAME, String.class, CODE_COLUMN_DESC, CODE_COLUMN_DESC, 1, 1, codeColumn);
+            final Parameter CCparam = new Parameter(CODE_COLUMN_NAME, String.class, CODE_COLUMN_DESC, CODE_COLUMN_DESC, 0, codeColumns.size(), null, codeColumns.toArray());
             inputs.add(CCparam);
 
-            final Parameter TCparam = new Parameter(TYPE_COLUMN_NAME, String.class, TYPE_COLUMN_DESC, TYPE_COLUMN_DESC, 1, 1, typeColumn);
+            final Parameter TCparam = new Parameter(TYPE_COLUMN_NAME, String.class, TYPE_COLUMN_DESC, TYPE_COLUMN_DESC, 0, 1, typeColumn);
             inputs.add(TCparam);
         
         } else if ("dbf".equals(format)) {
@@ -293,6 +289,7 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
             final Parameter FOparam = new Parameter(FORMAT_NAME, String.class, FORMAT_DESC, FORMAT_DESC, 1, 1, "application/dbase; subtype=\"om\"");
             inputs.add(FOparam);
         }
+
 
         chain.setInputs(inputs);
 
@@ -340,10 +337,10 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
     }
 
 
-    private String[] extractHeaders(Path dataFile, String format) throws ProcessException {
+    private String[] extractHeaders(Path dataFile, String format, char separator) throws ProcessException {
         LOGGER.log(Level.INFO, "Extracting headers from : {0}", dataFile.getFileName().toString());
         if ("csv".equals(format) || "csv-coriolis".equals(format)) {
-            try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile))) {
+            try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), separator)) {
 
                 final Iterator<String[]> it = reader.iterator();
 
@@ -376,8 +373,8 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         }
     }
 
-    private Set<String> extractCodes(Path dataFile, String measureCode) throws ProcessException {
-        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile))) {
+    private Set<String> extractCodes(Path dataFile, List<String> measureCode, char separator) throws ProcessException {
+        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), separator)) {
 
             final Iterator<String[]> it = reader.iterator();
 
@@ -386,41 +383,33 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
 
                 // read headers
                 final String[] headers = it.next();
-                int measureCodeIndex = -1;
-                final Set<String> storeCode = new HashSet<>();
-                final Set<String> noLabelCodes = new HashSet<>();
+                List<Integer> measureCodeIndex = new ArrayList<>();
 
                 // find measureCodeIndex
                 for (int i = 0; i < headers.length; i++) {
                     final String header = headers[i];
 
-                    if (header.equals(measureCode)) {
-                        measureCodeIndex = i;
+                    if (measureCode.contains(header)) {
+                        measureCodeIndex.add(i);
                     }
                 }
 
-                if (measureCodeIndex == -1) {
-                    throw new ProcessException("csv headers does not contains Measure Code parameter.", this);
+                if (measureCodeIndex.size() != measureCode.size()) {
+                    throw new ProcessException("csv headers does not contains All the Measure Code parameter.", this);
                 }
 
+                final Set<String> storeCode = new HashSet<>();
                 // extract all codes
-                while (it.hasNext()) {
+                line:while (it.hasNext()) {
                     final String[] line = it.next();
-                    final String nextCode = line[measureCodeIndex];
-
-                    if (nextCode == null || nextCode.isEmpty()) continue;
-
-                    final String mcl = codesMeasure.get(nextCode);
-
-                    if (mcl == null) noLabelCodes.add(nextCode);
-
-                    storeCode.add(mcl);
+                    String computed = "";
+                    for(Integer i : measureCodeIndex) {
+                        final String nextCode = line[i];
+                        if (nextCode == null || nextCode.isEmpty()) continue line;
+                        computed += nextCode;
+                    }
+                    storeCode.add(computed);
                 }
-
-                for (String nlc: noLabelCodes) {
-                    LOGGER.log(Level.WARNING, String.format("No label mapping for the code: %s", nlc));
-                }
-
                 return storeCode;
             }
             throw new ProcessException("csv headers not found", this);
