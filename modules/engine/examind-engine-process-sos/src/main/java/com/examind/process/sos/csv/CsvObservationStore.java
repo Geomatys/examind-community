@@ -274,29 +274,35 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
 
                 for (int i = 0; i < headers.length; i++) {
                     final String header = headers[i];
-
+                    boolean notUsed = true;
                     if (header.equals(mainColumn)) {
                         mainIndex = i;
                         if (header.equals(dateColumn)) dateIndex = i;
                         if ("Profile".equals(observationType))  measureFields.add(header);
-                    } else if (header.equals(foiColumn)) {
+                        notUsed = false;
+                    }
+                    if (header.equals(foiColumn)) {
                         foiIndex = i;
-                        ignoredFields.add(i);
-                    } else if (header.equals(dateColumn)) {
+                    }
+                    if (header.equals(dateColumn)) {
                         dateIndex = i;
                         if ("Profile".equals(observationType))  ignoredFields.add(dateIndex);
-                    } else if (header.equals(latitudeColumn)) {
+                        notUsed = false;
+                    }
+                    if (header.equals(latitudeColumn)) {
                         latitudeIndex = i;
-                        ignoredFields.add(latitudeIndex);
-                    } else if (header.equals(longitudeColumn)) {
+                    }
+                    if (header.equals(longitudeColumn)) {
                         longitudeIndex = i;
-                        ignoredFields.add(longitudeIndex);
-                    } else if (measureColumns.contains(header)) {
+                    }
+                    if (measureColumns.contains(header)) {
                         measureFields.add(header);
-                    } else if (header.equals(procedureColumn)) {
+                        notUsed = false;
+                    }
+                    if (header.equals(procedureColumn)) {
                         procIndex = i;
-                        ignoredFields.add(procIndex);
-                    } else {
+                    }
+                    if (notUsed){
                         ignoredFields.add(i);
                     }
                 }

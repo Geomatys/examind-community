@@ -17,7 +17,6 @@
 
 package com.examind.process.sos.csvcoriolis;
 
-import com.google.common.collect.Lists;
 import com.opencsv.CSVReader;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.sis.geometry.GeneralDirectPosition;
@@ -55,7 +54,6 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DateFormat;
-import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -284,34 +282,39 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
 
                 for (int i = 0; i < headers.length; i++) {
                     final String header = headers[i];
-
+                    boolean notUsed = true;
                     if (header.equals(mainColumn)) {
                         mainIndex = i;
-                        if (header.equals(dateColumn)) dateIndex = i;
-                    } else if (header.equals(foiColumn)) {
+                        notUsed = false;
+                    }
+                    if (header.equals(foiColumn)) {
                         foiIndex = i;
-                        ignoredFields.add(i);
-                    } else if (header.equals(dateColumn)) {
+                    }
+                    if (header.equals(dateColumn)) {
                         dateIndex = i;
                         if ("Profile".equals(observationType))  ignoredFields.add(dateIndex);
-                    } else if (header.equals(latitudeColumn)) {
+                        notUsed = false;
+                    }
+                    if (header.equals(latitudeColumn)) {
                         latitudeIndex = i;
-                        ignoredFields.add(latitudeIndex);
-                    } else if (header.equals(longitudeColumn)) {
+                    }
+                    if (header.equals(longitudeColumn)) {
                         longitudeIndex = i;
-                        ignoredFields.add(longitudeIndex);
-                    } else if (header.equals(valueColumn)) {
+                    }
+                    if (header.equals(valueColumn)) {
                         valueColumnIndex = i;
-                    } else if (codeColumns.contains(header)) {
+                        notUsed = false;
+                    }
+                    if (codeColumns.contains(header)) {
                         codeColumnIndexes.add(i);
-                        ignoredFields.add(i);
-                    } else if (header.equals(typeColumn)) {
+                    }
+                    if (header.equals(typeColumn)) {
                         typeColumnIndex = i;
-                        ignoredFields.add(typeColumnIndex);
-                    } else if (header.equals(procedureColumn)) {
+                    }
+                    if (header.equals(procedureColumn)) {
                         procIndex = i;
-                        ignoredFields.add(procIndex);
-                    } else {
+                    }
+                    if (notUsed){
                         ignoredFields.add(i);
                     }
                 }
@@ -419,6 +422,17 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                         }
                     }
 
+                    // Concatenate values from input code columns
+                    String concatenatedCodeColumnsValues = "";
+                    for (Integer codeColumnIndex : codeColumnIndexes) {
+                        concatenatedCodeColumnsValues += line[codeColumnIndex];
+                    }
+
+                    // checks if row matches the observed properties wanted
+                    if (!sortedMeasureColumns.contains(concatenatedCodeColumnsValues)) {
+                        continue;
+                    }
+
                     // closing current observation and starting new one
                     if (previousFoi  != null && !previousFoi.equals(currentFoi)   ||
                         previousTime != null && !previousTime.equals(currentTime) ||
@@ -509,11 +523,6 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                     b- build measure map
                     =====================*/
                     try {
-                        // Concatenate values from input code columns
-                        String concatenatedCodeColumnsValues = "";
-                        for (Integer codeColumnIndex : codeColumnIndexes) {
-                            concatenatedCodeColumnsValues += line[codeColumnIndex];
-                        }
                         mmb.parseLine(line[mainIndex], currentTime, concatenatedCodeColumnsValues, line[valueColumnIndex], count, valueColumnIndex);
                     } catch (ParseException | NumberFormatException ex) {
                         LOGGER.warning(String.format("Problem parsing date/double for main field at line %d and column %d (value='%s'). skipping line...", count, mainIndex, line[mainIndex]));

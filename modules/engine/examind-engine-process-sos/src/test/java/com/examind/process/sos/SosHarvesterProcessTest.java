@@ -134,6 +134,7 @@ public class SosHarvesterProcessTest {
     private static Path mooDirectory;
     private static Path multiPlatDirectory;
     private static Path bigdataDirectory;
+    private static Path survalDirectory;
 
     // DBF dir
     private static Path ltDirectory;
@@ -176,6 +177,8 @@ public class SosHarvesterProcessTest {
         Files.createDirectories(multiPlatDirectory);
         bigdataDirectory = dataDirectory.resolve("bigdata-profile");
         Files.createDirectories(bigdataDirectory);
+        survalDirectory = dataDirectory.resolve("surval");
+        Files.createDirectories(survalDirectory);
 
         writeResourceDataFile(argoDirectory, "com/examind/process/sos/argo-profiles-2902402-1.csv", "argo-profiles-2902402-1.csv");
 
@@ -195,6 +198,8 @@ public class SosHarvesterProcessTest {
         writeResourceDataFile(multiPlatDirectory,   "com/examind/process/sos/multiplatform-2.csv", "multiplatform-2.csv");
 
         writeResourceDataFile(bigdataDirectory, "com/examind/process/sos/bigdata-1.csv", "bigdata-1.csv");
+
+        writeResourceDataFile(survalDirectory, "com/examind/process/sos/surval-small.csv", "surval-small.csv");
 
     }
 
@@ -1992,11 +1997,131 @@ public class SosHarvesterProcessTest {
         
     }
 
+    @Test
+    @Order(order = 8)
+    public void harvesterCSVSurvalTSTest() throws Exception {
+
+        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
+        Assert.assertNotNull(sc);
+
+        sensorServBusiness.removeAllSensors(sc.getId());
+
+        SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
+        sosWorker.setServiceUrl("http://localhost/examind/");
+
+        STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
+        stsWorker.setServiceUrl("http://localhost/examind/");
+
+        int prev = getNbOffering(sosWorker, 0);
+
+        Assert.assertEquals(12, prev);
+
+        String datasetId = "SOS_DATA_3";
+
+        final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, SosHarvesterProcessDescriptor.NAME);
+
+        final ParameterValueGroup in = desc.getInputDescriptor().createValue();
+        in.parameter(SosHarvesterProcessDescriptor.DATASET_IDENTIFIER_NAME).setValue(datasetId);
+        in.parameter(SosHarvesterProcessDescriptor.DATA_FOLDER_NAME).setValue(survalDirectory.toUri().toString());
+
+        in.parameter(SosHarvesterProcessDescriptor.SEPARATOR_NAME).setValue(";");
+        in.parameter(SosHarvesterProcessDescriptor.STORE_ID_NAME).setValue("observationCsvCoriolisFile");
+
+        in.parameter(SosHarvesterProcessDescriptor.DATE_COLUMN_NAME).setValue("ANALYSE_DATE");
+        in.parameter(SosHarvesterProcessDescriptor.MAIN_COLUMN_NAME).setValue("ANALYSE_DATE");
+
+        in.parameter(SosHarvesterProcessDescriptor.DATE_FORMAT_NAME).setValue("dd/MM/yy");
+        in.parameter(SosHarvesterProcessDescriptor.LATITUDE_COLUMN_NAME).setValue("LATITUDE");
+        in.parameter(SosHarvesterProcessDescriptor.LONGITUDE_COLUMN_NAME).setValue("LONGITUDE");
+
+        ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        //val1.setValue("040-P-034 - Baie de Douarnenez Sud SM10");  too long => to fix
+        //val1.setValue("080-P-065 - D'Agnas 0320"); got a ' => to fix
+        //val1.setValue("145-P-245 - Lepoe 5 (Récif interne)1");  too long => to fix
+        val1.setValue("250490017");
+        in.values().add(val1);
+        ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        val2.setValue("2504900118");
+        in.values().add(val2);
+
+        in.parameter(SosHarvesterProcessDescriptor.VALUE_COLUMN_NAME).setValue("VALUE");
+
+        ParameterValue cc1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.CODE_COLUMN_NAME).createValue();
+        cc1.setValue("PLATFORM_ID");
+        in.values().add(cc1);
+        ParameterValue cc2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.CODE_COLUMN_NAME).createValue();
+        cc2.setValue("SUPPORT");
+        in.values().add(cc2);
+
+        in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
+        //in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_COLUMN_NAME).setValue("platform_code");
+        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_ID_NAME).setValue("urn:surval");
+        in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(true);
+        in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
+
+        org.geotoolkit.process.Process proc = desc.createProcess(in);
+        proc.call();
+
+        // verify that the dataset has been created
+        Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
+
+        // verify that the sensor has been created
+        Assert.assertNotNull(sensorBusiness.getSensor("urn:surval"));
+
+
+        Assert.assertEquals(1, getNbOffering(sosWorker, prev));
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+        /*
+        * first extracted procedure
+        */
+
+        ObservationOffering offp = getOffering(sosWorker, "urn:surval");
+        Assert.assertNotNull(offp);
+
+        Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
+        TimePeriodType time = (TimePeriodType) offp.getTime();
+
+        Assert.assertEquals("1987-06-01", time.getBeginPosition().getValue());
+        Assert.assertEquals("2019-12-17", time.getEndPosition().getValue());
+
+        // something is wrong here
+        Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
+        List<SamplingFeature> fois  = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
+        String foi = verifySamplingFeature(fois,-3.093748, 47.534765);
+
+        Assert.assertEquals(1, offp.getObservedProperties().size());
+        String observedProperty = offp.getObservedProperties().get(0);
+
+        verifyAllObservedProperties(stsWorker, "urn:surval", Arrays.asList("250490017", "2504900118"));
+
+        /*
+        * Verify an inserted data
+        */
+        GetResultResponseType gr = (GetResultResponseType) sosWorker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
+        String expectedResult = getResourceAsString("com/examind/process/sos/surval-datablock-values.txt");
+        Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
+
+        GetHistoricalLocations hl = new GetHistoricalLocations();
+        hl.getExtraFilter().put("procedure", "urn:surval");
+        hl.getExpand().add("Locations");
+        HistoricalLocationsResponse response = stsWorker.getHistoricalLocations(hl);
+
+        Assert.assertEquals(1, response.getValue().size());
+
+        HistoricalLocation loc1 = response.getValue().get(0);
+        verifyHistoricalLocation(loc1, sdf, "2007-12-18T00:00:00Z", -3.093748, 47.534765);
+        int nbMeasure = getNbMeasure(stsWorker, "urn:surval");
+        Assert.assertEquals(989, nbMeasure);
+
+    }
+
     /**
      * Same test as harvesterCSVCoriolisProfileSingleTest but the process SosHarvester is called from the ProcessFromYamlProcess.
      */
     @Test
-    @Order(order = 8)
+    @Order(order = 9)
     public void harvesterCSVCoriolisProfileSingleFromYamlTest() throws ConstellationException, NoSuchIdentifierException, ProcessException, IOException, ParseException {
         ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
         Assert.assertNotNull(sc);
@@ -2276,7 +2401,7 @@ public class SosHarvesterProcessTest {
         GeoJSONFeature feat1 = (GeoJSONFeature) loc1.getLocations().get(0).getLocation();
         Assert.assertTrue(feat1.getGeometry() instanceof GeoJSONPoint);
         GeoJSONPoint pt1 = (GeoJSONPoint) feat1.getGeometry();
-        Assert.assertEquals(x, pt1.getCoordinates()[0], 0);
-        Assert.assertEquals(y, pt1.getCoordinates()[1], 0);
+        Assert.assertEquals(x, pt1.getCoordinates()[0], 0.001);
+        Assert.assertEquals(y, pt1.getCoordinates()[1], 0.001);
     }
 }
