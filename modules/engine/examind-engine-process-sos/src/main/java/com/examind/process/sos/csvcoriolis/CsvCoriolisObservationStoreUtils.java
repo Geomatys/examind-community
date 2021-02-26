@@ -28,6 +28,8 @@ import org.geotoolkit.swe.xml.Quantity;
 import org.geotoolkit.swe.xml.UomProperty;
 import org.opengis.geometry.DirectPosition;
 
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.*;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.ProviderBrief;
@@ -39,6 +41,8 @@ import static org.geotoolkit.sos.netcdf.OMUtils.TIME_FIELD;
  * @author Guilhem Legal (Geomatys)
  */
 public class CsvCoriolisObservationStoreUtils {
+
+    private static final NumberFormat FR_FORMAT = NumberFormat.getInstance(Locale.FRANCE);
 
     public static AbstractGeometry buildGeom(final List<DirectPosition> positions) {
         final AbstractGeometry sp;
@@ -135,5 +139,22 @@ public class CsvCoriolisObservationStoreUtils {
             }
         }
         return results;
+    }
+
+    /**
+     * Parse a string double with dot or comma separator.
+     * @param s string value of a double.
+     * @return : double.
+     * @throws ParseException the parse method failed.
+     */
+    public static double parseDouble(String s) throws ParseException {
+        if (s.contains(",")) {
+            synchronized(FR_FORMAT) {
+                Number number = FR_FORMAT.parse(s);
+                return number.doubleValue();
+            }
+        } else {
+            return Double.parseDouble(s);
+        }
     }
 }

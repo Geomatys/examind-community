@@ -16,10 +16,10 @@
  */
 package com.examind.process.sos.csv;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.text.NumberFormat;
+import java.text.ParseException;
+import java.util.*;
+
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.GMLXmlFactory;
 import org.geotoolkit.sampling.xml.SamplingFeature;
@@ -38,6 +38,8 @@ import org.opengis.geometry.Geometry;
  * @author Guilhem Legal (Geomatys)
  */
 public class CsvObservationStoreUtils {
+
+    private static final NumberFormat FR_FORMAT = NumberFormat.getInstance(Locale.FRANCE);
 
     public static AbstractGeometry buildGeom(final List<DirectPosition> positions) {
         final AbstractGeometry sp;
@@ -130,5 +132,22 @@ public class CsvObservationStoreUtils {
             fields.add(SOSXmlFactory.buildAnyScalar(version, null, phenomenon.label, cat));
         }
         return SOSXmlFactory.buildSimpleDatarecord(version, null, null, null, true, fields);
+    }
+
+    /**
+     * Parse a string double with dot or comma separator.
+     * @param s string value of a double.
+     * @return : double.
+     * @throws ParseException the parse method failed.
+     */
+    public static double parseDouble(String s) throws ParseException {
+        if (s.contains(",")) {
+            synchronized(FR_FORMAT) {
+                Number number = FR_FORMAT.parse(s);
+                return number.doubleValue();
+            }
+        } else {
+            return Double.parseDouble(s);
+        }
     }
 }

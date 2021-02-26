@@ -24,7 +24,6 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -33,6 +32,8 @@ import java.util.Set;
 import java.util.logging.Logger;
 import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.sos.MeasureStringBuilder;
+
+import static com.examind.process.sos.csvcoriolis.CsvCoriolisObservationStoreUtils.parseDouble;
 
 /**
  *
@@ -60,7 +61,7 @@ public class CoriolisMeasureBuilder {
          Number mainValue;
          // assume that for profile main field is a double
         if ("Profile".equals(observationType)) {
-            mainValue = Double.parseDouble(value);
+            mainValue = parseDouble(value);
             if (!mmb.containsKey(mainValue)) {
                 LinkedHashMap<String, Double> row = new LinkedHashMap<>();
                 for (String measure: sortedMeasureColumns) {
@@ -90,7 +91,7 @@ public class CoriolisMeasureBuilder {
         try {
             if (measureCode != null && !measureCode.isEmpty() && sortedMeasureColumns.contains(measureCode)) {
                 LinkedHashMap<String, Double> row = mmb.get(mainValue);
-                row.put(measureCode, Double.parseDouble(mesureValue));
+                row.put(measureCode, parseDouble(mesureValue));
                 mmb.put(mainValue, row);
             }
         } catch (NumberFormatException ex) {

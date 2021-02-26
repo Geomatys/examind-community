@@ -75,6 +75,8 @@ import org.opengis.geometry.DirectPosition;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.util.GenericName;
 
+import static com.examind.process.sos.csv.CsvObservationStoreUtils.parseDouble;
+
 /**
  * Implementation of an observation store for csv observation data based on {@link CSVFeatureStore}.
  *
@@ -372,10 +374,10 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                     for (int i = 0; i < line.length; i++) {
                         if(i != mainIndex && Arrays.binarySearch(skippedIndices, i) < 0) {
                             try {
-                                Double.parseDouble(line[i]);
+                                parseDouble(line[i]);
                                 empty = false;
                                 break;
-                            } catch (NumberFormatException ex) {
+                            } catch (NumberFormatException | ParseException ex) {
                                 if (!line[i].isEmpty()) {
                                     LOGGER.warning(String.format("Problem parsing double value at line %d and column %d (value='%s')", count, i, line[i]));
                                 }
@@ -487,8 +489,8 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
 
                     // update spatial information
                     if (latitudeIndex != -1 && longitudeIndex != -1) {
-                        final double longitude = Double.parseDouble(line[longitudeIndex]);
-                        final double latitude = Double.parseDouble(line[latitudeIndex]);
+                        final double longitude = parseDouble(line[longitudeIndex]);
+                        final double latitude = parseDouble(line[latitudeIndex]);
                         DirectPosition pos = SOSXmlFactory.buildDirectPosition("2.0.0", "EPSG:4326", 2, Arrays.asList(latitude, longitude));
                         if (!positions.contains(pos)) {
                             positions.add(pos);
@@ -517,7 +519,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                         // assume that for profile main field is a double
                         if ("Profile".equals(observationType)) {
                             try {
-                                msb.appendValue(Double.parseDouble(line[mainIndex]));
+                                msb.appendValue(parseDouble(line[mainIndex]));
                             } catch (NumberFormatException ex) {
                                 LOGGER.warning(String.format("Problem parsing double for main field at line %d and column %d (value='%s'). skipping line...", count, mainIndex, line[mainIndex]));
                                 continue;
@@ -538,7 +540,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                     for (int i = 0; i < line.length; i++) {
                         if(i != mainIndex && Arrays.binarySearch(skippedIndices, i) < 0) {
                             try {
-                                msb.appendValue(Double.parseDouble(line[i]));
+                                msb.appendValue(parseDouble(line[i]));
                             } catch (NumberFormatException ex) {
                                 if (!line[i].isEmpty()) {
                                     LOGGER.warning(String.format("Problem parsing double value at line %d and column %d (value='%s')", count, i, line[i]));
@@ -593,7 +595,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                 return result;
             }
             throw new DataStoreException("csv headers not found");
-        } catch (IOException ex) {
+        } catch (IOException | ParseException ex) {
             LOGGER.log(Level.WARNING, "problem reading csv file", ex);
             throw new DataStoreException(ex);
         }
@@ -766,9 +768,9 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                     // update spatial information
                     if (latitudeIndex != -1 && longitudeIndex != -1) {
                         try {
-                            DirectPosition dp = new GeneralDirectPosition(Double.parseDouble(line[longitudeIndex]), Double.parseDouble(line[latitudeIndex]));
+                            DirectPosition dp = new GeneralDirectPosition(parseDouble(line[longitudeIndex]), parseDouble(line[latitudeIndex]));
                             geom = GMLXmlFactory.buildPoint("3.2.1", null, dp);
-                        } catch (NumberFormatException ex) {
+                        } catch (NumberFormatException | ParseException ex) {
                             LOGGER.warning(String.format("Problem parsing lat/lon field at line %d.", count));
                         }
                     }

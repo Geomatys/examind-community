@@ -55,6 +55,7 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DateFormat;
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -374,10 +375,10 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                     for (int i = 0; i < line.length; i++) {
                         if(i != mainIndex && Arrays.binarySearch(skippedIndices, i) < 0) {
                             try {
-                                Double.parseDouble(line[i].replaceAll(",", "."));
+                                parseDouble(line[i]);
                                 empty = false;
                                 break;
-                            } catch (NumberFormatException ex) {
+                            } catch (NumberFormatException | ParseException ex) {
                                 if (!line[i].isEmpty()) {
                                     LOGGER.warning(String.format("Problem parsing double value at line %d and column %d (value='%s')", count, i, line[i]));
                                 }
@@ -483,8 +484,8 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
 
                     // update spatial information
                     if (latitudeIndex != -1 && longitudeIndex != -1) {
-                        final double longitude = Double.parseDouble(line[longitudeIndex]);
-                        final double latitude = Double.parseDouble(line[latitudeIndex]);
+                        final double longitude = parseDouble(line[longitudeIndex]);
+                        final double latitude = parseDouble(line[latitudeIndex]);
                         final String posKey = latitude + "_" + longitude;
                         if (!knownPositions.contains(posKey)) {
                             knownPositions.add(posKey);
@@ -550,7 +551,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                 return result;
             }
             throw new DataStoreException("csv headers not found");
-        } catch (IOException ex) {
+        } catch (IOException | ParseException ex) {
             LOGGER.log(Level.WARNING, "problem reading csv file", ex);
             throw new DataStoreException(ex);
         }
@@ -780,9 +781,9 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                     // update spatial information
                     if (latitudeIndex != -1 && longitudeIndex != -1) {
                         try {
-                            DirectPosition dp = new GeneralDirectPosition(Double.parseDouble(line[longitudeIndex]), Double.parseDouble(line[latitudeIndex]));
+                            DirectPosition dp = new GeneralDirectPosition(parseDouble(line[longitudeIndex]), parseDouble(line[latitudeIndex]));
                             geom = GMLXmlFactory.buildPoint("3.2.1", null, dp);
-                        } catch (NumberFormatException ex) {
+                        } catch (NumberFormatException | ParseException ex) {
                             LOGGER.warning(String.format("Problem parsing lat/lon field at line %d.", count));
                         }
                     }
