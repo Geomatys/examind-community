@@ -108,6 +108,10 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
     // timeSeries / trajectory / profiles
     private final String observationType;
 
+    private final char delimiter;
+
+    private final char quotechar;
+
     /**
      * Act as a single sensor ID if no procedureColumn is supplied.
      * Act as a prefix else.
@@ -132,11 +136,13 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
      * @throws DataStoreException
      * @throws MalformedURLException
      */
-    public CsvObservationStore(final Path observationFile, final char separator, final FeatureType featureType,
+    public CsvObservationStore(final Path observationFile, final char separator, final char quotechar, final FeatureType featureType,
             final String mainColumn, final String dateColumn, final String dateTimeformat, final String longitudeColumn, final String latitudeColumn,
             final Set<String> measureColumns, String observationType, String foiColumn, final String procedureId, final String procedureColumn, final boolean extractUom) throws DataStoreException, MalformedURLException {
         super(observationFile, separator, featureType);
         dataFile = observationFile;
+        this.delimiter = separator;
+        this.quotechar = quotechar;
         this.mainColumn = mainColumn;
         this.dateColumn = dateColumn;
         this.dateFormat = dateTimeformat;
@@ -181,7 +187,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
 
         final Set<GenericName> result = new HashSet();
         // open csv file
-        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile))) {
+        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), delimiter, quotechar)) {
 
             final Iterator<String[]> it = reader.iterator();
 
@@ -242,7 +248,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
         int obsCpt = 0;
 
         // open csv file
-        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile))) {
+        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), delimiter, quotechar)) {
 
             final Iterator<String[]> it = reader.iterator();
 
@@ -604,7 +610,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
     public Set<String> getPhenomenonNames() {
 
         // open csv file
-        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile))) {
+        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), delimiter, quotechar)) {
 
             final Iterator<String[]> it = reader.iterator();
 
@@ -635,7 +641,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
 
         final GeoSpatialBound result = new GeoSpatialBound();
         // open csv file
-        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile))) {
+        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), delimiter, quotechar)) {
 
             final Iterator<String[]> it = reader.iterator();
 
@@ -690,7 +696,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
     @Override
     public List<ExtractionResult.ProcedureTree> getProcedures() throws DataStoreException {
         // open csv file
-        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile))) {
+        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), delimiter, quotechar)) {
 
             final Iterator<String[]> it = reader.iterator();
             int count = 0;

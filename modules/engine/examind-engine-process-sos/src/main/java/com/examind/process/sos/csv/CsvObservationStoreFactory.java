@@ -92,7 +92,7 @@ public class CsvObservationStoreFactory extends FileParsingObservationStoreFacto
 
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR
             = PARAM_BUILDER.addName(NAME).addName("ObservationCsvFileParameters").createGroup(IDENTIFIER, NAMESPACE, CSVProvider.PATH, CSVProvider.SEPARATOR,
-                    MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, MEASURE_COLUMNS, MEASURE_COLUMNS_SEPARATOR, FOI_COLUMN, OBSERVATION_TYPE, PROCEDURE_ID, PROCEDURE_COLUMN, EXTRACT_UOM);
+                    MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, MEASURE_COLUMNS, MEASURE_COLUMNS_SEPARATOR, FOI_COLUMN, OBSERVATION_TYPE, PROCEDURE_ID, PROCEDURE_COLUMN, EXTRACT_UOM, CHARQUOTE);
 
 
     private static ParameterDescriptorGroup parameters(final String name, final int minimumOccurs) {
@@ -119,6 +119,11 @@ public class CsvObservationStoreFactory extends FileParsingObservationStoreFacto
 
         final URI uri = (URI) params.parameter(CSVProvider.PATH.getName().toString()).getValue();
         final char separator = (Character) params.parameter(CSVProvider.SEPARATOR.getName().toString()).getValue();
+        final String quotecharString = (String) params.parameter(CHARQUOTE.getName().toString()).getValue();
+        char quotechar = 0;
+        if (quotecharString != null) {
+            quotechar = quotecharString.charAt(0);
+        }
         final String mainColumn = (String) params.parameter(MAIN_COLUMN.getName().toString()).getValue();
         final String dateColumn = (String) params.parameter(DATE_COLUMN.getName().toString()).getValue();
         final String dateFormat = (String) params.parameter(DATE_FORMAT.getName().toString()).getValue();
@@ -134,7 +139,7 @@ public class CsvObservationStoreFactory extends FileParsingObservationStoreFacto
                 Collections.emptySet() : new HashSet<>(Arrays.asList(measureCols.getValue().split(measureColumnsSeparator)));
         try {
             return new CsvObservationStore(Paths.get(uri),
-                    separator, readType(uri, separator, dateColumn, longitudeColumn, latitudeColumn, measureColumns),
+                    separator, quotechar, readType(uri, separator, dateColumn, longitudeColumn, latitudeColumn, measureColumns),
                     mainColumn, dateColumn, dateFormat, longitudeColumn, latitudeColumn, measureColumns, observationType,
                     foiColumn, procedureId, procedureColumn, extractUom);
         } catch (IOException ex) {

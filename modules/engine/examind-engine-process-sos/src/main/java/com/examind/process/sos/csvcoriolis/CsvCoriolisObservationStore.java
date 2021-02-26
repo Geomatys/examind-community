@@ -650,7 +650,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
 
         final GeoSpatialBound result = new GeoSpatialBound();
         // open csv file
-        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile))) {
+        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), delimiter, quotechar)) {
 
             final Iterator<String[]> it = reader.iterator();
 
@@ -705,7 +705,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
     @Override
     public List<ProcedureTree> getProcedures() throws DataStoreException {
         // open csv file
-        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile))) {
+        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), delimiter, quotechar)) {
 
             final Iterator<String[]> it = reader.iterator();
             int count = 0;
