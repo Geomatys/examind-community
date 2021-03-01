@@ -24,7 +24,6 @@ import com.examind.sensor.component.SensorServiceBusiness;
 import com.examind.sts.core.STSWorker;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -40,7 +39,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
-import javax.validation.constraints.AssertTrue;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import org.constellation.admin.WSEngine;
@@ -89,7 +87,6 @@ import org.geotoolkit.sos.xml.v200.GetResultType;
 import org.geotoolkit.sts.GetHistoricalLocations;
 import org.geotoolkit.sts.GetObservations;
 import org.geotoolkit.sts.GetObservedProperties;
-import org.geotoolkit.sts.json.DataArray;
 import org.geotoolkit.sts.json.DataArrayResponse;
 import org.geotoolkit.sts.json.HistoricalLocation;
 import org.geotoolkit.sts.json.HistoricalLocationsResponse;
@@ -2038,10 +2035,10 @@ public class SosHarvesterProcessTest {
         //val1.setValue("040-P-034 - Baie de Douarnenez Sud SM10");  too long => to fix
         //val1.setValue("080-P-065 - D'Agnas 0320"); got a ' => to fix
         //val1.setValue("145-P-245 - Lepoe 5 (Récif interne)1");  too long => to fix
-        val1.setValue("250490017");
+        val1.setValue("25049001-7");
         in.values().add(val1);
         ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
-        val2.setValue("2504900118");
+        val2.setValue("25049001-18");
         in.values().add(val2);
 
         in.parameter(SosHarvesterProcessDescriptor.VALUE_COLUMN_NAME).setValue("VALUE");
@@ -2094,7 +2091,7 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(1, offp.getObservedProperties().size());
         String observedProperty = offp.getObservedProperties().get(0);
 
-        verifyAllObservedProperties(stsWorker, "urn:surval", Arrays.asList("250490017", "2504900118"));
+        verifyAllObservedProperties(stsWorker, "urn:surval", Arrays.asList("25049001-7", "25049001-18"));
 
         /*
         * Verify an inserted data

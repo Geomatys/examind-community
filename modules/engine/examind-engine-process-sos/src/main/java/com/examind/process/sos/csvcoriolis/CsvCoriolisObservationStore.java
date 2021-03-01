@@ -424,8 +424,13 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
 
                     // Concatenate values from input code columns
                     String concatenatedCodeColumnsValues = "";
+                    boolean first = true;
                     for (Integer codeColumnIndex : codeColumnIndexes) {
+                        if (!first) {
+                            concatenatedCodeColumnsValues += "-";
+                        }
                         concatenatedCodeColumnsValues += line[codeColumnIndex];
+                        first = false;
                     }
 
                     // checks if row matches the observed properties wanted

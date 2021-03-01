@@ -247,7 +247,9 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         inputs.add(FCparam);
 
         if (coriolis) {
-            final Parameter MCSparam = new Parameter(MEASURE_COLUMNS_NAME, String.class, MEASURE_COLUMNS_DESC, MEASURE_COLUMNS_DESC, 0, 92, null, codes.toArray());
+            List<String> sortedCodes = new ArrayList<>(codes);
+            Collections.sort(sortedCodes);
+            final Parameter MCSparam = new Parameter(MEASURE_COLUMNS_NAME, String.class, MEASURE_COLUMNS_DESC, MEASURE_COLUMNS_DESC, 0, 92, null, sortedCodes.toArray());
             inputs.add(MCSparam);
         } else {
             final Parameter MCSparam = new Parameter(MEASURE_COLUMNS_NAME, String.class, MEASURE_COLUMNS_DESC, MEASURE_COLUMNS_DESC, 0, 92, null, headers);
@@ -403,10 +405,15 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
                 line:while (it.hasNext()) {
                     final String[] line = it.next();
                     String computed = "";
+                    boolean first = true;
                     for(Integer i : measureCodeIndex) {
                         final String nextCode = line[i];
                         if (nextCode == null || nextCode.isEmpty()) continue line;
+                        if (!first) {
+                            computed += "-";
+                        }
                         computed += nextCode;
+                        first = false;
                     }
                     storeCode.add(computed);
                 }
