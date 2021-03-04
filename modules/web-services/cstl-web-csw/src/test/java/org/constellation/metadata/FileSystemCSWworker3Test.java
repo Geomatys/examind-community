@@ -41,7 +41,6 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.logging.Level;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
@@ -124,8 +123,7 @@ public class FileSystemCSWworker3Test extends CSWWorker3Test {
 
                 final TestResources testResource = initDataDirectory();
 
-                Integer pr = testResource.createProviderWithPath(TestResource.METADATA_FILE, dataDirectory, providerBusiness);
-                providerBusiness.createOrUpdateData(pr, null, false);
+                Integer pr = testResource.createProviderWithPath(TestResource.METADATA_FILE, dataDirectory, providerBusiness, null).id;
                 fsStore1 = (FileSystemMetadataStore) DataProviders.getProvider(pr).getMainStore();
 
                 // hide a metadata
@@ -154,7 +152,7 @@ public class FileSystemCSWworker3Test extends CSWWorker3Test {
 
             }
         } catch (Exception ex) {
-            Logging.getLogger("org.constellation.metadata").log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
 
     }

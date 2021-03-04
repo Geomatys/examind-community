@@ -110,8 +110,7 @@ public class NetCDFCSWWorkerTest extends CSWworkerTest {
 
                 final TestResources testResource = initDataDirectory();
 
-                Integer pr = testResource.createProviderWithPath(TestResource.METADATA_NTCDF, dataDirectory, providerBusiness);
-                providerBusiness.createOrUpdateData(pr, null, false);
+                Integer pr = testResource.createProviderWithPath(TestResource.METADATA_NETCDF, dataDirectory, providerBusiness, null).id;
 
                 //we write the configuration file
                 Automatic configuration = new Automatic();

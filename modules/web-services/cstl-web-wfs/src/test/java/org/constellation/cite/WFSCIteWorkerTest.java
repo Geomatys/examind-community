@@ -44,6 +44,8 @@ import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.dto.contact.Details;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.test.utils.SpringTestRunner;
+import org.constellation.test.utils.TestEnvironment.DataImport;
+import org.constellation.test.utils.TestEnvironment.ProviderImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import org.constellation.wfs.core.DefaultWFSWorker;
@@ -125,17 +127,10 @@ public class WFSCIteWorkerTest {
                 providerBusiness.removeAll();
                 final TestResources testResource = initDataDirectory();
 
-                Integer pid = testResource.createProvider(TestResource.WFS110_PRIMITIVE, providerBusiness);
-                Integer d1 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf", "PrimitiveGeoFeature"), pid, "VECTOR", false, true, true, null, null);
-
-
-                pid = testResource.createProvider(TestResource.WFS110_ENTITY, providerBusiness);
-                Integer d2 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf", "EntitéGénérique"), pid, "VECTOR", false, true, true, null, null);
-
-
-                pid = testResource.createProvider(TestResource.WFS110_AGGREGATE, providerBusiness);
-                Integer d3 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf", "AggregateGeoFeature"), pid, "VECTOR", false, true, true, null, null);
-
+                final List<DataImport> datas = new ArrayList<>();
+                datas.addAll(testResource.createProvider(TestResource.WFS110_PRIMITIVE, providerBusiness, null).datas);
+                datas.addAll(testResource.createProvider(TestResource.WFS110_ENTITY,    providerBusiness, null).datas);
+                datas.addAll(testResource.createProvider(TestResource.WFS110_AGGREGATE, providerBusiness, null).datas);
 
                 final LayerContext config = new LayerContext();
                 config.getCustomParameters().put("transactionSecurized", "false");
@@ -144,9 +139,9 @@ public class WFSCIteWorkerTest {
                 Details details = new Details(serviceId, serviceId, null, null, Arrays.asList("1.1.0"), null, null, true, "en");
 
                 Integer sid = serviceBusiness.create("wfs", serviceId, config, details, null);
-                layerBusiness.add(d1, null, "http://cite.opengeospatial.org/gmlsf", "PrimitiveGeoFeature", sid, null);
-                layerBusiness.add(d2, null, "http://cite.opengeospatial.org/gmlsf", "EntitéGénérique",     sid, null);
-                layerBusiness.add(d3, null, "http://cite.opengeospatial.org/gmlsf", "AggregateGeoFeature", sid, null);
+                for (DataImport d : datas) {
+                    layerBusiness.add(d.id, null, d.namespace, d.name, sid, null);
+                }
 
                 worker = new DefaultWFSWorker(serviceId);
                 initialized = true;

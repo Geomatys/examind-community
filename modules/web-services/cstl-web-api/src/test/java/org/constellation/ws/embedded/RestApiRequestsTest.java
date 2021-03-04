@@ -53,6 +53,7 @@ import org.constellation.dto.Page;
 import org.constellation.dto.SensorReference;
 import org.constellation.dto.StatInfo;
 import org.constellation.provider.DefaultCoverageData;
+import org.constellation.test.utils.TestEnvironment.ProviderImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import org.geotoolkit.storage.coverage.ImageStatistics;
@@ -103,28 +104,16 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
                 // initialize resource file
                 final TestResources testResource = initDataDirectory();
 
-                coveragePID = testResource.createProvider(TestResource.PNG, providerBusiness);
-                Integer dataId = dataBusiness.create(new QName("SSTMDE200305"), coveragePID, "COVERAGE", false, true, null, null);
+                // coverage file datastore
+                ProviderImport pi = testResource.createProvider(TestResource.PNG, providerBusiness, null);
+                coveragePID = pi.id;
+                Integer dataId = pi.datas.get(0).id;
 
-                // shapefilefile datastore
-                shapefilePID = testResource.createProvider(TestResource.WMS111_SHAPEFILES, providerBusiness);
-
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "BuildingCenters"), shapefilePID, "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "BasicPolygons"),   shapefilePID, "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "Bridges"),         shapefilePID, "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "Streams"),         shapefilePID, "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "Lakes"),           shapefilePID, "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "NamedPlaces"),     shapefilePID, "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "Buildings"),       shapefilePID, "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "RoadSegments"),    shapefilePID, "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "DividedRoutes"),   shapefilePID, "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "Forests"),         shapefilePID, "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "MapNeatline"),     shapefilePID, "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "Ponds"),           shapefilePID, "VECTOR", false, true, null, null);
+                // shapefile datastore
+                shapefilePID = testResource.createProvider(TestResource.WMS111_SHAPEFILES, providerBusiness, null).id;
 
                 // observation-file datastore
-                omPID = testResource.createProvider(TestResource.OM_XML, providerBusiness);;
-                providerBusiness.createOrUpdateData(omPID, null, false);
+                omPID = testResource.createProvider(TestResource.OM_XML, providerBusiness, null).id;
 
                 WorldFileImageReader.Spi.registerDefaults(null);
 

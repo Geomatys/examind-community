@@ -105,12 +105,10 @@ public class LayerBusinessTest {
                 int dsId = datasetBusiness.createDataset("DataBusinessTest", null, null);
 
                 // coverage-file datastore
-                coveragePID = testResource.createProvider(TestResource.PNG, providerBusiness);
-                providerBusiness.createOrUpdateData(coveragePID, dsId, false);
+                coveragePID = testResource.createProvider(TestResource.PNG, providerBusiness, dsId).id;
 
                 // shapefile datastore
-                vectorPID = testResource.createProvider(TestResource.WMS111_SHAPEFILES, providerBusiness);
-                providerBusiness.createOrUpdateData(vectorPID, dsId, false);
+                vectorPID = testResource.createProvider(TestResource.WMS111_SHAPEFILES, providerBusiness, dsId).id;
 
                 initialized = true;
             } catch (Exception ex) {

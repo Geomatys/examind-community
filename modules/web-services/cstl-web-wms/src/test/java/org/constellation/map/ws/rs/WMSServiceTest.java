@@ -22,6 +22,7 @@ package org.constellation.map.ws.rs;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -35,7 +36,6 @@ import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
-import javax.xml.namespace.QName;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
@@ -49,6 +49,7 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.map.core.QueryContext;
 import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.test.utils.TestEnvironment;
+import org.constellation.test.utils.TestEnvironment.DataImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.ws.IWSEngine;
 import org.constellation.ws.Worker;
@@ -123,43 +124,26 @@ public class WMSServiceTest {
                 providerBusiness.removeAll();
 
                 final TestEnvironment.TestResources testResource = initDataDirectory();
+                final List<DataImport> datas = new ArrayList<>();
 
                 // coverage-file datastore
-                Integer pid = testResource.createProvider(TestResource.PNG, providerBusiness);
-                Integer d = dataBusiness.create(new QName("SSTMDE200305"), pid, "COVERAGE", false, true, null, null);
+                datas.addAll(testResource.createProvider(TestResource.PNG, providerBusiness, null).datas);
 
-                pid = testResource.createProvider(TestResource.WMS111_SHAPEFILES, providerBusiness);
-
-                Integer d1  = dataBusiness.create(new QName("BuildingCenters"), pid, "VECTOR", false, true, true, null, null);
-                Integer d2  = dataBusiness.create(new QName("BasicPolygons"),   pid, "VECTOR", false, true, true, null, null);
-                Integer d3  = dataBusiness.create(new QName("Bridges"),         pid, "VECTOR", false, true, true, null, null);
-                Integer d4  = dataBusiness.create(new QName("Streams"),         pid, "VECTOR", false, true, true, null, null);
-                Integer d5  = dataBusiness.create(new QName("Lakes"),           pid, "VECTOR", false, true, true, null, null);
-                Integer d6  = dataBusiness.create(new QName("NamedPlaces"),     pid, "VECTOR", false, true, true, null, null);
-                Integer d7  = dataBusiness.create(new QName("Buildings"),       pid, "VECTOR", false, true, true, null, null);
-                Integer d8  = dataBusiness.create(new QName("RoadSegments"),    pid, "VECTOR", false, true, true, null, null);
-                Integer d9  = dataBusiness.create(new QName("DividedRoutes"),   pid, "VECTOR", false, true, true, null, null);
-                Integer d10 = dataBusiness.create(new QName("Forests"),         pid, "VECTOR", false, true, true, null, null);
-                Integer d11 = dataBusiness.create(new QName("MapNeatline"),     pid, "VECTOR", false, true, true, null, null);
-                Integer d12 = dataBusiness.create(new QName("Ponds"),           pid, "VECTOR", false, true, true, null, null);
+                // shapefiles
+                datas.addAll(testResource.createProvider(TestResource.WMS111_SHAPEFILES, providerBusiness, null).datas);
 
                 final LayerContext config = new LayerContext();
 
                 Integer defId = serviceBusiness.create("wms", "default", config, null, null);
-                layerBusiness.add(d,    null,  null,                        "SSTMDE200305",     defId, null);
-                layerBusiness.add(d1,   null, "http://www.opengis.net/gml", "BuildingCenters",  defId, null);
-                layerBusiness.add(d2,   null, "http://www.opengis.net/gml", "BasicPolygons",    defId, null);
-                layerBusiness.add(d3,   null, "http://www.opengis.net/gml", "Bridges",          defId, null);
-                layerBusiness.add(d4,   null, "http://www.opengis.net/gml", "Streams",          defId, null);
-                layerBusiness.add(d5,   null, "http://www.opengis.net/gml", "Lakes",            defId, null);
-                layerBusiness.add(d6,   null, "http://www.opengis.net/gml", "NamedPlaces",      defId, null);
-                layerBusiness.add(d7,   null, "http://www.opengis.net/gml", "Buildings",        defId, null);
-                layerBusiness.add(d8,   null, "http://www.opengis.net/gml", "RoadSegments",     defId, null);
-                layerBusiness.add(d9,   null, "http://www.opengis.net/gml", "DividedRoutes",    defId, null);
-                layerBusiness.add(d10,  null, "http://www.opengis.net/gml", "Forests",          defId, null);
-                layerBusiness.add(d11,  null, "http://www.opengis.net/gml", "MapNeatline",      defId, null);
-                layerBusiness.add(d12,  null, "http://www.opengis.net/gml", "Ponds",            defId, null);
-
+                for (DataImport d : datas) {
+                    // add gml namespace for shapefile data with no namespace
+                    String namespace = d.namespace;
+                    if (!"SSTMDE200305".equals(d.name) && namespace == null) {
+                        namespace = "http://www.opengis.net/gml";
+                    }
+                    layerBusiness.add(d.id, null, namespace, d.name, defId, null);
+                }
+                
                 serviceBusiness.start(defId);
 
                 // let the worker start

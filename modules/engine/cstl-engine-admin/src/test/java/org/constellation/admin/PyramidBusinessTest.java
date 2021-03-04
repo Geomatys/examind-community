@@ -117,16 +117,10 @@ public class PyramidBusinessTest {
                 org.geotoolkit.lang.Setup.initialize(null);
                 final TestEnvironment.TestResources testResource = initDataDirectory();
 
-
-                // coverage-file datastore
-                coverage1PID = testResource.createProvider(TestEnvironment.TestResource.TIF, providerBusiness);
-                providerBusiness.createOrUpdateData(coverage1PID, null, false);
-
-                coverage2PID = testResource.createProvider(TestEnvironment.TestResource.PNG, providerBusiness);
-                providerBusiness.createOrUpdateData(coverage2PID, null, false);
-
-                vectorPID = testResource.createProvider(TestEnvironment.TestResource.SHAPEFILES, providerBusiness);
-                providerBusiness.createOrUpdateData(vectorPID, null, false);
+                // insert data
+                coverage1PID = testResource.createProvider(TestEnvironment.TestResource.TIF, providerBusiness, null).id;
+                coverage2PID = testResource.createProvider(TestEnvironment.TestResource.PNG, providerBusiness, null).id;
+                vectorPID    = testResource.createProvider(TestEnvironment.TestResource.SHAPEFILES, providerBusiness, null).id;
 
                 initialized = true;
             } catch (Exception ex) {

@@ -18,7 +18,6 @@
  */
 package org.constellation.business;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import org.constellation.api.ProviderType;
@@ -171,10 +170,10 @@ public interface IProviderBusiness {
      *
      * @return The asssigned dataset id if createDatasetIfNull is set to true, or if a datasetId is specified.
      * return {@code null} else.
-     * @throws IOException
+     * 
      * @throws org.constellation.exception.ConfigurationException
      */
-    Integer createOrUpdateData(final int providerId, Integer datasetId, final boolean createDatasetIfNull) throws IOException, ConstellationException;
+    Integer createOrUpdateData(final int providerId, Integer datasetId, final boolean createDatasetIfNull) throws ConstellationException;
 
     Integer createOrUpdateData(final int providerId, Integer datasetId, final boolean createDatasetIfNull, final boolean hideNewData, Integer owner) throws ConstellationException;
 

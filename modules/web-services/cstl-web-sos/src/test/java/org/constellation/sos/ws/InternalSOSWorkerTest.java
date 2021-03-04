@@ -68,7 +68,7 @@ public class InternalSOSWorkerTest extends SOSWorkerTest {
 
                 final TestResources testResource = initDataDirectory();
 
-                Integer provider = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness);
+                Integer provider = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness, null).id;
 
                 Object sml = unmarshallSensorResource("org/constellation/xml/sml/system.xml", sensorBusiness);
                 sensorBusiness.create("urn:ogc:object:sensor:GEOM:1", "system", null, null, sml, Long.MIN_VALUE, provider);

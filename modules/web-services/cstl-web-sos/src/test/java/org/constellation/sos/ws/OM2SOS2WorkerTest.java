@@ -65,7 +65,7 @@ public class OM2SOS2WorkerTest extends SOS2WorkerTest {
 
                 final TestResources testResource = initDataDirectory();
 
-                Integer pid = testResource.createProvider(TestResource.OM2_DB, providerBusiness);
+                Integer pid = testResource.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
 
                 //we write the configuration file
                 final SOSConfiguration configuration = new SOSConfiguration();

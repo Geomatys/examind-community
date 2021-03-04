@@ -147,8 +147,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
                 Files.createDirectories(dataDirectory2);
                 writeResourceDataFile(dataDirectory2, "org/constellation/embedded/test/urn-uuid-e8df05c2-d923-4a05-acce-2b20a27c0e58.xml", "urn-uuid-e8df05c2-d923-4a05-acce-2b20a27c0e58.xml");
 
-                int pr = testResource.createProviderWithPath(TestResource.METADATA_FILE, dataDirectory2, providerBusiness);
-                providerBusiness.createOrUpdateData(pr, null, false);
+                int pr = testResource.createProviderWithPath(TestResource.METADATA_FILE, dataDirectory2, providerBusiness, null).id;
                 fsStore1 = (FileSystemMetadataStore) DataProviders.getProvider(pr).getMainStore();
 
                 final Automatic config2 = new Automatic();
@@ -182,8 +181,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
                 Files.createDirectories(subDataDirectory2);
                 writeResourceDataFile(subDataDirectory2, "org/constellation/embedded/test/urn-uuid-a06af396-3105-442d-8b40-22b57a90d2f2.xml", "urn-uuid-a06af396-3105-442d-8b40-22b57a90d2f2.xml");
 
-                pr  = testResource.createProviderWithPath(TestResource.METADATA_FILE, dataDirectory, providerBusiness);
-                providerBusiness.createOrUpdateData(pr, null, false);
+                pr  = testResource.createProviderWithPath(TestResource.METADATA_FILE, dataDirectory, providerBusiness, null).id;
                 fsStore2 = (FileSystemMetadataStore) DataProviders.getProvider(pr).getMainStore();
 
                 final Automatic config = new Automatic();

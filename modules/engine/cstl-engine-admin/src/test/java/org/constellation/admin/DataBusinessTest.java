@@ -144,21 +144,15 @@ public class DataBusinessTest {
                 int dsId = datasetBusiness.createDataset("DataBusinessTest", null, null);
 
                 // coverage-file datastore
-                coverage1PID = testResource.createProvider(TestResource.PNG, providerBusiness);
-                providerBusiness.createOrUpdateData(coverage1PID, dsId, false);
-
-                vectorPID = testResource.createProvider(TestResource.WMS111_SHAPEFILES, providerBusiness);
-                providerBusiness.createOrUpdateData(vectorPID, dsId, false);
-
-                coverage2PID = testResource.createProvider(TestResource.TIF, providerBusiness);
-                providerBusiness.createOrUpdateData(coverage2PID, dsId, false);
+                coverage1PID = testResource.createProvider(TestResource.PNG, providerBusiness, dsId).id;
+                vectorPID    = testResource.createProvider(TestResource.WMS111_SHAPEFILES, providerBusiness, dsId).id;
+                coverage2PID = testResource.createProvider(TestResource.TIF, providerBusiness, dsId).id;
 
                 List<Integer> dataIds = new ArrayList<>();
                 dataIds.addAll(providerBusiness.getDataIdsFromProviderId(coverage1PID));
                 dataIds.addAll(providerBusiness.getDataIdsFromProviderId(coverage2PID));
 
-                aggregatedPID = TestEnvironment.createAggregateProvider(providerBusiness, "aggData", dataIds);
-                providerBusiness.createOrUpdateData(aggregatedPID, dsId, false);
+                aggregatedPID = TestEnvironment.createAggregateProvider(providerBusiness, "aggData", dataIds, dsId).id;
 
                 initialized = true;
             } catch (Exception ex) {

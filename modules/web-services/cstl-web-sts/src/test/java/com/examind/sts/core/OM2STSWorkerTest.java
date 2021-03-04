@@ -139,7 +139,7 @@ public class OM2STSWorkerTest {
 
                 final TestResources testResource = initDataDirectory();
 
-                Integer pid = testResource.createProvider(TestResource.OM2_DB, providerBusiness);
+                Integer pid = testResource.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
 
                 //we write the configuration file
                 final SOSConfiguration configuration = new SOSConfiguration();
@@ -149,7 +149,7 @@ public class OM2STSWorkerTest {
                 Integer sid = serviceBusiness.create("sts", "default", configuration, null, null);
                 serviceBusiness.linkServiceAndProvider(sid, pid);
 
-                pid = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness);
+                pid = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness, null).id;
 
                 Object sml = unmarshallSensorResource("org/constellation/xml/sml/system.xml", sensorBusiness);
                 sensorBusiness.create("urn:ogc:object:sensor:GEOM:1", "system", "timeseries", null, sml, Long.MIN_VALUE, pid);

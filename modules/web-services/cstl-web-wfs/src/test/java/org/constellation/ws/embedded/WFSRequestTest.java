@@ -30,7 +30,6 @@ import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.admin.SpringHelper;
 import org.constellation.dto.service.config.wxs.LayerContext;
-import org.constellation.provider.DataProviders;
 import org.apache.sis.test.xml.DocumentComparator;
 import org.constellation.test.utils.Order;
 import org.geotoolkit.gml.xml.AbstractFeature;
@@ -78,14 +77,12 @@ import org.constellation.dto.service.InstanceReport;
 import org.constellation.dto.service.ServiceStatus;
 
 import org.geotoolkit.ogc.xml.v200.ResourceIdType;
-import org.constellation.provider.DataProvider;
 import org.constellation.test.utils.TestDatabaseHandler;
+import org.constellation.test.utils.TestEnvironment.DataImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import org.constellation.test.utils.TestRunner;
 import org.junit.Assert;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeNoException;
 import static org.junit.Assume.assumeTrue;
 import org.junit.Before;
@@ -212,55 +209,29 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
                 providerBusiness.removeAll();
 
                 final TestResources testResource = initDataDirectory();
+                final List<DataImport> datas = new ArrayList<>();
 
-                // Defines a PostGis data provider
+                // PostGis data provider
                 localdb_active = TestDatabaseHandler.hasLocalDatabase();
-                Integer d1 = null,d2 = null,d3 = null, d4 = null;
+                final List<DataImport> dbDatas = new ArrayList<>();
                 if (localdb_active) {
-                    Integer pid = testResource.createProvider(TestResource.FEATURE_DATABASE, providerBusiness);
-                    d1 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf2", "AggregateGeoFeature"), pid, "VECTOR", false, true, true, null, null);
-                    d2 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf2", "PrimitiveGeoFeature"), pid, "VECTOR", false, true, true, null, null);
-                    d3 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf2", "EntitéGénérique"),     pid, "VECTOR", false, true, true, null, null);
-                    d4 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf2", "CustomSQLQuery"),      pid, "VECTOR", false, true, true, null, null);
+                    dbDatas.addAll(testResource.createProvider(TestResource.FEATURE_DATABASE, providerBusiness, null).datas);
                 }
 
-                // Defines a GML data provider
-                Integer pid = testResource.createProvider(TestResource.WFS110_PRIMITIVE, providerBusiness);
-                Integer d5 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf", "PrimitiveGeoFeature"), pid, "VECTOR", false, true, true, null, null);
+                // GML data providers
+                final List<DataImport> gmlDatas = new ArrayList<>();
+                gmlDatas.addAll(testResource.createProvider(TestResource.WFS110_PRIMITIVE, providerBusiness, null).datas);
+                gmlDatas.addAll(testResource.createProvider(TestResource.WFS110_ENTITY,    providerBusiness, null).datas);
+                gmlDatas.addAll(testResource.createProvider(TestResource.WFS110_AGGREGATE, providerBusiness, null).datas);
 
+                // Shapefiles
+                datas.addAll(testResource.createProvider(TestResource.WMS111_SHAPEFILES, providerBusiness, null).datas);
 
-                pid = testResource.createProvider(TestResource.WFS110_ENTITY, providerBusiness);
-                Integer d6 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf", "EntitéGénérique"),  pid, "VECTOR", false, true, true, null, null);
-
-
-                pid = testResource.createProvider(TestResource.WFS110_AGGREGATE, providerBusiness);
-                Integer d7 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf", "AggregateGeoFeature"), pid, "VECTOR", false, true, true, null, null);
-
-                DataProvider d = DataProviders.getProvider(pid);
-                d.getKeys();
-
-
-                pid = testResource.createProvider(TestResource.WMS111_SHAPEFILES, providerBusiness);
-
-                Integer d8  = dataBusiness.create(new QName("BuildingCenters"), pid, "VECTOR", false, true, true, null, null);
-                Integer d9  = dataBusiness.create(new QName("BasicPolygons"),   pid, "VECTOR", false, true, true, null, null);
-                Integer d10 = dataBusiness.create(new QName("Bridges"),         pid, "VECTOR", false, true, true, null, null);
-                Integer d11 = dataBusiness.create(new QName("Streams"),         pid, "VECTOR", false, true, true, null, null);
-                Integer d12 = dataBusiness.create(new QName("Lakes"),           pid, "VECTOR", false, true, true, null, null);
-                Integer d13 = dataBusiness.create(new QName("NamedPlaces"),     pid, "VECTOR", false, true, true, null, null);
-                Integer d14 = dataBusiness.create(new QName("Buildings"),       pid, "VECTOR", false, true, true, null, null);
-                Integer d15 = dataBusiness.create(new QName("RoadSegments"),    pid, "VECTOR", false, true, true, null, null);
-                Integer d16 = dataBusiness.create(new QName("DividedRoutes"),   pid, "VECTOR", false, true, true, null, null);
-                Integer d17 = dataBusiness.create(new QName("Forests"),         pid, "VECTOR", false, true, true, null, null);
-                Integer d18 = dataBusiness.create(new QName("MapNeatline"),     pid, "VECTOR", false, true, true, null, null);
-                Integer d19 = dataBusiness.create(new QName("Ponds"),           pid, "VECTOR", false, true, true, null, null);
-
-                pid = testResource.createProvider(TestResource.OM2_FEATURE_DB, providerBusiness);
-                Integer d20 = dataBusiness.create(new QName("http://www.opengis.net/sampling/1.0", "SamplingPoint"), pid, "VECTOR", false, true, true, null, null);
+                // O&M feature database
+                datas.addAll(testResource.createProvider(TestResource.OM2_FEATURE_DB, providerBusiness, null).datas);
 
                 // for aliased layer
-                pid = testResource.createProvider(TestResource.JSON_FEATURE, providerBusiness);
-                Integer d23 = dataBusiness.create(new QName("feature"), pid, "VECTOR", false, true, true, null, null);
+                DataImport d23 = testResource.createProvider(TestResource.JSON_FEATURE, providerBusiness, null).datas.get(0);
 
                 final LayerContext config = new LayerContext();
                 config.getCustomParameters().put("transactionSecurized", "false");
@@ -268,70 +239,49 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
 
                 Integer defId = serviceBusiness.create("wfs", "default", config, null, null);
 
-                if (localdb_active) {
-                   layerBusiness.add(d1, null, "http://cite.opengeospatial.org/gmlsf2", "AggregateGeoFeature", defId, null);
-                   layerBusiness.add(d2, null, "http://cite.opengeospatial.org/gmlsf2", "PrimitiveGeoFeature", defId, null);
-                   layerBusiness.add(d3, null, "http://cite.opengeospatial.org/gmlsf2", "EntitéGénérique",     defId, null);
-                   layerBusiness.add(d4, null, "http://cite.opengeospatial.org/gmlsf2", "CustomSQLQuery",      defId, null);
-               }
+                for (DataImport d : dbDatas) {
+                    layerBusiness.add(d.id, null, d.namespace, d.name, defId, null);
+                }
+                for (DataImport d : gmlDatas) {
+                    layerBusiness.add(d.id, null, d.namespace, d.name, defId, null);
+                }
+                for (DataImport d : datas) {
+                    // add gml namespace for data with no namespace
+                    String namespace = d.namespace;
+                    if (namespace == null || namespace.isEmpty()) {
+                        namespace = "http://www.opengis.net/gml";
+                    }
+                    layerBusiness.add(d.id, null, namespace, d.name, defId, null);
+                }
 
-                layerBusiness.add(d5, null, "http://cite.opengeospatial.org/gmlsf", "PrimitiveGeoFeature", defId, null);
-                layerBusiness.add(d6, null, "http://cite.opengeospatial.org/gmlsf", "EntitéGénérique",     defId, null);
-                layerBusiness.add(d7, null, "http://cite.opengeospatial.org/gmlsf", "AggregateGeoFeature", defId, null);
-
-                layerBusiness.add(d20,   null, "http://www.opengis.net/sampling/1.0", "SamplingPoint",   defId, null);
-                layerBusiness.add(d8,    null, "http://www.opengis.net/gml",          "BuildingCenters", defId, null);
-                layerBusiness.add(d9,    null, "http://www.opengis.net/gml",          "BasicPolygons",   defId, null);
-                layerBusiness.add(d10,   null, "http://www.opengis.net/gml",          "Bridges",         defId, null);
-                layerBusiness.add(d11,   null, "http://www.opengis.net/gml",          "Streams",         defId, null);
-                layerBusiness.add(d12,   null, "http://www.opengis.net/gml",          "Lakes",           defId, null);
-                layerBusiness.add(d13,   null, "http://www.opengis.net/gml",          "NamedPlaces",     defId, null);
-                layerBusiness.add(d14,   null, "http://www.opengis.net/gml",          "Buildings",       defId, null);
-                layerBusiness.add(d15,   null, "http://www.opengis.net/gml",          "RoadSegments",    defId, null);
-                layerBusiness.add(d16,   null, "http://www.opengis.net/gml",          "DividedRoutes",   defId, null);
-                layerBusiness.add(d17,   null, "http://www.opengis.net/gml",          "Forests",         defId, null);
-                layerBusiness.add(d18,   null, "http://www.opengis.net/gml",          "MapNeatline",     defId, null);
-                layerBusiness.add(d19,   null, "http://www.opengis.net/gml",          "Ponds",           defId, null);
-                layerBusiness.add(d23,   "JS2", "http://www.opengis.net/gml",         "feature",         defId, null);
+                layerBusiness.add(d23.id,   "JS2", "http://www.opengis.net/gml",  d23.name, defId, null);
 
                 Integer testId = serviceBusiness.create("wfs", "test", config, null, null);
-                layerBusiness.add(d5, null, "http://cite.opengeospatial.org/gmlsf", "PrimitiveGeoFeature", testId, null);
-                layerBusiness.add(d6, null, "http://cite.opengeospatial.org/gmlsf", "EntitéGénérique",     testId, null);
-                layerBusiness.add(d7, null, "http://cite.opengeospatial.org/gmlsf", "AggregateGeoFeature", testId, null);
-
-                layerBusiness.add(d20,   null, "http://www.opengis.net/sampling/1.0", "SamplingPoint",   testId, null);
-                layerBusiness.add(d8,    null, "http://www.opengis.net/gml",          "BuildingCenters", testId, null);
-                layerBusiness.add(d9,    null, "http://www.opengis.net/gml",          "BasicPolygons",   testId, null);
-                layerBusiness.add(d10,   null, "http://www.opengis.net/gml",          "Bridges",         testId, null);
-                layerBusiness.add(d11,   null, "http://www.opengis.net/gml",          "Streams",         testId, null);
-                layerBusiness.add(d12,   null, "http://www.opengis.net/gml",          "Lakes",           testId, null);
-                layerBusiness.add(d13,   null, "http://www.opengis.net/gml",          "NamedPlaces",     testId, null);
-                layerBusiness.add(d14,   null, "http://www.opengis.net/gml",          "Buildings",       testId, null);
-                layerBusiness.add(d15,   null, "http://www.opengis.net/gml",          "RoadSegments",    testId, null);
-                layerBusiness.add(d16,   null, "http://www.opengis.net/gml",          "DividedRoutes",   testId, null);
-                layerBusiness.add(d17,   null, "http://www.opengis.net/gml",          "Forests",         testId, null);
-                layerBusiness.add(d18,   null, "http://www.opengis.net/gml",          "MapNeatline",     testId, null);
-                layerBusiness.add(d19,   null, "http://www.opengis.net/gml",          "Ponds",           testId, null);
+                for (DataImport d : gmlDatas) {
+                    layerBusiness.add(d.id, null, d.namespace, d.name, testId, null);
+                }
+                for (DataImport d : datas) {
+                    // add gml namespace for data with no namespace
+                    String namespace = d.namespace;
+                    if (namespace == null || namespace.isEmpty()) {
+                        namespace = "http://www.opengis.net/gml";
+                    }
+                    layerBusiness.add(d.id, null, namespace, d.name, testId, null);
+                }
 
                 final LayerContext config2 = new LayerContext();
                 config2.getCustomParameters().put("transactionSecurized", "false");
                 config2.getCustomParameters().put("transactional", "true");
 
                 Integer test1Id = serviceBusiness.create("wfs", "test1", config, null, null);
-                layerBusiness.add(d20,   null, "http://www.opengis.net/sampling/1.0", "SamplingPoint",   test1Id, null);
-                layerBusiness.add(d8,    null, "http://www.opengis.net/gml",          "BuildingCenters", test1Id, null);
-                layerBusiness.add(d9,    null, "http://www.opengis.net/gml",          "BasicPolygons",   test1Id, null);
-                layerBusiness.add(d10,   null, "http://www.opengis.net/gml",          "Bridges",         test1Id, null);
-                layerBusiness.add(d11,   null, "http://www.opengis.net/gml",          "Streams",         test1Id, null);
-                layerBusiness.add(d12,   null, "http://www.opengis.net/gml",          "Lakes",           test1Id, null);
-                layerBusiness.add(d13,   null, "http://www.opengis.net/gml",          "NamedPlaces",     test1Id, null);
-                layerBusiness.add(d14,   null, "http://www.opengis.net/gml",          "Buildings",       test1Id, null);
-                layerBusiness.add(d15,   null, "http://www.opengis.net/gml",          "RoadSegments",    test1Id, null);
-                layerBusiness.add(d16,   null, "http://www.opengis.net/gml",          "DividedRoutes",   test1Id, null);
-                layerBusiness.add(d17,   null, "http://www.opengis.net/gml",          "Forests",         test1Id, null);
-                layerBusiness.add(d18,   null, "http://www.opengis.net/gml",          "MapNeatline",     test1Id, null);
-                layerBusiness.add(d19,   null, "http://www.opengis.net/gml",          "Ponds",           test1Id, null);
-
+                for (DataImport d : datas) {
+                    // add gml namespace for data with no namespace
+                    String namespace = d.namespace;
+                    if (namespace == null || namespace.isEmpty()) {
+                        namespace = "http://www.opengis.net/gml";
+                    }
+                    layerBusiness.add(d.id, null, namespace, d.name, test1Id, null);
+                }
 
                 EPSG_VERSION = CRS.getVersion("EPSG").toString();
                 pool = new MarshallerPool(JAXBContext.newInstance("org.geotoolkit.wfs.xml.v110"   +

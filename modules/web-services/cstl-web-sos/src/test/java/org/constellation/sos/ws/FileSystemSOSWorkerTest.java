@@ -78,8 +78,7 @@ public class FileSystemSOSWorkerTest extends SOSWorkerTest {
 
                 final TestResources testResource = initDataDirectory();
 
-                Integer pr = testResource.createProviderWithPath(TestResource.SENSOR_FILE, sensorDirectory, providerBusiness);
-                providerBusiness.createOrUpdateData(pr, null, false);
+                Integer pr = testResource.createProviderWithPath(TestResource.SENSOR_FILE, sensorDirectory, providerBusiness, null).id;
 
                 final SOSConfiguration configuration = new SOSConfiguration();
                 configuration.setProfile("transactional");

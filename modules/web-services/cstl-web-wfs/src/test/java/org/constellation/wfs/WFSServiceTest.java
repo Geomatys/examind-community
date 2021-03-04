@@ -37,7 +37,6 @@ import org.springframework.test.context.ContextConfiguration;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
-import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.InputStream;
 import java.lang.reflect.Field;
@@ -50,6 +49,7 @@ import java.util.logging.Logger;
 import org.apache.sis.storage.FeatureSet;
 
 import org.apache.sis.util.logging.Logging;
+import org.constellation.test.utils.TestEnvironment.DataImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
@@ -108,15 +108,14 @@ public class WFSServiceTest {
 
                 final TestResources testResource = initDataDirectory();
 
-                Integer pid = testResource.createProvider(TestResource.OM2_FEATURE_DB, providerBusiness);
-                Integer d = dataBusiness.create(new QName("http://www.opengis.net/sampling/1.0", "SamplingPoint"), pid, "VECTOR", false, true, true, null, null);
+                DataImport d = testResource.createProvider(TestResource.OM2_FEATURE_DB, providerBusiness, null).datas.get(0);
 
                 final LayerContext config = new LayerContext();
                 config.getCustomParameters().put("transactionSecurized", "false");
                 config.getCustomParameters().put("transactional", "true");
 
                 Integer defId = serviceBusiness.create("wfs", "default", config, null, null);
-                layerBusiness.add(d, null, "http://www.opengis.net/sampling/1.0", "SamplingPoint", defId, null);
+                layerBusiness.add(d.id, null, d.namespace, d.name, defId, null);
 
                 serviceBusiness.start(defId);
 

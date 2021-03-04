@@ -131,7 +131,7 @@ public class SensorConfigurationUpgrade {
                             providerID = providerBusiness.storeProvider(providerIdentifier, ProviderType.SENSOR, "sensor-store", fsConfig);
                             try {
                                 providerBusiness.createOrUpdateData(providerID, null, false);
-                            } catch (IOException | ConstellationException ex) {
+                            } catch (ConstellationException ex) {
                                 throw new ConfigurationException(ex);
                             }
                         }

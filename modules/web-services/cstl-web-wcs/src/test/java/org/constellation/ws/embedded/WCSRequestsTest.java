@@ -34,7 +34,6 @@ import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.spi.ImageWriterSpi;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
 import org.constellation.admin.SpringHelper;
 import org.constellation.exception.ConstellationException;
 import org.constellation.business.IDataBusiness;
@@ -48,6 +47,7 @@ import org.constellation.dto.service.ServiceStatus;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.test.ImageTesting;
 import org.constellation.test.utils.Order;
+import org.constellation.test.utils.TestEnvironment.ProviderImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import org.constellation.test.utils.TestRunner;
@@ -62,10 +62,8 @@ import org.geotoolkit.wcs.xml.v100.DCPTypeType.HTTP.Get;
 import org.geotoolkit.wcs.xml.v100.LonLatEnvelopeType;
 import org.geotoolkit.wcs.xml.v100.WCSCapabilitiesType;
 import org.junit.AfterClass;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeNoException;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -176,15 +174,15 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
 
                 final TestResources testResource = initDataDirectory();
 
-                Integer pid = testResource.createProvider(TestResource.PNG, providerBusiness);
-                Integer did = dataBusiness.create(new QName("SSTMDE200305"), pid, "COVERAGE", false, true, true, null, null);
+                ProviderImport pi = testResource.createProvider(TestResource.PNG, providerBusiness, null);
+                Integer did = pi.datas.get(0).id;
 
                 // second data for alias
-                pid = testResource.createProvider(TestResource.PNG, providerBusiness);
-                Integer did2 = dataBusiness.create(new QName("SSTMDE200305"), pid, "COVERAGE", false, true, true, null, null);
+                pi = testResource.createProvider(TestResource.PNG, providerBusiness, null);
+                Integer did2 = pi.datas.get(0).id;
                 
-                pid = testResource.createProvider(TestResource.TIF, providerBusiness);
-                Integer did3 = dataBusiness.create(new QName("martinique"), pid, "COVERAGE", false, true, null, null);
+                pi = testResource.createProvider(TestResource.TIF, providerBusiness, null);
+                Integer did3 = pi.datas.get(0).id;
 
                 final LayerContext config = new LayerContext();
 

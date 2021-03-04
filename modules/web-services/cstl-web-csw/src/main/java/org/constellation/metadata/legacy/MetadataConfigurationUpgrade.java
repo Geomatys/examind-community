@@ -18,7 +18,6 @@
  */
 package org.constellation.metadata.legacy;
 
-import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
@@ -131,7 +130,7 @@ public class MetadataConfigurationUpgrade {
                             providerID = providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "metadata-store", sourcef);
                             try {
                                 providerBusiness.createOrUpdateData(providerID, null, false);
-                            } catch (IOException | ConstellationException ex) {
+                            } catch (ConstellationException ex) {
                                 throw new ConfigurationException(ex);
                             }
                         } else {

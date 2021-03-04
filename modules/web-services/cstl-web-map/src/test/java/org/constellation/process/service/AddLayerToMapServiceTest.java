@@ -19,7 +19,6 @@
 package org.constellation.process.service;
 
 import org.constellation.util.Util;
-import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
 import org.constellation.dto.service.config.wxs.Layer;
 import org.constellation.dto.service.config.wxs.LayerContext;
@@ -29,17 +28,12 @@ import org.constellation.process.ExamindProcessFactory;
 import org.constellation.util.DataReference;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.process.ProcessDescriptor;
-import org.geotoolkit.process.ProcessException;
 import org.geotoolkit.process.ProcessFinder;
 import org.junit.*;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
 import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.util.NoSuchIdentifierException;
 import javax.xml.namespace.QName;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -72,18 +66,13 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
     private Integer providerId;
 
     @Before
-    public void createProvider() throws ConfigurationException, IOException, URISyntaxException {
+    public void createProvider() throws Exception {
 
         //setup data
         final TestResources testResource = initDataDirectory();
-        providerId = testResource.createProvider(TestResource.SHAPEFILES, providerBusiness);
-        try {
-            providerBusiness.createOrUpdateData(providerId, null, true);
-            ProviderBrief pb = providerBusiness.getProvider(providerId);
-            COUNTRIES_DATA_REF = DataReference.createProviderDataReference(DataReference.PROVIDER_LAYER_TYPE, pb.getIdentifier(), "Countries");
-        } catch (IOException | ConstellationException ex) {
-            throw new ConfigurationException(ex.getMessage(),ex);
-        }
+        providerId = testResource.createProvider(TestResource.SHAPEFILES, providerBusiness, null).id;
+        ProviderBrief pb = providerBusiness.getProvider(providerId);
+        COUNTRIES_DATA_REF = DataReference.createProviderDataReference(DataReference.PROVIDER_LAYER_TYPE, pb.getIdentifier(), "Countries");
     }
 
     @After
@@ -104,7 +93,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
     }
 
     @Test
-    public void testAddSFLayerToConfiguration() throws NoSuchIdentifierException, ProcessException, MalformedURLException, ConfigurationException {
+    public void testAddSFLayerToConfiguration() throws Exception {
         final ProcessDescriptor descriptor = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, PROCESS_NAME);
 
         //init
@@ -151,11 +140,11 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
      * Source exist
      */
     @Test
-    public void testAddSFLayerToConfiguration2() throws NoSuchIdentifierException, ProcessException, MalformedURLException, ConfigurationException {
+    public void testAddSFLayerToConfiguration2() throws Exception {
         final ProcessDescriptor descriptor = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, PROCESS_NAME);
 
         Integer serviceId = null;
-        try{
+        try {
             final LayerContext inputContext = new LayerContext();
             serviceId = createCustomInstance("addLayer2", inputContext);
 
@@ -190,7 +179,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
             assertEquals(STYLE_DATA_REF ,outLayer.getStyles().get(0));
 
             assertTrue(checkInstanceExist("addLayer2"));
-        }finally{
+        } finally {
             deleteInstance(layerBusiness,  serviceId);
         }
     }
@@ -199,11 +188,11 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
      * Layer already exist -> replacement
      */
     @Test
-    public void testAddSFLayerToConfiguration3() throws NoSuchIdentifierException, ProcessException, MalformedURLException, ConstellationException {
+    public void testAddSFLayerToConfiguration3() throws Exception {
         final ProcessDescriptor descriptor = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, PROCESS_NAME);
 
         Integer serviceId = null;
-        try{
+        try {
             final LayerContext inputContext = new LayerContext();
             inputContext.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());
 
@@ -256,7 +245,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
             assertEquals(STYLE_DATA_REF ,outLayer.getStyles().get(0));
 
             assertTrue(checkInstanceExist("addLayer3"));
-        }finally{
+        } finally {
             deleteInstance(layerBusiness, serviceId);
         }
     }
@@ -266,11 +255,11 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
      *  Source in loadAllMode and layer already exist in exclude list
      */
      @Test
-    public void testAddSFLayerToConfiguration5() throws NoSuchIdentifierException, ProcessException, MalformedURLException, ConstellationException {
+    public void testAddSFLayerToConfiguration5() throws Exception {
         final ProcessDescriptor descriptor = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, PROCESS_NAME);
 
         Integer serviceId = null;
-        try{
+        try {
             //init
             final LayerContext inputContext = new LayerContext();
             final List<GetFeatureInfoCfg> gfi = FeatureInfoUtilities.createGenericConfiguration();
@@ -341,7 +330,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
 
             assertTrue(checkInstanceExist("addLayer5"));
 
-        }finally{
+        } finally {
             deleteInstance(layerBusiness, serviceId);
         }
 
@@ -351,10 +340,10 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
      * No style, no filter, no alias
      */
      @Test
-    public void testAddSFLayerToConfiguration6() throws NoSuchIdentifierException, ProcessException, MalformedURLException, ConfigurationException {
+    public void testAddSFLayerToConfiguration6() throws Exception {
 
         Integer serviceId = null;
-        try{
+        try {
         //init
             final LayerContext inputContext = new LayerContext();
             inputContext.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());
@@ -389,7 +378,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
 
             assertTrue(checkInstanceExist("addLayer6"));
 
-        }finally{
+        } finally {
             deleteInstance(layerBusiness, serviceId);
         }
 
@@ -399,11 +388,11 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
      * Test custom GetFeatureInfo
      */
     @Test
-    public void testAddSFLayerToConfiguration7() throws NoSuchIdentifierException, ProcessException, MalformedURLException, ConfigurationException {
+    public void testAddSFLayerToConfiguration7() throws Exception {
         final ProcessDescriptor descriptor = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, PROCESS_NAME);
 
         Integer serviceId = null;
-        try{
+        try {
             //init
             final LayerContext inputContext = new LayerContext();
             inputContext.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());
@@ -449,9 +438,8 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
 
             assertTrue(checkInstanceExist("addLayer7"));
 
-        }finally{
+        } finally {
             deleteInstance(layerBusiness, serviceId);
         }
     }
-
 }

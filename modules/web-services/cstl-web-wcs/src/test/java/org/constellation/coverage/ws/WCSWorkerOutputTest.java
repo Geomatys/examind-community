@@ -64,7 +64,6 @@ import javax.imageio.ImageIO;
 import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.spi.ImageWriterSpi;
 import javax.inject.Inject;
-import javax.xml.namespace.QName;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IDataBusiness;
@@ -73,6 +72,7 @@ import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.wxs.LayerContext;
+import org.constellation.test.utils.TestEnvironment.ProviderImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import org.geotoolkit.image.io.plugin.WorldFileImageReader;
@@ -144,15 +144,26 @@ public class WCSWorkerOutputTest {
                 dataBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                // coverage-sql datastore
+                WorldFileImageReader.Spi.registerDefaults(null);
+
+                //reset values, only allow pure java readers
+                for(String jn : ImageIO.getReaderFormatNames()){
+                    Registry.setNativeCodecAllowed(jn, ImageReaderSpi.class, false);
+                }
+
+                //reset values, only allow pure java writers
+                for(String jn : ImageIO.getWriterFormatNames()){
+                    Registry.setNativeCodecAllowed(jn, ImageWriterSpi.class, false);
+                }
+
                 final TestResources testResource = initDataDirectory();
 
-                Integer pid = testResource.createProvider(TestResource.PNG, providerBusiness);
-                Integer did = dataBusiness.create(new QName("SSTMDE200305"), pid, "COVERAGE", false, true, true, null, null);
+                ProviderImport pi = testResource.createProvider(TestResource.PNG, providerBusiness, null);
+                Integer did = pi.datas.get(0).id;
 
                 // second data for alias
-                pid = testResource.createProvider(TestResource.PNG, providerBusiness);
-                Integer did2 = dataBusiness.create(new QName("SSTMDE200305"), pid, "COVERAGE", false, true, true, null, null);
+                pi = testResource.createProvider(TestResource.PNG, providerBusiness, null);
+                Integer did2 = pi.datas.get(0).id;
 
                 final LayerContext config = new LayerContext();
 
@@ -165,17 +176,7 @@ public class WCSWorkerOutputTest {
                 WORKER.setServiceUrl("http://localhost:9090");
                 initialized = true;
 
-                WorldFileImageReader.Spi.registerDefaults(null);
-
-                //reset values, only allow pure java readers
-                for(String jn : ImageIO.getReaderFormatNames()){
-                    Registry.setNativeCodecAllowed(jn, ImageReaderSpi.class, false);
-                }
-
-                //reset values, only allow pure java writers
-                for(String jn : ImageIO.getWriterFormatNames()){
-                    Registry.setNativeCodecAllowed(jn, ImageWriterSpi.class, false);
-                }
+                
 
             } catch (Exception ex) {
                 LOGGER.log(Level.SEVERE, null, ex);

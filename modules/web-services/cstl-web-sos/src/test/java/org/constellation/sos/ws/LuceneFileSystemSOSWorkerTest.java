@@ -180,7 +180,7 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
 
                 final TestResources testResource = initDataDirectory();
 
-                Integer pid = testResource.createProviderWithPath(TestResource.OM_LUCENE, configDir, providerBusiness);
+                Integer pid = testResource.createProviderWithPath(TestResource.OM_LUCENE, configDir, providerBusiness, null).id;
 
                 final SOSConfiguration configuration = new SOSConfiguration();
                 configuration.setProfile("transactional");

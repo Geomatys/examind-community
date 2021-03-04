@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.xml.bind.Unmarshaller;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStore;
@@ -20,6 +21,7 @@ import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.ProviderType;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.service.config.generic.Automatic;
+import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationRuntimeException;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.constellation.provider.DataProviderFactory;
@@ -55,32 +57,116 @@ public final class TestEnvironment {
      */
     public static final String EPSG_VERSION = getEPSGVersion();
 
+    public static class DataImport {
+        public final int id;
+        public final String namespace;
+        public final String name;
+
+        DataImport(int id, String namespace, String name) {
+            this.id = id;
+            this.namespace = namespace;
+            this.name = name;
+        }
+    }
+    
+    public static class ProviderImport {
+        public final int id;
+        public final int datasetId;
+        public final List<DataImport> datas;
+
+        ProviderImport(int id, int datasetId, List<DataImport> datas) {
+            this.id = id;
+            this.datas = datas;
+            this.datasetId = datasetId;
+        }
+    }
     /*
         List of resources available
      */
     public enum TestResource {
 
-        //image
-        DATA("org/constellation/data/image", null, null),
+        /**
+         * Coverage file datastore with PNG file.
+         * 
+         *  data :
+         *  - SSTMDE200305
+         */
+        PNG("org/constellation/data/image/png/SSTMDE200305.png", TestEnvironment::createCoverageFileProvider, TestEnvironment::createFileCoverageStore),
 
-        PNG("org/constellation/data/image/SSTMDE200305.png", TestEnvironment::createCoverageFileProvider, TestEnvironment::createFileCoverageStore),
-        TIF("org/constellation/data/image/martinique.tif", TestEnvironment::createTifProvider, TestEnvironment::createFileCoverageStore),
+        /**
+         * Coverage file datastore with TIF file.
+         *
+         *  data :
+         *  - martinique
+         */
+        TIF("org/constellation/data/image/tif/martinique.tif", TestEnvironment::createTifProvider, TestEnvironment::createFileCoverageStore),
 
+        /**
+         * Netcdf provider.
+         *
+         * data :
+         * - Nav
+         * - Nmodels
+         * - Record
+         * - sea_water_temperature
+         */
         NETCDF("org/constellation/netcdf/2005092200_sst_21-24.en.nc", TestEnvironment::createNCProvider, null),
 
         SQL_SCRIPTS("org/constellation/sql", null, null),
 
+        /**
+         * GML datastore.
+         *
+         * data :
+         *  - http://cite.opengeospatial.org/gmlsf : AggregateGeoFeature
+         */
         WFS110_AGGREGATE("org/constellation/ws/embedded/wfs110/aggregate", TestEnvironment::createAggregateProvider, null),
+
+        /**
+         * GML datastore.
+         *
+         * data :
+         *  - http://cite.opengeospatial.org/gmlsf : EntitéGénérique
+         */
         WFS110_ENTITY("org/constellation/ws/embedded/wfs110/entity", TestEnvironment::createEntityGenericGMLProvider, null),
+
+        /**
+         * GML datastore.
+         *
+         * data :
+         *  - http://cite.opengeospatial.org/gmlsf : PrimitiveGeoFeature
+         */
         WFS110_PRIMITIVE("org/constellation/ws/embedded/wfs110/primitive", TestEnvironment::createPrimitiveGMLProvider, null),
         WFS110_CITE_GMLSF0("org/constellation/ws/embedded/wfs110/cite-gmlsf0.xsd", null, null),
 
+        /**
+         * Multiple shapefiles.
+         * 
+         * data :
+         * - BuildingCenters
+         * - BasicPolygons
+         * - Bridges
+         * - Streams
+         * - Lakes
+         * - NamedPlaces
+         * - Buildings
+         * - RoadSegments
+         * - DividedRoutes
+         * - Forests
+         * - MapNeatline
+         * - Ponds
+         */
         WMS111_SHAPEFILES("org/constellation/ws/embedded/wms111/shapefiles", TestEnvironment::createShapefileProvider, TestEnvironment::createShapefileStore),
         WMS111_STYLES("org/constellation/ws/embedded/wms111/styles", null, null),
 
         SHAPEFILES("org/constellation/data/shapefiles", TestEnvironment::createShapefileProvider, TestEnvironment::createShapefileStore),
 
-        // Observation and mesurement providers
+        /**
+         * Observation and mesurement provider.
+         * 
+         * data :
+         * - http://www.opengis.net/sampling/1.0 : SamplingPoint
+         */
         OM2_FEATURE_DB(null, TestEnvironment::createOM2FeatureProvider, null),
         OM2_DB(null, TestEnvironment::createOM2DatabaseProvider, null),
         OM_XML("org/constellation/xml/sos/single-observations.xml", TestEnvironment::createOMFileProvider, null),
@@ -93,10 +179,18 @@ public final class TestEnvironment {
 
         // metadata providers
         METADATA_FILE(null, TestEnvironment::createMetadataFileProvider, null),
-        METADATA_NTCDF(null, TestEnvironment::createMetadataNetCDFProvider, null),
+        METADATA_NETCDF(null, TestEnvironment::createMetadataNetCDFProvider, null),
         METADATA_INTERNAL(null, TestEnvironment::createMetadataInternalProvider, null),
 
-        // feature database
+        /**
+         * External Postgis feature database.
+         *
+         * data :
+         * - http://cite.opengeospatial.org/gmlsf2 : AggregateGeoFeature
+         * - http://cite.opengeospatial.org/gmlsf2 : PrimitiveGeoFeature
+         * - http://cite.opengeospatial.org/gmlsf2 : EntitéGénérique
+         * - http://cite.opengeospatial.org/gmlsf2 : CustomSQLQuery
+         */
         FEATURE_DATABASE(null, TestEnvironment::createFeatDBProvider, null),
 
         //xml files
@@ -105,8 +199,20 @@ public final class TestEnvironment {
         XML_SML("org/constellation/xml/sml", null, null),
         XML_SOS("org/constellation/xml/sos", null, null),
 
-        //json files
+        /**
+         * GEOJSON file provider.
+         * 
+         * data :
+         * - feature
+         */
         JSON_FEATURE("org/constellation/ws/embedded/json/feature.json", TestEnvironment::createGeoJsonProvider, null),
+
+         /**
+         * GEOJSON file provider.
+         *
+         * data :
+         * - featureCollection
+         */
         JSON_FEATURE_COLLECTION("org/constellation/ws/embedded/json/featureCollection.json", TestEnvironment::createGeoJsonProvider, null);
 
         private final String path;
@@ -176,19 +282,54 @@ public final class TestEnvironment {
         public Path outputDir;
         public Map<TestResource, DeployedTestResource> resources;
 
-        public Integer createProvider(TestResource tr, IProviderBusiness providerBusiness) {
+        /**
+         * Create The provider for the specified test resource, and generate the associated data.
+         * If a dataset id is specified, the data will be associated with it.
+         * return a report of the created entity.
+         *
+         * @param tr A test resource.
+         * @param providerBusiness Spring bean.
+         * @param datasetId Dataset id, ca be {@code null}.
+         *
+         * @return A report of the created entity containing the provider id, and a view of the created datas.
+         * @throws org.constellation.exception.ConstellationException
+         */
+        public ProviderImport createProvider(TestResource tr, IProviderBusiness providerBusiness, Integer datasetId) throws ConstellationException {
            DeployedTestResource dpr = resources.get(tr);
            if (dpr != null) {
-               return dpr.createProvider(providerBusiness);
+               int pid = dpr.createProvider(providerBusiness, datasetId);
+               int dsId = providerBusiness.createOrUpdateData(pid, datasetId, true);
+               List<DataImport> datas = providerBusiness.getDataBriefsFromProviderId(pid, null, true, false)
+                       .stream().map(db -> new DataImport(db.getId(), db.getNamespace(), db.getName()))
+                       .collect(Collectors.toList());
+               return new ProviderImport(pid, dsId, datas);
            }
            throw new ConstellationRuntimeException("Missing test resource:" + tr.name());
         }
 
-        public Integer createProviderWithPath(TestResource tr, Path p, IProviderBusiness providerBusiness) {
+        /**
+         * Create The provider for the specified test resource using the specified files location, and generate the associated data.
+         * If a dataset id is specified, the data will be associated with it.
+         * return a report of the created entity.
+         *
+         * @param tr A test resource.
+         * @param location The location of the file to use in the datasore
+         * @param providerBusiness Spring bean.
+         * @param datasetId Dataset id, ca be {@code null}.
+         *
+         * @return A report of the created entity containing the provider id, and a view of the created datas.
+         * @throws org.constellation.exception.ConstellationException
+         */
+        public ProviderImport createProviderWithPath(TestResource tr, Path location, IProviderBusiness providerBusiness, Integer datasetId) throws ConstellationException {
            DeployedTestResource dpr = resources.get(tr);
            if (dpr != null) {
-               dpr.dataDir = p;
-               return dpr.createProvider(providerBusiness);
+               dpr.dataDir = location;
+               int pid = dpr.createProvider(providerBusiness, datasetId);
+               int dsId = providerBusiness.createOrUpdateData(pid, datasetId, true);
+               List<DataImport> datas = providerBusiness.getDataBriefsFromProviderId(pid, null, true, false)
+                       .stream().map(db -> new DataImport(db.getId(), db.getNamespace(), db.getName()))
+                       .collect(Collectors.toList());
+               return new ProviderImport(pid, dsId, datas);
            }
            throw new ConstellationRuntimeException("Missing test resource:" + tr.name());
         }
@@ -211,7 +352,7 @@ public final class TestEnvironment {
             this.tr = tr;
         }
 
-        public Integer createProvider(IProviderBusiness providerBusiness) {
+        public Integer createProvider(IProviderBusiness providerBusiness, Integer datasetId) {
             return tr.createProvider.apply(providerBusiness, dataDir);
         }
 
@@ -220,7 +361,7 @@ public final class TestEnvironment {
         }
     }
 
-    public static Integer createAggregateProvider(IProviderBusiness providerBusiness, String dataName, List<Integer> dataIds) {
+    public static ProviderImport createAggregateProvider(IProviderBusiness providerBusiness, String dataName, List<Integer> dataIds, Integer datasetId) throws ConstellationException {
         try {
             String providerIdentifier = "aggSrc" + UUID.randomUUID().toString();
             final DataProviderFactory factory = DataProviders.getFactory("computed-resource");
@@ -239,9 +380,14 @@ public final class TestEnvironment {
             config.parameter("ResultCRS").setValue("EPSG:4326");
             config.parameter("mode").setValue("ORDER");
 
-            return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "computed-resource", source);
+            int pid = providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "computed-resource", source);
+            int dsId = providerBusiness.createOrUpdateData(pid, datasetId, true);
+            List<DataImport> datas = providerBusiness.getDataBriefsFromProviderId(pid, null, true, false)
+                       .stream().map(db -> new DataImport(db.getId(), db.getNamespace(), db.getName()))
+                       .collect(Collectors.toList());
+            return new ProviderImport(pid, dsId, datas);
         } catch (Exception ex) {
-            throw new ConstellationRuntimeException(ex);
+            throw new ConstellationException(ex);
         }
     }
 

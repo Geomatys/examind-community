@@ -81,8 +81,8 @@ public class OM2SOSConfigurerTest extends SOSConfigurerTest {
 
                 final TestResources testResource = initDataDirectory();
 
-                Integer omPrId  = testResource.createProvider(TestResource.OM2_DB, providerBusiness);
-                Integer senPrId = testResource.createProviderWithPath(TestResource.SENSOR_FILE, sensorDirectory, providerBusiness);
+                Integer omPrId  = testResource.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
+                Integer senPrId = testResource.createProviderWithPath(TestResource.SENSOR_FILE, sensorDirectory, providerBusiness, null).id;
                 providerBusiness.createOrUpdateData(senPrId, null, false);
 
                 //we write the configuration file

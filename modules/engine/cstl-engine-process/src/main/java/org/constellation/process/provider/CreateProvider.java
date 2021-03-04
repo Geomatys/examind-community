@@ -102,7 +102,7 @@ public final class CreateProvider extends AbstractCstlProcess {
 
                 outputParameters.getOrCreate(CREATED_ID).setValue(pr);
 
-            } catch (ConstellationException | IOException ex) {
+            } catch (ConstellationException ex) {
                 throw new ProcessException("Failed to create provider : " + id+"  "+ex.getMessage(), this, ex);
             }
 

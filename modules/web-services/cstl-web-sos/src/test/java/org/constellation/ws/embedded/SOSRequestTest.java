@@ -109,9 +109,9 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
 
                 final TestResources testResource = initDataDirectory();
 
-                Integer providerSEN  = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness);
-                Integer providerSEND = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness);
-                Integer providerSENT = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness);
+                Integer providerSEN  = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness, null).id;
+                Integer providerSEND = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness, null).id;
+                Integer providerSENT = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness, null).id;
 
                 Object sml = unmarshallSensorResource("org/constellation/embedded/test/urn-ogc-object-sensor-SunSpot-0014.4F01.0000.261A.xml", sensorBusiness);
                 int senId1 = sensorBusiness.create("urn:ogc:object:sensor:SunSpot:0014.4F01.0000.261A", "system", null, null, sml, Long.MIN_VALUE, providerSEN);
@@ -122,8 +122,8 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
                 sml = unmarshallSensorResource("org/constellation/embedded/test/urn-ogc-object-sensor-SunSpot-2.xml", sensorBusiness);
                 int senId3 = sensorBusiness.create("urn:ogc:object:sensor:SunSpot:2", "system", null, null, sml, Long.MIN_VALUE, providerSEN);
 
-                Integer providerOMD = testResource.createProvider(TestResource.OM2_DB, providerBusiness);
-                Integer providerOMT = testResource.createProvider(TestResource.OM2_DB, providerBusiness);
+                Integer providerOMD = testResource.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
+                Integer providerOMT = testResource.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
 
                 final SOSConfiguration sosconf = new SOSConfiguration();
                 sosconf.setProfile("transactional");

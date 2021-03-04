@@ -80,7 +80,7 @@ public class GenericPostgridSOS2WorkerTest extends SOS2WorkerTest {
 
                 final TestResources testResource = initDataDirectory();
 
-                Integer omPid = testResource.createProvider(TestResource.OM_GENERIC_DB, providerBusiness);
+                Integer omPid = testResource.createProvider(TestResource.OM_GENERIC_DB, providerBusiness, null).id;
 
                 //we write the configuration file
                 final SOSConfiguration configuration = new SOSConfiguration();

@@ -65,7 +65,7 @@ public class GenericPostgridSOSWorkerTest extends SOSWorkerTest {
 
                 final TestResources testResource = initDataDirectory();
 
-                Integer pid = testResource.createProvider(TestResource.OM_GENERIC_DB, providerBusiness);
+                Integer pid = testResource.createProvider(TestResource.OM_GENERIC_DB, providerBusiness, null).id;
 
                 final SOSConfiguration configuration = new SOSConfiguration();
                 configuration.setProfile("discovery");

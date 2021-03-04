@@ -59,12 +59,12 @@ import javax.imageio.ImageIO;
 import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.spi.ImageWriterSpi;
 import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
 import java.awt.image.BufferedImage;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -80,7 +80,6 @@ import org.junit.BeforeClass;
 import org.opengis.util.GenericName;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.AcknowlegementType;
-import org.constellation.dto.DataBrief;
 import org.constellation.dto.service.Instance;
 import org.constellation.dto.service.InstanceReport;
 import org.constellation.dto.service.ServiceStatus;
@@ -89,6 +88,7 @@ import org.constellation.dto.service.ServiceComplete;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.constellation.test.utils.CstlDOMComparator;
 import org.constellation.test.utils.TestEnvironment;
+import org.constellation.test.utils.TestEnvironment.DataImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import org.constellation.test.utils.TestRunner;
@@ -464,54 +464,29 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 }
 
                 final TestResources testResource = initDataDirectory();
+                final List<DataImport> datas = new ArrayList<>();
 
                 // coverage-file datastore
-                Integer pid = testResource.createProvider(TestResource.PNG, providerBusiness);
-                Integer did = dataBusiness.create(new QName("SSTMDE200305"), pid, "COVERAGE", false, true, null, null);
-
-                pid = testResource.createProvider(TestResource.TIF, providerBusiness);
-                Integer did2 = dataBusiness.create(new QName("martinique"), pid, "COVERAGE", false, true, null, null);
+                DataImport did  = testResource.createProvider(TestResource.PNG, providerBusiness, null).datas.get(0);
+                DataImport did2 = testResource.createProvider(TestResource.TIF, providerBusiness, null).datas.get(0);
 
                 // alias on coverage data
-                pid = testResource.createProvider(TestResource.PNG, providerBusiness);
-                Integer did3 = dataBusiness.create(new QName("SSTMDE200305"), pid, "COVERAGE", false, true, null, null);
+                DataImport did3 = testResource.createProvider(TestResource.PNG, providerBusiness, null).datas.get(0);
 
                 // aggregated datastore
-                pid = TestEnvironment.createAggregateProvider(providerBusiness, "aggData", Arrays.asList(did, did2));
-                providerBusiness.createOrUpdateData(pid, null, false);
-                List<DataBrief> dbs = dataBusiness.getDataBriefsFromProviderId(pid, null, true, false, false, null, null);
-                DataBrief aggd = dbs.get(0);
+                datas.addAll(TestEnvironment.createAggregateProvider(providerBusiness, "aggData", Arrays.asList(did.id, did2.id), null).datas);
 
                 // shapefile datastore
-                pid = testResource.createProvider(TestResource.WMS111_SHAPEFILES, providerBusiness);
-
-                Integer d1  = dataBusiness.create(new QName("BuildingCenters"), pid, "VECTOR", false, true, true,null, null);
-                Integer d2  = dataBusiness.create(new QName("BasicPolygons"),   pid, "VECTOR", false, true, true,null, null);
-                Integer d3  = dataBusiness.create(new QName("Bridges"),         pid, "VECTOR", false, true, true,null, null);
-                Integer d4  = dataBusiness.create(new QName("Streams"),         pid, "VECTOR", false, true, true,null, null);
-                Integer d5  = dataBusiness.create(new QName("Lakes"),           pid, "VECTOR", false, true, true,null, null);
-                Integer d6  = dataBusiness.create(new QName("NamedPlaces"),     pid, "VECTOR", false, true, true,null, null);
-                Integer d7  = dataBusiness.create(new QName("Buildings"),       pid, "VECTOR", false, true, true,null, null);
-                Integer d8  = dataBusiness.create(new QName("RoadSegments"),    pid, "VECTOR", false, true, true,null, null);
-                Integer d9  = dataBusiness.create(new QName("DividedRoutes"),   pid, "VECTOR", false, true, true,null, null);
-                Integer d10 = dataBusiness.create(new QName("Forests"),         pid, "VECTOR", false, true, true,null, null);
-                Integer d11 = dataBusiness.create(new QName("MapNeatline"),     pid, "VECTOR", false, true, true,null, null);
-                Integer d12 = dataBusiness.create(new QName("Ponds"),           pid, "VECTOR", false, true, true,null, null);
+                final List<DataImport> shapeDatas = new ArrayList<>();
+                shapeDatas.addAll(testResource.createProvider(TestResource.WMS111_SHAPEFILES, providerBusiness, null).datas);
+                datas.addAll(shapeDatas);
 
                 // we add two times a new geojson provider in order to create 2 layer with same name but different alias
-                pid = testResource.createProvider(TestResource.JSON_FEATURE, providerBusiness);
-                providerBusiness.createOrUpdateData(pid, null, false);
-                dbs = dataBusiness.getDataBriefsFromProviderId(pid, null, true, false, false, null, null);
-                DataBrief d13 = dbs.get(0);
-
-                pid = testResource.createProvider(TestResource.JSON_FEATURE, providerBusiness);
-                providerBusiness.createOrUpdateData(pid, null, false);
-                dbs = dataBusiness.getDataBriefsFromProviderId(pid, null, true, false, false, null, null);
-                DataBrief d14 = dbs.get(0);
+                DataImport d13 = testResource.createProvider(TestResource.JSON_FEATURE, providerBusiness, null).datas.get(0);
+                DataImport d14 = testResource.createProvider(TestResource.JSON_FEATURE, providerBusiness, null).datas.get(0);
                 
                 // netcdf datastore
-                pid = testResource.createProvider(TestResource.NETCDF, providerBusiness);
-                Integer d15 = dataBusiness.create(new QName("sea_water_temperature"), pid, "COVERAGE", false, true, null, null);
+                datas.addAll(testResource.createProvider(TestResource.NETCDF, providerBusiness, null).datas);
 
                 final LayerContext config = new LayerContext();
                 config.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());
@@ -521,33 +496,28 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 details.getServiceConstraints().setLayerLimit(100);
                 serviceBusiness.setInstanceDetails("wms", "default", details, "eng", true);
 
-                layerBusiness.add(did,  null,  null, "SSTMDE200305",     defId, null);
-                layerBusiness.add(did2, null,  null, "martinique",       defId, null);
-                layerBusiness.add(did3, "SST", null, "SSTMDE200305",     defId, null);
-                layerBusiness.add(d1,   null,  null, "BuildingCenters",  defId, null);
-                layerBusiness.add(d2,   null,  null, "BasicPolygons",    defId, null);
-                layerBusiness.add(d3,   null,  null, "Bridges",          defId, null);
-                layerBusiness.add(d4,   null,  null, "Streams",          defId, null);
-                layerBusiness.add(d5,   null,  null, "Lakes",            defId, null);
-                layerBusiness.add(d6,   null,  null, "NamedPlaces",      defId, null);
-                layerBusiness.add(d7,   null,  null, "Buildings",        defId, null);
-                layerBusiness.add(d8,   null,  null, "RoadSegments",     defId, null);
-                layerBusiness.add(d9,   null,  null, "DividedRoutes",    defId, null);
-                layerBusiness.add(d10,  null,  null, "Forests",          defId, null);
-                layerBusiness.add(d11,  null,  null, "MapNeatline",      defId, null);
-                layerBusiness.add(d12,  null,  null, "Ponds",            defId, null);
+                layerBusiness.add(did.id,   null,  did.namespace,  did.name,   defId, null);
+                layerBusiness.add(did2.id,  null,  did2.namespace, did2.name,  defId, null);
+                layerBusiness.add(did3.id, "SST",  did3.namespace, did3.name,  defId, null);
 
-                layerBusiness.add(aggd.getId(),  null, aggd.getNamespace(), aggd.getName(),     defId, null);
-                layerBusiness.add(d13.getId(),  "JS1", d13.getNamespace(),  d13.getName(),      defId, null);
-                layerBusiness.add(d14.getId(),  "JS2", d14.getNamespace(),  d14.getName(),      defId, null);
-                layerBusiness.add(d15,  null, null, "sea_water_temperature", defId, null);
+                for (DataImport d : datas) {
+                    layerBusiness.add(d.id, null, d.namespace, d.name, defId, null);
+                }
+
+                layerBusiness.add(d13.id,  "JS1", d13.namespace,  d13.name,    defId, null);
+                layerBusiness.add(d14.id,  "JS2", d14.namespace,  d14.name,    defId, null);
 
                 final LayerContext config2 = new LayerContext();
                 config2.setSupportedLanguages(new Languages(Arrays.asList(new Language("fre"), new Language("eng", true))));
                 config2.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());
 
                 Integer wm1Id = serviceBusiness.create("wms", "wms1", config2, null, null);
-                layerBusiness.add(d5, null, "http://www.opengis.net/gml", "Lakes",               wm1Id, null);
+                // only add the 'lakes' data and add a namespace to the layer
+                for (DataImport d : shapeDatas) {
+                    if ("Lakes".equals(d.name)) {
+                        layerBusiness.add(d.id, null, "http://www.opengis.net/gml", d.name, wm1Id, null);
+                    }
+                }
 
                 final Details serviceEng = new Details();
                 serviceEng.setDescription("Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.");
@@ -561,7 +531,6 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 serviceEng.setVersions(Arrays.asList("1.1.1", "1.3.0"));
 
                 serviceBusiness.setInstanceDetails("wms", "wms1", serviceEng, "eng", true);
-                //ConfigDirectory.writeServiceMetadata("wms1", "wms", serviceEng, "eng");
 
                 final Details serviceFre = new Details();
                 serviceFre.setDescription("Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.");
@@ -583,19 +552,10 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 details3.setVersions(Arrays.asList("1.3.0"));
 
                 Integer wm2Id = serviceBusiness.create("wms", "wms2", config3, details3, null);
-                layerBusiness.add(did,  null,  null,                        "SSTMDE200305",     wm2Id, null);
-                layerBusiness.add(d1,   null, "http://www.opengis.net/gml", "BuildingCenters",  wm2Id, null);
-                layerBusiness.add(d2,   null, "http://www.opengis.net/gml", "BasicPolygons",    wm2Id, null);
-                layerBusiness.add(d3,   null, "http://www.opengis.net/gml", "Bridges",          wm2Id, null);
-                layerBusiness.add(d4,   null, "http://www.opengis.net/gml", "Streams",          wm2Id, null);
-                layerBusiness.add(d5,   null, "http://www.opengis.net/gml", "Lakes",            wm2Id, null);
-                layerBusiness.add(d6,   null, "http://www.opengis.net/gml", "NamedPlaces",      wm2Id, null);
-                layerBusiness.add(d7,   null, "http://www.opengis.net/gml", "Buildings",        wm2Id, null);
-                layerBusiness.add(d8,   null, "http://www.opengis.net/gml", "RoadSegments",     wm2Id, null);
-                layerBusiness.add(d9,   null, "http://www.opengis.net/gml", "DividedRoutes",    wm2Id, null);
-                layerBusiness.add(d10,  null, "http://www.opengis.net/gml", "Forests",          wm2Id, null);
-                layerBusiness.add(d11,  null, "http://www.opengis.net/gml", "MapNeatline",      wm2Id, null);
-                layerBusiness.add(d12,  null, "http://www.opengis.net/gml", "Ponds",            wm2Id, null);
+                layerBusiness.add(did.id,   null,  did.namespace,  did.name,   wm2Id, null);
+                for (DataImport d : shapeDatas) {
+                    layerBusiness.add(d.id, null, "http://www.opengis.net/gml", d.name, wm2Id, null);
+                }
 
                 final WMSPortrayal port = new WMSPortrayal();
 
@@ -2426,16 +2386,19 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         obj = unmarshallJsonResponse(conec, InstanceReport.class);
 
         assertTrue(obj instanceof InstanceReport);
+        InstanceReport result2 = (InstanceReport) obj;
 
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.3.0", "1.1.1");
         final List<String> versions2 = Arrays.asList("1.3.0");
-        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 19, ServiceStatus.STARTED, "null/wms/default"));
+        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 22, ServiceStatus.STARTED, "null/wms/default"));
         instances.add(new Instance(2, "wms1", "this is the default english capabilities", "Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.", "wms", versions, 1, ServiceStatus.STARTED, "null/wms/wms1"));
         instances.add(new Instance(3, "wms2", "wms2", null, "wms", versions2, 13, ServiceStatus.STARTED, "null/wms/wms2"));
         instances.add(new Instance(4, "wms3", "OGC:WMS", "Constellation Map Server", "wms", versions, 0, ServiceStatus.STOPPED, "null/wms/wms3"));
         InstanceReport expResult2 = new InstanceReport(instances);
         expResult2.equals(obj);
+
+        assertEquals(expResult2.getInstance("default"), result2.getInstance("default"));
         assertEquals(expResult2, obj);
 
         /*
@@ -2486,7 +2449,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.3.0", "1.1.1");
         final List<String> versions2 = Arrays.asList("1.3.0");
-        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 19, ServiceStatus.STARTED, "null/wms/default"));
+        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 22, ServiceStatus.STARTED, "null/wms/default"));
         instances.add(new Instance(2, "wms1", "this is the default english capabilities", "Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.", "wms", versions, 1, ServiceStatus.STARTED, "null/wms/wms1"));
         instances.add(new Instance(3, "wms2", "wms2", null, "wms", versions2, 13, ServiceStatus.STARTED, "null/wms/wms2"));
         instances.add(new Instance(4, "wms3", "OGC:WMS", "Constellation Map Server", "wms", versions, 0, ServiceStatus.STARTED, "null/wms/wms3"));
@@ -2577,7 +2540,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.3.0", "1.1.1");
         final List<String> versions2 = Arrays.asList("1.3.0");
-        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 19, ServiceStatus.STARTED, "null/wms/default"));
+        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 22, ServiceStatus.STARTED, "null/wms/default"));
         instances.add(new Instance(2, "wms1", "this is the default english capabilities", "Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.", "wms", versions, 1, ServiceStatus.STARTED, "null/wms/wms1"));
         instances.add(new Instance(3, "wms2", "wms2", null, "wms", versions2, 13, ServiceStatus.STARTED, "null/wms/wms2"));
         instances.add(new Instance(4, "wms3", "OGC:WMS", "Constellation Map Server", "wms", versions, 0, ServiceStatus.STOPPED, "null/wms/wms3"));
@@ -2620,7 +2583,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.3.0", "1.1.1");
         final List<String> versions2 = Arrays.asList("1.3.0");
-        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 19, ServiceStatus.STARTED, "null/wms/default"));
+        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 22, ServiceStatus.STARTED, "null/wms/default"));
         instances.add(new Instance(2, "wms1", "this is the default english capabilities", "Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.", "wms", versions, 1, ServiceStatus.STARTED, "null/wms/wms1"));
         instances.add(new Instance(3, "wms2", "wms2", null, "wms", versions2, 13, ServiceStatus.STARTED, "null/wms/wms2"));
         InstanceReport expResult2 = new InstanceReport(instances);
