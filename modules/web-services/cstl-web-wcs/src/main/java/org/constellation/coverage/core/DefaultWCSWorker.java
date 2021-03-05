@@ -119,6 +119,7 @@ import org.geotoolkit.gmlcov.xml.v100.ObjectFactory;
 import org.geotoolkit.image.io.metadata.SpatialMetadata;
 import org.apache.sis.portrayal.MapLayers;
 import org.constellation.util.Util;
+import org.constellation.util.CRSUtilities;
 import org.geotoolkit.ows.xml.AbstractCapabilitiesCore;
 import org.geotoolkit.ows.xml.AbstractOperationsMetadata;
 import org.geotoolkit.ows.xml.AbstractServiceIdentification;
@@ -1047,8 +1048,8 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         final CoverageData data = (CoverageData) layer.getData();
         final SpatialMetadata metadata;
         final GridCoverageResource ref = (GridCoverageResource) data.getOrigin();
-        final GeneralEnvelope readEnv;
-        final CoordinateReferenceSystem crs;
+        GeneralEnvelope readEnv;
+        CoordinateReferenceSystem crs;
         try {
             Optional<Envelope> refEnv = ref.getEnvelope();
             if (refEnv.isPresent()) {
@@ -1057,10 +1058,17 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             } else {
                 final GridGeometry gridGeometry = ref.getGridGeometry();
                 readEnv = new GeneralEnvelope(gridGeometry.getEnvelope());
-                crs = gridGeometry.getCoordinateReferenceSystem();
+            }
+            if (request.getCRS() != null) {
+                crs = request.getCRS();
+                if (!Utilities.equalsIgnoreMetadata(crs, readEnv.getCoordinateReferenceSystem())) {
+                    readEnv = CRSUtilities.reprojectWithNoInfinity(readEnv, crs);
+                }
+            } else {
+                crs = readEnv.getCoordinateReferenceSystem();
             }
             metadata = data.getSpatialMetadata();
-        } catch (ConstellationStoreException | DataStoreException ex) {
+        } catch (ConstellationStoreException | DataStoreException | FactoryException  | TransformException ex) {
             throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
         }
 
@@ -1176,6 +1184,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 final GeotiffResponse response = new GeotiffResponse();
                 response.coverage = data.getCoverage(readEnv, null);
                 response.metadata = metadata;
+                response.outputCRS = request.getResponseCRS();
                 if (request.getExtension() instanceof ExtensionType) {
                     final ExtensionType ext = (ExtensionType) request.getExtension();
                     final ParametersType geoExt = ext.getForClass(ParametersType.class);

@@ -47,6 +47,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
+import static org.constellation.api.CommonConstants.DEFAULT_CRS;
 import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 import org.geotoolkit.wcs.xml.ServiceMetadata;
 import org.geotoolkit.wcs.xml.v200.ServiceMetadataType;
@@ -152,6 +153,12 @@ public final class WCSConstant {
     public static final String TIF        = "TIF";
     /** Format value used in getCoverage */
     public static final String TIFF       = "TIFF";
+
+    /** Parameter used in getCoverage v200 CRS extension*/
+    public static final String KEY_OUTPUT_CRS = "OUTPUTCRS";
+
+    /** Parameter used in getCoverage v200 CRS extension*/
+    public static final String KEY_SUBSETTING_CRS = "SUBSETTINGCRS";
 
     /*
      * A list supported formats
@@ -313,13 +320,14 @@ public final class WCSConstant {
             si.getProfile().add("http://www.opengis.net/spec/GMLCOV/1.0/conf/multipart");
             si.getProfile().add("http://www.opengis.net/spec/GMLCOV/1.0/conf/special-format");
             si.getProfile().add("http://www.opengis.net/spec/GMLCOV_geotiff-coverages/1.0/conf/geotiff-coverage");
+            si.getProfile().add("http://www.opengis.net/spec/WCS_service-extension_crs/1.0/conf/crs");
         }
     }
 
     public static ServiceMetadata getServiceMetadata(final String version) {
         ServiceMetadata sm = null;
         if (version.equals("2.0.1")) {
-            sm = new ServiceMetadataType(SUPPORTED_FORMATS_200);
+            sm = new ServiceMetadataType(SUPPORTED_FORMATS_200, DEFAULT_CRS);
         }
         return sm;
     }

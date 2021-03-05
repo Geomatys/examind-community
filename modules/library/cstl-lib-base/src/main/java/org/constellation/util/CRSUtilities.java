@@ -31,8 +31,12 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.sis.geometry.Envelopes;
+import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.util.logging.Logging;
 import org.opengis.util.InternationalString;
+import org.opengis.geometry.Envelope;
+import org.opengis.referencing.operation.TransformException;
 
 /**
  * Utility method that regroup CRS listing methods used in UI.
@@ -179,4 +183,35 @@ public class CRSUtilities {
         }
     }
 
+    /**
+     * Reproject an envelope in the specified CRS.
+     * In some case the envelope resulting from the reprojection can contains some infinite coordinates.
+     * If this happen, this method will return an intersection between the domain of validity of the target crs and the reprojected envelope,
+     * in order to remove the infinite coordinates.
+     *
+     * @param src An evelope to reproject.
+     * @param targetCRS The target coordinate reference system.
+     *
+     * @return A reprojected envelope.
+     * @throws TransformException if the transformation failed or if the projected envelope contains infinite coordinates
+     * and the domain of validity of the target crs {@code null}.
+     */
+    public static GeneralEnvelope reprojectWithNoInfinity(Envelope src, CoordinateReferenceSystem targetCRS) throws TransformException {
+        final GeneralEnvelope result = GeneralEnvelope.castOrCopy(Envelopes.transform(src, targetCRS));
+        boolean hasInfiniteCoordinate = false;
+        for (int i = 0; i < result.getDimension(); i++) {
+            if (Double.isInfinite(result.getMinimum(i)) || Double.isInfinite(result.getMaximum(i))) {
+                hasInfiniteCoordinate = true;
+                break;
+            }
+        }
+        if (hasInfiniteCoordinate) {
+            final Envelope crsEnv = CRS.getDomainOfValidity(targetCRS);
+            if (crsEnv == null) {
+                throw new TransformException("The projected envelope contains infinite coordinates and the domain of validity of the target crs is null");
+            }
+            result.intersect(crsEnv);
+        }
+        return result;
+    }
 }

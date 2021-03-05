@@ -75,46 +75,7 @@ import static org.constellation.api.QueryConstants.SECTIONS_PARAMETER;
 import static org.constellation.api.QueryConstants.UPDATESEQUENCE_PARAMETER;
 import static org.constellation.api.QueryConstants.VERSION_PARAMETER;
 import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
-import static org.constellation.coverage.core.WCSConstant.ASCII_GRID;
-import static org.constellation.coverage.core.WCSConstant.BMP;
-import static org.constellation.coverage.core.WCSConstant.DESCRIBECOVERAGE;
-import static org.constellation.coverage.core.WCSConstant.GEOTIFF;
-import static org.constellation.coverage.core.WCSConstant.GETCOVERAGE;
-import static org.constellation.coverage.core.WCSConstant.GIF;
-import static org.constellation.coverage.core.WCSConstant.JPEG;
-import static org.constellation.coverage.core.WCSConstant.JPG;
-import static org.constellation.coverage.core.WCSConstant.KEY_BBOX;
-import static org.constellation.coverage.core.WCSConstant.KEY_BOUNDINGBOX;
-import static org.constellation.coverage.core.WCSConstant.KEY_CATEGORIES;
-import static org.constellation.coverage.core.WCSConstant.KEY_COVERAGE;
-import static org.constellation.coverage.core.WCSConstant.KEY_CRS;
-import static org.constellation.coverage.core.WCSConstant.KEY_DEPTH;
-import static org.constellation.coverage.core.WCSConstant.KEY_FORMAT;
-import static org.constellation.coverage.core.WCSConstant.KEY_GRIDBASECRS;
-import static org.constellation.coverage.core.WCSConstant.KEY_GRIDCS;
-import static org.constellation.coverage.core.WCSConstant.KEY_GRIDOFFSETS;
-import static org.constellation.coverage.core.WCSConstant.KEY_GRIDORIGIN;
-import static org.constellation.coverage.core.WCSConstant.KEY_GRIDTYPE;
-import static org.constellation.coverage.core.WCSConstant.KEY_HEIGHT;
-import static org.constellation.coverage.core.WCSConstant.KEY_IDENTIFIER;
-import static org.constellation.coverage.core.WCSConstant.KEY_COVERAGE_ID;
-import static org.constellation.coverage.core.WCSConstant.KEY_INTERPOLATION;
-import static org.constellation.coverage.core.WCSConstant.KEY_MEDIA_TYPE;
-import static org.constellation.coverage.core.WCSConstant.KEY_RANGESUBSET;
-import static org.constellation.coverage.core.WCSConstant.KEY_RESPONSE_CRS;
-import static org.constellation.coverage.core.WCSConstant.KEY_RESX;
-import static org.constellation.coverage.core.WCSConstant.KEY_RESY;
-import static org.constellation.coverage.core.WCSConstant.KEY_RESZ;
-import static org.constellation.coverage.core.WCSConstant.KEY_SECTION;
-import static org.constellation.coverage.core.WCSConstant.KEY_SUBSET;
-import static org.constellation.coverage.core.WCSConstant.KEY_TIME;
-import static org.constellation.coverage.core.WCSConstant.KEY_TIMESEQUENCE;
-import static org.constellation.coverage.core.WCSConstant.KEY_WIDTH;
-import static org.constellation.coverage.core.WCSConstant.MATRIX;
-import static org.constellation.coverage.core.WCSConstant.NETCDF;
-import static org.constellation.coverage.core.WCSConstant.PNG;
-import static org.constellation.coverage.core.WCSConstant.TIF;
-import static org.constellation.coverage.core.WCSConstant.TIFF;
+import static org.constellation.coverage.core.WCSConstant.*;
 import org.constellation.ws.rs.ResponseObject;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_DIMENSION_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_FORMAT;
@@ -483,7 +444,9 @@ public class WCSService extends GridWebService<WCSWorker> {
         final String coverageID  = getParameter(KEY_COVERAGE_ID,  true);
         final String format      = getParameter(KEY_FORMAT,  false);
         final String mediaType   = getParameter(KEY_MEDIA_TYPE,  false);
-        final GetCoverageType type =  new GetCoverageType(coverageID, format, mediaType);
+        final String outputCRS   = getParameter(KEY_OUTPUT_CRS,  false);
+        final String subsetCRS   = getParameter(KEY_SUBSETTING_CRS,  false);
+        final GetCoverageType type =  new GetCoverageType(coverageID, format, mediaType, subsetCRS, outputCRS);
 
         final String[] subsets = getParameters().get(KEY_SUBSET);
         if (subsets!=null && subsets.length != 0) {
@@ -495,22 +458,23 @@ public class WCSService extends GridWebService<WCSWorker> {
                 final String axisName = subset.substring(0, par1);
                 final String[] axisValues = subset.substring(par1+1, par2).split(",");
 
-                if (axisValues.length==1) {
-                    final DimensionSliceType slice = new DimensionSliceType();
-                    slice.setDimension(axisName.trim());
-                    slice.setSlicePoint(axisValues[0].trim());
-                    dimSubsets.add(new ObjectFactory().createDimensionSlice(slice));
-                } else if (axisValues.length==2) {
-                    axisValues[0] = axisValues[0].trim();
-                    axisValues[1] = axisValues[1].trim();
-                    final DimensionTrimType trim = new DimensionTrimType();
-                    trim.setDimension(axisName.trim());
-                    //check for *, means no value
-                    if(!"*".equals(axisValues[0])) trim.setTrimLow(axisValues[0]);
-                    if(!"*".equals(axisValues[1])) trim.setTrimHigh(axisValues[1]);
-                    dimSubsets.add(new ObjectFactory().createDimensionTrim(trim));
-                } else {
-                    throw new CstlServiceException("Unvalid subset value : "+subset);
+                switch (axisValues.length) {
+                    case 1:
+                        final DimensionSliceType slice = new DimensionSliceType(axisName.trim(), axisValues[0].trim());
+                        dimSubsets.add(new ObjectFactory().createDimensionSlice(slice));
+                        break;
+                    case 2:
+                        axisValues[0] = axisValues[0].trim();
+                        axisValues[1] = axisValues[1].trim();
+                        final DimensionTrimType trim = new DimensionTrimType();
+                        trim.setDimension(axisName.trim());
+                        //check for *, means no value
+                        if(!"*".equals(axisValues[0])) trim.setTrimLow(axisValues[0]);
+                        if(!"*".equals(axisValues[1])) trim.setTrimHigh(axisValues[1]);
+                        dimSubsets.add(new ObjectFactory().createDimensionTrim(trim));
+                        break;
+                    default:
+                        throw new CstlServiceException("Unvalid subset value : "+subset);
                 }
             }
         }

@@ -34,16 +34,18 @@ import java.util.logging.Logger;
 import javax.imageio.ImageWriteParam;
 import org.apache.sis.coverage.Category;
 import org.apache.sis.coverage.SampleDimension;
+import org.apache.sis.coverage.grid.DomainLinearizer;
 import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridCoverageProcessor;
 import org.apache.sis.coverage.grid.GridGeometry;
-import org.apache.sis.referencing.CRS;
+import org.apache.sis.coverage.grid.GridOrientation;
+import org.apache.sis.geometry.GeneralEnvelope;
+import org.apache.sis.image.Interpolation;
+import org.constellation.util.CRSUtilities;
 import org.constellation.util.WCSUtils;
 import org.geotoolkit.image.io.plugin.TiffImageWriteParam;
 import org.geotoolkit.internal.coverage.CoverageUtilities;
 import org.geotoolkit.nio.IOUtilities;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.datum.PixelInCell;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -105,10 +107,21 @@ public class GridCoverageWriter implements HttpMessageConverter<GeotiffResponse>
     public static File writeInFile(final GeotiffResponse entry) throws Exception {
         GridCoverage coverage = entry.coverage;
         coverage = coverage.forConvertedValues(false);
-        
+
+        // Tiff writer does not support non-linear grid to crs conversion
         if (!coverage.getGridGeometry().isConversionLinear(0, 1)) {
-            CoordinateReferenceSystem crs = CRS.forCode("EPSG:3395");
-            coverage = new GridCoverageProcessor().resample(coverage, new GridGeometry(null, PixelInCell.CELL_CENTER, null, crs));
+            DomainLinearizer linearizer = new DomainLinearizer();
+            linearizer.setGridStartsAtZero(true);
+            GridGeometry resampleGrid = linearizer.apply(coverage.getGridGeometry().reduce(0,1));
+
+            final GridCoverageProcessor processor = new GridCoverageProcessor();
+            processor.setInterpolation(Interpolation.NEAREST);
+            coverage = processor.resample(coverage, resampleGrid);
+        }
+
+        if (entry.outputCRS != null) {
+            GeneralEnvelope env = CRSUtilities.reprojectWithNoInfinity(coverage.getEnvelope(), entry.outputCRS);
+            coverage = new GridCoverageProcessor().resample(coverage, new GridGeometry(coverage.getGridGeometry().getExtent(), env, GridOrientation.REFLECTION_Y));
         }
 
         //see if we convert to geophysic or not before writing

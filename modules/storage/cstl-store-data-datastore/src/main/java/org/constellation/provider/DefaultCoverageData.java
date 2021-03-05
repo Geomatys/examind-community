@@ -133,19 +133,10 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
             } else {
                 grid = refGrid;
             }
-            
-            final GridCoverage cov = origin.read(grid);
-            DomainLinearizer linearizer = new DomainLinearizer();
-            linearizer.setGridStartsAtZero(true);
-            GridGeometry resampleGrid = linearizer.apply(cov.getGridGeometry().reduce(0,1));
-            
-            final GridCoverageProcessor processor = new GridCoverageProcessor();
-            processor.setInterpolation(Interpolation.NEAREST);
-            return processor.resample(cov, resampleGrid);
+            return origin.read(grid);
 
         } catch (Exception ex) {
             throw new ConstellationStoreException(ex.getMessage(), ex);
-
         }
     }
 
