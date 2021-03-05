@@ -20,11 +20,16 @@ package org.constellation.provider.observationstore;
 
 import java.io.File;
 import java.sql.Connection;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import javax.annotation.PostConstruct;
@@ -44,6 +49,7 @@ import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.ObservationProvider;
 import org.constellation.util.Util;
 import org.geotoolkit.gml.xml.v321.TimeInstantType;
+import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
@@ -53,6 +59,7 @@ import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -78,6 +85,8 @@ public class ObservationStoreProviderTest {
     private static String url;
 
     private static ObservationProvider omPr;
+
+    private static final DateFormat FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S'Z'");
 
     @BeforeClass
     public static void setUpClass() throws Exception {
@@ -423,8 +432,41 @@ public class ObservationStoreProviderTest {
     @Test
     public void getTimeForTemplateTest() throws Exception {
         TemporalGeometricPrimitive result = omPr.getTimeForProcedure("2.0.0", "urn:ogc:object:sensor:GEOM:2");
-
         Assert.assertEquals(new TimeInstantType("2001-01-01"), result);
+
+        // this sensor has no observation
+        result = omPr.getTimeForProcedure("2.0.0", "urn:ogc:object:sensor:GEOM:1");
+        Assert.assertNull(result);
+
+        result = omPr.getTimeForProcedure("2.0.0", "urn:ogc:object:sensor:GEOM:10");
+        assertPeriodEquals("2009-05-01T13:47:00.0Z", "2009-05-01T14:04:00.0Z", result);
+        
+        result = omPr.getTimeForProcedure("2.0.0", "urn:ogc:object:sensor:GEOM:12");
+        assertPeriodEquals("2000-12-01T00:00:00.0Z", "2000-12-22T00:00:00.0Z",result);
+
+        result = omPr.getTimeForProcedure("2.0.0", "urn:ogc:object:sensor:GEOM:3");
+        assertPeriodEquals("2007-05-01T02:59:00.0Z", "2007-05-01T21:59:00.0Z",result);
+        
+        result = omPr.getTimeForProcedure("2.0.0", "urn:ogc:object:sensor:GEOM:4");
+        assertPeriodEquals("2007-05-01T12:59:00.0Z", "2007-05-01T16:59:00.0Z",result);
+        
+        result = omPr.getTimeForProcedure("2.0.0", "urn:ogc:object:sensor:GEOM:test-1");
+        assertPeriodEquals("2007-05-01T12:59:00.0Z", "2007-05-01T16:59:00.0Z",result);
+        
+        result = omPr.getTimeForProcedure("2.0.0", "urn:ogc:object:sensor:GEOM:6");
+        Assert.assertNull(result);
+        
+        result = omPr.getTimeForProcedure("2.0.0", "urn:ogc:object:sensor:GEOM:7");
+        Assert.assertNull(result);
+        
+        result = omPr.getTimeForProcedure("2.0.0", "urn:ogc:object:sensor:GEOM:8");
+        assertPeriodEquals("2007-05-01T12:59:00.0Z", "2007-05-01T16:59:00.0Z",result);
+        
+        result = omPr.getTimeForProcedure("2.0.0", "urn:ogc:object:sensor:GEOM:9");
+        assertPeriodEquals("2009-05-01T13:47:00.0Z", "2009-05-01T13:47:00.0Z",result);
+        
+        result = omPr.getTimeForProcedure("2.0.0", "urn:ogc:object:sensor:GEOM:test-id");
+        assertPeriodEquals("2009-05-01T13:47:00.0Z", "2009-05-01T14:03:00.0Z",result);
     }
 
     @Test
@@ -444,6 +486,49 @@ public class ObservationStoreProviderTest {
         for (Observation p : results) {
             assertTrue(p instanceof org.geotoolkit.observation.xml.v100.ObservationType);
         }
+
+        // Because of the 2 Feature of interest, it returns 2 templates
+        SimpleQuery query = new SimpleQuery();
+        PropertyIsEqualTo filter = ff.equals(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:10"));
+        query.setFilter(filter);
+        results = omPr.getObservations(query,  OBSERVATION_QNAME, "resultTemplate", null, Collections.singletonMap("version", "1.0.0"));
+        assertEquals(2, results.size());
+        assertTrue(results.get(0) instanceof org.geotoolkit.observation.xml.v100.ObservationType);
+        org.geotoolkit.observation.xml.v100.ObservationType template1 = (org.geotoolkit.observation.xml.v100.ObservationType) results.get(0);
+
+        assertNotNull(template1.getPropertyFeatureOfInterest());
+        assertNotNull(template1.getPropertyFeatureOfInterest().getAbstractFeature());
+        assertEquals("station-001", template1.getPropertyFeatureOfInterest().getAbstractFeature().getId());
+
+         assertTrue(results.get(1) instanceof org.geotoolkit.observation.xml.v100.ObservationType);
+        org.geotoolkit.observation.xml.v100.ObservationType template2 = (org.geotoolkit.observation.xml.v100.ObservationType) results.get(1);
+
+        assertNotNull(template2.getPropertyFeatureOfInterest());
+        assertNotNull(template2.getPropertyFeatureOfInterest().getAbstractFeature());
+        assertEquals("station-002", template2.getPropertyFeatureOfInterest().getAbstractFeature().getId());
+
+        // by ommiting FOI in template, it returns only one templates
+        Map<String, String> hints = new HashMap<>();
+        hints.put("version", "1.0.0");
+        hints.put("includeFoiInTemplate", "false");
+        results = omPr.getObservations(query,  OBSERVATION_QNAME, "resultTemplate", null, hints);
+        assertEquals(1, results.size());
+        assertTrue(results.get(0) instanceof org.geotoolkit.observation.xml.v100.ObservationType);
+        template1 = (org.geotoolkit.observation.xml.v100.ObservationType) results.get(0);
+
+        // template time is not included by default
+        assertNull(template1.getSamplingTime());
+
+
+        hints.put("includeTimeInTemplate", "true");
+        results = omPr.getObservations(query,  OBSERVATION_QNAME, "resultTemplate", null, hints);
+        assertEquals(1, results.size());
+        assertTrue(results.get(0) instanceof org.geotoolkit.observation.xml.v100.ObservationType);
+        template1 = (org.geotoolkit.observation.xml.v100.ObservationType) results.get(0);
+
+        // template time is not included by default
+        assertNotNull(template1.getSamplingTime());
+        assertPeriodEquals("2009-05-01T13:47:00.0Z", "2009-05-01T14:04:00.0Z", template1.getSamplingTime());
     }
 
     @Test
@@ -451,7 +536,7 @@ public class ObservationStoreProviderTest {
         assertNotNull(omPr);
 
         Collection<String> resultIds = omPr.getObservationNames(null, MEASUREMENT_QNAME, "inline", Collections.EMPTY_MAP);
-        assertEquals(87, resultIds.size());
+        assertEquals(88, resultIds.size());
 
         SimpleQuery query = new SimpleQuery();
         PropertyIsEqualTo filter = ff.equals(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:test-1"));
@@ -474,7 +559,7 @@ public class ObservationStoreProviderTest {
         Assert.assertEquals(expectedIds, resultIds);
 
         resultIds = omPr.getObservationNames(null, OBSERVATION_QNAME, "inline", Collections.EMPTY_MAP);
-        assertEquals(60, resultIds.size());
+        assertEquals(61, resultIds.size());
 
 
         resultIds = omPr.getObservationNames(query, OBSERVATION_QNAME, "inline", Collections.EMPTY_MAP);
@@ -506,6 +591,23 @@ public class ObservationStoreProviderTest {
 
         for (Observation p : results) {
             assertTrue(p instanceof org.geotoolkit.observation.xml.v100.ObservationType);
+        }
+    }
+
+    /**
+     * Temporary methods waiting for fix in TimePositionType in geotk
+     */
+    private void assertPeriodEquals(String begin, String end, TemporalGeometricPrimitive result) throws ParseException {
+        if (result instanceof TimePeriodType) {
+            TimePeriodType tResult = (TimePeriodType) result;
+            assertEquals(FORMAT.parse(begin), tResult.getBeginPosition().getDate());
+            assertEquals(FORMAT.parse(end), tResult.getEndPosition().getDate());
+        } else  if (result instanceof org.geotoolkit.gml.xml.v311.TimePeriodType) {
+            org.geotoolkit.gml.xml.v311.TimePeriodType tResult = (org.geotoolkit.gml.xml.v311.TimePeriodType) result;
+            assertEquals(FORMAT.parse(begin), tResult.getBeginPosition().getDate());
+            assertEquals(FORMAT.parse(end), tResult.getEndPosition().getDate());
+        } else {
+            throw new AssertionError("Not a time period");
         }
     }
 

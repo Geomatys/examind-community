@@ -406,7 +406,7 @@
         <ns9:time>
           <ns39:TimePeriod>
             <ns39:beginPosition>2009-05-01T13:47:00.000</ns39:beginPosition>
-            <ns39:endPosition>2009-05-01T14:03:00.000</ns39:endPosition>
+            <ns39:endPosition>2009-05-01T14:04:00.000</ns39:endPosition>
           </ns39:TimePeriod>
         </ns9:time>
         <ns9:procedure xlink:href="urn:ogc:object:sensor:GEOM:10"/>

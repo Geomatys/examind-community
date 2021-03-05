@@ -1109,7 +1109,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     Date minBegin = rs.getTimestamp(1);
                     Date maxBegin = rs.getTimestamp(2);
                     Date maxEnd   = rs.getTimestamp(3);
-                    if (minBegin != null && maxEnd != null) {
+                    if (minBegin != null && maxEnd != null && maxEnd.after(maxBegin)) {
                         return SOSXmlFactory.buildTimePeriod(version, minBegin, maxEnd);
                     } else if (minBegin != null && !minBegin.equals(maxBegin)) {
                         return SOSXmlFactory.buildTimePeriod(version, minBegin, maxBegin);

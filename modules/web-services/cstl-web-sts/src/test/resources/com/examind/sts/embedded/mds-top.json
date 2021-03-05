@@ -10,8 +10,8 @@
       "type" : "Polygon",
       "coordinates" : [ [ [ 5.0, -4.144984627896042 ], [ 5.0, 10.0 ], [ 42.38798858151254, 10.0 ], [ 42.38798858151254, -4.144984627896042 ], [ 5.0, -4.144984627896042 ] ] ]
     },
-    "phenomenonTime" : "2009-05-01T11:47:00Z/2009-05-01T12:03:00Z",
-    "resultTime" : "2009-05-01T11:47:00Z/2009-05-01T12:03:00Z",
+    "phenomenonTime" : "2009-05-01T11:47:00Z/2009-05-01T12:04:00Z",
+    "resultTime" : "2009-05-01T11:47:00Z/2009-05-01T12:04:00Z",
     "@iot.id" : "urn:ogc:object:observation:template:GEOM:10",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:10)",
     "Thing@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:10)/Things",

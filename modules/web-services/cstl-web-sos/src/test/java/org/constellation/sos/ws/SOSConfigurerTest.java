@@ -109,9 +109,11 @@ public abstract class SOSConfigurerTest {
         result = (String) sensorServBusiness.getResultsCsv(sid, "urn:ogc:object:sensor:GEOM:10", Arrays.asList("urn:ogc:def:phenomenon:GEOM:depth"), Arrays.asList("station-002"), null, null, 10, "text/csv");
         expResult = "time,urn:ogc:def:phenomenon:GEOM:depth\n" +
                     "2009-05-01T14:01:00,7.8\n" +
-                    "2009-05-01T14:01:12,8.9\n" +
+                    "2009-05-01T14:01:18,8.9\n" +
                     "2009-05-01T14:02:00,9.9\n" +
-                    "2009-05-01T14:02:12,9.9\n";
+                    "2009-05-01T14:02:18,9.9\n" +
+                    "2009-05-01T14:03:00,9.1\n" +
+                    "2009-05-01T14:03:18,9.1\n";
 
         Assert.assertEquals(expResult, result);
     }
@@ -159,9 +161,11 @@ public abstract class SOSConfigurerTest {
         result = (List) sensorServBusiness.getResultsCsv(sid, "urn:ogc:object:sensor:GEOM:10", Arrays.asList("urn:ogc:def:phenomenon:GEOM:depth"), Arrays.asList("station-002"), null, null, 10, "resultArray");
         expResult = Arrays.asList(
                     Arrays.asList(format.parse("2009-05-01T14:01:00.0"),7.8),
-                    Arrays.asList(format.parse("2009-05-01T14:01:12.0"),8.9),
+                    Arrays.asList(format.parse("2009-05-01T14:01:18.0"),8.9),
                     Arrays.asList(format.parse("2009-05-01T14:02:00.0"),9.9),
-                    Arrays.asList(format.parse("2009-05-01T14:02:12.0"),9.9));
+                    Arrays.asList(format.parse("2009-05-01T14:02:18.0"),9.9),
+                    Arrays.asList(format.parse("2009-05-01T14:03:00.0"),9.1),
+                    Arrays.asList(format.parse("2009-05-01T14:03:18.0"),9.1));
 
         Assert.assertEquals(expResult, result);
     }
@@ -208,7 +212,8 @@ public abstract class SOSConfigurerTest {
         expResult = "time,urn:ogc:def:phenomenon:GEOM:depth\n" +
                     "2009-05-01T14:01:00,8.9\n" +
                     "2009-05-01T14:02:00,7.8\n" +
-                    "2009-05-01T14:03:00,9.9\n";
+                    "2009-05-01T14:03:00,9.9\n" +
+                    "2009-05-01T14:04:00,9.1\n";
 
         Assert.assertEquals(expResult, result);
     }
@@ -255,7 +260,8 @@ public abstract class SOSConfigurerTest {
         expResult = Arrays.asList(
                     Arrays.asList(format.parse("2009-05-01T14:01:00.0"),8.9),
                     Arrays.asList(format.parse("2009-05-01T14:02:00.0"),7.8),
-                    Arrays.asList(format.parse("2009-05-01T14:03:00.0"),9.9));
+                    Arrays.asList(format.parse("2009-05-01T14:03:00.0"),9.9),
+                    Arrays.asList(format.parse("2009-05-01T14:04:00.0"),9.1));
 
         Assert.assertEquals(expResult, result);
     }

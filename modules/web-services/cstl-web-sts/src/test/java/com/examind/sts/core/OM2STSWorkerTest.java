@@ -888,12 +888,12 @@ public class OM2STSWorkerTest {
         Assert.assertTrue(obj instanceof ObservationsResponse);
         ObservationsResponse result = (ObservationsResponse) obj;
 
-        Assert.assertEquals(82, result.getValue().size());
+        Assert.assertEquals(83, result.getValue().size());
 
          Set<String> resultIds = new HashSet<>();
         result.getValue().stream().forEach(ds -> resultIds.add(ds.getIotId()));
 
-        Assert.assertEquals(82, resultIds.size());
+        Assert.assertEquals(83, resultIds.size());
 
         /*Set<String> expectedIds = new HashSet<>();
         expectedIds.add("urn:ogc:object:observation:GEOM:1002");
@@ -1203,8 +1203,8 @@ public class OM2STSWorkerTest {
                 .observationType("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement")
                 .thingIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:10-0)/Things")
                 .unitOfMeasurement(new UnitOfMeasure("m", "m", "m"))
-                .resultTime("2009-05-01T11:47:00Z/2009-05-01T12:03:00Z")
-                .phenomenonTime("2009-05-01T11:47:00Z/2009-05-01T12:03:00Z")
+                .resultTime("2009-05-01T11:47:00Z/2009-05-01T12:04:00Z")
+                .phenomenonTime("2009-05-01T11:47:00Z/2009-05-01T12:04:00Z")
                 .observationsIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:10-0)/Observations")
                 .sensorIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:10-0)/Sensors")
                 .observedArea(polygon);
@@ -1286,6 +1286,15 @@ public class OM2STSWorkerTest {
                 .datastreamIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:1002-0-3)/Datastreams")
                 .result(9.9f);
         expResult.addObservationsItem(expObs5);
+        Observation expObs6 = new Observation()
+                .iotId("urn:ogc:object:observation:GEOM:1003-0-1")
+                .featureOfInterestIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:1003-0-1)/FeaturesOfInterest")
+                .iotSelfLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:1003-0-1)")
+                .resultTime("2009-05-01T12:04:00Z")
+                .phenomenonTime("2009-05-01T12:04:00Z")
+                .datastreamIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:1003-0-1)/Datastreams")
+                .result(9.1f);
+        expResult.addObservationsItem(expObs6);
 
         expResult.setObservationsIotNavigationLink(null);
 
@@ -1654,8 +1663,8 @@ public class OM2STSWorkerTest {
                 expResult.setIotId("urn:ogc:object:observation:template:GEOM:10");
                 expResult.setObservedPropertyIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:10)/ObservedProperties");
                 expResult.setIotSelfLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:10)");
-                expResult.setResultTime("2009-05-01T11:47:00Z/2009-05-01T12:03:00Z");
-                expResult.setPhenomenonTime("2009-05-01T11:47:00Z/2009-05-01T12:03:00Z");
+                expResult.setResultTime("2009-05-01T11:47:00Z/2009-05-01T12:04:00Z");
+                expResult.setPhenomenonTime("2009-05-01T11:47:00Z/2009-05-01T12:04:00Z");
                 expResult.setObservationsIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:10)/Observations");
                 expResult.setSensorIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:10)/Sensors");
                 expResult.setThingIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:10)/Things");
@@ -1740,6 +1749,14 @@ public class OM2STSWorkerTest {
                 .phenomenonTime("2009-05-01T12:03:00Z")
                 .multiDatastreamIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:1002-3)/MultiDatastreams")
                 .result(new ArrayList(Arrays.asList(9.9d)));
+        Observation expObs6 = new Observation()
+                .iotId("urn:ogc:object:observation:GEOM:1003-1")
+                .featureOfInterestIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:1003-1)/FeaturesOfInterest")
+                .iotSelfLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:1003-1)")
+                .resultTime("2009-05-01T12:04:00Z")
+                .phenomenonTime("2009-05-01T12:04:00Z")
+                .multiDatastreamIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:1003-1)/MultiDatastreams")
+                .result(new ArrayList(Arrays.asList(9.1d)));
 
 
         expResult.addObservationsItem(expObs1);
@@ -1747,6 +1764,7 @@ public class OM2STSWorkerTest {
         expResult.addObservationsItem(expObs3);
         expResult.addObservationsItem(expObs4);
         expResult.addObservationsItem(expObs5);
+        expResult.addObservationsItem(expObs6);
         expResult.setObservationsIotNavigationLink(null);
 
         Assert.assertEquals(expResult.getObservedProperty(),          result.getObservedProperty());
@@ -1951,8 +1969,8 @@ public class OM2STSWorkerTest {
                 .observationType("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement")
                 .thingIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-0)/Things")
                 .unitOfMeasurement(new UnitOfMeasure("m", "m", "m"))
-                .resultTime("2000-12-31T23:00:00Z/2000-12-31T23:00:00Z")
-                .phenomenonTime("2000-12-31T23:00:00Z/2000-12-31T23:00:00Z")
+                .resultTime("2000-12-31T23:00:00Z")
+                .phenomenonTime("2000-12-31T23:00:00Z")
                 .observationsIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-0)/Observations")
                 .sensorIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-0)/Sensors")
                 .observedArea(point);
@@ -1965,8 +1983,8 @@ public class OM2STSWorkerTest {
                 .observationType("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement")
                 .thingIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-1)/Things")
                 .unitOfMeasurement(new UnitOfMeasure("°C", "°C", "°C"))
-                .resultTime("2000-12-31T23:00:00Z/2000-12-31T23:00:00Z")
-                .phenomenonTime("2000-12-31T23:00:00Z/2000-12-31T23:00:00Z")
+                .resultTime("2000-12-31T23:00:00Z")
+                .phenomenonTime("2000-12-31T23:00:00Z")
                 .observationsIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-1)/Observations")
                 .sensorIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-1)/Sensors")
                 .observedArea(point);
@@ -1984,8 +2002,8 @@ public class OM2STSWorkerTest {
         expMDs1.setIotId("urn:ogc:object:observation:template:GEOM:2");
         expMDs1.setObservedPropertyIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)/ObservedProperties");
         expMDs1.setIotSelfLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)");
-        expMDs1.resultTime("2000-12-31T23:00:00Z/2000-12-31T23:00:00Z");
-        expMDs1.setPhenomenonTime("2000-12-31T23:00:00Z/2000-12-31T23:00:00Z");
+        expMDs1.resultTime("2000-12-31T23:00:00Z");
+        expMDs1.setPhenomenonTime("2000-12-31T23:00:00Z");
         expMDs1.setObservationsIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)/Observations");
         expMDs1.setSensorIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)/Sensors");
         expMDs1.setThingIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)/Things");
@@ -1998,7 +2016,7 @@ public class OM2STSWorkerTest {
         expResult.addMultiDatastreamsItem(expMDs1);
         expResult.setMultiDatastreamsIotNavigationLink(null);
 
-        Assert.assertEquals(expResult.getMultiDatastreams(), result.getMultiDatastreams());
+        Assert.assertEquals(expResult.getMultiDatastreams().size(), result.getMultiDatastreams().size());
         Assert.assertEquals(expResult.getMultiDatastreams(), result.getMultiDatastreams());
         Assert.assertEquals(expResult.getDatastreams(), result.getDatastreams());
         Assert.assertEquals(expResult, result);

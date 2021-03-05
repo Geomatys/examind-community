@@ -511,7 +511,7 @@
           <sos:phenomenonTime>
             <gml:TimePeriod gml:id="time-offering-10">
               <gml:beginPosition>2009-05-01T13:47:00.000</gml:beginPosition>
-              <gml:endPosition>2009-05-01T14:03:00.000</gml:endPosition>
+              <gml:endPosition>2009-05-01T14:04:00.000</gml:endPosition>
             </gml:TimePeriod>
           </sos:phenomenonTime>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
