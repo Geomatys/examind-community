@@ -189,7 +189,7 @@ public abstract class AbstractWorker implements Worker {
     }
 
     protected boolean isSupportedVersion(final String version) {
-        final ServiceDef.Version vv = new ServiceDef.Version(version);
+        final Version vv = new Version(version);
         for (ServiceDef sd : supportedVersions) {
             if (sd.version.equals(vv)) {
                 return true;
@@ -279,7 +279,7 @@ public abstract class AbstractWorker implements Worker {
         if (number == null || number.isEmpty()) {
             return firstSpecifiedVersion;
         }
-        final ServiceDef.Version wrongVersion = new ServiceDef.Version(number);
+        final Version wrongVersion = new Version(number);
         if (wrongVersion.compareTo(firstSpecifiedVersion.version) > 0) {
             return firstSpecifiedVersion;
         } else {

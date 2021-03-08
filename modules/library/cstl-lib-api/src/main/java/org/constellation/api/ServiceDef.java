@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import org.apache.sis.util.Version;
 
 /**
  * All the services known by Constellation.
@@ -133,29 +134,6 @@ public enum ServiceDef {
         exceptionVersion = (excVerStr == null) ? null : new Version(excVerStr);
         this.owsCompliant = ows;
         this.isImplemented = isImplemented;
-    }
-
-    public static class Version extends org.apache.sis.util.Version {
-
-        private static final long serialVersionUID = -1004484794380489333L;
-
-        public Version(String versionDef) {
-            super(versionDef);
-        }
-    }
-
-    /**
-     * Compare the current version with another version number.
-     *
-     * @param v A version number.
-     *
-     * @see org.apache.sis.util.Version#compareTo(org.apache.sis.util.Version)
-     *
-     * @return A negative value if this version is lower than the supplied version, a positive
-     *         value if it is higher, or 0 if they are equal.
-     */
-    public int compareTo(Version v) {
-        return version.compareTo(v);
     }
 
     /**
