@@ -109,7 +109,9 @@ public class ProcessFromYamlProcess extends AbstractCstlProcess {
                                 // not null if a service has been found.
                                 if (service != null) {
                                     ServiceProcessReference serviceProcessReference = new ServiceProcessReference(service.getId(), service.getType(), service.getIdentifier());
-                                    in.parameter(parameterDescriptor.getName().getCode()).setValue(serviceProcessReference);
+                                    ParameterValue<ServiceProcessReference> parameterValue = new DefaultParameterValue(parameterDescriptor);
+                                    parameterValue.setValue(serviceProcessReference);
+                                    in.values().add(parameterValue);
                                 }
                             }
                         }
