@@ -72,7 +72,12 @@ public class ConfigurationBusiness implements IConfigurationBusiness {
             throw new IllegalArgumentException("ProviderId must not be null or empty");
         }
         try {
-            final Path provDir = ConfigDirectory.getDataIntegratedDirectory(providerId);
+            final Path provDir = ConfigDirectory.getDataIntegratedDirectory(providerId).normalize();
+            final Path baseDir = ConfigDirectory.getDataIntegratedDirectory().normalize();
+            // Security: if given "." or ".." or any fragment allowing to resolve directory upstream, launch an error to prevent data corruption
+            if (!provDir.startsWith(baseDir) || baseDir.startsWith(provDir)) {
+                throw new IllegalArgumentException("Given provider ID is invalid");
+            }
             org.geotoolkit.nio.IOUtilities.deleteRecursively(provDir);
         } catch (IOException e) {
             LOGGER.log(Level.WARNING, "Error during delete data on FS for provider {0}", providerId);
