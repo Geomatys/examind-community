@@ -453,6 +453,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                     Map<String,String> hints = new HashMap<>(defaultHints);
                     hints.put("includeFoiInTemplate", "false");
                     hints.put("includeTimeInTemplate", "true");
+                    hints.put("singleObservedPropertyInTemplate", "true");
                     List<org.opengis.observation.Observation> templates = omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", null, hints);
                     if (templates.size() == 1) {
                         template = (AbstractObservation) templates.get(0);
@@ -532,6 +533,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                     Map<String,String> hints = new HashMap<>(defaultHints);
                     hints.put("includeFoiInTemplate", "false");
                     hints.put("includeTimeInTemplate", "true");
+                    hints.put("singleObservedPropertyInTemplate", "true");
                     List<org.opengis.observation.Observation> templates = omProvider.getObservations(subquery, MEASUREMENT_QNAME, "resultTemplate", null, hints);
                     if (templates.size() == 1) {
                         observation.setDatastream(buildDatastream(exp, (AbstractObservation) templates.get(0), sensorArea, new NavigationPath(fn)));
@@ -551,6 +553,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                     Map<String,String> hints = new HashMap<>(defaultHints);
                     hints.put("includeFoiInTemplate", "false");
                     hints.put("includeTimeInTemplate", "true");
+                    hints.put("singleObservedPropertyInTemplate", "true");
                     List<org.opengis.observation.Observation> templates = omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", null, hints);
                     if (templates.size() == 1) {
                         observation.setMultiDatastream(buildMultiDatastream(exp, (AbstractObservation) templates.get(0), sensorArea, new NavigationPath(fn)));
@@ -611,6 +614,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 Map<String,String> hints = new HashMap<>(defaultHints);
                 hints.put("includeFoiInTemplate", "false");
                 hints.put("includeTimeInTemplate", "true");
+                hints.put("singleObservedPropertyInTemplate", "true");
                 List<org.opengis.observation.Observation> templates = omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", null, hints);
                 if (templates.size() == 1) {
                     mds = buildMultiDatastream(exp, (AbstractObservation) templates.get(0), sensorArea, new NavigationPath(fn));
@@ -828,6 +832,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             Map<String,String> hints = new HashMap<>(defaultHints);
             hints.put("includeFoiInTemplate", "false");
             hints.put("includeTimeInTemplate", "true");
+            hints.put("singleObservedPropertyInTemplate", "true");
             List<org.opengis.observation.Observation> templates = omProvider.getObservations(subquery, MEASUREMENT_QNAME, "resultTemplate", null, hints);
             Map<String, GeoJSONGeometry> sensorArea = new HashMap<>();
             for (org.opengis.observation.Observation template : templates) {
@@ -856,6 +861,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             Map<String,String> hints = new HashMap<>(defaultHints);
             hints.put("includeFoiInTemplate", "false");
             hints.put("includeTimeInTemplate", "true");
+            hints.put("singleObservedPropertyInTemplate", "true");
             List<org.opengis.observation.Observation> obs = omProvider.getObservations(subquery, MEASUREMENT_QNAME, "resultTemplate", null, hints);
             if (obs.isEmpty()) {
                 return null;
@@ -967,6 +973,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             Map<String,String> hints = new HashMap<>(defaultHints);
             hints.put("includeFoiInTemplate", "false");
             hints.put("includeTimeInTemplate", "true");
+            hints.put("singleObservedPropertyInTemplate", "true");
             if (req.getCount()) {
                 count = new BigDecimal(omProvider.getObservationNames(subquery, OBSERVATION_QNAME, "resultTemplate", hints).size());
             }
@@ -994,6 +1001,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             Map<String,String> hints = new HashMap<>(defaultHints);
             hints.put("includeFoiInTemplate", "false");
             hints.put("includeTimeInTemplate", "true");
+            hints.put("singleObservedPropertyInTemplate", "true");
             List<org.opengis.observation.Observation> obs = omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", null, hints);
             if (obs.isEmpty()) {
                 return null;
@@ -1034,11 +1042,21 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                             ObservedProperty mphen = buildPhenomenon(exp, (Phenomenon) phen, new NavigationPath(fn));
                             datastream.addObservedPropertiesItem(mphen);
                         }
+
+                    // issue 3 - unexisting phenomenon in database, could be a computed one, so we iterate directly on its component
+                    } else if (p == null) {
+                        for (org.opengis.observation.Phenomenon phen : ((CompositePhenomenon)obsPhen).getComponent()) {
+                            phen = getPhenomenon(((Phenomenon)phen).getName().getCode(), "1.0.0");
+                            if (phen != null) {
+                                ObservedProperty mphen = buildPhenomenon(exp, (Phenomenon) phen, new NavigationPath(fn));
+                                datastream.addObservedPropertiesItem(mphen);
+                            }
+                        }
                     } else {
                         ObservedProperty phen = buildPhenomenon(exp, (Phenomenon) p, new NavigationPath(fn));
                         datastream.addObservedPropertiesItem(phen);
                     }
-
+                    
                 } else {
                     ObservedProperty phen = buildPhenomenon(exp, obsPhen, new NavigationPath(fn));
                     datastream.addObservedPropertiesItem(phen);
@@ -1286,6 +1304,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         Map<String,String> hints = new HashMap<>(defaultHints);
         hints.put("includeFoiInTemplate", "false");
         hints.put("includeTimeInTemplate", "true");
+        hints.put("singleObservedPropertyInTemplate", "true");
         return omProvider.getObservations(subquery, MEASUREMENT_QNAME, "resultTemplate", null, hints);
     }
 
@@ -1296,6 +1315,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         Map<String,String> hints = new HashMap<>(defaultHints);
         hints.put("includeFoiInTemplate", "false");
         hints.put("includeTimeInTemplate", "true");
+        hints.put("singleObservedPropertyInTemplate", "true");
         return omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", null, hints);
     }
 
@@ -1307,6 +1327,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         Map<String,String> hints = new HashMap<>(defaultHints);
         hints.put("includeFoiInTemplate", "false");
         hints.put("includeTimeInTemplate", "true");
+        hints.put("singleObservedPropertyInTemplate", "true");
         return omProvider.getObservations(subquery, MEASUREMENT_QNAME, "resultTemplate", null, hints);
     }
 
@@ -1317,6 +1338,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         Map<String,String> hints = new HashMap<>(defaultHints);
         hints.put("includeFoiInTemplate", "false");
         hints.put("includeTimeInTemplate", "true");
+        hints.put("singleObservedPropertyInTemplate", "true");
         return omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", null, hints);
     }
 

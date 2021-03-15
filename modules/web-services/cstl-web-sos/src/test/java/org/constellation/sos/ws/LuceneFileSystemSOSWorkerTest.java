@@ -88,6 +88,7 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
         writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-10.xml", "offering-10.xml", EPSG_VERSION);
         writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-11.xml", "offering-11.xml", EPSG_VERSION);
         writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-12.xml", "offering-12.xml", EPSG_VERSION);
+        writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-13.xml", "offering-13.xml", EPSG_VERSION);
 
         Path offeringV200Directory = offeringDirectory.resolve("2.0.0");
         Files.createDirectories(offeringV200Directory);
@@ -103,6 +104,7 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
         writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-10.xml", "offering-10.xml", EPSG_VERSION);
         writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-11.xml", "offering-11.xml", EPSG_VERSION);
         writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-12.xml", "offering-12.xml", EPSG_VERSION);
+        writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-13.xml", "offering-13.xml", EPSG_VERSION);
 
 
         Path phenomenonDirectory = instDirectory.resolve("phenomenons");

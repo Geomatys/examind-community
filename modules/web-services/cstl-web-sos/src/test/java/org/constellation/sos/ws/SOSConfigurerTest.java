@@ -305,6 +305,7 @@ public abstract class SOSConfigurerTest {
         expResults.add("urn:ogc:object:sensor:GEOM:1");
         expResults.add("urn:ogc:object:sensor:GEOM:10");
         expResults.add("urn:ogc:object:sensor:GEOM:12");
+        expResults.add("urn:ogc:object:sensor:GEOM:13");
         expResults.add("urn:ogc:object:sensor:GEOM:2");
         expResults.add("urn:ogc:object:sensor:GEOM:3");
         expResults.add("urn:ogc:object:sensor:GEOM:4");
@@ -321,6 +322,7 @@ public abstract class SOSConfigurerTest {
         final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
         Collection<String> results = sensorServBusiness.getSensorIdsForObservedProperty(sid, "urn:ogc:def:phenomenon:GEOM:temperature");
         List<String> expResults = Arrays.asList("urn:ogc:object:sensor:GEOM:12",
+                                                "urn:ogc:object:sensor:GEOM:13",
                                                 "urn:ogc:object:sensor:GEOM:2",
                                                 "urn:ogc:object:sensor:GEOM:7",
                                                 "urn:ogc:object:sensor:GEOM:8",

@@ -45,6 +45,7 @@ import static org.constellation.api.CommonConstants.EVENT_TIME;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.RESPONSE_MODE;
 import static org.constellation.store.observation.db.OM2BaseReader.defaultCRS;
+import static org.constellation.store.observation.db.OM2Utils.*;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.geometry.jts.SRIDGenerator;
 import org.geotoolkit.gml.JTStoGeometry;
@@ -271,10 +272,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         }
         sqlRequest.append(" ORDER BY \"procedure\" ");
         sqlRequest = appendPaginationToRequest(sqlRequest, hints);
-        boolean includeTimeInTemplate = false;
-        if (hints != null && hints.containsKey("includeTimeInTemplate")) {
-            includeTimeInTemplate = Boolean.parseBoolean(hints.get("includeTimeInTemplate"));
-        }
+        boolean includeTimeInTemplate = getBooleanHint(hints, "includeTimeInTemplate", false);
+        
         final List<Observation> observations = new ArrayList<>();
 
         try (final Connection c            = source.getConnection();
@@ -292,7 +291,18 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 }
                 final String obsID = "obs-" + procedureID;
                 final String name = observationTemplateIdBase + procedureID;
-                final String observedProperty = rs.getString("observed_property");
+                final String observedProperty;
+                final Phenomenon phen;
+                if (singleObservedPropertyInTemplate) {
+                    observedProperty = null;
+                    // problem here, we will return an unexisting phenomenon (meaning not stored in database)
+                    // but this flag is mostly used in STS where we don't want to see the composite, but the components.
+                    // so will keep this here until we experience issues.
+                    phen = getVirtualCompositePhenomenon(version, c, procedure);
+                } else {
+                    observedProperty = rs.getString("observed_property");
+                    phen = getPhenomenon(version, observedProperty, c);
+                }
                 String featureID = null;
                 FeatureProperty foi = null;
                 if (includeFoiInTemplate) {
@@ -304,7 +314,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 if (includeTimeInTemplate) {
                     tempTime = getTimeForTemplate(c, procedure, observedProperty, featureID, version);
                 }
-                final Phenomenon phen = getPhenomenon(version, observedProperty, c);
                 List<Field> fields = readFields(procedure, c);
                 /*
                  *  BUILD RESULT
@@ -335,10 +344,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         sqlRequest.append(" ORDER BY \"procedure\" ");
         sqlRequest = appendPaginationToRequest(sqlRequest, hints);
 
-        boolean includeTimeInTemplate = false;
-        if (hints != null && hints.containsKey("includeTimeInTemplate")) {
-            includeTimeInTemplate = Boolean.parseBoolean(hints.get("includeTimeInTemplate"));
-        }
+        boolean includeTimeInTemplate = getBooleanHint(hints, "includeTimeInTemplate", false);
         final List<Observation> observations = new ArrayList<>();
 
         try (final Connection c              = source.getConnection();
@@ -355,7 +361,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 }
                 final String obsID = "obs-" + procedureID;
                 final String name = observationTemplateIdBase + procedureID;
-                final String observedProperty = rs.getString("observed_property");
+                final Phenomenon phen;
+                if (singleObservedPropertyInTemplate) {
+                    phen = getVirtualCompositePhenomenon(version, c, procedure);
+                } else {
+                    String observedProperty = rs.getString("observed_property");
+                    phen = getPhenomenon(version, observedProperty, c);
+                }
                 String featureID = null;
                 FeatureProperty foi = null;
                 if (includeFoiInTemplate) {
@@ -363,11 +375,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     final SamplingFeature feature = getFeatureOfInterest(featureID, version, c);
                     foi = buildFeatureProperty(version, feature);
                 }
-                TemporalGeometricPrimitive tempTime = null;
-                if (includeTimeInTemplate) {
-                    tempTime = getTimeForTemplate(c, procedure, observedProperty, featureID, version);
-                }
-                final org.geotoolkit.swe.xml.Phenomenon phen = (org.geotoolkit.swe.xml.Phenomenon) getPhenomenon(version, observedProperty, c);
+                
                 /*
                  *  BUILD RESULT
                  */
@@ -376,35 +384,15 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 if (mainField != null && "Time".equals(mainField.fieldType)) {
                     fields.remove(mainField);
                 }
-
-                // aggregate phenomenon mode
-                if (fields.size() > 1) {
-                    if (phen instanceof CompositePhenomenon) {
-                        CompositePhenomenon compoPhen = (CompositePhenomenon) phen;
-                        if (compoPhen.getComponent().size() == fields.size()) {
-                            for (int i = 0; i < fields.size(); i++) {
-                                org.geotoolkit.swe.xml.Phenomenon compPhen = (org.geotoolkit.swe.xml.Phenomenon) compoPhen.getComponent().get(i);
-                                if ((currentFields.isEmpty() || currentFields.contains(compPhen.getName().getCode())) &&
-                                    (fieldFilters.isEmpty() || fieldFilters.contains(i))) {
-                                    //final String cphenID = compPhen.getId();
-                                    final Object result = buildMeasure(version, "measure-001", fields.get(i).fieldUom, 0d);
-                                    observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + i, name + '-' + i, null, foi, compPhen, procedure, result, tempTime));
-                                }
-                            }
-                        } else {
-                            throw new DataStoreException("incoherence between multiple fields size and composite phenomenon components size");
-                        }
-                    } else {
-                        throw new DataStoreException("incoherence between multiple fields and non-composite phenomenon");
+                
+                List<FieldPhenom> phenFields = getPhenomenonFields(phen, fields, c, procedure);
+                for (FieldPhenom phenField : phenFields) {
+                    TemporalGeometricPrimitive tempTime = null;
+                    if (includeTimeInTemplate) {
+                        tempTime = getTimeForTemplate(c, procedure, getName(phenField.phenomenon), featureID, version);
                     }
-
-                // simple phenomenon mode
-                } else {
-                    if (phen instanceof CompositePhenomenon) {
-                        throw new DataStoreException("incoherence between single fields and composite phenomenon");
-                    }
-                    final Object result = buildMeasure(version, "measure-001", fields.get(0).fieldUom, 0d);
-                    observations.add(OMXmlFactory.buildMeasurement(version, obsID + "-0", name + "-0", null, foi, phen, procedure, result, tempTime));
+                    final Object result = buildMeasure(version, "measure-001", phenField.field.fieldUom, 0d);
+                    observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + phenField.i, name + '-' + phenField.i, null, foi, phenField.phenomenon, procedure, result, tempTime));
                 }
             }
         } catch (SQLException ex) {
@@ -418,25 +406,15 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
     @Override
     public List<Observation> getObservations(final Map<String,String> hints) throws DataStoreException {
-        boolean includeIDInDataBlock  = false;
-        boolean includeTimeForProfile = false;
-        ResultMode resultMode = ResultMode.CSV;
-        String version = "2.0.0";
-        if (hints != null) {
-            if (hints.containsKey("version")) {
-                version = hints.get("version");
-            }
-            if (hints.containsKey("includeIDInDataBlock")) {
-                includeIDInDataBlock = Boolean.parseBoolean(hints.get("includeIDInDataBlock"));
-            }
-            if (hints.containsKey("includeTimeForProfile")) {
-                includeTimeForProfile = Boolean.parseBoolean(hints.get("includeTimeForProfile"));
-            }
-            if (hints.containsKey("directResultArray")) {
-                if (Boolean.parseBoolean(hints.get("directResultArray"))) {
-                    resultMode = ResultMode.DATA_ARRAY;
-                }
-            }
+        String version                = getVersionFromHints(hints);
+        boolean includeIDInDataBlock  = getBooleanHint(hints, "includeIDInDataBlock",  false);
+        boolean includeTimeForProfile = getBooleanHint(hints, "includeTimeForProfile", false);
+        boolean directResultArray     = getBooleanHint(hints, "directResultArray",     false);
+        ResultMode resultMode;
+        if (directResultArray) {
+            resultMode = ResultMode.DATA_ARRAY;
+        } else {
+            resultMode = ResultMode.CSV;
         }
         if (MEASUREMENT_QNAME.equals(resultModel)) {
             return getMesurements(version);
@@ -672,13 +650,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         return new ArrayList<>(observations.values());
     }
 
-    private Date dateFromTS(Timestamp t) {
-        if (t != null) {
-            return new Date(t.getTime());
-        }
-        return null;
-    }
-
     private DataArrayProperty buildComplexResult(final String version, final Collection<AnyScalar> fields, final int nbValue,
             final TextBlock encoding, final ResultBuilder values, final int cpt) {
         final String arrayID     = "dataArray-" + cpt;
@@ -750,7 +721,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     }
                 }
 
-                List<FieldPhenom> fieldPhen = getPhenomenonFields(phen, fields);
+                List<FieldPhenom> fieldPhen = getPhenomenonFields(phen, fields, c, procedure);
 
                 if (isTimeField) {
                     sqlMeasureRequest.replaceAll("$time", mainField.fieldName);
@@ -823,14 +794,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
     @Override
     public Object getResults(final Map<String,String> hints) throws DataStoreException {
-        Integer decimationSize = null;
-        boolean includeTimeForProfile     = false;
-        if (hints.containsKey("decimSize")) {
-            decimationSize = Integer.parseInt(hints.get("decimSize"));
-        }
-        if (hints.containsKey("includeTimeForProfile")) {
-            includeTimeForProfile = Boolean.parseBoolean(hints.get("includeTimeForProfile"));
-        }
+        Integer decimationSize         = getIntegerHint(hints, "decimSize");
+        boolean includeTimeForProfile  = getBooleanHint(hints, "includeTimeForProfile", false);
+        
         if (decimationSize != null && !"count".equals(responseFormat)) {
             if (timescaleDB) {
                 return getDecimatedResultsTimeScale(decimationSize, includeTimeForProfile);
@@ -1507,8 +1473,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
     @Override
     public Map<String, Map<Date, Geometry>> getSensorLocations(final Map<String,String> hints) throws DataStoreException {
-        if (hints.containsKey("decimSize")) {
-            return getDecimatedSensorLocationsV2(hints, Integer.parseInt(hints.get("decimSize")));
+        Integer decimSize = getIntegerHint(hints, "decimSize");
+        if (decimSize != null) {
+            return getDecimatedSensorLocationsV2(hints, decimSize);
         }
         final String version = getVersionFromHints(hints);
         final String gmlVersion = getGMLVersion(version);
@@ -2071,16 +2038,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     }
 
     private FilterSQLRequest appendPaginationToRequest(FilterSQLRequest request, Map<String, String> hints) {
-        Long limit     = null;
-        Long offset    = null;
-        if (hints != null) {
-            if (hints.containsKey("limit")) {
-                limit = Long.parseLong(hints.get("limit"));
-            }
-            if (hints.containsKey("offset")) {
-                offset = Long.parseLong(hints.get("offset"));
-            }
-        }
+        Long limit     = getLongHint(hints, "limit");
+        Long offset    = getLongHint(hints, "offset");
         if (isPostgres) {
             if (limit != null) {
                 request.append(" LIMIT ").append(Long.toString(limit));
@@ -2117,26 +2076,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     @Override
     public org.geotoolkit.gml.xml.Envelope getCollectionBoundingShape() {
         throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    private String getVersionFromHints(Map<String, String> hints) {
-        String version = "2.0.0";
-        if (hints != null) {
-            if (hints.containsKey("version")) {
-                version = hints.get("version");
-            }
-        }
-        return version;
-    }
-
-    private static List<Field> reOrderFields(List<Field> procedureFields, List<Field> subset) {
-        List<Field> result = new ArrayList();
-        for (Field pField : procedureFields) {
-            if (subset.contains(pField)) {
-                result.add(pField);
-            }
-        }
-        return result;
     }
 
     private static enum ResultMode {

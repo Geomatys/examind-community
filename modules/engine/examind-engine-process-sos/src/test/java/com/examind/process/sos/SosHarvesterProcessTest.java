@@ -280,7 +280,7 @@ public class SosHarvesterProcessTest {
         
         int prev = getNbOffering(worker, 0);
         
-        Assert.assertEquals(12, prev);
+        Assert.assertEquals(13, prev);
         
         String sensorId = "urn:sensor:1";
 
@@ -469,7 +469,7 @@ public class SosHarvesterProcessTest {
         
         int prev = getNbOffering(worker, 0);
         
-        Assert.assertEquals(12, prev);
+        Assert.assertEquals(13, prev);
         
         String sensorId = "urn:sensor:2";
 
@@ -587,7 +587,7 @@ public class SosHarvesterProcessTest {
         
         int prev = getNbOffering(worker, 0);
         
-        Assert.assertEquals(12, prev);
+        Assert.assertEquals(13, prev);
 
         String sensorId = "urn:sensor:3";
 
@@ -689,7 +689,7 @@ public class SosHarvesterProcessTest {
         
         int prev = getNbOffering(worker, 0);
         
-        Assert.assertEquals(12, prev);
+        Assert.assertEquals(13, prev);
                 
         String sensorId = "urn:sensor:5";
 
@@ -801,7 +801,7 @@ public class SosHarvesterProcessTest {
         
         int prev = getNbOffering(worker, 0);
         
-        Assert.assertEquals(12, prev);
+        Assert.assertEquals(13, prev);
 
         String sensorId = "urn:sensor:dbf:1";
 
@@ -898,7 +898,7 @@ public class SosHarvesterProcessTest {
 
         int prev = getNbOffering(worker, 0);
         
-        Assert.assertEquals(12, prev);
+        Assert.assertEquals(13, prev);
 
         String sensorId = "urn:sensor:dbf:2";
 
@@ -997,7 +997,7 @@ public class SosHarvesterProcessTest {
         
         int prev = getNbOffering(sosWorker, 0);
         
-        Assert.assertEquals(12, prev);
+        Assert.assertEquals(13, prev);
 
         String datasetId = "SOS_DATA";
 
@@ -1187,7 +1187,7 @@ public class SosHarvesterProcessTest {
         
         int prev = getNbOffering(worker, 0);
         
-        Assert.assertEquals(12, prev);
+        Assert.assertEquals(13, prev);
         
         // ???
         String sensorId = "urn:sensor:bgdata";
@@ -1316,7 +1316,7 @@ public class SosHarvesterProcessTest {
         
         int prev = getNbOffering(worker, 0);
         
-        Assert.assertEquals(12, prev);
+        Assert.assertEquals(13, prev);
 
         String datasetId = "SOS_DATA";
 
@@ -1485,7 +1485,7 @@ public class SosHarvesterProcessTest {
         
         int prev = getNbOffering(sosWorker, 0);
         
-        Assert.assertEquals(12, prev);
+        Assert.assertEquals(13, prev);
 
         String datasetId = "SOS_DATA_2";
 
@@ -1710,7 +1710,7 @@ public class SosHarvesterProcessTest {
         
         int prev = getNbOffering(sosWorker, 0);
         
-        Assert.assertEquals(12, prev);
+        Assert.assertEquals(13, prev);
 
         String datasetId = "SOS_DATA_3";
 
@@ -2011,7 +2011,7 @@ public class SosHarvesterProcessTest {
 
         int prev = getNbOffering(sosWorker, 0);
 
-        Assert.assertEquals(12, prev);
+        Assert.assertEquals(13, prev);
 
         String datasetId = "SOS_DATA_3";
 
@@ -2133,7 +2133,7 @@ public class SosHarvesterProcessTest {
 
         int prev = getNbOffering(worker, 0);
 
-        Assert.assertEquals(12, prev);
+        Assert.assertEquals(13, prev);
 
         String sensorId = "urn:sensor:bgdata";
 

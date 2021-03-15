@@ -91,6 +91,7 @@ public class LuceneFileSystemSOS2WorkerTest extends SOS2WorkerTest {
         writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-10.xml", "offering-10.xml", EPSG_VERSION);
         writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-11.xml", "offering-11.xml", EPSG_VERSION);
         writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-12.xml", "offering-12.xml", EPSG_VERSION);
+        writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-13.xml", "offering-13.xml", EPSG_VERSION);
 
         Path phenomenonDirectory = instDirectory.resolve("phenomenons");
         Files.createDirectories(phenomenonDirectory);

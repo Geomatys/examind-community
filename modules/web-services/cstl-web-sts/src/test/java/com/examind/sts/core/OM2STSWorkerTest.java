@@ -385,6 +385,7 @@ public class OM2STSWorkerTest {
         expResult.setDatastream(expDatas);
         expResult.setDatastreamIotNavigationLink(null);
 
+        Assert.assertEquals(expResult.getDatastream().getPhenomenonTime(), result.getDatastream().getPhenomenonTime());
         Assert.assertEquals(expResult.getDatastream(), result.getDatastream());
         Assert.assertEquals(expResult.getFeatureOfInterest(), result.getFeatureOfInterest());
         Assert.assertEquals(expResult, result);
@@ -888,25 +889,21 @@ public class OM2STSWorkerTest {
         Assert.assertTrue(obj instanceof ObservationsResponse);
         ObservationsResponse result = (ObservationsResponse) obj;
 
-        Assert.assertEquals(83, result.getValue().size());
+        Assert.assertEquals(106, result.getValue().size());
 
-         Set<String> resultIds = new HashSet<>();
+        final Set<String> resultIds = new HashSet<>();
         result.getValue().stream().forEach(ds -> resultIds.add(ds.getIotId()));
+        Assert.assertEquals(106, resultIds.size());
 
-        Assert.assertEquals(83, resultIds.size());
+        request.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:13");
+        obj = worker.getObservations(request);
+        Assert.assertTrue(obj instanceof ObservationsResponse);
+        result = (ObservationsResponse) obj;
 
-        /*Set<String> expectedIds = new HashSet<>();
-        expectedIds.add("urn:ogc:object:observation:GEOM:1002");
-        expectedIds.add("urn:ogc:object:observation:GEOM:201");
-        expectedIds.add("urn:ogc:object:observation:GEOM:1001");
-        expectedIds.add("urn:ogc:object:observation:GEOM:801");
-        expectedIds.add("urn:ogc:object:observation:GEOM:901");
-        expectedIds.add("urn:ogc:object:observation:GEOM:406");
-        expectedIds.add("urn:ogc:object:observation:GEOM:802");
-        expectedIds.add("urn:ogc:object:observation:GEOM:507");
-        expectedIds.add("urn:ogc:object:observation:GEOM:304");
-
-        Assert.assertEquals(expectedIds, resultIds);*/
+        Assert.assertEquals(23, result.getValue().size());
+        resultIds.clear();
+        result.getValue().stream().forEach(ds -> resultIds.add(ds.getIotId()));
+        Assert.assertEquals(23, resultIds.size());
 
     }
 
@@ -935,7 +932,7 @@ public class OM2STSWorkerTest {
         result = worker.getObservedPropertyById(request);
 
 
-        Assert.assertEquals(5, result.getDatastreams().size());
+        Assert.assertEquals(6, result.getDatastreams().size());
 
         final Set<String> resultIds = new HashSet<>();
         result.getDatastreams().stream().forEach(ds -> resultIds.add(ds.getIotId()));
@@ -946,9 +943,10 @@ public class OM2STSWorkerTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:8-1");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:7-0");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:12-1");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:13-1");
         Assert.assertEquals(expectedIds, resultIds);
 
-        Assert.assertEquals(5, result.getMultiDatastreams().size());
+        Assert.assertEquals(6, result.getMultiDatastreams().size());
 
         resultIds.clear();
         result.getMultiDatastreams().stream().forEach(ds -> resultIds.add(ds.getIotId()));
@@ -959,6 +957,7 @@ public class OM2STSWorkerTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:8");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:7");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:12");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:13");
         Assert.assertEquals(expectedIds, resultIds);
 
        /*
@@ -969,7 +968,7 @@ public class OM2STSWorkerTest {
        DatastreamsResponse dsResponse = worker.getDatastreams(gd);
 
        resultIds.clear();
-       Assert.assertEquals(5, dsResponse.getValue().size());
+       Assert.assertEquals(6, dsResponse.getValue().size());
 
        dsResponse.getValue().stream().forEach(ds -> resultIds.add(ds.getIotId()));
 
@@ -979,6 +978,7 @@ public class OM2STSWorkerTest {
        expectedIds.add("urn:ogc:object:observation:template:GEOM:8-1");
        expectedIds.add("urn:ogc:object:observation:template:GEOM:7-0");
        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-1");
+       expectedIds.add("urn:ogc:object:observation:template:GEOM:13-1");
        Assert.assertEquals(expectedIds, resultIds);
 
        /*
@@ -988,7 +988,7 @@ public class OM2STSWorkerTest {
        gmd.getExtraFilter().put("observedProperty", "urn:ogc:def:phenomenon:GEOM:temperature");
        MultiDatastreamsResponse mdsResponse = worker.getMultiDatastreams(gmd);
 
-       Assert.assertEquals(5, mdsResponse.getValue().size());
+       Assert.assertEquals(6, mdsResponse.getValue().size());
 
        resultIds.clear();
        mdsResponse.getValue().stream().forEach(ds -> resultIds.add(ds.getIotId()));
@@ -999,6 +999,7 @@ public class OM2STSWorkerTest {
        expectedIds.add("urn:ogc:object:observation:template:GEOM:8");
        expectedIds.add("urn:ogc:object:observation:template:GEOM:7");
        expectedIds.add("urn:ogc:object:observation:template:GEOM:12");
+       expectedIds.add("urn:ogc:object:observation:template:GEOM:13");
        Assert.assertEquals(expectedIds, resultIds);
 
     }
@@ -1427,12 +1428,12 @@ public class OM2STSWorkerTest {
         GetDatastreams request = new GetDatastreams();
         DatastreamsResponse result = worker.getDatastreams(request);
 
-        Assert.assertEquals(15, result.getValue().size());
+        Assert.assertEquals(18, result.getValue().size());
 
         Set<String> resultIds = new HashSet<>();
         result.getValue().stream().forEach(ds -> resultIds.add(ds.getIotId()));
 
-        Assert.assertEquals(15, resultIds.size());
+        Assert.assertEquals(18, resultIds.size());
 
         Set<String> expectedIds = new HashSet<>();
         expectedIds.add("urn:ogc:object:observation:template:GEOM:2-0");
@@ -1450,6 +1451,9 @@ public class OM2STSWorkerTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:12-1");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:12-2");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:test-id-0");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:13-0");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:13-1");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:13-2");
         Assert.assertEquals(expectedIds, resultIds);
 
     }
@@ -1912,12 +1916,12 @@ public class OM2STSWorkerTest {
         GetMultiDatastreams request = new GetMultiDatastreams();
         MultiDatastreamsResponse result = worker.getMultiDatastreams(request);
 
-        Assert.assertEquals(10, result.getValue().size());
+        Assert.assertEquals(11, result.getValue().size());
 
         Set<String> resultIds = new HashSet<>();
         result.getValue().stream().forEach(ds -> resultIds.add(ds.getIotId()));
 
-        Assert.assertEquals(10, resultIds.size());
+        Assert.assertEquals(11, resultIds.size());
 
         Set<String> expectedIds = new HashSet<>();
         expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1");
@@ -1926,6 +1930,7 @@ public class OM2STSWorkerTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:2");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:10");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:12");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:13");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:9");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:7");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:8");
@@ -2042,7 +2047,7 @@ public class OM2STSWorkerTest {
         Set<String> resultIds = new HashSet<>();
         result.getValue().stream().forEach(s -> resultIds.add(s.getIotId()));
 
-        Assert.assertEquals(12, result.getValue().size());
+        Assert.assertEquals(13, result.getValue().size());
 
         Set<String> expectedIds = new HashSet<>();
         expectedIds.add("urn:ogc:object:sensor:GEOM:6");
@@ -2054,6 +2059,7 @@ public class OM2STSWorkerTest {
         expectedIds.add("urn:ogc:object:sensor:GEOM:4");
         expectedIds.add("urn:ogc:object:sensor:GEOM:10");
         expectedIds.add("urn:ogc:object:sensor:GEOM:12");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:13");
         expectedIds.add("urn:ogc:object:sensor:GEOM:3");
         expectedIds.add("urn:ogc:object:sensor:GEOM:9");
         expectedIds.add("urn:ogc:object:sensor:GEOM:test-id");

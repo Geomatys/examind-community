@@ -291,13 +291,6 @@ public class OM2BaseReader {
     }
 
     private org.geotoolkit.swe.xml.Phenomenon getSinglePhenomenon(final String version, final String observedProperty, final Connection c) throws DataStoreException {
-        final String id;
-        // cleanup phenomenon id because of its XML ype (NCName)
-        if (observedProperty.startsWith(phenomenonIdBase)) {
-            id = observedProperty.substring(phenomenonIdBase.length()).replace(':', '-');
-        } else {
-            id = observedProperty.replace(':', '-');
-        }
         try {
             // look for composite phenomenon
             try (final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"observed_properties\" WHERE \"id\"=?")) {//NOSONAR

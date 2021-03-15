@@ -1177,8 +1177,8 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.0.0");
-        instances.add(new Instance(1, "default", "Examind STS Server", "Examind STS Server", "sts", versions, 12, ServiceStatus.STARTED, "null/sts/default"));
-        instances.add(new Instance(2, "test",    "Examind STS Server", "Examind STS Server", "sts", versions, 12, ServiceStatus.STARTED, "null/sts/test"));
+        instances.add(new Instance(1, "default", "Examind STS Server", "Examind STS Server", "sts", versions, 13, ServiceStatus.STARTED, "null/sts/default"));
+        instances.add(new Instance(2, "test",    "Examind STS Server", "Examind STS Server", "sts", versions, 13, ServiceStatus.STARTED, "null/sts/test"));
         InstanceReport expResult2 = new InstanceReport(instances);
         assertEquals(expResult2, obj);
 
