@@ -63,6 +63,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static com.examind.process.sos.csvcoriolis.CsvCoriolisObservationStoreUtils.*;
+import org.constellation.exception.ConstellationStoreException;
 
 /**
  * Implementation of an observation store for csv coriolis observation data based on {@link CSVFeatureStore}.
@@ -145,7 +146,6 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
         this.dateFormat = dateTimeformat;
         this.longitudeColumn = longitudeColumn;
         this.latitudeColumn = latitudeColumn;
-        this.measureColumns = measureColumns;
         this.observationType = observationType;
         this.foiColumn = foiColumn;
         this.procedureColumn = procedureColumn;
@@ -161,6 +161,18 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
         } else {
             this.procedureId = procedureId;
         }
+
+        // special case for * measure columns
+        if (measureColumns.size() == 1 && measureColumns.iterator().next().equals("*")) {
+            try {
+                this.measureColumns = extractCodes(dataFile, codeColumns, separator);
+            } catch (ConstellationStoreException ex) {
+                throw new DataStoreException(ex);
+            }
+        } else {
+             this.measureColumns = measureColumns;
+        }
+
     }
 
     @Override

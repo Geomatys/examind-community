@@ -337,21 +337,20 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                     switch (p.getStatus()) {
                         case "NO_DATA":
                         case "ERROR":
-                            LOGGER.log(Level.INFO, "No data / Error in file: {0}", p.getPath());
+                            fireAndLog("No data / Error in file: " + p.getPath(), 0);
                             break;
                         case "INTEGRATED":
                         case "COMPLETED":
-                            LOGGER.log(Level.INFO, "File already integrated for file: {0}", p.getPath());
+                            fireAndLog("File already integrated for file: " + p.getPath(), 0);
                             break;
                         case "REMOVED":
-                            LOGGER.log(Level.INFO, "Removing data for file: {0}", p.getPath());
+                            fireAndLog("Removing data for file: " + p.getPath(), 0);
                             providerBusiness.removeProvider(p.getProviderId());
                             // TODO full removal
                             datasourceBusiness.removePath(dsId, p.getPath());
                             break;
                         default:
-                            LOGGER.log(Level.INFO, "Integrating data file: {0}", p.getPath());
-                            
+                            fireAndLog("Integrating data file: " + p.getPath(), 0);
                             // special case for coriolis, if the observation type is null so we create a provider for each type
                             if (coriolisMulti) {
                                 provConfig.getParameters().put(FileParsingObservationStoreFactory.OBSERVATION_TYPE.getName().toString(), "Profile");

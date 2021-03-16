@@ -16,6 +16,10 @@
  */
 package com.examind.process.sos.csvcoriolis;
 
+import com.opencsv.CSVReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.GMLXmlFactory;
 import org.geotoolkit.sampling.xml.SamplingFeature;
@@ -31,8 +35,12 @@ import org.opengis.geometry.DirectPosition;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.*;
+import java.util.logging.Logger;
+import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.ProviderBrief;
+import org.constellation.exception.ConstellationStoreException;
+import org.constellation.util.Util;
 
 import static org.geotoolkit.sos.netcdf.OMUtils.TIME_FIELD;
 
@@ -41,6 +49,8 @@ import static org.geotoolkit.sos.netcdf.OMUtils.TIME_FIELD;
  * @author Guilhem Legal (Geomatys)
  */
 public class CsvCoriolisObservationStoreUtils {
+
+    private static final Logger LOGGER = Logging.getLogger("com.examind.process.sos.csvcoriolis");
 
     private static final NumberFormat FR_FORMAT = NumberFormat.getInstance(Locale.FRANCE);
 
@@ -155,6 +165,60 @@ public class CsvCoriolisObservationStoreUtils {
             }
         } else {
             return Double.parseDouble(s);
+        }
+    }
+
+    public static Set<String> extractCodes(Path dataFile, Collection<String> measureCodeColumns, char separator) throws ConstellationStoreException {
+        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), separator)) {
+
+            final Iterator<String[]> it = reader.iterator();
+
+            // at least one line is expected to contain headers information
+            if (it.hasNext()) {
+
+                // read headers
+                final String[] headers = it.next();
+                List<Integer> measureCodeIndex = new ArrayList<>();
+
+                // find measureCodeIndex
+                for (int i = 0; i < headers.length; i++) {
+                    final String header = headers[i];
+
+                    if (measureCodeColumns.contains(header)) {
+                        measureCodeIndex.add(i);
+                    }
+                }
+
+                if (measureCodeIndex.size() != measureCodeColumns.size()) {
+                    throw new ConstellationStoreException("csv headers does not contains All the Measure Code parameter.");
+                }
+
+                final Set<String> storeCode = new HashSet<>();
+                // extract all codes
+                line:while (it.hasNext()) {
+                    final String[] line = it.next();
+                    String computed = "";
+                    boolean first = true;
+                    for(Integer i : measureCodeIndex) {
+                        final String nextCode = line[i];
+                        if (nextCode == null || nextCode.isEmpty()) continue line;
+                        if (!first) {
+                            computed += "-";
+                        }
+                        computed += nextCode;
+                        first = false;
+                    }
+                    if (!Util.containsForbiddenCharacter(computed) && computed.indexOf('.') == -1) {
+                        storeCode.add(computed);
+                    } else {
+                        LOGGER.warning("Invalid measure column value excluded: " + computed);
+                    }
+                }
+                return storeCode;
+            }
+            throw new ConstellationStoreException("csv headers not found");
+        } catch (IOException ex) {
+            throw new ConstellationStoreException("problem reading csv file", ex);
         }
     }
 }

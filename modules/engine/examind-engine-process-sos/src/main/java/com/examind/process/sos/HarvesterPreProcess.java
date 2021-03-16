@@ -17,6 +17,7 @@
 package com.examind.process.sos;
 
 import static com.examind.process.sos.SosHarvesterProcessDescriptor.*;
+import static com.examind.process.sos.csvcoriolis.CsvCoriolisObservationStoreUtils.extractCodes;
 import com.opencsv.CSVReader;
 import java.io.IOException;
 import java.net.URI;
@@ -34,6 +35,7 @@ import org.constellation.business.IProcessBusiness;
 import org.constellation.dto.process.ChainProcess;
 import org.constellation.dto.process.ServiceProcessReference;
 import org.constellation.exception.ConstellationException;
+import org.constellation.exception.ConstellationStoreException;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.process.ChainProcessRetriever;
 import org.constellation.process.ExamindProcessFactory;
@@ -164,13 +166,14 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
                     // extract codes
                     if (coriolis) {
                         Set<String> currentCodes = extractCodes(child, codeColumns, separator.charAt(0));
+                        currentCodes.add("*");
                         codes.addAll(currentCodes);
                     }
                 }
             } else {
                 throw new ProcessException("The source folder does not point to a directory", this);
             }
-        } catch (IOException | URISyntaxException ex) {
+        } catch (IOException | URISyntaxException | ConstellationStoreException ex) {
             throw new ProcessException("Error while opening data location.", this, ex);
         } finally {
             FileSystemUtilities.closeFileSystem(fs);
@@ -372,56 +375,6 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
             } catch (IOException ex) {
                 throw new ProcessException("problem reading dbf file", this, ex);
             }
-        }
-    }
-
-    private Set<String> extractCodes(Path dataFile, List<String> measureCode, char separator) throws ProcessException {
-        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), separator)) {
-
-            final Iterator<String[]> it = reader.iterator();
-
-            // at least one line is expected to contain headers information
-            if (it.hasNext()) {
-
-                // read headers
-                final String[] headers = it.next();
-                List<Integer> measureCodeIndex = new ArrayList<>();
-
-                // find measureCodeIndex
-                for (int i = 0; i < headers.length; i++) {
-                    final String header = headers[i];
-
-                    if (measureCode.contains(header)) {
-                        measureCodeIndex.add(i);
-                    }
-                }
-
-                if (measureCodeIndex.size() != measureCode.size()) {
-                    throw new ProcessException("csv headers does not contains All the Measure Code parameter.", this);
-                }
-
-                final Set<String> storeCode = new HashSet<>();
-                // extract all codes
-                line:while (it.hasNext()) {
-                    final String[] line = it.next();
-                    String computed = "";
-                    boolean first = true;
-                    for(Integer i : measureCodeIndex) {
-                        final String nextCode = line[i];
-                        if (nextCode == null || nextCode.isEmpty()) continue line;
-                        if (!first) {
-                            computed += "-";
-                        }
-                        computed += nextCode;
-                        first = false;
-                    }
-                    storeCode.add(computed);
-                }
-                return storeCode;
-            }
-            throw new ProcessException("csv headers not found", this);
-        } catch (IOException ex) {
-            throw new ProcessException("problem reading csv file", this, ex);
         }
     }
 
