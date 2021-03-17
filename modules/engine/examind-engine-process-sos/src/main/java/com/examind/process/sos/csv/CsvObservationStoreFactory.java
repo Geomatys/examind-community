@@ -23,44 +23,19 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.Scanner;
 import java.util.Set;
 import java.util.logging.Level;
-import static org.apache.sis.feature.AbstractIdentifiedType.NAME_KEY;
-import org.apache.sis.feature.AbstractOperation;
-import org.apache.sis.feature.DefaultAttributeType;
-import org.apache.sis.feature.builder.AttributeTypeBuilder;
-import org.apache.sis.feature.builder.FeatureTypeBuilder;
-import org.apache.sis.internal.feature.AttributeConvention;
 import org.apache.sis.internal.storage.Capability;
 import org.apache.sis.internal.storage.StoreMetadata;
-import org.apache.sis.metadata.iso.citation.Citations;
-import org.apache.sis.parameter.DefaultParameterDescriptorGroup;
-import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.StorageConnector;
 import org.geotoolkit.storage.feature.FileFeatureStoreFactory;
 import org.geotoolkit.data.csv.CSVProvider;
-import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.storage.ProviderOnFileSystem;
 import org.geotoolkit.storage.ResourceType;
 import org.geotoolkit.storage.StoreMetadataExt;
-import org.geotoolkit.util.NamesExt;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.Point;
-import org.opengis.feature.Attribute;
-import org.opengis.feature.AttributeType;
-import org.opengis.feature.Feature;
-import org.opengis.feature.FeatureOperationException;
-import org.opengis.feature.FeatureType;
-import org.opengis.feature.IdentifiedType;
-import org.opengis.feature.Property;
-import org.opengis.metadata.Identifier;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValue;
@@ -76,31 +51,16 @@ import org.opengis.parameter.ParameterValueGroup;
 @StoreMetadataExt(resourceTypes = ResourceType.SENSOR)
 public class CsvObservationStoreFactory extends FileParsingObservationStoreFactory implements ProviderOnFileSystem {
 
-    private static final GeometryFactory GF = new GeometryFactory();
-
     /** factory identification **/
     public static final String NAME = "observationCsvFile";
 
     public static final String MIME_TYPE = "text/csv; subtype=\"om\"";
-
-    private static final AttributeType<Point> TYPE = new DefaultAttributeType<>(
-            Collections.singletonMap(NAME_KEY, NamesExt.create("Point")), Point.class, 1, 1, null);
-
-    private static final ParameterDescriptorGroup EMPTY_PARAMS = parameters("CalculatePoint", 1);
 
     public static final ParameterDescriptor<String> IDENTIFIER = createFixedIdentifier(NAME);
 
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR
             = PARAM_BUILDER.addName(NAME).addName("ObservationCsvFileParameters").createGroup(IDENTIFIER, NAMESPACE, CSVProvider.PATH, CSVProvider.SEPARATOR,
                     MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, MEASURE_COLUMNS, MEASURE_COLUMNS_SEPARATOR, FOI_COLUMN, OBSERVATION_TYPE, PROCEDURE_ID, PROCEDURE_COLUMN, EXTRACT_UOM, CHARQUOTE);
-
-
-    private static ParameterDescriptorGroup parameters(final String name, final int minimumOccurs) {
-        final Map<String,Object> properties = new HashMap<>(4);
-        properties.put(ParameterDescriptorGroup.NAME_KEY, name);
-        properties.put(Identifier.AUTHORITY_KEY, Citations.SIS);
-        return new DefaultParameterDescriptorGroup(properties, minimumOccurs, 1);
-    }
 
     @Override
     public String getShortName() {
@@ -139,7 +99,7 @@ public class CsvObservationStoreFactory extends FileParsingObservationStoreFacto
                 Collections.emptySet() : new HashSet<>(Arrays.asList(measureCols.getValue().split(measureColumnsSeparator)));
         try {
             return new CsvObservationStore(Paths.get(uri),
-                    separator, quotechar, readType(uri, separator, dateColumn, longitudeColumn, latitudeColumn, measureColumns),
+                    separator, quotechar, readType(uri, separator, quotechar, dateColumn, longitudeColumn, latitudeColumn, measureColumns),
                     mainColumn, dateColumn, dateFormat, longitudeColumn, latitudeColumn, measureColumns, observationType,
                     foiColumn, procedureId, procedureColumn, extractUom);
         } catch (IOException ex) {
@@ -162,97 +122,4 @@ public class CsvObservationStoreFactory extends FileParsingObservationStoreFacto
     public ProbeResult probeContent(StorageConnector connector) throws DataStoreException {
         return FileFeatureStoreFactory.probe(this, connector, MIME_TYPE);
     }
-
-    /**
-     * Build feature type from csv file headers.
-     *
-     * @param file csv file URI
-     * @param separator csv file separator
-     * @param dateColumn the header of the expected date column
-     * @return
-     * @throws DataStoreException
-     */
-    private FeatureType readType(final URI file, final char separator, final String dateColumn,
-            final String longitudeColumn, final String latitudeColumn, final Set<String> measureColumns) throws DataStoreException, IOException {
-
-        /*
-        1- read csv file headers
-        ======================*/
-        final String line;
-        try (final Scanner scanner = new Scanner(Paths.get(file))) {
-            if (scanner.hasNextLine()) {
-                line = scanner.nextLine();
-            } else {
-                return null;
-            }
-        }
-
-        final String[] fields = line.split("" + separator, -1);
-
-        final FeatureTypeBuilder ftb = new FeatureTypeBuilder();
-
-
-        /*
-        2- build feature type name and id fields
-        ======================================*/
-        final String path = file.toString();
-        final int slash = Math.max(0, path.lastIndexOf('/') + 1);
-        int dot = path.indexOf('.', slash);
-        if (dot < 0) {
-            dot = path.length();
-        }
-
-        ftb.setName(path.substring(slash, dot));
-
-        ftb.addAttribute(Integer.class).setName(AttributeConvention.IDENTIFIER_PROPERTY);
-
-        /*
-        3- map fields to feature type attributes
-        ======================================*/
-        for (final String field : fields) {
-
-            final AttributeTypeBuilder atb = ftb.addAttribute(Object.class);
-            atb.setName(NamesExt.create(field));
-
-            if (dateColumn.equals(field)
-           || (!measureColumns.contains(field)
-            && !longitudeColumn.equals(field)
-            && !latitudeColumn.equals(field))) {
-                atb.setValueClass(String.class);
-            } else {
-                atb.setValueClass(Double.class);
-            }
-        }
-
-        /*
-        4- build a geometry operation property from longitude/latitude fields
-        ===================================================================*/
-        ftb.addProperty(new AbstractOperation(Collections.singletonMap(DefaultAttributeType.NAME_KEY, AttributeConvention.GEOMETRY_PROPERTY)) {
-
-            @Override
-            public ParameterDescriptorGroup getParameters() {
-                return EMPTY_PARAMS;
-            }
-
-            @Override
-            public IdentifiedType getResult() {
-                return TYPE;
-            }
-
-            @Override
-            public Property apply(final Feature ftr, final ParameterValueGroup pvg) throws FeatureOperationException {
-
-                final Attribute<Point> att = TYPE.newInstance();
-                Point pt = GF.createPoint(
-                        new Coordinate((Double) ftr.getPropertyValue(longitudeColumn),
-                                (Double) ftr.getPropertyValue(latitudeColumn)));
-                JTS.setCRS(pt, CommonCRS.defaultGeographic());
-                att.setValue(pt);
-                return att;
-            }
-        });
-
-        return ftb.build();
-    }
-
 }
