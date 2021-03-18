@@ -39,7 +39,6 @@ import org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree;
 import org.geotoolkit.sos.netcdf.Field;
 import org.geotoolkit.sos.netcdf.GeoSpatialBound;
 import org.geotoolkit.sos.netcdf.OMUtils;
-import org.geotoolkit.sos.xml.SOSXmlFactory;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.swe.xml.AbstractDataRecord;
 import org.geotoolkit.swe.xml.Phenomenon;
@@ -364,21 +363,10 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                 String currentFoi                     = null;
                 String currentProc                    = null;
                 Long currentTime                      = null;
-                GeoSpatialBound currentSpaBound       = new GeoSpatialBound();
                 final String obsTypeCode              = getObsTypeCode();
                 
                 // measure map used to collect measure data then construct the MeasureStringBuilder
-                final CoriolisMeasureBuilder mmb = new CoriolisMeasureBuilder(obsTypeCode.equals("PR"), sdf, sortedMeasureColumns, mainColumn);
-
-                // memorize positions to compute FOI
-                final Set<String> knownPositions = new HashSet<>();
-                final List<DirectPosition> positions = new ArrayList<>();
-                final Map<Long, List<DirectPosition>> historicalPositions = new HashMap<>();
-
-                // -- previous variables leading to new observations --
-                String previousFoi  = null;
-                String previousProc = null;
-                Long previousTime   = null;
+                final CoriolisMeasureBuilder template = new CoriolisMeasureBuilder(obsTypeCode.equals("PR"), sdf, sortedMeasureColumns, mainColumn);
 
                 while (it.hasNext()) {
                     lineNumber++;
@@ -415,6 +403,8 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                             LOGGER.finer("skipping line due to none specified sensor related.");
                             continue;
                         }
+                    } else {
+                        currentProc = procedureId;
                     }
                     
                     // look for current foi (for observation separation)
@@ -448,39 +438,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                         continue;
                     }
 
-                    // closing current observation and starting new one
-                    if (previousFoi  != null && !previousFoi.equals(currentFoi)   ||
-                        previousTime != null && !previousTime.equals(currentTime) ||
-                        previousProc != null && !previousProc.equals(currentProc)) {
-
-                        // procedure
-                        String procedureID;
-                        if (previousProc != null) {
-                            procedureID = previousProc;
-                        } else {
-                            procedureID = procedureId;
-                        }
-
-                        final String oid = fileName + '-' + obsCpt;
-                        obsCpt++;
-
-                        buildObservation(result, procedureID, oid, previousFoi, mmb, phenomenons, samplingFeatures, currentSpaBound, positions, historicalPositions);
-                            
-                        // reset single observation related variables
-                        currentSpaBound = new GeoSpatialBound();
-                        positions.clear();
-                        knownPositions.clear();
-                        mmb.clear();
-                        historicalPositions.clear();
-                    }
-
-                    previousFoi = currentFoi;
-                    previousTime = currentTime;
-                    previousProc = currentProc;
-
-                    /*
-                    a- build spatio-temporal information
-                    ==================================*/
+                    ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentFoi, currentTime, template);
 
                     // update temporal interval
                     Long millis = null;
@@ -492,7 +450,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                                 millis = sdf.parse(line[dateIndex]).getTime();
                             }
                             result.spatialBound.addDate(millis);
-                            currentSpaBound.addDate(millis);
+                            currentBlock.addDate(millis);
                         } catch (ParseException ex) {
                             LOGGER.warning(String.format("Problem parsing date for date field at line %d and column %d (value='%s'). skipping line...", lineNumber, dateIndex, line[dateIndex]));
                             continue;
@@ -503,30 +461,13 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                     if (latitudeIndex != -1 && longitudeIndex != -1) {
                         final double longitude = parseDouble(line[longitudeIndex]);
                         final double latitude = parseDouble(line[latitudeIndex]);
-                        final String posKey = latitude + "_" + longitude;
-                        if (!knownPositions.contains(posKey)) {
-                            knownPositions.add(posKey);
-                            final DirectPosition pos = SOSXmlFactory.buildDirectPosition("2.0.0", "EPSG:4326", 2, Arrays.asList(latitude, longitude));
-                            positions.add(pos);
-                            if (millis != null) {
-                                if (historicalPositions.containsKey(millis)) {
-                                    historicalPositions.get(millis).add(pos);
-                                } else {
-                                    List<DirectPosition> hpos = new ArrayList<>();
-                                    hpos.add(pos);
-                                    historicalPositions.put(millis, hpos);
-                                }
-                            }
-                        }
                         result.spatialBound.addXYCoordinate(longitude, latitude);
-                        currentSpaBound.addXYCoordinate(longitude, latitude);
+                        currentBlock.addPosition(millis, latitude, longitude);
                     }
 
-                    /*
-                    b- build measure map
-                    =====================*/
+                    //add measure value
                     try {
-                        mmb.parseLine(line[mainIndex], currentTime, concatenatedCodeColumnsValues, line[valueColumnIndex], lineNumber, valueColumnIndex);
+                        currentBlock.cmb.parseLine(line[mainIndex], currentTime, concatenatedCodeColumnsValues, line[valueColumnIndex], lineNumber, valueColumnIndex);
                     } catch (ParseException | NumberFormatException ex) {
                         LOGGER.warning(String.format("Problem parsing date/double for main field at line %d and column %d (value='%s'). skipping line...", lineNumber, mainIndex, line[mainIndex]));
                     }
@@ -534,21 +475,13 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
 
 
                 /*
-                3- build result
+                3- build results
                 =============*/
-
-                String procedureID;
-                if (previousProc != null) {
-                    procedureID = previousProc;
-                } else {
-                    procedureID = procedureId;
+                for (ObservationBlock ob : observationBlock.values()) {
+                    final String oid = fileName + '-' + obsCpt;
+                    obsCpt++;
+                    buildObservation(result, oid, ob, phenomenons, samplingFeatures);
                 }
-
-                final String oid = fileName + '-' + obsCpt;
-                obsCpt++;
-
-                buildObservation(result, procedureID, oid, previousFoi, mmb, phenomenons, samplingFeatures, currentSpaBound, positions, historicalPositions);
-
                 return result;
             }
             throw new DataStoreException("csv headers not found");
@@ -557,17 +490,29 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
             throw new DataStoreException(ex);
         }
     }
-    
-    private void buildObservation(ExtractionResult result, String procedureID, String oid, String foiID, CoriolisMeasureBuilder cmb,
-            Set<org.opengis.observation.Phenomenon> phenomenons, final Set<org.opengis.observation.sampling.SamplingFeature> samplingFeatures,
-            GeoSpatialBound currentSpaBound, final List<DirectPosition> positions, final Map<Long, List<DirectPosition>> historicalPositions) {
+
+    private final Map<String, ObservationBlock> observationBlock = new HashMap<>();
+
+    private ObservationBlock getOrCreateObservationBlock(String procedureId, String foiID, Long time, CoriolisMeasureBuilder cmb) {
+        String key = procedureId + '-' + foiID + '-' + time;
+        if (observationBlock.containsKey(key)) {
+            return observationBlock.get(key);
+        } else {
+            ObservationBlock ob = new ObservationBlock(procedureId, foiID, cmb.clone());
+            observationBlock.put(key, ob);
+            return ob;
+        }
+    }
+
+    private void buildObservation(ExtractionResult result, String oid, ObservationBlock ob,
+            Set<org.opengis.observation.Phenomenon> phenomenons, final Set<org.opengis.observation.sampling.SamplingFeature> samplingFeatures) {
 
         // On extrait les types de mesure trouvées dans la donnée
-        List<String> filteredMeasure = cmb.getFilteredMeasure();
+        List<String> filteredMeasure = ob.cmb.getFilteredMeasure();
 
         if (filteredMeasure.isEmpty() ||
             ("Profile".equals(observationType) && filteredMeasure.size() == 1)) {
-            LOGGER.log(Level.FINE, "no measure available for {0}", procedureID);
+            LOGGER.log(Level.FINE, "no measure available for {0}", ob.procedureId);
             return;
         }
         
@@ -594,10 +539,10 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
         }
 
         // Get existing or create a new feature of interest
-        if (foiID == null) {
-            foiID = "foi-" + UUID.randomUUID();
+        if (ob.featureID == null) {
+            ob.featureID = "foi-" + UUID.randomUUID();
         }
-        final SamplingFeature sp = buildFOIByGeom(foiID, positions, samplingFeatures);
+        final SamplingFeature sp = buildFOIByGeom(ob.featureID, ob.getPositions(), samplingFeatures);
         if (!samplingFeatures.contains(sp)) {
             samplingFeatures.add(sp);
         }
@@ -611,17 +556,17 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
         }
 
         // Construction du measureStringBuilder à partir des données collectées dans le hashmap
-        MeasureStringBuilder msb = cmb.buildMeasureStringBuilderFromMap();
-        final int currentCount   = cmb.getMeasureCount();
+        MeasureStringBuilder msb = ob.cmb.buildMeasureStringBuilderFromMap();
+        final int currentCount   = ob.cmb.getMeasureCount();
         
         result.observations.add(OMUtils.buildObservation(oid,                                      // id
                                                          sp,                                       // foi
                                                          phenomenon,                               // phenomenon
-                                                         procedureID,                              // procedure
+                                                         ob.procedureId,                           // procedure
                                                          currentCount,                             // count
                                                          datarecord,                               // result structure
                                                          msb,                                      // measures
-                                                         currentSpaBound.getTimeObject("2.0.0"))   // time
+                                                         ob.getTimeObject())                       // time
                             );
         
         result.addFeatureOfInterest(sp);
@@ -637,11 +582,11 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
         }
         
         // build procedure tree
-        final ProcedureTree procedure = getOrCreateProcedureTree(result, procedureID, PROCEDURE_TREE_TYPE, observationType.toLowerCase());
-        for (Entry<Long, List<DirectPosition>> entry : historicalPositions.entrySet()) {
+        final ProcedureTree procedure = getOrCreateProcedureTree(result, ob.procedureId, PROCEDURE_TREE_TYPE, observationType.toLowerCase());
+        for (Entry<Long, List<DirectPosition>> entry : ob.getHistoricalPositions()) {
             procedure.spatialBound.addLocation(new Date(entry.getKey()), buildGeom(entry.getValue()));
         }
-        procedure.spatialBound.merge(currentSpaBound);
+        procedure.spatialBound.merge(ob.currentSpaBound);
     }
     
 

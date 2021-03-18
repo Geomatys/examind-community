@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
 import org.apache.sis.storage.DataStoreProvider;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
@@ -55,7 +54,6 @@ import com.google.common.base.Objects;
 import java.net.URI;
 import java.util.Collections;
 import org.apache.sis.internal.storage.query.SimpleQuery;
-import org.apache.sis.internal.system.DefaultFactories;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.ProviderBrief;
@@ -67,8 +65,6 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.ObservationProvider;
 import org.geotoolkit.observation.xml.AbstractObservation;
-import org.opengis.filter.Filter;
-import org.opengis.filter.FilterFactory;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.sampling.SamplingFeature;
 
@@ -495,15 +491,6 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             }
         }
         return nbObsTotal;
-    }
-    
-    
-    private List<SamplingFeature> getFeatureOfInterestForProcedure(String procedure, ObservationProvider provider) throws ConstellationStoreException {
-        final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
-        final SimpleQuery subquery = new SimpleQuery();
-        final Filter filter = ff.equals(ff.property("procedure"), ff.literal(procedure));
-        subquery.setFilter(filter);
-        return provider.getFeatureOfInterest(subquery, Collections.singletonMap("version", "2.0.0"));
     }
     
     private List<SamplingFeature> getFeatureOfInterest(ObservationProvider provider) throws ConstellationStoreException {

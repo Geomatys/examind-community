@@ -59,6 +59,13 @@ public class CoriolisMeasureBuilder {
         this.sortedMeasureColumns = sortedMeasureColumns;
         this.mainColumn = mainColumn;
     }
+
+    public CoriolisMeasureBuilder(CoriolisMeasureBuilder cmb) {
+        this.isProfile = cmb.isProfile;
+        this.sdf =  cmb.sdf;
+        this.sortedMeasureColumns =  cmb.sortedMeasureColumns;
+        this.mainColumn =  cmb.mainColumn;
+    }
      
      public void parseLine(String value, Long millis, String measureCode, String mesureValue, int lineNumber, int valueColumnIndex) throws NumberFormatException, ParseException {
          Number mainValue;
@@ -94,6 +101,9 @@ public class CoriolisMeasureBuilder {
         try {
             if (measureCode != null && !measureCode.isEmpty() && sortedMeasureColumns.contains(measureCode)) {
                 LinkedHashMap<String, Double> row = mmb.get(mainValue);
+                if (row.containsKey(measureCode) && !row.get(measureCode).isNaN()) {
+                    LOGGER.warning(String.format("Duplicated value at line %d and for main value %s (value='%s')", lineNumber, value, mesureValue));
+                }
                 row.put(measureCode, parseDouble(mesureValue));
                 mmb.put(mainValue, row);
             }
@@ -177,8 +187,9 @@ public class CoriolisMeasureBuilder {
         return mmb.size();
     }
      
-    public void clear() {
-        mmb.clear();
+    @Override
+    public CoriolisMeasureBuilder clone() {
+        return new CoriolisMeasureBuilder(this);
     }
      
      
