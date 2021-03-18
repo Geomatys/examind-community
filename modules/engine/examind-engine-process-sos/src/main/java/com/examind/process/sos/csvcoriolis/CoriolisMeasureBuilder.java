@@ -43,24 +43,27 @@ public class CoriolisMeasureBuilder {
     
     private static final Logger LOGGER = Logging.getLogger("com.examind.process.sos.csvcoriolis");
             
-     private final LinkedHashMap<Number, LinkedHashMap<String, Double>> mmb = new LinkedHashMap<>();
+    private final LinkedHashMap<Number, LinkedHashMap<String, Double>> mmb = new LinkedHashMap<>();
      
-     private final String observationType;
+    private final boolean isProfile;
      
-     private final DateFormat sdf;
+    private final DateFormat sdf;
      
-     private final List<String> sortedMeasureColumns;
+    private final List<String> sortedMeasureColumns;
+
+    private final String mainColumn;
+
+    public CoriolisMeasureBuilder(boolean isProfile, DateFormat sdf, List<String> sortedMeasureColumns, String mainColumn) {
+        this.isProfile = isProfile;
+        this.sdf = sdf;
+        this.sortedMeasureColumns = sortedMeasureColumns;
+        this.mainColumn = mainColumn;
+    }
      
-     public CoriolisMeasureBuilder(String observationType, DateFormat sdf, List<String> sortedMeasureColumns) {
-         this.observationType = observationType;
-         this.sdf = sdf;
-         this.sortedMeasureColumns = sortedMeasureColumns;
-     }
-     
-     public void parseLine(String value, Long millis, String measureCode, String mesureValue, int count, int valueColumnIndex) throws NumberFormatException, ParseException {
+     public void parseLine(String value, Long millis, String measureCode, String mesureValue, int lineNumber, int valueColumnIndex) throws NumberFormatException, ParseException {
          Number mainValue;
          // assume that for profile main field is a double
-        if ("Profile".equals(observationType)) {
+        if (isProfile) {
             mainValue = parseDouble(value);
             if (!mmb.containsKey(mainValue)) {
                 LinkedHashMap<String, Double> row = new LinkedHashMap<>();
@@ -96,12 +99,12 @@ public class CoriolisMeasureBuilder {
             }
         } catch (NumberFormatException ex) {
             if (!mesureValue.isEmpty()) {
-                LOGGER.warning(String.format("Problem parsing double value at line %d and column %d (value='%s')", count, valueColumnIndex, mesureValue));
+                LOGGER.warning(String.format("Problem parsing double value at line %d and column %d (value='%s')", lineNumber, valueColumnIndex, mesureValue));
             }
         }
      }
      
-     public Set<String> getMeasureFromMap() {
+     private Set<String> getMeasureFromMap() {
         Set<String> result = new HashSet<>();
         for (Map.Entry<Number, LinkedHashMap<String, Double>> entry1: mmb.entrySet()) {
             for (Map.Entry<String, Double> entry2: entry1.getValue().entrySet()) {
@@ -113,8 +116,21 @@ public class CoriolisMeasureBuilder {
         }
         return result;
     }
+
+     public List<String> getFilteredMeasure() {
+         final Set<String> measureColumnFound = getMeasureFromMap();
+
+        // On complète les champs de mesures seulement avec celles trouvées dans la donnée
+        List<String> filteredMeasure = new ArrayList<>();
+        if (isProfile)  filteredMeasure.add(mainColumn);
+        for (String m: sortedMeasureColumns) {
+            if (measureColumnFound.contains(m)) filteredMeasure.add(m);
+        }
+        return filteredMeasure;
+     }
      
-     public MeasureStringBuilder buildMeasureStringBuilderFromMap(final Set<String> measureFound, final boolean isProfile) {
+     public MeasureStringBuilder buildMeasureStringBuilderFromMap() {
+       final Set<String> measureColumnFound = getMeasureFromMap();
         MeasureStringBuilder result = new MeasureStringBuilder();
         boolean noneValue = true;
 
@@ -125,7 +141,7 @@ public class CoriolisMeasureBuilder {
             boolean emptyLine = true;
             for (Map.Entry<String, Double> entry2: mmb.get(mainValue).entrySet()) {
                 final String measureName = entry2.getKey();
-                if (measureFound.contains(measureName) && !entry2.getValue().isNaN()) {
+                if (measureColumnFound.contains(measureName) && !entry2.getValue().isNaN()) {
                     emptyLine = false;
                     break;
                 }
@@ -142,7 +158,7 @@ public class CoriolisMeasureBuilder {
             }
             for (Map.Entry<String, Double> entry2: mmb.get(mainValue).entrySet()) {
                 final String measureName = entry2.getKey();
-                if (measureFound.contains(measureName)) {
+                if (measureColumnFound.contains(measureName)) {
                     final Double measureValue = entry2.getValue();
                     result.appendValue(measureValue);
                     noneValue = false;
@@ -156,25 +172,29 @@ public class CoriolisMeasureBuilder {
             return result;
         }
     }
-     
-     public void clear() {
-         mmb.clear();
-     }
-     
-     
-     private static class MainColumnComparator implements Comparator<Number> {
 
-        @Override
-        public int compare(Number o1, Number o2) {
-            if (o1 instanceof Double && o2 instanceof Double) {
-                return ((Double)o1).compareTo((Double) o2);
-            }
-            if (o1 instanceof Long && o2 instanceof Long) {
-                return ((Long)o1).compareTo((Long) o2);
-            }
-            throw new IllegalArgumentException("Unexpected Main value type");
-        }
-         
-     }
+    public int getMeasureCount() {
+        return mmb.size();
+    }
+     
+    public void clear() {
+        mmb.clear();
+    }
+     
+     
+    private static class MainColumnComparator implements Comparator<Number> {
+
+       @Override
+       public int compare(Number o1, Number o2) {
+           if (o1 instanceof Double && o2 instanceof Double) {
+               return ((Double)o1).compareTo((Double) o2);
+           }
+           if (o1 instanceof Long && o2 instanceof Long) {
+               return ((Long)o1).compareTo((Long) o2);
+           }
+           throw new IllegalArgumentException("Unexpected Main value type");
+       }
+
+    }
     
 }
