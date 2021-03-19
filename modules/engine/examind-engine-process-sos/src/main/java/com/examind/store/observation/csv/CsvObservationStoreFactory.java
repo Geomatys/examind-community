@@ -14,7 +14,7 @@
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  *    Lesser General Public License for more details.
  */
-package com.examind.process.sos.csv;
+package com.examind.store.observation.csv;
 
 import com.examind.store.observation.FileParsingObservationStoreFactory;
 import java.io.IOException;

@@ -15,7 +15,7 @@
  *    Lesser General Public License for more details.
  */
 
-package com.examind.process.sos.csv;
+package com.examind.store.observation.csv;
 
 import com.opencsv.CSVReader;
 import java.io.IOException;

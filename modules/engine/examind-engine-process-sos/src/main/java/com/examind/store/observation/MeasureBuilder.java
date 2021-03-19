@@ -38,7 +38,7 @@ import org.geotoolkit.sos.MeasureStringBuilder;
  */
 public class MeasureBuilder {
     
-    private static final Logger LOGGER = Logging.getLogger("com.examind.process.sos.csvcoriolis");
+    private static final Logger LOGGER = Logging.getLogger("com.examind.store.observation");
             
     private final LinkedHashMap<Number, LinkedHashMap<String, Double>> mmb = new LinkedHashMap<>();
      

@@ -64,7 +64,7 @@ public class HarvesterCleanerDescriptor extends AbstractProcessDescriptor {
             .addName(STORE_ID_NAME)
             .setRemarks(STORE_ID_DESC)
             .setRequired(true)
-            .createEnumerated(String.class, new String[]{"observationCsvFile", "observationCsvCoriolisFile", "observationDbfFile"}, "observationCsvFile");
+            .createEnumerated(String.class, new String[]{"observationCsvFile", "observationCsvFlatFile", "observationDbfFile"}, "observationCsvFile");
     
     public static final ParameterDescriptorGroup INPUT_DESC =
             PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, OBS_TYPE, STORE_ID);

@@ -14,7 +14,7 @@
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  *    Lesser General Public License for more details.
  */
-package com.examind.process.sos.csvcoriolis;
+package com.examind.store.observation.csvflat;
 
 import com.opencsv.CSVReader;
 import java.io.IOException;
@@ -34,22 +34,22 @@ import org.constellation.util.Util;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class CsvCoriolisObservationStoreUtils {
-    private static final Logger LOGGER = Logging.getLogger("com.examind.process.sos.csvcoriolis");
+public class CsvFlatUtils {
+    private static final Logger LOGGER = Logging.getLogger("com.examind.store.observation.csvflat");
 
     /**
-     * hack method to find multiple coriolis provider on the same file.
+     * hack method to find multiple csvFLat provider on the same file.
      * 
      * this is dirty, i know
      */
-    public static List<Integer> coriolisProviderForPath(String config, IProviderBusiness providerBusiness) {
+    public static List<Integer> csvFlatProviderForPath(String config, IProviderBusiness providerBusiness) {
         List<Integer> results = new ArrayList<>();
         int start = config.indexOf("<location>");
         int stop = config.indexOf("<location>");
         if (start != -1 && stop != -1) {
             String location = config.substring(start, stop);
             for (ProviderBrief pr : providerBusiness.getProviders()) {
-                if (pr.getIdentifier().startsWith("observationCsvCoriolisFile") && 
+                if (pr.getIdentifier().startsWith("observationCsvFlatFile") &&
                     pr.getConfig().contains(location)) {
                     results.add(pr.getId());
                 }

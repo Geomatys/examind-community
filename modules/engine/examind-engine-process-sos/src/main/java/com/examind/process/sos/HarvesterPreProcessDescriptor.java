@@ -88,7 +88,7 @@ public class HarvesterPreProcessDescriptor extends AbstractProcessDescriptor{
             .addName(FORMAT_NAME)
             .setRemarks(FORMAT_DESC)
             .setRequired(true)
-            .createEnumerated(String.class, new String[]{"csv", "csv-coriolis", "dbf"}, "csv");
+            .createEnumerated(String.class, new String[]{"csv", "csv-flat", "dbf"}, "csv");
 
     public static final String VALUE_COLUMN_NAME = "value column";
     public static final String VALUE_COLUMN_DESC = "value column";

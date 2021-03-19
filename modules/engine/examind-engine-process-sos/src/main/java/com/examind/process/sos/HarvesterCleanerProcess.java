@@ -21,7 +21,6 @@ package com.examind.process.sos;
 import static com.examind.process.sos.HarvesterCleanerDescriptor.DATA_FOLDER;
 import static com.examind.process.sos.HarvesterCleanerDescriptor.STORE_ID;
 import static com.examind.process.sos.HarvesterCleanerDescriptor.OBS_TYPE;
-import static com.examind.process.sos.csvcoriolis.CsvCoriolisObservationStoreUtils.coriolisProviderForPath;
 import com.examind.sensor.component.SensorServiceBusiness;
 import java.util.HashSet;
 import java.util.List;
@@ -40,6 +39,7 @@ import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.beans.factory.annotation.Autowired;
+import static com.examind.store.observation.csvflat.CsvFlatUtils.csvFlatProviderForPath;
 
 /**
  *
@@ -72,7 +72,7 @@ public class HarvesterCleanerProcess extends AbstractCstlProcess {
         final String observationType = inputParameters.getValue(OBS_TYPE);
         
         
-        boolean coriolisMulti = storeId.equals("observationCsvCoriolisFile") && observationType == null;
+        boolean csvFlatMulti = storeId.equals("observationCsvFlatFile") && observationType == null;
         
         final int dsId;
         DataSource ds = datasourceBusiness.getByUrl(sourceFolderStr);
@@ -88,12 +88,12 @@ public class HarvesterCleanerProcess extends AbstractCstlProcess {
             Set<Integer> providers = new HashSet<>();
             List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(dsId, Integer.MAX_VALUE);
             for (DataSourceSelectedPath path : paths) {
-                if (coriolisMulti) {
-                    // hack to remove the multiple providers created in coriolis multi mode.
+                if (csvFlatMulti) {
+                    // hack to remove the multiple providers created in flat multi mode.
                     if (path.getProviderId() != null && path.getProviderId() != -1) {
                         ProviderBrief pr = providerBusiness.getProvider(path.getProviderId());
                         if (pr != null) {
-                            providers.addAll(coriolisProviderForPath(pr.getConfig(), providerBusiness));
+                            providers.addAll(csvFlatProviderForPath(pr.getConfig(), providerBusiness));
                         } else {
                             throw new ProcessException("Inconsistency in database, a datasource path point to an unexisting provider", this);
                         }

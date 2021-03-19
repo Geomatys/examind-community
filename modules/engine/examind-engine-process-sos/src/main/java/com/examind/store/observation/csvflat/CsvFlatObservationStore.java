@@ -15,7 +15,7 @@
  *    Lesser General Public License for more details.
  */
 
-package com.examind.process.sos.csvcoriolis;
+package com.examind.store.observation.csvflat;
 
 import com.examind.store.observation.MeasureBuilder;
 import com.examind.store.observation.ObservationBlock;
@@ -48,18 +48,19 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import static com.examind.process.sos.csvcoriolis.CsvCoriolisObservationStoreUtils.*;
+import static com.examind.store.observation.csvflat.CsvFlatUtils.*;
 import static com.examind.store.observation.FileParsingUtils.*;
 import com.examind.store.observation.FileParsingObservationStore;
 import org.constellation.exception.ConstellationStoreException;
 
 /**
- * Implementation of an observation store for csv coriolis observation data based on {@link CSVFeatureStore}.
+ * Implementation of an observation store for csv flat observation data based on {@link CSVFeatureStore}.
  *
  * @author Maxime Gavens (Geomatys)
+ * @author Guilhem Legal (Geomatys)
  *
  */
-public class CsvCoriolisObservationStore extends FileParsingObservationStore implements ObservationStore {
+public class CsvFlatObservationStore extends FileParsingObservationStore implements ObservationStore {
 
     private final String valueColumn;
     private final Set<String> codeColumns;
@@ -83,7 +84,7 @@ public class CsvCoriolisObservationStore extends FileParsingObservationStore imp
      * @throws DataStoreException
      * @throws MalformedURLException
      */
-    public CsvCoriolisObservationStore(final Path observationFile, final char separator, final char quotechar, final FeatureType featureType,
+    public CsvFlatObservationStore(final Path observationFile, final char separator, final char quotechar, final FeatureType featureType,
                                        final String mainColumn, final String dateColumn, final String dateTimeformat, final String longitudeColumn, final String latitudeColumn,
                                        final Set<String> measureColumns, String observationType, String foiColumn, final String procedureId, final String procedureColumn,
                                        final boolean extractUom, final String valueColumn, final Set<String> codeColumns, final String typeColumn) throws DataStoreException, MalformedURLException {
@@ -107,7 +108,7 @@ public class CsvCoriolisObservationStore extends FileParsingObservationStore imp
 
     @Override
     public DataStoreProvider getProvider() {
-        return DataStores.getProviderById(CsvCoriolisObservationStoreFactory.NAME);
+        return DataStores.getProviderById(CsvFlatObservationStoreFactory.NAME);
     }
 
     @Override

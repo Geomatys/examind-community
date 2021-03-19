@@ -49,7 +49,6 @@ import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import static com.examind.process.sos.SosHarvesterProcessDescriptor.*;
-import static com.examind.process.sos.csvcoriolis.CsvCoriolisObservationStoreUtils.coriolisProviderForPath;
 import com.examind.sensor.component.SensorServiceBusiness;
 import com.google.common.base.Objects;
 import java.net.URI;
@@ -68,6 +67,7 @@ import org.constellation.provider.ObservationProvider;
 import org.geotoolkit.observation.xml.AbstractObservation;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.sampling.SamplingFeature;
+import static com.examind.store.observation.csvflat.CsvFlatUtils.csvFlatProviderForPath;
 
 /**
  * Moissonnage de données de capteur au format csv et publication dans un service SOS
@@ -157,7 +157,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final String foiColumn = inputParameters.getValue(FOI_COLUMN);
         final String observationType = inputParameters.getValue(OBS_TYPE);
         
-        // coriolis special
+        // csv-flat special
         final String zColumn = inputParameters.getValue(Z_COLUMN);
 
         // prepare the results
@@ -171,10 +171,10 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             }
         }
         
-        boolean coriolisMulti = storeId.equals("observationCsvCoriolisFile") && observationType == null;
+        boolean csvFlatMulti = storeId.equals("observationCsvFlatFile") && observationType == null;
         
-        if (observationType == null && !storeId.equals("observationCsvCoriolisFile")) {
-            throw new ProcessException("The observation type can't be null except for coriolis store", this);
+        if (observationType == null && !storeId.equals("observationCsvFlatFile")) {
+            throw new ProcessException("The observation type can't be null except for csvFlat store", this);
         }
 
         /*
@@ -213,12 +213,12 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                 Set<Integer> providers = new HashSet<>();
                 List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(dsId, Integer.MAX_VALUE);
                 for (DataSourceSelectedPath path : paths) {
-                    if (coriolisMulti) {
-                        // hack to remove the multiple providers created in coriolis multi mode.
+                    if (csvFlatMulti) {
+                        // hack to remove the multiple providers created in csvFlat multi mode.
                         if (path.getProviderId() != null && path.getProviderId() != -1) {
                             ProviderBrief pr = providerBusiness.getProvider(path.getProviderId());
                             if (pr != null) {
-                                providers.addAll(coriolisProviderForPath(pr.getConfig(), providerBusiness));
+                                providers.addAll(csvFlatProviderForPath(pr.getConfig(), providerBusiness));
                             } else {
                                 LOGGER.warning("Inconsistency in database, a datasource path point to an unexisting provider");
                             }
@@ -266,7 +266,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             }
         }
 
-        final String ext = storeId.equals("observationCsvFile") || storeId.equals("observationCsvCoriolisFile") ? ".csv" : ".dbf";
+        final String ext = storeId.equals("observationCsvFile") || storeId.equals("observationCsvFlatFile") ? ".csv" : ".dbf";
 
         try {
             for (FileBean child : datasourceBusiness.exploreDatasource(dsId, "/")) {
@@ -348,8 +348,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                             break;
                         default:
                             fireAndLog("Integrating data file: " + p.getPath(), 0);
-                            // special case for coriolis, if the observation type is null so we create a provider for each type
-                            if (coriolisMulti) {
+                            // special case for csvFlat, if the observation type is null so we create a provider for each type
+                            if (csvFlatMulti) {
                                 provConfig.getParameters().put(FileParsingObservationStoreFactory.OBSERVATION_TYPE.getName().toString(), "Profile");
                                 provConfig.getParameters().put(FileParsingObservationStoreFactory.MAIN_COLUMN.getName().toString(), zColumn);
                                 dataToIntegrate.addAll(integratingDataFile(p, dsId, provConfig, datasetId));

@@ -212,7 +212,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .addName(STORE_ID_NAME)
             .setRemarks(STORE_ID_DESC)
             .setRequired(true)
-            .createEnumerated(String.class, new String[]{"observationCsvFile", "observationCsvCoriolisFile", "observationDbfFile"}, "observationCsvFile");
+            .createEnumerated(String.class, new String[]{"observationCsvFile", "observationCsvFlatFile", "observationDbfFile"}, "observationCsvFile");
 
     public static final String FORMAT_NAME = "Format";
     public static final String FORMAT_DESC = "Format";

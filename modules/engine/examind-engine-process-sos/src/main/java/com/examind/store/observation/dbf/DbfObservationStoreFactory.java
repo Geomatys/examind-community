@@ -14,52 +14,69 @@
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  *    Lesser General Public License for more details.
  */
-package com.examind.process.sos.csvcoriolis;
+package com.examind.store.observation.dbf;
 
 import com.examind.store.observation.FileParsingObservationStoreFactory;
+import java.io.IOException;
+import java.net.URI;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
 import org.apache.sis.internal.storage.Capability;
 import org.apache.sis.internal.storage.StoreMetadata;
+import org.apache.sis.metadata.iso.citation.Citations;
+import org.apache.sis.parameter.DefaultParameterDescriptorGroup;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.StorageConnector;
-import org.geotoolkit.data.csv.CSVProvider;
+import org.geotoolkit.storage.feature.FileFeatureStoreFactory;
+import org.geotoolkit.data.dbf.DbaseFileProvider;
 import org.geotoolkit.storage.ProviderOnFileSystem;
 import org.geotoolkit.storage.ResourceType;
 import org.geotoolkit.storage.StoreMetadataExt;
-import org.geotoolkit.storage.feature.FileFeatureStoreFactory;
+import org.opengis.metadata.Identifier;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 
-import java.io.IOException;
-import java.net.URI;
-import java.nio.file.Paths;
-import java.util.*;
-import java.util.logging.Level;
-
-
 /**
  *
  * @author Samuel Andrés (Geomatys)
+ * @author Guilhem Legal (Geomatys)
  */
 @StoreMetadata(
-        formatName = CsvCoriolisObservationStoreFactory.NAME,
-        capabilities = Capability.READ)
+        formatName = DbfObservationStoreFactory.NAME,
+        capabilities = Capability.READ,
+        resourceTypes = {FeatureSet.class})
 @StoreMetadataExt(resourceTypes = ResourceType.SENSOR)
-public class CsvCoriolisObservationStoreFactory extends FileParsingObservationStoreFactory implements ProviderOnFileSystem {
+public class DbfObservationStoreFactory extends FileParsingObservationStoreFactory implements ProviderOnFileSystem {
 
     /** factory identification **/
-    public static final String NAME = "observationCsvCoriolisFile";
+    public static final String NAME = "observationDbfFile";
 
-    public static final String MIME_TYPE = "text/csv; subtype=\"om\"";
+    public static final String MIME_TYPE = "application/dbase; subtype=\"om\"";
 
     public static final ParameterDescriptor<String> IDENTIFIER = createFixedIdentifier(NAME);
 
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR
-            = PARAM_BUILDER.addName(NAME).addName("ObservationCsvCoriolisFileParameters").createGroup(IDENTIFIER, NAMESPACE, CSVProvider.PATH, CSVProvider.SEPARATOR,
-                    MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, MEASURE_COLUMNS, MEASURE_COLUMNS_SEPARATOR, FOI_COLUMN, OBSERVATION_TYPE,
-                    PROCEDURE_ID, PROCEDURE_COLUMN, EXTRACT_UOM, VALUE_COLUMN, CODE_COLUMN, TYPE_COLUMN, CHARQUOTE);
+            = PARAM_BUILDER.addName(NAME).addName("ObservationDbfFileParameters").createGroup(IDENTIFIER, NAMESPACE, DbaseFileProvider.PATH,
+                    MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, MEASURE_COLUMNS, MEASURE_COLUMNS_SEPARATOR, FOI_COLUMN, OBSERVATION_TYPE, PROCEDURE_ID, PROCEDURE_COLUMN);
+
+
+    private static ParameterDescriptorGroup parameters(final String name, final int minimumOccurs) {
+        final Map<String,Object> properties = new HashMap<>(4);
+        properties.put(ParameterDescriptorGroup.NAME_KEY, name);
+        properties.put(Identifier.AUTHORITY_KEY, Citations.SIS);
+        return new DefaultParameterDescriptorGroup(properties, minimumOccurs, 1);
+    }
 
     @Override
     public String getShortName() {
@@ -72,17 +89,10 @@ public class CsvCoriolisObservationStoreFactory extends FileParsingObservationSt
     }
 
     @Override
-    public CsvCoriolisObservationStore open(final ParameterValueGroup params) throws DataStoreException {
-
+    public DbfObservationStore open(final ParameterValueGroup params) throws DataStoreException {
         final String measureColumnsSeparator = (String) params.parameter(MEASURE_COLUMNS_SEPARATOR.getName().toString()).getValue();
 
-        final URI uri = (URI) params.parameter(CSVProvider.PATH.getName().toString()).getValue();
-        final char separator = (Character) params.parameter(CSVProvider.SEPARATOR.getName().toString()).getValue();
-        final String quotecharString = (String) params.parameter(CHARQUOTE.getName().toString()).getValue();
-        char quotechar = 0;
-        if (quotecharString != null) {
-            quotechar = quotecharString.charAt(0);
-        }
+        final URI uri = (URI) params.parameter(DbaseFileProvider.PATH.getName().toString()).getValue();
         final String mainColumn = (String) params.parameter(MAIN_COLUMN.getName().toString()).getValue();
         final String dateColumn = (String) params.parameter(DATE_COLUMN.getName().toString()).getValue();
         final String dateFormat = (String) params.parameter(DATE_FORMAT.getName().toString()).getValue();
@@ -92,29 +102,21 @@ public class CsvCoriolisObservationStoreFactory extends FileParsingObservationSt
         final String procedureId = (String) params.parameter(PROCEDURE_ID.getName().toString()).getValue();
         final String procedureColumn = (String) params.parameter(PROCEDURE_COLUMN.getName().toString()).getValue();
         final String observationType = (String) params.parameter(OBSERVATION_TYPE.getName().toString()).getValue();
-        final Boolean extractUom = (Boolean) params.parameter(EXTRACT_UOM.getName().toString()).getValue();
         final ParameterValue<String> measureCols = (ParameterValue<String>) params.parameter(MEASURE_COLUMNS.getName().toString());
         final Set<String> measureColumns = measureCols.getValue() == null ?
                 Collections.emptySet() : new HashSet<>(Arrays.asList(measureCols.getValue().split(measureColumnsSeparator)));
-        final String valueColumn = (String) params.parameter(VALUE_COLUMN.getName().toString()).getValue();
-        final ParameterValue<String> codeCols = (ParameterValue<String>) params.parameter(CODE_COLUMN.getName().toString());
-        final Set<String> codeColumns = codeCols.getValue() == null ?
-                Collections.emptySet() : new HashSet<>(Arrays.asList(codeCols.getValue().split(measureColumnsSeparator)));
-        final String typeColumn = (String) params.parameter(TYPE_COLUMN.getName().toString()).getValue();
         try {
-            return new CsvCoriolisObservationStore(Paths.get(uri),
-                    separator, quotechar, readType(uri, separator, quotechar, dateColumn, longitudeColumn, latitudeColumn, measureColumns),
-                    mainColumn, dateColumn, dateFormat, longitudeColumn, latitudeColumn, measureColumns, observationType,
-                    foiColumn, procedureId, procedureColumn, extractUom, valueColumn, codeColumns, typeColumn);
+            return new DbfObservationStore(Paths.get(uri),
+                    mainColumn, dateColumn, dateFormat, longitudeColumn, latitudeColumn, measureColumns, observationType, foiColumn, procedureId, procedureColumn);
         } catch (IOException ex) {
-            LOGGER.log(Level.WARNING, "problem opening csv file", ex);
+            LOGGER.log(Level.WARNING, "problem opening dbf file", ex);
             throw new DataStoreException(ex);
         }
     }
 
     @Override
     public Collection<String> getSuffix() {
-        return Arrays.asList("csv");
+        return Arrays.asList("dbf");
     }
 
     @Override
@@ -126,4 +128,5 @@ public class CsvCoriolisObservationStoreFactory extends FileParsingObservationSt
     public ProbeResult probeContent(StorageConnector connector) throws DataStoreException {
         return FileFeatureStoreFactory.probe(this, connector, MIME_TYPE);
     }
+
 }

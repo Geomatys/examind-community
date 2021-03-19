@@ -15,7 +15,7 @@
  *    Lesser General Public License for more details.
  */
 
-package com.examind.process.sos.dbf;
+package com.examind.store.observation.dbf;
 
 import static com.examind.store.observation.FileParsingUtils.*;
 import java.io.IOException;

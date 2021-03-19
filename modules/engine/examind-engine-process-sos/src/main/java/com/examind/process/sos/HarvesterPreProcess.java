@@ -17,7 +17,7 @@
 package com.examind.process.sos;
 
 import static com.examind.process.sos.SosHarvesterProcessDescriptor.*;
-import static com.examind.process.sos.csvcoriolis.CsvCoriolisObservationStoreUtils.extractCodes;
+import static com.examind.store.observation.csvflat.CsvFlatUtils.extractCodes;
 import com.opencsv.CSVReader;
 import java.io.IOException;
 import java.net.URI;
@@ -99,18 +99,18 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
             format = "csv";
         }
 
-        final boolean coriolis = "csv-coriolis".equals(format);
+        final boolean csvFlat = "csv-flat".equals(format);
         
         String ext = '.' + format;
 
-        if (coriolis) {
+        if (csvFlat) {
             ext = ".csv";
             if (valueColumn == null || codeColumns.isEmpty()) {
                 throw new ProcessException("The value column, code column can't be null", this);
             }
         } else {
             if (observationType == null) {
-                throw new ProcessException("The observation type can't be null except for coriolis store", this);
+                throw new ProcessException("The observation type can't be null except for csvFlat store", this);
             }
         }
 
@@ -164,7 +164,7 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
                     headers = currentHeaders;
 
                     // extract codes
-                    if (coriolis) {
+                    if (csvFlat) {
                         Set<String> currentCodes = extractCodes(child, codeColumns, separator.charAt(0));
                         currentCodes.add("*");
                         codes.addAll(currentCodes);
@@ -226,7 +226,7 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
             defaultMainCol = guessColumn(headers, Arrays.asList("time", "date"));
         }
 
-        if (coriolis && observationType == null) {
+        if (csvFlat && observationType == null) {
             final Parameter MCparam = new Parameter(Z_COLUMN_NAME, String.class, Z_COLUMN_DESC, Z_COLUMN_DESC, 1, 1, defaultMainCol, headers);
             inputs.add(MCparam);
         } else {
@@ -249,7 +249,7 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         final Parameter FCparam = new Parameter(FOI_COLUMN_NAME, String.class, FOI_COLUMN_DESC, FOI_COLUMN_DESC, 0, 1, null, headers);
         inputs.add(FCparam);
 
-        if (coriolis) {
+        if (csvFlat) {
             List<String> sortedCodes = new ArrayList<>(codes);
             Collections.sort(sortedCodes);
             final Parameter MCSparam = new Parameter(MEASURE_COLUMNS_NAME, String.class, MEASURE_COLUMNS_DESC, MEASURE_COLUMNS_DESC, 0, 92, null, sortedCodes.toArray());
@@ -271,8 +271,8 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
 
             final Parameter FOparam = new Parameter(FORMAT_NAME, String.class, FORMAT_DESC, FORMAT_DESC, 1, 1, "text/csv; subtype=\"om\"");
             inputs.add(FOparam);
-        } else if (coriolis) {
-            final Parameter SIparam = new Parameter(STORE_ID_NAME, String.class, STORE_ID_DESC, STORE_ID_DESC, 1, 1, "observationCsvCoriolisFile");
+        } else if (csvFlat) {
+            final Parameter SIparam = new Parameter(STORE_ID_NAME, String.class, STORE_ID_DESC, STORE_ID_DESC, 1, 1, "observationCsvFlatFile");
             inputs.add(SIparam);
 
             final Parameter FOparam = new Parameter(FORMAT_NAME, String.class, FORMAT_DESC, FORMAT_DESC, 1, 1, "text/csv; subtype=\"om\"");
@@ -344,7 +344,7 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
 
     private String[] extractHeaders(Path dataFile, String format, char separator) throws ProcessException {
         LOGGER.log(Level.INFO, "Extracting headers from : {0}", dataFile.getFileName().toString());
-        if ("csv".equals(format) || "csv-coriolis".equals(format)) {
+        if ("csv".equals(format) || "csv-flat".equals(format)) {
             try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), separator)) {
 
                 final Iterator<String[]> it = reader.iterator();
