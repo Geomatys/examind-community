@@ -556,21 +556,23 @@ public class WCSService extends GridWebService<WCSWorker> {
             final List<String> bboxValues = StringUtilities.toStringList(bbox);
             final double minimumLon = RequestsUtilities.toDouble(bboxValues.get(0));
             final double maximumLon = RequestsUtilities.toDouble(bboxValues.get(2));
+            final double minimumLat = RequestsUtilities.toDouble(bboxValues.get(1));
+            final double maximumLat = RequestsUtilities.toDouble(bboxValues.get(3));
             try {
+                /*
+                 we want to let pass the request crossing the anti-meridian
                 if (minimumLon > maximumLon) {
                     throw new IllegalArgumentException(
                             Errors.format(Errors.Keys.IllegalRange_2, minimumLon, maximumLon));
                 }
-                final double minimumLat = RequestsUtilities.toDouble(bboxValues.get(1));
-                final double maximumLat = RequestsUtilities.toDouble(bboxValues.get(3));
                 if (minimumLat > maximumLat) {
                     throw new IllegalArgumentException(
                             Errors.format(Errors.Keys.IllegalRange_2, minimumLat, maximumLat));
-                }
+                }*/
                 if (bboxValues.size() > 4) {
                     final double minimumDepth = RequestsUtilities.toDouble(bboxValues.get(4));
                     final double maximumDepth = RequestsUtilities.toDouble(bboxValues.get(5));
-                    if (minimumLat > maximumLat) {
+                    if (minimumDepth > maximumDepth) {
                         throw new IllegalArgumentException(
                                 Errors.format(Errors.Keys.IllegalRange_2, minimumDepth, maximumDepth));
                     }

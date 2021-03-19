@@ -33,13 +33,12 @@ import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.stream.DoubleStream;
 import org.apache.sis.coverage.SampleDimension;
+import org.apache.sis.coverage.grid.DomainLinearizer;
 import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridCoverageProcessor;
-import org.apache.sis.coverage.grid.GridDerivation;
 import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.coverage.grid.GridOrientation;
-import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.image.Interpolation;
 import org.apache.sis.internal.util.UnmodifiableArrayList;
 import org.apache.sis.measure.NumberRange;
@@ -115,45 +114,31 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
      * {@inheritDoc}
      */
     @Override
-    public GridCoverage getCoverage(final Envelope envelope, final Dimension dimension, final Double elevation,
-                                      final Date time) throws ConstellationStoreException
+    public GridCoverage getCoverage(final Envelope envelope, final Dimension dimension) throws ConstellationStoreException
     {
-        double[] res = null;
-        if (envelope != null && dimension != null) {
-            //compute resolution
-            res = new double[envelope.getDimension()];
-            for (int i = 0 ; i < envelope.getDimension(); i++) {
-                switch (i) {
-                    case 0: res[i] = envelope.getSpan(i) / dimension.width; break;
-                    case 1: res[i] = envelope.getSpan(i) / dimension.height; break;
-                    default : res[i] = envelope.getSpan(i); break;
-                }
-            }
-        }
-
         try {
             final GridGeometry refGrid = getGeometry();
-            final CoordinateReferenceSystem crs2D;
+
+            GridExtent extent = null;
+            if (dimension != null) {
+                long[] high = new long[refGrid.getDimension()];
+                high[0] = dimension.width  -1;
+                high[1] = dimension.height -1;
+                extent = new GridExtent(null, null, high, true);
+            }
+
             final GridGeometry grid;
-            Envelope env2D = null;
-            if (envelope != null) {
-                crs2D = CRS.getHorizontalComponent(envelope.getCoordinateReferenceSystem());
-                GridDerivation gd = refGrid.derive().subgrid(envelope, res);
-                gd = gd.sliceByRatio(0.5, 0, 1);
-                grid = gd.build();
-                env2D = Envelopes.transform(envelope, crs2D);
+            if (envelope != null || extent != null) {
+                 grid = new GridGeometry(extent, envelope, GridOrientation.REFLECTION_Y);
             } else {
-                crs2D = CRS.getHorizontalComponent(refGrid.getCoordinateReferenceSystem());
                 grid = refGrid;
             }
             
             final GridCoverage cov = origin.read(grid);
-            GridGeometry resampleGrid;
-            if (env2D != null) {
-                resampleGrid = cov.getGridGeometry().derive().subgrid(env2D, res).build();
-            } else {
-                resampleGrid = new GridGeometry(null, PixelInCell.CELL_CENTER, null, crs2D);
-            }
+            DomainLinearizer linearizer = new DomainLinearizer();
+            linearizer.setGridStartsAtZero(true);
+            GridGeometry resampleGrid = linearizer.apply(cov.getGridGeometry().reduce(0,1));
+            
             final GridCoverageProcessor processor = new GridCoverageProcessor();
             processor.setInterpolation(Interpolation.NEAREST);
             return processor.resample(cov, resampleGrid);

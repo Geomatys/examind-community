@@ -898,9 +898,9 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             final CoordinateReferenceSystem responseCRS = request.getResponseCRS();
             if (responseCRS != null && !Utilities.equalsIgnoreMetadata(responseCRS, envelope.getCoordinateReferenceSystem())) {
                 final Envelope responseEnv = Envelopes.transform(envelope, responseCRS);
-                refEnvel = new JTSEnvelope2D(responseEnv);
+                refEnvel = new GeneralEnvelope(responseEnv);
             } else {
-                refEnvel = new JTSEnvelope2D(envelope);
+                refEnvel = envelope;
             }
         } catch (FactoryException ex) {
             throw new CstlServiceException(ex, INVALID_CRS, KEY_CRS.toLowerCase());
@@ -945,7 +945,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 if (date != null) {
                     refEnvel = combine(refEnvel, date);
                 }
-                final GridCoverage gridCov = data.getCoverage(refEnvel, size, elevation, date);
+                final GridCoverage gridCov = data.getCoverage(refEnvel, size);
                 image = gridCov.render(null);
             } catch (ConstellationStoreException | FactoryException ex) {
                 throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
@@ -966,7 +966,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 }
                 GeotiffResponse response = new GeotiffResponse();
                 response.metadata = data.getSpatialMetadata();
-                response.coverage = data.getCoverage(refEnvel, size, elevation, date);
+                response.coverage = data.getCoverage(refEnvel, size);
                 return response;
             } catch (ConstellationStoreException | FactoryException ex) {
                 throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
@@ -1006,6 +1006,9 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             if (MimeType.IMAGE_JPEG.equalsIgnoreCase(format)) {
                 background = Color.WHITE;
             }
+
+            // build an 2D envelope
+            refEnvel = new JTSEnvelope2D(envelope);
             final CanvasDef cdef = new CanvasDef(size, refEnvel);
             cdef.setBackground(background);
             cdef.setAzimuth(azimuth);
@@ -1074,8 +1077,9 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                     if (dimIdx == -1) {
                         throw new CstlServiceException("There is no such dimension: " + trim.getDimension(), AXIS_LABEL_INVALID);
                     } else {
-                        double minVal = readEnv.getMinimum(dimIdx);
-                        double maxVal = readEnv.getMaximum(dimIdx);
+
+                        double minVal = readEnv.getLower(dimIdx);
+                        double maxVal = readEnv.getUpper(dimIdx);
                         double low = toAxisValue(trim.getTrimLow(), crs, dimIdx, minVal);
                         double high = toAxisValue(trim.getTrimHigh(), crs, dimIdx, maxVal);
 
@@ -1084,11 +1088,13 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                             throw new CstlServiceException("Subsetting params overlap the envelope extent",
                                     INVALID_SUBSETTING);
                         }
+                        
                         //verif that trim value is correct (low < high)
+                        /*  we want to allow images crossing anti-meridian
                         if (low > high) {
                             throw new CstlServiceException("Subsetting params are invalid (low > high)",
                                     INVALID_SUBSETTING);
-                        }
+                        }*/
 
                         readEnv.setRange(dimIdx, low, high);
                     }
@@ -1135,7 +1141,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             //NOTE ADRIAN HACKED HERE
             final RenderedImage image;
             try {
-                final GridCoverage coverage = data.getCoverage(readEnv, null, null, null);
+                final GridCoverage coverage = data.getCoverage(readEnv, null);
                 image = coverage.render(null);
             } catch (ConstellationStoreException ex) {
                 throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
@@ -1146,7 +1152,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         } else if (format.equalsIgnoreCase(MimeType.NETCDF)) {
 
             try {
-                final GridCoverage coverage = data.getCoverage(readEnv, null, null, null);
+                final GridCoverage coverage = data.getCoverage(readEnv, null);
                 final SimpleEntry response = new SimpleEntry(coverage, metadata);
                 if (isMultiPart) {
                     final File img = File.createTempFile(layer.getName().tip().toString(), ".nc");
@@ -1167,7 +1173,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         } else if (format.equalsIgnoreCase(MimeType.IMAGE_TIFF)) {
             try {
                 final GeotiffResponse response = new GeotiffResponse();
-                response.coverage = data.getCoverage(readEnv, null, null, null);
+                response.coverage = data.getCoverage(readEnv, null);
                 response.metadata = metadata;
                 if (request.getExtension() instanceof ExtensionType) {
                     final ExtensionType ext = (ExtensionType) request.getExtension();
@@ -1269,7 +1275,15 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             return img;
         }
     }
-    
+
+    /**
+     * Add a time dimension to an envelope.
+     * 
+     * @param env
+     * @param temporal
+     * @return
+     * @throws FactoryException
+     */
     private Envelope combine(Envelope env, Date temporal) throws FactoryException {
         int nbDim = env.getDimension();
 
@@ -1277,21 +1291,15 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         assert crs != null : "Input envelope CRS should be set according to related GetCoverage parameter";
        
 
-        boolean hasTime = temporal != null;
-        if (hasTime) {
+        if (temporal != null) {
             crs = CRS.compound(crs, CommonCRS.Temporal.JAVA.crs());
-        }
-
-        if (hasTime) {
             final GeneralEnvelope combination = new GeneralEnvelope(crs);
             combination.subEnvelope(0, nbDim).setEnvelope(env);
             int nextDim = nbDim;
-            if (hasTime) {
-                combination.setRange(nextDim,
-                        temporal.getTime(),
-                        temporal.getTime()
-                );
-            }
+            combination.setRange(nextDim,
+                    temporal.getTime(),
+                    temporal.getTime()
+            );
             env = combination;
         }
         return env;

@@ -57,12 +57,10 @@ public interface CoverageData extends Data<GridCoverageResource> {
      *
      * @param envelope The {@link Envelope} to request. Should  not be {@code null}.
      * @param dimension A {@link Dimension} for the image. Should  not be {@code null}.
-     * @param elevation The elevation to request, in the case of nD data.
-     * @param time The date for the data, in the case of temporal data.
      *
      * @throws ConstellationStoreException
      */
-    GridCoverage getCoverage(final Envelope envelope, final Dimension dimension, final Double elevation, final Date time) throws ConstellationStoreException;
+    GridCoverage getCoverage(final Envelope envelope, final Dimension dimension) throws ConstellationStoreException;
 
     GridGeometry getGeometry() throws ConstellationStoreException;
 
