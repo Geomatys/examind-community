@@ -16,6 +16,7 @@
  */
 package com.examind.process.sos;
 
+import com.examind.store.observation.FileParsingObservationStoreFactory;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;

@@ -17,9 +17,7 @@
 
 package com.examind.process.sos.dbf;
 
-import static com.examind.process.sos.csv.CsvObservationStoreUtils.buildFOIById;
-import static com.examind.process.sos.csv.CsvObservationStoreUtils.getDataRecordProfile;
-import static com.examind.process.sos.csv.CsvObservationStoreUtils.getDataRecordTrajectory;
+import static com.examind.store.observation.FileParsingUtils.*;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.MalformedURLException;

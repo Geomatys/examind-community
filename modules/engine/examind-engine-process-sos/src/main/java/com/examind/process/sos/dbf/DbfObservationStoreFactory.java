@@ -16,7 +16,7 @@
  */
 package com.examind.process.sos.dbf;
 
-import com.examind.process.sos.FileParsingObservationStoreFactory;
+import com.examind.store.observation.FileParsingObservationStoreFactory;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Paths;
@@ -32,7 +32,6 @@ import org.apache.sis.internal.storage.Capability;
 import org.apache.sis.internal.storage.StoreMetadata;
 import org.apache.sis.metadata.iso.citation.Citations;
 import org.apache.sis.parameter.DefaultParameterDescriptorGroup;
-import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.ProbeResult;

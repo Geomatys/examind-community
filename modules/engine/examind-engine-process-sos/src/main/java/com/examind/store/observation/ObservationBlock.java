@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-package com.examind.process.sos.csvcoriolis;
+package com.examind.store.observation;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.geotoolkit.sos.MeasureStringBuilder;
 import org.geotoolkit.sos.netcdf.GeoSpatialBound;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 import org.opengis.geometry.DirectPosition;
@@ -43,11 +44,11 @@ public class ObservationBlock {
 
     private Positions positions;
 
-    public CoriolisMeasureBuilder cmb;
+    public MeasureBuilder cmb;
     
     public GeoSpatialBound currentSpaBound;
 
-    public ObservationBlock(String procedureId, String featureID, CoriolisMeasureBuilder cmb) {
+    public ObservationBlock(String procedureId, String featureID, MeasureBuilder cmb) {
         this.procedureId = procedureId;
         this.featureID = featureID;
         this.cmb = cmb;
@@ -74,6 +75,22 @@ public class ObservationBlock {
 
     public Set<Map.Entry<Long, List<DirectPosition>>> getHistoricalPositions() {
         return positions.historicalPositions.entrySet();
+    }
+
+    public List<String> getUsedFields() {
+        return cmb.getUsedMeasureColumns();
+    }
+
+    public MeasureStringBuilder getResults() {
+        return cmb.buildMeasureStringBuilderFromMap();
+    }
+
+    public int getResultsCount() {
+        return cmb.getMeasureCount();
+    }
+    
+    public void appendValue(Number mainValue, String measureCode, Double measureValue, int lineNumber) {
+        cmb.appendValue(mainValue, measureCode, measureValue, lineNumber);
     }
 
     public static class Positions {

@@ -17,10 +17,8 @@
  * limitations under the License.
  */
 
-package com.examind.process.sos.csvcoriolis;
+package com.examind.store.observation;
 
-import java.text.DateFormat;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -29,17 +27,16 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.sos.MeasureStringBuilder;
-
-import static com.examind.process.sos.csvcoriolis.CsvCoriolisObservationStoreUtils.parseDouble;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class CoriolisMeasureBuilder {
+public class MeasureBuilder {
     
     private static final Logger LOGGER = Logging.getLogger("com.examind.process.sos.csvcoriolis");
             
@@ -47,70 +44,38 @@ public class CoriolisMeasureBuilder {
      
     private final boolean isProfile;
      
-    private final DateFormat sdf;
-     
-    private final List<String> sortedMeasureColumns;
+    private final List<String> measureColumns;
 
     private final String mainColumn;
 
-    public CoriolisMeasureBuilder(boolean isProfile, DateFormat sdf, List<String> sortedMeasureColumns, String mainColumn) {
+    public MeasureBuilder(boolean isProfile, List<String> measureColumns, String mainColumn) {
         this.isProfile = isProfile;
-        this.sdf = sdf;
-        this.sortedMeasureColumns = sortedMeasureColumns;
+        this.measureColumns = measureColumns;
         this.mainColumn = mainColumn;
     }
 
-    public CoriolisMeasureBuilder(CoriolisMeasureBuilder cmb) {
+    public MeasureBuilder(MeasureBuilder cmb) {
         this.isProfile = cmb.isProfile;
-        this.sdf =  cmb.sdf;
-        this.sortedMeasureColumns =  cmb.sortedMeasureColumns;
+        this.measureColumns =  cmb.measureColumns;
         this.mainColumn =  cmb.mainColumn;
     }
      
-     public void parseLine(String value, Long millis, String measureCode, String mesureValue, int lineNumber, int valueColumnIndex) throws NumberFormatException, ParseException {
-         Number mainValue;
-         // assume that for profile main field is a double
-        if (isProfile) {
-            mainValue = parseDouble(value);
-            if (!mmb.containsKey(mainValue)) {
-                LinkedHashMap<String, Double> row = new LinkedHashMap<>();
-                for (String measure: sortedMeasureColumns) {
-                    row.put(measure, Double.NaN);
-                }
-                mmb.put(mainValue, row);
+     public void appendValue(Number mainValue, String measureCode, Double measureValue, int lineNumber) {
+         if (!mmb.containsKey(mainValue)) {
+            LinkedHashMap<String, Double> row = new LinkedHashMap<>();
+            for (String measure: measureColumns) {
+                row.put(measure, Double.NaN);
             }
-            
-        // assume that is a date otherwise
-        } else {
-            // little optimization if date column == main column
-            if (millis != null) {
-                mainValue = millis;
-            } else {
-                mainValue = sdf.parse(value).getTime();
-            }
-            if (!mmb.containsKey(mainValue)) {
-                LinkedHashMap<String, Double> row = new LinkedHashMap<>();
-                for (String measure: sortedMeasureColumns) {
-                    row.put(measure, Double.NaN);
-                }
-                mmb.put(mainValue, row);
-            }
+            mmb.put(mainValue, row);
         }
-        
         // add measure code
-        try {
-            if (measureCode != null && !measureCode.isEmpty() && sortedMeasureColumns.contains(measureCode)) {
-                LinkedHashMap<String, Double> row = mmb.get(mainValue);
-                if (row.containsKey(measureCode) && !row.get(measureCode).isNaN()) {
-                    LOGGER.warning(String.format("Duplicated value at line %d and for main value %s (value='%s')", lineNumber, value, mesureValue));
-                }
-                row.put(measureCode, parseDouble(mesureValue));
-                mmb.put(mainValue, row);
+        if (measureCode != null && !measureCode.isEmpty() && measureColumns.contains(measureCode)) {
+            LinkedHashMap<String, Double> row = mmb.get(mainValue);
+            if (row.containsKey(measureCode) && !row.get(measureCode).isNaN()) {
+                LOGGER.log(Level.WARNING, "Duplicated value at line {0} and for main value {1} (value=''{2}'')", new Object[]{lineNumber, mainValue, measureValue});
             }
-        } catch (NumberFormatException ex) {
-            if (!mesureValue.isEmpty()) {
-                LOGGER.warning(String.format("Problem parsing double value at line %d and column %d (value='%s')", lineNumber, valueColumnIndex, mesureValue));
-            }
+            row.put(measureCode, measureValue);
+            mmb.put(mainValue, row);
         }
      }
      
@@ -127,13 +92,13 @@ public class CoriolisMeasureBuilder {
         return result;
     }
 
-     public List<String> getFilteredMeasure() {
+     public List<String> getUsedMeasureColumns() {
          final Set<String> measureColumnFound = getMeasureFromMap();
 
         // On complète les champs de mesures seulement avec celles trouvées dans la donnée
         List<String> filteredMeasure = new ArrayList<>();
         if (isProfile)  filteredMeasure.add(mainColumn);
-        for (String m: sortedMeasureColumns) {
+        for (String m: measureColumns) {
             if (measureColumnFound.contains(m)) filteredMeasure.add(m);
         }
         return filteredMeasure;
@@ -188,8 +153,8 @@ public class CoriolisMeasureBuilder {
     }
      
     @Override
-    public CoriolisMeasureBuilder clone() {
-        return new CoriolisMeasureBuilder(this);
+    public MeasureBuilder clone() {
+        return new MeasureBuilder(this);
     }
      
      

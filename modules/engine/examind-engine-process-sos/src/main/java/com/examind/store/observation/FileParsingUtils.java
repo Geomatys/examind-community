@@ -2,7 +2,7 @@
  *    Geotoolkit - An Open Source Java GIS Toolkit
  *    http://www.geotoolkit.org
  *
- *    (C) 2014, Geomatys
+ *    (C) 2021, Geomatys
  *
  *    This library is free software; you can redistribute it and/or
  *    modify it under the terms of the GNU Lesser General Public
@@ -14,12 +14,15 @@
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  *    Lesser General Public License for more details.
  */
-package com.examind.process.sos.csv;
+package com.examind.store.observation;
 
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.util.*;
-
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.GMLXmlFactory;
 import org.geotoolkit.sampling.xml.SamplingFeature;
@@ -33,13 +36,31 @@ import org.geotoolkit.swe.xml.Quantity;
 import org.geotoolkit.swe.xml.UomProperty;
 import org.opengis.geometry.DirectPosition;
 import org.opengis.geometry.Geometry;
+
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class CsvObservationStoreUtils {
+public class FileParsingUtils {
 
     private static final NumberFormat FR_FORMAT = NumberFormat.getInstance(Locale.FRANCE);
+    
+    /**
+     * Parse a string double with dot or comma separator.
+     * @param s string value of a double.
+     * @return : double.
+     * @throws ParseException the parse method failed.
+     */
+    public static double parseDouble(String s) throws ParseException {
+        if (s.contains(",")) {
+            synchronized(FR_FORMAT) {
+                Number number = FR_FORMAT.parse(s);
+                return number.doubleValue();
+            }
+        } else {
+            return Double.parseDouble(s);
+        }
+    }
 
     public static AbstractGeometry buildGeom(final List<DirectPosition> positions) {
         final AbstractGeometry sp;
@@ -93,7 +114,6 @@ public class CsvObservationStoreUtils {
         return current.equals(spGeometry);
     }
 
-
     public static SamplingFeature buildFOIById(String foiID, final List<DirectPosition> positions, final Set<org.opengis.observation.sampling.SamplingFeature> existingFeatures) {
         final SamplingFeature sp;
         if (positions.isEmpty()) {
@@ -132,22 +152,5 @@ public class CsvObservationStoreUtils {
             fields.add(SOSXmlFactory.buildAnyScalar(version, null, phenomenon.label, cat));
         }
         return SOSXmlFactory.buildSimpleDatarecord(version, null, null, null, true, fields);
-    }
-
-    /**
-     * Parse a string double with dot or comma separator.
-     * @param s string value of a double.
-     * @return : double.
-     * @throws ParseException the parse method failed.
-     */
-    public static double parseDouble(String s) throws ParseException {
-        if (s.contains(",")) {
-            synchronized(FR_FORMAT) {
-                Number number = FR_FORMAT.parse(s);
-                return number.doubleValue();
-            }
-        } else {
-            return Double.parseDouble(s);
-        }
     }
 }

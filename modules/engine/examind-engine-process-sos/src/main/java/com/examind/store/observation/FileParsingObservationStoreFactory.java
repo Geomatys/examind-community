@@ -14,7 +14,7 @@
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  *    Lesser General Public License for more details.
  */
-package com.examind.process.sos;
+package com.examind.store.observation;
 
 import java.io.IOException;
 import java.net.URI;

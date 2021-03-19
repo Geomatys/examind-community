@@ -16,6 +16,7 @@
  */
 package com.examind.process.sos;
 
+import com.examind.store.observation.FileParsingObservationStoreFactory;
 import java.util.Arrays;
 import java.util.Collections;
 import org.apache.sis.parameter.ParameterBuilder;

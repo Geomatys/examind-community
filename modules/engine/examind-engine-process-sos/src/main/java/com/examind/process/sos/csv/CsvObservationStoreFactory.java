@@ -16,7 +16,7 @@
  */
 package com.examind.process.sos.csv;
 
-import com.examind.process.sos.FileParsingObservationStoreFactory;
+import com.examind.store.observation.FileParsingObservationStoreFactory;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Paths;
