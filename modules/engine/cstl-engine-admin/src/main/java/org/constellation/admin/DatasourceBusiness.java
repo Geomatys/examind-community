@@ -135,7 +135,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
             throw new ConfigurationException("Cannot create a datasource with an ID already set.");
         }
         if (("file".equals(ds.getType()) || "local_files".equals(ds.getType())) && !configBusiness.allowedFilesystemAccess(ds.getUrl())) {
-            throw new UnauthorizedException("You are not authorize to access this filesystem path");
+            throw new UnauthorizedException("You are not authorized to access this filesystem path");
         }
         if (ds.getDateCreation() == null) {
             ds.setDateCreation(System.currentTimeMillis());
@@ -153,7 +153,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
     @Transactional
     public void update(DataSource ds) throws ConstellationException {
         if (("file".equals(ds.getType()) || "local_files".equals(ds.getType())) && !configBusiness.allowedFilesystemAccess(ds.getUrl())) {
-            throw new UnauthorizedException("You are not authorize to access this filesystem path");
+            throw new UnauthorizedException("You are not authorized to access this filesystem path");
         }
         dsRepository.update(ds);
     }
@@ -394,7 +394,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
                     URI u = new URI(userUrl + "/");
                     Path p = IOUtilities.toPath(u);
                     if (!Files.exists(p)) {
-                        throw new ConstellationException("path does not exists");
+                        throw new ConstellationException("path does not exist");
                     }
                 } catch (Exception ex) {
                     LOGGER.warning(ex.getMessage());
@@ -405,16 +405,19 @@ public class DatasourceBusiness implements IDatasourceBusiness {
             case "file" :
                 if (ds.getUrl() == null) return "Missing url.";
                 if (!configBusiness.allowedFilesystemAccess(ds.getUrl())) {
-                     return "You are not authorize to access this filesystem path";
+                     return "You are not authorized to access this filesystem path";
                 }
                 try {
                     final Path p = getDataSourcePath(ds, "/");
                     if (!Files.exists(p)) {
-                         return "path does not exists";
+                         return "path does not exist";
                     }
                 } catch (Exception ex) {
                     LOGGER.warning(ex.getMessage());
-                    return ex.getMessage();
+                    return String.format(
+                        "Cannot resolve datasource URL as a file.%nURL: %s%nReason: %s%n",
+                        ds.getUrl(), ex.getMessage()
+                    );
                 }
             default: break;
         }
@@ -477,7 +480,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
             final Path path = getDataSourcePath(ds, subPath);
 
             if (!Files.exists(path)) {
-                throw new ConstellationException("path does not exists:" + path.toString());
+                throw new ConstellationException("path does not exist:" + path.toString());
             }
 
             List<Path> children = new ArrayList<>();
@@ -745,7 +748,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
     private void computeDatasourceStores(final DataSource ds, final Map<String, Set<String>> types, final String parentPath, String subPath, boolean root, boolean deep, String storeId) throws ConstellationException {
         final Path path = getDataSourcePath(ds, subPath);
         if (!Files.exists(path)) {
-            throw new ConstellationException("path does not exists:" + path.toString());
+            throw new ConstellationException("path does not exist:" + path.toString());
         }
         try {
             if (root && hasS63File(path)) {

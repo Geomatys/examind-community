@@ -1,9 +1,12 @@
 package org.constellation.admin;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -205,6 +208,13 @@ public class ConfigurationBusiness implements IConfigurationBusiness {
 
     @Override
     public boolean allowedFilesystemAccess(String path) {
+        Path p;
+        try {
+            p = Paths.get(new URI(path)).normalize();
+        } catch (URISyntaxException ex) {
+            LOGGER.log(Level.WARNING, "Invalid URI syntax for path:" + path, ex);
+            return false;
+        }
         List<String> allowedPaths = Application.getListProperty(AppProperty.EXA_ALLOWED_FS_PATH);
         // if not set, the entire filesystem is available
         if (allowedPaths.isEmpty()) {
@@ -214,8 +224,16 @@ public class ConfigurationBusiness implements IConfigurationBusiness {
         allowedPaths.add(ConfigDirectory.getConfigDirectory().toUri().toString());
 
         for (String allowedPath : allowedPaths) {
-            if (path.startsWith(allowedPath)) {
-                return true;
+            if (!allowedPath.startsWith("file://")) {
+                allowedPath = "file://" + allowedPath;
+            }
+            try {
+                Path ap = Paths.get(new URI(allowedPath)).normalize();
+                if (p.startsWith(ap)) {
+                    return true;
+                }
+            } catch (URISyntaxException ex) {
+                LOGGER.log(Level.WARNING, "Invalid URI syntax for allowed path:" + allowedPath, ex);
             }
         }
         return false;
