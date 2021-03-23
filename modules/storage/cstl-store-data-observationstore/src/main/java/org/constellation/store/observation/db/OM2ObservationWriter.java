@@ -122,7 +122,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 }
                 return null;
             } catch (SQLException | FactoryException ex) {
-                throw new DataStoreException("Error while inserting observations.", ex);
+                throw new DataStoreException("Error while inserting observation template.", ex);
             }
         }
     }
@@ -137,7 +137,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             final String oid        = writeObservation(observation, c, generatedID);
             return oid;
         } catch (SQLException ex) {
-            throw new DataStoreException("Error while inserting observations.", ex);
+            throw new DataStoreException("Error while inserting observation.", ex);
         }
     }
 

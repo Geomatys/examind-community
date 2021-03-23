@@ -98,7 +98,7 @@ public class CsvFlatUtils {
                         computed += nextCode;
                         first = false;
                     }
-                    if (!Util.containsForbiddenCharacter(computed) && computed.indexOf('.') == -1) {
+                    if (!Util.containsForbiddenCharacter(computed) && computed.indexOf('.') == -1 && computed.length() < 64) {
                         storeCode.add(computed);
                     } else {
                         LOGGER.warning("Invalid measure column value excluded: " + computed);
