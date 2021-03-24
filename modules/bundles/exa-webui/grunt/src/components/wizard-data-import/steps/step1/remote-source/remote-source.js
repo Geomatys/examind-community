@@ -4,36 +4,36 @@ angular.module('examind.components.wizardDataImport.step1.remote.source', [])
 
 function remoteSourceDirective() {
     return {
-        restrict: "E",
+        restrict: 'E',
         require: '^step1Wizard',
         controller: 'RemoteSourceController',
         controllerAs: 'remoteCtrl',
         templateUrl: 'components/wizard-data-import/steps/step1/remote-source/remote-source.html',
         scope: {
-            remote: "=",
-            processing: "=",
-            stores: "=",
-            formSchema: "=",
-            advConfig: "=",
-            fileListRef: "=",
-            fileExplorerState: "=",
-            createDataSource: "&",
-            getFileList: "&",
-            getDataSourceId: "&",
-            setDataSourceId: "&",
-            setDataSource: "&",
-            selectStore: "&",
-            canShowProviderConfigProperties: "&",
-            showAdvancedConfigBlock: "&",
-            selectAll: "&",
-            hideField: "&",
-            upDir: "&",
-            openDir: "&",
-            disableUpDir: "&",
-            isDisabledFile: "&",
-            getDataSource: "&",
-            deleteDataSource: "&",
-            getStores: "&"
+            remote: '=',
+            processing: '=',
+            stores: '=',
+            formSchema: '=',
+            advConfig: '=',
+            fileListRef: '=',
+            fileExplorerState: '=',
+            createDataSource: '&',
+            getFileList: '&',
+            getDataSourceId: '&',
+            setDataSourceId: '&',
+            setDataSource: '&',
+            selectStore: '&',
+            canShowProviderConfigProperties: '&',
+            showAdvancedConfigBlock: '&',
+            selectAll: '&',
+            hideField: '&',
+            upDir: '&',
+            openDir: '&',
+            disableUpDir: '&',
+            isDisabledFile: '&',
+            getDataSource: '&',
+            deleteDataSource: '&',
+            getStores: '&'
         }
     };
 }
@@ -173,12 +173,19 @@ function RemoteSourceController($scope, $translate, Examind, Growl, cfpLoadingBa
             if (!self.remote.protocol.isDefaultProtocol) {
                 self.formSchema.schema = self.storesSchemas[self.remote.protocol.id];
             }
+            if (self.remote.fileSystemSuffix && self.remote.protocol.id !== 'file') {
+                delete self.remote.fileSystemSuffix;
+            }
         }
 
-        if (self.remote.protocol.id === 'file') {
+        self.fillAllowedFileSystems();
+    };
+
+    self.fillAllowedFileSystems = function () {
+        if (self.remote.protocol && self.remote.protocol.id === 'file') {
+            self.fileSystemSuffix = self.remote.fileSystemSuffix ? self.remote.fileSystemSuffix : '';
             Examind.admin.getAllowedFS()
                 .then(function (response) {
-                        console.log(response.data.list);
                         self.allowedFS = response.data.list;
                         if (self.allowedFS && self.allowedFS.length === 1) {
                             self.remote.url = self.allowedFS[0];
@@ -229,7 +236,7 @@ function RemoteSourceController($scope, $translate, Examind, Growl, cfpLoadingBa
             case 'gcs':
                 dataSource = {
                     type: self.remote.protocol.id,
-                    url: self.remote.url,
+                    url: self.remote.protocol.id === 'file' ? self.getUrlWithSuffix() : self.remote.url,
                     readFromRemote: self.remote.protocol.readFromRemote
                 };
                 if (self.remote.protocol.connection) {
@@ -237,7 +244,7 @@ function RemoteSourceController($scope, $translate, Examind, Growl, cfpLoadingBa
                     dataSource.pwd = self.remote.protocol.connection.password;
                 }
                 //TODO temporary fix error for ftp url witch should never end with '/' this should be fixed in server side, see issue EXSERV-356.
-                if (dataSource.type === 'ftp' && dataSource.url && endsWith(dataSource.url, "/")) {
+                if (dataSource.type === 'ftp' && dataSource.url && endsWith(dataSource.url, '/')) {
                     dataSource.url = dataSource.url.substr(0, dataSource.url.length - 1);
                 }
                 //fix file protocol if missing
@@ -319,6 +326,11 @@ function RemoteSourceController($scope, $translate, Examind, Growl, cfpLoadingBa
         }
     };
 
+    self.getUrlWithSuffix = function () {
+        self.remote.fileSystemSuffix = self.fileSystemSuffix;
+        return self.remote.url + (self.fileSystemSuffix.startsWith('/') ? '' : '/') + self.fileSystemSuffix;
+    };
+
     self.changeReadFromRemoteFlag = function () {
         if (!self.getDataSource()) {
             return;
@@ -349,32 +361,34 @@ function RemoteSourceController($scope, $translate, Examind, Growl, cfpLoadingBa
         cfpLoadingBar.start();
         cfpLoadingBar.inc();
         // retrieve dynamic URL data store
-        Examind.datas.getAllDataStoreConfigurations('service').then(
-            function (response) {
-                cfpLoadingBar.complete();
-                var stores = response.data.types;
-                stores.forEach(function (element) {
-                    // exclude WPS store
-                    if (element.id !== 'wps') {
-                        var protocol = {
-                            id: element.id,
-                            name: element.title,
-                            tag: element.tag
-                        };
-                        self.urlProtocols.push(protocol);
-                        // Save the schema of each db store
-                        self.storesSchemas[element.id] = element;
-                    }
-                });
-            },
-            function (response) {
-                $translate('wiz.data.import.step1.msg.err.get.remote.types')
-                    .then(function (translatedMsg) {
-                        Growl('error', 'Error', translatedMsg);
+        Examind.datas.getAllDataStoreConfigurations('service')
+            .then(
+                function (response) {
+                    cfpLoadingBar.complete();
+                    var stores = response.data.types;
+                    stores.forEach(function (element) {
+                        // exclude WPS store
+                        if (element.id !== 'wps') {
+                            var protocol = {
+                                id: element.id,
+                                name: element.title,
+                                tag: element.tag
+                            };
+                            self.urlProtocols.push(protocol);
+                            // Save the schema of each db store
+                            self.storesSchemas[element.id] = element;
+                        }
                     });
-                cfpLoadingBar.complete();
-            }
-        );
+                },
+                function (response) {
+                    $translate('wiz.data.import.step1.msg.err.get.remote.types')
+                        .then(function (translatedMsg) {
+                            Growl('error', 'Error', translatedMsg);
+                        });
+                    cfpLoadingBar.complete();
+                }
+            );
+        self.fillAllowedFileSystems();
     };
 
     function endsWith(str, suffix) {

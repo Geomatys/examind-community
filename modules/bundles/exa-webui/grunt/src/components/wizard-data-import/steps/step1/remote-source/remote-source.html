@@ -1,4 +1,4 @@
-<form name="remoteCtrl.urlForm">
+<form name="remoteCtrl.urlForm" ng-if="!remoteCtrl.showAllowedFSList">
     <div class="input-group">
         <div class="input-group-btn">
             <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown"
@@ -19,16 +19,46 @@
             </ul>
         </div>
         <input type="text" class="form-control"
-               ng-if="!remoteCtrl.showAllowedFSList"
                ng-disabled="remoteCtrl.disableInputUrl"
                placeholder="URL..."
                ng-model="remoteCtrl.remote.url"/>
-
-        <select class="form-control" ng-if="remoteCtrl.showAllowedFSList" ng-model="remoteCtrl.remote.url">
-            <option ng-repeat="path in remoteCtrl.allowedFS" value="{{path}}">{{path}}</option>
-        </select>
     </div>
 </form>
+
+
+<form class="form-inline file-system-form" name="remoteCtrl.urlForm" ng-if="remoteCtrl.showAllowedFSList">
+    <div class="form-group col-xs-8">
+        <div class="input-group">
+            <div class="input-group-btn">
+                <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+                    <span ng-show="!remoteCtrl.remote.protocol">{{'wiz.data.import.step1.label.protocol' | translate}}</span>
+                    <span ng-show="remoteCtrl.remote.protocol">
+                    {{remoteCtrl.remote.protocol.i18n ? (remoteCtrl.remote.protocol.i18n | translate) : remoteCtrl.remote.protocol.name}}
+                </span>
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu glass-class">
+                    <li ng-repeat="protocol in remoteCtrl.urlProtocols">
+                        <a ng-click="remoteCtrl.selectProtocol(protocol)"
+                           ng-class="{'selected-protocol-dropdown' : remoteCtrl.isSelectedProtocol(protocol.id)}">
+                            {{protocol.i18n ? (protocol.i18n | translate) : protocol.name}}
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <select class="form-control col-xs-8" ng-model="remoteCtrl.remote.url">
+                <option ng-repeat="path in remoteCtrl.allowedFS" value="{{path}}">{{path}}</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group col-xs-4">
+        <input type="text" class="form-control"
+               placeholder="/"
+               ng-model="remoteCtrl.fileSystemSuffix"/>
+    </div>
+</form>
+
 <div class="protocol-content">
     <div class="container" ng-if="remoteCtrl.isDefaultProtocol()">
         <div class="row connection-form-block">
