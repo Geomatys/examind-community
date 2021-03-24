@@ -434,6 +434,7 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
         };
         $scope.describeProcess = undefined;
         $scope.parameters = [];
+        $scope.descriptors = [];
         $scope.task = task.data ? task.data : task;
         $scope.styles = [];
 
@@ -471,6 +472,84 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
             }
             return procTree;
         }
+        
+        function parseElements(elements, inputsDesc, idPrefix) {
+            if (elements) {
+                if (Array.isArray(elements)) {
+                    var i = 0;
+                    elements.forEach(function (elem) {
+                        var pref = idPrefix != null ? idPrefix + '_' + i : null;
+                        inputsDesc.push(parseParameterDescriptor(elem, pref));
+                        i++;
+                    });
+                } else {
+                    inputsDesc.push(parseParameterDescriptor(elements, idPrefix));
+                }
+            }
+        }
+        
+        function isArray(string) {
+            return string.indexOf('[]', string.length - 2) !== -1;
+        }
+        
+        function parseParameterDescriptor(elem, idPrefix) {
+            var parameter = {};
+            parameter.name = elem.name;
+            parameter.id = idPrefix != null ? idPrefix + '_' + elem.name : elem.name;
+            parameter.minOccurs = elem.minOccurs !== undefined ? elem.minOccurs : 1;
+            parameter.maxOccurs = elem.maxOccurs !== undefined ? elem.maxOccurs : 1;
+            parameter.mandatory = parameter.minOccurs > 0;
+            parameter.description = elem.description;
+            //Simple parameter
+            var javaClass = elem.class;
+            var simple = javaClass !== undefined;
+            if (simple) {
+                parameter.type = "simple";
+                parameter.isArray = false;
+                parameter.binding = javaClass;
+                if (isArray(javaClass)) {
+                    parameter.isArray = true;
+                    parameter.binding = javaClass.substring(0, javaClass.length - 2);
+                }
+                parameter.default = convertValue(elem.defaultValue, parameter.binding);
+                parameter.unit = simple.unit;
+                //default values
+                parameter.save = [];
+                for (var j = 0; j < parameter.minOccurs; j++) {
+                    parameter.save.push(parameter.default);
+                }
+                //check if parameter is handled
+                if (parameter.mandatory && !processParamEditor.hasEditor(parameter.binding)) {
+                    $scope.canManage = false;
+                }
+                if (elem.restriction) {
+                    var restriction = elem.restriction;
+                    //inputElement.base = restriction.base;
+                    //extract valid value range
+                    parameter.restriction = {};
+                    var minValue = restriction.minValue;
+                    var maxValue = restriction.maxValue;
+                    if (minValue !== null && maxValue !== null) {
+                        parameter.restriction.range = [minValue, maxValue];
+                    }
+                    //extract valid values
+                    parameter.restriction.enumeration = extractEnumeration(restriction.validValues, parameter.binding);
+                } else {
+                    parameter.restriction = {};
+                    parameter.restriction.enumeration = [];
+                }
+                if (elem.ext) {
+                    parameter.ext = elem.ext;
+                }
+            } else {
+                //Group parameters
+                parameter.type = "group";
+                parameter.inputs = [[]];
+                parseElements(elem.descriptors, parameter.inputs[0], parameter.id);
+            }
+            return parameter;
+        }
+        
         $scope.processes = createProcesses(processes.data.list);
 
         // scope functions
@@ -488,12 +567,10 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
 
         $scope.addGroupOccurrence = function (groupParam) {
             if (groupParam.type === 'group') {
-                var firstOccur = groupParam.inputs[0];
-
                 var newOccur = [];
-                var nbParam = firstOccur.length;
-                for (var i = 0; i < nbParam; i++) {
-                    newOccur.push(copyParam(firstOccur[i]));
+                var desc = getParameterByName($scope.descriptors, groupParam.id);
+                if (desc) {
+                    parseElements(desc.descriptors, newOccur, groupParam.id);
                 }
                 groupParam.inputs.push(newOccur);
             }
@@ -609,82 +686,8 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
 
         $scope.computeParameters = function(descProc) {
             $scope.canManage = true;
+            $scope.descriptors = descProc.descriptors;
             var inputs = [];
-            var isArray = function (string) {
-                return string.indexOf('[]', string.length - 2) !== -1;
-            };
-            var parseParameterDescriptor = function (elem, idPrefix) {
-                var parameter = {};
-                parameter.name = elem.name;
-                parameter.id = idPrefix != null ? idPrefix + '_' + elem.name : elem.name;
-                parameter.minOccurs = elem.minOccurs !== undefined ? elem.minOccurs : 1;
-                parameter.maxOccurs = elem.maxOccurs !== undefined ? elem.maxOccurs : 1;
-                parameter.mandatory = parameter.minOccurs > 0;
-                parameter.description = elem.description;
-                //Simple parameter
-                var javaClass = elem.class;
-                var simple = javaClass !== undefined;
-                if (simple) {
-                    parameter.type = "simple";
-                    parameter.isArray = false;
-                    parameter.binding = javaClass;
-                    if (isArray(javaClass)) {
-                        parameter.isArray = true;
-                        parameter.binding = javaClass.substring(0, javaClass.length - 2);
-                    }
-                    parameter.default = convertValue(elem.defaultValue, parameter.binding);
-                    parameter.unit = simple.unit;
-                    //default values
-                    parameter.save = [];
-                    for (var j = 0; j < parameter.minOccurs; j++) {
-                        parameter.save.push(parameter.default);
-                    }
-                    //check if parameter is handled
-                    if (parameter.mandatory && !processParamEditor.hasEditor(parameter.binding)) {
-                        $scope.canManage = false;
-                    }
-                    if (elem.restriction) {
-                        var restriction = elem.restriction;
-                        //inputElement.base = restriction.base;
-                        //extract valid value range
-                        parameter.restriction = {};
-                        var minValue = restriction.minValue;
-                        var maxValue = restriction.maxValue;
-                        if (minValue !== null && maxValue !== null) {
-                            parameter.restriction.range = [minValue, maxValue];
-                        }
-                        //extract valid values
-                        parameter.restriction.enumeration = extractEnumeration(restriction.validValues, parameter.binding);
-                    } else {
-                        parameter.restriction = {};
-                        parameter.restriction.enumeration = [];
-                    }
-                    if (elem.ext) {
-                        parameter.ext = elem.ext;
-                    }
-                } else {
-                    //Group parameters
-                    parameter.type = "group";
-                    parameter.inputs = [[]];
-                    parseElements(elem.descriptors, parameter.inputs[0], parameter.id);
-                }
-                return parameter;
-            };
-
-            var parseElements = function (elements, inputsDesc, idPrefix) {
-                if (elements) {
-                    if (Array.isArray(elements)) {
-                        var i = 0;
-                        elements.forEach(function (elem) {
-                            var pref = idPrefix != null ? idPrefix + '_' + i : null;
-                            inputsDesc.push(parseParameterDescriptor(elem, pref));
-                            i++;
-                        });
-                    } else {
-                        inputsDesc.push(parseParameterDescriptor(elements, idPrefix));
-                    }
-                }
-            };
             parseElements(descProc.descriptors, inputs, null);
             $scope.parameters = inputs;
             restoreInputs();

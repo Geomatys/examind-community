@@ -1,5 +1,5 @@
 <div class="form-group parameter-simple">
-    <label for="{{replaceStr(parameter.id)}}" class="col-sm-3 control-label" style="text-align:left;">
+    <label title="{{parameter.description}}" for="{{replaceStr(parameter.id)}}" class="col-sm-3 control-label" style="text-align:left;">
         {{simplifyStr(parameter.name)}}&nbsp;<span ng-show="parameter.mandatory" class="mandatory">(*)</span>
     </label>
     <div class="col-sm-9" ng-show="!parameter.save.length">
@@ -26,5 +26,4 @@
         </div>
     </div>
     <div class="clearfix"></div>
-    <p ng-show="parameter.documentation" class="help-block col-sm-12">{{parameter.documentation}}</p>
 </div>

@@ -1,7 +1,6 @@
 <!-- Group parameters -->
 <div ng-if="parameter.type === 'group'" class="parameter-group">
-    <label>{{simplifyStr(parameter.name)}} <span ng-show="parameter.mandatory" class="mandatory">(*)</span></label>
-    <p ng-show="parameter.documentation" class="help-block">{{parameter.documentation}}</p>
+    <label title="{{parameter.description}}">{{simplifyStr(parameter.name)}} <span ng-show="parameter.mandatory" class="mandatory">(*)</span></label>
     <div style="padding-left:15px;">
         <div ng-repeat="group in parameter.inputs track by $index" ng-init="occurIdx = $index;" class="group-occurence">
             <div class="row">
@@ -34,12 +33,11 @@
 <!-- Simple parameters -->
 <div ng-if="parameter.type === 'simple'" class="parameter_simple">
     <div class="form-group">
-        <label for="{{replaceStr(parameter.id)}}" class="col-sm-3 control-label" style="text-align:left;">
+        <label title="{{parameter.description}}" for="{{replaceStr(parameter.id)}}" class="col-sm-3 control-label" style="text-align:left;">
             {{simplifyStr(parameter.name)}} <span ng-show="parameter.mandatory" class="mandatory">(*)</span>
         </label>
         <div ng-show="parameter.maxOccurs==1" process-param-editor="parameter" class="col-sm-9"></div>
         <div class="clearfix"></div>
-        <p ng-show="parameter.documentation" class="help-block col-sm-12">{{parameter.documentation}}</p>
     </div>
 </div>
 
