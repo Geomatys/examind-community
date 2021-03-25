@@ -121,23 +121,25 @@ public class MetadataStoreProvider extends IndexedNameDataProvider implements Me
     protected synchronized void visit() {
         store = createBaseStore();
         if (store != null) {
+            Iterator<String> it = null;
             try {
-                Iterator<String> it = store.getIdentifierIterator();
+                it = store.getIdentifierIterator();
                 while (it.hasNext()) {
                     GenericName name = NamesExt.create(it.next());
                     if (!index.contains(name)) {
                         index.add(name);
                     }
                 }
-                if (it instanceof CloseableIterator) {
-                    ((CloseableIterator)it).close();
-                }
 
             } catch (MetadataIoException ex) {
                 //Looks like we failed to retrieve the list of featuretypes,
                 //the layers won't be indexed and the getCapability
                 //won't be able to find thoses layers.
-                LOGGER.log(Level.SEVERE, "Failed to retrive list of available sensor names.", ex);
+                LOGGER.log(Level.SEVERE, "Failed to retrive list of available metadata names.", ex);
+            } finally {
+                if (it instanceof CloseableIterator) {
+                    ((CloseableIterator)it).close();
+                }
             }
         }
     }

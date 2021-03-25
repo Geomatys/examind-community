@@ -84,10 +84,16 @@ public class MetadataConfigurationUpgrade {
                 if (config.getFormat() != null) {
 
                     LOGGER.info("-- UPGRADING CSW CONFIGURATION -- ");
+
+                    /**
+                     * A little different behavior between FS/internal provider (partial case).
+                     *  - for FS provider, we want to start with all the provider metadata linked.
+                     *  - for internal provider, we want to start with none.
+                     */
+                    final boolean linkAllProviderMeta;
                     final Integer providerID;
-
                     if (FILESYSTEM.getName().equals(config.getFormat())) {
-
+                        linkAllProviderMeta = true;
                         Integer candidatePID = null;
                         // Look for an already existing provider
                         for (ProviderBrief sp : providerBusiness.getProviders()) {
@@ -137,6 +143,7 @@ public class MetadataConfigurationUpgrade {
                             providerID = candidatePID;
                         }
                     } else if (INTERNAL.getName().equals(config.getFormat())) {
+                        linkAllProviderMeta = false;
                         providerID = metadataBusiness.getDefaultInternalProviderID();
                     } else {
                         return;
@@ -147,7 +154,7 @@ public class MetadataConfigurationUpgrade {
                         protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
                             try {
                                 serviceBusiness.setConfiguration(id, config);
-                                serviceBusiness.linkCSWAndProvider(id, providerID, true);
+                                serviceBusiness.linkCSWAndProvider(id, providerID, linkAllProviderMeta);
                             } catch (ConfigurationException ex) {
                                 LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
                             }

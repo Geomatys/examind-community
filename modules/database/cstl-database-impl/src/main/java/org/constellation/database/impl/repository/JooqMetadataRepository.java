@@ -295,8 +295,7 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
         return query.fetchInto(String.class);
     }
 
-    @Override
-    public List<String> findLinkedMetadataID(Integer serviceID, Integer providerID, boolean includeService, boolean onlyPublished, String type, Boolean hidden) {
+    private SelectConditionStep<Record1<String>> selectLinkedMetadata(Integer serviceID, Integer providerID, boolean includeService, boolean onlyPublished, String type, Boolean hidden) {
         SelectConditionStep<Record1<String>> query =
                dsl.select(METADATA.METADATA_ID).from(METADATA, METADATA_X_CSW)
                   .where(METADATA_X_CSW.CSW_ID.eq(serviceID))
@@ -317,33 +316,19 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
         if (hidden != null) {
             query = query.and(METADATA.IS_HIDDEN.eq(hidden));
         }
+        return query;
+    }
+    @Override
+    public List<String> findLinkedMetadataID(Integer serviceID, Integer providerID, boolean includeService, boolean onlyPublished, String type, Boolean hidden) {
+        SelectConditionStep<Record1<String>> query = selectLinkedMetadata(serviceID, providerID, includeService, onlyPublished, type, hidden);
         return query.fetchInto(String.class);
     }
 
     @Override
     public int countLinkedMetadata(final Integer serviceID, final Integer providerID, final boolean includeService, final boolean onlyPublished, final String type,
             final Boolean hidden) {
-        SelectConditionStep<Record1<String>> query =
-               dsl.select(METADATA.METADATA_ID).from(METADATA, METADATA_X_CSW)
-                  .where(METADATA_X_CSW.METADATA_ID.eq(METADATA.ID))
-                  .and(METADATA_X_CSW.CSW_ID.eq(serviceID));
-
-        if (providerID != null) {
-            query = query.and(METADATA.PROVIDER_ID.eq(providerID));
-        }
-        if (!includeService) {
-            query = query.and(METADATA.SERVICE_ID.isNull());
-        }
-        if (onlyPublished) {
-            query = query.and(METADATA.IS_PUBLISHED.eq(Boolean.TRUE));
-        }
-        if (type != null) {
-            query = query.and(METADATA.TYPE.eq(type));
-        }
-        if (hidden != null) {
-            query = query.and(METADATA.IS_HIDDEN.eq(hidden));
-        }
-        return query.fetchCount();
+        SelectConditionStep<Record1<String>> query = selectLinkedMetadata(serviceID, providerID, includeService, onlyPublished, type, hidden);
+        return dsl.fetchCount(query);
     }
 
     @Override
@@ -675,8 +660,12 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
         } else if ("type".equals(key)) {
             return METADATA.TYPE.eq((String) value);
         } else if ("includeService".equals(key)) {
-            if (!(Boolean)value) {
-                return METADATA.SERVICE_ID.isNull();
+            if (value instanceof Boolean) {
+                if (!(Boolean)value) {
+                    return METADATA.SERVICE_ID.isNull();
+                }
+            } else {
+                throw new IllegalArgumentException("Value associated to 'includeService' is invalid. A boolean is expected, but received: "+value);
             }
         } else if ("name".equals(key)) {
             Condition namesCond = null;
@@ -690,11 +679,19 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
             }
             return namesCond;
         } else if ("csw_id".equals(key)) {
-            int cswId = (int) value;
-            return METADATA.ID.in(dsl.select(METADATA_X_CSW.METADATA_ID).from(METADATA_X_CSW).where(METADATA_X_CSW.CSW_ID.eq(cswId)));
+            if (value instanceof Integer) {
+                int cswId = (int) value;
+                return METADATA.ID.in(dsl.select(METADATA_X_CSW.METADATA_ID).from(METADATA_X_CSW).where(METADATA_X_CSW.CSW_ID.eq(cswId)));
+            } else  {
+                throw new IllegalArgumentException("Value associated to 'cswId' is invalid. An integer is expected, but received: "+value);
+            }
         } else if ("!csw_id".equals(key)) {
-            int cswId = (int) value;
-            return METADATA.ID.notIn(dsl.select(METADATA_X_CSW.METADATA_ID).from(METADATA_X_CSW).where(METADATA_X_CSW.CSW_ID.eq(cswId)));
+            if (value instanceof Integer) {
+                int cswId = (int) value;
+                return METADATA.ID.notIn(dsl.select(METADATA_X_CSW.METADATA_ID).from(METADATA_X_CSW).where(METADATA_X_CSW.CSW_ID.eq(cswId)));
+            } else  {
+                throw new IllegalArgumentException("Value associated to 'cswId' is invalid. An integer is expected, but received: "+value);
+            }
         } else if ("OR".equals(key)) {
             List<Entry<String, Object>> values =  (List<Entry<String, Object>>) value;
             Condition c = null;

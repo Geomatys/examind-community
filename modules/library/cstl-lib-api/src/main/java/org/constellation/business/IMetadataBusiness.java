@@ -183,7 +183,6 @@ public interface IMetadataBusiness {
      *
      * @param metadataIds List of metadata identifiers.
      * @param cswIdentifier identifer of the CSW instance.
-     * @throws org.constellation.exception.ConstellationException
      */
     void linkMetadataIDsToCSW(final List<String> metadataIds, final String cswIdentifier) throws ConstellationException;
 
@@ -192,7 +191,6 @@ public interface IMetadataBusiness {
      *
      * @param metadataId Identifier of the geotk metadata object.
      * @param cswIdentifier identifer of the CSW instance.
-     * @throws org.constellation.exception.ConstellationException
      */
     void unlinkMetadataIDToCSW(final String metadataId, final String cswIdentifier) throws ConstellationException;
 
