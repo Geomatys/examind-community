@@ -96,8 +96,6 @@ function RemoteSourceController($scope, $translate, Examind, Growl, cfpLoadingBa
         hideResetBtn: true
     };
 
-    self.disableInputUrl = false;
-
     // List of the default supported protocols for the remote source
     self.defaultUrlProtocols = [
         {
@@ -157,7 +155,6 @@ function RemoteSourceController($scope, $translate, Examind, Growl, cfpLoadingBa
     self.selectProtocol = function (protocol) {
         // Delete the old data source and clean all the parameters.
         self.deleteDataSource();
-        self.disableInputUrl = false;
         self.showAllowedFSList = false;
 
         if (angular.isUndefined(self.remote.url)) {
@@ -186,13 +183,22 @@ function RemoteSourceController($scope, $translate, Examind, Growl, cfpLoadingBa
             self.fileSystemSuffix = self.remote.fileSystemSuffix ? self.remote.fileSystemSuffix : '';
             Examind.admin.getAllowedFS()
                 .then(function (response) {
-                        self.allowedFS = response.data.list;
-                        if (self.allowedFS && self.allowedFS.length === 1) {
-                            self.remote.url = self.allowedFS[0];
-                            self.disableInputUrl = true
-                        } else if (self.allowedFS && self.allowedFS.length > 1) {
-                            self.remote.url = self.allowedFS[0];
-                            self.showAllowedFSList = true;
+                        var allowedFSList = response.data.list;
+                        if (allowedFSList) {
+                            self.allowedFS = [];
+                            allowedFSList.forEach(function (str) {
+                                if (str.endsWith('/')) {
+                                    str = str.slice(0, -1);
+                                }
+                                if (self.allowedFS.indexOf(str) === -1) {
+                                    self.allowedFS.push(str);
+                                }
+                            });
+
+                            if (self.allowedFS.length > 0) {
+                                self.remote.url = self.allowedFS[0];
+                                self.showAllowedFSList = true;
+                            }
                         }
                     },
                     function (err) {
