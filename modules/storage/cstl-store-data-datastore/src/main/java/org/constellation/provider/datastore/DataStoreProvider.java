@@ -43,17 +43,14 @@ import org.apache.sis.metadata.iso.identification.DefaultDataIdentification;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.IllegalNameException;
-import org.apache.sis.util.ArraysExt;
 import org.apache.sis.util.collection.BackingStoreException;
 import org.geotoolkit.db.postgres.PostgresStore;
 import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.storage.DataStoreFactory;
 import org.geotoolkit.storage.DataStores;
-import org.geotoolkit.storage.ResourceType;
 import org.geotoolkit.storage.memory.ExtendedFeatureStore;
 
-import org.constellation.api.DataType;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.AbstractDataProvider;
@@ -95,41 +92,6 @@ public class DataStoreProvider extends AbstractDataProvider {
     public DataStoreProvider(String providerId, DataProviderFactory service, ParameterValueGroup param) {
         super(providerId,service,param);
         storage = new SafeAccess(getId(), this::createBaseStore);
-    }
-
-    /**
-     *
-     * @deprecated a provider can contains heterogeneous dataType
-     */
-    @Override
-    @Deprecated
-    public DataType getDataType() {
-        final org.apache.sis.storage.DataStoreProvider provider;
-        try (Session session = storage.read()) {
-            provider = session.handle().store.getProvider();
-        } catch (DataStoreException e) {
-            throw new BackingStoreException(e);
-        }
-
-        if (provider != null) {
-            final ResourceType[] resourceTypes = DataStores.getResourceTypes(provider);
-            if (ArraysExt.contains(resourceTypes, ResourceType.COVERAGE)
-                 || ArraysExt.contains(resourceTypes, ResourceType.GRID)
-                 || ArraysExt.contains(resourceTypes, ResourceType.PYRAMID)) {
-                return DataType.COVERAGE;
-            } else if (ArraysExt.contains(resourceTypes, ResourceType.VECTOR)) {
-                return DataType.VECTOR;
-            } else if (ArraysExt.contains(resourceTypes, ResourceType.SENSOR)) {
-                return DataType.SENSOR;
-            } else if (ArraysExt.contains(resourceTypes, ResourceType.METADATA)) {
-                return DataType.METADATA;
-            } else {
-                return DataType.VECTOR; // unknown
-            }
-        } else {
-            LOGGER.log(Level.WARNING, "Unable to find a DatastoreProvider for:{0}", id);
-            return DataType.VECTOR; // unknown
-        }
     }
 
     /**

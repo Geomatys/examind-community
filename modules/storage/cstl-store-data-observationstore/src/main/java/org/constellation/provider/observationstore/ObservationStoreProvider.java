@@ -44,11 +44,9 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.Query;
 import org.apache.sis.storage.Resource;
-import org.apache.sis.util.ArraysExt;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVATION_MODEL;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
-import org.constellation.api.DataType;
 import org.constellation.dto.service.config.sos.Offering;
 import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
@@ -75,7 +73,6 @@ import static org.geotoolkit.sos.xml.ResponseModeType.RESULT_TEMPLATE;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildOffering;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimePeriod;
 import org.geotoolkit.storage.DataStores;
-import org.geotoolkit.storage.ResourceType;
 import org.geotoolkit.swe.xml.PhenomenonProperty;
 import org.opengis.filter.Id;
 import org.opengis.filter.And;
@@ -134,30 +131,6 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     @Override
     public Data get(GenericName key) {
         return get(key, null);
-    }
-
-    @Override
-    public DataType getDataType() {
-        try {
-            final org.apache.sis.storage.DataStoreProvider provider = getMainStore().getProvider();
-            final ResourceType[] resourceTypes = DataStores.getResourceTypes(provider);
-            if (ArraysExt.contains(resourceTypes, ResourceType.COVERAGE)
-                    || ArraysExt.contains(resourceTypes, ResourceType.GRID)
-                    || ArraysExt.contains(resourceTypes, ResourceType.PYRAMID)) {
-                return DataType.COVERAGE;
-            } else if (ArraysExt.contains(resourceTypes, ResourceType.VECTOR)) {
-                return DataType.VECTOR;
-            } else if (ArraysExt.contains(resourceTypes, ResourceType.SENSOR)) {
-                return DataType.SENSOR;
-            } else if (ArraysExt.contains(resourceTypes, ResourceType.METADATA)) {
-                return DataType.METADATA;
-            } else {
-                return DataType.VECTOR; // unknown
-            }
-        } catch (ConstellationStoreException ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-        }
-        return DataType.VECTOR; // unknown
     }
 
     @Override

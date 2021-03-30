@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.logging.Level;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStoreException;
-import org.constellation.api.DataType;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviderFactory;
@@ -53,13 +52,6 @@ public class AggregatedCoverageProvider extends ComputedResourceProvider {
         resultCRSName = (String) param.parameter(RESULT_CRS.getName().getCode()).getValue();
         mode = (String) param.parameter(MODE.getName().getCode()).getValue();
     }
-
-    @Override
-    @Deprecated
-    public DataType getDataType() {
-        return DataType.COVERAGE;
-    }
-
 
     @Override
     public String getCRSName() {

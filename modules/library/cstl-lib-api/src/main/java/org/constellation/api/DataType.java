@@ -30,6 +30,8 @@ public enum DataType {
     SENSOR,
     METADATA,
     OBSERVATION,
+    TILES3D,
+    QMESH,
     OTHER
 
 }

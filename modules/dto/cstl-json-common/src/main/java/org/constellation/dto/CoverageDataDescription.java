@@ -19,7 +19,6 @@
 
 package org.constellation.dto;
 
-import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -29,14 +28,12 @@ import java.util.List;
  * @version 0.9
  * @since 0.9
  */
-@XmlRootElement
-public class CoverageDataDescription implements DataDescription {
+public class CoverageDataDescription extends SimpleDataDescription {
 
-    private double[] boundingBox;
     private List<BandDescription> bands;
 
     public CoverageDataDescription() {
-        this.boundingBox = new double[]{-180,-90,180,90};
+        super();
         bands = new ArrayList<>(0);
     }
 
@@ -48,16 +45,6 @@ public class CoverageDataDescription implements DataDescription {
         this.bands = bands;
     }
 
-    @Override
-    public double[] getBoundingBox() {
-        return boundingBox;
-    }
-
-    @Override
-    public void setBoundingBox(final double[] boundingBox) {
-        this.boundingBox = boundingBox;
-    }
-    
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

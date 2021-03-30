@@ -13,8 +13,10 @@
   <bean id="clusterBusiness" class="org.constellation.admin.LocalClusterBusiness" />
 
   <bean id="cstlStyleConverterBusiness" class="org.constellation.json.component.StyleConverterBusiness" />
-
+  
   <bean id="configurationBusiness" class="org.constellation.admin.ConfigurationBusiness" init-method="init"/>
+
+  <bean id="exaDataCreator" class="com.examind.provider.component.DefaultExaDataCreator"/>
 
   <!-- Add this line in case of hsql datasource bean id="database-conf" class="org.constellation.database.configuration.HSQLDatabaseConfiguration"/-->
 

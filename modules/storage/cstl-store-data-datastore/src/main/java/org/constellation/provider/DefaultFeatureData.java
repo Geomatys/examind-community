@@ -44,7 +44,6 @@ import org.opengis.util.GenericName;
 
 import org.apache.sis.internal.feature.AttributeConvention;
 import org.apache.sis.internal.system.DefaultFactories;
-import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
@@ -79,7 +78,6 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
      */
     protected static final int MARGIN = 4;
 
-    protected final DataStore store;
     protected final PropertyName dateStartField;
     protected final PropertyName dateEndField;
     protected final PropertyName elevationStartField;
@@ -105,10 +103,9 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
      */
     public DefaultFeatureData(GenericName name, DataStore store, FeatureSet origin,
                                         String dateStart, String dateEnd, String elevationStart, String elevationEnd, Date versionDate){
-        super(name, origin);
+        super(name, origin, store);
         ensureNonNull("Source feature store", store);
 
-        this.store = store;
         this.versionDate = versionDate;
 
         final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
@@ -125,14 +122,6 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
         if(elevationEnd != null)        this.elevationEndField = ff.property(elevationEnd);
         else                            this.elevationEndField = null;
 
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DataStore getStore() {
-        return store;
     }
 
     /**
@@ -249,14 +238,6 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
             }
         }
         return elevations;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public MeasurementRange<?>[] getSampleValueRanges() {
-        return new MeasurementRange<?>[0];
     }
 
     /**
@@ -382,25 +363,6 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
             }
         }
 
-        return null;
-    }
-
-    @Override
-    public String getResourceCRSName() throws ConstellationStoreException {
-        try {
-            Envelope env = getEnvelope();
-            if (env != null) {
-                final CoordinateReferenceSystem crs = env.getCoordinateReferenceSystem();
-                if (crs != null) {
-                    final String crsIdentifier = ReferencingUtilities.lookupIdentifier(crs, true);
-                    if (crsIdentifier != null) {
-                        return crsIdentifier;
-                    }
-                }
-            }
-        } catch(Exception ex) {
-            LOGGER.finer(ex.getMessage());
-        }
         return null;
     }
 }

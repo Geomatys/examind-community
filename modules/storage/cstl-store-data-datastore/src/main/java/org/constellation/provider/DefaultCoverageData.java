@@ -42,7 +42,6 @@ import org.apache.sis.coverage.grid.IncompleteGridGeometryException;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.image.Interpolation;
 import org.apache.sis.internal.util.UnmodifiableArrayList;
-import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.measure.NumberRange;
 import org.apache.sis.parameter.Parameters;
 import org.apache.sis.referencing.CRS;
@@ -69,8 +68,6 @@ import org.geotoolkit.coverage.grid.GridGeometryIterator;
 import org.geotoolkit.coverage.grid.GridIterator;
 import org.geotoolkit.coverage.worldfile.FileCoverageResource;
 import org.geotoolkit.image.io.metadata.SpatialMetadata;
-import org.geotoolkit.process.ProcessException;
-import org.geotoolkit.processing.coverage.resample.ResampleProcess;
 import org.geotoolkit.processing.coverage.statistics.Statistics;
 import org.geotoolkit.processing.coverage.statistics.StatisticsDescriptor;
 import org.geotoolkit.referencing.ReferencingUtilities;
@@ -113,11 +110,8 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
             "UP", "DOWN",
             "FUTURE", "PAST"});
 
-    private final DataStore store;
-
     public DefaultCoverageData(final GenericName name, final GridCoverageResource ref, final DataStore store){
-        super(name, ref);
-        this.store = store;
+        super(name, ref, store);
     }
 
     /**
@@ -253,11 +247,6 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
     }
 
     @Override
-    public MeasurementRange<?>[] getSampleValueRanges() {
-        return new MeasurementRange<?>[0];
-    }
-
-    @Override
     public Envelope getEnvelope() throws ConstellationStoreException {
         GridGeometry ggg = getGeometry();
         if (ggg != null && ggg.isDefined(GridGeometry.ENVELOPE)) {
@@ -369,11 +358,6 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
             }
             return values;
         }
-    }
-
-    @Override
-    public DataStore getStore() {
-        return store;
     }
 
     @Override

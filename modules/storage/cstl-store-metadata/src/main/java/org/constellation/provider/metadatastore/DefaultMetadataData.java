@@ -19,9 +19,6 @@ package org.constellation.provider.metadatastore;
 import org.opengis.geometry.Envelope;
 import org.opengis.util.GenericName;
 
-import org.apache.sis.measure.MeasurementRange;
-import org.apache.sis.storage.DataStore;
-
 import org.geotoolkit.metadata.MetadataStore;
 
 import org.constellation.api.DataType;
@@ -38,34 +35,16 @@ import org.w3c.dom.Node;
  */
 public class DefaultMetadataData extends AbstractData implements MetadataData {
 
-    private final MetadataStore store;
-
     private final Node metadata;
 
     public DefaultMetadataData(GenericName name, MetadataStore store, final Node metadata) {
-        super(name, null);
-        this.store = store;
+        super(name, null, store);
         this.metadata = metadata;
     }
 
     @Override
     public Envelope getEnvelope() throws ConstellationStoreException {
         return null; // TODO extract from ISO metadata
-    }
-
-    @Override
-    public MeasurementRange<?>[] getSampleValueRanges() {
-        return new MeasurementRange<?>[0];
-    }
-
-    @Override
-    public DataStore getStore() {
-        return store;
-    }
-
-    @Override
-    public DataDescription getDataDescription(StatInfo statInfo) throws ConstellationStoreException {
-        return null;
     }
 
     @Override
@@ -78,6 +57,7 @@ public class DefaultMetadataData extends AbstractData implements MetadataData {
         return DataType.METADATA;
     }
 
+    @Override
     public String getResourceCRSName() throws ConstellationStoreException {
         return null; // TODO extract from metadata object?
     }

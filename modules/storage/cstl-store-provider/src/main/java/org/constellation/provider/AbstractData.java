@@ -22,6 +22,7 @@ import java.util.Date;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.Logger;
+import org.apache.sis.measure.MeasurementRange;
 
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.extent.GeographicBoundingBox;
@@ -30,7 +31,9 @@ import org.opengis.util.GenericName;
 
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
+import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.logging.Logging;
 
@@ -38,9 +41,13 @@ import org.geotoolkit.util.DateRange;
 
 import org.constellation.api.ServiceDef.Query;
 import org.constellation.dto.DataDescription;
+import org.constellation.dto.SimpleDataDescription;
 import org.constellation.dto.StatInfo;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.repository.DataRepository;
+import org.geotoolkit.referencing.ReferencingUtilities;
+import org.geotoolkit.storage.feature.FeatureStoreUtilities;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 
 /**
@@ -58,10 +65,12 @@ public abstract class AbstractData<T extends Resource> implements Data<T> {
      */
     protected final GenericName name;
     protected final T origin;
+    protected final DataStore store;
 
-    public AbstractData(GenericName name, final T origin) {
+    public AbstractData(GenericName name, final T origin, final DataStore store) {
         this.name = name;
         this.origin = origin;
+        this.store = store;
     }
 
     /**
@@ -75,6 +84,11 @@ public abstract class AbstractData<T extends Resource> implements Data<T> {
     @Override
     public T getOrigin() {
         return origin;
+    }
+
+    @Override
+    public DataStore getStore() {
+        return store;
     }
 
     /**
@@ -123,6 +137,28 @@ public abstract class AbstractData<T extends Resource> implements Data<T> {
      * {@inheritDoc}
      */
     @Override
+    public String getResourceCRSName() throws ConstellationStoreException {
+        try {
+            Envelope env = getEnvelope();
+            if (env != null) {
+                final CoordinateReferenceSystem crs = env.getCoordinateReferenceSystem();
+                if (crs != null) {
+                    final String crsIdentifier = ReferencingUtilities.lookupIdentifier(crs, true);
+                    if (crsIdentifier != null) {
+                        return crsIdentifier;
+                    }
+                }
+            }
+        } catch(Exception ex) {
+            LOGGER.finer(ex.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public SortedSet<Date> getAvailableTimes() throws ConstellationStoreException {
         return new TreeSet<>();
     }
@@ -133,6 +169,14 @@ public abstract class AbstractData<T extends Resource> implements Data<T> {
     @Override
     public SortedSet<Number> getAvailableElevations() throws ConstellationStoreException {
         return new TreeSet<>();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public MeasurementRange<?>[] getSampleValueRanges() {
+        return new MeasurementRange<?>[0];
     }
 
     @Override
@@ -161,8 +205,18 @@ public abstract class AbstractData<T extends Resource> implements Data<T> {
     }
 
     @Override
-    public DataDescription getDataDescription(StatInfo statInfo) throws ConstellationStoreException {
-        return null;
+    public SimpleDataDescription getDataDescription(StatInfo statInfo) throws ConstellationStoreException {
+        final SimpleDataDescription description = new SimpleDataDescription();
+        try {
+            Envelope env = getEnvelope();
+            if (env != null) {
+                DataProviders.fillGeographicDescription(env, description);
+            }
+        } catch (ConstellationStoreException ex) {
+            // we always want to return a description because if not, the UI will not display the data
+            LOGGER.finer(ex.getMessage());
+        }
+        return description;
     }
 
     @Override

@@ -29,15 +29,13 @@ import org.apache.sis.internal.storage.query.SimpleQuery;
 import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.storage.Query;
 import org.apache.sis.storage.Resource;
-
-import static org.constellation.provider.AbstractData.LOGGER;
-
 import org.apache.sis.util.collection.BackingStoreException;
+
 import org.constellation.exception.ConstellationStoreException;
 import org.geotoolkit.cql.CQL;
 import org.apache.sis.portrayal.MapLayer;
+import org.apache.sis.storage.DataStore;
 import org.geotoolkit.map.MapBuilder;
-import org.geotoolkit.style.MutableStyle;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.FilterFactory2;
@@ -50,8 +48,8 @@ import org.opengis.util.GenericName;
  */
 public abstract class DefaultGeoData<T extends Resource> extends AbstractData<T> implements GeoData<T> {
 
-    public DefaultGeoData(GenericName name, T origin) {
-        super(name, origin);
+    public DefaultGeoData(GenericName name, T origin, DataStore store) {
+        super(name, origin, store);
     }
 
     protected Filter buildDimFilter(final String dimName, final String dimValue) {
@@ -120,16 +118,11 @@ public abstract class DefaultGeoData<T extends Resource> extends AbstractData<T>
      */
     @Override
     public final MapLayer getMapLayer(Style styleI, final Map<String, Object> params) throws ConstellationStoreException {
-        MutableStyle style;
         if (styleI == null) {
-            style = getDefaultStyle();
-        } else if (styleI instanceof MutableStyle) {
-            style = (MutableStyle) styleI;
-        } else {
-            throw new IllegalArgumentException("Only MutableStyle implementation is acepted");
+            styleI = getDefaultStyle();
         }
         final MapLayer layer = MapBuilder.createLayer(origin);
-        if (style != null) layer.setStyle(style);
+        if (styleI != null) layer.setStyle(styleI);
         
         final String title = getName().tip().toString();
         layer.setIdentifier(title);
@@ -140,5 +133,5 @@ public abstract class DefaultGeoData<T extends Resource> extends AbstractData<T>
         return layer;
     }
     
-    protected abstract MutableStyle getDefaultStyle() throws ConstellationStoreException;
+    protected abstract Style getDefaultStyle() throws ConstellationStoreException;
 }

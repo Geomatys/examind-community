@@ -34,15 +34,12 @@ import org.opengis.util.GenericName;
 import org.apache.sis.internal.storage.ResourceOnFileSystem;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.util.ArraysExt;
 
 import org.geotoolkit.sensor.AbstractSensorStore;
 import org.geotoolkit.sml.xml.AbstractSensorML;
 import org.geotoolkit.storage.DataStores;
-import org.geotoolkit.storage.ResourceType;
 import org.geotoolkit.util.NamesExt;
 
-import org.constellation.api.DataType;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.AbstractDataProvider;
@@ -64,25 +61,6 @@ public class SensorStoreProvider extends AbstractDataProvider implements SensorP
     public SensorStoreProvider(String providerId, DataProviderFactory service, ParameterValueGroup param) throws DataStoreException{
         super(providerId,service,param);
         visit();
-    }
-
-    @Override
-    public DataType getDataType() {
-        final org.apache.sis.storage.DataStoreProvider provider = getMainStore().getProvider();
-        final ResourceType[] resourceTypes = DataStores.getResourceTypes(provider);
-        if (ArraysExt.contains(resourceTypes, ResourceType.COVERAGE)
-             || ArraysExt.contains(resourceTypes, ResourceType.GRID)
-             || ArraysExt.contains(resourceTypes, ResourceType.PYRAMID)) {
-            return DataType.COVERAGE;
-        } else if (ArraysExt.contains(resourceTypes, ResourceType.VECTOR)) {
-            return DataType.VECTOR;
-        } else if (ArraysExt.contains(resourceTypes, ResourceType.SENSOR)) {
-            return DataType.SENSOR;
-        } else if (ArraysExt.contains(resourceTypes, ResourceType.METADATA)) {
-            return DataType.METADATA;
-        } else {
-            return DataType.VECTOR; // unknown
-        }
     }
 
     /**

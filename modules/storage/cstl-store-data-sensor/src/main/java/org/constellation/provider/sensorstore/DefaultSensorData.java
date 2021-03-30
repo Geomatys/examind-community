@@ -19,7 +19,6 @@ package org.constellation.provider.sensorstore;
 import org.opengis.geometry.Envelope;
 import org.opengis.util.GenericName;
 
-import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.storage.DataStore;
 
 import org.geotoolkit.sensor.AbstractSensorStore;
@@ -37,13 +36,10 @@ import org.constellation.provider.SensorData;
  */
 public class DefaultSensorData extends AbstractData implements SensorData {
 
-    private final AbstractSensorStore store;
-
     private final AbstractSensorML metadata;
 
     public DefaultSensorData(GenericName name, AbstractSensorStore store, final AbstractSensorML metadata) {
-        super(name, null);
-        this.store = store;
+        super(name, null, store);
         this.metadata = metadata;
     }
 
@@ -53,18 +49,8 @@ public class DefaultSensorData extends AbstractData implements SensorData {
     }
 
     @Override
-    public MeasurementRange<?>[] getSampleValueRanges() {
-        return new MeasurementRange<?>[0];
-    }
-
-    @Override
     public DataType getDataType() {
         return DataType.SENSOR;
-    }
-
-    @Override
-    public DataStore getStore() {
-        return store;
     }
 
     @Override

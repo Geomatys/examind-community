@@ -23,7 +23,6 @@ import java.util.Arrays;
 import org.opengis.geometry.Envelope;
 import org.opengis.util.GenericName;
 
-import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
@@ -34,7 +33,7 @@ import org.geotoolkit.sos.netcdf.ExtractionResult;
 import org.geotoolkit.storage.feature.FeatureStoreUtilities;
 
 import org.constellation.api.DataType;
-import org.constellation.dto.ObservationDataDescription;
+import org.constellation.dto.SimpleDataDescription;
 import org.constellation.dto.StatInfo;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.AbstractData;
@@ -46,17 +45,14 @@ import org.constellation.provider.DataProviders;
  */
 public class DefaultObservationData extends AbstractData implements ObservationData {
 
-    private final ObservationStore store;
-
     public DefaultObservationData(GenericName name, ObservationStore store) {
-        super(name, findResource(store, name));
-        this.store = store;
+        super(name, findResource((DataStore) store, name), (DataStore)store);
     }
 
     @Override
     public Envelope getEnvelope() throws ConstellationStoreException {
         try {
-            ExtractionResult result = store.getResults(Arrays.asList(name.toString()));
+            ExtractionResult result = getObservationStore().getResults(Arrays.asList(name.toString()));
             if (result != null) {
                 return result.spatialBound.getSpatialBounds("2.0.0");
             }
@@ -66,9 +62,8 @@ public class DefaultObservationData extends AbstractData implements ObservationD
         return null;
     }
 
-    @Override
-    public MeasurementRange<?>[] getSampleValueRanges() {
-        return new MeasurementRange<?>[0];
+    private ObservationStore getObservationStore() {
+        return (ObservationStore) store;
     }
 
     @Override
@@ -77,13 +72,8 @@ public class DefaultObservationData extends AbstractData implements ObservationD
     }
 
     @Override
-    public DataStore getStore() {
-        return (DataStore) store;
-    }
-
-    @Override
-    public ObservationDataDescription getDataDescription(StatInfo statInfo) throws ConstellationStoreException {
-        final ObservationDataDescription description = new ObservationDataDescription();
+    public SimpleDataDescription getDataDescription(StatInfo statInfo) throws ConstellationStoreException {
+        final SimpleDataDescription description = new SimpleDataDescription();
         try {
 
             final FeatureSet fs = (FeatureSet) findResource(store, getName());
@@ -102,9 +92,9 @@ public class DefaultObservationData extends AbstractData implements ObservationD
         return null;
     }
 
-    private static Resource findResource(ObservationStore source, GenericName searchedOne) {
+    private static Resource findResource(DataStore source, GenericName searchedOne) {
         try {
-            return ((DataStore) source).findResource(searchedOne.toString());
+            return source.findResource(searchedOne.toString());
         } catch (Exception ex) {
             throw new IllegalArgumentException("Unable to find a resource:" + searchedOne, ex);
         }

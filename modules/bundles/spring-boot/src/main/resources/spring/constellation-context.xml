@@ -15,6 +15,8 @@
   <bean id="clusterBusiness" class="org.constellation.admin.LocalClusterBusiness" />
 
   <bean id="cstlStyleConverterBusiness" class="org.constellation.json.component.StyleConverterBusiness" />
+  
+  <bean id="exaDataCreator" class="com.examind.provider.component.DefaultExaDataCreator"/>
 
   <context:component-scan base-package="org.constellation.admin org.constellation.rest.api org.constellation.scheduler" />
 

@@ -19,27 +19,21 @@
 
 package org.constellation.dto;
 
-import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
-import org.constellation.dto.DataDescription;
-import org.constellation.dto.PropertyDescription;
 
 /**
  * @author Fabien Bernard (Geomatys).
  * @version 0.9
  * @since 0.9
  */
-@XmlRootElement
-public class FeatureDataDescription implements DataDescription {
+public class FeatureDataDescription extends SimpleDataDescription {
 
-    private double[] boundingBox;
     private PropertyDescription geometryProperty;
     private List<PropertyDescription> properties;
 
     public FeatureDataDescription() {
-        this.boundingBox = new double[]{-180,-90,180,90};
-        this.properties = new ArrayList<PropertyDescription>(0);
+        this.properties = new ArrayList<>(0);
     }
 
     public PropertyDescription getGeometryProperty() {
@@ -56,15 +50,5 @@ public class FeatureDataDescription implements DataDescription {
 
     public void setProperties(final List<PropertyDescription> properties) {
         this.properties = properties;
-    }
-
-    @Override
-    public double[] getBoundingBox() {
-        return boundingBox;
-    }
-
-    @Override
-    public void setBoundingBox(final double[] boundingBox) {
-        this.boundingBox = boundingBox;
     }
 }

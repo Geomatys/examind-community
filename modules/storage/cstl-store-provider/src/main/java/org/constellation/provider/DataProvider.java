@@ -22,7 +22,6 @@ import java.nio.file.Path;
 import java.util.Date;
 import java.util.Set;
 import org.apache.sis.metadata.iso.DefaultMetadata;
-import org.constellation.api.DataType;
 import org.constellation.api.ProviderType;
 import org.apache.sis.storage.DataStore;
 import org.constellation.exception.ConstellationException;
@@ -119,9 +118,6 @@ public interface DataProvider{
     boolean remove(String namespace, String name);
 
     ProviderType getProviderType();
-
-    @Deprecated
-    DataType getDataType();
 
     boolean isSensorAffectable();
 

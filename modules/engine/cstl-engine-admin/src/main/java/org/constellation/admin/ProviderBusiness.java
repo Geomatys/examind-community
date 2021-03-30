@@ -664,8 +664,8 @@ public class ProviderBusiness implements IProviderBusiness {
             for (final GenericName key : keys) {
                 final QName name = new QName(NamesExt.getNamespace(key), key.tip().toString());
 
-                DataType type = provider.getDataType();
-                String subType  = null;
+                DataType type    = DataType.OTHER;
+                String subType   = null;
                 boolean included = true;
                 Boolean rendered = null;
                 try {

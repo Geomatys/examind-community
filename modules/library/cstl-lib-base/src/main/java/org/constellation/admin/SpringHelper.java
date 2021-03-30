@@ -92,7 +92,7 @@ public final class SpringHelper {
     }
 
     public static void injectDependencies(Object object) {
-        if (get().context != null) {
+        if (get() != null && get().context != null) {
             get().context.getAutowireCapableBeanFactory().autowireBean(object);
         } else {
             LOGGER.warning("No spring application context available");

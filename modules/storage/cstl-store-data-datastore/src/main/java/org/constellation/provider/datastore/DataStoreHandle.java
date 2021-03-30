@@ -1,5 +1,6 @@
 package org.constellation.provider.datastore;
 
+import com.examind.provider.component.ExaDataCreator;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -24,8 +25,6 @@ import org.apache.sis.storage.DataSet;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureNaming;
-import org.apache.sis.storage.FeatureSet;
-import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.IllegalNameException;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.WritableAggregate;
@@ -41,12 +40,10 @@ import org.constellation.business.IMetadataBusiness;
 import org.constellation.exception.ConstellationException;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviders;
-import org.constellation.provider.DefaultCoverageData;
-import org.constellation.provider.DefaultFeatureData;
-import org.constellation.provider.DefaultOtherData;
 import org.constellation.repository.DataRepository;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Handles communication with an SIS {@link DataStore}.
@@ -70,7 +67,11 @@ final class DataStoreHandle implements AutoCloseable {
 
     private final String providerName;
 
+    @Autowired
+    private ExaDataCreator dataCreator;
+
     DataStoreHandle(String providerName, DataStore store) throws DataStoreException {
+        SpringHelper.injectDependencies(this);
         this.providerName = providerName;
         this.store = store;
         index = new FeatureNaming<>();
@@ -123,17 +124,7 @@ final class DataStoreHandle implements AutoCloseable {
 
     private Data create(final String dataName, Date version) throws DataStoreException {
         final Resource rs = tryProxify(dataName, store.findResource(dataName));
-        if (rs == null) throw new DataStoreException("Unable to find a resource named:" + dataName);
-        final GenericName targetName = rs.getIdentifier()
-                .orElseThrow(() -> new DataStoreException("Only named datasets should be available from provider"));
-        if (rs instanceof GridCoverageResource) {
-            return new DefaultCoverageData(targetName, (GridCoverageResource) rs, store);
-        } else if (rs instanceof FeatureSet){
-            return new DefaultFeatureData(targetName, store, (FeatureSet) rs, null, null, null, null, version);
-        } else {
-            LOGGER.warning("Unexpected resource class for creating Provider Data:" + rs.getClass().getName());
-            return new DefaultOtherData(targetName, rs, store);
-        }
+        return dataCreator.create(dataName, version, store, rs);
     }
 
     private Resource tryProxify(final String dataName, final Resource target) {

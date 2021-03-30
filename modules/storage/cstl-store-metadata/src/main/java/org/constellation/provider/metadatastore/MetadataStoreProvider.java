@@ -38,18 +38,15 @@ import org.opengis.util.GenericName;
 
 import org.apache.sis.internal.storage.ResourceOnFileSystem;
 import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.util.ArraysExt;
 
 import org.geotoolkit.metadata.MetadataIoException;
 import org.geotoolkit.metadata.MetadataStore;
 import org.geotoolkit.metadata.MetadataType;
 import org.geotoolkit.metadata.RecordInfo;
 import org.geotoolkit.storage.DataStores;
-import org.geotoolkit.storage.ResourceType;
 import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.util.collection.CloseableIterator;
 
-import org.constellation.api.DataType;
 import org.constellation.dto.service.config.csw.MetadataProviderCapabilities;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
@@ -72,25 +69,6 @@ public class MetadataStoreProvider extends AbstractDataProvider implements Metad
     public MetadataStoreProvider(String providerId, DataProviderFactory service, ParameterValueGroup param) throws DataStoreException{
         super(providerId,service,param);
         visit();
-    }
-
-    @Override
-    public DataType getDataType() {
-        final org.apache.sis.storage.DataStoreProvider provider = getMainStore().getProvider();
-        final ResourceType[] resourceTypes = DataStores.getResourceTypes(provider);
-        if (ArraysExt.contains(resourceTypes, ResourceType.COVERAGE)
-             || ArraysExt.contains(resourceTypes, ResourceType.GRID)
-             || ArraysExt.contains(resourceTypes, ResourceType.PYRAMID)) {
-            return DataType.COVERAGE;
-        } else if (ArraysExt.contains(resourceTypes, ResourceType.VECTOR)) {
-            return DataType.VECTOR;
-        } else if (ArraysExt.contains(resourceTypes, ResourceType.SENSOR)) {
-            return DataType.SENSOR;
-        } else if (ArraysExt.contains(resourceTypes, ResourceType.METADATA)) {
-            return DataType.METADATA;
-        } else {
-            return DataType.VECTOR; // unknown
-        }
     }
 
     /**

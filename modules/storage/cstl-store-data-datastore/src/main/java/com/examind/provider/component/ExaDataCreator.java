@@ -16,40 +16,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.provider;
+package com.examind.provider.component;
 
-import org.opengis.geometry.Envelope;
-import org.opengis.util.GenericName;
-
+import java.util.Date;
 import org.apache.sis.storage.DataStore;
+import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.Resource;
-
-import org.constellation.api.DataType;
-import org.constellation.exception.ConstellationStoreException;
+import org.constellation.provider.Data;
 
 /**
  *
- * @author Guilhem Legal(Geomatys)
+ * @author Guilhem legal (Geomatys)
  */
-public class DefaultOtherData extends AbstractData {
+public interface ExaDataCreator {
 
-    public DefaultOtherData(GenericName name, final Resource ref, final DataStore store) {
-        super(name, ref, store);
-    }
-
-    @Override
-    public Envelope getEnvelope() throws ConstellationStoreException {
-        return null;
-    }
-
-    @Override
-    public DataType getDataType() {
-        return DataType.OTHER;
-    }
-
-    @Override
-    public String getResourceCRSName() throws ConstellationStoreException {
-        return null;
-    }
+    Data create(final String dataName, Date version, final DataStore store, final Resource rs) throws DataStoreException;
 
 }

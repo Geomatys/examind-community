@@ -14,7 +14,8 @@
   org.constellation.map.configuration,
   org.constellation.ws.rs,
   org.constellation.scheduler,
-  org.constellation.ws.component" />
+  org.constellation.ws.component,
+  com.examind.provider.component" />
 
   <tx:annotation-driven transaction-manager="transactionManager" />
 

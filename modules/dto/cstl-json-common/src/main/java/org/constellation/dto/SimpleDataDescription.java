@@ -23,12 +23,16 @@ package org.constellation.dto;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class ObservationDataDescription implements DataDescription {
+public class SimpleDataDescription implements DataDescription {
 
-    private double[] boundingBox;
+    protected double[] boundingBox;
 
-    public ObservationDataDescription() {
+    public SimpleDataDescription() {
         this.boundingBox = new double[]{-180,-90,180,90};
+    }
+
+    public SimpleDataDescription(double[] boundingBox) {
+        this.boundingBox = boundingBox;
     }
 
     @Override
