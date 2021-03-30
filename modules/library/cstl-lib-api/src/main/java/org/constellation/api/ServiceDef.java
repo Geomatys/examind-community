@@ -83,7 +83,10 @@ public enum ServiceDef {
     TILES3D(Specification.TILES3D, Organization.OGC, "1.0.0", Profile.NONE, null, true, true),
 
     // QuantizedMesh service definitions
-    QUANTIZEDMESH(Specification.QUANTIZEDMESH, Organization.NONE, "1.0.0", Profile.NONE, null, true, true);
+    QUANTIZEDMESH(Specification.QUANTIZEDMESH, Organization.NONE, "1.0.0", Profile.NONE, null, true, true),
+
+    // VTS service definitions
+    VTS(Specification.VTS, Organization.NONE, "1.0.0", Profile.NONE, null, true, true);
 
     /**
      * Name of the specification.
@@ -206,7 +209,8 @@ public enum ServiceDef {
         TMS("Tile Map Service"),
         STS("Sensor Things Service"),
         TILES3D("3DTiles"),
-        QUANTIZEDMESH("QuantizedMesh");
+        QUANTIZEDMESH("QuantizedMesh"),
+        VTS("VTS");
 
         public final String fullName;
 
@@ -243,6 +247,8 @@ public enum ServiceDef {
                 return TILES3D;
             } else if (QUANTIZEDMESH.name().equalsIgnoreCase(shortName)) {
                 return QUANTIZEDMESH;
+            } else if (VTS.name().equalsIgnoreCase(shortName)) {
+                return VTS;
             } else if (STS.name().equalsIgnoreCase(shortName)) {
                 return STS;
             }
@@ -255,7 +261,7 @@ public enum ServiceDef {
                  ||this.equals(Specification.WCS)  ||this.equals(Specification.SOS)
                  ||this.equals(Specification.WPS)
                  ||this.equals(Specification.STS)  ||this.equals(Specification.TILES3D)
-                 ||this.equals(Specification.QUANTIZEDMESH);
+                 ||this.equals(Specification.QUANTIZEDMESH)||this.equals(Specification.VTS);
         }
 
         public boolean supportedWXS() {
