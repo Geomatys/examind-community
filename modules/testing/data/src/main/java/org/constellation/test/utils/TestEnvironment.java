@@ -86,6 +86,11 @@ public final class TestEnvironment {
     public enum TestResource {
 
         /**
+         * Full directory of images (needed for proper deployement of all the associated image files)
+         */
+        IMAGES("org/constellation/data/image", null, null),
+        
+        /**
          * Coverage file datastore with PNG file.
          * 
          *  data :
