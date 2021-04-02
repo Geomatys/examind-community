@@ -53,7 +53,6 @@ import org.opengis.util.GenericName;
 
 import static com.examind.store.observation.FileParsingUtils.*;
 import com.examind.store.observation.FileParsingObservationStore;
-import com.examind.store.observation.MeasureBuilder;
 import com.examind.store.observation.ObservationBlock;
 
 /**
@@ -82,8 +81,8 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
      */
     public CsvObservationStore(final Path observationFile, final char separator, final char quotechar, final FeatureType featureType,
             final String mainColumn, final String dateColumn, final String dateTimeformat, final String longitudeColumn, final String latitudeColumn,
-            final Set<String> measureColumns, String observationType, String foiColumn, final String procedureId, final String procedureColumn, final boolean extractUom) throws DataStoreException, MalformedURLException {
-        super(observationFile, separator, quotechar, featureType, mainColumn, dateColumn, dateTimeformat, longitudeColumn, latitudeColumn, measureColumns, observationType, foiColumn, procedureId, procedureColumn, extractUom);
+            final Set<String> measureColumns, String observationType, String foiColumn, final String procedureId, final String procedureColumn, final String zColumn, final boolean extractUom) throws DataStoreException, MalformedURLException {
+        super(observationFile, separator, quotechar, featureType, mainColumn, dateColumn, dateTimeformat, longitudeColumn, latitudeColumn, measureColumns, observationType, foiColumn, procedureId, procedureColumn, zColumn, extractUom);
     }
 
     @Override
@@ -206,9 +205,6 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 String currentProc                    = null;
                 Long currentTime                      = null;
 
-                // measure map used to collect measure data then construct the MeasureStringBuilder
-                final MeasureBuilder template = new MeasureBuilder("Profile".equals(observationType), measureFields, mainColumn);
-
                 while (it.hasNext()) {
                     lineNumber++;
                     final String[] line = it.next();
@@ -245,7 +241,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                         }
                     }
 
-                    ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentFoi, currentTime, template);
+                    ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentFoi, currentTime, measureFields, mainColumn, observationType);
 
                     /*
                     a- build spatio-temporal information

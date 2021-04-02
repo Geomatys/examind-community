@@ -17,7 +17,6 @@
 
 package com.examind.store.observation.csvflat;
 
-import com.examind.store.observation.MeasureBuilder;
 import com.examind.store.observation.ObservationBlock;
 import com.opencsv.CSVReader;
 import org.apache.sis.geometry.GeneralDirectPosition;
@@ -86,9 +85,9 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
      */
     public CsvFlatObservationStore(final Path observationFile, final char separator, final char quotechar, final FeatureType featureType,
                                        final String mainColumn, final String dateColumn, final String dateTimeformat, final String longitudeColumn, final String latitudeColumn,
-                                       final Set<String> measureColumns, String observationType, String foiColumn, final String procedureId, final String procedureColumn,
+                                       final Set<String> measureColumns, String observationType, String foiColumn, final String procedureId, final String procedureColumn, final String zColumn,
                                        final boolean extractUom, final String valueColumn, final Set<String> codeColumns, final String typeColumn) throws DataStoreException, MalformedURLException {
-        super(observationFile, separator, quotechar, featureType, mainColumn, dateColumn, dateTimeformat, longitudeColumn, latitudeColumn, measureColumns, observationType, foiColumn, procedureId, procedureColumn, extractUom);
+        super(observationFile, separator, quotechar, featureType, mainColumn, dateColumn, dateTimeformat, longitudeColumn, latitudeColumn, measureColumns, observationType, foiColumn, procedureId, procedureColumn, zColumn, extractUom);
         this.valueColumn = valueColumn;
         this.codeColumns = codeColumns;
         this.typeColumn = typeColumn;
@@ -138,13 +137,13 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     }
                 }
                 
-                final String obsTypeCode = getObsTypeCode();
+                final List<String> obsTypeCodes = getObsTypeCodes();
                 while (it.hasNext()) {
                     final String[] line = it.next();
                     if (procIndex != -1) {
                         // checks if row matches the observed data types
                         if (typeColumnIndex != -1) {
-                            if (!line[typeColumnIndex].equals(obsTypeCode)) continue;
+                            if (!obsTypeCodes.contains(line[typeColumnIndex])) continue;
                         }
                         result.add(NamesExt.create(procedureId + line[procIndex]));
                     }
@@ -181,6 +180,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 int latitudeIndex = -1;
                 int longitudeIndex = -1;
                 int foiIndex = -1;
+                int zIndex = -1;
                 int procIndex = -1;
                 int valueColumnIndex = -1;
                 List<Integer> codeColumnIndexes = new ArrayList<>();
@@ -222,6 +222,9 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     if (header.equals(procedureColumn)) {
                         procIndex = i;
                     }
+                    if (header.equals(zColumn)) {
+                        zIndex = i;
+                    }
                 }
 
                 if (codeColumnIndexes.isEmpty()) {
@@ -230,7 +233,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 if (valueColumnIndex == -1) {
                     throw new DataStoreException("Unexpected column value:" + valueColumn);
                 }
-                if (mainIndex == -1) {
+                if (mainIndex == -1 && observationType != null) {
                     throw new DataStoreException("Unexpected column main:" + mainColumn);
                 }
 
@@ -253,11 +256,10 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 String currentFoi                     = null;
                 String currentProc                    = null;
                 Long currentTime                      = null;
-                final String obsTypeCode              = getObsTypeCode();
+                String currentMainColumn              = mainColumn;
+                String currentObstType                = observationType;
+                final List<String> obsTypeCodes       = getObsTypeCodes();
                 
-                // measure map used to collect measure data then construct the MeasureStringBuilder
-                final MeasureBuilder template = new MeasureBuilder(obsTypeCode.equals("PR"), sortedMeasureColumns, mainColumn);
-
                 while (it.hasNext()) {
                     lineNumber++;
                     final String[] line = it.next();
@@ -269,8 +271,20 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     }
                     
                     // checks if row matches the observed data types
-                    if (typeColumnIndex!=-1 && !line[typeColumnIndex].equals(obsTypeCode)) continue;
-                    
+                    if (typeColumnIndex!=-1) {
+                        if (!obsTypeCodes.contains(line[typeColumnIndex])) continue;
+                        if (observationType == null) {
+                            currentObstType = getObservationTypeFromCode(line[typeColumnIndex]);
+                            if (currentObstType.equals("Profile")) {
+                                mainIndex = zIndex;
+                                currentMainColumn = zColumn;
+                            } else {
+                                mainIndex = dateIndex;
+                                currentMainColumn = dateColumn;
+                            }
+                        }
+                    }
+
                     // look for current procedure (for observation separation)
                     if (procIndex != -1) {
                         currentProc = procedureId + line[procIndex];
@@ -295,6 +309,8 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                             LOGGER.warning(String.format("Problem parsing date for date field at line %d and column %d (value='%s'). skipping line...", lineNumber, dateIndex, line[dateIndex]));
                             continue;
                         }
+                    } else {
+                        currentTime = null;
                     }
 
                     // Concatenate values from input code columns
@@ -313,7 +329,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                         continue;
                     }
 
-                    ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentFoi, currentTime, template);
+                    ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentFoi, currentTime, sortedMeasureColumns, currentMainColumn, currentObstType);
 
                     // update temporal interval
                     Long millis = null;
@@ -344,7 +360,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     Number mainValue;
                     try {
                          // assume that for profile main field is a double
-                        if (obsTypeCode.equals("PR")) {
+                        if (currentObstType.equals("Profile")) {
                             mainValue = parseDouble(line[mainIndex]);
 
                         // assume that is a date otherwise
@@ -473,11 +489,12 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     }
                 }
 
-                final String obsTypeCode   = getObsTypeCode();
-                List<ProcedureTree> result = new ArrayList<>();
-                String currentProc          = null;
-                String previousProc         = null;
-                ProcedureTree procedureTree = null;
+                final List<String> obsTypeCodes = getObsTypeCodes();
+                List<ProcedureTree> result      = new ArrayList<>();
+                String currentObstType          = observationType;
+                String currentProc              = null;
+                String previousProc             = null;
+                ProcedureTree procedureTree     = null;
                 while (it.hasNext()) {
                     final String[] line   = it.next();
                     AbstractGeometry geom = null;
@@ -485,18 +502,19 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     
                     // checks if row matches the observed data types
                     if (typeColumnIndex != -1) {
-                        if (!line[typeColumnIndex].equals(obsTypeCode)) continue;
+                        if (!obsTypeCodes.contains(line[typeColumnIndex])) continue;
+                        currentObstType = getObservationTypeFromCode(line[typeColumnIndex]);
                     }
 
                     if (procedureIndex != -1) {
                         currentProc = procedureId + line[procedureIndex];
                         if (!currentProc.equals(previousProc)) {
-                            procedureTree = new ProcedureTree(currentProc, PROCEDURE_TREE_TYPE, observationType.toLowerCase(), measureColumns);
+                            procedureTree = new ProcedureTree(currentProc, PROCEDURE_TREE_TYPE, currentObstType.toLowerCase(), measureColumns);
                             result.add(procedureTree);
                         }
 
                     } else if (procedureTree == null) {
-                        procedureTree = new ProcedureTree(getProcedureID(), PROCEDURE_TREE_TYPE, observationType.toLowerCase(), measureColumns);
+                        procedureTree = new ProcedureTree(getProcedureID(), PROCEDURE_TREE_TYPE, currentObstType.toLowerCase(), measureColumns);
                         result.add(procedureTree);
                     }
 
@@ -533,12 +551,30 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
         }
     }
 
-    private String getObsTypeCode() {
+    /**
+     * return the allowed values for the "typeColumn".
+     * Dependending if the parameter ObservationType is null or not,
+     *
+     * @return
+     */
+    private List<String> getObsTypeCodes() {
+        if (observationType == null) {
+            return Arrays.asList("TS", "TR", "PR");
+        }
         switch (observationType) {
-            case "Timeserie" : return "TS";
-            case "Trajectory": return "TR";
-            case "Profile"   : return "PR";
+            case "Timeserie" : return Arrays.asList("TS");
+            case "Trajectory": return Arrays.asList("TR");
+            case "Profile"   : return Arrays.asList("PR");
             default: throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
+        }
+    }
+
+    private String getObservationTypeFromCode(String code) {
+        switch (code) {
+            case "TS" : return "Timeserie";
+            case "TR" : return "Trajectory";
+            case "PR" : return "Profile";
+            default: throw new IllegalArgumentException("Unexpected observation type code:" + code + ". Allowed values are TS, TR, PR.");
         }
     }
 }

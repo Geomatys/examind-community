@@ -56,7 +56,6 @@ import java.util.Collections;
 import org.apache.sis.internal.storage.query.SimpleQuery;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
-import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.SensorReference;
 import org.constellation.dto.importdata.FileBean;
 import org.constellation.dto.importdata.ResourceAnalysisV3;
@@ -67,7 +66,6 @@ import org.constellation.provider.ObservationProvider;
 import org.geotoolkit.observation.xml.AbstractObservation;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.sampling.SamplingFeature;
-import static com.examind.store.observation.csvflat.CsvFlatUtils.csvFlatProviderForPath;
 
 /**
  * Moissonnage de données de capteur au format csv et publication dans un service SOS
@@ -115,14 +113,6 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
         final String storeId = inputParameters.getValue(STORE_ID);
         final String format = inputParameters.getValue(FORMAT);
-        final String valueColumn = inputParameters.getValue(VALUE_COLUMN);
-        final List<String> codeColumns = new ArrayList<>();
-        for (GeneralParameterValue param : inputParameters.values()) {
-            if (param.getDescriptor().getName().getCode().equals(CODE_COLUMN.getName().getCode())) {
-                codeColumns.add(((ParameterValue)param).stringValue());
-            }
-        }
-        final String typeColumn = inputParameters.getValue(TYPE_COLUMN);
 
         /*
         1- Récupération des paramètres du process
@@ -133,7 +123,6 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final String pwd  = inputParameters.getValue(PWD);
         final boolean remoteRead = inputParameters.getValue(REMOTE_READ);
         final boolean extractUom = inputParameters.getValue(EXTRACT_UOM);
-
 
         final List<ServiceProcessReference> services = new ArrayList<>();
         for (GeneralParameterValue param : inputParameters.values()) {
@@ -156,9 +145,17 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final String latitudeColumn = inputParameters.getValue(LATITUDE_COLUMN);
         final String foiColumn = inputParameters.getValue(FOI_COLUMN);
         final String observationType = inputParameters.getValue(OBS_TYPE);
+        final String zColumn    = inputParameters.getValue(Z_COLUMN);
         
         // csv-flat special
-        final String zColumn = inputParameters.getValue(Z_COLUMN);
+        final String typeColumn = inputParameters.getValue(TYPE_COLUMN);
+        final String valueColumn = inputParameters.getValue(VALUE_COLUMN);
+        final List<String> codeColumns = new ArrayList<>();
+        for (GeneralParameterValue param : inputParameters.values()) {
+            if (param.getDescriptor().getName().getCode().equals(CODE_COLUMN.getName().getCode())) {
+                codeColumns.add(((ParameterValue)param).stringValue());
+            }
+        }
 
         // prepare the results
         int nbFileInserted = 0;
@@ -171,10 +168,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             }
         }
         
-        boolean csvFlatMulti = storeId.equals("observationCsvFlatFile") && observationType == null;
-        
         if (observationType == null && !storeId.equals("observationCsvFlatFile")) {
-            throw new ProcessException("The observation type can't be null except for csvFlat store", this);
+            throw new ProcessException("The observation type can't be null except for csvFlat store with type column", this);
         }
 
         /*
@@ -213,20 +208,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                 Set<Integer> providers = new HashSet<>();
                 List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(dsId, Integer.MAX_VALUE);
                 for (DataSourceSelectedPath path : paths) {
-                    if (csvFlatMulti) {
-                        // hack to remove the multiple providers created in csvFlat multi mode.
-                        if (path.getProviderId() != null && path.getProviderId() != -1) {
-                            ProviderBrief pr = providerBusiness.getProvider(path.getProviderId());
-                            if (pr != null) {
-                                providers.addAll(csvFlatProviderForPath(pr.getConfig(), providerBusiness));
-                            } else {
-                                LOGGER.warning("Inconsistency in database, a datasource path point to an unexisting provider");
-                            }
-                        }
-                    } else {
-                        if (path.getProviderId() != null && path.getProviderId() != -1) {
-                            providers.add(path.getProviderId());
-                        }
+                    if (path.getProviderId() != null && path.getProviderId() != -1) {
+                        providers.add(path.getProviderId());
                     }
                 }
 
@@ -317,6 +300,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             provConfig.getParameters().put(FileParsingObservationStoreFactory.VALUE_COLUMN.getName().toString(), valueColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.CODE_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(codeColumns));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.TYPE_COLUMN.getName().toString(), typeColumn);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.Z_COLUMN.getName().toString(), zColumn);
 
             try {
                 datasourceBusiness.computeDatasourceStores(dsId, false, storeId, true);
@@ -348,23 +332,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                             break;
                         default:
                             fireAndLog("Integrating data file: " + p.getPath(), 0);
-                            // special case for csvFlat, if the observation type is null so we create a provider for each type
-                            if (csvFlatMulti) {
-                                provConfig.getParameters().put(FileParsingObservationStoreFactory.OBSERVATION_TYPE.getName().toString(), "Profile");
-                                provConfig.getParameters().put(FileParsingObservationStoreFactory.MAIN_COLUMN.getName().toString(), zColumn);
-                                dataToIntegrate.addAll(integratingDataFile(p, dsId, provConfig, datasetId));
-                                
-                                provConfig.getParameters().put(FileParsingObservationStoreFactory.OBSERVATION_TYPE.getName().toString(), "Timeserie");
-                                provConfig.getParameters().put(FileParsingObservationStoreFactory.MAIN_COLUMN.getName().toString(), dateColumn);
-                                dataToIntegrate.addAll(integratingDataFile(p, dsId, provConfig, datasetId));
-                                
-                                provConfig.getParameters().put(FileParsingObservationStoreFactory.OBSERVATION_TYPE.getName().toString(), "Trajectory");
-                                provConfig.getParameters().put(FileParsingObservationStoreFactory.MAIN_COLUMN.getName().toString(), dateColumn);
-                                dataToIntegrate.addAll(integratingDataFile(p, dsId, provConfig, datasetId));
-                                
-                            } else {
-                                dataToIntegrate.addAll(integratingDataFile(p, dsId, provConfig, datasetId));
-                            }
+                            dataToIntegrate.addAll(integratingDataFile(p, dsId, provConfig, datasetId));
                             nbFileInserted++;
                     }
                 }

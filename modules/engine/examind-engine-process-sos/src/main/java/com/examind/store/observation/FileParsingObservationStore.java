@@ -84,6 +84,8 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
     protected final String longitudeColumn;
     // latitude column expected header
     protected final String latitudeColumn;
+    // depth column expected header
+    protected final String zColumn;
 
     // Feature Of interest Column (Optionnal)
     protected final String foiColumn;
@@ -105,7 +107,7 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
     public FileParsingObservationStore(final Path f, final char separator, final char quotechar, FeatureType ft, 
             final String mainColumn, final String dateColumn, final String dateTimeformat, final String longitudeColumn,
             final String latitudeColumn, final Set<String> measureColumns, String observationType, String foiColumn,
-            final String procedureId, final String procedureColumn, final boolean extractUom) throws MalformedURLException, DataStoreException{
+            final String procedureId, final String procedureColumn, final String zColumn, final boolean extractUom) throws MalformedURLException, DataStoreException{
         super(f, separator, ft);
         this.dataFile = f;
         this.delimiter = separator;
@@ -119,6 +121,7 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
         this.observationType = observationType;
         this.foiColumn = foiColumn;
         this.procedureColumn = procedureColumn;
+        this.zColumn = zColumn;
         this.extractUom = extractUom;
 
         if (procedureId == null && procedureColumn == null) {
@@ -220,12 +223,13 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
 
     protected final Map<String, ObservationBlock> observationBlock = new HashMap<>();
 
-    protected ObservationBlock getOrCreateObservationBlock(String procedureId, String foiID, Long time, MeasureBuilder cmb) {
+    protected ObservationBlock getOrCreateObservationBlock(String procedureId, String foiID, Long time, List<String> measureColumns, String mainColumn, String observationType) {
         String key = procedureId + '-' + foiID + '-' + time;
         if (observationBlock.containsKey(key)) {
             return observationBlock.get(key);
         } else {
-            ObservationBlock ob = new ObservationBlock(procedureId, foiID, cmb.clone());
+            MeasureBuilder cmb = new MeasureBuilder(observationType.equals("Profile"), measureColumns, mainColumn);
+            ObservationBlock ob = new ObservationBlock(procedureId, foiID, cmb, observationType);
             observationBlock.put(key, ob);
             return ob;
         }
@@ -238,7 +242,7 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
         List<String> filteredMeasure = ob.getUsedFields();
 
         if (filteredMeasure.isEmpty() ||
-            ("Profile".equals(observationType) && filteredMeasure.size() == 1)) {
+            ("Profile".equals(ob.observationType) && filteredMeasure.size() == 1)) {
             LOGGER.log(Level.FINE, "no measure available for {0}", ob.procedureId);
             return;
         }
@@ -275,11 +279,11 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
         }
 
         final AbstractDataRecord datarecord;
-        switch (observationType) {
+        switch (ob.observationType) {
             case "Timeserie" : datarecord = OMUtils.getDataRecordTimeSeries("2.0.0", fields);break;
             case "Trajectory": datarecord = getDataRecordTrajectory("2.0.0", fields); break;
             case "Profile"   : datarecord = getDataRecordProfile("2.0.0", fields);break;
-            default: throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
+            default: throw new IllegalArgumentException("Unexpected observation type:" + ob.observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
         }
 
         // Construction du measureStringBuilder à partir des données collectées dans le hashmap
@@ -309,7 +313,7 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
         }
 
         // build procedure tree
-        final ProcedureTree procedure = getOrCreateProcedureTree(result, ob.procedureId, PROCEDURE_TREE_TYPE, observationType.toLowerCase());
+        final ProcedureTree procedure = getOrCreateProcedureTree(result, ob.procedureId, PROCEDURE_TREE_TYPE, ob.observationType.toLowerCase());
         for (Map.Entry<Long, List<DirectPosition>> entry : ob.getHistoricalPositions()) {
             procedure.spatialBound.addLocation(new Date(entry.getKey()), buildGeom(entry.getValue()));
         }

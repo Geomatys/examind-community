@@ -280,6 +280,11 @@ public class OdataFilterParser {
     }
 
     public static Object parseObjectValue(String to) throws CstlServiceException {
+        // look for quoted value
+        if ((to.startsWith("'") && to.endsWith("'")) ||
+            (to.startsWith("\"") && to.endsWith("\""))) {
+            return to.substring(1, to.length() -1);
+        }
         try {
             return Double.parseDouble(to);
         } catch (NumberFormatException ex) {

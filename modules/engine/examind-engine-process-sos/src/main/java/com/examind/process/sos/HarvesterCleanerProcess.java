@@ -39,7 +39,6 @@ import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.beans.factory.annotation.Autowired;
-import static com.examind.store.observation.csvflat.CsvFlatUtils.csvFlatProviderForPath;
 
 /**
  *
@@ -71,9 +70,6 @@ public class HarvesterCleanerProcess extends AbstractCstlProcess {
         final String storeId = inputParameters.getValue(STORE_ID);
         final String observationType = inputParameters.getValue(OBS_TYPE);
         
-        
-        boolean csvFlatMulti = storeId.equals("observationCsvFlatFile") && observationType == null;
-        
         final int dsId;
         DataSource ds = datasourceBusiness.getByUrl(sourceFolderStr);
         if (ds == null) {
@@ -88,20 +84,8 @@ public class HarvesterCleanerProcess extends AbstractCstlProcess {
             Set<Integer> providers = new HashSet<>();
             List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(dsId, Integer.MAX_VALUE);
             for (DataSourceSelectedPath path : paths) {
-                if (csvFlatMulti) {
-                    // hack to remove the multiple providers created in flat multi mode.
-                    if (path.getProviderId() != null && path.getProviderId() != -1) {
-                        ProviderBrief pr = providerBusiness.getProvider(path.getProviderId());
-                        if (pr != null) {
-                            providers.addAll(csvFlatProviderForPath(pr.getConfig(), providerBusiness));
-                        } else {
-                            throw new ProcessException("Inconsistency in database, a datasource path point to an unexisting provider", this);
-                        }
-                    }
-                } else {
-                    if (path.getProviderId() != null && path.getProviderId() != -1) {
-                        providers.add(path.getProviderId());
-                    }
+                if (path.getProviderId() != null && path.getProviderId() != -1) {
+                    providers.add(path.getProviderId());
                 }
             }
 

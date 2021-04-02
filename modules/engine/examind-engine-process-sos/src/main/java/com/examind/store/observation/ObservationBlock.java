@@ -42,18 +42,21 @@ public class ObservationBlock {
 
     public String featureID;
 
+    public String observationType;
+
     private Positions positions;
 
     public MeasureBuilder cmb;
     
     public GeoSpatialBound currentSpaBound;
 
-    public ObservationBlock(String procedureId, String featureID, MeasureBuilder cmb) {
+    public ObservationBlock(String procedureId, String featureID, MeasureBuilder cmb, String observationType) {
         this.procedureId = procedureId;
         this.featureID = featureID;
         this.cmb = cmb;
         this.currentSpaBound = new GeoSpatialBound();
         this.positions = new Positions();
+        this.observationType = observationType;
     }
 
     public void addPosition(Long millis, double latitude, double longitude) {

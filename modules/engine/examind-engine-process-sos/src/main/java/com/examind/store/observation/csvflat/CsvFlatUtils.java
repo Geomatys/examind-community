@@ -37,27 +37,6 @@ import org.constellation.util.Util;
 public class CsvFlatUtils {
     private static final Logger LOGGER = Logging.getLogger("com.examind.store.observation.csvflat");
 
-    /**
-     * hack method to find multiple csvFLat provider on the same file.
-     * 
-     * this is dirty, i know
-     */
-    public static List<Integer> csvFlatProviderForPath(String config, IProviderBusiness providerBusiness) {
-        List<Integer> results = new ArrayList<>();
-        int start = config.indexOf("<location>");
-        int stop = config.indexOf("<location>");
-        if (start != -1 && stop != -1) {
-            String location = config.substring(start, stop);
-            for (ProviderBrief pr : providerBusiness.getProviders()) {
-                if (pr.getIdentifier().startsWith("observationCsvFlatFile") &&
-                    pr.getConfig().contains(location)) {
-                    results.add(pr.getId());
-                }
-            }
-        }
-        return results;
-    }
-
     public static Set<String> extractCodes(Path dataFile, Collection<String> measureCodeColumns, char separator) throws ConstellationStoreException {
         try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), separator)) {
 

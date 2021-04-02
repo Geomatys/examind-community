@@ -113,7 +113,7 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
     public static final ParameterDescriptor<String> OBSERVATION_TYPE = PARAM_BUILDER
             .addName("Observation type")
             .setRequired(false)
-            .createEnumerated(String.class, new String[]{"Timeserie", "Trajectory", "Profile"}, "Timeserie");
+            .createEnumerated(String.class, new String[]{"Timeserie", "Trajectory", "Profile"}, null);
 
     public static final ParameterDescriptor<String> PROCEDURE_ID = PARAM_BUILDER
             .addName("Assigned procedure id")
@@ -122,6 +122,11 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
 
     public static final ParameterDescriptor<String> PROCEDURE_COLUMN = PARAM_BUILDER
             .addName("extracted procedure column")
+            .setRequired(false)
+            .create(String.class, null);
+
+    public static final ParameterDescriptor<String> Z_COLUMN = PARAM_BUILDER
+            .addName("z column")
             .setRequired(false)
             .create(String.class, null);
 

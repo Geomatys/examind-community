@@ -54,8 +54,8 @@ public class MeasureBuilder {
         this.mainColumn = mainColumn;
     }
 
-    public MeasureBuilder(MeasureBuilder cmb) {
-        this.isProfile = cmb.isProfile;
+    public MeasureBuilder(MeasureBuilder cmb, boolean isProfile) {
+        this.isProfile = isProfile;
         this.measureColumns =  cmb.measureColumns;
         this.mainColumn =  cmb.mainColumn;
     }
@@ -151,12 +151,6 @@ public class MeasureBuilder {
     public int getMeasureCount() {
         return mmb.size();
     }
-     
-    @Override
-    public MeasureBuilder clone() {
-        return new MeasureBuilder(this);
-    }
-     
      
     private static class MainColumnComparator implements Comparator<Number> {
 
