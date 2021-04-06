@@ -18,15 +18,15 @@
  */
 package org.constellation.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.io.Serializable;
 import java.util.List;
-import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-@XmlRootElement
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserWithRole extends CstlUser implements Serializable {
 
     private List<String> roles;

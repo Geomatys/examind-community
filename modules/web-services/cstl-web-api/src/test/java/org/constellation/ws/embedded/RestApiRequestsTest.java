@@ -50,6 +50,7 @@ import static org.constellation.api.StatisticState.*;
 import org.constellation.business.IUserBusiness;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.Page;
+import org.constellation.dto.PagedSearch;
 import org.constellation.dto.SensorReference;
 import org.constellation.dto.StatInfo;
 import org.constellation.provider.DefaultCoverageData;
@@ -240,7 +241,7 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
 
         long nbUsers = userBusiness.countUser();
 
-        final URL request = new URL("http://localhost:" + getCurrentPort() + "/API/users");
+        URL request = new URL("http://localhost:" + getCurrentPort() + "/API/users");
         Object o = unmarshallJsonResponse(request, Page.class);
         Assert.assertTrue(o instanceof Page);
         Page p = (Page) o;
@@ -270,6 +271,19 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
         Assert.assertTrue(o instanceof Page);
         p = (Page) o;
 
+        Assert.assertEquals(nbUsers + 2, p.getTotal());
+
+        // test the search method
+        con = request.openConnection();
+        request = new URL("http://localhost:" + getCurrentPort() + "/API/users/search");
+        PagedSearch ps = new PagedSearch(1, 30);
+
+        postJsonRequestObject(request.openConnection(), ps);
+        o = unmarshallJsonResponse(con, Page.class);
+        Assert.assertTrue(o instanceof Page);
+        p = (Page) o;
+
+        Assert.assertEquals(nbUsers + 2, p.getContent().size());
         Assert.assertEquals(nbUsers + 2, p.getTotal());
 
     }

@@ -131,8 +131,8 @@ public class UserBusiness implements IUserBusiness {
     }
 
     @Override
-    public List<UserWithRole> search(String search, int size, int page, String sortFieldName, String order) {
-        return userRepository.search(search, size, page, sortFieldName, order);
+    public List<UserWithRole> search(String search, int size, int page, String sortFieldName, String order, List<String> fields) {
+        return userRepository.search(search, size, page, sortFieldName, order, fields);
     }
 
     @Override

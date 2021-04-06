@@ -101,7 +101,7 @@ public class UserRestAPI extends AbstractRestAPI {
             final Page page = new Page<UserWithRole>()
                             .setNumber(pagedSearch.getPage())
                             .setSize(pagedSearch.getSize())
-                            .setContent(userBusiness.search(text, size, pageIndex, sortFieldName, sortOrder))
+                            .setContent(userBusiness.search(text, size, pageIndex, sortFieldName, sortOrder, pagedSearch.getFields()))
                             .setTotal(userBusiness.searchCount(text));
 
             return new ResponseEntity(page, OK);

@@ -22,6 +22,7 @@ import static org.constellation.database.api.jooq.Tables.CSTL_USER;
 import static org.constellation.database.api.jooq.Tables.USER_X_ROLE;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -210,7 +211,7 @@ public class JooqUserRepository extends
             return Optional.empty();
         }
 
-        List<UserWithRole> users = mapUserWithRole(fetchGroups);
+        List<UserWithRole> users = mapUserWithRole(fetchGroups, true);
         return Optional.of(users.get(0));
     }
 
@@ -226,7 +227,7 @@ public class JooqUserRepository extends
                 .from(CSTL_USER).join(Tables.USER_X_ROLE).onKey().where(CSTL_USER.ACTIVE.isTrue())
                 .fetchGroups(CSTL_USER);
 
-        return mapUserWithRole(fetchGroups);
+        return mapUserWithRole(fetchGroups, true);
     }
 
     /**
@@ -241,32 +242,29 @@ public class JooqUserRepository extends
      * @return
      */
     @Override
-    public List<UserWithRole> search(String search, int size, int page, String sortFieldName, String order) {
+    public List<UserWithRole> search(String search, int size, int page, String sortFieldName, String order, List<String> fields) {
         //prepare sort
         SortField<?> sortField = null;
         if (sortFieldName != null && !sortFieldName.isEmpty()) {
-            String[] fieldMapping = sortFieldName.split("\\.");
-            if (fieldMapping.length == 2) {
-                String tableName = fieldMapping[0], attributeName = fieldMapping[1];
-                Field<?> field = null;
-
-                if ("user_x_role".equals(tableName)) {
-                    field = USER_X_ROLE.field(attributeName);
-                } else if ("cstl_user".equals(tableName)) {
-                    field = CSTL_USER.field(attributeName);
-                }
-
-                if (field != null) {
-                    sortField = field.sort(SortOrder.valueOf(order));
-                } else {
-                    LOGGER.warning("Sort on " + sortFieldName + " is not supported.");
-                }
-            } else {
-                LOGGER.warning("Wrong sort value : " + sortFieldName + ", expected 'TABLE.ATTRIBUTE'");
+            Field<?> field = getFieldFromString(sortFieldName);
+            if (field != null) {
+                sortField = field.sort(SortOrder.valueOf(order));
             }
         }
-
-        Map<CstlUserRecord, Result<Record>> result = dsl.select().from(CSTL_USER)
+        List<Field<?>> tableFields;
+        if (fields == null || fields.isEmpty()) {
+            tableFields = new ArrayList<>(Arrays.asList(CSTL_USER.fields()));
+            tableFields.add(Tables.USER_X_ROLE.ROLE);
+        } else {
+            tableFields = new ArrayList<>();
+            for (String field : fields) {
+                Field f = getFieldFromString(field);
+                if (f != null) {
+                    tableFields.add(f);
+                }
+            }
+        }
+        Map<CstlUserRecord, Result<Record>> result = dsl.select(tableFields).from(CSTL_USER)
                 .leftOuterJoin(USER_X_ROLE).on(CSTL_USER.ID.eq(USER_X_ROLE.USER_ID))
                 .where(CSTL_USER.LOGIN.like(getLikePattern(search)))
                 .orderBy(sortField)
@@ -274,7 +272,29 @@ public class JooqUserRepository extends
                 .offset((page - 1) * size)
                 .fetchGroups(CSTL_USER);
 
-        return mapUserWithRole(result);
+        return mapUserWithRole(result, tableFields.contains(Tables.USER_X_ROLE.ROLE));
+    }
+
+    private Field getFieldFromString(String fieldName) {
+        Field<?> result = null;
+        if (fieldName != null && !fieldName.isEmpty()) {
+            String[] fieldMapping = fieldName.split("\\.");
+            if (fieldMapping.length == 2) {
+                String tableName = fieldMapping[0], attributeName = fieldMapping[1];
+                if ("user_x_role".equals(tableName)) {
+                    result = USER_X_ROLE.field(attributeName);
+                } else if ("cstl_user".equals(tableName)) {
+                    result = CSTL_USER.field(attributeName);
+                }
+
+                if (result == null) {
+                    LOGGER.warning("unknown table field " + fieldName);
+                }
+            } else {
+                LOGGER.warning("Wrong sort value : " + fieldName + ", expected 'TABLE.ATTRIBUTE'");
+            }
+        }
+        return result;
     }
 
     @Override
@@ -294,7 +314,7 @@ public class JooqUserRepository extends
             return Optional.empty();
         }
 
-        List<UserWithRole> users = mapUserWithRole(fetchGroups);
+        List<UserWithRole> users = mapUserWithRole(fetchGroups, true);
         return Optional.of(users.get(0));
 
     }
@@ -309,25 +329,22 @@ public class JooqUserRepository extends
             return Optional.empty();
         }
 
-        List<UserWithRole> users = mapUserWithRole(fetchGroups);
+        List<UserWithRole> users = mapUserWithRole(fetchGroups, true);
         return Optional.of(users.get(0));
 
     }
 
-    private List<UserWithRole> mapUserWithRole(
-            Map<CstlUserRecord, Result<Record>> fetchGroups) {
+    private List<UserWithRole> mapUserWithRole(Map<CstlUserRecord, Result<Record>> records, boolean fetchGroup) {
 
         List<UserWithRole> ret = new ArrayList<>();
-
-        for (Map.Entry<CstlUserRecord, Result<Record>> e : fetchGroups
-                .entrySet()) {
+        for (Map.Entry<CstlUserRecord, Result<Record>> e : records.entrySet()) {
             UserWithRole userWithRole = e.getKey().into(UserWithRole.class);
-            List<String> roles = e.getValue()
-                    .getValues(Tables.USER_X_ROLE.ROLE);
-            userWithRole.setRoles(roles);
+            if (fetchGroup) {
+                List<String> roles = e.getValue().getValues(Tables.USER_X_ROLE.ROLE);
+                userWithRole.setRoles(roles);
+            }
             ret.add(userWithRole);
         }
-
         return ret;
     }
 
@@ -340,7 +357,7 @@ public class JooqUserRepository extends
         if (fetchGroups.isEmpty()) {
             return Optional.empty();
         }
-        List<UserWithRole> users = mapUserWithRole(fetchGroups);
+        List<UserWithRole> users = mapUserWithRole(fetchGroups, true);
         return Optional.of(users.get(0));
     }
 

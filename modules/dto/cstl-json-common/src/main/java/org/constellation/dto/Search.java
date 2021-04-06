@@ -30,7 +30,6 @@ public class Search implements Serializable {
 
     private static final long serialVersionUID = -7232172879137209804L;
 
-
     private String text;
 
     @Valid
@@ -38,7 +37,7 @@ public class Search implements Serializable {
 
     private List<Filter> filters;
 
-    private String[] fields;
+    private List<String> fields;
 
     public Search() {}
 
@@ -66,11 +65,11 @@ public class Search implements Serializable {
         this.filters = filters;
     }
 
-    public String[] getFields() {
+    public List<String> getFields() {
         return fields;
     }
 
-    public void setFields(String[] fields) {
+    public void setFields(List<String> fields) {
         this.fields = fields;
     }
     

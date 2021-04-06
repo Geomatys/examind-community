@@ -65,7 +65,7 @@ public interface IUserBusiness {
 
     List<UserWithRole> findActivesWithRole();
 
-    List<UserWithRole> search(String search, int size, int page, String sortFieldName, String order);
+    List<UserWithRole> search(String search, int size, int page, String sortFieldName, String order, List<String> fields);
 
     long searchCount(String search);
 

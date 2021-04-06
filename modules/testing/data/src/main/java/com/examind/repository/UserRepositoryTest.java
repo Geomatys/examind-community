@@ -18,6 +18,7 @@
  */
 package com.examind.repository;
 
+import java.util.Arrays;
 import java.util.List;
 import org.constellation.dto.CstlUser;
 import org.constellation.repository.UserRepository;
@@ -139,7 +140,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         
         String search = "pe''d";
 
-        List<UserWithRole> allwr = userRepository.search(search, 10, 1, null, null);
+        List<UserWithRole> allwr = userRepository.search(search, 10, 1, null, null, null);
         Assert.assertEquals(1, allwr.size());
         Assert.assertEquals(uid3, allwr.get(0).getId());
 
@@ -147,11 +148,20 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals(1, count);
 
         search = "pe";
-        allwr = userRepository.search(search, 10, 1, null, null);
+        allwr = userRepository.search(search, 10, 1, null, null, null);
         Assert.assertEquals(2, allwr.size());
 
         count = userRepository.searchCount(search);
         Assert.assertEquals(2, count);
+
+        // field filter
+        allwr = userRepository.search(null, 10, 1, null, null, Arrays.asList("cstl_user.login"));
+        Assert.assertEquals(3, allwr.size());
+        Assert.assertNotNull(allwr.get(0));
+        UserWithRole filtered = allwr.get(0);
+        Assert.assertNotNull(filtered.getLogin());
+        Assert.assertNull(filtered.getFirstname());
+        Assert.assertNull(filtered.getLastname());
 
         /**
          * Update

@@ -36,6 +36,12 @@ public class PagedSearch extends Search {
         super();
     }
 
+    public PagedSearch(int page, int size) {
+        super();
+        this.page = page;
+        this.size = size;
+    }
+
     public int getPage() {
         return page;
     }
