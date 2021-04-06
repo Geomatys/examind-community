@@ -244,6 +244,13 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
     }
 
     @Override
+    public List<String> findByTitlePrefix(String title) {
+        return dsl.select(METADATA.TITLE).from(METADATA)
+                  .where(METADATA.TITLE.like(title + "(%)"))
+                  .fetchInto(String.class);
+    }
+
+    @Override
     public List<String> findMetadataIDByCswId(final Integer id, final boolean includeService, final boolean onlyPublished,
             final String type, final Boolean hidden) {
         SelectConditionStep<Record1<String>> query =

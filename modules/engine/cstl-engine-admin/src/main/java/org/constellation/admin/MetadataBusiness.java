@@ -1345,7 +1345,7 @@ public class MetadataBusiness implements IMetadataBusiness {
                     title = newTitle;
                 } else {
                     String oldTitle = template.getMetadataTitle(metaObj);
-                    title = oldTitle + "(1)";
+                    title = addCount(oldTitle);
                 }
                 template.setMetadataTitle(title, metaObj);
                 template.setMetadataIdentifier(newMetadataID, metaObj);
@@ -1387,6 +1387,34 @@ public class MetadataBusiness implements IMetadataBusiness {
             }
         }
         return null;
+    }
+
+    private String addCount(final String title) {
+        final List<String> others = metadataRepository.findByTitlePrefix(title);
+        int count = 0;
+        if (!others.isEmpty()) {
+            for (String other : others) {
+                String suffix = other.substring(title.length());
+                int c = getCount(suffix);
+                if (c > count) {
+                    count = c;
+                }
+            }
+        }
+        count++;
+        return title + "(" + count + ")";
+    }
+
+    private int getCount(final String suffix) {
+        int count = -1;
+        // verify just to be sure
+        if (suffix.startsWith("(") && suffix.endsWith(")")) {
+            String num = suffix.substring(1, suffix.length() -1);
+            try {
+                count = Integer.parseInt(num);
+            } catch (NumberFormatException ex) {}
+        }
+        return count;
     }
 
     /**

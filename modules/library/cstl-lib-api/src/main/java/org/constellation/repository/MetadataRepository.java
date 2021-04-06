@@ -57,6 +57,14 @@ public interface MetadataRepository extends AbstractRepository {
 
     List<Metadata> findByCswId(Integer id);
 
+    /**
+     * Look for a numerated title like 'title(%)'.
+     *
+     * @param title
+     * @return
+     */
+    List<String> findByTitlePrefix(String title);
+
     List<String> findMetadataIDByCswId(final Integer id, final boolean includeService, final boolean onlyPublished, final String type, final Boolean hidden);
 
     List<String> findMetadataIDByProviderId(final Integer id, final boolean includeService, final boolean onlyPublished, final String type, final Boolean hidden);
