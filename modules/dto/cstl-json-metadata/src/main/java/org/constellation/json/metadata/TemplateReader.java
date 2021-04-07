@@ -37,7 +37,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import javax.measure.Unit;
+import org.apache.sis.internal.jaxb.gco.Multiplicity;
 import org.apache.sis.internal.jaxb.metadata.replace.ReferenceSystemMetadata;
+import org.apache.sis.measure.NumberRange;
 import org.apache.sis.metadata.AbstractMetadata;
 import org.apache.sis.metadata.KeyNamePolicy;
 import org.apache.sis.metadata.MetadataStandard;
@@ -323,12 +325,31 @@ public class TemplateReader extends AbstractTemplateHandler {
         Class type = getType(metadata, node);
         if (type != null) {
             value      = convert(node.name, type, value);
-            if (type == ReferenceSystem.class ||
+            //special case for Multiplicity clase
+            if (metadata instanceof Multiplicity && node.name.equals("range")) {
+                try {
+                    ((Multiplicity)metadata).range().add((NumberRange<Integer>) value);
+                } catch (ClassCastException ex) {
+                    LOGGER.warning("bad type for multiplicty range attribute");
+                }
+            } else  if (metadata instanceof ImmutableIdentifier || metadata instanceof NumberRange){
+                Field f = ReflectionUtilities.getFieldFromName(node.name, metadata.getClass());
+                if (f != null) {
+                    try {
+                        f.setAccessible(true);
+                        f.set(metadata, value);
+                    } catch (IllegalArgumentException | IllegalAccessException ex) {
+                        LOGGER.log(Level.WARNING, "Erro while setting value to " + node.name + " field in class " + metadata.getClass().getName(), ex);
+                    }
+                } else {
+                    LOGGER.warning("Unable to find a field for:" + node.name + " in " + metadata.getClass().getName());
+                }
+            } else if (type == ReferenceSystem.class ||
                (metadata instanceof ReferenceSystem) ||
                (metadata instanceof Period) ||
                (metadata instanceof AbstractTimePosition) ||
                (metadata instanceof Instant) ||
-               (!(metadata instanceof AbstractMetadata) && !(metadata instanceof ImmutableIdentifier))) {
+               (!(metadata instanceof AbstractMetadata))) {
 
                 if (value != null) {
                     String attributeName;
@@ -350,15 +371,6 @@ public class TemplateReader extends AbstractTemplateHandler {
                 } else {
                     LOGGER.warning("TODO find a setter for null values");
                 }
-            } else if (metadata instanceof ImmutableIdentifier){
-                Field f = ReflectionUtilities.getFieldFromName(node.name, ImmutableIdentifier.class);
-                try {
-                    f.setAccessible(true);
-                    f.set(metadata, value);
-                } catch (IllegalArgumentException | IllegalAccessException ex) {
-                    LOGGER.log(Level.WARNING, null, ex);
-                }
-
             } else {
                 final Map<String,Object> values = asMap(metadata);
                 try {
@@ -417,7 +429,10 @@ public class TemplateReader extends AbstractTemplateHandler {
                 return new TimePositionType();
             } else if (type == TimeInstantType.class || type == Instant.class) {
                 return new TimeInstantType();
-
+            } else if (type == Multiplicity.class) {
+                return new Multiplicity();
+            }else if (type == NumberRange.class) {
+                return NumberRange.create(-1, true, 1, true);
             } else if (type != null) {
                 return factory.create(type, Collections.<String,Object>emptyMap());
             } else {
