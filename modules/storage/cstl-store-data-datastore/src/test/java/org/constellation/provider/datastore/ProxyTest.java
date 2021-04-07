@@ -442,17 +442,7 @@ public class ProxyTest {
         }
 
         @Override
-        public Map<String, Integer> getProfilesCount(Map<String, Object> filterMap) {
-            throw new UnsupportedOperationException("Not supported yet"); // "Alexis Manin (Geomatys)" on 23/03/2020
-        }
-
-        @Override
         public Map<String, Integer> getProfilesCount(Map<String, Object> filterMap, String dataType) throws ConfigurationException {
-            throw new UnsupportedOperationException("Not supported yet"); // "Alexis Manin (Geomatys)" on 23/03/2020
-        }
-
-        @Override
-        public List<String> getAllProfiles() {
             throw new UnsupportedOperationException("Not supported yet"); // "Alexis Manin (Geomatys)" on 23/03/2020
         }
 

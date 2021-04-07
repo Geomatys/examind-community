@@ -142,20 +142,21 @@ public class MetadataRestAPI extends AbstractRestAPI{
                                       @RequestParam(name = "dataType", required = false) final String dataType) {
         try {
             final List<Profile> result = new ArrayList<>();
+            final Map<String, Object> filterMap = new HashMap<>();
+            if (type != null) {
+                filterMap.put("type", type);
+            }
+            final Map<String, Integer> map = metadataBusiness.getProfilesCount(filterMap, dataType);
+            for (final Map.Entry<String, Integer> entry : map.entrySet()) {
+                result.add(new Profile(entry.getKey(), entry.getValue()));
+            }
+            
+            // complete with profiles not registered yet in database
             if (all) {
                 final List<String> allProfiles = metadataBusiness.getProfilesMatchingType(dataType);
                 for (final String p : allProfiles) {
-                    result.add(new Profile(p, 0));
-                }
-            } else {
-                final Map<String, Object> filterMap = new HashMap<>();
-                if (type != null) {
-                    filterMap.put("type", type);
-                }
-                final Map<String, Integer> map = metadataBusiness.getProfilesCount(filterMap, dataType);
-                if (map != null) {
-                    for (final Map.Entry<String, Integer> entry : map.entrySet()) {
-                        result.add(new Profile(entry.getKey(), entry.getValue()));
+                    if (!map.containsKey(p)) {
+                        result.add(new Profile(p, 0));
                     }
                 }
             }
@@ -348,64 +349,69 @@ public class MetadataRestAPI extends AbstractRestAPI{
     @RequestMapping(value="/metadatas/stats",method=POST,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity getFilteredStats(@RequestParam(name = "type", defaultValue = "DOC") final String type,
             @RequestBody final Search search) {
+        try {
+            final Map<String,Object> map = new HashMap<>();
+            final List<Filter> filters = search.getFilters();
+            final Map<String,Object> filterMap = new HashMap<>();
+            filterMap.put("type", type);
 
-        final Map<String,Object> map = new HashMap<>();
-        final List<Filter> filters = search.getFilters();
-        final Map<String,Object> filterMap = new HashMap<>();
-        filterMap.put("type", type);
-
-        if(filters != null) {
-            for(final Filter f : filters) {
-                if("group".equals(f.getField())) {
-                    String value = f.getValue();
-                    if("_all".equals(value)) {
-                        continue; //no need to filter on group field if we ask all groups
+            if(filters != null) {
+                for(final Filter f : filters) {
+                    if("group".equals(f.getField())) {
+                        String value = f.getValue();
+                        if("_all".equals(value)) {
+                            continue; //no need to filter on group field if we ask all groups
+                        }
+                        try{
+                            final int groupId = Integer.valueOf(value);
+                            filterMap.put("group",groupId);
+                        }catch(Exception ex) {
+                            //do nothing
+                        }
+                    }else if ("period".equals(f.getField())) {
+                        final String value = f.getValue();
+                        if("_all".equals(value)) {
+                            continue; //no need to filter on period if we ask from the beginning.
+                        }
+                        Long delta = Util.getDeltaTime(value);
+                        if (delta == null) {
+                            continue;
+                        }
+                        filterMap.put("period",delta);
                     }
-                    try{
-                        final int groupId = Integer.valueOf(value);
-                        filterMap.put("group",groupId);
-                    }catch(Exception ex) {
-                        //do nothing
-                    }
-                }else if ("period".equals(f.getField())) {
-                    final String value = f.getValue();
-                    if("_all".equals(value)) {
-                        continue; //no need to filter on period if we ask from the beginning.
-                    }
-                    Long delta = Util.getDeltaTime(value);
-                    if (delta == null) {
-                        continue;
-                    }
-                    filterMap.put("period",delta);
                 }
             }
-        }
 
-        final Map<String,Integer> general = metadataBusiness.getStats(filterMap);
+            final Map<String,Integer> general = metadataBusiness.getStats(filterMap);
 
-        //Get profiles distribution counts
-        final List<Profile> profiles = new ArrayList<>();
-        final Map<String,Integer> profilesMap = metadataBusiness.getProfilesCount(filterMap);
-        if(profilesMap!=null){
-            for(final Map.Entry<String,Integer> entry : profilesMap.entrySet()){
-                profiles.add(new Profile(entry.getKey(),entry.getValue()));
+            //Get profiles distribution counts
+            final List<Profile> profiles = new ArrayList<>();
+            final Map<String,Integer> profilesMap = metadataBusiness.getProfilesCount(filterMap, null);
+            if(profilesMap!=null){
+                for(final Map.Entry<String,Integer> entry : profilesMap.entrySet()){
+                    profiles.add(new Profile(entry.getKey(),entry.getValue()));
+                }
             }
+            map.put("repartitionProfiles",profiles);
+
+            //Get completion counts for metadata in 10 categories (10%, 20%, ... 100%)
+            final int[] completionArray = metadataBusiness.countInCompletionRange(filterMap);
+            map.put("completionPercents",completionArray);
+
+            final List<OwnerStatBrief> contributorsStatList = metadataBusiness.getOwnerStatBriefs(new HashMap<>(filterMap));
+            map.put("contributorsStatList",contributorsStatList);
+
+            final List<GroupStatBrief> groupsStatList = metadataBusiness.getGroupStatBriefs(new HashMap<>(filterMap));
+            map.put("groupsStatList",groupsStatList);
+
+            map.put("general",general);
+
+            return new ResponseEntity(map, OK);
+            
+        } catch(Exception ex) {
+            LOGGER.log(Level.WARNING,"Cannot get metadata stats due to exception error : "+ ex.getLocalizedMessage());
+            return new ErrorMessage(ex).build();
         }
-        map.put("repartitionProfiles",profiles);
-
-        //Get completion counts for metadata in 10 categories (10%, 20%, ... 100%)
-        final int[] completionArray = metadataBusiness.countInCompletionRange(filterMap);
-        map.put("completionPercents",completionArray);
-
-        final List<OwnerStatBrief> contributorsStatList = metadataBusiness.getOwnerStatBriefs(new HashMap<>(filterMap));
-        map.put("contributorsStatList",contributorsStatList);
-
-        final List<GroupStatBrief> groupsStatList = metadataBusiness.getGroupStatBriefs(new HashMap<>(filterMap));
-        map.put("groupsStatList",groupsStatList);
-
-        map.put("general",general);
-
-        return new ResponseEntity(map, OK);
     }
 
     /**

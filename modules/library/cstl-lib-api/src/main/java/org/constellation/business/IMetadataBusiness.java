@@ -503,17 +503,9 @@ public interface IMetadataBusiness {
 
     /**
      * Returns map of distribution of used profiles.
-     * @param filterMap optional filters
-     *
-     * @return A map of profile name / number of documents
-     */
-    Map<String,Integer> getProfilesCount(final Map<String,Object> filterMap);
-
-    /**
-     * Returns map of distribution of used profiles.
      *
      * @param filterMap optional filters
-     * @param dataType The profile data type.
+     * @param dataType The profile data type or {@code null}.
      *
      * @return A map of profile name / number of documents
      * @throws org.constellation.exception.ConfigurationException
@@ -521,15 +513,9 @@ public interface IMetadataBusiness {
     Map<String,Integer> getProfilesCount(final Map<String,Object> filterMap, String dataType) throws ConfigurationException;
 
     /**
-     * Return all profiles.
-     * @return List of string profile names
-     */
-    List<String> getAllProfiles();
-
-    /**
-     * Return all profiles matching the specified data type.
+     * Return all profiles matching the specified data type (optional filter).
      *
-     * @param dataType The profile data type.
+     * @param dataType The profile data type or {@code null}.
      *
      * @return List of string profile names
      * @throws org.constellation.exception.ConfigurationException

@@ -1461,18 +1461,7 @@ public class MetadataBusiness implements IMetadataBusiness {
      * {@inheritDoc}
      */
     @Override
-    public Map<String,Integer> getProfilesCount(final Map<String,Object> filterMap) {
-        return metadataRepository.getProfilesCount(filterMap);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public Map<String,Integer> getProfilesCount(final Map<String,Object> filterMap, String dataType) throws ConfigurationException {
-        if (dataType == null) {
-            return getProfilesCount(filterMap);
-        }
         List<String> names = getProfilesMatchingType(dataType);
         filterMap.put("name", names);
         return metadataRepository.getProfilesCount(filterMap);
@@ -1482,29 +1471,16 @@ public class MetadataBusiness implements IMetadataBusiness {
      * {@inheritDoc}
      */
     @Override
-    public List<String> getAllProfiles() {
-        final Set<String> names = templateResolver.getAvailableNames();
-        final List<String> result = new ArrayList<>();
-        for(final String name : names) {
-            //add only iso 19115 profiles raster and vector
-            if(name.startsWith("profile_default_")) {
-                result.add(name);
-            }
-        }
-        return result;
-    }
-
-    @Override
     public List<String> getProfilesMatchingType(final String dataType) throws ConfigurationException {
-        if (dataType == null) {
-            return getAllProfiles();
-        }
         final Set<String> names = templateResolver.getAvailableNames();
         final List<String> result = new ArrayList<>();
         for(final String name : names) {
             Template t = templateResolver.getByName(name);
-            if (t.matchDataType(dataType)) {
-                result.add(name);
+            if (dataType == null || t.matchDataType(dataType)) {
+                //add only iso 19115 profiles raster and vector (for now)
+                if(name.startsWith("profile_default_")) {
+                    result.add(name);
+                }
             }
         }
         return result;
