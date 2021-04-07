@@ -73,6 +73,7 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.json.metadata.Template;
 import org.constellation.json.metadata.bean.TemplateResolver;
 import org.constellation.metadata.utils.Utils;
+import static org.constellation.metadata.utils.Utils.UNKNOW_IDENTIFIER;
 import org.constellation.util.Util;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.nio.ZipUtilities;
@@ -1026,7 +1027,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
             final Object metadata = template.emptyMetadata();
             template.read(metadataValues, metadata, true);
             String identifier = template.getMetadataIdentifier(metadata);
-            if (identifier == null) {
+            if (identifier == null || UNKNOW_IDENTIFIER.equals(identifier)) {
                 identifier = UUID.randomUUID().toString();
                 template.setMetadataIdentifier(identifier, metadata);
             }
@@ -1155,13 +1156,12 @@ public class MetadataRestAPI extends AbstractRestAPI{
                     final Object iso = metadataBusiness.unmarshallMetadata(newFileMetaData);
 
                     String identifier = Utils.findIdentifier(iso);
-                    if (metadataBusiness.existInternalMetadata(identifier, true, false, internalProviderID)) {
+                    boolean renew = metadataBusiness.existInternalMetadata(identifier, true, false, internalProviderID);
+                    if (renew || UNKNOW_IDENTIFIER.equals(identifier))  {
                         identifier = UUID.randomUUID().toString();
                         Utils.setIdentifier(identifier, iso);
-                        map.put("renewId", true);
-                    } else {
-                        map.put("renewId", false);
                     }
+                    map.put("renewId", renew);
                     Boolean usedDefaultProfile = templateResolver.resolveDefaultFromMetadata(iso) == null;
                     map.put("usedDefaultProfile", usedDefaultProfile);
                     final MetadataLightBrief meta = metadataBusiness.updateMetadata(identifier, iso, null, null, null, null, internalProviderID, type, profile, false);
