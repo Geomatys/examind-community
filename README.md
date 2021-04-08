@@ -105,12 +105,6 @@ Tomcat shutdown :
 <PATH_TO_TOMCAT>/bin/shutdown.sh
 ```
 
-### Run with Jetty
-Examind can also be started with embedded jetty maven plug-in.
-```
-mvn jetty:run-war -DMAVEN_OPTS="-Xmx1G -XX:MaxPermSize=256m"
-```
-
 ### Usage
 Browse  [http://localhost:8080/examind](http://localhost:8080/examind) and authenticate with user `admin` and password `admin`.
 
