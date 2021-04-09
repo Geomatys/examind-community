@@ -223,10 +223,15 @@ public class ServiceRestAPI extends AbstractRestAPI {
     }
 
     private Instance convertToInstance(final ServiceComplete service, String lang) throws ConfigurationException {
-        Specification spec = Specification.fromShortName(service.getType());
-        IOGCConfigurer configurer = getOGCConfigurer(spec);
-        if (configurer != null) {
-            return configurer.getInstance(service.getId(), lang);
+        try {
+            Specification spec = Specification.fromShortName(service.getType());
+            IOGCConfigurer configurer = getOGCConfigurer(spec);
+            if (configurer != null) {
+                return configurer.getInstance(service.getId(), lang);
+            }
+        } catch (IllegalArgumentException ex) {
+            // can appears when switching branch, must not break the operation
+            LOGGER.warning("unknow specification:" + service.getType());
         }
         return new Instance(service);
     }
