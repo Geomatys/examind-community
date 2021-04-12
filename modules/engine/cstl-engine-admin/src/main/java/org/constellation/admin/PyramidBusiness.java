@@ -75,7 +75,6 @@ import org.constellation.provider.ProviderParameters;
 import org.constellation.repository.DataRepository;
 import org.constellation.util.ParamUtilities;
 import org.constellation.util.Util;
-import org.geotoolkit.coverage.grid.ViewType;
 import org.geotoolkit.coverage.xmlstore.XMLCoverageResource;
 import org.geotoolkit.coverage.xmlstore.XMLCoverageStore;
 import org.geotoolkit.coverage.xmlstore.XMLCoverageStoreFactory;
@@ -638,10 +637,10 @@ public class PyramidBusiness implements IPyramidBusiness {
             DataStore pyramidStore = outProvider.getMainStore();
             if (RENDERED.equals(mode)) {
                 MultiResolutionResource outRef = (MultiResolutionResource) ((WritableAggregate) pyramidStore).add(new DefiningCoverageResource(pyramidGname));
-                ((XMLCoverageResource) outRef).setPackMode(ViewType.RENDERED);
+                ((XMLCoverageResource) outRef).setPackMode(RENDERED.name());
                 ((XMLCoverageResource) outRef).setPreferredFormat(tileFormat);
             } else if (CONFORM.equals(mode)) {
-                ((XMLCoverageStore) pyramidStore).create(pyramidGname, ViewType.GEOPHYSICS, tileFormat);
+                ((XMLCoverageStore) pyramidStore).create(pyramidGname, "GEOPHYSICS", tileFormat);
             } else {
                 throw new IllegalArgumentException("Unexpected tiling mode:" + mode);
             }
