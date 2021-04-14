@@ -159,10 +159,12 @@ final class DataStoreHandle implements AutoCloseable {
      * @return A proxy instance of the resource provided as input.
      */
     static Resource createProxy(IntSupplier dataId, final Resource target, final IMetadataBusiness mdBiz) {
+        final Stream<Class<?>> targetInterfaces = Arrays.stream(Classes.getLeafInterfaces(target.getClass(), null))
+                .filter(token -> !Cloneable.class.equals(token));
+
         return (Resource) Proxy.newProxyInstance(
                 DataStoreHandle.class.getClassLoader(),
-                Arrays.stream(Classes.getLeafInterfaces(target.getClass(), null))
-                        .filter(token -> !Cloneable.class.equals(token))
+                Stream.concat(Stream.of(ResourceProxy.class), targetInterfaces)
                         .toArray(size -> new Class[size]),
                 new MetadataDecoration<>(dataId, target, mdBiz)
         );
@@ -286,7 +288,7 @@ final class DataStoreHandle implements AutoCloseable {
      *
      * @param <T> Resource type wrapped by this proxy.
      */
-    private static class MetadataDecoration<T extends Resource> implements InvocationHandler {
+    private static class MetadataDecoration<T extends Resource> implements InvocationHandler, ResourceProxy {
         /**
          * Operator serving to retrieve data identifier (see {@link #createProxy(IntSupplier, Resource, IMetadataBusiness)}
          * for details about why it's not a fixed value).
@@ -333,6 +335,8 @@ final class DataStoreHandle implements AutoCloseable {
                     }
                 case "hashCode":
                     return hashCode();
+                case "getOrigin":
+                    return getOrigin();
             }
 
             try {
@@ -374,6 +378,11 @@ final class DataStoreHandle implements AutoCloseable {
         @Override
         public int hashCode() {
             return 13 * origin.hashCode(); // Differentiate metadata proxy from original data.
+        }
+
+        @Override
+        public Resource getOrigin() {
+            return origin;
         }
     }
 }

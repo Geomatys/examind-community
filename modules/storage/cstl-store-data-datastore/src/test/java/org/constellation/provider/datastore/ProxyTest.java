@@ -145,6 +145,14 @@ public class ProxyTest {
         assertNotEquals(p1, p3);
     }
 
+    @Test
+    public void ensure_origin_is_reachable() {
+        final MockResource r1 = new MockResource();
+        final Resource proxy = createProxy(FIX_ID, r1, new MockMetadataBusiness());
+        assertTrue("A resource decoration should implement ResourceProxy interface", proxy instanceof ResourceProxy);
+        assertEquals("Asking the proxy for the origin resource should properly return it", r1, ((ResourceProxy) proxy).getOrigin());
+    }
+
     private interface MustBePreserved {
         default String testMethod() {
             return "OK !";
