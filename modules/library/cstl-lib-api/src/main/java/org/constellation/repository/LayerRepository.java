@@ -67,8 +67,6 @@ public interface LayerRepository extends AbstractRepository {
 
     Layer findByServiceIdAndDataId(int serviceId, int dataId);
     
-    void updateLayerTitle(int layerID, String newTitle);
-
     /**
      * Retrieve all layers linked to a given style id.
      *

@@ -41,14 +41,16 @@ public interface ILayerBusiness {
     Integer add(int dataId, String alias, String namespace, String name, int serviceId, Layer config) throws ConfigurationException;
 
     /**
-     * Update the title of a lyer
+     * Update a layer.
+     *
+     * for now it only update the title and alias
      *
      * @param layerID Identifier of the layer.
-     * @param newTitle The new title to set.
+     * @param summary AN object containing all the field to update
      *
      * @throws ConfigurationException
      */
-    void updateLayerTitle(int layerID, String newTitle) throws ConfigurationException;
+    void update(int layerID, LayerSummary summary) throws ConfigurationException;
 
     void removeForService(Integer serviceId) throws ConstellationException;
 

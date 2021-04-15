@@ -969,6 +969,7 @@
   "layer.listing.selected.metadataedit.button": "Éditer",
   "layer.listing.selected.edit.layer.info": "Éditer les informations de la couche",
   "layer.listing.selected.edit.layer.name": "Titre de la couche",
+  "layer.listing.selected.edit.layer.alias": "Alias de la couche",
   "layer.listing.title": "Liste des couches",
   "layer.listing.modal.dataviewer": "Visualisation de la donnée",
   "login.form.button": "Connexion",

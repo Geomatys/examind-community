@@ -99,12 +99,6 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, or
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public void updateLayerTitle(int layerID, String newTitle) {
-        dsl.update(LAYER).set(LAYER.TITLE, newTitle).where(LAYER.ID.eq(layerID)).execute();
-    }
-
-    @Override
-    @Transactional(propagation = Propagation.MANDATORY)
     public int delete(Integer layerId) {
         return dsl.delete(LAYER).where(LAYER.ID.eq(layerId)).execute();
     }

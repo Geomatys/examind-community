@@ -166,12 +166,6 @@ public class LayerRepositoryTest extends AbstractRepositoryTest {
         Assert.assertNotNull(l);
         Assert.assertEquals(l4, l);
 
-        layerRepository.updateLayerTitle(lid4, "some'; delete * from admin.layers;");
-        l = layerRepository.findById(lid4);
-        Assert.assertNotNull(l);
-
-        Assert.assertEquals("some'; delete * from admin.layers;", l.getTitle());
-
         l.setAlias("bloup'; '");
         layerRepository.update(l);
 

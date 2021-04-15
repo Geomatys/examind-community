@@ -182,34 +182,17 @@ public class MapRestAPI {
     }
 
     /**
-     * Update an existing layer title to a "map" service instance.
+     * Update an existing layer.
      *
-     * @param spec the service type
-     * @param id the service identifier
-     * @param layer the layer to be added
-     */
-    @Deprecated
-    @RequestMapping(value="/MAP/{spec}/{id}/layer/title",method=POST, consumes=APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity updateLayerTitle(final @PathVariable("spec") String spec, final @PathVariable("id") String id, final @RequestBody LayerSummary layer) {
-        try {
-            layerBusiness.updateLayerTitle(layer.getId(), layer.getTitle());
-            return new ResponseEntity(AcknowlegementType.success("Layer \"" + layer.getName() + "\" successfully added to " + spec + " service \"" + id + "\"."), OK);
-        } catch(Throwable ex){
-            return new ErrorMessage(ex).build();
-        }
-    }
-
-    /**
-     * Update an existing layer title to a "map" service instance.
+     * for now it only update title and alias
      *
-     * @param spec the service type
-     * @param id the service identifier
-     * @param layer the layer to be added
+     * @param layerId the layer identifier.
+     *  @param layer the layer to be updated
      */
-    @RequestMapping(value="/MAP/layer/{layerid}/updateTitle",method=POST, consumes=APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity updateLayerTitle(final @PathVariable("layerid") Integer layerId, final @RequestParam("title") String title) {
+    @RequestMapping(value="/MAP/layer/{layerid}",method=POST, consumes=APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
+    public ResponseEntity updateLayer(final @PathVariable("layerid") Integer layerId, final @RequestBody LayerSummary layer) {
         try {
-            layerBusiness.updateLayerTitle(layerId, title);
+            layerBusiness.update(layerId, layer);
             return new ResponseEntity("Layer \"" + layerId + "\" title successfully updated.", OK);
         } catch(Throwable ex){
             return new ErrorMessage(ex).build();

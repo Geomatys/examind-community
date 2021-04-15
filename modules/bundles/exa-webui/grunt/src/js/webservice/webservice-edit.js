@@ -709,6 +709,7 @@ angular.module('cstl-webservice-edit', [
         $scope.serviceIdentifier = serviceIdentifier;
         $scope.selectedLayer = selectedLayer;
         $scope.layerForm = {
+            "alias": $scope.selectedLayer.alias,
             "title": $scope.selectedLayer.title
         };
 
@@ -717,8 +718,9 @@ angular.module('cstl-webservice-edit', [
         };
 
         $scope.save = function() {
+            $scope.selectedLayer.alias = $scope.layerForm.alias;
             $scope.selectedLayer.title = $scope.layerForm.title;
-            Examind.map.updateLayerTitle($scope.serviceType, $scope.serviceIdentifier, $scope.selectedLayer).then(
+            Examind.map.updateLayer($scope.selectedLayer).then(
                 function(response) {//success
                     Growl('success','Success','Layer information saved with success!');
                     $modalInstance.close();

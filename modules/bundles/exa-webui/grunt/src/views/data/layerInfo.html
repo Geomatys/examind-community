@@ -9,7 +9,17 @@
                 <div class="form-group">
                     <label class="col-sm-4 col-md-4 control-label"
                            style="color: #ddd;"
-                           translate="layer.listing.selected.edit.layer.name">Layer name</label>
+                           translate="layer.listing.selected.edit.layer.alias">Layer alias</label>
+                    <div class="col-sm-5">
+                        <input type="text"
+                               class="form-control form-control-fix"
+                               ng-model="layerForm.alias"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-4 col-md-4 control-label"
+                           style="color: #ddd;"
+                           translate="layer.listing.selected.edit.layer.name">Layer title</label>
                     <div class="col-sm-5">
                         <input type="text"
                                class="form-control form-control-fix"

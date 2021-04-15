@@ -224,10 +224,38 @@ public class LayerBusiness implements ILayerBusiness {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
-    public void updateLayerTitle(int layerID, String newTitle) throws ConfigurationException {
-        layerRepository.updateLayerTitle(layerID, newTitle);
+    public void update(int layerID, LayerSummary summary) throws ConfigurationException {
+        final Layer layer = layerRepository.findById(layerID);
+        if (layer != null) {
+            String title = summary.getTitle();
+            if (title != null && title.isEmpty()) {
+                title = null;
+            }
+            layer.setTitle(title);
+            String alias  = summary.getAlias();
+            if (alias != null && alias.isEmpty()) {
+                alias = null;
+            }
+            layer.setAlias(alias);
+            layerRepository.update(layer);
+
+            //clear cache event
+            Service serv = serviceBusiness.getServiceById(layer.getService(), null); // should never be null
+            if (serv != null) {
+                final ClusterMessage request = clusterBusiness.createRequest(SRV_MESSAGE_TYPE_ID,false);
+                request.put(KEY_ACTION, SRV_VALUE_ACTION_CLEAR_CACHE);
+                request.put(SRV_KEY_TYPE, serv.getType());
+                request.put(KEY_IDENTIFIER, serv.getIdentifier());
+                clusterBusiness.publish(request);
+            }
+        } else {
+            throw new TargetNotFoundException("Unable to find a layer: {" + layerID + "}");
+        }
     }
 
     @Override

@@ -2221,14 +2221,14 @@ function Examind($http, url) {
         },
 
         /**
-         * Update a layer title.
+         * Update a layer.
          *
          * @returns {Promise}
          */
-        updateLayerTitle : function(type, id, layer) {
+        updateLayer : function(layer) {
             return self.request({
                 method: 'POST',
-                url: 'MAP/' + type + '/' + id + '/layer/title',
+                url: 'MAP/layer/' + layer.id,
                 headers: {'Accept': 'application/json'},
                 data: layer
             });
