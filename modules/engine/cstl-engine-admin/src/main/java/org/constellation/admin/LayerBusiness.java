@@ -300,26 +300,29 @@ public class LayerBusiness implements ILayerBusiness {
 
     /**
      * Remove an existing layer and send event to service hosting ths layer.
-     * For (WMTS) pyramid layer generated from a data at publishing time, if no longer used by any service, 
+     * For pyramid layer generated from a data at publishing time, if no longer used by any service, 
      * the data will be removed (so as the files on disk).
      * 
      * @param layerId
      * @param serviceType
      * @param serviceId
-     * @throws ConfigurationException 
+     * @throws ConfigurationException
+     * @throws TargetNotFoundException if the layer does not exist.
      */
     protected void removeLayer(int layerId, String serviceType, String serviceId) throws ConstellationException {
-        if ("wmts".equalsIgnoreCase(serviceType)) {
-            Layer l = layerRepository.findById(layerId);
-            if (l != null && l.getDataId() != null && dataRepository.getParent(l.getDataId()) != null) {
+        final Layer l = layerRepository.findById(layerId);
+        if (l != null) {
+            if (l.getDataId() != null) {
                 Data d = dataRepository.findById(l.getDataId());
-                if ("pyramid".equals(d.getSubtype())) {
+                if ("pyramid".equals(d.getSubtype()) && Boolean.TRUE.equals(d.getHidden())) {
                     boolean stillReferenced = layerRepository.findByDataId(l.getDataId()).size() - 1 > 0;
                     if (!stillReferenced) {
                         dataBusiness.removeData(l.getDataId(), true);
                     }
                 }
             }
+        } else {
+            throw new TargetNotFoundException("Unable to find a layer: {" + layerId + "}");
         }
         layerRepository.delete(layerId);
 
