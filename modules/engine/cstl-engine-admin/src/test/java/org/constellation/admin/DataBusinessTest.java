@@ -256,7 +256,7 @@ public class DataBusinessTest {
         Assert.assertNotNull(db.getDataDescription());
         Assert.assertTrue(db.getDataDescription() instanceof CoverageDataDescription);
         CoverageDataDescription desc = (CoverageDataDescription) db.getDataDescription();
-        Assert.assertEquals(2, desc.getBands().size());
+        Assert.assertEquals(3, desc.getBands().size());
     }
 
     @Test

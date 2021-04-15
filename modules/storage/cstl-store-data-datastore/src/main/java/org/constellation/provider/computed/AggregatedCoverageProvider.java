@@ -24,6 +24,7 @@ import java.util.logging.Level;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.exception.ConfigurationException;
+import org.constellation.exception.ConstellationException;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.DefaultCoverageData;
@@ -59,27 +60,35 @@ public class AggregatedCoverageProvider extends ComputedResourceProvider {
     }
 
     @Override
-    protected Data getComputedData() {
-        try {
-            List<Data> datas = getResourceList();
-            CoordinateReferenceSystem resultCrs = CRS.forCode(resultCRSName);
-            List<VirtualBand> bands = new ArrayList<>();
-            for (Data d : datas) {
-                if (d instanceof DefaultCoverageData)  {
-                    DefaultCoverageData cd = (DefaultCoverageData)d;
-                    VirtualBand v = new VirtualBand();
-                    v.setSources(new Source(cd.getOrigin(), 0));
-                    bands.add(v);
-                } else {
-                    throw new ConfigurationException("An coverage data was expected for aggregated coverage");
+    protected synchronized  Data getComputedData() {
+        if (cachedData == null) {
+            try {
+                List<Data> datas = getResourceList();
+                CoordinateReferenceSystem resultCrs = CRS.forCode(resultCRSName);
+                List<VirtualBand> bands = new ArrayList<>();
+                for (Data d : datas) {
+                    if (d instanceof DefaultCoverageData)  {
+                        DefaultCoverageData cd = (DefaultCoverageData)d;
+                        for (int i = 0; i < cd.getSampleDimensions().size(); i++) {
+                            if (bands.size() <= i) {
+                                bands.add(new VirtualBand());
+                            }
+                            VirtualBand vb = bands.get(i);
+                            List<Source> sources = new ArrayList<>(vb.getSources());
+                            sources.add(new Source(cd.getOrigin(), i));
+                            vb.setSources(sources);
+                        }
+                    } else {
+                        throw new ConfigurationException("An coverage data was expected for aggregated coverage");
+                    }
                 }
+                Mode modee = Mode.valueOf(mode);
+                AggregatedCoverageResource res = new AggregatedCoverageResource(bands, modee, resultCrs);
+                cachedData = new DefaultCoverageData(dataName, res, null);
+            } catch (ConstellationException | DataStoreException | TransformException | FactoryException ex){
+                LOGGER.log(Level.WARNING, id, ex);
             }
-            Mode modee = Mode.valueOf(mode);
-            AggregatedCoverageResource res = new AggregatedCoverageResource(bands, modee, resultCrs);
-            return new DefaultCoverageData(dataName, res, null);
-        } catch (ConfigurationException | DataStoreException | TransformException | FactoryException ex){
-            LOGGER.log(Level.WARNING, id, ex);
         }
-        return null;
+        return cachedData;
     }
 }

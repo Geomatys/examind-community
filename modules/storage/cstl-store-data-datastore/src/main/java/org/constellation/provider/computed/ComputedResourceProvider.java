@@ -57,6 +57,8 @@ public abstract class ComputedResourceProvider extends AbstractDataProvider {
     protected final GenericName dataName;
     private final List<Integer> dataIds;
 
+    protected Data cachedData = null;
+
     public ComputedResourceProvider(String providerId, DataProviderFactory service, ParameterValueGroup param) {
         super(providerId,service,param);
         String name = (String) param.parameter(DATA_NAME.getName().getCode()).getValue();
@@ -126,7 +128,7 @@ public abstract class ComputedResourceProvider extends AbstractDataProvider {
      */
     @Override
     public void reload() {
-        // todo
+       cachedData = null;
     }
 
     /**
@@ -134,7 +136,7 @@ public abstract class ComputedResourceProvider extends AbstractDataProvider {
      */
     @Override
     public void dispose() {
-        // do nothing for now
+        cachedData = null;
     }
 
     @Override

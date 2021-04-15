@@ -1,2 +1,3 @@
 com.examind.process.admin.renderedpyramid.PyramidProcess
 com.examind.process.admin.yamlReader.ProcessFromYamlProcessDescriptor
+com.examind.process.datacombine.AggregatedCoverageDescriptor
