@@ -104,8 +104,6 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
     public DefaultFeatureData(GenericName name, DataStore store, FeatureSet origin,
                                         String dateStart, String dateEnd, String elevationStart, String elevationEnd, Date versionDate){
         super(name, origin, store);
-        ensureNonNull("Source feature store", store);
-
         this.versionDate = versionDate;
 
         final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
