@@ -63,7 +63,7 @@
                         </div>
                     </div>
 
-                    <div class="form-group" ng-if="!pyramidFlag">
+                    <div class="form-group" ng-if="!(pyramidFlag || !values.pyramidContext)">
                         <label class="col-sm-4 col-md-4 control-label"
                                style="color: #ddd"
                                translate="layer.listing.data.upload.selectEPSG">Select projection</label>

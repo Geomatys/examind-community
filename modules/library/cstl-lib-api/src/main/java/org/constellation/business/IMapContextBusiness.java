@@ -64,4 +64,6 @@ public interface IMapContextBusiness {
 
     Map.Entry<Integer, List<MapContextLayersDTO>> filterAndGetMapContextLayers(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage)throws ConstellationException;
 
+    void initializeDefaultMapContextData();
+
 }

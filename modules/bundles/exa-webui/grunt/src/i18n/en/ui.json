@@ -1236,6 +1236,7 @@
   "service.edition.validation.version.required": "You must select at least one version",
   "service.edition.validation.identifier": "This identifier already exists",
   "service.layer.merge": "Generate a single layer for all selected data",
+  "service.mapcontext.pyramid": "Generate a pyramid from map context",
   "style.listing.numberbypage.10.label": "10 layers",
   "style.listing.numberbypage.100.label": "100 layers",
   "style.listing.numberbypage.20.label": "20 layers",

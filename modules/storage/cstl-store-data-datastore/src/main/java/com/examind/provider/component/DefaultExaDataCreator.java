@@ -21,6 +21,7 @@ package com.examind.provider.component;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.sis.portrayal.MapLayers;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
@@ -31,6 +32,7 @@ import org.constellation.provider.Data;
 import org.constellation.provider.DefaultCoverageData;
 import org.constellation.provider.DefaultFeatureData;
 import org.constellation.provider.DefaultOtherData;
+import org.constellation.provider.mapcontext.DefaultMapContextData;
 import org.opengis.util.GenericName;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
@@ -57,6 +59,11 @@ public class DefaultExaDataCreator implements ExaDataCreator {
             LOGGER.log(Level.WARNING, "Unexpected resource class for creating Provider Data:{0}", rs.getClass().getName());
             return new DefaultOtherData(targetName, rs, store);
         }
+    }
+
+    @Override
+    public Data createMapContextData(MapLayers mp) throws DataStoreException {
+        return new DefaultMapContextData(mp);
     }
 
 }

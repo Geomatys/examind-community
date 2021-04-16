@@ -2905,6 +2905,13 @@ function Examind($http, url) {
             method: 'GET',
                     url: 'mapcontexts/' + contextId + '/pyramid?crs=' + crs + '&layerName=' + layerName
             });
+        },
+        
+        getMapContextData : function (contextId) {
+            return self.request({
+            method: 'GET',
+                    url: 'mapcontexts/' + contextId + '/data'
+            });
         }
     };
 }

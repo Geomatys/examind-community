@@ -19,6 +19,7 @@
 package com.examind.provider.component;
 
 import java.util.Date;
+import org.apache.sis.portrayal.MapLayers;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.Resource;
@@ -31,5 +32,7 @@ import org.constellation.provider.Data;
 public interface ExaDataCreator {
 
     Data create(final String dataName, Date version, final DataStore store, final Resource rs) throws DataStoreException;
+
+    Data createMapContextData(final MapLayers mp) throws DataStoreException;
 
 }

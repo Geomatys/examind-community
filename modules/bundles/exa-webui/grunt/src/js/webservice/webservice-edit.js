@@ -1094,6 +1094,7 @@ angular.module('cstl-webservice-edit', [
         };
         $scope.service = service;
         $scope.values = {
+            pyramidContext : false,
             epsgList : epsgCodes.data,
             selectedProjection : DEFAULT_PROJECTION,
             listSelect : [],
@@ -1118,7 +1119,7 @@ angular.module('cstl-webservice-edit', [
         $scope.wrap = {};
 
         $scope.wrap.nbbypage = 5;
-
+        
         /**
          * function to add data to service
          */
@@ -1267,7 +1268,40 @@ angular.module('cstl-webservice-edit', [
                 Growl('warning', 'Warning', 'No map context selected!');
                 return;
             }
-            Examind.mapcontexts.pyramidMapContext($scope.values.selectedContext.id,
+           if (!$scope.values.pyramidContext) {
+                Examind.mapcontexts.getMapContextData($scope.values.selectedContext.id).then(
+                    function (response) {//on success
+                        response = response.data;
+                        if (response.pyramidDataId) {
+                            var contextLayer = {
+                                name: $scope.values.userLayerName,
+                                namespace: null,
+                                alias: null,
+                                service: $scope.service.id,
+                                dataId: response.pyramidDataId,
+                                date: null,
+                                config: null,
+                                ownerId: null,
+                                title: null
+                            };
+                            Examind.map.addLayerNew(contextLayer).then(
+                                function () {//success
+                                    Growl('success', 'Success', 'Layer successfully added to service ' + $scope.service.name);
+                                    $scope.close();
+                                },
+                                function () {
+                                    Growl('error', 'Error', 'Layer failed to be added to service ' + $scope.service.name);
+                                    $scope.dismiss();
+                                }
+                            );
+                        }
+                    },
+                    function () {//on error
+                        Growl('error', 'Error', 'Failed to generate pyramid data');
+                    }
+                );
+            } else {
+                Examind.mapcontexts.pyramidMapContext($scope.values.selectedContext.id,
                 $scope.crs,
                 $scope.values.userLayerName).then(
                 function (response) {//on success
@@ -1296,10 +1330,11 @@ angular.module('cstl-webservice-edit', [
                         );
                     }
                 },
-                function () {//on error
-                    Growl('error', 'Error', 'Failed to generate pyramid data');
-                }
-            );
+                    function () {//on error
+                        Growl('error', 'Error', 'Failed to generate pyramid data');
+                    }
+                );
+            }
         };
 
         $scope.isValidWMSLayerName = function(){
@@ -1631,9 +1666,9 @@ angular.module('cstl-webservice-edit', [
          * To fix angular bug with nested scope.
          */
         $scope.wrap = {};
-
+        
         $scope.wrap.nbbypage = 5;
-
+        
         $scope.clickFilter = function(ordType){
             $scope.wrap.ordertype = ordType;
             $scope.wrap.orderreverse = !$scope.wrap.orderreverse;

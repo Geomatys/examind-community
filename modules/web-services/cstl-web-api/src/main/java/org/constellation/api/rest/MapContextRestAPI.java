@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.namespace.QName;
+import static org.constellation.api.ProviderConstants.INTERNAL_MAP_CONTEXT_PROVIDER;
 import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 import org.constellation.api.TilingMode;
 import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
@@ -457,6 +458,21 @@ public class MapContextRestAPI extends AbstractRestAPI {
         try {
             final TilingResult ref = pyramidBusiness.pyramidMapContext(userId, layerName, crs, mc, TilingMode.valueOf(mode));
             return new ResponseEntity(ref, OK);
+
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
+            return new ErrorMessage().message("Map context cannot be tiled. " + ex.getMessage()).build();
+        }
+    }
+
+    @RequestMapping(value = "/mapcontexts/{id}/data", method = GET, produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity getMapContextData(@PathVariable("id") final Integer contextId, HttpServletRequest req) {
+        try {
+            assertNotNullOrEmpty("Context id", contextId);
+            final MapContextLayersDTO mc = contextBusiness.findMapContextLayers(contextId);
+            final DataBrief d = dataBusiness.getDataBrief(new QName(mc.getName()), INTERNAL_MAP_CONTEXT_PROVIDER, false);
+            
+            return new ResponseEntity(new TilingResult(null, d.getId()), OK);
 
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);

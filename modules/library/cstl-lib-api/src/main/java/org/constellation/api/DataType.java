@@ -33,6 +33,6 @@ public enum DataType {
     TILES3D,
     QMESH,
     VTS,
-    OTHER
-
+    OTHER,
+    MAPCONTEXT
 }

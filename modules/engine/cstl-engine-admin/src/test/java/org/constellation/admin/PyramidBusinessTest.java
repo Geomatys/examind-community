@@ -112,6 +112,8 @@ public class PyramidBusinessTest {
                 dataBusiness.deleteAll();
                 providerBusiness.removeAll();
 
+                mpBusiness.initializeDefaultMapContextData();
+
                 //Initialize geotoolkit
                 ImageIO.scanForPlugins();
                 org.geotoolkit.lang.Setup.initialize(null);

@@ -1344,6 +1344,7 @@
   "service.process.button.delete.process": "Supprimer le processus",
   "service.process.button.delete.category": "Supprimer la catégorie",
   "service.layer.merge": "Générer une seule couche",
+  "service.mapcontext.pyramid": "Générer une pyramide a partir du map context",
   "sessions.messages.error": "<strong>Une erreur est survenue !</strong> La session ne peut pas être invalidée.",
   "sessions.messages.success": "<strong>La session a été invalidée !</strong>",
   "sessions.table.button": "Invalider",

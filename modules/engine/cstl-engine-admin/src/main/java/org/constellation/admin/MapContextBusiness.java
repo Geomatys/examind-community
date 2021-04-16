@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.xml.namespace.QName;
@@ -38,6 +39,8 @@ import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.crs.AbstractCRS;
 import org.apache.sis.referencing.cs.AxesConvention;
 import org.apache.sis.util.logging.Logging;
+import static org.constellation.api.ProviderConstants.INTERNAL_MAP_CONTEXT_PROVIDER;
+import org.constellation.api.ProviderType;
 
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IMapContextBusiness;
@@ -59,6 +62,8 @@ import org.constellation.dto.StyleReference;
 import org.constellation.dto.service.Service;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.TargetNotFoundException;
+import org.constellation.provider.DataProviderFactory;
+import org.constellation.provider.DataProviders;
 import org.constellation.repository.LayerRepository;
 import org.constellation.repository.MapContextRepository;
 import org.constellation.repository.ServiceRepository;
@@ -66,6 +71,7 @@ import org.constellation.repository.StyleRepository;
 import org.constellation.repository.StyledLayerRepository;
 import org.constellation.util.Util;
 import org.opengis.geometry.Envelope;
+import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -107,6 +113,7 @@ public class MapContextBusiness implements IMapContextBusiness {
     @Transactional
     public void setMapItems(final int contextId, final List<MapContextStyledLayerDTO> layers) {
         mapContextRepository.setLinkedLayers(contextId, layers);
+        reloadMapContextProvider();
     }
 
     @Override
@@ -119,6 +126,7 @@ public class MapContextBusiness implements IMapContextBusiness {
             }
         }
         mapContextRepository.setLinkedLayers(id, mapContext.getLayers());
+        reloadMapContextProvider();
         return id;
     }
 
@@ -153,6 +161,7 @@ public class MapContextBusiness implements IMapContextBusiness {
             mapcontextlayers.add(mcStyledLayer);
         }
         mapContextRepository.setLinkedLayers(id, mapcontextlayers);
+        reloadMapContextProvider();
         return id;
     }
 
@@ -320,6 +329,8 @@ public class MapContextBusiness implements IMapContextBusiness {
             layer.setMapcontextId(mapContext.getId());
         }
         mapContextRepository.setLinkedLayers(mapContext.getId(), mapContext.getLayers());
+        // in case of name change
+        reloadMapContextProvider();
     }
 
     @Override
@@ -327,6 +338,7 @@ public class MapContextBusiness implements IMapContextBusiness {
     public void delete(int contextId) throws ConstellationException {
         metadataBusiness.deleteMapContextMetadata(contextId);
         mapContextRepository.delete(contextId);
+        reloadMapContextProvider();
     }
 
     @Override
@@ -335,6 +347,33 @@ public class MapContextBusiness implements IMapContextBusiness {
         List<Integer> ids = mapContextRepository.findAllId();
         for (Integer id : ids) {
             delete(id);
+        }
+        reloadMapContextProvider();
+    }
+
+    @Override
+    public void initializeDefaultMapContextData() {
+        if (providerBusiness.getIDFromIdentifier(INTERNAL_MAP_CONTEXT_PROVIDER) == null) {
+            try {
+               final DataProviderFactory factory = DataProviders.getFactory("mapcontext-provider");
+                final ParameterValueGroup source = factory.getProviderDescriptor().createValue();
+                source.parameter("id").setValue(INTERNAL_MAP_CONTEXT_PROVIDER);
+                final ParameterValueGroup config = source.addGroup("MapContextProvider");
+
+                int pid = providerBusiness.storeProvider(INTERNAL_MAP_CONTEXT_PROVIDER, ProviderType.LAYER, "mapcontext-provider", source);
+                providerBusiness.createOrUpdateData(pid, null, false, true, null);
+
+            } catch (ConstellationException ex) {
+                LOGGER.log(Level.WARNING, "An error occurred when creating default map context provider.", ex);
+            }
+        }
+    }
+
+    private void reloadMapContextProvider() {
+        try {
+            providerBusiness.reload(INTERNAL_MAP_CONTEXT_PROVIDER);
+        } catch (ConstellationException ex) {
+            LOGGER.log(Level.WARNING, "Error while reloading map context provider", ex);
         }
     }
 

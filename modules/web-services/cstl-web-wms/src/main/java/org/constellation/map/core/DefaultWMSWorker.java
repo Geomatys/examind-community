@@ -1583,45 +1583,47 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             final MapLayer fml = (MapLayer)item;
             if (!(fml.getData() instanceof FeatureSet)) return;
             Integer lid = (Integer) fml.getUserProperties().get("layerId");
-            final FilterAndDimension layerFnD = getLayerFilterDimensions(lid);
-            if (layerFnD.getFilter() != null) {
-                Filter filterGt = Filter.include();
-                try {
-                    filterGt = new DtoToOGCFilterTransformer(new FilterFactoryImpl()).visitFilter(layerFnD.getFilter());
-                } catch (FactoryException e) {
-                    LOGGER.log(Level.INFO, e.getLocalizedMessage(), e);
-                }
-                final SimpleQuery query = new SimpleQuery();
-                query.setFilter(filterGt);
-                fml.setQuery(query);
-            }
-
-            final List<DimensionDef> defs = new ArrayList<>();
-            for (DimensionDefinition ddef : layerFnD.getDimensions()) {
-                try {
-                    final String crsname = ddef.getCrs();
-                    final Expression lower = CQL.parseExpression(ddef.getLower());
-                    final Expression upper = CQL.parseExpression(ddef.getUpper());
-                    final CoordinateReferenceSystem dimCrs;
-
-                    if ("elevation".equalsIgnoreCase(crsname)) {
-                        dimCrs = CommonCRS.Vertical.ELLIPSOIDAL.crs();
-                    } else if ("temporal".equalsIgnoreCase(crsname)) {
-                        dimCrs = CommonCRS.Temporal.JAVA.crs();
-                    } else {
-                        final EngineeringDatum customDatum = new DefaultEngineeringDatum(Collections.singletonMap("name", crsname));
-                        final CoordinateSystemAxis csAxis = new DefaultCoordinateSystemAxis(Collections.singletonMap("name", crsname), "u", AxisDirection.valueOf(crsname), Units.UNITY);
-                        final AbstractCS customCs = new AbstractCS(Collections.singletonMap("name", crsname), csAxis);
-                        dimCrs = new DefaultEngineeringCRS(Collections.singletonMap("name", crsname), customDatum, customCs);
+            if (lid != null) {
+                final FilterAndDimension layerFnD = getLayerFilterDimensions(lid);
+                if (layerFnD.getFilter() != null) {
+                    Filter filterGt = Filter.include();
+                    try {
+                        filterGt = new DtoToOGCFilterTransformer(new FilterFactoryImpl()).visitFilter(layerFnD.getFilter());
+                    } catch (FactoryException e) {
+                        LOGGER.log(Level.INFO, e.getLocalizedMessage(), e);
                     }
-
-                    defs.add(new DimensionDef(dimCrs, lower, upper));
-                } catch (CQLException ex) {
-                    LOGGER.log(Level.WARNING, null, ex);
+                    final SimpleQuery query = new SimpleQuery();
+                    query.setFilter(filterGt);
+                    fml.setQuery(query);
                 }
-            }
 
-            fml.getUserProperties().put(PROP_EXTRADIMENSIONS, defs);
+                final List<DimensionDef> defs = new ArrayList<>();
+                for (DimensionDefinition ddef : layerFnD.getDimensions()) {
+                    try {
+                        final String crsname = ddef.getCrs();
+                        final Expression lower = CQL.parseExpression(ddef.getLower());
+                        final Expression upper = CQL.parseExpression(ddef.getUpper());
+                        final CoordinateReferenceSystem dimCrs;
+
+                        if ("elevation".equalsIgnoreCase(crsname)) {
+                            dimCrs = CommonCRS.Vertical.ELLIPSOIDAL.crs();
+                        } else if ("temporal".equalsIgnoreCase(crsname)) {
+                            dimCrs = CommonCRS.Temporal.JAVA.crs();
+                        } else {
+                            final EngineeringDatum customDatum = new DefaultEngineeringDatum(Collections.singletonMap("name", crsname));
+                            final CoordinateSystemAxis csAxis = new DefaultCoordinateSystemAxis(Collections.singletonMap("name", crsname), "u", AxisDirection.valueOf(crsname), Units.UNITY);
+                            final AbstractCS customCs = new AbstractCS(Collections.singletonMap("name", crsname), csAxis);
+                            dimCrs = new DefaultEngineeringCRS(Collections.singletonMap("name", crsname), customDatum, customCs);
+                        }
+
+                        defs.add(new DimensionDef(dimCrs, lower, upper));
+                    } catch (CQLException ex) {
+                        LOGGER.log(Level.WARNING, null, ex);
+                    }
+                }
+
+                fml.getUserProperties().put(PROP_EXTRADIMENSIONS, defs);
+            }
         } else if (item instanceof MapLayers) {
             for (MapItem layer : ((MapLayers) item).getComponents()) {
                 applyLayerFiltersAndDims(layer, userLogin);

@@ -24,7 +24,6 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
@@ -45,6 +44,7 @@ import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDataCoverageJob;
+import org.constellation.business.IMapContextBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.business.IStyleBusiness;
@@ -109,6 +109,9 @@ public class SetupBusiness {
     @Inject
     private IProviderBusiness providerBusiness;
 
+     @Inject
+    private IMapContextBusiness mapContextBusiness;
+
     @Inject
     private IConfigurationBusiness configurationBusiness;
     
@@ -159,10 +162,15 @@ public class SetupBusiness {
 
                 }
             });
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Error while deploying default resources", ex);
         } finally {
             LOGGER.fine("UNLOCK on cluster: setup-default-resources");
             lock.unlock();
         }
+
+        LOGGER.log(Level.INFO, "initializing map context data ...");
+        mapContextBusiness.initializeDefaultMapContextData();
 
         //check if data analysis is required
         boolean doAnalysis = Application.getBooleanProperty(AppProperty.DATA_AUTO_ANALYSE, Boolean.TRUE);
@@ -437,6 +445,7 @@ public class SetupBusiness {
                 }
             }
         }
+
 
         /**
          * Initialize default properties values if not exist.
