@@ -169,6 +169,11 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
                 serviceBusiness.deleteAll();
                 dataBusiness.deleteAll();
                 providerBusiness.removeAll();
+
+                 //Initialize geotoolkit
+                ImageIO.scanForPlugins();
+                org.geotoolkit.lang.Setup.initialize(null);
+
                 
                 EPSG_VERSION = CRS.getVersion("EPSG").toString();
 
@@ -196,18 +201,6 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
 
 
                 pool = WCSMarshallerPool.getInstance();
-
-                WorldFileImageReader.Spi.registerDefaults(null);
-
-                //reset values, only allow pure java readers
-                for(String jn : ImageIO.getReaderFormatNames()){
-                    Registry.setNativeCodecAllowed(jn, ImageReaderSpi.class, false);
-                }
-
-                //reset values, only allow pure java writers
-                for(String jn : ImageIO.getWriterFormatNames()){
-                    Registry.setNativeCodecAllowed(jn, ImageWriterSpi.class, false);
-                }
 
                 serviceBusiness.start(defId);
                 serviceBusiness.start(testId);

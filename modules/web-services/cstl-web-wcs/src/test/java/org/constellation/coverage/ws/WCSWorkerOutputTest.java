@@ -144,17 +144,9 @@ public class WCSWorkerOutputTest {
                 dataBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                WorldFileImageReader.Spi.registerDefaults(null);
-
-                //reset values, only allow pure java readers
-                for(String jn : ImageIO.getReaderFormatNames()){
-                    Registry.setNativeCodecAllowed(jn, ImageReaderSpi.class, false);
-                }
-
-                //reset values, only allow pure java writers
-                for(String jn : ImageIO.getWriterFormatNames()){
-                    Registry.setNativeCodecAllowed(jn, ImageWriterSpi.class, false);
-                }
+                //Initialize geotoolkit
+                ImageIO.scanForPlugins();
+                org.geotoolkit.lang.Setup.initialize(null);
 
                 final TestResources testResource = initDataDirectory();
 
