@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -48,7 +49,7 @@ import org.opengis.util.InternationalString;
  * @author Quentin Boileau (Geomatys)
  * @author Guilhem Legal (Geomatys)
  */
-public final class TestEnvironment {
+public class TestEnvironment {
 
     /**
      * Current version of EPSG databse.
@@ -83,12 +84,14 @@ public final class TestEnvironment {
     /*
         List of resources available
      */
-    public enum TestResource {
+    public static class TestResource {
+
+        static List<TestResource> values = new ArrayList<>();
 
         /**
          * Full directory of images (needed for proper deployement of all the associated image files)
          */
-        IMAGES("org/constellation/data/image", null, null),
+        public static final TestResource IMAGES = new TestResource("org/constellation/data/image", null, null);
         
         /**
          * Coverage file datastore with PNG file.
@@ -96,7 +99,7 @@ public final class TestEnvironment {
          *  data :
          *  - SSTMDE200305
          */
-        PNG("org/constellation/data/image/png/SSTMDE200305.png", TestEnvironment::createCoverageFileProvider, TestEnvironment::createFileCoverageStore),
+        public static final TestResource PNG = new TestResource("org/constellation/data/image/png/SSTMDE200305.png", TestEnvironment::createCoverageFileProvider, TestEnvironment::createFileCoverageStore);
 
         /**
          * Coverage file datastore with TIF file.
@@ -104,7 +107,7 @@ public final class TestEnvironment {
          *  data :
          *  - martinique
          */
-        TIF("org/constellation/data/image/tif/martinique.tif", TestEnvironment::createTifProvider, TestEnvironment::createFileCoverageStore),
+        public static final TestResource TIF = new TestResource("org/constellation/data/image/tif/martinique.tif", TestEnvironment::createTifProvider, TestEnvironment::createFileCoverageStore);
 
         /**
          * Netcdf provider.
@@ -115,9 +118,9 @@ public final class TestEnvironment {
          * - Record
          * - sea_water_temperature
          */
-        NETCDF("org/constellation/netcdf/2005092200_sst_21-24.en.nc", TestEnvironment::createNCProvider, null),
+        public static final TestResource NETCDF = new TestResource("org/constellation/netcdf/2005092200_sst_21-24.en.nc", TestEnvironment::createNCProvider, null);
 
-        SQL_SCRIPTS("org/constellation/sql", null, null),
+        public static final TestResource SQL_SCRIPTS = new TestResource("org/constellation/sql", null, null);
 
         /**
          * GML datastore.
@@ -125,7 +128,7 @@ public final class TestEnvironment {
          * data :
          *  - http://cite.opengeospatial.org/gmlsf : AggregateGeoFeature
          */
-        WFS110_AGGREGATE("org/constellation/ws/embedded/wfs110/aggregate", TestEnvironment::createAggregateProvider, null),
+        public static TestResource WFS110_AGGREGATE = new TestResource("org/constellation/ws/embedded/wfs110/aggregate", TestEnvironment::createAggregateProvider, null);
 
         /**
          * GML datastore.
@@ -133,7 +136,7 @@ public final class TestEnvironment {
          * data :
          *  - http://cite.opengeospatial.org/gmlsf : EntitéGénérique
          */
-        WFS110_ENTITY("org/constellation/ws/embedded/wfs110/entity", TestEnvironment::createEntityGenericGMLProvider, null),
+        public static final TestResource WFS110_ENTITY = new TestResource("org/constellation/ws/embedded/wfs110/entity", TestEnvironment::createEntityGenericGMLProvider, null);
 
         /**
          * GML datastore.
@@ -141,8 +144,8 @@ public final class TestEnvironment {
          * data :
          *  - http://cite.opengeospatial.org/gmlsf : PrimitiveGeoFeature
          */
-        WFS110_PRIMITIVE("org/constellation/ws/embedded/wfs110/primitive", TestEnvironment::createPrimitiveGMLProvider, null),
-        WFS110_CITE_GMLSF0("org/constellation/ws/embedded/wfs110/cite-gmlsf0.xsd", null, null),
+        public static final TestResource WFS110_PRIMITIVE = new TestResource("org/constellation/ws/embedded/wfs110/primitive", TestEnvironment::createPrimitiveGMLProvider, null);
+        public static final TestResource WFS110_CITE_GMLSF0 = new TestResource("org/constellation/ws/embedded/wfs110/cite-gmlsf0.xsd", null, null);
 
         /**
          * Multiple shapefiles.
@@ -161,10 +164,10 @@ public final class TestEnvironment {
          * - MapNeatline
          * - Ponds
          */
-        WMS111_SHAPEFILES("org/constellation/ws/embedded/wms111/shapefiles", TestEnvironment::createShapefileProvider, TestEnvironment::createShapefileStore),
-        WMS111_STYLES("org/constellation/ws/embedded/wms111/styles", null, null),
+        public static final TestResource WMS111_SHAPEFILES = new TestResource("org/constellation/ws/embedded/wms111/shapefiles", TestEnvironment::createShapefileProvider, TestEnvironment::createShapefileStore);
+        public static final TestResource WMS111_STYLES = new TestResource("org/constellation/ws/embedded/wms111/styles", null, null);
 
-        SHAPEFILES("org/constellation/data/shapefiles", TestEnvironment::createShapefileProvider, TestEnvironment::createShapefileStore),
+        public static final TestResource SHAPEFILES = new TestResource("org/constellation/data/shapefiles", TestEnvironment::createShapefileProvider, TestEnvironment::createShapefileStore);
 
         /**
          * Observation and mesurement provider.
@@ -172,20 +175,20 @@ public final class TestEnvironment {
          * data :
          * - http://www.opengis.net/sampling/1.0 : SamplingPoint
          */
-        OM2_FEATURE_DB(null, TestEnvironment::createOM2FeatureProvider, null),
-        OM2_DB(null, TestEnvironment::createOM2DatabaseProvider, null),
-        OM_XML("org/constellation/xml/sos/single-observations.xml", TestEnvironment::createOMFileProvider, null),
-        OM_GENERIC_DB("org/constellation/xml/sos/generic-config.xml", TestEnvironment::createOMGenericDBProvider, null),
-        OM_LUCENE(null,  TestEnvironment::createOMLuceneProvider, null),
+        public static final TestResource OM2_FEATURE_DB = new TestResource(null, TestEnvironment::createOM2FeatureProvider, null);
+        public static final TestResource OM2_DB = new TestResource(null, TestEnvironment::createOM2DatabaseProvider, null);
+        public static final TestResource OM_XML = new TestResource("org/constellation/xml/sos/single-observations.xml", TestEnvironment::createOMFileProvider, null);
+        public static final TestResource OM_GENERIC_DB = new TestResource("org/constellation/xml/sos/generic-config.xml", TestEnvironment::createOMGenericDBProvider, null);
+        public static final TestResource OM_LUCENE = new TestResource(null,  TestEnvironment::createOMLuceneProvider, null);
 
         // Sensor Providers
-        SENSOR_FILE(null, TestEnvironment::createSensorFileProvider, null),
-        SENSOR_INTERNAL(null, TestEnvironment::createSensorInternalProvider, null),
+        public static final TestResource SENSOR_FILE = new TestResource(null, TestEnvironment::createSensorFileProvider, null);
+        public static final TestResource SENSOR_INTERNAL = new TestResource(null, TestEnvironment::createSensorInternalProvider, null);
 
         // metadata providers
-        METADATA_FILE(null, TestEnvironment::createMetadataFileProvider, null),
-        METADATA_NETCDF(null, TestEnvironment::createMetadataNetCDFProvider, null),
-        METADATA_INTERNAL(null, TestEnvironment::createMetadataInternalProvider, null),
+        public static final TestResource METADATA_FILE = new TestResource(null, TestEnvironment::createMetadataFileProvider, null);
+        public static final TestResource METADATA_NETCDF = new TestResource(null, TestEnvironment::createMetadataNetCDFProvider, null);
+        public static final TestResource METADATA_INTERNAL = new TestResource(null, TestEnvironment::createMetadataInternalProvider, null);
 
         /**
          * External Postgis feature database.
@@ -196,13 +199,13 @@ public final class TestEnvironment {
          * - http://cite.opengeospatial.org/gmlsf2 : EntitéGénérique
          * - http://cite.opengeospatial.org/gmlsf2 : CustomSQLQuery
          */
-        FEATURE_DATABASE(null, TestEnvironment::createFeatDBProvider, null),
+        public static final TestResource FEATURE_DATABASE = new TestResource(null, TestEnvironment::createFeatDBProvider, null);
 
         //xml files
-        XML("org/constellation/xml", null, null),
-        XML_METADATA("org/constellation/xml/metadata", null, null),
-        XML_SML("org/constellation/xml/sml", null, null),
-        XML_SOS("org/constellation/xml/sos", null, null),
+        public static final TestResource XML = new TestResource("org/constellation/xml", null, null);
+        public static final TestResource XML_METADATA = new TestResource("org/constellation/xml/metadata", null, null);
+        public static final TestResource XML_SML = new TestResource("org/constellation/xml/sml", null, null);
+        public static final TestResource XML_SOS = new TestResource("org/constellation/xml/sos", null, null);
 
         /**
          * GEOJSON file provider.
@@ -210,7 +213,7 @@ public final class TestEnvironment {
          * data :
          * - feature
          */
-        JSON_FEATURE("org/constellation/ws/embedded/json/feature.json", TestEnvironment::createGeoJsonProvider, null),
+        public static final TestResource JSON_FEATURE = new TestResource("org/constellation/ws/embedded/json/feature.json", TestEnvironment::createGeoJsonProvider, null);
 
          /**
          * GEOJSON file provider.
@@ -218,17 +221,18 @@ public final class TestEnvironment {
          * data :
          * - featureCollection
          */
-        JSON_FEATURE_COLLECTION("org/constellation/ws/embedded/json/featureCollection.json", TestEnvironment::createGeoJsonProvider, null);
+        public static final TestResource JSON_FEATURE_COLLECTION = new TestResource("org/constellation/ws/embedded/json/featureCollection.json", TestEnvironment::createGeoJsonProvider, null);
 
-        private final String path;
+        protected final String path;
 
         private final BiFunction<IProviderBusiness, Path, Integer> createProvider;
         private final Function<Path, DataStore> createStore;
 
-        TestResource(String path, BiFunction<IProviderBusiness, Path, Integer> createProvider, Function<Path, DataStore> createStore) {
+        public TestResource(String path, BiFunction<IProviderBusiness, Path, Integer> createProvider, Function<Path, DataStore> createStore) {
             this.path = path;
             this.createProvider = createProvider;
             this.createStore= createStore;
+            values.add(this);
         }
     }
 
@@ -245,7 +249,7 @@ public final class TestEnvironment {
     private static Map<TestResource, DeployedTestResource> initWorkspaceData(Path workspace) throws URISyntaxException, IOException {
         final Map<TestResource, DeployedTestResource> results = new HashMap<>();
         final ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-        TestResource[] resources = TestResource.values();
+        List<TestResource> resources = TestResource.values;
         for (TestResource resource : resources) {
             Path deployedPath = null;
             if (resource.path != null) {
@@ -309,7 +313,7 @@ public final class TestEnvironment {
                        .collect(Collectors.toList());
                return new ProviderImport(pid, dsId, datas);
            }
-           throw new ConstellationRuntimeException("Missing test resource:" + tr.name());
+           throw new ConstellationRuntimeException("Missing test resource:" + tr.path);
         }
 
         /**
@@ -336,7 +340,7 @@ public final class TestEnvironment {
                        .collect(Collectors.toList());
                return new ProviderImport(pid, dsId, datas);
            }
-           throw new ConstellationRuntimeException("Missing test resource:" + tr.name());
+           throw new ConstellationRuntimeException("Missing test resource:" + tr.path);
         }
 
         public DataStore createStore(TestResource tr) {
@@ -344,7 +348,7 @@ public final class TestEnvironment {
            if (dpr != null) {
                return dpr.createStore();
            }
-           throw new ConstellationRuntimeException("Missing test resource:" + tr.name());
+           throw new ConstellationRuntimeException("Missing test resource:" + tr.path);
         }
     }
 

@@ -22,7 +22,6 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.MemoryCacheImageInputStream;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.StorageConnector;
@@ -52,6 +51,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -78,7 +78,6 @@ import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -106,10 +105,10 @@ import org.w3c.dom.Node;
  * @since 0.3
  */
 @Configuration
-@ImportResource({"classpath:/cstl/spring/test-context-complete.xml"})
 public abstract class AbstractGrizzlyServer {
 
-    public static String[] CSTL_SPRING_PACKAGE = new String[] {
+    public static final List<String> CSTL_SPRING_PACKAGE = new ArrayList(Arrays.asList(
+            new String[] {
             "org.constellation.configuration.ws",
             "org.constellation.map.ws.rs",
             "org.constellation.metadata.ws.rs",
@@ -122,7 +121,13 @@ public abstract class AbstractGrizzlyServer {
             "org.constellation.metadata.ws.rs.provider",
             "org.constellation.wps.ws.rs",
             "com.examind.sts.ws.rs",
-            "org.constellation.thesaurus.ws.rs"};
+            "org.constellation.thesaurus.ws.rs"}));
+
+    protected static void addSpringPackage(String s) {
+        if (!CSTL_SPRING_PACKAGE.contains(s)) {
+            CSTL_SPRING_PACKAGE.add(s);
+        }
+    }
 
     protected static final Logger LOGGER = Logging.getLogger("org.constellation.ws.embedded");
 
@@ -147,9 +152,21 @@ public abstract class AbstractGrizzlyServer {
      * Initialize and start the server.
      */
     public void startServer() throws Exception {
+        startServer(TestConfiguration.class);
+    }
+    
+    /**
+     * Initialize and start the server.
+     * @param configClass
+     */
+    public void startServer(Class configClass) throws Exception {
         // Hack: force french locale to comply with hard-coded test identifiers (see WMSRequestsTest#testWMSGetFeatureInfoPlainCoveragePng
         Locale.setDefault(Locale.FRANCE);
-        ctx = SpringApplication.run(AbstractGrizzlyServer.class, new String[0]);
+
+        SpringApplication sa = new SpringApplication(AbstractGrizzlyServer.class);
+        sa.addPrimarySources(Arrays.asList(configClass));
+        sa.setAllowBeanDefinitionOverriding(true);
+        ctx = sa.run(new String[0]);
 
         serviceBusiness = SpringHelper.getBean(IServiceBusiness.class);
         layerBusiness = SpringHelper.getBean(ILayerBusiness.class);
@@ -244,7 +261,7 @@ public abstract class AbstractGrizzlyServer {
     public ServletRegistrationBean ogcServiceServlet() {
         DispatcherServlet dispatcherServlet = new DispatcherServlet();
         AnnotationConfigWebApplicationContext applicationContext = new AnnotationConfigWebApplicationContext();
-        applicationContext.scan(CSTL_SPRING_PACKAGE);
+        applicationContext.scan(CSTL_SPRING_PACKAGE.toArray(new String[CSTL_SPRING_PACKAGE.size()]));
         if (controllerConfiguration != null) {
             applicationContext.register(controllerConfiguration);
         }
@@ -380,7 +397,7 @@ public abstract class AbstractGrizzlyServer {
      * @return The {@link BufferedImage} or {@code null} if an error occurs.
      * @throws IOException
      */
-    protected static BufferedImage getImageFromURL(final URL url, final String mime) throws IOException {
+    public static BufferedImage getImageFromURL(final URL url, final String mime) throws IOException {
         /* Try to bypass image reader instabilities by loading source content in memory first.
          * Note that the code related to the storage connector still properly close streams, even if it is not
          * necessary, in case of future changes.
