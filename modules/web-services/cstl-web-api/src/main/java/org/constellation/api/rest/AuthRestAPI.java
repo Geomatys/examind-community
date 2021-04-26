@@ -37,7 +37,6 @@ import org.constellation.dto.user.ResetPassword;
 import org.constellation.engine.security.AuthenticationProxy;
 import org.constellation.security.SecurityManagerHolder;
 import org.constellation.security.UnknownAccountException;
-import org.geotoolkit.util.StringUtilities;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -145,7 +144,7 @@ public class AuthRestAPI extends AbstractRestAPI{
             if (!userOptional.isPresent()) return new ErrorMessage(NOT_FOUND).message("User not found").i18N(I18nCodes.User.NOT_FOUND).build();
 
             final UserWithRole cstlUser = userOptional.get();
-            cstlUser.setPassword(StringUtilities.MD5encode(newPassword));
+            cstlUser.setPassword(newPassword);
             cstlUser.setForgotPasswordUuid(null);
             userBusiness.update(cstlUser);
             return new ResponseEntity(HttpStatus.OK);

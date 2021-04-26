@@ -18,6 +18,8 @@
  */
 package org.constellation.database.impl.repository;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import static org.constellation.database.api.jooq.Tables.CSTL_USER;
 import static org.constellation.database.api.jooq.Tables.USER_X_ROLE;
 
@@ -62,6 +64,9 @@ public class JooqUserRepository extends
     @Transactional(propagation = Propagation.MANDATORY)
     public Integer create(UserWithRole user) {
         CstlUserRecord record = dsl.newRecord(CSTL_USER);
+        // encode password
+        String pwd = user.getPassword();
+        user.setPassword(MD5encode(pwd));
         record.from(user);
         record.store();
         Integer uid =  record.getId();
@@ -73,6 +78,11 @@ public class JooqUserRepository extends
     @Transactional(propagation = Propagation.MANDATORY)
     public void update(UserWithRole user) {
         CstlUserRecord record = dsl.newRecord(CSTL_USER);
+        //check password update
+        String newPassword = user.getPassword();
+        if (newPassword != null && !newPassword.isEmpty()) {
+            user.setPassword(MD5encode(newPassword));
+        }
         record.from(user);
         dsl.executeUpdate(record);
         setUserRoles(user.getId(), user.getRoles());
@@ -339,6 +349,8 @@ public class JooqUserRepository extends
         List<UserWithRole> ret = new ArrayList<>();
         for (Map.Entry<CstlUserRecord, Result<Record>> e : records.entrySet()) {
             UserWithRole userWithRole = e.getKey().into(UserWithRole.class);
+            // empty password
+            userWithRole.setPassword(null);
             if (fetchGroup) {
                 List<String> roles = e.getValue().getValues(Tables.USER_X_ROLE.ROLE);
                 userWithRole.setRoles(roles);
@@ -383,7 +395,7 @@ public class JooqUserRepository extends
         if (dao != null) {
             return new CstlUser(dao.getId(),
                     dao.getLogin(),
-                    dao.getPassword(),
+                    null, // hide pwd
             dao.getFirstname(),
             dao.getLastname(),
             dao.getEmail(),
@@ -411,4 +423,33 @@ public class JooqUserRepository extends
         return results;
     }
 
+    /**
+     * Encode the specified string with MD5 algorithm.
+     *
+     * @param key   the string to encode.
+     * @return the value (string) hexadecimal on 32 bits
+     */
+    public static String MD5encode(final String key) {
+
+        final byte[] uniqueKey = key.getBytes();
+        byte[] hash = null;
+        try {
+            // we get an object allowing to crypt the string
+            hash = MessageDigest.getInstance("MD5").digest(uniqueKey);
+
+        } catch (NoSuchAlgorithmException e) {
+            throw new Error("no MD5 support in this VM");
+        }
+        final StringBuffer hashString = new StringBuffer();
+        for (int i = 0; i < hash.length; ++i) {
+            final String hex = Integer.toHexString(hash[i]);
+            if (hex.length() == 1) {
+                hashString.append('0');
+                hashString.append(hex.charAt(hex.length() - 1));
+            } else {
+                hashString.append(hex.substring(hex.length() - 2));
+            }
+        }
+        return hashString.toString();
+    }
 }

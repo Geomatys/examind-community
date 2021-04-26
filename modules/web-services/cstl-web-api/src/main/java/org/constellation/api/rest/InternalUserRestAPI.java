@@ -11,8 +11,6 @@ import java.util.logging.Level;
 import javax.servlet.http.HttpServletRequest;
 import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
 import org.constellation.dto.UserWithRole;
-import org.constellation.dto.CstlUser;
-import org.geotoolkit.util.StringUtilities;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 import org.springframework.http.MediaType;
@@ -92,15 +90,9 @@ public class InternalUserRestAPI extends AbstractRestAPI {
                 user.setPhone(phone);
                 user.setLocale(locale);
                 user.setRoles(Arrays.asList(role));
-
-                //check password update
-                String newPassword = StringUtilities.MD5encode(password);
-                if (password != null
-                        && !password.isEmpty()
-                        && !newPassword.equals(user.getPassword())) {
-                    user.setPassword(newPassword);
+                if (password != null && !password.isEmpty()) {
+                    user.setPassword(password);
                 }
-
                 userBusiness.update(user);
                 return new ResponseEntity(OK);
             }
@@ -148,13 +140,8 @@ public class InternalUserRestAPI extends AbstractRestAPI {
             user.setPhone(phone);
             user.setLocale(locale);
             user.setRoles(Arrays.asList(role));
-
-            //check password update
-            String newPassword = StringUtilities.MD5encode(password);
-            if (password != null
-                    && !password.isEmpty()
-                    && !newPassword.equals(user.getPassword())) {
-                user.setPassword(newPassword);
+            if (password != null && !password.isEmpty()) {
+                user.setPassword(password);
             }
             userBusiness.update(user);
 
@@ -199,10 +186,9 @@ public class InternalUserRestAPI extends AbstractRestAPI {
         user.setCity(city);
         user.setCountry(country);
         user.setPhone(phone);
-        user.setPassword(StringUtilities.MD5encode(password));
+        user.setPassword(password);
         user.setLocale(locale);
         user.setRoles(Arrays.asList(role));
-
         userBusiness.create(user);
 
         return new ResponseEntity(OK);
