@@ -366,11 +366,11 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                LOGGER.log(Level.INFO, "Error retrieving data crs for the layer :" + data.getName(), ex);
            }
 
-            GeographicBoundingBox inputGeoBox;
+            GeographicBoundingBox inputGeoBox = null;
             try {
                 inputGeoBox = data.getGeographicBoundingBox();
-            } catch (ConstellationStoreException exception) {
-                throw new CstlServiceException(exception, NO_APPLICABLE_CODE);
+            } catch (ConstellationStoreException ex) {
+                LOGGER.log(Level.WARNING, "Error retrieving bouding box values for the layer :"+ data.getName(), ex);
             }
 
             if (inputGeoBox == null) {
