@@ -16,27 +16,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.map.factory;
+package com.examind.map.security;
 
 import org.constellation.ws.LayerSecurityFilter;
-import org.constellation.map.security.NoLayerSecurityFilter;
-import org.constellation.ws.MapFactory;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class DefaultMapFactory implements MapFactory {
-
-
-    @Override
-    public LayerSecurityFilter getSecurityFilter() {
-        return new NoLayerSecurityFilter();
-    }
+public class NoLayerSecurityFilter implements LayerSecurityFilter {
 
     @Override
-    public String getIdentifier() {
-        return "default";
+    public boolean allowed(final String login, final Integer layerId) {
+        return true;
     }
 
 }

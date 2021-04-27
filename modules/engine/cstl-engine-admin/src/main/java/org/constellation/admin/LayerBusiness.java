@@ -19,6 +19,7 @@
 
 package org.constellation.admin;
 
+import com.examind.map.factory.DefaultMapFactory;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.AbstractMap;
@@ -107,7 +108,7 @@ public class LayerBusiness implements ILayerBusiness {
     /**
      * Lazy loaded map of {@link MapFactory} found in classLoader.
      */
-    private Map<String, MapFactory> mapFactories = null;
+    private final Map<String, MapFactory> mapFactories = new HashMap<>();
 
     @Override
     @Transactional
@@ -674,9 +675,8 @@ public class LayerBusiness implements ILayerBusiness {
      * @param type
      * @return
      */
-    private MapFactory getMapFactory(final String impl) throws ConfigurationException {
-        if (mapFactories == null) {
-            mapFactories = new HashMap<>();
+    private synchronized MapFactory getMapFactory(final String impl) throws ConfigurationException {
+        if (mapFactories.isEmpty()) {
             final Iterator<MapFactory> ite = ServiceLoader.load(MapFactory.class).iterator();
             while (ite.hasNext()) {
                 MapFactory currentFactory = ite.next();
@@ -684,6 +684,11 @@ public class LayerBusiness implements ILayerBusiness {
             }
         }
         if (!mapFactories.containsKey(impl)) {
+            // fallback when META_INF fails on us
+            if ("default".equals(impl)) {
+                LOGGER.warning("MapFactory META-INF loading fails");
+                return new DefaultMapFactory();
+            }
             throw new ConfigurationException("No Map factory has been found for type:" + impl);
         }
         return mapFactories.get(impl);
