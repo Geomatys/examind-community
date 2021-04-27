@@ -265,9 +265,19 @@
                                             </div>
                                             <div class="col-sm-3 col-md-2 tooltip-left-menu">
                                                 <span class="tooltipicon">
+                                                    <a class="btn btn-style"
+                                                       ng-click="stlCtrl.duplicateStyle()"
+                                                       data-placement="bottom"
+                                                       title="{{'md.listing.selected.duplicate.button' | translate }}" tooltip>
+                                                        <i class="fa fa-copy"></i>
+                                                    </a>
+                                                </span>
+                                            </div>
+                                            <div class="col-sm-3 col-md-2 tooltip-left-menu">
+                                                <span class="tooltipicon">
                                                     <button type="button"
                                                             id="deleteStyleBtn"
-                                                            class="btn btn-style"
+                                                            class="btn btn-danger2"
                                                             ng-click="stlCtrl.deleteStyle()"
                                                             data-placement="bottom"
                                                             title="{{'layer.listing.selected.delete.button' | translate }}"

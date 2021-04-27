@@ -28,7 +28,7 @@ angular.module('cstl-style-dashboard', [
         sort: { field: 'name', order: 'ASC' }
     })
 
-    .controller('StylesController', function(Paging,Growl,StyleSharedService,$modal,$window,
+    .controller('StylesController', function($scope, Paging,Growl,StyleSharedService,$modal,$window,
                                              Examind,STYLE_DEFAULT_QUERY) {
         var self = this;
 
@@ -253,10 +253,33 @@ angular.module('cstl-style-dashboard', [
                 self.styleOpts.currentStyleId = null;
             }
         };
+
+        self.duplicateStyle = function () {
+            Examind.styles.getStyle(self.selected.id)
+                .then(function (response) {
+                    var data = {
+                        name: self.selected.name + '-copy-' + new Date().getTime(),
+                        rules: response.data.rules
+                    };
+                    Examind.styles.createStyle(data, 'sld')
+                        .then(function () {
+                            Growl('success', 'Success', 'Style ' + self.selected.name + ' successfully duplicated');
+                            self.initStyleDashboard();
+                        }, function () {
+                            Growl('error', 'Error', 'Style ' + self.selected.name + ' duplication failed');
+                        });
+                }, function () {
+                    Growl('error', 'Error', 'Get Style ' + self.selected.name + ' data failed');
+                });
+        };
+
+        $scope.$on('update-style-data', function (evt, args) {
+            self.selected.name = args;
+        });
     })
 
     .controller('StyleImportModalController', function ($rootScope, $scope, $modalInstance,
-                                                        Growl, cfpLoadingBar, Examind) {
+                                                        Growl, cfpLoadingBar) {
 
         $scope.import = {
             styleName : '',

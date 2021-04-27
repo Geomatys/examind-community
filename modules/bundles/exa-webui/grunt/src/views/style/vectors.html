@@ -12,8 +12,10 @@
                                type="text"
                                class="form-control form-control-fix"
                                ng-model="optionsSLD.userStyleName"/>
-                        <label style="font-size: 12px;font-weight: normal;margin-top: 8px;"
-                               class="title" ng-if="isSelectedChooser('edit')">{{newStyle.name}}</label>
+                        <input ng-if="isSelectedChooser('edit')"
+                               type="text"
+                               class="form-control form-control-fix"
+                               ng-model="newStyle.name"/>
                     </div>
                 </div>
             </div>

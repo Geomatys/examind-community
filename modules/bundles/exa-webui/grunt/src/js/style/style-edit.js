@@ -21,7 +21,7 @@ angular.module('cstl-style-edit', [
     'examind-instance',
     'webui-utils'])
 
-    .controller('StyleModalController', function($scope,$filter, OldDashboard, $modalInstance,
+    .controller('StyleModalController', function($rootScope, $scope,$filter, OldDashboard, $modalInstance,
                                                  Growl, newStyle, selectedLayer,selectedStyle,
                                                  serviceName, exclude, $timeout,stylechooser,$modal, rasterstyletype,
                                                  AppConfigService, Examind) {
@@ -2151,6 +2151,7 @@ angular.module('cstl-style-edit', [
             Examind.styles.updateStyle($scope.newStyle.id,$scope.newStyle).then(
                 function() {
                     Growl('success', 'Success', 'Style ' + $scope.newStyle.name + ' successfully updated');
+                    $rootScope.$broadcast('update-style-data', $scope.newStyle.name);
                     $modalInstance.close({"id":$scope.newStyle.id,"provider": "sld", "name": $scope.newStyle.name});
                 },
                 function() {
