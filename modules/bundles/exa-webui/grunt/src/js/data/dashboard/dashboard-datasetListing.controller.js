@@ -42,6 +42,7 @@ function DatasetListingController($rootScope, $scope, $modal, $q, DashboardHelpe
     //reset selection
     self.dataset = null;
     self.data = null;
+    self.selectAllFlag = false;
 
     // Immediate content loading.
     self.search();
@@ -243,4 +244,13 @@ function DatasetListingController($rootScope, $scope, $modal, $q, DashboardHelpe
                 console.error("Unable to delete this dataset.", self.dataset, err);
             });
     };
+
+    self.selectAllData = function () {
+        self.selectAllFlag = !self.selectAllFlag;
+        $rootScope.$broadcast('select-all-data', self.selectAllFlag);
+    };
+
+    $scope.$on('unselect-dataset', function (evt) {
+        self.selectAllFlag = false;
+    });
 }

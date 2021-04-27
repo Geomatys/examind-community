@@ -954,6 +954,8 @@
   "layer.listing.selected.export.button": "Export",
   "layer.listing.selected.metadata.button": "Metadata",
   "layer.listing.selected.gotometadata.button": "Open the metadata in dashboard page",
+  "layer.listing.select.button": "Select all data",
+  "layer.listing.unselect.button": "Unselect all data",
   "layer.listing.selected.edit.button": "Edit",
   "layer.listing.selected.dataview.button": "View data",
   "layer.listing.selected.metadataedit.button": "Edit",

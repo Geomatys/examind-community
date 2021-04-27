@@ -163,7 +163,6 @@ function DatasetService($rootScope, $q, $modal, Growl, Examind) {
         });
     };
 
-
     self.deleteMultiData = function (data, successCallback) {
         if (!data || data.length === 0) {
             return $q.reject("No data");

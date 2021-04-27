@@ -964,6 +964,8 @@
   "layer.listing.selected.export.button": "Exporter",
   "layer.listing.selected.metadata.button": "Métadonnées",
   "layer.listing.selected.gotometadata.button": "Ouvrir la métadonnée dans le gestionnaire des fiches",
+  "layer.listing.select.button": "Sélectionner toutes les données",
+  "layer.listing.unselect.button": "Désélectionner toutes les données",
   "layer.listing.selected.edit.button": "Éditer",
   "layer.listing.selected.dataview.button": "View data",
   "layer.listing.selected.metadataedit.button": "Éditer",

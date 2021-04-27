@@ -16,7 +16,7 @@ angular.module('cstl-data-dashboard')
  * @param {DatasetDashboard} DatasetDashboard
  * @constructor
  */
-function DatasetDashboardController($scope, $q, $modal, $location, CstlConfig, Growl, AppConfigService, Examind, Dataset, DatasetDashboard) {
+function DatasetDashboardController($rootScope, $scope, $q, $modal, $location, CstlConfig, Growl, AppConfigService, Examind, Dataset, DatasetDashboard) {
 
     var self = this;
 
@@ -76,6 +76,7 @@ function DatasetDashboardController($scope, $q, $modal, $location, CstlConfig, G
             self.selection.dataset = null;
         } else {
             self.selection.dataset = dataset;
+            $rootScope.$broadcast('unselect-dataset', self.selectAllFlag);
         }
 
         // Update data preview.
