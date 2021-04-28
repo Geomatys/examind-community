@@ -46,6 +46,7 @@ import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.metadata.iso.citation.Citations;
 import org.apache.sis.referencing.CRS;
+import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.IdentifiedObjects;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
@@ -1126,7 +1127,7 @@ public class DataRestAPI extends AbstractRestAPI{
                 final DataDescription ddesc = db.getDataDescription();
                 if (ddesc != null) {
                     final double[] bbox = ddesc.getBoundingBox();
-                    final GeneralEnvelope dataEnv = new GeneralEnvelope(CRS.forCode("CRS:84"));
+                    final GeneralEnvelope dataEnv = new GeneralEnvelope(CommonCRS.defaultGeographic());
                     dataEnv.setRange(0,bbox[0],bbox[2]);
                     dataEnv.setRange(1,bbox[1],bbox[3]);
                     if(globalEnv == null) {

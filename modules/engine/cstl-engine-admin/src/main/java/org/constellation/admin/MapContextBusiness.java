@@ -25,18 +25,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.xml.namespace.QName;
 
-import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.util.FactoryException;
 
 import org.apache.sis.geometry.GeneralEnvelope;
-import org.apache.sis.metadata.iso.DefaultMetadata;
-import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.crs.AbstractCRS;
@@ -50,6 +46,7 @@ import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IUserBusiness;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.DataBrief;
+import org.constellation.dto.DataDescription;
 import org.constellation.dto.Layer;
 import org.constellation.dto.MapContextDTO;
 import org.constellation.dto.MapContextLayersDTO;
@@ -60,9 +57,7 @@ import org.constellation.dto.Style;
 import org.constellation.dto.StyleBrief;
 import org.constellation.dto.StyleReference;
 import org.constellation.dto.service.Service;
-import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
-import org.constellation.metadata.utils.MetadataFeeder;
 import org.constellation.repository.LayerRepository;
 import org.constellation.repository.MapContextRepository;
 import org.constellation.repository.ProviderRepository;
@@ -278,51 +273,22 @@ public class MapContextBusiness implements IMapContextBusiness {
             Integer layerID = styledLayer.getLayerId();
             Integer dataID = styledLayer.getDataId();
             if (layerID != null || dataID != null) {
-                if(dataID == null) {
+                if (dataID == null) {
                     final Layer layerRecord = layerRepository.findById(layerID);
                     dataID = layerRecord.getDataId();
                 }
-                DefaultMetadata metadata = null;
-                if(dataID != null) {
-                    try {
-                        metadata = (DefaultMetadata) metadataBusiness.getIsoMetadataForData(dataID);
-                    } catch (Exception ex) {
-                        LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+                DataBrief db = dataBusiness.getDataBrief(dataID);
+                final DataDescription ddesc = db.getDataDescription();
+                if (ddesc != null) {
+                    final double[] bbox = ddesc.getBoundingBox();
+                    final GeneralEnvelope dataEnv = new GeneralEnvelope(CommonCRS.defaultGeographic());
+                    dataEnv.setRange(0,bbox[0],bbox[2]);
+                    dataEnv.setRange(1,bbox[1],bbox[3]);
+                    if (env == null) {
+                        env = dataEnv;
+                    } else {
+                        env.add(dataEnv);
                     }
-                }
-                if(metadata == null && dataID != null) {
-                    //try to get dataset metadata.
-                    final Integer datasetId = dataBusiness.getDataDataset(dataID);
-                    if (datasetId != null) {
-                        try {
-                            metadata = (DefaultMetadata) datasetBusiness.getMetadata(datasetId);
-                        } catch(Exception ex) {
-                            //skip for this layer
-                            continue;
-                        }
-                    }
-                }
-                if (metadata == null) {
-                    continue;
-                }
-                final MetadataFeeder feeder = new MetadataFeeder(metadata);
-                final GeographicBoundingBox geoBBox = feeder.getGeographicBBoxes()
-                        .reduce((b1, b2) -> {
-                            final DefaultGeographicBoundingBox result = new DefaultGeographicBoundingBox(b1);
-                            result.add(b2);
-                            return result;
-                        })
-                        .orElse(null);
-                if (geoBBox == null) {
-                    continue;
-                }
-                final GeneralEnvelope tempEnv = new GeneralEnvelope(CommonCRS.defaultGeographic());
-                tempEnv.setRange(0, geoBBox.getWestBoundLongitude(), geoBBox.getEastBoundLongitude());
-                tempEnv.setRange(1, geoBBox.getSouthBoundLatitude(), geoBBox.getNorthBoundLatitude());
-                if (env == null) {
-                    env = tempEnv;
-                } else {
-                    env.add(tempEnv);
                 }
             } else {
                 final String extLayerExtent = styledLayer.getExternalLayerExtent();
