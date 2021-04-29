@@ -56,7 +56,7 @@ public final class Application {
 
     private static final Properties APP_PROPERTIES = new Properties();
 
-    private Application() {
+    static {
 
         //load embedded configuration file
         final String resourcePath = "/org/constellation/configuration/constellation.properties";
@@ -64,7 +64,7 @@ public final class Application {
             LOGGER.info("Load default configuration.");
             APP_PROPERTIES.load(classLoaderSettings);
         } catch (IOException e) {
-            throw new ConfigurationRuntimeException("Unable to load default configuration file from current class loader", e);
+            LOGGER.warning("Unable to load default configuration file from current class loader");
         }
 
         //search for external configuration file
