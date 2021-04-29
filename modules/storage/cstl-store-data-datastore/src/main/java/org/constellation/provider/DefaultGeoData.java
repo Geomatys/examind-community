@@ -27,6 +27,7 @@ import org.apache.sis.cql.CQLException;
 import org.apache.sis.filter.DefaultFilterFactory;
 import org.apache.sis.internal.storage.query.SimpleQuery;
 import org.apache.sis.internal.system.DefaultFactories;
+import org.apache.sis.portrayal.MapItem;
 import org.apache.sis.storage.Query;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.collection.BackingStoreException;
@@ -117,7 +118,7 @@ public abstract class DefaultGeoData<T extends Resource> extends AbstractData<T>
      * {@inheritDoc}
      */
     @Override
-    public final MapLayer getMapLayer(Style styleI, final Map<String, Object> params) throws ConstellationStoreException {
+    public MapItem getMapLayer(Style styleI, final Map<String, Object> params) throws ConstellationStoreException {
         if (styleI == null) {
             styleI = getDefaultStyle();
         }
