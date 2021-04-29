@@ -21,8 +21,10 @@ package org.constellation.webservice.map.component;
 import java.awt.Dimension;
 import java.awt.RenderingHints;
 import java.io.StringReader;
-import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
 import javax.xml.bind.JAXBException;
@@ -58,7 +60,9 @@ import org.constellation.ws.CstlServiceException;
 import org.springframework.stereotype.Component;
 
 import static org.apache.sis.util.ArgumentChecks.ensureDimensionMatches;
+import static org.apache.sis.util.ArgumentChecks.ensureExpectedCount;
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
+import org.geotoolkit.util.StringUtilities;
 
 /**
  *
@@ -93,9 +97,8 @@ public class MapBusiness {
      * @param bbox        the bounding box
      * @param width       the image width
      * @param height      the image height
-     * @param sldVersion  the SLD version
      * @param sldProvider the SLD provider name
-     * @param styleId     the style identifier in the provider
+     * @param styleName   the style identifier in the provider
      * @param filter      the filter on data
      *
      * @return a {@link PortrayalResponse} instance
@@ -105,20 +108,17 @@ public class MapBusiness {
      * @throws JAXBException
      */
     public PortrayalResponse portray(final Integer dataId, final String crsCode,
-                                     final String bbox, final int width, final int height, final String sldVersion,
-                                     final String sldProvider, final String styleId, final String filter)
+                                     final String bbox, final int width, final int height,
+                                     final String sldProvider, final String styleName, final String filter)
                                      throws ConstellationException, TargetNotFoundException, JAXBException {
-        if (sldProvider == null || styleId == null) {
-            return portray(dataId, crsCode, bbox, width, height, null, sldVersion, filter);
+        Style style = null;
+        if (sldProvider != null && styleName != null) {
+            style = styleBusiness.getStyle(sldProvider, styleName);
+            if (style == null){
+                throw new CstlServiceException("a problem occurred while retrieving the style from the database, styleid : "+styleName+" on provider : "+sldProvider);
+            }
         }
-    	Style style = styleBusiness.getStyle(sldProvider, styleId);
-        if (style == null){
-            throw new CstlServiceException("a problem occurred while retrieving the style from the database, styleid : "+styleId+" on provider : "+sldProvider);
-        }
-    	StyleXmlIO styleXmlIO = new StyleXmlIO();
-    	final StringWriter sw = new StringWriter();
-    	styleXmlIO.writeStyle(sw, style, Specification.StyledLayerDescriptor.V_1_1_0);
-    	return portray(dataId, crsCode, bbox, width, height, sw.toString(), sldVersion, filter);
+    	return portray(dataId, crsCode, bbox, width, height, style, filter);
     }
 
     /**
@@ -131,8 +131,7 @@ public class MapBusiness {
      * @param bbox        the bounding box
      * @param width       the image width
      * @param height      the image height
-     * @param sldVersion  the SLD version
-     * @param styleId     the style identifier in the provider
+     * @param styleId     the style identifier
      * @param filter      the filter on data
      *
      * @return a {@link PortrayalResponse} instance
@@ -142,20 +141,17 @@ public class MapBusiness {
      * @throws JAXBException
      */
     public PortrayalResponse portray(final Integer dataId, final String crsCode,
-                                     final String bbox, final int width, final int height, final String sldVersion,
+                                     final String bbox, final int width, final int height,
                                      final Integer styleId, final String filter)
                                      throws ConstellationException, TargetNotFoundException, JAXBException {
-        if (styleId == null) {
-            return portray(dataId, crsCode, bbox, width, height, null, sldVersion, filter);
+        Style style = null;
+        if (styleId != null) {
+            style = styleBusiness.getStyle(styleId);
+            if (style == null){
+                throw new CstlServiceException("a problem occurred while retrieving the style from the database, styleid : "+styleId);
+            }
         }
-    	Style style = styleBusiness.getStyle(styleId);
-        if (style == null){
-            throw new CstlServiceException("a problem occurred while retrieving the style from the database, styleid : "+styleId);
-        }
-    	StyleXmlIO styleXmlIO = new StyleXmlIO();
-    	final StringWriter sw = new StringWriter();
-    	styleXmlIO.writeStyle(sw, style, Specification.StyledLayerDescriptor.V_1_1_0);
-    	return portray(dataId, crsCode, bbox, width, height, sw.toString(), sldVersion, filter);
+    	return portray(dataId, crsCode, bbox, width, height, style, filter);
     }
 
     /**
@@ -174,22 +170,103 @@ public class MapBusiness {
      * @throws ConstellationException if the {@link PortrayalResponse} can't be produced for
      * any reason
      */
-    public PortrayalResponse portray(final Integer dataId, final String crsCode,
+    public PortrayalResponse portraySLD(final Integer dataId, final String crsCode,
                                       final String bbox, final int width, final int height, final String sldBody,
                                       final String sldVersion, final String filter) throws ConstellationException {
-        ensureNonNull("dataId", dataId);
-
-        // Get the layer (throws exception if doesn't exist).
-        final org.constellation.dto.Data data  = dataBusiness.getDataBrief(dataId);
-        if (data == null) throw new TargetNotFoundException("Unexisting data: " + dataId);
-
-        final Data d = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());;
-
-        if (d == null) throw new ConstellationStoreException("Unable to find a provider data for name:{" + data.getNamespace() +  "}:" +  data.getName());
-        if (!(d instanceof GeoData)) throw new ConstellationStoreException("Unable to portray a non GeoData");
-        final GeoData layer = (GeoData) d;
-
+        final MutableStyle style;
         try {
+            // Style.
+            if (sldBody != null) {
+                // Use specified style.
+                Specification.SymbologyEncoding version;
+                if ("1.1.0".equals(sldVersion)) {
+                    version = Specification.SymbologyEncoding.V_1_1_0;
+                } else {
+                    version = Specification.SymbologyEncoding.SLD_1_0_0;
+                }
+                final StringReader reader = new StringReader(sldBody);
+                style = new StyleXmlIO().readStyle(reader, version);
+            } else {
+                //let portrayal process to apply its own style
+                style= null;
+            }
+        } catch (FactoryException | JAXBException ex) {
+            throw new CstlServiceException(String.format(
+                    "Rendering failed for parameters:%nData: %d%nBbox: %s%nWidth: %d%nHeight: %d%nFilter: %s%n(Style ommitted)",
+                    dataId, bbox, width, height, filter
+            ), ex);
+        }
+        return portray(dataId, crsCode, bbox, width, height, style, filter);
+    }
+
+    public PortrayalResponse portray(final List<Integer> dataIds, final List<Integer> styleIds, final String crsCode,
+                                     final String bbox, final int width, final int height,
+                                     final String filter) throws ConstellationException {
+        ensureNonNull("dataId", dataIds);
+        List<Style> styles = new ArrayList<>();
+        if (styleIds != null) {
+            ensureExpectedCount("data/style size", dataIds.size(), styles.size());
+            for (int i = 0; i < dataIds.size(); i++) {
+                Integer sid = styleIds.get(i);
+                Style s = null;
+                if (sid != null) {
+                    s = styleBusiness.getStyle(sid);
+                }
+                styles.add(null);
+            }
+        } else {
+            // create a list full of null
+            for (int i = 0; i < dataIds.size(); i++) {
+                styles.add(null);
+            }
+        }
+        return portray(dataIds, crsCode, bbox, width, height, styles, filter);
+    }
+
+    private PortrayalResponse portray(final Integer dataId, final String crsCode,
+                                     final String bbox, final int width, final int height,
+                                     final Style style, final String filter) throws ConstellationException {
+        ensureNonNull("dataId", dataId);
+        return portray(Arrays.asList(dataId), crsCode, bbox, width, height, Arrays.asList(style), filter);
+    }
+
+    private PortrayalResponse portray(final List<Integer> dataIds, final String crsCode,
+                                     final String bbox, final int width, final int height,
+                                     final List<Style> styles, final String filter) throws ConstellationException {
+
+        ensureExpectedCount("data/style size", dataIds.size(), styles.size());
+        try {
+            final MapLayers mapContext = MapBuilder.createContext();
+
+            for (int j = 0; j < dataIds.size(); j++) {
+
+                // Get the data (throws exception if doesn't exist).
+                Integer dataId = dataIds.get(j);
+                Style style    = styles.get(j);
+
+                final org.constellation.dto.Data data  = dataBusiness.getDataBrief(dataId);
+                if (data == null) throw new TargetNotFoundException("Unexisting data: " + dataId);
+
+                final Data d = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());;
+
+                if (d == null) throw new ConstellationStoreException("Unable to find a provider data for name:{" + data.getNamespace() +  "}:" +  data.getName());
+                if (!(d instanceof GeoData)) throw new ConstellationStoreException("Unable to portray a non GeoData");
+                final GeoData layer = (GeoData) d;
+
+                // Map item.
+                MapItem mapItem;
+                if (filter != null && !filter.isEmpty()) {
+                    final Map<String,Object> params = new HashMap<>();
+                    params.put("CQL_FILTER", filter);
+                    final Map<String,Object> extraParams = new HashMap<>();
+                    extraParams.put(Data.KEY_EXTRA_PARAMETERS, params);
+                    mapItem = (MapItem) layer.getMapLayer(style, extraParams);
+                } else {
+                    mapItem = (MapItem) layer.getMapLayer(style, null);
+                }
+                mapContext.getComponents().add(mapItem);
+            }
+
             // Envelope.
             final String[] bboxSplit = bbox.split(",");
             final GeneralEnvelope envelope = new GeneralEnvelope(CRS.forCode(crsCode));
@@ -204,36 +281,6 @@ public class MapBusiness {
             // Dimension.
             final Dimension dimension = new Dimension(width, height);
 
-            // Style.
-            final MutableStyle style;
-            if (sldBody != null) {
-                // Use specified style.
-                final StringReader reader = new StringReader(sldBody);
-                if ("1.1.0".equals(sldVersion)) {
-                    style = new StyleXmlIO().readStyle(reader, Specification.SymbologyEncoding.V_1_1_0);
-                } else {
-                    style = new StyleXmlIO().readStyle(reader, Specification.SymbologyEncoding.SLD_1_0_0);
-                }
-            } else {
-                //let portrayal process to apply its own style
-                style= null;
-            }
-
-            // Map context.
-            MapItem mapItem;
-            if (filter != null && !filter.isEmpty()) {
-                final Map<String,Object> params = new HashMap<>();
-                params.put("CQL_FILTER", filter);
-                final Map<String,Object> extraParams = new HashMap<>();
-                extraParams.put(Data.KEY_EXTRA_PARAMETERS, params);
-                mapItem = (MapItem) layer.getMapLayer(style, extraParams);
-            } else {
-                mapItem = (MapItem) layer.getMapLayer(style, null);
-            }
-
-            final MapLayers mapContext = MapBuilder.createContext();
-            mapContext.getComponents().add(mapItem);
-
             // Inputs.
             final SceneDef sceneDef = new SceneDef(mapContext, DEFAULT_HINTS);
             final CanvasDef canvasDef = new CanvasDef(dimension, envelope);
@@ -243,10 +290,11 @@ public class MapBusiness {
             // Create response.
             return new PortrayalResponse(canvasDef, sceneDef, outputDef);
 
-        } catch (FactoryException | JAXBException | ConstellationStoreException ex) {
+        } catch (FactoryException | ConstellationStoreException ex) {
+
             throw new CstlServiceException(String.format(
-                    "Rendering failed for parameters:%nData: %d%nBbox: %s%nWidth: %d%nHeight: %d%nFilter: %s%n(Style ommitted)",
-                    dataId, bbox, width, height, filter
+                    "Rendering failed for parameters:%nData: %s%nBbox: %s%nWidth: %d%nHeight: %d%nFilter: %s%n(Style ommitted)",
+                    StringUtilities.toCommaSeparatedValues(dataIds), bbox, width, height, filter
             ), ex);
         }
     }

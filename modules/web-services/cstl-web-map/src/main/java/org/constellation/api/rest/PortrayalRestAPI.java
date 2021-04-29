@@ -18,6 +18,8 @@
  */
 package org.constellation.api.rest;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
@@ -28,6 +30,7 @@ import org.constellation.dto.DataBrief;
 import org.constellation.util.Util;
 import org.constellation.webservice.map.component.MapBusiness;
 import org.constellation.ws.rs.ResponseObject;
+import org.geotoolkit.util.StringUtilities;
 import static org.springframework.http.HttpStatus.*;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -86,7 +89,7 @@ public class PortrayalRestAPI {
                 final DataBrief brief = dataBusiness.getDataBrief(Util.parseQName(dataName), providerId);
                 dataId = brief.getId();
             }
-            return new ResponseObject(mapBusiness.portray(dataId, crs, bbox, width, height, sldBody, sldVersion, filter), MediaType.IMAGE_PNG, OK).getResponseEntity(response);
+            return new ResponseObject(mapBusiness.portraySLD(dataId, crs, bbox, width, height, sldBody, sldVersion, filter), MediaType.IMAGE_PNG, OK).getResponseEntity(response);
         } catch (Throwable ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
@@ -103,7 +106,6 @@ public class PortrayalRestAPI {
      * @param crs
      * @param width
      * @param height
-     * @param sldVersion
      * @param sldProvider
      * @param styleId
      * @param filter
@@ -118,7 +120,6 @@ public class PortrayalRestAPI {
                             @RequestParam(name="CRS", required=false) final String crs,
                             @RequestParam(name="WIDTH", required=false) final int width,
                             @RequestParam(name="HEIGHT", required=false) final int height,
-                            @RequestParam(name="SLD_VERSION", required=false) final String sldVersion,
                             @RequestParam(name="SLDPROVIDER", required=false) final String sldProvider,
                             @RequestParam(name="SLDID", required=false) final String styleId,
                             @RequestParam(name="CQLFILTER", required=false) final String filter,
@@ -129,8 +130,53 @@ public class PortrayalRestAPI {
                 final DataBrief brief = dataBusiness.getDataBrief(Util.parseQName(dataName), providerId);
                 dataId = brief.getId();
             }
-            return new ResponseObject(mapBusiness.portray(dataId, crs, bbox, width, height, sldVersion, sldProvider, styleId, filter), MediaType.IMAGE_PNG, OK).getResponseEntity(response);
+            return new ResponseObject(mapBusiness.portray(dataId, crs, bbox, width, height, sldProvider, styleId, filter), MediaType.IMAGE_PNG, OK).getResponseEntity(response);
         } catch (Throwable ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
+    }
+
+    /**
+     *
+     * @param dataIds
+     * @param bbox
+     * @param crs
+     * @param width
+     * @param height
+     * @param styleIds
+     * @param filter
+     * @return
+     */
+    @RequestMapping(value="/portray/datas", method=RequestMethod.GET, produces=MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity portrayDatas(
+                            @RequestParam(name="DATA_IDS", required=true) String dataIds,
+                            @RequestParam(name="BBOX", required=false) final String bbox,
+                            @RequestParam(name="CRS", required=false) final String crs,
+                            @RequestParam(name="WIDTH", required=false) final int width,
+                            @RequestParam(name="HEIGHT", required=false) final int height,
+                            @RequestParam(name="STYLE_IDS", required=false) final String styleIds,
+                            @RequestParam(name="CQLFILTER", required=false) final String filter,
+                            HttpServletResponse response) {
+        try {
+            List<Integer> dids = new ArrayList<>();
+            if (dataIds != null) {
+                String[] ss = dataIds.split(",");
+                for (String s : ss) {
+                    dids.add(Integer.parseInt(s));
+                }
+            }
+            List<Integer> sids = new ArrayList<>();
+            if (styleIds != null) {
+                String[] ss = styleIds.split(",");
+                for (String s : ss) {
+                    if (s.equalsIgnoreCase("null")) {
+                        sids.add(Integer.parseInt(s));
+                    }
+                }
+            }
+            return new ResponseObject(mapBusiness.portray(dids, sids, crs, bbox, width, height, filter), MediaType.IMAGE_PNG, OK).getResponseEntity(response);
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
