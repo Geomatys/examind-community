@@ -244,7 +244,7 @@ public class MapBusiness {
                 Integer dataId = dataIds.get(j);
                 Style style    = styles.get(j);
 
-                final org.constellation.dto.Data data  = dataBusiness.getDataBrief(dataId);
+                final org.constellation.dto.Data data  = dataBusiness.getData(dataId);
                 if (data == null) throw new TargetNotFoundException("Unexisting data: " + dataId);
 
                 final Data d = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());;

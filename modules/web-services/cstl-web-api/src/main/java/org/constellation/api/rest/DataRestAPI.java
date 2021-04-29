@@ -670,7 +670,7 @@ public class DataRestAPI extends AbstractRestAPI{
         }
 
         try {
-            final DataBrief brief = dataBusiness.getDataBrief(dataId);
+            final org.constellation.dto.Data brief = dataBusiness.getData(dataId);
 
             final Map<String,List<String>> result = new HashMap<>();
             final List<String> crss = new ArrayList<>();

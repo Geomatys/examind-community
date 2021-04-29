@@ -49,6 +49,7 @@ import org.geotoolkit.image.io.plugin.WorldFileImageReader;
 import static org.constellation.api.StatisticState.*;
 import org.constellation.business.IUserBusiness;
 import org.constellation.dto.CstlUser;
+import org.constellation.dto.Data;
 import org.constellation.dto.Page;
 import org.constellation.dto.PagedSearch;
 import org.constellation.dto.SensorReference;
@@ -134,7 +135,7 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
                 boolean computed = false;
                 int i = 0;
                 while (i<10 && !computed) {
-                    DataBrief db = dataBusiness.getDataBrief(dataId);
+                    Data db = dataBusiness.getData(dataId);
                     computed = (db.getStatsState()!= null && (
                             STATE_COMPLETED.equals(db.getStatsState()) ||
                             STATE_ERROR.equals(db.getStatsState()) ||

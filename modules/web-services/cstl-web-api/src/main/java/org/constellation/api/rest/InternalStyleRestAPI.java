@@ -245,7 +245,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
             /*
              * I - Get feature type and feature data.
              */
-            final DataBrief data  = dataBusiness.getDataBrief(dataId);
+            final org.constellation.dto.Data data  = dataBusiness.getData(dataId);
             final Data dataP      = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
             final Resource rs     = dataP.getOrigin();
 
@@ -460,7 +460,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
             final Style style = wrapper.getStyle();
             final AutoUniqueValues autoUniqueValues = wrapper.getUniqueValues();
 
-            final DataBrief data = dataBusiness.getDataBrief(wrapper.getDataId());
+            final org.constellation.dto.Data data = dataBusiness.getData(wrapper.getDataId());
 
             final String attribute = autoUniqueValues.getAttr();
             if(attribute ==null || attribute.trim().isEmpty()){
@@ -587,7 +587,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
 
             final ChartDataModel result = new ChartDataModel();
 
-            final DataBrief data  = dataBusiness.getDataBrief(dataId);
+            final org.constellation.dto.Data data  = dataBusiness.getData(dataId);
             final Data dataP      = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
             final Resource rs     = dataP.getOrigin();
 
@@ -711,7 +711,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
     public ResponseEntity getHistogram(@PathVariable("dataId") int dataId) {
 
         try {
-            final DataBrief data = dataBusiness.getDataBrief(dataId);
+            final org.constellation.dto.Data data = dataBusiness.getData(dataId);
             if ("COVERAGE".equals(data.getType())) {
                 final ImageStatistics stats = DefaultCoverageData.getDataStatistics(new StatInfo(data.getStatsState(), data.getStatsResult()));
                 if (stats != null) {

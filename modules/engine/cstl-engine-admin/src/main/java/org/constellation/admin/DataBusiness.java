@@ -190,6 +190,17 @@ public class DataBusiness implements IDataBusiness {
         return metadataBusiness.getIsoMetadataForData(dataID);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Data getData(int dataId) throws ConfigurationException {
+        Data d = dataRepository.findById(dataId);
+        if (d == null) {
+            throw new TargetNotFoundException("No data found for id:" + dataId);
+        }
+        return d;
+    }
 
     /**
      * {@inheritDoc}

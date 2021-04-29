@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
+import org.constellation.dto.Data;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.DataSummary;
 import org.constellation.dto.ParameterValues;
@@ -118,6 +119,14 @@ public interface IDataBusiness {
      * @throws org.constellation.exception.ConfigurationException
      */
     void removeDataFromProvider(Integer providerId) throws ConstellationException ;
+
+    /**
+     * Returns {@link Data} for given data name and provider id as integer.
+     *
+     * @param dataId data id.
+     * @return {@link Data}.
+     */
+    Data getData(int dataId) throws ConstellationException ;
 
     /**
      * Returns {@link DataBrief} for given data name and provider id as integer.
