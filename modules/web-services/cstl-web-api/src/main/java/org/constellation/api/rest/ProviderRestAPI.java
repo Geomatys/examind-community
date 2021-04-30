@@ -317,7 +317,7 @@ public class ProviderRestAPI extends AbstractRestAPI {
     public ResponseEntity getDataListsForProvider(@PathVariable("id") final int providerId) {
         final List<DataBrief> briefs;
         try {
-            briefs = providerBusiness.getDataBriefsFromProviderId(providerId, null, true, false);
+            briefs = providerBusiness.getDataBriefsFromProviderId(providerId, null, true, false, true);
         } catch (ConstellationException ex) {
             return new ErrorMessage(ex).build();
         }

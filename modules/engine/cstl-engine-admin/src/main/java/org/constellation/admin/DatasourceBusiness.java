@@ -662,7 +662,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         // 5. collect created data
         List<ResourceAnalysisV3> datas = new ArrayList<>();
         try {
-            final List<DataBrief> briefs = providerBusiness.getDataBriefsFromProviderId(prId, null, true, hidden);
+            final List<DataBrief> briefs = providerBusiness.getDataBriefsFromProviderId(prId, null, true, hidden, false);
             for (DataBrief brief : briefs) {
                 datas.add(new ResourceAnalysisV3(brief.getId(), brief.getName(), brief.getType()));
             }

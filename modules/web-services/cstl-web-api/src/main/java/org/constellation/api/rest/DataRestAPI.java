@@ -318,7 +318,7 @@ public class DataRestAPI extends AbstractRestAPI{
         try {
             final int userId = assertAuthentificated(req);
             for (Integer dataId : dataIds) {
-                DataBrief brief = dataBusiness.getDataBrief(dataId);
+                DataBrief brief = dataBusiness.getDataBrief(dataId, false);
                 List<MetadataLightBrief> metadatas = brief.getMetadatas();
                 for (MetadataLightBrief metadata : metadatas) {
                     final Object dataObj = metadataBusiness.getMetadata(metadata.getId());
@@ -502,7 +502,7 @@ public class DataRestAPI extends AbstractRestAPI{
                     final DataSetBrief dsb = buildDatsetBrief(md.getDatasetId(), null);
                     briefs.addAll(dsb.getData());
                 } else if (md.getDataId() != null) {
-                    final DataBrief db = dataBusiness.getDataBrief(md.getDataId());
+                    final DataBrief db = dataBusiness.getDataBrief(md.getDataId(), true);
                     briefs.add(db);
                 }
             }
@@ -707,15 +707,12 @@ public class DataRestAPI extends AbstractRestAPI{
 
     @RequestMapping(value="/datas/{dataId}",method=GET,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity getData(@PathVariable("dataId") int dataId) {
-
-        final DataBrief db;
         try {
-            db = dataBusiness.getDataBrief(dataId);
+            return new ResponseEntity(dataBusiness.getDataBrief(dataId, true),OK);
         } catch (Throwable ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
-        return new ResponseEntity(db,OK);
     }
 
     @RequestMapping(value="/layers/{layerId}/data",method=GET,produces=APPLICATION_JSON_VALUE)
@@ -1062,7 +1059,7 @@ public class DataRestAPI extends AbstractRestAPI{
     @RequestMapping(value="/datas/{dataId}/description",method=GET,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity dataDescription(@PathVariable("dataId") final int dataId) {
         try {
-            DataBrief db = dataBusiness.getDataBrief(dataId);
+            DataBrief db = dataBusiness.getDataBrief(dataId, true);
             if (db != null) {
                  return new ResponseEntity(db.getDataDescription() ,OK);
             }
@@ -1082,7 +1079,7 @@ public class DataRestAPI extends AbstractRestAPI{
     @RequestMapping(value="/datas/{dataId}/geographicExtent",method=GET,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity dataGeographicExtent(@PathVariable("dataId") final int dataId) {
         try {
-            DataBrief db = dataBusiness.getDataBrief(dataId);
+            DataBrief db = dataBusiness.getDataBrief(dataId, true);
             if (db != null) {
                 return new ResponseEntity(db.getDataDescription() ,OK);
             }
@@ -1123,7 +1120,7 @@ public class DataRestAPI extends AbstractRestAPI{
         GeneralEnvelope globalEnv = null;
         for (final Integer dataId : dataIds) {
             try {
-                final DataBrief db = dataBusiness.getDataBrief(dataId);
+                final DataBrief db = dataBusiness.getDataBrief(dataId, true);
                 final DataDescription ddesc = db.getDataDescription();
                 if (ddesc != null) {
                     final double[] bbox = ddesc.getBoundingBox();

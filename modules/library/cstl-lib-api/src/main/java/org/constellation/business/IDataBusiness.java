@@ -132,10 +132,11 @@ public interface IDataBusiness {
      * Returns {@link DataBrief} for given data name and provider id as integer.
      *
      * @param dataId data id.
+     * @param fetchDataDescription If true, will retriee the envelope, and specific data informations (like columns, bands, etc)
      * @return {@link DataBrief}.
      * @throws ConstellationException is thrown if result fails.
      */
-    DataBrief getDataBrief(int dataId) throws ConstellationException;
+    DataBrief getDataBrief(int dataId, boolean fetchDataDescription) throws ConstellationException;
 
     /**
      * Returns a map structure describing the resource of this data.
@@ -264,19 +265,12 @@ public interface IDataBusiness {
      * @param hidden hidden flag filter.
      * @param sensorable sensorable flag filter, can be {@code null}.
      * @param published service published flag filter, can be {@code null}.
+     * @param fetchDataDescription If true, will retriee the envelope, and specific data informations (like columns, bands, etc)
      *
      * @return the list of {@link DataBrief}.
      * @throws org.constellation.exception.ConstellationException
      */
-    List<DataBrief> getDataBriefsFromProviderId(final Integer providerId, String datatype, boolean included, boolean hidden, Boolean sensorable, Boolean published, Boolean fetchDataDescription) throws ConstellationException;
-
-    /**
-     * Returns a list of {@link DataBrief} for given style id.
-     *
-     * @param styleId the given style id.
-     * @return the list of {@link DataBrief}.
-     */
-    List<DataBrief> getDataBriefsFromStyleId(final Integer styleId);
+    List<DataBrief> getDataBriefsFromProviderId(final Integer providerId, String datatype, boolean included, boolean hidden, Boolean sensorable, Boolean published, boolean fetchDataDescription) throws ConstellationException;
 
     /**
      * Returns a list of light {@link DataBrief} for given style id.

@@ -140,11 +140,12 @@ public interface IProviderBusiness {
      * @param dataType data type or {@code null} for no filter
      * @param included included flag filter
      * @param hidden hidden flag fliter.
+     * @param fetchDataDescription If true, will retriee the envelope, and specific data informations (like columns, bands, etc)
      * @return
      *
      * @throws org.constellation.exception.ConstellationException
      */
-    List<DataBrief> getDataBriefsFromProviderId(Integer id, String dataType, boolean included, boolean hidden) throws ConstellationException;
+    List<DataBrief> getDataBriefsFromProviderId(Integer id, String dataType, boolean included, boolean hidden, boolean fetchDataDescription) throws ConstellationException;
 
     List<Style> getStylesFromProviderId(Integer id);
 

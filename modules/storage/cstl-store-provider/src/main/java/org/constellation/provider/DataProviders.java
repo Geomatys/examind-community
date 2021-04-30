@@ -417,7 +417,7 @@ public final class DataProviders extends Static{
         return scales;
     }
 
-    public static double[] getBestScales(List<DataBrief> briefs, String crs) throws ConstellationException {
+    public static double[] getBestScales(List<? extends org.constellation.dto.Data> briefs, String crs) throws ConstellationException {
         CoordinateReferenceSystem c = null;
         if (crs != null) {
             try {
@@ -429,9 +429,9 @@ public final class DataProviders extends Static{
         return getBestScales(briefs, c);
     }
 
-    public static double[] getBestScales(List<DataBrief> briefs, CoordinateReferenceSystem crs) {
+    public static double[] getBestScales(List<? extends org.constellation.dto.Data> briefs, CoordinateReferenceSystem crs) {
         final List<Double> mergedScales = new LinkedList<>();
-        for(final DataBrief db : briefs){
+        for (final org.constellation.dto.Data db : briefs){
             final Double[] scales;
             try {
                 scales = DataProviders.computeScales(db.getProviderId(), db.getName(), crs);

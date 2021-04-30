@@ -235,7 +235,7 @@ public class PyramidBusinessTest {
         
         Assert.assertNotNull(result.getPyramidDataId());
 
-        DataBrief db = dataBusiness.getDataBrief(result.getPyramidDataId());
+        org.constellation.dto.Data db = dataBusiness.getData(result.getPyramidDataId());
         Assert.assertNotNull(db);
 
         Assert.assertTrue(db.getRendered());
@@ -251,7 +251,7 @@ public class PyramidBusinessTest {
 
         Assert.assertEquals(1, dataIds.size());
 
-        DataBrief db = dataBusiness.getDataBrief(dataIds.get(0));
+        DataBrief db = dataBusiness.getDataBrief(dataIds.get(0), false);
 
         final DataProvider inProvider = DataProviders.getProvider(db.getProviderId());
         final Data inD = inProvider.get(NamesExt.create(db.getName()));
@@ -320,7 +320,7 @@ public class PyramidBusinessTest {
         
         Assert.assertNotNull(result.getPyramidDataId());
 
-        db = dataBusiness.getDataBrief(result.getPyramidDataId());
+        db = dataBusiness.getDataBrief(result.getPyramidDataId(), false);
         Assert.assertNotNull(db);
 
         Assert.assertTrue(db.getRendered());
@@ -396,7 +396,7 @@ public class PyramidBusinessTest {
 
         Assert.assertNotNull(result.getPyramidDataId());
 
-        DataBrief db = dataBusiness.getDataBrief(result.getPyramidDataId());
+        org.constellation.dto.Data db = dataBusiness.getData(result.getPyramidDataId());
         Assert.assertNotNull(db);
 
         Assert.assertFalse(db.getRendered());

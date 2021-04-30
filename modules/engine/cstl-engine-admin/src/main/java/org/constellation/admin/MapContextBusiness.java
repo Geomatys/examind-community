@@ -277,7 +277,7 @@ public class MapContextBusiness implements IMapContextBusiness {
                     final Layer layerRecord = layerRepository.findById(layerID);
                     dataID = layerRecord.getDataId();
                 }
-                DataBrief db = dataBusiness.getDataBrief(dataID);
+                DataBrief db = dataBusiness.getDataBrief(dataID, true);
                 final DataDescription ddesc = db.getDataDescription();
                 if (ddesc != null) {
                     final double[] bbox = ddesc.getBoundingBox();
@@ -382,7 +382,7 @@ public class MapContextBusiness implements IMapContextBusiness {
             final Integer dataID = styledLayer.getDataId();
             if (layerID != null) {
                 final Layer layer = layerRepository.findById(layerID);
-                final DataBrief db = dataBusiness.getDataBrief(layer.getDataId());
+                final DataBrief db = dataBusiness.getDataBrief(layer.getDataId(), true);
 
                 final ProviderBrief provider = providerRepository.findOne(db.getProviderId());
                 final QName name = new QName(layer.getNamespace(), layer.getName());
@@ -423,7 +423,7 @@ public class MapContextBusiness implements IMapContextBusiness {
                 dto.setServiceIdentifier(serviceRecord.getIdentifier());
                 dto.setServiceVersions(serviceRecord.getVersions());
             } else if (dataID != null) {
-                final DataBrief db = dataBusiness.getDataBrief(dataID);
+                final DataBrief db = dataBusiness.getDataBrief(dataID, true);
                 final QName dataName = new QName(db.getNamespace(), db.getName());
                 final ProviderBrief provider = providerRepository.findOne(db.getProviderId());
                 final org.constellation.dto.service.config.wxs.Layer layerConfig = new org.constellation.dto.service.config.wxs.Layer(styledLayer.getLayerId(), dataName);

@@ -206,7 +206,7 @@ public class DataBusiness implements IDataBusiness {
      * {@inheritDoc}
      */
     @Override
-    public DataBrief getDataBrief(int dataId) throws ConstellationException {
+    public DataBrief getDataBrief(int dataId, boolean fetchDataDescription) throws ConstellationException {
         final Data data = dataRepository.findById(dataId);
         if (data != null) {
             final List<DataBrief> dataBriefs = getDataBriefFrom(Collections.singletonList(data), null, null);
@@ -298,7 +298,7 @@ public class DataBusiness implements IDataBusiness {
     public DataBrief getDataLayer(final int layerId) throws ConstellationException {
         final Layer layer = layerRepository.findById(layerId);
         if (layer != null) {
-            return getDataBrief(layer.getDataId());
+            return getDataBrief(layer.getDataId(), true);
         }
         return null;
     }
@@ -327,22 +327,13 @@ public class DataBusiness implements IDataBusiness {
      * {@inheritDoc}
      */
     @Override
-    public List<DataBrief> getDataBriefsFromStyleId(final Integer styleId) {
-        final List<Data> dataList = dataRepository.getRefDataByLinkedStyle(styleId);
-        return getDataBriefFrom(dataList, null, null);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public List<DataBrief> getDataBriefsFromDatasetId(Integer datasetId, boolean included, boolean hidden, Boolean sensorable, Boolean published) throws ConstellationException {
         final List<Data> dataList = dataRepository.findByDatasetId(datasetId, included, hidden);
         return getDataBriefFrom(dataList, sensorable, published);
     }
 
     @Override
-    public List<DataBrief> getDataBriefsFromProviderId(Integer providerId, String dataType, boolean included, boolean hidden, Boolean sensorable, Boolean published, Boolean fetchDataDescription) throws ConstellationException {
+    public List<DataBrief> getDataBriefsFromProviderId(Integer providerId, String dataType, boolean included, boolean hidden, Boolean sensorable, Boolean published, boolean fetchDataDescription) throws ConstellationException {
         final List<Data> dataList = dataRepository.findByProviderId(providerId, dataType, included, hidden);
         return getDataBriefFrom(dataList, sensorable, published, fetchDataDescription);
     }
@@ -1299,7 +1290,7 @@ public class DataBusiness implements IDataBusiness {
                 metadataBusiness.updateMetadata(fc.getId(), fc, data.getId(), null, null, owner, intProviderID, "DOC", null, hidden);
             }
         }
-        return getDataBrief(id);
+        return getDataBrief(id, true);
     }
 
     @Override
