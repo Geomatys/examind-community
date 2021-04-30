@@ -280,7 +280,7 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
             final QueryBuilder queryBuilder = new QueryBuilder();
             queryBuilder.setTypeName(getName());
 
-            final Envelope envelope = FeatureStoreUtilities.getEnvelope(origin);
+            final Envelope envelope = getEnvelope();
             DataProviders.fillGeographicDescription(envelope, description);
 
         } catch (DataStoreException ex) {

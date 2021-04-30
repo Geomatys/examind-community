@@ -380,9 +380,8 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
         }
 
         // Geographic extent description.
-        final GridGeometry ggg = getGeometry();
-        if (ggg != null && ggg.isDefined(GridGeometry.ENVELOPE)) {
-            final Envelope envelope = ggg.getEnvelope();
+        final Envelope envelope = getEnvelope();
+        if (envelope != null) {
             DataProviders.fillGeographicDescription(envelope, description);
         } else {
             LOGGER.log(Level.WARNING, "Unable to get a GridGeometry for coverage data:{0}", name);
