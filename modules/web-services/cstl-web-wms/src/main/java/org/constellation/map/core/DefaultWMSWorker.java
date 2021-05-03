@@ -1329,13 +1329,13 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
     public Envelope buildRequestedViewEnvelope(GetMap request, List<LayerCache> layers) throws CstlServiceException {
         final Envelope refEnv;
         try {
-            //check envelope has positive span only if not a GetFeatureInfo request.
+            /*check envelope has positive span only if not a GetFeatureInfo request.
             if (!(request instanceof GetFeatureInfo)) {
                 if (request.getEnvelope2D().getLowerCorner().getOrdinate(0) > request.getEnvelope2D().getUpperCorner().getOrdinate(0) ||
                         request.getEnvelope2D().getLowerCorner().getOrdinate(1) > request.getEnvelope2D().getUpperCorner().getOrdinate(1)) {
                     throw new CstlServiceException("BBOX parameter minimum is greater than the maximum", INVALID_PARAMETER_VALUE, KEY_BBOX.toLowerCase());
                 }
-            }
+            }*/
 
             final Date[] time = new Date[2];
             final List<Date> times = request.getTime();

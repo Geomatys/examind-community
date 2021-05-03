@@ -60,9 +60,11 @@ import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.spi.ImageWriterSpi;
 import javax.xml.bind.JAXBException;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,6 +74,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -101,12 +105,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeNoException;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
+import static org.geotoolkit.image.io.XImageIO.getWriterByMIMEType;
+import static org.geotoolkit.image.io.XImageIO.isValidType;
 
 /**
- * A set of methods that request a Grizzly server which embeds a WMS service.
+ * A set of methods that request a SpringBoot server which embeds a WMS service.
  *
  * @version $Id$
  *
+ * @author Guilhem Legal (Geomatys)
  * @author Cédric Briançon (Geomatys)
  * @since 0.3
  */
@@ -145,6 +152,16 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     private static final String WMS_GETMAP = "request=GetMap&service=WMS&version=1.1.1&"
             + "format=image/png&width=1024&height=512&"
             + "srs=EPSG:4326&bbox=-180,-90,180,90&"
+            + "layers=" + LAYER_TEST + "&styles=";
+
+    private static final String WMS_GETMAP_ANTI_MERI_CROSS = "request=GetMap&service=WMS&version=1.1.1&"
+            + "format=image/png&width=1024&height=512&"
+            + "srs=EPSG:4326&bbox=110,-90,-60,90&"
+            + "layers=" + LAYER_TEST + "&styles=";
+
+    private static final String WMS_GETMAP_ANTI_MERI_CROSS_MERC = "request=GetMap&service=WMS&version=1.1.1&"
+            + "format=image/png&width=1024&height=512&"
+            + "srs=EPSG:3857&bbox=11368937.8390,-5009377.0857,-12092949.3709,9764371.7413&"
             + "layers=" + LAYER_TEST + "&styles=";
 
     private static final String WMS_GETMAP_BAD_HEIGHT = "request=GetMap&service=WMS&version=1.1.1&"
@@ -671,6 +688,49 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         }
         obj = getStringResponse(getMapUrl);
         assertTrue("was " + obj, obj.contains("InvalidDimensionValue"));
+    }
+
+    @Test
+    @Order(order = 2)
+    public void testWMSGetMapAntiMeridianCross() throws Exception {
+
+        initLayerList();
+
+        // Creates a valid GetMap url.
+        URL getMapUrl;
+        try {
+            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_ANTI_MERI_CROSS);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        BufferedImage image = getImageFromURL(getMapUrl, "image/png");
+
+        // Test on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(1024, image.getWidth());
+        assertEquals(512, image.getHeight());
+        assertTrue(ImageTesting.getNumColors(image) > 8);
+        //write(image, "image/png");
+
+        try {
+            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_ANTI_MERI_CROSS_MERC);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        image = getImageFromURL(getMapUrl, "image/png");
+
+        // Test on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(1024, image.getWidth());
+        assertEquals(512, image.getHeight());
+        assertTrue(ImageTesting.getNumColors(image) > 8);
+        //write(image, "image/png");
     }
 
     /**
@@ -2602,5 +2662,34 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
         comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
         comparator.compare();
+    }
+
+    /**
+     * Debug method that write a temporary file with the image for verification.
+     * 
+     */
+    public void write(BufferedImage t, String mimeType) throws IOException {
+        ImageWriter writer = null;
+        ImageOutputStream stream = null;
+        try {
+            Path p = Files.createTempFile("wms", "test");
+            System.out.println(p.getFileName().toString());
+            Object output = p;
+            writer = getWriterByMIMEType(mimeType, output, t);
+            final ImageWriterSpi spi = writer.getOriginatingProvider();
+            if (!isValidType(spi.getOutputTypes(), output)) {
+                stream = ImageIO.createImageOutputStream(output);
+                output = stream;
+            }
+            writer.setOutput(output);
+            writer.write(t);
+        } finally {
+            if (writer != null) {
+                writer.dispose();
+            }
+            if (stream != null) {
+                stream.close();
+            }
+        }
     }
 }

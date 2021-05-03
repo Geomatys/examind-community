@@ -71,7 +71,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.logging.Level;
+import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.util.ArgumentChecks;
 import static org.constellation.api.QueryConstants.REQUEST_PARAMETER;
 import static org.constellation.api.QueryConstants.SERVICE_PARAMETER;
@@ -115,6 +117,7 @@ import static org.constellation.map.core.WMSConstant.KEY_WIDTH;
 import static org.constellation.map.core.WMSConstant.KEY_WMTVER;
 import static org.constellation.map.core.WMSConstant.MAP;
 import org.constellation.ws.rs.ResponseObject;
+import static org.geotoolkit.client.RequestsUtilities.toDouble;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_CRS;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_DIMENSION_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_FORMAT;
@@ -123,6 +126,11 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_POINT;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.STYLE_NOT_DEFINED;
+import org.geotoolkit.resources.Errors;
+import org.opengis.referencing.crs.GeographicCRS;
+import org.opengis.referencing.crs.ProjectedCRS;
+import org.opengis.referencing.operation.MathTransform;
+import org.opengis.referencing.operation.TransformException;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -590,7 +598,7 @@ public class WMSService extends GridWebService<WMSWorker> {
         }
         final Envelope env;
         try {
-            env = RequestsUtilities.toEnvelope(strBBox, crs);
+            env = toEnvelope(strBBox, crs);
         } catch (IllegalArgumentException i) {
             throw new CstlServiceException(i, INVALID_PARAMETER_VALUE);
         }
@@ -691,5 +699,108 @@ public class WMSService extends GridWebService<WMSWorker> {
         // Builds the request.
         return new GetMap(env, new Version(version), format, namedLayers, styles, sld, elevation,
                     dates, size, background, transparent, azimuth, strExceptions, getParameters());
+    }
+
+    /**
+     * This copy contains a <em>workaround</em> to handle wrap-adjustment in the specific case of <em>Mercator projection</em>.
+     * Note: the code produced for this fix is <em>not</em> generic, and might cause errors if applied on projections other than mercator.
+     *
+     * Converts a string representing the bbox coordinates into a {@link GeneralEnvelope}.
+     *
+     * @param bbox Coordinates of the bounding box, seperated by comas.
+     * @param crs  The {@linkplain CoordinateReferenceSystem coordinate reference system} in
+     *             which the envelope is expressed. Must not be {@code null}.
+     * @return The enveloppe for the bounding box specified, or an
+     *         {@linkplain GeneralEnvelope#setToInfinite infinite envelope}
+     *         if the bbox is {@code null}.
+     * @throws IllegalArgumentException if the given CRS is {@code null}, or if the bbox string
+     *                                  contains too much parameters to fill the CRS ranges.
+     */
+    @Deprecated
+    public static Envelope toEnvelope(final String bbox, CoordinateReferenceSystem crs)
+                                                              throws IllegalArgumentException
+    {
+        if (crs == null) {
+            throw new IllegalArgumentException("The CRS must not be null");
+        }
+        if (bbox == null) {
+            final GeneralEnvelope infinite = new GeneralEnvelope(crs);
+            infinite.setToInfinite();
+            return infinite;
+        }
+
+        final GeneralEnvelope envelope = new GeneralEnvelope(crs);
+        final int dimension = envelope.getDimension();
+        final StringTokenizer tokens = new StringTokenizer(bbox, ",;");
+        final double[] coordinates = new double[dimension * 2];
+
+        int index = 0;
+        while (tokens.hasMoreTokens()) {
+            final double value = toDouble(tokens.nextToken());
+            if (index >= coordinates.length) {
+                throw new IllegalArgumentException(
+                        Errors.format(Errors.Keys.IllegalCsDimension_1, coordinates.length));
+            }
+            coordinates[index++] = value;
+        }
+        if ((index & 1) != 0) {
+            throw new IllegalArgumentException(
+                    Errors.format(Errors.Keys.OddArrayLength_1, index));
+        }
+
+        boolean inverted = coordinates[0] > coordinates[2];
+
+        if (inverted && (crs instanceof ProjectedCRS || crs instanceof GeographicCRS)) {
+            try {
+                CoordinateReferenceSystem target = crs;
+                if (crs instanceof ProjectedCRS) {
+                    target = ((ProjectedCRS)crs).getBaseCRS();
+                }
+                target = AbstractCRS.castOrCopy(target).forConvention(AxesConvention.NORMALIZED);
+                MathTransform tr = CRS.findOperation(crs, target,null).getMathTransform();
+                tr.transform(coordinates, 0, coordinates, 0, 2);
+                crs = target;
+                envelope.setCoordinateReferenceSystem(crs);
+            } catch (TransformException | FactoryException ex) {
+                throw new IllegalArgumentException(ex);
+            }
+            double c = 360;
+            //c *= Math.PI * 2;
+            if (Math.abs(coordinates[0]) < Math.abs(coordinates[2])) {
+                coordinates[0] -= c;
+            } else {
+                coordinates[2] += c;
+            }
+        }
+        
+        // Fallthrough in every cases.
+        switch (index) {
+            default: {
+                while (index >= 6) {
+                    final double maximum = coordinates[--index];
+                    final double minimum = coordinates[--index];
+                    envelope.setRange(index >> 1, minimum, maximum);
+                }
+            }
+            case 4: envelope.setRange(1, coordinates[1], coordinates[3]);
+            case 3:
+            case 2: envelope.setRange(0, coordinates[0], coordinates[2]);
+            case 1:
+            case 0: break;
+        }
+        /*
+         * Checks the envelope validity. Given that the parameter order in the bounding box
+         * is a little-bit counter-intuitive, it is worth to perform this check in order to
+         * avoid a NonInvertibleTransformException at some later stage.
+         
+        for (index = 0; index < dimension; index++) {
+            final double minimum = envelope.getMinimum(index);
+            final double maximum = envelope.getMaximum(index);
+            if (!(minimum < maximum)) {
+                throw new IllegalArgumentException(
+                        Errors.format(Errors.Keys.IllegalRange_2, minimum, maximum));
+            }
+        }*/
+        return envelope;
     }
 }
