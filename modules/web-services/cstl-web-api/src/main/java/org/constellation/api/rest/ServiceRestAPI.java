@@ -229,7 +229,7 @@ public class ServiceRestAPI extends AbstractRestAPI {
             if (configurer != null) {
                 return configurer.getInstance(service.getId(), lang);
             }
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException | NotRunningServiceException ex) {
             // can appears when switching branch, must not break the operation
             LOGGER.warning("unknow specification:" + service.getType());
         }
