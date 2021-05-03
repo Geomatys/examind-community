@@ -65,6 +65,8 @@ import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasourceBusiness;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
+import org.constellation.configuration.AppProperty;
+import org.constellation.configuration.Application;
 import org.constellation.dto.DataSourcePathComplete;
 import org.constellation.dto.DataSourcePath;
 import org.constellation.repository.DatasourceRepository;
@@ -80,6 +82,7 @@ import org.constellation.dto.ProviderConfiguration;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.TargetNotFoundException;
+import org.constellation.provider.Data;
 import org.constellation.provider.DataProviders;
 import org.constellation.util.FileSystemReference;
 import org.constellation.util.FileSystemUtilities;
@@ -661,11 +664,13 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         }
 
         // 5. collect created data
+        boolean fetchBbox = Application.getBooleanProperty(AppProperty.EXA_ADD_DATA_BBOX_ANALISIS, false);
         List<ResourceAnalysisV3> datas = new ArrayList<>();
         try {
-            final List<DataBrief> briefs = providerBusiness.getDataBriefsFromProviderId(prId, null, true, hidden, false);
+            final List<DataBrief> briefs = providerBusiness.getDataBriefsFromProviderId(prId, null, true, hidden, fetchBbox);
             for (DataBrief brief : briefs) {
-                datas.add(new ResourceAnalysisV3(brief.getId(), brief.getName(), brief.getType()));
+                double[] bbox = fetchBbox ? brief.getDataDescription().getBoundingBox() : null;
+                datas.add(new ResourceAnalysisV3(brief.getId(), brief.getName(), brief.getType(), bbox));
             }
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, "Error while listing store data " + ds.getStoreId() + " on path: " + store.file, ex);

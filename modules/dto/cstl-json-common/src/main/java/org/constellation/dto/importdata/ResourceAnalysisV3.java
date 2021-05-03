@@ -32,15 +32,18 @@ public class ResourceAnalysisV3 {
     private String name;
     
     private String type;
+
+    private double[] bbox;
     
     public ResourceAnalysisV3() {
         
     }
     
-    public ResourceAnalysisV3(Integer id, String name, String type) {
+    public ResourceAnalysisV3(Integer id, String name, String type, double[] bbox) {
         this.id   = id;
         this.name = name;
         this.type = type;
+        this.bbox = bbox;
     }
     
     /**
@@ -83,5 +86,19 @@ public class ResourceAnalysisV3 {
      */
     public void setType(String type) {
         this.type = type;
+    }
+
+    /**
+     * @return the bbox
+     */
+    public double[] getBbox() {
+        return bbox;
+    }
+
+    /**
+     * @param bbox the bbox to set
+     */
+    public void setBbox(double[] bbox) {
+        this.bbox = bbox;
     }
 }

@@ -211,7 +211,12 @@ public enum AppProperty {
 
     EXA_SERVICE_WARMUP("examind.service.warmup", false, Boolean.class),
 
-    EXA_GLOBAL_USER_PERMIT("examind.global.user.permit", false, String.class);
+    EXA_GLOBAL_USER_PERMIT("examind.global.user.permit", false, String.class),
+
+    /**
+     * if set to true, bbox will be fetched and returned during new inserted data analysis.
+     */
+    EXA_ADD_DATA_BBOX_ANALISIS("examind.add.data.bbox.analisis", false, Boolean.class);
 
     private final String key;
     private final boolean secure;
