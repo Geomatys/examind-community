@@ -5,7 +5,7 @@ services :
        image: mdillon/postgis:10-alpine
        restart: "no"
        volumes:
-         - "./mount/exa-db/pgdata/:/var/lib/postgresql/data/"
+         - exa-db-volume:/var/lib/postgresql/data/
        ports:
          - "5440:5432"
        environment:
@@ -43,3 +43,5 @@ services :
          JPDA_TRANSPORT: dt_socket
          CSTL_TOKEN_LIFE: 30
        entrypoint: catalina.sh jpda run
+volumes:
+  exa-db-volume:
