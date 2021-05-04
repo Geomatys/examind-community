@@ -31,7 +31,7 @@ import org.constellation.exception.ConstellationStoreException;
  *
  * @author Johann Sorel (Geomatys)
  */
-public interface FeatureData extends GeoData<FeatureSet> {
+public interface FeatureData extends Data<FeatureSet> {
 
     FeatureType getType() throws ConstellationStoreException;
 

@@ -41,6 +41,10 @@
             <groupId>org.geotoolkit</groupId>
             <artifactId>geotk-xml-feature-catalogue</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.sis.core</groupId>
+            <artifactId>sis-portrayal</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.postgresql</groupId>

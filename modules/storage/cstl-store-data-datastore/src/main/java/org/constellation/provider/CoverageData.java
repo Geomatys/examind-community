@@ -42,7 +42,7 @@ import org.constellation.exception.ConstellationStoreException;
  *
  * @since 0.4
  */
-public interface CoverageData extends GeoData<GridCoverageResource> {
+public interface CoverageData extends Data<GridCoverageResource> {
     /**
      */
     String getImageFormat();
@@ -60,10 +60,8 @@ public interface CoverageData extends GeoData<GridCoverageResource> {
      * @param time The date for the data, in the case of temporal data.
      *
      * @throws ConstellationStoreException
-     * @throws java.io.IOException
      */
-    GridCoverage getCoverage(final Envelope envelope, final Dimension dimension,
-            final Double elevation, final Date time) throws ConstellationStoreException;
+    GridCoverage getCoverage(final Envelope envelope, final Dimension dimension, final Double elevation, final Date time) throws ConstellationStoreException;
 
     GridGeometry getGeometry() throws ConstellationStoreException;
 

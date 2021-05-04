@@ -70,7 +70,6 @@ import org.constellation.provider.Data;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.DataProviders;
-import org.constellation.provider.GeoData;
 import org.constellation.provider.ProviderParameters;
 import org.constellation.repository.DataRepository;
 import org.constellation.util.ParamUtilities;
@@ -190,19 +189,18 @@ public class PyramidBusiness implements IPyramidBusiness {
                 }
 
                 //get data
-                final Data inD;
+                final Data inData;
                 try {
-                    inD = DataProviders.getProviderData(providerId, namespace, dataName);
+                    inData = DataProviders.getProviderData(providerId, namespace, dataName);
                 } catch (ConfigurationException ex) {
                     LOGGER.log(Level.WARNING, ex.getMessage());
                     continue;
                 }
 
-                if (!(inD instanceof GeoData)) {
-                    LOGGER.log(Level.WARNING, "Data " + dataName + " does not exist in provider " + providerId + " (or is not a GeoData)");
+                if (inData == null) {
+                    LOGGER.log(Level.WARNING, "Data " + dataName + " does not exist in provider " + providerId);
                     continue;
                 }
-                final GeoData inData = (GeoData) inD;
 
                 Envelope dataEnv;
                 try {
@@ -236,7 +234,7 @@ public class PyramidBusiness implements IPyramidBusiness {
                     }
                 } else {
                     
-                     final Object origin = inD.getOrigin();
+                     final Object origin = inData.getOrigin();
 
                     if(!(origin instanceof GridCoverageResource)) {
                         throw new ConstellationException("Cannot create pyramid conform for no raster data, it is not supported yet!");
@@ -394,19 +392,18 @@ public class PyramidBusiness implements IPyramidBusiness {
                 continue;
             }
             //get data
-            final Data inD;
+            final Data inData;
             try {
-                inD = DataProviders.getProviderData(providerIdentifier, null, dataName);
+                inData = DataProviders.getProviderData(providerIdentifier, null, dataName);
             } catch (ConfigurationException ex) {
                 LOGGER.log(Level.WARNING, "Provider " + providerIdentifier + " does not exist");
                 continue;
             }
 
-            if (!(inD instanceof GeoData)) {
-                LOGGER.log(Level.WARNING, "Data " + dataName + " does not exist in provider " + providerIdentifier + " (or is not a GeoData)");
+            if (inData  == null) {
+                LOGGER.log(Level.WARNING, "Data " + dataName + " does not exist in provider " + providerIdentifier);
                 continue;
             }
-            final GeoData inData = (GeoData) inD;
 
             MutableStyle style = null;
             try {
@@ -424,7 +421,7 @@ public class PyramidBusiness implements IPyramidBusiness {
 
             try {
                 //if style is null, a default style will be used in maplayer.
-                context.getComponents().add((MapItem) inData.getMapLayer(style, null));
+                context.getComponents().add(inData.getMapLayer(style, null));
             } catch (ConstellationStoreException ex) {
                 LOGGER.log(Level.WARNING, "Failed to create map context item for data " + ex.getMessage(), ex);
             }

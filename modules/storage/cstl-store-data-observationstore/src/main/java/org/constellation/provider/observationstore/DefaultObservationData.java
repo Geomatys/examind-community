@@ -52,14 +52,11 @@ public class DefaultObservationData extends AbstractData implements ObservationD
     @Override
     public Envelope getEnvelope() throws ConstellationStoreException {
         try {
-            ExtractionResult result = getObservationStore().getResults(Arrays.asList(name.toString()));
-            if (result != null) {
-                return result.spatialBound.getSpatialBounds("2.0.0");
-            }
+            final FeatureSet fs = (FeatureSet) findResource(store, getName());
+            return FeatureStoreUtilities.getEnvelope(fs);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
-        return null;
     }
 
     private ObservationStore getObservationStore() {
@@ -74,16 +71,8 @@ public class DefaultObservationData extends AbstractData implements ObservationD
     @Override
     public SimpleDataDescription getDataDescription(StatInfo statInfo) throws ConstellationStoreException {
         final SimpleDataDescription description = new SimpleDataDescription();
-        try {
-
-            final FeatureSet fs = (FeatureSet) findResource(store, getName());
-
-            final Envelope envelope = FeatureStoreUtilities.getEnvelope(fs);
-            DataProviders.fillGeographicDescription(envelope, description);
-
-        } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
-        }
+        final Envelope envelope = getEnvelope();
+        DataProviders.fillGeographicDescription(envelope, description);
         return description;
     }
 

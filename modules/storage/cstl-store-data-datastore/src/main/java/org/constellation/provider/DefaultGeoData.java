@@ -47,7 +47,7 @@ import org.opengis.util.GenericName;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public abstract class DefaultGeoData<T extends Resource> extends AbstractData<T> implements GeoData<T> {
+public abstract class DefaultGeoData<T extends Resource> extends AbstractData<T> implements Data<T> {
 
     public DefaultGeoData(GenericName name, T origin, DataStore store) {
         super(name, origin, store);

@@ -93,7 +93,6 @@ import org.constellation.portrayal.PortrayalResponse;
 import org.constellation.portrayal.PortrayalUtil;
 import org.constellation.provider.CoverageData;
 import org.constellation.provider.Data;
-import org.constellation.provider.GeoData;
 import org.constellation.util.DataReference;
 import org.constellation.util.DtoToOGCFilterTransformer;
 import org.constellation.util.Util;
@@ -497,48 +496,46 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
 
             // Verify extra dimensions
             if (!layer.getConfiguration().getDimensions().isEmpty()) {
-               if (data instanceof GeoData) {
-                   final GeoData geoLayer = (GeoData) data;
-                   try {
-                       final MapItem mi = (MapItem) geoLayer.getMapLayer(null, null);
-                       applyLayerFiltersAndDims(mi, userLogin);
+               
+                try {
+                    final MapItem mi = data.getMapLayer(null, null);
+                    applyLayerFiltersAndDims(mi, userLogin);
 
-                       if (mi instanceof MapLayers) {
-                           final MapLayers mc = (MapLayers) mi;
-                           final List<AbstractDimension> dimensionsToAdd = new ArrayList<>();
-                           for (final MapLayer candidateLayer : MapBuilder.getLayers(mc)) {
-                               if (candidateLayer.getData() instanceof FeatureSet) {
-                                   final List<AbstractDimension> extraDimsToAdd = getExtraDimensions(candidateLayer, queryVersion);
-                                   for (AbstractDimension newExtraDim : extraDimsToAdd) {
-                                       boolean exist = false;
-                                       for (AbstractDimension oldExtraDim : dimensionsToAdd) {
-                                           if (oldExtraDim.getName().equalsIgnoreCase(newExtraDim.getName())) {
-                                               mergeValues(oldExtraDim, newExtraDim);
-                                               exist = true;
-                                               break;
-                                           }
-                                       }
-                                       if (!exist) {
-                                           dimensionsToAdd.add(newExtraDim);
-                                       }
-                                   }
-                               }
-                           }
+                    if (mi instanceof MapLayers) {
+                        final MapLayers mc = (MapLayers) mi;
+                        final List<AbstractDimension> dimensionsToAdd = new ArrayList<>();
+                        for (final MapLayer candidateLayer : MapBuilder.getLayers(mc)) {
+                            if (candidateLayer.getData() instanceof FeatureSet) {
+                                final List<AbstractDimension> extraDimsToAdd = getExtraDimensions(candidateLayer, queryVersion);
+                                for (AbstractDimension newExtraDim : extraDimsToAdd) {
+                                    boolean exist = false;
+                                    for (AbstractDimension oldExtraDim : dimensionsToAdd) {
+                                        if (oldExtraDim.getName().equalsIgnoreCase(newExtraDim.getName())) {
+                                            mergeValues(oldExtraDim, newExtraDim);
+                                            exist = true;
+                                            break;
+                                        }
+                                    }
+                                    if (!exist) {
+                                        dimensionsToAdd.add(newExtraDim);
+                                    }
+                                }
+                            }
+                        }
 
-                           if (!dimensionsToAdd.isEmpty()) {
-                               dimensions.addAll(dimensionsToAdd);
-                           }
-                       } else if (mi instanceof MapLayer) {
-                           final MapLayer ml = (MapLayer) mi;
-                           if (ml.getData() instanceof FeatureSet) dimensions.addAll(getExtraDimensions(ml, queryVersion));
-                       }
+                        if (!dimensionsToAdd.isEmpty()) {
+                            dimensions.addAll(dimensionsToAdd);
+                        }
+                    } else if (mi instanceof MapLayer) {
+                        final MapLayer ml = (MapLayer) mi;
+                        if (ml.getData() instanceof FeatureSet) dimensions.addAll(getExtraDimensions(ml, queryVersion));
+                    }
 
-                   } catch (ConstellationStoreException | DataStoreException ex) {
-                       LOGGER.log(Level.INFO, ex.getMessage(), ex);
-                       break;
-                   }
-               }
-           }
+                } catch (ConstellationStoreException | DataStoreException ex) {
+                    LOGGER.log(Level.INFO, ex.getMessage(), ex);
+                    break;
+                }
+            }
 
             /*
              * LegendUrl generation
@@ -921,14 +918,11 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
     private org.geotoolkit.wms.xml.Style convertMutableStyleToWmsStyle(final String currentVersion, final MutableStyle ms, final Data data,
             final String legendUrlPng, final String legendUrlGif)
     {
-        if (!(data instanceof GeoData)) {
-            return null;
-        }
         AbstractOnlineResource or = createOnlineResource(currentVersion, legendUrlPng);
         final LegendTemplate lt = mapPortrayal.getDefaultLegendTemplate();
         final Dimension dimension;
         try {
-            dimension = DefaultLegendService.legendPreferredSize(lt, (MapItem) ((GeoData)data).getMapLayer(ms, null));
+            dimension = DefaultLegendService.legendPreferredSize(lt, data.getMapLayer(ms, null));
         } catch (ConstellationStoreException ex) {
             LOGGER.log(Level.INFO, ex.getLocalizedMessage(), ex);
             return null;
@@ -1097,11 +1091,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                     layerName +"\".", LAYER_NOT_QUERYABLE, KEY_LAYER.toLowerCase());
         }
 
-        if (!(layer.getData() instanceof GeoData)) {
-            throw new CstlServiceException("Unable to extract legend from a non GeoData");
-        }
-        final GeoData data = (GeoData) layer.getData();
-
+        final Data data      = layer.getData();
         final Integer width  = getLegend.getWidth();
         final Integer height = getLegend.getHeight();
 
@@ -1170,7 +1160,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                     ms = getStyle(styleRef);
                 }
             }
-            image = WMSUtilities.getLegendGraphic((MapItem) data.getMapLayer(ms, null), dims, mapPortrayal.getDefaultLegendTemplate(), ms, rule, scale);
+            image = WMSUtilities.getLegendGraphic(data.getMapLayer(ms, null), dims, mapPortrayal.getDefaultLegendTemplate(), ms, rule, scale);
         } catch (PortrayalException | ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }

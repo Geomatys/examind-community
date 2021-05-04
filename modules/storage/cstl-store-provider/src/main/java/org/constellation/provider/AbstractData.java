@@ -18,10 +18,15 @@
  */
 package org.constellation.provider;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.Logger;
+import org.apache.sis.feature.builder.AttributeRole;
+import org.apache.sis.feature.builder.FeatureTypeBuilder;
 import org.apache.sis.measure.MeasurementRange;
 
 import org.opengis.geometry.Envelope;
@@ -31,23 +36,27 @@ import org.opengis.util.GenericName;
 
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
+import org.apache.sis.portrayal.MapItem;
+import org.apache.sis.portrayal.MapLayer;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.logging.Logging;
 
 import org.geotoolkit.util.DateRange;
 
 import org.constellation.api.ServiceDef.Query;
-import org.constellation.dto.DataDescription;
 import org.constellation.dto.SimpleDataDescription;
 import org.constellation.dto.StatInfo;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.repository.DataRepository;
 import org.geotoolkit.referencing.ReferencingUtilities;
-import org.geotoolkit.storage.feature.FeatureStoreUtilities;
+import org.geotoolkit.storage.memory.InMemoryFeatureSet;
+import org.locationtech.jts.geom.Polygon;
+import org.opengis.feature.Feature;
+import org.opengis.feature.FeatureType;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.style.Style;
 
 
 /**
@@ -225,4 +234,34 @@ public abstract class AbstractData<T extends Resource> implements Data<T> {
         return null;
     }
 
+    /**
+     * Create a default representation showing the bounds of the data.
+     * Must be overriden by sub-classes that need a proper display.
+     */
+    @Override
+    public MapItem getMapLayer(Style styleI, final Map<String, Object> params) throws ConstellationStoreException {
+        String name = getName().tip().toString();
+        final FeatureTypeBuilder ftb = new FeatureTypeBuilder();
+        ftb.setName(name);
+        ftb.addAttribute(Polygon.class).setName("bounds").addRole(AttributeRole.DEFAULT_GEOMETRY);
+        final FeatureType type = ftb.build();
+
+        List<Feature> feats = new ArrayList<>();
+        Envelope env = getEnvelope();
+        if (env != null) {
+            final Feature f1 = type.newInstance();
+            f1.setPropertyValue("bounds", DataProviders.getPolygon(env));
+            feats.add(f1);
+        }
+        if (styleI == null) {
+            styleI = DataProviders.createEnvelopeStyle(type);
+        }
+        final MapLayer maplayer = new MapLayer();
+        maplayer.setData(new InMemoryFeatureSet(type, feats));
+        maplayer.setStyle(styleI);
+        maplayer.setIdentifier(name);
+        maplayer.setTitle(name);
+        maplayer.setOpacity(1.0);
+        return maplayer;
+    }
 }

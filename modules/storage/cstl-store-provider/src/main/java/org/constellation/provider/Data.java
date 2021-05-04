@@ -33,6 +33,7 @@ import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.measure.Units;
 import org.apache.sis.metadata.iso.DefaultMetadata;
+import org.apache.sis.portrayal.MapItem;
 import org.apache.sis.storage.Aggregate;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
@@ -58,6 +59,7 @@ import org.geotoolkit.util.DateRange;
 import org.opengis.feature.FeatureType;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.extent.GeographicBoundingBox;
+import org.opengis.style.Style;
 import org.opengis.util.GenericName;
 
 
@@ -178,6 +180,16 @@ public interface Data<T extends Resource> {
      * {@link ImageStatistics}.
      */
     Object computeStatistic(int dataId, DataRepository dataRepository);
+
+    /**
+     * Create a MapItem with the given style and parameters.
+     * if style is null, the favorite style of this layer will be used.
+     *
+     * @param style Style to apply to the data. Can be null.
+     * @param params Extra parameters usable by specific implementations. No more details available at API level. Can be null.
+     */
+    MapItem getMapLayer(Style style, final Map<String, Object> params) throws ConstellationStoreException;
+
 
     /**
      * Returns a map structure describing the resource of this data.

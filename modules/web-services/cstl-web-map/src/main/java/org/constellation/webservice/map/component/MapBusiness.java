@@ -55,7 +55,6 @@ import org.constellation.exception.TargetNotFoundException;
 import org.constellation.portrayal.PortrayalResponse;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviders;
-import org.constellation.provider.GeoData;
 import org.constellation.ws.CstlServiceException;
 import org.springframework.stereotype.Component;
 
@@ -250,8 +249,6 @@ public class MapBusiness {
                 final Data d = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());;
 
                 if (d == null) throw new ConstellationStoreException("Unable to find a provider data for name:{" + data.getNamespace() +  "}:" +  data.getName());
-                if (!(d instanceof GeoData)) throw new ConstellationStoreException("Unable to portray a non GeoData");
-                final GeoData layer = (GeoData) d;
 
                 // Map item.
                 MapItem mapItem;
@@ -260,9 +257,9 @@ public class MapBusiness {
                     params.put("CQL_FILTER", filter);
                     final Map<String,Object> extraParams = new HashMap<>();
                     extraParams.put(Data.KEY_EXTRA_PARAMETERS, params);
-                    mapItem = (MapItem) layer.getMapLayer(style, extraParams);
+                    mapItem = (MapItem) d.getMapLayer(style, extraParams);
                 } else {
-                    mapItem = (MapItem) layer.getMapLayer(style, null);
+                    mapItem = (MapItem) d.getMapLayer(style, null);
                 }
                 mapContext.getComponents().add(mapItem);
             }

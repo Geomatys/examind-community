@@ -23,14 +23,12 @@ import org.constellation.provider.Data;
 import org.geotoolkit.map.MapBuilder;
 import org.apache.sis.portrayal.MapLayers;
 import org.apache.sis.portrayal.MapItem;
-import org.apache.sis.portrayal.MapLayer;
 import org.geotoolkit.style.MutableStyle;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.constellation.exception.ConstellationStoreException;
-import org.constellation.provider.GeoData;
 import org.constellation.ws.LayerCache;
 
 
@@ -65,8 +63,8 @@ public final class PortrayalUtil {
 
         for (int i = 0; i < layerRefs.size(); i++) {
             final LayerCache layer = layerRefs.get(i);
-            if (layer.getData() instanceof GeoData) {
-                final GeoData layerRef = (GeoData) layer.getData();
+            if (layer.getData() != null) {
+                final Data layerRef = layer.getData();
                 final MutableStyle style = styleRefs.get(i);
 
                 assert (null != layerRef);

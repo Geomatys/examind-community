@@ -18,6 +18,7 @@
  */
 package org.constellation.provider;
 
+import java.awt.Color;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.DirectoryStream;
@@ -29,11 +30,15 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javax.measure.Unit;
 import org.apache.sis.coverage.grid.GridGeometry;
+import org.apache.sis.feature.Features;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralDirectPosition;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.internal.storage.ResourceOnFileSystem;
+import org.apache.sis.internal.system.DefaultFactories;
+import org.apache.sis.measure.Units;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStore;
@@ -46,9 +51,9 @@ import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.StorageConnector;
 import org.apache.sis.util.Static;
 import org.apache.sis.util.UnconvertibleObjectException;
+import org.apache.sis.util.iso.SimpleInternationalString;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
-import org.constellation.dto.DataBrief;
 import org.constellation.dto.DataCustomConfiguration;
 import org.constellation.dto.DataDescription;
 import org.constellation.dto.ProviderBrief;
@@ -59,6 +64,8 @@ import org.constellation.repository.ProviderRepository;
 import org.constellation.util.ParamUtilities;
 import org.constellation.util.nio.PathExtensionVisitor;
 import org.geotoolkit.feature.FeatureExt;
+import org.geotoolkit.geometry.GeometricUtilities;
+import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.io.wkt.PrjFiles;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.storage.DataStores;
@@ -67,7 +74,20 @@ import org.geotoolkit.storage.StoreMetadataExt;
 import org.geotoolkit.storage.feature.FeatureStore;
 import org.geotoolkit.storage.feature.FileFeatureStoreFactory;
 import org.geotoolkit.storage.memory.ExtendedFeatureStore;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.CoordinateSequence;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LinearRing;
+import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.geom.impl.CoordinateArraySequence;
+import org.opengis.feature.AttributeType;
 import org.opengis.feature.FeatureType;
+import org.opengis.feature.PropertyNotFoundException;
+import org.opengis.feature.PropertyType;
+import org.opengis.filter.Filter;
+import org.opengis.filter.FilterFactory;
+import org.opengis.filter.expression.Literal;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.extent.Extent;
 import org.opengis.metadata.extent.GeographicBoundingBox;
@@ -78,6 +98,16 @@ import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.referencing.crs.CRSAuthorityFactory;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.TransformException;
+import org.opengis.style.Description;
+import org.opengis.style.Displacement;
+import org.opengis.style.FeatureTypeStyle;
+import org.opengis.style.Fill;
+import org.opengis.style.PolygonSymbolizer;
+import org.opengis.style.Rule;
+import org.opengis.style.Stroke;
+import org.opengis.style.Style;
+import org.opengis.style.StyleFactory;
 import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
 
@@ -814,5 +844,76 @@ public final class DataProviders extends Static{
         }
 
         return prop;
+    }
+    
+    protected static Style createEnvelopeStyle(final FeatureType envelopeFeatureType) throws ConstellationStoreException {
+        StyleFactory SF;
+        try {
+            SF = DefaultFactories.forBuildin(StyleFactory.class);
+        } catch (Exception ex) {
+            throw new ConstellationStoreException("Unable to find a style factory.", ex);
+        }
+
+        final PolygonSymbolizer polygonSymbol = createRandomPolygonSymbolizer(SF);
+        final PropertyType defAtt;
+        try {
+            defAtt = FeatureExt.getDefaultGeometry(envelopeFeatureType);
+        } catch(PropertyNotFoundException | IllegalStateException ex) {
+            throw new ConstellationStoreException("Unable to find a Default geometry in Envelope feature type", ex);
+        }
+        final AttributeType type = Features.toAttribute(defAtt).orElse(null);
+        if (type == null) throw new ConstellationStoreException("Unable to cast default geometry attribute to Attribute type");
+        final Class cla = type.getValueClass();
+        final Description desc = SF.description(new SimpleInternationalString(""), new SimpleInternationalString(""));
+        final List<FeatureTypeStyle> fts = new ArrayList<>();
+        final Rule r = SF.rule("bounds-rule", desc, null, 0, Double.MAX_VALUE, Arrays.asList(polygonSymbol), Filter.INCLUDE);
+        fts.add(SF.featureTypeStyle("bounds-type", desc, null, null, null, Arrays.asList(r)));
+        final Style style =  SF.style("bounds-sld", desc, true, fts, null);
+        return style;
+    }
+
+    private static PolygonSymbolizer createRandomPolygonSymbolizer(StyleFactory SF) throws ConstellationStoreException {
+        FilterFactory FF;
+        try {
+            FF = DefaultFactories.forBuildin(FilterFactory.class);
+        } catch (Exception ex) {
+            throw new ConstellationStoreException("Unable to find a filter factory.", ex);
+        }
+        final Unit uom       = Units.POINT;
+        final Fill fill      =  SF.fill(null, FF.literal(Color.BLACK), FF.literal(0.6f) );
+        final Stroke stroke  =  SF.stroke(FF.literal(Color.BLACK), null, FF.literal(1), null, null, null, null);
+        final Literal offset = FF.literal(0);
+        final Displacement displacement =  SF.displacement(offset, offset);
+        return  SF.polygonSymbolizer(null,null,null,uom,stroke, fill,displacement,offset);
+    }
+
+    protected static final GeometryFactory GF = new GeometryFactory();
+
+
+    /**
+     * Return a JTS polygon from an envelope.
+     *
+     * @param env An envelope.
+     */
+    protected static Geometry getPolygon(Envelope env) throws ConstellationStoreException {
+        GeneralEnvelope gEnv = GeneralEnvelope.castOrCopy(env);
+        CoordinateReferenceSystem crs = gEnv.getCoordinateReferenceSystem();
+        if (gEnv.getDimension() > 2) {
+            crs = crs == null ? null : CRS.getHorizontalComponent(crs);
+            if (crs == null) {
+                gEnv = gEnv.subEnvelope(0, 2);
+            } else {
+                try {
+                    gEnv = GeneralEnvelope.castOrCopy(Envelopes.transform(gEnv, crs));
+                } catch (TransformException ex) {
+                    throw new ConstellationStoreException(ex);
+                }
+            }
+        }
+        final Geometry result = GeometricUtilities.toJTSGeometry(gEnv, GeometricUtilities.WrapResolution.NONE);
+        if (crs != null) {
+            JTS.setCRS(result, crs);
+        }
+        return result;
     }
 }
