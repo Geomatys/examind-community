@@ -13,6 +13,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
 import org.apache.sis.util.logging.Logging;
+import org.constellation.api.WorkerState;
 import org.constellation.ws.IWSEngine;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
@@ -56,10 +57,10 @@ public class ConstellationOGCRegistry {
         if (!wsengine.isSetService(serviceName)) {
             try {
                 final String serviceType = serviceName.toLowerCase();
-                for(ServiceComplete service : serviceBusiness.getAllServicesByType(null, serviceType)){
-                    if("STARTED".equalsIgnoreCase(service.getStatus())){
-                        final String identifier = service.getIdentifier();
-
+                for (ServiceComplete service : serviceBusiness.getAllServicesByType(null, serviceType)) {
+                    final String identifier = service.getIdentifier();
+                    wsengine.updateWorkerStatus(serviceType, identifier, WorkerState.DOWN);
+                    if ("STARTED".equalsIgnoreCase(service.getStatus())) {
                         final Worker worker = wsengine.buildWorker(serviceType, identifier);
                         if (worker != null) {
                             wsengine.addServiceInstance(serviceType, identifier, worker);

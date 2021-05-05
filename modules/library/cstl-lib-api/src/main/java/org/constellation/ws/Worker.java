@@ -21,11 +21,10 @@ package org.constellation.ws;
 
 import org.apache.sis.util.Version;
 import org.constellation.api.ServiceDef;
+import org.constellation.api.WorkerState;
 
 import javax.xml.validation.Schema;
 import java.util.List;
-import java.util.logging.Level;
-
 /**
  * Generic definition of a worker.
  *
@@ -60,9 +59,9 @@ public interface Worker {
     boolean isSecured();
 
     /**
-     * Returns {@code true} if the worker is working, {@code false} otherwise.
+     * Returns the current {@link WorkerState} of the worker.
      */
-    boolean isStarted();
+    WorkerState getState();
 
     /**
      * Verifies if the ip or referrer is authorized to request the service or not.

@@ -215,9 +215,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
 
     public DefaultWCSWorker(final String id) {
         super(id, ServiceDef.Specification.WCS);
-        if (isStarted) {
-            LOGGER.log(Level.INFO, "WCS worker {0} running", id);
-        }
+        started();
     }
 
     /**

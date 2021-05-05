@@ -338,10 +338,7 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
         }
 
         fillProcessList(context);
-
-        if (isStarted) {
-            LOGGER.log(Level.INFO, "WPS worker {0} running", id);
-        }
+        started();
     }
 
     @PostConstruct
@@ -1482,6 +1479,12 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
         } catch (UnknowJobException ex) {
             throw new CstlServiceException(ex.getMessage(), ex, INVALID_PARAMETER_VALUE, "jobID", 404);
         }
+    }
+
+    @Override
+    public void destroy() {
+        super.destroy();
+        stopped();
     }
 }
 

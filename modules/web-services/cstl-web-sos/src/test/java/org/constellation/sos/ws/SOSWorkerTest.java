@@ -2660,7 +2660,7 @@ public abstract class SOSWorkerTest {
         } catch (CstlServiceException ex) {
             exLaunched = true;
             assertEquals(ex.getExceptionCode(), NO_APPLICABLE_CODE);
-            assertTrue(ex.getMessage().contains("The service is not running"));
+            assertTrue(ex.getMessage().contains("The service has been shutdown"));
         }
 
         assertTrue(exLaunched);

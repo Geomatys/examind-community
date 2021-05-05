@@ -172,9 +172,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
 
     public DefaultWMTSWorker(final String id) {
         super(id, ServiceDef.Specification.WMTS);
-        if (isStarted) {
-            LOGGER.log(Level.INFO, "WMTS worker {0} running", id);
-        }
+        started();
     }
 
     @Override

@@ -23,6 +23,8 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import org.constellation.api.ServiceDef;
+import org.constellation.api.WorkerState;
+import static org.constellation.api.WorkerState.UP;
 import org.constellation.business.ClusterMessage;
 import org.constellation.business.IClusterBusiness;
 import org.constellation.exception.ConfigurationException;
@@ -98,7 +100,7 @@ public class ServiceMessageConsumer extends MessageListener{
                 final Worker worker = wsengine.buildWorker(serviceType, serviceId);
                 if (worker != null) {
                     wsengine.addServiceInstance(serviceType, serviceId, worker);
-                    if (!worker.isStarted()) {
+                    if (!worker.getState().equals(UP)) {
                         throw new ConfigurationException("service "+serviceId+" start failed.");
                     }
                 } else {
@@ -168,7 +170,7 @@ public class ServiceMessageConsumer extends MessageListener{
 
         for(ServiceDef.Specification spec : ServiceDef.Specification.values()){
             final ClusterMessage specRes = response.createPart();
-            for(Map.Entry<String, Boolean> entry : wsengine.getEntriesStatus(spec.name())){
+            for(Map.Entry<String, WorkerState> entry : wsengine.getWorkerStatus(spec.name()).entrySet()){
                 specRes.put(entry.getKey(), entry.getValue());
             }
             response.put(spec.name(), specRes);

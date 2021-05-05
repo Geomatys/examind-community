@@ -136,7 +136,7 @@ public class SOSWorkerInitialisationTest {
 
         } catch(CstlServiceException ex) {
             assertEquals(ex.getExceptionCode(), NO_APPLICABLE_CODE);
-            assertEquals(ex.getMessage(), "The service is not running!\nCause:The configuration object is malformed or null.");
+            assertEquals(ex.getMessage(), "The service is not running.\nCause:The configuration object is malformed or null.");
             exceptionLaunched = true;
         }
 
@@ -165,7 +165,7 @@ public class SOSWorkerInitialisationTest {
 
         } catch(CstlServiceException ex) {
             assertEquals(ex.getExceptionCode(), NO_APPLICABLE_CODE);
-            assertEquals("The service is not running!\nCause:The configuration object is malformed or null.", ex.getMessage());
+            assertEquals("The service is not running.\nCause:The configuration object is malformed or null.", ex.getMessage());
 
             exceptionLaunched = true;
         }
@@ -199,7 +199,7 @@ public class SOSWorkerInitialisationTest {
 
         } catch(CstlServiceException ex) {
             assertEquals(ex.getExceptionCode(), NO_APPLICABLE_CODE);
-            assertTrue(ex.getMessage().startsWith("The service is not running!"));
+            assertTrue(ex.getMessage().startsWith("The service is not running."));
             exceptionLaunched = true;
         }
         assertTrue(exceptionLaunched);
@@ -229,7 +229,7 @@ public class SOSWorkerInitialisationTest {
 
         } catch(CstlServiceException ex) {
             assertEquals(ex.getExceptionCode(), NO_APPLICABLE_CODE);
-            assertTrue(ex.getMessage().startsWith("The service is not running!"));
+            assertTrue(ex.getMessage().startsWith("The service is not running."));
             exceptionLaunched = true;
         }
         assertTrue(exceptionLaunched);

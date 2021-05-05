@@ -292,12 +292,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
 
             // we initialize the filterParsers
             init();
-            String suffix = "";
-            if (profile == TRANSACTIONAL) {
-                suffix = "-T";
-            }
-
-            LOGGER.info("CSW" + suffix + " worker \"" + serviceID + "\" running\n");
+            started();
 
         } catch (MetadataIoException | IndexingException e) {
             StringBuilder sb =  new StringBuilder(e.getMessage());
@@ -1676,6 +1671,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         if (harvestTaskScheduler != null) {
             harvestTaskScheduler.destroy();
         }
+        stopped();
     }
 
     /**

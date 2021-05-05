@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.Set;
 import javax.inject.Inject;
 import org.constellation.api.ServiceDef.Specification;
+import org.constellation.api.WorkerState;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.ws.IWSEngine;
 import org.constellation.business.IServiceBusiness;
@@ -155,7 +156,7 @@ public class OGCRestAPI {
                 return new ResponseEntity(AcknowlegementType.failure("Instance already created"), OK);
             }
             Integer sid = serviceBusiness.create(spec, metadata.getIdentifier(), null, metadata, null);
-
+            wsengine.updateWorkerStatus(spec, metadata.getIdentifier(), WorkerState.DOWN);
             return new ResponseEntity(serviceBusiness.getServiceById(sid, null), CREATED);
         } catch (Exception ex) {
             return new ErrorMessage(ex).build();
@@ -254,6 +255,7 @@ public class OGCRestAPI {
             serviceBusiness.ensureExistingInstance(serviceType, id);
             ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType(serviceType, id);
             serviceBusiness.delete(s.getId());
+            wsengine.removeWorkerStatus(serviceType, id);
             return new ResponseEntity(AcknowlegementType.success(serviceType.toUpperCase() + " service \"" + id + "\" successfully deleted."), OK);
         } catch (Exception ex) {
             return new ErrorMessage(ex).build();
@@ -334,6 +336,49 @@ public class OGCRestAPI {
             serviceBusiness.configure(serviceType, id, metadata, config);
             return new ResponseEntity(AcknowlegementType.success(serviceType.toUpperCase() + " service \"" + id + "\" details successfully updated."), OK);
         } catch (Exception ex) {
+            return new ErrorMessage(ex).build();
+        }
+    }
+
+        /**
+     * Return the runtime state of the services.
+     */
+    @RequestMapping(value="/OGC/state", method=GET, produces=MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity getServicesState() {
+        try {
+            return new ResponseEntity(wsengine.getWorkerStatus(), OK);
+        } catch (Throwable ex) {
+            return new ErrorMessage(ex).build();
+        }
+    }
+
+    /**
+     * Return the runtime state of the services.
+     *
+     * @param serviceType The type of the service.
+     *
+     */
+    @RequestMapping(value="/OGC/{spec}/state", method=GET, produces=MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity getServiceState(final @PathVariable("spec") String serviceType) {
+        try {
+            return new ResponseEntity(wsengine.getWorkerStatus(serviceType), OK);
+        } catch (Throwable ex) {
+            return new ErrorMessage(ex).build();
+        }
+    }
+
+    /**
+     * Return the runtime state of the services.
+     *
+     * @param serviceType The type of the service.
+     * @param id          The service identifier
+     *
+     */
+    @RequestMapping(value="/OGC/{spec}/{id}/state", method=GET, produces=MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity getServiceState(final @PathVariable("spec") String serviceType, final @PathVariable("id") String id) {
+        try {
+            return new ResponseEntity(wsengine.getWorkerStatus(serviceType, id), OK);
+        } catch (Throwable ex) {
             return new ErrorMessage(ex).build();
         }
     }

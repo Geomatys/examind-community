@@ -23,20 +23,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import javax.inject.Named;
 import org.apache.sis.xml.MarshallerPool;
 
 // constellation dependencies
 import org.constellation.api.ServiceDef.Specification;
-import org.constellation.exception.ConfigurationException;
 import org.constellation.thesaurus.api.IThesaurusBusiness;
 import org.constellation.thesaurus.api.IThesaurusCSWCounter;
 import org.constellation.ws.AbstractWorker;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.thesaurus.io.sql.ThesaurusCSWCounter;
 import org.constellation.thesaurus.api.IThesaurusHandler;
-import org.constellation.thesaurus.api.ThesaurusException;
 import org.constellation.thesaurus.io.sql.ThesaurusHandler;
 
 
@@ -71,7 +68,6 @@ public class THWworker extends AbstractWorker {
 
     public THWworker(final String serviceID) {
         super(serviceID, Specification.THW);
-        isStarted = true;
         int nbThesaurus = 0;
         try {
 
@@ -87,24 +83,14 @@ public class THWworker extends AbstractWorker {
             cswCounter = new ThesaurusCSWCounter(handler);
 
             if (handler == null) {//NOSONAR
-                isStarted   = false;
-                LOGGER.warning("The thesaurus is not working! \n cause: unable to acquire a thesaurus handler");
+                startError("The thesaurus is not working! \n cause: unable to acquire a thesaurus handler", null);
             } else {
                 nbThesaurus = handler.getLoadedThesaurus().size();
             }
-        } catch (IllegalArgumentException ex) {
-            LOGGER.log(Level.WARNING, "The Thesaurus worker can not start! \n cause (IllegalArgumentException):{0}", ex.getMessage());
-            isStarted = false;
-        } catch (ConfigurationException ex) {
-            LOGGER.log(Level.WARNING, "The Thesaurus worker can not start! \n cause (ConfigurationException):{0}", ex.getMessage());
-            isStarted = false;
-        } catch (ThesaurusException ex) {
-            LOGGER.log(Level.WARNING, "The Thesaurus worker can not start! \n cause (ThesaurusException):{0}", ex.getMessage());
-            isStarted = false;
+        } catch (Exception ex) {
+            startError("The Thesaurus worker can not start!\nCause:"+ ex.getMessage(), ex);
         }
-        if (isStarted) {
-            LOGGER.log(Level.INFO, "Thesaurus worker \"{0}\" running.({1} thesaurus)", new Object[]{serviceID, nbThesaurus});
-        }
+        started();
     }
 
     /**
@@ -370,6 +356,7 @@ public class THWworker extends AbstractWorker {
         if (cswCounter != null) {
             cswCounter.close();
         }
+        stopped();
     }
 
     @Override

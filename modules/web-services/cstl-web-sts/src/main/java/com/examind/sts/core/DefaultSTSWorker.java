@@ -164,9 +164,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             isTransactionnal = t;
         }
         defaultHints.put("version", "2.0.0");
-        if (isStarted) {
-            LOGGER.log(Level.INFO, "STS worker {0} running", id);
-        }
+        started();
     }
 
     @Override
@@ -1952,6 +1950,12 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         if (isTransactionSecurized() && !SecurityManagerHolder.getInstance().isAuthenticated()) {
             throw new UnauthorizedException("You must be authentified to perform a transactionnal request.");
         }
+    }
+
+    @Override
+    public void destroy() {
+        super.destroy();
+        stopped();
     }
 
     /**

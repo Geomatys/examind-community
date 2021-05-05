@@ -158,9 +158,11 @@ public abstract class LayerWorker extends AbstractWorker {
     @PreDestroy
     @Override
     public void destroy(){
+        super.destroy();
         if (listenerUid != null) {
             clusterBusiness.removeMessageListener(listenerUid);
         }
+        stopped();
     }
 
     protected List<NameInProvider> getConfigurationLayerNames(final String login) {

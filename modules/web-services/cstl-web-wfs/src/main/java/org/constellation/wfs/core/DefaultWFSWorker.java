@@ -266,10 +266,6 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 
     public DefaultWFSWorker(final String id) {
         super(id, ServiceDef.Specification.WFS);
-        if (isStarted) {
-            LOGGER.log(Level.INFO, "WFS worker {0} running", id);
-        }
-
         final String isTransactionnalProp = getProperty("transactional");
         if (isTransactionnalProp != null) {
             isTransactionnal = Boolean.parseBoolean(isTransactionnalProp);
@@ -286,6 +282,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 
         // loading stored queries
        loadStoredQueries();
+       started();
     }
 
     private void loadStoredQueries() {

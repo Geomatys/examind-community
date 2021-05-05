@@ -46,6 +46,7 @@ import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.ServiceDef;
 import org.constellation.api.ServiceDef.Specification;
 import org.constellation.admin.SpringHelper;
+import org.constellation.api.WorkerState;
 import org.constellation.exception.ConstellationException;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.contact.Details;
@@ -79,7 +80,7 @@ public abstract class AbstractWorker implements Worker {
     /**
      * A flag indicating if the worker is correctly started.
      */
-    protected boolean isStarted;
+    private WorkerState currentState;
 
     /**
      * A message keeping the reason of the start error of the worker.
@@ -132,12 +133,15 @@ public abstract class AbstractWorker implements Worker {
     @Inject
     protected IServiceBusiness serviceBusiness;
 
+    @Inject
+    private IWSEngine wsengine;
+
     public AbstractWorker(final String id, final Specification specification) {
-        this.isStarted = true;
         this.id = id;
         this.specification = specification;
         SpringHelper.injectDependencies(this);
         this.serviceId = serviceBusiness.getServiceIdByIdentifierAndType(specification.name(), id);
+        start();
         try {
             applySupportedVersion();
         } catch (ConfigurationException ex) {
@@ -170,13 +174,38 @@ public abstract class AbstractWorker implements Worker {
         }
     }
 
+    /**
+     * Record the cause of the worker startup fail.
+     *
+     * @param msg An error message explaning the cause of the dailure to start.
+     * @param ex
+     */
     protected final void startError(final String msg, final Throwable ex) {
-        startError    = msg;
-        isStarted     = false;
+        startError = msg;
+        currentState = WorkerState.ERROR;
+        wsengine.updateWorkerStatus(specification.name(), id, currentState);
         LOGGER.log(Level.WARNING, "\nThe " + this.specification.name() + " worker is not running!\ncause: {0}", startError);
         if (ex != null) {
             LOGGER.log(Level.FINER, "\nThe " + this.specification.name() + " worker is not running!", ex);
         }
+    }
+
+    private void start() {
+        this.currentState = WorkerState.STARTING;
+        wsengine.updateWorkerStatus(specification.name(), id, currentState);
+    }
+
+    protected final void started() {
+        if (!currentState.equals(WorkerState.ERROR)) {
+            LOGGER.info(specification.name() + " worker \"" + id + "\" running\n");
+            currentState = WorkerState.UP;
+            wsengine.updateWorkerStatus(specification.name(), id, currentState);
+        }
+    }
+
+    protected final void stopped() {
+        this.currentState = WorkerState.DOWN;
+        wsengine.updateWorkerStatus(specification.name(), id, currentState);
     }
 
     protected String getUserLogin() {
@@ -367,8 +396,11 @@ public abstract class AbstractWorker implements Worker {
      * @throws org.constellation.ws.CstlServiceException
      */
     protected void isWorking() throws CstlServiceException {
-        if (!isStarted) {
-            throw new CstlServiceException("The service is not running!\nCause:" + startError, OWSExceptionCode.NO_APPLICABLE_CODE);
+        switch (currentState) {
+            case ERROR:    throw new CstlServiceException("The service is not running.\nCause:" + startError, OWSExceptionCode.NO_APPLICABLE_CODE);
+            case DOWN:     throw new CstlServiceException("The service has been shutdown.", OWSExceptionCode.NO_APPLICABLE_CODE);
+            case STARTING: throw new CstlServiceException("The service is starting up. retry later", OWSExceptionCode.NO_APPLICABLE_CODE);
+            case UNKNOWN:  throw new CstlServiceException("The service is not running, Unknown Cause.", OWSExceptionCode.NO_APPLICABLE_CODE);
         }
     }
 
@@ -376,8 +408,8 @@ public abstract class AbstractWorker implements Worker {
      * {@inheritDoc}
      */
     @Override
-    public boolean isStarted() {
-        return isStarted;
+    public WorkerState getState() {
+        return currentState;
     }
 
     /**
@@ -549,6 +581,8 @@ public abstract class AbstractWorker implements Worker {
 
     @Override
     public void destroy() {
+        this.currentState = WorkerState.STOPPING;
+        wsengine.updateWorkerStatus(specification.name(), id, currentState);
         clearCapabilitiesCache();
     }
 

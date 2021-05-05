@@ -26,7 +26,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.StringWriter;
 import java.util.Date;
-import java.util.logging.Level;
 import javax.annotation.PostConstruct;
 
 import javax.inject.Inject;
@@ -130,7 +129,7 @@ public class CSWorkerInitialisationTest {
             assertEquals(ex.getExceptionCode(), NO_APPLICABLE_CODE);
             assertEquals(
                     ex.getMessage(),
-                    "The service is not running!\nCause: Configuration Object is not an Automatic Object");
+                    "The service is not running.\nCause: Configuration Object is not an Automatic Object");
             exceptionLaunched = true;
         }
 
@@ -152,7 +151,7 @@ public class CSWorkerInitialisationTest {
 
         } catch (CstlServiceException ex) {
             assertEquals(NO_APPLICABLE_CODE, ex.getExceptionCode());
-            assertEquals("The service is not running!\nCause:The configuration object is malformed or null.", ex.getMessage());
+            assertEquals("The service is not running.\nCause:The configuration object is malformed or null.", ex.getMessage());
             exceptionLaunched = true;
         }
 
@@ -180,7 +179,7 @@ public class CSWorkerInitialisationTest {
         } catch (CstlServiceException ex) {
             assertEquals(ex.getExceptionCode(), NO_APPLICABLE_CODE);
             assertTrue(ex.getMessage()
-                    .startsWith("The service is not running!"));
+                    .startsWith("The service is not running."));
             exceptionLaunched = true;
         }
 
@@ -208,7 +207,7 @@ public class CSWorkerInitialisationTest {
         } catch (CstlServiceException ex) {
             assertEquals(ex.getExceptionCode(), NO_APPLICABLE_CODE);
             assertTrue(ex.getMessage()
-                    .startsWith("The service is not running!"));
+                    .startsWith("The service is not running."));
             exceptionLaunched = true;
         }
 
@@ -235,7 +234,7 @@ public class CSWorkerInitialisationTest {
         } catch (CstlServiceException ex) {
             assertEquals(ex.getExceptionCode(), NO_APPLICABLE_CODE);
             assertEquals(ex.getMessage(),
-                    "The service is not running!\nCause:No linked metadata Provider");
+                    "The service is not running.\nCause:No linked metadata Provider");
             exceptionLaunched = true;
         }
 

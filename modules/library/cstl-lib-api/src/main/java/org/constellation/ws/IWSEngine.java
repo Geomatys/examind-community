@@ -18,10 +18,10 @@
  */
 package org.constellation.ws;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.constellation.api.ServiceDef;
+import org.constellation.api.WorkerState;
 import org.constellation.dto.service.ServiceProtocol;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.NotRunningServiceException;
@@ -139,13 +139,45 @@ public interface IWSEngine {
     Worker getInstance(final String specification, final String serviceID);
 
     /**
-     * Return the current status (started or not) for each instance of the specified OGC service instance.
+     * Return the current status for each instance of OGC service instance.
+     *
+     * @return
+     */
+    Map<String, Map<String, WorkerState>> getWorkerStatus();
+
+    /**
+     * Return the current status for each instance of the specified OGC service specification.
      *
      * @param specification A service type (CSW, SOS, WMS, ...).
      * @return
      */
-    Set<Map.Entry<String, Boolean>> getEntriesStatus(final String specification);
+    Map<String, WorkerState> getWorkerStatus(final String specification);
 
+    /**
+     * Return the current status for the specified OGC service instance.
+     *
+     * @param specification A service type (CSW, SOS, WMS, ...).
+     * @param serviceID The identifier of the new {@link Worker}.
+     * @return
+     */
+    WorkerState getWorkerStatus(final String specification, final String serviceID);
+
+    /**
+     * Update the current status for the specified OGC service instance.
+     *
+     * @param specification A service type (CSW, SOS, WMS, ...).
+     * @param serviceID The identifier of the new {@link Worker}.
+     * @param workerState The new worker state
+     */
+    void updateWorkerStatus(final String specification, final String serviceID, final WorkerState workerState);
+
+    /**
+     * Remove the specified OGC service instance from the status list.
+     *
+     * @param specification A service type (CSW, SOS, WMS, ...).
+     * @param serviceID The identifier of the new {@link Worker}.
+     */
+    void removeWorkerStatus(final String specification, final String serviceID);
 
     /**
      * Shutdown the specified service instance an remove it from the pool.

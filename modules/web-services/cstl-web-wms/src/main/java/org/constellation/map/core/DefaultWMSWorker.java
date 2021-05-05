@@ -234,10 +234,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         } catch (ConstellationException ex) {
             LOGGER.log(Level.WARNING, null, ex);
         }
-
-        if (isStarted) {
-            LOGGER.log(Level.INFO, "WMS worker {0} running", id);
-        }
+        started();
     }
 
     @Override

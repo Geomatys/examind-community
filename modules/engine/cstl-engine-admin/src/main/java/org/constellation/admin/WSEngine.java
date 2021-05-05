@@ -20,12 +20,9 @@ package org.constellation.admin;
 
 import org.apache.sis.util.logging.Logging;
 
-import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -33,6 +30,7 @@ import java.util.logging.Logger;
 import javax.inject.Inject;
 import org.constellation.api.ServiceDef;
 import org.constellation.dto.service.ServiceProtocol;
+import org.constellation.api.WorkerState;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.NotRunningServiceException;
 import org.constellation.ws.IWSEngine;
@@ -41,6 +39,7 @@ import org.constellation.ws.Worker;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
+import static org.constellation.api.WorkerState.*;
 
 /**
  *
@@ -58,6 +57,11 @@ public class WSEngine implements IWSEngine {
      * A map of service worker.
      */
     private final Map<String, Map<String, Worker>> WORKERS_MAP = new HashMap<>();
+
+    /**
+     * A map of service worker state.
+     */
+    private final Map<String, Map<String, WorkerState>> WORKERS_STATE_MAP = new HashMap<>();
 
     /**
      * A map of the registred OGC services and their endpoint protocols (REST).
@@ -169,15 +173,53 @@ public class WSEngine implements IWSEngine {
      * {@inheritDoc}
      */
     @Override
-    public synchronized Set<Entry<String, Boolean>> getEntriesStatus(final String specification) {
-        final Set<Map.Entry<String, Boolean>> response = new HashSet<>();
-        final Map<String, Worker> workersMap = WORKERS_MAP.get(specification.toLowerCase());
+    public Map<String, Map<String, WorkerState>> getWorkerStatus() {
+        return new HashMap<>(WORKERS_STATE_MAP);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public synchronized Map<String, WorkerState> getWorkerStatus(final String specification) {
+        if (WORKERS_STATE_MAP.containsKey(specification.toLowerCase())) {
+            return new HashMap<>(WORKERS_STATE_MAP.get(specification.toLowerCase()));
+        }
+        return new HashMap<>();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public WorkerState getWorkerStatus(String specification, String serviceID) {
+        final Map<String, WorkerState> workersMap = WORKERS_STATE_MAP.get(specification.toLowerCase());
         if (workersMap != null) {
-            for (Entry<String, Worker> entry : workersMap.entrySet()) {
-                response.add(new AbstractMap.SimpleEntry<>(entry.getKey(), entry.getValue().isStarted()));
+            if (workersMap.containsKey(serviceID)) {
+                return workersMap.get(serviceID);
             }
         }
-        return response;
+        return UNKNOWN;
+    }
+
+    @Override
+    public void updateWorkerStatus(String specification, String serviceID, WorkerState workerState) {
+        final Map<String, WorkerState> workersMap;
+        if (WORKERS_STATE_MAP.containsKey(specification.toLowerCase())) {
+            workersMap = WORKERS_STATE_MAP.get(specification.toLowerCase());
+        } else {
+            workersMap = new HashMap<>();
+            WORKERS_STATE_MAP.put(specification.toLowerCase(), workersMap);
+        }
+        workersMap.put(serviceID, workerState);
+    }
+
+    @Override
+    public void removeWorkerStatus(String specification, String serviceID) {
+        final Map<String, WorkerState> workersMap;
+        if (WORKERS_STATE_MAP.containsKey(specification.toLowerCase())) {
+            WORKERS_STATE_MAP.get(specification.toLowerCase()).remove(serviceID);
+        }
     }
 
     /**

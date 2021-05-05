@@ -162,6 +162,7 @@ import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
 import org.constellation.exception.ConstellationStoreException;
 import com.examind.sensor.ws.SensorUtils;
 import java.util.stream.Collectors;
+import org.constellation.api.WorkerState;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildOffering;
 import org.geotoolkit.swe.xml.AbstractDataComponent;
@@ -293,7 +294,7 @@ public class SOSworker extends SensorWorker {
         super(id, ServiceDef.Specification.SOS);
         ISO8601_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-        if (!isStarted) {
+        if (getState().equals(WorkerState.ERROR)) {
             return;
         }
         // Database configuration
@@ -348,7 +349,7 @@ public class SOSworker extends SensorWorker {
 
             // we log some implementation informations
             logInfos();
-
+            started();
         } catch (ConstellationStoreException ex) {
             startError(ex.getMessage(), ex);
         } catch (ConfigurationException ex) {
@@ -2213,8 +2214,8 @@ public class SOSworker extends SensorWorker {
         schreduledTask.stream().forEach((t) -> {
             t.cancel();
         });
-        startError = "The service has been shutdown";
-        isStarted = false;
+        startError("The service has been shutdown", null);
+        stopped();
     }
 
     private void assertTransactionnal(final String requestName) throws CstlServiceException {
