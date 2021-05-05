@@ -1,0 +1,15 @@
+extends: default
+base:
+  font-color: #333333
+  font-family: Times-Roman
+  font-size: 10
+  line-height-length: 11
+  line-height: $base-line-height-length / $base-font-size
+vertical-spacing: $base-line-height-length
+code:
+  font-size: 10
+  line-height-length: 11
+  line-height: $base-line-height-length / $base-font-size
+page:
+  margin: [0.5in, 0.5in, 0.5in, 0.5in]
+  background-image: image:background.png[]

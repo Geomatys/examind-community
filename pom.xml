@@ -263,6 +263,12 @@
             <version>${hsql.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.geotoolkit</groupId>
+            <artifactId>geotk-maven-report</artifactId>
+            <version>${geotoolkit.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <profiles>
@@ -1321,6 +1327,19 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <!-- for PRTQL generation -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <properties>
+                        <property>
+                            <name>listener</name>
+                            <value>org.geotoolkit.maven.report.AsciiDocTestReport</value>
+                        </property>
+                    </properties>
+                </configuration>
             </plugin>
         </plugins>
         <extensions>

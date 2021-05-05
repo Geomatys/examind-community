@@ -27,7 +27,182 @@
         <site.resource.dir>src/main/site</site.resource.dir>
         <!-- This is the path of the path of the documentation directory containing the sample files. -->
         <howToDoc.path>howToDoc</howToDoc.path>
+        <asciidoctor.maven.plugin.version>2.1.0</asciidoctor.maven.plugin.version>
+        <asciidoctorj.pdf.version>1.5.4</asciidoctorj.pdf.version>
+        <asciidoctorj.diagram.version>2.1.0</asciidoctorj.diagram.version>
+        <asciidoctorj.version>2.4.2</asciidoctorj.version>
+        <jruby.version>9.2.11.1</jruby.version>
     </properties>
+
+    <profiles>
+        <profile>
+            <id>asciidoc</id>
+            <build>
+                <resources>
+                    <!-- replace project properties in html and markdown pages -->
+                    <resource>
+                        <directory>src/main/resources</directory>
+                        <filtering>false</filtering>
+                    </resource>
+                </resources>
+                <plugins>
+                    <!--
+                        This plugin (https://github.com/alx3apps/jgit-buildnumber) allows us to extract the git commit number
+                        <Implementation-Version>${git.revision}</Implementation-Version>
+                        <X-Git-Branch>${git.branch}</X-Git-Branch>
+                        <X-Git-Tag>${git.tag}</X-Git-Tag>
+                        <X-Git-Commits-Count>${git.commitsCount}</X-Git-Commits-Count>
+                    -->
+                    <plugin>
+                        <groupId>ru.concerteza.buildnumber</groupId>
+                        <artifactId>maven-jgit-buildnumber-plugin</artifactId>
+                        <version>1.2.9</version>
+                        <executions>
+                            <execution>
+                                <id>git-buildnumber</id>
+                                <goals>
+                                    <goal>extract-buildnumber</goal>
+                                </goals>
+                                <phase>validate</phase>
+                                <configuration>
+                                    <javaScriptBuildnumberCallback>
+                                        tag + "_" + branch + "_" + revision.substring(10, 20) + "_" + shortRevision + "_" + commitsCount*42
+                                    </javaScriptBuildnumberCallback>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.asciidoctor</groupId>
+                        <artifactId>asciidoctor-maven-plugin</artifactId>
+                        <version>${asciidoctor.maven.plugin.version}</version>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.asciidoctor</groupId>
+                                <artifactId>asciidoctorj-pdf</artifactId>
+                                <version>${asciidoctorj.pdf.version}</version>
+                            </dependency>
+                            <!-- Comment this section to use the default jruby artifact provided by the plugin -->
+                            <dependency>
+                                <groupId>org.jruby</groupId>
+                                <artifactId>jruby-complete</artifactId>
+                                <version>${jruby.version}</version>
+                            </dependency>
+                            <!-- Comment this section to use the default AsciidoctorJ artifact provided by the plugin -->
+                            <dependency>
+                                <groupId>org.asciidoctor</groupId>
+                                <artifactId>asciidoctorj</artifactId>
+                                <version>${asciidoctorj.version}</version>
+                            </dependency>
+                            <dependency>
+                                <groupId>org.asciidoctor</groupId>
+                                <artifactId>asciidoctorj-diagram</artifactId>
+                                <version>${asciidoctorj.diagram.version}</version>
+                            </dependency>
+                        </dependencies>
+
+                        <configuration>
+                            <attributes>
+                                <imagesdir>resources</imagesdir>
+                                <source-highlighter>highlight.js</source-highlighter>
+                                <stylesheet>foundation.css</stylesheet>
+                                <!-- attributes usable in the asciidoc -->
+                                <geoapi-version>${geoapi.version}</geoapi-version>
+                                <sis-version>${sis.version}</sis-version>
+                                <geotk-version>${geotoolkit.version}</geotk-version>
+                                <examind-version>${project.version}</examind-version>
+                                <src-main-java>${basedir}/src/main/java</src-main-java>
+                                <sdk-folder>${basedir}/../</sdk-folder>
+                            </attributes>
+                            <requires>
+                                <require>asciidoctor-diagram</require>
+                            </requires>
+                        </configuration>
+
+                        <executions>
+                            <execution>
+                                <id>output-html</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>process-asciidoc</goal>
+                                </goals>
+                                <configuration>
+                                    <backend>html5</backend>
+                                    <preserveDirectories>true</preserveDirectories>
+                                    <sourceDirectory>${basedir}/src/main/asciidoc/community/</sourceDirectory>
+                                    <outputDirectory>${project.build.directory}/generated-docs/community</outputDirectory>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>generate-prtql-pdf</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>process-asciidoc</goal>
+                                </goals>
+                                <configuration>
+                                    <doctype>book</doctype>
+                                    <backend>pdf</backend>
+                                    <sourceDirectory>${basedir}/src/main/asciidoc/community/</sourceDirectory>
+                                    <outputDirectory>${project.build.directory}/generated-docs/</outputDirectory>
+                                    <outputFile>examind-community-prtql.pdf</outputFile>
+                                    <sourceDocumentName>community_prtql.adoc</sourceDocumentName>
+                                    <!-- Since 1.5.0-alpha.9 PDF back-end can use 'rouge' as well as 'coderay'
+                                    for source highlighting -->
+                                    <!-- Due to a known issue on windows, it is recommended to use 'coderay' until an new version of 'rouge' is released.
+                                            see discussions: https://github.com/asciidoctor/asciidoctor-maven-examples/pull/58
+                                                             https://github.com/asciidoctor/asciidoctorj-pdf/issues/3
+                                                             https://github.com/jneen/rouge/issues/661
+                                    -->
+                                    <attributes>
+                                        <revnumber>${project.version} (${git.shortRevision})</revnumber>
+                                        <revdate>${maven.build.timestamp}</revdate>
+                                        <organization>${project.organization.name}</organization>
+
+                                        <pdf-themesdir>resources/themes</pdf-themesdir>
+                                        <pdf-theme>geomatys</pdf-theme>
+                                        <doctype>book</doctype>
+                                        <source-highlighter>coderay</source-highlighter>
+                                        <icons>font</icons>
+                                        <pagenums/>
+                                        <toc/>
+                                    </attributes>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>1.8</version>
+                        <executions>
+                            <execution>
+                                <phase>process-resources</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <tasks>
+                                        <!-- Copy PDF to root folder -->
+                                        <copy file="${project.basedir}/target/generated-docs/examind-community-prtql.pdf"
+                                              todir="${project.basedir}/target/"/>
+                                        <delete file="${project.basedir}/target/generated-docs/examind-community-prtql.pdf"/>
+
+                                        <!-- Copy Examind-Community HTML documentation to root folder in a zip-->
+                                        <mkdir dir="target/examind-community-doc-html/examind-sdk-doc"/>
+                                        <copy todir="target/examind-community-doc-html/examind-sdk-doc"><fileset dir="target/generated-docs/community" /></copy>
+                                        <zip destfile="${project.basedir}/target/examind-community-doc.zip" basedir="${project.basedir}/target/examind-community-doc-html/"/>
+
+                                    </tasks>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
     <build>
         <resources>

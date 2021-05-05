@@ -1,0 +1,63 @@
+:title-page:
+:author: Geomatys
+:numbered:
+:toc:
+:toc-title: Table des matières
+:toclevels: 3
+
+= Examind-Community Procédure de Tests de Qualification Logiciel
+
+
+[%hardbreaks]
+|===
+|*GeoAPI*             |{geoapi-version}
+|*Apache-SIS*         |{sis-version}
+|*GeotoolKit*         |{geotk-version}
+|*Examind-Community*  |{examind-version}
+|===
+
+
+==== Formalisme
+
+[width="100%",cols="<1,2,2,2",frame=all,grid=all,options="header,footer"]
+|===
+
+| *+Identifiant+* 3+|
+nom_class-nom_methode
+
+| +Libellé+ 3+|
+titre
+
+| +Objectif+ 3+|
+objectif du test
+
+| +Prérequis+ 3+|
+code source
+
+| +Moyen+ 3+|
+environnement de compilation
+
+4+|
+*+Procédure de vérification+*
+
+| _Etapes_ | _Actions_ | _Résultats attentus_ | _Commentaires_
+
+| 1
+| faire ...
+| valeur ...
+| observations ...
+
+| 2
+| faire ...
+| valeur ...
+| observations ...
+
+4+>| _Temps d'éxécution : 1min 8sec_
+
+| *+Conformité+* 3+|
+SUCCESS
+
+|===
+
+
+include::community_prtql_vts.adoc[]
