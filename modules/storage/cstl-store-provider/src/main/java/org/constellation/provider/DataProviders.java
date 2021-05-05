@@ -558,7 +558,7 @@ public final class DataProviders extends Static{
         final StorageConnector storage = storageRenewer.get();
         final ByteBuffer buffer = storage.getStorageAs(ByteBuffer.class);
         final byte[] ctrlValue = new byte[Math.min(64, buffer.remaining())];
-        buffer.get(ctrlValue).rewind();
+        /* HACK: cast needed for java 8 support */ ((java.nio.Buffer)buffer.get(ctrlValue)).rewind();
         try (AutoCloseable closeStorage = () -> storage.closeAllExcept(null)) {
             for (DataStoreProvider provider : candidates) {
                 name = idExtractor.apply(provider);
@@ -647,7 +647,7 @@ public final class DataProviders extends Static{
     private static boolean isProperlyReset(StorageConnector input, byte[] ctrlValue) throws DataStoreException {
         final ByteBuffer storage = input.getStorageAs(ByteBuffer.class);
         final byte[] currentValue = new byte[ctrlValue.length];
-        storage.get(currentValue).rewind();
+        /* HACK: cast needed for java 8 support */((java.nio.Buffer)storage.get(currentValue)).rewind();
         return Arrays.equals(ctrlValue, currentValue);
     }
 

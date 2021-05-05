@@ -205,7 +205,7 @@ public class ServiceRestAPI extends AbstractRestAPI {
                         toread -= nread;
                         if (nread > 0 && copy.hasArray())
                             output.write(copy.array(), 0, nread);
-                        copy.rewind();
+                        /* HACK: cast needed for java 8 support */((java.nio.Buffer)copy).rewind();
                     } while (nread > 0 && toread > 0);
 
                 } catch (IOException e) {
