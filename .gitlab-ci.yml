@@ -1,59 +1,42 @@
-cache:
-  key: ${CI_COMMIT_REF_SLUG}
-  paths:
-  - .m2
-image: maven:latest
+# IMPORTANT notes:
+# 1. Use a global maven cache to avoid downloading released dependencies everytime
+# 2. sis-migration disabled (see comments in .gitlab/CI/build.yml file)
+# 3. Release stage not ready yet. Only a manual maven artifact is available for now. More details about release work in
+#    "TODO" comment in related file.
 variables:
-  MAVEN_USER: 'deployment'
-  MAVEN_CLI_OPTS: "--batch-mode"
-  MAVEN_OPTS: '-Dmaven.repo.local=$CI_PROJECT_DIR/.m2'
-  SONAR_HOST_URL: 'https://sonardev.geomatys.com'
-  GIT_DEPTH: 0
+  MAVEN_LOCAL: ".m2_local"
+  MAVEN_OPTS: "-Dmaven.repo.local=$MAVEN_LOCAL -Djava.awt.headless=true"
+  SONAR_HOST_URL: "https://sonar.geomatys.com"
+  DEPLOY_SERVER: "releases::https://nexus.geomatys.com/repository/releases/"
+
+# Cache dependencies globally. Project snapshot are removed with below after script to avoid caching nightly artifact.
+cache: &global_cache
+  policy: pull
+  key: GLOBAL_MVN_CACHE # If needed, replace with CI_COMMIT_REF_SLUG for a per-branch cache.
+  paths:
+    - "$MAVEN_LOCAL"
 
 stages:
-  - build-examind-community
-  - sonarqube
-  - push
+  - build
+  - quality
+#  - release
+  - publish
 
-build:examind-community:
-  only:
-    refs:
-      - master
-  image: maven:3-jdk-8
-  stage: build-examind-community
-  script:
-    - mvn clean install -DskipTests $MAVEN_CLI_OPTS -s $SETTINGS_MAVEN
-  artifacts:
-    paths:
-      - modules/bundles/exa-bundle/target/
+# Cannot use newer version of maven because we still need http repositories (Ex: http://jaspersoft.jfrog.io/jaspersoft)
+image: maven:3.6.3-openjdk-8
 
-sonarqube-check:
-  stage: sonarqube
-  script:
-    - mvn  sonar:sonar -Dsonar.qualitygate.wait=true -Dsonar.login=$SONAR_TOKEN -Dsonar.host.url=$SONAR_HOST_URL
-  allow_failure: true
-  only:
-    refs:
-      #- merge_requests //Uncomment when using paid Sonarqube licence
-      - master
-    variables:
-      - $SONAR_TOKEN
+# Force removing artifacts installed by local jobs, to avoid cache corruption with snapshots.
+after_script:
+  - mvn build-helper:remove-project-artifact > /dev/null && echo "Successfully removed project artifacts from cache"
 
+# Hidden job to be inherited (extends) by build job
+.update-cache:
+  cache:
+    <<: *global_cache
+    policy: pull-push
 
-docker:push:
-  image: docker:latest
-  stage: push
-  only:
-    refs:
-      - master
-  script:
-    # Login to Docker repository
-    - mkdir ~/.docker && echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
-    # Move Examind .war next to Dockerfile
-    - cp ./modules/bundles/exa-bundle/target/examind.war ./docker/mount/examind/tomcat/webapps/.
-    # Build and push
-    - docker build -t images.geomatys.com/examind/examind-community:latest ./docker/
-    - docker push images.geomatys.com/examind/examind-community:latest
-  artifacts:
-    paths:
-      - modules/bundles/exa-bundle/target/
+include:
+  - '.gitlab/CI/build.yml'
+  - '.gitlab/CI/quality.yml'
+#  - '.gitlab/CI/release.yml'
+  - '.gitlab/CI/publish.yml'

@@ -1,0 +1,4 @@
+# TODO: use mvn release:prepare or any tool wanted to freeze versions on tag, then push the tag.
+# WARNING: before adding a job that push, we have to verify that mvn release is well-done. Specifically, we have to
+# handle buildset/pom.xml update.
+

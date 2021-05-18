@@ -15,7 +15,7 @@ services :
         PGDATA: /var/lib/postgresql/data/pgdata/
 
     examind:
-       image: examind-community:latest
+       image: images.geomatys.com/examind/examind-community:latest
        #image: tomcat:7-jre8
        restart: "no"
        volumes:

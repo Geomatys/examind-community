@@ -1,0 +1,38 @@
+maven-artifacts:
+  stage: publish
+  needs:
+    - build
+  only:
+    - tags
+  script:
+    - mvn package source:jar javadoc:jar deploy -DaltDeploymentRepository=$DEPLOY_SERVER
+
+.docker-push:
+  variables:
+    DOCKER_TAG:
+  image: docker:latest
+  stage: publish
+  needs:
+    - build
+  script:
+    # Login to Docker repository
+    - mkdir ~/.docker && echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
+    # Move Examind .war next to Dockerfile
+    - cp ./modules/bundles/exa-bundle/target/examind.war ./docker/mount/examind/tomcat/webapps/.
+    # Build and push
+    - docker build -t images.geomatys.com/examind/examind-community:$DOCKER_TAG ./docker/
+    - docker push images.geomatys.com/examind/examind-community:$DOCKER_TAG
+
+docker-push-latest:
+  extends: .docker-push
+  variables:
+    DOCKER_TAG: $CI_COMMIT_TAG
+  only:
+    - master
+
+docker-push-release:
+  extends: .docker-push
+  variables:
+    DOCKER_TAG: $CI_COMMIT_TAG
+  only:
+    - tags

@@ -117,7 +117,7 @@
               <artifactId>dockerfile-maven-plugin</artifactId>
               <version>${dockerfile-maven-plugin.version}</version>
               <configuration>
-                <repository>examind-community</repository>
+                <repository>images.geomatys.com/examind/examind-community</repository>
                 <tag>${docker.tag}</tag>
                 <contextDirectory>${project.basedir}/../../../docker</contextDirectory>
               </configuration>

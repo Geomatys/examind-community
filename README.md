@@ -51,7 +51,7 @@ Note 2 : if you want to build with tests, you'll need a test database named `cst
 ### Deploy using Docker
 If not already done, build sources as stated in previous section.
 
-Build the `examind-community:latest` Docker image
+Build the `images.geomatys.com/examind/examind-community:latest` Docker image
 ```
 cd <base directory>/modules/bundles/exa-bundle
 mvn clean install dockerfile:build -Ddocker.tag=latest
