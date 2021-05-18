@@ -74,7 +74,7 @@
         <stax-utils.version>20060502</stax-utils.version>
         <validation-api.version>2.0.1.Final</validation-api.version>
         <woodstox.version>4.1.2</woodstox.version>
-        <xstream.version>1.4.15</xstream.version>
+        <xstream.version>1.4.17</xstream.version>
     </properties>
 
     <!--
