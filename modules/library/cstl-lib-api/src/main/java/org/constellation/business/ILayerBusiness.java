@@ -25,7 +25,6 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.service.config.wxs.Layer;
 import org.constellation.dto.service.config.wxs.LayerSummary;
-import org.constellation.dto.service.config.wxs.AddLayer;
 import org.constellation.dto.service.config.wxs.FilterAndDimension;
 import org.constellation.dto.NameInProvider;
 import org.constellation.dto.StyleReference;
@@ -35,8 +34,6 @@ import org.constellation.dto.StyleReference;
  */
 public interface ILayerBusiness {
     void removeAll() throws ConstellationException;
-
-    Integer add(AddLayer layer) throws ConfigurationException;
 
     Integer add(int dataId, String alias, String namespace, String name, int serviceId, Layer config) throws ConfigurationException;
 

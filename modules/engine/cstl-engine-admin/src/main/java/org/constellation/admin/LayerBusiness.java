@@ -52,7 +52,6 @@ import org.constellation.dto.NameInProvider;
 import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.StyleReference;
 import org.constellation.dto.service.Service;
-import org.constellation.dto.service.config.wxs.AddLayer;
 import org.constellation.dto.service.config.wxs.FilterAndDimension;
 import org.constellation.dto.service.config.wxs.LayerSummary;
 import org.constellation.exception.ConfigurationException;
@@ -60,9 +59,6 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationPersistenceException;
 import org.constellation.exception.TargetNotFoundException;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
-import org.constellation.provider.DataProvider;
-import org.constellation.provider.DataProviders;
-import org.constellation.provider.ProviderParameters;
 import org.constellation.repository.DataRepository;
 import org.constellation.repository.LayerRepository;
 import org.constellation.repository.ProviderRepository;
@@ -109,58 +105,6 @@ public class LayerBusiness implements ILayerBusiness {
      * Lazy loaded map of {@link MapFactory} found in classLoader.
      */
     private final Map<String, MapFactory> mapFactories = new HashMap<>();
-
-    @Override
-    @Transactional
-    @Deprecated
-    public Integer add(final AddLayer addLayerData) throws ConfigurationException {
-        final String name        = addLayerData.getLayerId();
-        // Prevents adding empty layer namespace, put null instead
-        String namespace         = (addLayerData.getLayerNamespace() != null && addLayerData.getLayerNamespace().isEmpty()) ? null : addLayerData.getLayerNamespace();
-        final String providerId  = addLayerData.getProviderId();
-        final String alias       = addLayerData.getLayerAlias();
-        final String serviceId   = addLayerData.getServiceId();
-        final String serviceType = addLayerData.getServiceType();
-
-        final Integer service = serviceBusiness.getServiceIdByIdentifierAndType(serviceType.toLowerCase(), serviceId);
-
-        if (service !=null) {
-
-            if (namespace != null && namespace.isEmpty()) {
-                // Prevents adding empty layer namespace, put null instead
-                namespace = null;
-            }
-
-            // look for layer namespace
-            if (namespace == null) {
-                Integer pvId = providerRepository.findIdForIdentifier(providerId);
-                if (pvId == null) {
-                    try {
-                        pvId = Integer.parseInt(providerId);
-                    } catch (NumberFormatException ex) {
-                        throw new TargetNotFoundException("Unable to find provider :" + providerId);
-                    }
-                }
-                final DataProvider provider = DataProviders.getProvider(pvId);
-                if (provider != null) {
-                    namespace = ProviderParameters.getNamespace(provider);
-                }
-            }
-
-            Integer data = dataRepository.findIdFromProvider(namespace, name, providerId);
-            if(data == null) {
-                try {
-                    data = Integer.parseInt(name);
-                } catch (NumberFormatException ex) {
-                    throw new TargetNotFoundException("Unable to find data for namespace:" + namespace+" name:"+name+" provider:"+providerId);
-                }
-            }
-
-            return add(data, alias, namespace, name, service, null);
-        } else {
-            throw new TargetNotFoundException("Unable to find a service:" + serviceId);
-        }
-    }
 
     @Override
     @Transactional
