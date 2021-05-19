@@ -1,0 +1,7 @@
+Logging policy:
+
+1. Logback search for a logback-test.xml file, and can somewhat start before Spring:
+https://logback.qos.ch/manual/configuration.html#auto_configuration
+
+2. Spring boot uses `logging.config` property to locate logging configuration:
+https://docs.spring.io/spring-boot/docs/2.0.0.RELEASE/reference/html/howto-logging.html
