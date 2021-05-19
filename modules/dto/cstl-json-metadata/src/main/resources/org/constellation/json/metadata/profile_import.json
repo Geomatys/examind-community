@@ -36,7 +36,7 @@
                                             "help": "metadata.field.abstract_help",
                                             "path": "metadata.identificationInfo.abstract",
                                             "render": "textarea",
-                                            "obligation": "M","completion" : "ELEMENTARY",
+                                            "obligation": "O","completion" : "ELEMENTARY",
                                             "defaultValue": null,
                                             "value": null
                                         }
@@ -212,7 +212,7 @@
                                             "help": "metadata.field.electronicMailAddress_help",
                                             "path": "metadata.contact.contactInfo.address.electronicMailAddress",
                                             "render": "mail",
-                                            "obligation": "M","completion" : "ELEMENTARY",
+                                            "obligation": "O","completion" : "ELEMENTARY",
                                             "defaultValue": null,
                                             "value": null
                                         }
