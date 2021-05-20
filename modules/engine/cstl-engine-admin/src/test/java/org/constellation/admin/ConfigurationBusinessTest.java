@@ -3,7 +3,10 @@ package org.constellation.admin;
 import java.io.IOException;
 import java.nio.file.Files;
 import org.constellation.business.IConfigurationBusiness;
+import org.constellation.configuration.ConfigDirectory;
+import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +19,16 @@ public class ConfigurationBusinessTest {
 
     @Autowired
     private IConfigurationBusiness biz;
+
+    @BeforeClass
+    public static void initConfDirectory() {
+        ConfigDirectory.setupTestEnvironement(ConfigurationBusinessTest.class.getSimpleName());
+    }
+
+    @AfterClass
+    public static void deleteConfDirectory() {
+        ConfigDirectory.shutdownTestEnvironement(ConfigurationBusinessTest.class.getSimpleName());
+    }
 
     @Test
     public void cannotRemoveBadDirectory() throws IOException {

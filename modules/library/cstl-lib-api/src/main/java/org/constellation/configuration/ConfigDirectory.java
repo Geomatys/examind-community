@@ -19,6 +19,7 @@
 package org.constellation.configuration;
 
 import java.io.File;
+import org.apache.sis.util.ArgumentChecks;
 import org.apache.sis.util.logging.Logging;
 
 import javax.naming.InitialContext;
@@ -43,6 +44,8 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.constellation.exception.ConfigurationRuntimeException;
+
+import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 
 /**
  * Temporary copy of static methods from the WebService class (in module
@@ -121,16 +124,12 @@ public final class ConfigDirectory {
                 return ConfigDirectory.initFolder(subPath);
             }
 
-            public Builder forTest(String filename) {
-                //try {
-                    Path currentRelativePath = Paths.get("");
-                    Path home = currentRelativePath.resolve(filename);
-                    Path data = home.resolve("data");
-                    this.homeLocation = home.toUri(); //new URI("file:" + currentRelativePath.toAbsolutePath() + File.separator + filename);
-                    this.dataLocation = data.toUri(); //new URI("file:" + currentRelativePath.toAbsolutePath() + File.separator + filename + File.separator + "data");
-                /*} catch (URISyntaxException ex) {
-                    throw new RuntimeException(ex);
-                }*/
+            public Builder forTest(String first, String... subPath) {
+                ensureNonNull("At least first path part must be given", first);
+                Path home = Paths.get(first, subPath);
+                Path data = home.resolve("data");
+                this.homeLocation = home.toUri();
+                this.dataLocation = data.toUri();
                 this.testing = true;
                 return this;
             }
@@ -331,9 +330,9 @@ public final class ConfigDirectory {
     }
 
     public static Path setupTestEnvironement(String filename) {
-        config = new Config.Builder().forTest("target" + File.separator + filename).build();
+        ensureNonNull("File name", filename);
+        config = new Config.Builder().forTest("target", filename).build();
         return config.home;
-
     }
 
     public static void shutdownTestEnvironement(String string) {
