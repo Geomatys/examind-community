@@ -104,6 +104,40 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!--
+                    HACK: this is ugly, but I do not find any other workaround. We force default timezone for SOS test
+                    execution.
+
+                    Problem:
+                     1. Records are inserted as local date into Apache Derby database. The OM2 database datastore
+                        provides timestamps dependants of server (or java app) timezone.
+                     2. They are compared to absolute ISO-8601 'Z' dates (UTC).
+                     3. I have not found a proper way to configure timezone management in the Derby/OM2 provider.
+
+                    References:
+                     - Data records: modules/testing/data/src/main/resources/org/constellation/sql/sos-data-om2.sql
+                     - GML records : modules/web-services/cstl-web-sos/src/test/resources/org/constellation/sos/
+                     - OM2 timestamp reading code: modules/storage/cstl-store-data-observationstore/src/main/java/org/constellation/store/observation/db/OM2ObservationReader.java
+
+                    If you want to check if this hack is still needed:
+                     You can try to deactivated this, and launch this module tests twice, each time using a different
+                     system time-zone (in bash, you can force default timezone with `export TZ=$MY_TIMEZONE`).
+
+                    Notes:
+                     - Same hack is applied in cstl-web-sts module. Both plugin overloads should be "synchronized".
+                     - Set user timezone on command line. To know why not in System properties, see link below:
+                       https://stackoverflow.com/a/23466219/2678097
+                    -->
+                    <argLine>-Duser.timezone=Europe/Paris</argLine>
+                    <systemPropertyVariables>
+                        <spring.profiles.active>${spring.profiles.active}</spring.profiles.active>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <executions>
                     <execution>
