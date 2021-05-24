@@ -624,7 +624,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                     if (begin != null && end == null) {
                         result = SOSXmlFactory.buildTimeInstant(version, begin);
                     } else if (begin == null && end != null) {
-                        result = SOSXmlFactory.buildTimeInstant(version, begin);
+                        result = SOSXmlFactory.buildTimeInstant(version, end);
                     } else if (begin != null && end != null) {
                         result = SOSXmlFactory.buildTimePeriod(version, begin, end);
                     }
