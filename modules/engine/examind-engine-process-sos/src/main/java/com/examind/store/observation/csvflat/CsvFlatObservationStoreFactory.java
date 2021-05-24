@@ -59,7 +59,7 @@ public class CsvFlatObservationStoreFactory extends FileParsingObservationStoreF
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR
             = PARAM_BUILDER.addName(NAME).addName("ObservationCsvFlatFileParameters").createGroup(IDENTIFIER, NAMESPACE, CSVProvider.PATH, CSVProvider.SEPARATOR,
                     MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, MEASURE_COLUMNS, MEASURE_COLUMNS_SEPARATOR, FOI_COLUMN, OBSERVATION_TYPE,
-                    PROCEDURE_ID, PROCEDURE_COLUMN, Z_COLUMN, EXTRACT_UOM, VALUE_COLUMN, CODE_COLUMN, TYPE_COLUMN, CHARQUOTE);
+                    PROCEDURE_ID, PROCEDURE_COLUMN, Z_COLUMN, EXTRACT_UOM, RESULT_COLUMN, OBS_PROP_COLUMN, TYPE_COLUMN, CHARQUOTE);
 
     @Override
     public String getShortName() {
@@ -97,8 +97,8 @@ public class CsvFlatObservationStoreFactory extends FileParsingObservationStoreF
         final ParameterValue<String> measureCols = (ParameterValue<String>) params.parameter(MEASURE_COLUMNS.getName().toString());
         final Set<String> measureColumns = measureCols.getValue() == null ?
                 Collections.emptySet() : new HashSet<>(Arrays.asList(measureCols.getValue().split(measureColumnsSeparator)));
-        final String valueColumn = (String) params.parameter(VALUE_COLUMN.getName().toString()).getValue();
-        final ParameterValue<String> codeCols = (ParameterValue<String>) params.parameter(CODE_COLUMN.getName().toString());
+        final String valueColumn = (String) params.parameter(RESULT_COLUMN.getName().toString()).getValue();
+        final ParameterValue<String> codeCols = (ParameterValue<String>) params.parameter(OBS_PROP_COLUMN.getName().toString());
         final Set<String> codeColumns = codeCols.getValue() == null ?
                 Collections.emptySet() : new HashSet<>(Arrays.asList(codeCols.getValue().split(measureColumnsSeparator)));
         final String typeColumn = (String) params.parameter(TYPE_COLUMN.getName().toString()).getValue();

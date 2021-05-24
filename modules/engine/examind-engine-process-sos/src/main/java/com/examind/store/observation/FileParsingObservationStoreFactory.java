@@ -71,87 +71,87 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
     protected static final ParameterBuilder PARAM_BUILDER = new ParameterBuilder();
 
     public static final ParameterDescriptor<String> MAIN_COLUMN = PARAM_BUILDER
-            .addName("main column")
+            .addName("main_column")
             .setRequired(true)
             .create(String.class, "DATE (yyyy-mm-ddThh:mi:ssZ)");
 
     public static final ParameterDescriptor<String> DATE_COLUMN = PARAM_BUILDER
-            .addName("date column")
+            .addName("date_column")
             .setRequired(true)
             .create(String.class, "DATE (yyyy-mm-ddThh:mi:ssZ)");
 
     public static final ParameterDescriptor<String> DATE_FORMAT = PARAM_BUILDER
-            .addName("date format")
+            .addName("date_format")
             .setRequired(true)
             .create(String.class, "yyyy-MM-dd'T'HH:mm:ss'Z'");
 
     public static final ParameterDescriptor<String> LONGITUDE_COLUMN = PARAM_BUILDER
-            .addName("longitude column")
+            .addName("longitude_column")
             .setRequired(true)
             .create(String.class, "LONGITUDE (degree_east)");
 
     public static final ParameterDescriptor<String> LATITUDE_COLUMN = PARAM_BUILDER
-            .addName("latitude column")
+            .addName("latitude_column")
             .setRequired(true)
             .create(String.class, "LATITUDE (degree_north)");
 
     public static final ParameterDescriptor<String> MEASURE_COLUMNS = PARAM_BUILDER
-            .addName("measure columns")
+            .addName("measure_columns")
             .setRequired(false)
             .create(String.class, null);
 
     public static final ParameterDescriptor<String> MEASURE_COLUMNS_SEPARATOR = PARAM_BUILDER
-            .addName("measure columns separator")
+            .addName("measure_columns_separator")
             .setRequired(false)
             .create(String.class, "\\|");
 
     public static final ParameterDescriptor<String> FOI_COLUMN = PARAM_BUILDER
-            .addName("Feature of Interest column")
+            .addName("feature_of_interest_column")
             .setRequired(false)
             .create(String.class, null);
 
     public static final ParameterDescriptor<String> OBSERVATION_TYPE = PARAM_BUILDER
-            .addName("Observation type")
+            .addName("observation_type")
             .setRequired(false)
             .createEnumerated(String.class, new String[]{"Timeserie", "Trajectory", "Profile"}, null);
 
     public static final ParameterDescriptor<String> PROCEDURE_ID = PARAM_BUILDER
-            .addName("Assigned procedure id")
+            .addName("procedure_id")
             .setRequired(false)
             .create(String.class, null);
 
     public static final ParameterDescriptor<String> PROCEDURE_COLUMN = PARAM_BUILDER
-            .addName("extracted procedure column")
+            .addName("procedure_column")
             .setRequired(false)
             .create(String.class, null);
 
     public static final ParameterDescriptor<String> Z_COLUMN = PARAM_BUILDER
-            .addName("z column")
+            .addName("z_column")
             .setRequired(false)
             .create(String.class, null);
 
     public static final ParameterDescriptor<Boolean> EXTRACT_UOM = PARAM_BUILDER
-            .addName("extract uom")
+            .addName("extract_uom")
             .setRequired(false)
             .create(Boolean.class, false);
 
-    public static final ParameterDescriptor<String> VALUE_COLUMN = PARAM_BUILDER
-            .addName("value column")
+    public static final ParameterDescriptor<String> RESULT_COLUMN = PARAM_BUILDER
+            .addName("result_column")
             .setRequired(false)
             .create(String.class, null);
 
-    public static final ParameterDescriptor<String> CODE_COLUMN = PARAM_BUILDER
-            .addName("code column")
+    public static final ParameterDescriptor<String> OBS_PROP_COLUMN = PARAM_BUILDER
+            .addName("observed_properties_columns")
             .setRequired(false)
             .create(String.class, null);
     
     public static final ParameterDescriptor<String> TYPE_COLUMN = PARAM_BUILDER
-            .addName("type column")
+            .addName("type_column")
             .setRequired(false)
             .create(String.class, null);
 
     public static final ParameterDescriptor<String> CHARQUOTE = PARAM_BUILDER
-            .addName("char quote")
+            .addName("char_quote")
             .setRequired(false)
             .create(String.class, null);
 

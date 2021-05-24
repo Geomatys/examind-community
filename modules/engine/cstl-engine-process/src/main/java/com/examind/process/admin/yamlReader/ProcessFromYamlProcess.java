@@ -23,7 +23,6 @@ import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.process.ServiceProcessReference;
 import org.constellation.dto.service.ServiceComplete;
 import org.constellation.process.AbstractCstlProcess;
-import org.constellation.process.ExamindProcessFactory;
 import org.geotoolkit.process.Process;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
@@ -39,7 +38,6 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 
 public class ProcessFromYamlProcess extends AbstractCstlProcess {
 
@@ -49,9 +47,8 @@ public class ProcessFromYamlProcess extends AbstractCstlProcess {
     @Inject
     private IServiceBusiness serviceBusiness;
 
-    private static final String PROCESS_FACTORY_NAME = "factory name";
-    private static final String PROCESS_NAME_PARAMETER = "process name";
-    private static final String SERVICE_TYPE = "service type";
+    private static final String PROCESS_FACTORY_NAME = "factory_name";
+    private static final String PROCESS_NAME_PARAMETER = "process_name";
 
     public ProcessFromYamlProcess(ProcessDescriptor desc, ParameterValueGroup parameter) {
         super(desc, parameter);
@@ -72,7 +69,6 @@ public class ProcessFromYamlProcess extends AbstractCstlProcess {
 
             String factoryName = (String) configMap.get(PROCESS_FACTORY_NAME);
             String processName = (String) configMap.get(PROCESS_NAME_PARAMETER);
-            String serviceType = (String) configMap.get(SERVICE_TYPE);
             // Setting process name parameter to create the correct process type.
             ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(factoryName, processName);
             ParameterValueGroup in = desc.getInputDescriptor().createValue();

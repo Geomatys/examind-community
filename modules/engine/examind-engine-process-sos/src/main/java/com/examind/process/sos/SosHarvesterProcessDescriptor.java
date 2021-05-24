@@ -46,61 +46,61 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
     /**
      * Input parameters
      */
-    public static final String DATA_FOLDER_NAME = "data folder";
-    public static final String DATA_FOLDER_DESC = "data folder";
+    public static final String DATA_FOLDER_NAME = "data_folder";
+    public static final String DATA_FOLDER_DESC = "Folder containing the files to harvest.";
     public static final ParameterDescriptor<String> DATA_FOLDER = PARAM_BUILDER
             .addName(DATA_FOLDER_NAME)
             .setRemarks(DATA_FOLDER_DESC)
             .setRequired(true)
             .create(String.class, null);
 
-    public static final String USER_NAME = "user name";
-    public static final String USER_DESC = "user name";
+    public static final String USER_NAME = "user_name";
+    public static final String USER_DESC = "FTP user name.";
     public static final ParameterDescriptor<String> USER = PARAM_BUILDER
             .addName(USER_NAME)
             .setRemarks(USER_DESC)
             .setRequired(false)
             .create(String.class, null);
 
-    public static final String PWD_NAME = "password";
-    public static final String PWD_DESC = "password";
+    public static final String PWD_NAME = "user_password";
+    public static final String PWD_DESC = "FTP user password";
     public static final ParameterDescriptor<String> PWD = PARAM_BUILDER
             .addName(PWD_NAME)
             .setRemarks(PWD_DESC)
             .setRequired(false)
             .create(String.class, null);
 
-    public static final String REMOTE_READ_NAME = "remote reading";
-    public static final String REMOTE_READ_DESC = "remote reading";
+    public static final String REMOTE_READ_NAME = "remote_reading";
+    public static final String REMOTE_READ_DESC = "Do not copy files into examind dedicated folder.";
     public static final ParameterDescriptor<Boolean> REMOTE_READ = PARAM_BUILDER
             .addName(REMOTE_READ_NAME)
             .setRemarks(REMOTE_READ_DESC)
             .setRequired(false)
             .create(Boolean.class, false);
 
-    public static final String SERVICE_ID_NAME = "SOS service";
-    public static final String SERVICE_ID_DESC = "SOS service";
+    public static final String SERVICE_ID_NAME = "sensor_service";
+    public static final String SERVICE_ID_DESC = "Sensor service where to publish the sensors.";
     public static final ParameterDescriptor<ServiceProcessReference> SERVICE_ID =
     new ExtendedParameterDescriptor<>(
                 SERVICE_ID_NAME, SERVICE_ID_DESC, 1, 92, ServiceProcessReference.class, null, null, Collections.singletonMap("filter", Collections.singletonMap("type", Arrays.asList("sos", "sts"))));
 
-    public static final String DATASET_IDENTIFIER_NAME = "dataset identifier";
-    public static final String DATASET_IDENTIFIER_DESC = "dataset identifier";
+    public static final String DATASET_IDENTIFIER_NAME = "dataset_identifier";
+    public static final String DATASET_IDENTIFIER_DESC = "Dataset identifier where to add the data.";
     public static final ParameterDescriptor<String> DATASET_IDENTIFIER = PARAM_BUILDER
             .addName(DATASET_IDENTIFIER_NAME)
             .setRemarks(DATASET_IDENTIFIER_DESC)
             .setRequired(true)
             .create(String.class, null);
 
-    public static final String PROCEDURE_ID_NAME = "procedure id";
-    public static final String PROCEDURE_ID_DESC = "Assigned procedure identifier";
+    public static final String PROCEDURE_ID_NAME = "procedure_id";
+    public static final String PROCEDURE_ID_DESC = "Assigned procedure identifier or template if combinated with procedure.colmun";
     public static final ParameterDescriptor<String> PROCEDURE_ID = PARAM_BUILDER
             .addName(PROCEDURE_ID_NAME)
             .setRemarks(PROCEDURE_ID_DESC)
             .setRequired(false)
             .create(String.class, null);
 
-    public static final String PROCEDURE_COLUMN_NAME = "procedure column";
+    public static final String PROCEDURE_COLUMN_NAME = "procedure_column";
     public static final String PROCEDURE_COLUMN_DESC = "Extracted procedure column";
     public static final ParameterDescriptor<String> PROCEDURE_COLUMN  = PARAM_BUILDER
             .addName(PROCEDURE_COLUMN_NAME)
@@ -108,8 +108,8 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(false)
             .create(String.class, null);
 
-    public static final String OBS_TYPE_NAME = "Observation Type";
-    public static final String OBS_TYPE_DESC = "Observation Type";
+    public static final String OBS_TYPE_NAME = "observation_type";
+    public static final String OBS_TYPE_DESC = "Observation type (\"Timeserie\", \"Trajectory\" or \"Profile\")";
     public static final ParameterDescriptor<String> OBS_TYPE = PARAM_BUILDER
             .addName(OBS_TYPE_NAME)
             .setRemarks(OBS_TYPE_DESC)
@@ -132,8 +132,8 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(true)
             .create(String.class, "DATE (yyyy-mm-ddThh:mi:ssZ)");
     
-    public static final String Z_COLUMN_NAME = "Z column";
-    public static final String Z_COLUMN_DESC = "Z column";
+    public static final String Z_COLUMN_NAME = FileParsingObservationStoreFactory.Z_COLUMN.getName().getCode();
+    public static final String Z_COLUMN_DESC = FileParsingObservationStoreFactory.Z_COLUMN.getName().getCode();
     public static final ParameterDescriptor<String> Z_COLUMN = PARAM_BUILDER
             .addName(Z_COLUMN_NAME)
             .setRemarks(Z_COLUMN_DESC)
@@ -180,7 +180,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(false)
             .create(String.class, null);
 
-    public static final String MEASURE_COLUMNS_NAME = "measure columns";
+    public static final String MEASURE_COLUMNS_NAME = "measure_columns";
     public static final String MEASURE_COLUMNS_DESC =  "A set of measure columns to extract";
     public static final ParameterDescriptor<String> MEASURE_COLUMNS  = new ExtendedParameterDescriptor<>(
                 MEASURE_COLUMNS_NAME,
@@ -190,7 +190,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
                 null, null, null
                 );
 
-    public static final String REMOVE_PREVIOUS_NAME = "remove previous integration";
+    public static final String REMOVE_PREVIOUS_NAME = "remove_previous_integration";
     public static final String REMOVE_PREVIOUS_DESC = "remove previous integration";
     public static final ParameterDescriptor<Boolean> REMOVE_PREVIOUS = PARAM_BUILDER
             .addName(REMOVE_PREVIOUS_NAME)
@@ -198,7 +198,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(false)
             .create(Boolean.class, false);
 
-    public static final String EXTRACT_UOM_NAME = "extract uom";
+    public static final String EXTRACT_UOM_NAME = "extract_uom";
     public static final String EXTRACT_UOM_DESC = "extract uom from headers";
     public static final ParameterDescriptor<Boolean> EXTRACT_UOM = PARAM_BUILDER
             .addName(EXTRACT_UOM_NAME)
@@ -206,41 +206,41 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(false)
             .create(Boolean.class, false);
 
-    public static final String STORE_ID_NAME = "Store Id";
-    public static final String STORE_ID_DESC = "Store Id";
+    public static final String STORE_ID_NAME = "store_id";
+    public static final String STORE_ID_DESC = "Store Identifier";
     public static final ParameterDescriptor<String> STORE_ID = PARAM_BUILDER
             .addName(STORE_ID_NAME)
             .setRemarks(STORE_ID_DESC)
             .setRequired(true)
             .createEnumerated(String.class, new String[]{"observationCsvFile", "observationCsvFlatFile", "observationDbfFile"}, "observationCsvFile");
 
-    public static final String FORMAT_NAME = "Format";
-    public static final String FORMAT_DESC = "Format";
+    public static final String FORMAT_NAME = "format";
+    public static final String FORMAT_DESC = "Data format (mime type) of the file to insert";
     public static final ParameterDescriptor<String> FORMAT = PARAM_BUILDER
             .addName(FORMAT_NAME)
             .setRemarks(FORMAT_DESC)
             .setRequired(true)
             .createEnumerated(String.class, new String[]{"text/csv; subtype=\"om\"", "application/dbase; subtype=\"om\""}, "text/csv; subtype=\"om\"");
 
-    public static final String VALUE_COLUMN_NAME = "value column";
-    public static final String VALUE_COLUMN_DESC = "value column";
-    public static final ParameterDescriptor<String> VALUE_COLUMN = PARAM_BUILDER
-            .addName(VALUE_COLUMN_NAME)
-            .setRemarks(VALUE_COLUMN_DESC)
+    public static final String RESULT_COLUMN_NAME = "result_column";
+    public static final String RESULT_COLUMN_DESC = "Column containing result values (used with csv-flat)";
+    public static final ParameterDescriptor<String> RESULT_COLUMN = PARAM_BUILDER
+            .addName(RESULT_COLUMN_NAME)
+            .setRemarks(RESULT_COLUMN_DESC)
             .setRequired(false)
             .create(String.class, null);
 
-    public static final String CODE_COLUMN_NAME = "code columns";
-    public static final String CODE_COLUMN_DESC = "code columns";
-    public static final ParameterDescriptor<String> CODE_COLUMN = new ExtendedParameterDescriptor<>(
-            CODE_COLUMN_NAME,
-            CODE_COLUMN_DESC,
+    public static final String OBS_PROP_COLUMN_NAME = "observed_properties_columns";
+    public static final String OBS_PROP_COLUMN_DESC = "Columns containing the observed property (used with csv-flat)";
+    public static final ParameterDescriptor<String> OBS_PROP_COLUMN = new ExtendedParameterDescriptor<>(
+            OBS_PROP_COLUMN_NAME,
+            OBS_PROP_COLUMN_DESC,
             0, 92,
             String.class,
             null, null, null
     );
     
-    public static final String TYPE_COLUMN_NAME = "type column";
+    public static final String TYPE_COLUMN_NAME = "type_column";
     public static final String TYPE_COLUMN_DESC = "type column";
     public static final ParameterDescriptor<String> TYPE_COLUMN = PARAM_BUILDER
             .addName(TYPE_COLUMN_NAME)
@@ -248,7 +248,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(false)
             .create(String.class, null);
 
-    public static final String CHARQUOTE_NAME = "quote character";
+    public static final String CHARQUOTE_NAME = "quote_character";
     public static final String CHARQUOTE_DESC = "quote character";
     public static final ParameterDescriptor<String> CHARQUOTE = PARAM_BUILDER
             .addName(CHARQUOTE_NAME)
@@ -259,10 +259,10 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
     public static final ParameterDescriptorGroup INPUT_DESC =
             PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, REMOTE_READ, SERVICE_ID, DATASET_IDENTIFIER, PROCEDURE_ID, PROCEDURE_COLUMN, OBS_TYPE,
                     SEPARATOR, CHARQUOTE, MAIN_COLUMN, Z_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, MEASURE_COLUMNS, REMOVE_PREVIOUS, EXTRACT_UOM,
-                    STORE_ID, FORMAT, VALUE_COLUMN, CODE_COLUMN, TYPE_COLUMN);
+                    STORE_ID, FORMAT, RESULT_COLUMN, OBS_PROP_COLUMN, TYPE_COLUMN);
 
-    public static final String FILE_INSERTED_NAME = "Files inserted number";
-    public static final String FILE_INSERTED_DESC = "Files inserted number";
+    public static final String FILE_INSERTED_NAME = "files_inserted_count";
+    public static final String FILE_INSERTED_DESC = "Number of files inserted ";
     public static final ParameterDescriptor<Integer> FILE_INSERTED = PARAM_BUILDER
             .addName(FILE_INSERTED_NAME)
             .setRemarks(FILE_INSERTED_DESC)
@@ -270,8 +270,8 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .create(Integer.class, 0);
 
 
-    public static final String OBSERVATION_INSERTED_NAME = "Observations inserted number";
-    public static final String OBSERVATION_INSERTED_DESC = "Observations inserted number";
+    public static final String OBSERVATION_INSERTED_NAME = "observations_inserted_count";
+    public static final String OBSERVATION_INSERTED_DESC = "Number of observations inserted";
     public static final ParameterDescriptor<Integer> OBSERVATION_INSERTED = PARAM_BUILDER
             .addName(OBSERVATION_INSERTED_NAME)
             .setRemarks(OBSERVATION_INSERTED_DESC)

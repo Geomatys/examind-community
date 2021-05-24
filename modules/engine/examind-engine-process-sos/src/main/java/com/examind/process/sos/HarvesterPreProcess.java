@@ -81,14 +81,14 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         final String taskName        = inputParameters.getValue(HarvesterPreProcessDescriptor.TASK_NAME);
         String format                = inputParameters.getValue(HarvesterPreProcessDescriptor.FORMAT);
 
-        final String valueColumn    = inputParameters.getValue(HarvesterPreProcessDescriptor.VALUE_COLUMN);
+        final String valueColumn    = inputParameters.getValue(HarvesterPreProcessDescriptor.RESULT_COLUMN);
         final String typeColumn     = inputParameters.getValue(HarvesterPreProcessDescriptor.TYPE_COLUMN);
         final String separator      = inputParameters.getValue(HarvesterPreProcessDescriptor.SEPARATOR);
         final String charquote      = inputParameters.getValue(HarvesterPreProcessDescriptor.CHARQUOTE);
 
         final List<String> codeColumns = new ArrayList<>();
         for (GeneralParameterValue param : inputParameters.values()) {
-            if (param.getDescriptor().getName().getCode().equals(HarvesterPreProcessDescriptor.CODE_COLUMN.getName().getCode())) {
+            if (param.getDescriptor().getName().getCode().equals(HarvesterPreProcessDescriptor.OBS_PROP_COLUMN.getName().getCode())) {
                 codeColumns.add(((ParameterValue)param).stringValue());
             }
         }
@@ -278,10 +278,10 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
             final Parameter FOparam = new Parameter(FORMAT_NAME, String.class, FORMAT_DESC, FORMAT_DESC, 1, 1, "text/csv; subtype=\"om\"");
             inputs.add(FOparam);
             
-            final Parameter VCparam = new Parameter(VALUE_COLUMN_NAME, String.class, VALUE_COLUMN_DESC, VALUE_COLUMN_DESC, 1, 1, valueColumn);
+            final Parameter VCparam = new Parameter(RESULT_COLUMN_NAME, String.class, RESULT_COLUMN_DESC, RESULT_COLUMN_DESC, 1, 1, valueColumn);
             inputs.add(VCparam);
 
-            final Parameter CCparam = new Parameter(CODE_COLUMN_NAME, String.class, CODE_COLUMN_DESC, CODE_COLUMN_DESC, 0, codeColumns.size(), null, codeColumns.toArray());
+            final Parameter CCparam = new Parameter(OBS_PROP_COLUMN_NAME, String.class, OBS_PROP_COLUMN_DESC, OBS_PROP_COLUMN_DESC, 0, codeColumns.size(), null, codeColumns.toArray());
             inputs.add(CCparam);
 
             final Parameter TCparam = new Parameter(TYPE_COLUMN_NAME, String.class, TYPE_COLUMN_DESC, TYPE_COLUMN_DESC, 0, 1, typeColumn);

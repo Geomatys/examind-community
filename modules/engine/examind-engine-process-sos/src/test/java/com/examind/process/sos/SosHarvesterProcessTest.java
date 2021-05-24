@@ -1219,8 +1219,8 @@ public class SosHarvesterProcessTest {
         val3.setValue("66");
         in.values().add(val3);
 
-        in.parameter(SosHarvesterProcessDescriptor.VALUE_COLUMN_NAME).setValue("parameter_value");
-        in.parameter(SosHarvesterProcessDescriptor.CODE_COLUMN_NAME).setValue("parameter_code");
+        in.parameter(SosHarvesterProcessDescriptor.RESULT_COLUMN_NAME).setValue("parameter_value");
+        in.parameter(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).setValue("parameter_code");
         in.parameter(SosHarvesterProcessDescriptor.TYPE_COLUMN_NAME).setValue("file_type");
 
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Profile");
@@ -1345,8 +1345,8 @@ public class SosHarvesterProcessTest {
         val3.setValue("66");
         in.values().add(val3);
 
-        in.parameter(SosHarvesterProcessDescriptor.VALUE_COLUMN_NAME).setValue("parameter_value");
-        in.parameter(SosHarvesterProcessDescriptor.CODE_COLUMN_NAME).setValue("parameter_code");
+        in.parameter(SosHarvesterProcessDescriptor.RESULT_COLUMN_NAME).setValue("parameter_value");
+        in.parameter(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).setValue("parameter_code");
         in.parameter(SosHarvesterProcessDescriptor.TYPE_COLUMN_NAME).setValue("file_type");
 
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Profile");
@@ -1511,8 +1511,8 @@ public class SosHarvesterProcessTest {
         val2.setValue("35");
         in.values().add(val2);
 
-        in.parameter(SosHarvesterProcessDescriptor.VALUE_COLUMN_NAME).setValue("parameter_value");
-        in.parameter(SosHarvesterProcessDescriptor.CODE_COLUMN_NAME).setValue("parameter_code");
+        in.parameter(SosHarvesterProcessDescriptor.RESULT_COLUMN_NAME).setValue("parameter_value");
+        in.parameter(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).setValue("parameter_code");
         in.parameter(SosHarvesterProcessDescriptor.TYPE_COLUMN_NAME).setValue("file_type");
 
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
@@ -1736,8 +1736,8 @@ public class SosHarvesterProcessTest {
         val2.setValue("35");
         in.values().add(val2);
 
-        in.parameter(SosHarvesterProcessDescriptor.VALUE_COLUMN_NAME).setValue("parameter_value");
-        in.parameter(SosHarvesterProcessDescriptor.CODE_COLUMN_NAME).setValue("parameter_code");
+        in.parameter(SosHarvesterProcessDescriptor.RESULT_COLUMN_NAME).setValue("parameter_value");
+        in.parameter(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).setValue("parameter_code");
         in.parameter(SosHarvesterProcessDescriptor.TYPE_COLUMN_NAME).setValue("file_type");
 
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue(null);
@@ -2038,12 +2038,12 @@ public class SosHarvesterProcessTest {
         val2.setValue("25049001-18");
         in.values().add(val2);
 
-        in.parameter(SosHarvesterProcessDescriptor.VALUE_COLUMN_NAME).setValue("VALUE");
+        in.parameter(SosHarvesterProcessDescriptor.RESULT_COLUMN_NAME).setValue("VALUE");
 
-        ParameterValue cc1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.CODE_COLUMN_NAME).createValue();
+        ParameterValue cc1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).createValue();
         cc1.setValue("PLATFORM_ID");
         in.values().add(cc1);
-        ParameterValue cc2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.CODE_COLUMN_NAME).createValue();
+        ParameterValue cc2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).createValue();
         cc2.setValue("SUPPORT");
         in.values().add(cc2);
 
@@ -2139,33 +2139,33 @@ public class SosHarvesterProcessTest {
         // Create a temporary yaml file.
         Path tempFile = Files.createTempFile(null, null);
         List<String> listYamlParameter = Arrays.asList(
-                "process name: sosHarvester",
-                "data folder: "+bigdataDirectory.toUri().toString(),
-                "SOS service:",
+                "process_name: sosHarvester",
+                "data_folder: "+bigdataDirectory.toUri().toString(),
+                "sensor_service:",
                 "   service:",
                 "      identifier: default",
                 "      type: sos",
-                "dataset identifier: "+datasetId,
-                "procedure id: "+sensorId,
-                "#procedure column: test string",
-                "Observation Type: Profile",
+                "dataset_identifier: "+datasetId,
+                "procedure_id: "+sensorId,
+                "#procedure_column: test string",
+                "observation_type: Profile",
                 "separator: ','",
-                "main column: z_value",
-                "date column: station_date",
-                "date format: yyyy-MM-dd'T'HH:mm:ss'Z'",
-                "longitude column: longitude",
-                "latitude column: latitude",
-                "measure columns:",
+                "main_column: z_value",
+                "date_column: station_date",
+                "date_format: yyyy-MM-dd'T'HH:mm:ss'Z'",
+                "longitude_column: longitude",
+                "latitude_column: latitude",
+                "measure_columns:",
                 "- '30'",
                 "- '35'",
                 "- '66'",
-                "remove previous integration: true",
-                "Store Id: observationCsvFlatFile",
-                "Format: 'text/csv; subtype=\"om\"'",
-                "value column: parameter_value",
-                "code columns:",
+                "remove_previous_integration: true",
+                "store_id: observationCsvFlatFile",
+                "format: 'text/csv; subtype=\"om\"'",
+                "result_column: parameter_value",
+                "observed_properties_columns:",
                 "- parameter_code",
-                "type column : file_type"
+                "type_column : file_type"
         );
         Files.write(tempFile, listYamlParameter, StandardOpenOption.APPEND);
 

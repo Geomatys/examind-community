@@ -149,10 +149,10 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         
         // csv-flat special
         final String typeColumn = inputParameters.getValue(TYPE_COLUMN);
-        final String valueColumn = inputParameters.getValue(VALUE_COLUMN);
+        final String valueColumn = inputParameters.getValue(RESULT_COLUMN);
         final List<String> codeColumns = new ArrayList<>();
         for (GeneralParameterValue param : inputParameters.values()) {
-            if (param.getDescriptor().getName().getCode().equals(CODE_COLUMN.getName().getCode())) {
+            if (param.getDescriptor().getName().getCode().equals(OBS_PROP_COLUMN.getName().getCode())) {
                 codeColumns.add(((ParameterValue)param).stringValue());
             }
         }
@@ -297,8 +297,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_ID.getName().toString(), procedureId);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.EXTRACT_UOM.getName().toString(), Boolean.toString(extractUom));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_COLUMN.getName().toString(), procedureColumn);
-            provConfig.getParameters().put(FileParsingObservationStoreFactory.VALUE_COLUMN.getName().toString(), valueColumn);
-            provConfig.getParameters().put(FileParsingObservationStoreFactory.CODE_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(codeColumns));
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.RESULT_COLUMN.getName().toString(), valueColumn);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(codeColumns));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.TYPE_COLUMN.getName().toString(), typeColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.Z_COLUMN.getName().toString(), zColumn);
 

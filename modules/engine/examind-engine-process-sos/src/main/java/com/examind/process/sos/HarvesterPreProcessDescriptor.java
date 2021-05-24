@@ -42,39 +42,39 @@ public class HarvesterPreProcessDescriptor extends AbstractProcessDescriptor{
     /**
      * Input parameters
      */
-    public static final String DATA_FOLDER_NAME = "data folder";
-    public static final String DATA_FOLDER_DESC = "data folder";
+    public static final String DATA_FOLDER_NAME = "data_folder";
+    public static final String DATA_FOLDER_DESC = "Folder containing the files to harvest.";
     public static final ParameterDescriptor<String> DATA_FOLDER = PARAM_BUILDER
             .addName(DATA_FOLDER_NAME)
             .setRemarks(DATA_FOLDER_DESC)
             .setRequired(true)
             .create(String.class, null);
 
-    public static final String USER_NAME = "user name";
-    public static final String USER_DESC = "user name";
+    public static final String USER_NAME = "user_name";
+    public static final String USER_DESC = "FTP user name.";
     public static final ParameterDescriptor<String> USER = PARAM_BUILDER
             .addName(USER_NAME)
             .setRemarks(USER_DESC)
             .setRequired(false)
             .create(String.class, null);
 
-    public static final String PWD_NAME = "password";
-    public static final String PWD_DESC = "password";
+    public static final String PWD_NAME = "user_password";
+    public static final String PWD_DESC = "FTP user password";
     public static final ParameterDescriptor<String> PWD = PARAM_BUILDER
             .addName(PWD_NAME)
             .setRemarks(PWD_DESC)
             .setRequired(false)
             .create(String.class, null);
 
-    public static final String OBS_TYPE_NAME = "Observation Type";
-    public static final String OBS_TYPE_DESC = "Observation Type";
+    public static final String OBS_TYPE_NAME = "observation_type";
+    public static final String OBS_TYPE_DESC = "Observation type (\"Timeserie\", \"Trajectory\" or \"Profile\")";
     public static final ParameterDescriptor<String> OBS_TYPE = PARAM_BUILDER
             .addName(OBS_TYPE_NAME)
             .setRemarks(OBS_TYPE_DESC)
             .setRequired(false)
             .createEnumerated(String.class, new String[]{"Timeserie", "Trajectory", "Profile"}, null);
 
-    public static final String TASK_NAME_NAME = "generated task name";
+    public static final String TASK_NAME_NAME = "generated_task_name";
     public static final String TASK_NAME_DESC = "generated task name";
     public static final ParameterDescriptor<String> TASK_NAME = PARAM_BUILDER
             .addName(TASK_NAME_NAME)
@@ -82,33 +82,33 @@ public class HarvesterPreProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(false)
             .create(String.class, null);
 
-    public static final String FORMAT_NAME = "Format";
-    public static final String FORMAT_DESC = "Format";
+    public static final String FORMAT_NAME = "format";
+    public static final String FORMAT_DESC = "Data format (mime type) of the file to insert";
     public static final ParameterDescriptor<String> FORMAT = PARAM_BUILDER
             .addName(FORMAT_NAME)
             .setRemarks(FORMAT_DESC)
             .setRequired(true)
             .createEnumerated(String.class, new String[]{"csv", "csv-flat", "dbf"}, "csv");
 
-    public static final String VALUE_COLUMN_NAME = "value column";
-    public static final String VALUE_COLUMN_DESC = "value column";
-    public static final ParameterDescriptor<String> VALUE_COLUMN = PARAM_BUILDER
-            .addName(VALUE_COLUMN_NAME)
-            .setRemarks(VALUE_COLUMN_DESC)
+    public static final String RESULT_COLUMN_NAME = "result_column";
+    public static final String RESULT_COLUMN_DESC = "Column containing result values (used with csv-flat)";
+    public static final ParameterDescriptor<String> RESULT_COLUMN = PARAM_BUILDER
+            .addName(RESULT_COLUMN_NAME)
+            .setRemarks(RESULT_COLUMN_DESC)
             .setRequired(false)
             .create(String.class, null);
 
-    public static final String CODE_COLUMN_NAME = "code columns";
-    public static final String CODE_COLUMN_DESC = "code columns";
-    public static final ParameterDescriptor<String> CODE_COLUMN = new ExtendedParameterDescriptor<>(
-            CODE_COLUMN_NAME,
-            CODE_COLUMN_DESC,
+    public static final String OBS_PROP_COLUMN_NAME = "observed_properties_columns";
+    public static final String OBS_PROP_COLUMN_DESC = "Columns containing the observed property (used with csv-flat)";
+    public static final ParameterDescriptor<String> OBS_PROP_COLUMN = new ExtendedParameterDescriptor<>(
+            OBS_PROP_COLUMN_NAME,
+            OBS_PROP_COLUMN_DESC,
             0, 92,
             String.class,
             null, null, null
     );
     
-    public static final String TYPE_COLUMN_NAME = "type column";
+    public static final String TYPE_COLUMN_NAME = "type_column";
     public static final String TYPE_COLUMN_DESC = "type column";
     public static final ParameterDescriptor<String> TYPE_COLUMN = PARAM_BUILDER
             .addName(TYPE_COLUMN_NAME)
@@ -124,7 +124,7 @@ public class HarvesterPreProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(true)
             .create(String.class, ",");
 
-    public static final String CHARQUOTE_NAME = "quote character";
+    public static final String CHARQUOTE_NAME = "quote_character";
     public static final String CHARQUOTE_DESC = "quote character";
     public static final ParameterDescriptor<String> CHARQUOTE = PARAM_BUILDER
             .addName(CHARQUOTE_NAME)
@@ -133,7 +133,7 @@ public class HarvesterPreProcessDescriptor extends AbstractProcessDescriptor{
             .create(String.class, null);
 
     public static final ParameterDescriptorGroup INPUT_DESC =
-            PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, OBS_TYPE, TASK_NAME, FORMAT, VALUE_COLUMN, CODE_COLUMN, TYPE_COLUMN, SEPARATOR, CHARQUOTE);
+            PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, OBS_TYPE, TASK_NAME, FORMAT, RESULT_COLUMN, OBS_PROP_COLUMN, TYPE_COLUMN, SEPARATOR, CHARQUOTE);
 
     public static final String PROCESS_ID_NAME = "process.id";
     private static final String PROCESS_ID_REMARKS = "The assigned identifier of the deployed process.";
