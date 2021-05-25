@@ -496,6 +496,12 @@
                 <version>${hazelcast.version}</version>
             </dependency>
 
+            <!-- Apache SIS -->
+            <dependency>
+                <groupId>org.apache.sis.storage</groupId>
+                <artifactId>sis-sqlstore</artifactId>
+                <version>${sis.version}</version>
+            </dependency>
             <!-- Geotoolkit version -->
             <dependency>
                 <groupId>org.geotoolkit</groupId>
@@ -551,23 +557,8 @@
             </dependency>
             <dependency>
                 <groupId>org.geotoolkit</groupId>
-                <artifactId>geotk-feature-sql</artifactId>
-                <version>${geotoolkit.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.geotoolkit</groupId>
                 <artifactId>geotk-storage</artifactId>
                 <type>test-jar</type>
-                <version>${geotoolkit.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.geotoolkit</groupId>
-                <artifactId>geotk-feature-postgres</artifactId>
-                <version>${geotoolkit.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.geotoolkit</groupId>
-                <artifactId>geotk-feature-oracle</artifactId>
                 <version>${geotoolkit.version}</version>
             </dependency>
             <dependency>

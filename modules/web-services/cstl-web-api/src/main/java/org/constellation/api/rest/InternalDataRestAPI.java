@@ -59,7 +59,6 @@ import org.constellation.provider.DataProviders;
 import org.constellation.provider.ISO19110Builder;
 import org.constellation.util.Util;
 import org.geotoolkit.client.AbstractClientProvider;
-import org.geotoolkit.db.AbstractJDBCProvider;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.nio.ZipUtilities;
 import static org.apache.sis.util.ArraysExt.contains;
@@ -557,8 +556,9 @@ public class InternalDataRestAPI extends AbstractRestAPI {
                         if (!contains(resourceTypes, VECTOR)) continue;
                         break;
                     case "jdbc"   :
-                        if (!(p instanceof AbstractJDBCProvider)) continue;
-                        break;
+                        // Workaround: avoid forcing dependency over sis-sql. Check it by name.
+                        if ("sql".equalsIgnoreCase(identifier)) break;
+                        else continue;
                     case "service":
                         if (!(p instanceof AbstractClientProvider)) continue;
                         break;

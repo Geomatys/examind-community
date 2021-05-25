@@ -18,10 +18,11 @@
  */
 package org.constellation.util.converter;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import javax.sql.DataSource;
 import org.apache.sis.util.UnconvertibleObjectException;
 import org.geotoolkit.feature.util.converter.SimpleConverter;
-import org.geotoolkit.internal.sql.DefaultDataSource;
 
 /**
  *
@@ -41,7 +42,16 @@ public class StringToDataSourceConverter extends SimpleConverter<String, DataSou
 
     @Override
     public DataSource apply(String s) throws UnconvertibleObjectException {
-        return new DefaultDataSource(s);
+        if (s == null || (s = s.trim()).isEmpty()) return null;
+        // TODO: how to properly validate input ? Should we open a connection ? Problem: it is very costly.
+        if (!s.startsWith("jdbc")) {
+            throw new UnconvertibleObjectException("Only standard JDBC url are accepted (Ex: jdbc:hsqldb:mem:myDb or jdbc:postgresql://localhost:5432/db)");
+        }
+        final HikariConfig dbConf = new HikariConfig();
+        dbConf.setJdbcUrl(s);
+        // TODO: search input URI for datasource advanced configuration ?
+        // TODO: Use a datasource registry/cache ?
+        return new HikariDataSource(dbConf);
     }
 
 }

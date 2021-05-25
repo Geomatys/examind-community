@@ -18,6 +18,7 @@
  */
 package org.constellation.util.converter;
 
+import com.zaxxer.hikari.HikariDataSource;
 import javax.sql.DataSource;
 import org.apache.sis.util.UnconvertibleObjectException;
 import org.geotoolkit.feature.util.converter.SimpleConverter;
@@ -41,11 +42,18 @@ public class DataSourceToStringConverter extends SimpleConverter<DataSource, Str
 
     @Override
     public String apply(DataSource s) throws UnconvertibleObjectException {
+        if (s == null) return null;
         if (s instanceof DefaultDataSource) {
             DefaultDataSource ds = (DefaultDataSource) s;
             return ds.url;
+        } else if (s instanceof HikariDataSource) {
+            final HikariDataSource ds = (HikariDataSource) s;
+            String url = ds.getJdbcUrl();
+            if (url == null) {
+                // TODO: Try forging back jdbc url ? (Note: hide login/pw for security purpose)
+                throw new UnconvertibleObjectException("Cannot extract JDBC URL from input datasource");
+            }
         }
-        throw new UnconvertibleObjectException("Unable to convert a non-geotk datasource");
+        throw new UnconvertibleObjectException("Unknown datasource type. For now, only Geotk/Hikari datasources are supported");
     }
-
 }

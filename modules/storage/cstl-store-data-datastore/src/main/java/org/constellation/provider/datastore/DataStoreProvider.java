@@ -44,7 +44,6 @@ import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.IllegalNameException;
 import org.apache.sis.util.collection.BackingStoreException;
-import org.geotoolkit.db.postgres.PostgresStore;
 import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.storage.DataStoreFactory;
@@ -153,25 +152,6 @@ public class DataStoreProvider extends AbstractDataProvider {
             LOGGER.log(Level.WARNING, "An error occurred while removing data from provider");
         }
         return false;
-    }
-
-    /**
-     * Remove all data, even postgres schema.
-     */
-    @Override
-    public void removeAll() {
-        try (Session session = storage.write()) {
-            final DataStore store = session.handle().store;
-                if (store instanceof PostgresStore) {
-                    final PostgresStore pgStore = (PostgresStore) store;
-                    final String dbSchema = pgStore.getDatabaseSchema();
-                    if (dbSchema != null && !dbSchema.isEmpty()) {
-                        pgStore.dropPostgresSchema(dbSchema);
-                    }
-                }
-        } catch (DataStoreException e) {
-            LOGGER.log(Level.WARNING, e.getMessage(), e);
-        }
     }
 
     /**

@@ -1070,13 +1070,6 @@
               <MimeType>image/x-geotiff</MimeType>
             </Format>
             <Format>
-              <MimeType>image/x-pgraster</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/x-pgraster</MimeType>
-            </Format>
-            <Format>
               <MimeType>image/x-png</MimeType>
               <Encoding>base64</Encoding>
             </Format>
@@ -1248,13 +1241,6 @@
             </Format>
             <Format>
               <MimeType>image/x-geotiff</MimeType>
-            </Format>
-            <Format>
-              <MimeType>image/x-pgraster</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/x-pgraster</MimeType>
             </Format>
             <Format>
               <MimeType>image/x-png</MimeType>
@@ -3165,13 +3151,6 @@
               <MimeType>image/x-geotiff</MimeType>
             </Format>
             <Format>
-              <MimeType>image/x-pgraster</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/x-pgraster</MimeType>
-            </Format>
-            <Format>
               <MimeType>image/x-png</MimeType>
               <Encoding>base64</Encoding>
             </Format>
@@ -3343,13 +3322,6 @@
             </Format>
             <Format>
               <MimeType>image/x-geotiff</MimeType>
-            </Format>
-            <Format>
-              <MimeType>image/x-pgraster</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/x-pgraster</MimeType>
             </Format>
             <Format>
               <MimeType>image/x-png</MimeType>
