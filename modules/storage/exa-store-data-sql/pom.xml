@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.examind.community</groupId>
+        <artifactId>storage</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <groupId>com.examind.community.storage.sql</groupId>
+    <artifactId>exa-store-data-sql</artifactId>
+    <packaging>jar</packaging>
+    <name>SQL datastore provider</name>
+    <description>Thin wrapper over Apache SIS SQL datastore to ease coniguration and usage</description>
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.sis.storage</groupId>
+            <artifactId>sis-sqlstore</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.geotoolkit</groupId>
+            <artifactId>geotk-storage</artifactId>
+        </dependency>
+    </dependencies>
+
+</project>

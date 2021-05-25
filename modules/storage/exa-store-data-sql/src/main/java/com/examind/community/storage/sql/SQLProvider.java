@@ -1,0 +1,150 @@
+package com.examind.community.storage.sql;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.regex.Pattern;
+import javax.sql.DataSource;
+import org.apache.sis.internal.sql.feature.QueryFeatureSet;
+import org.apache.sis.metadata.iso.DefaultMetadata;
+import org.apache.sis.parameter.ParameterBuilder;
+import org.apache.sis.parameter.Parameters;
+import org.apache.sis.storage.Aggregate;
+import org.apache.sis.storage.DataStore;
+import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.DataStoreProvider;
+import org.apache.sis.storage.FeatureSet;
+import org.apache.sis.storage.ProbeResult;
+import org.apache.sis.storage.Resource;
+import org.apache.sis.storage.StorageConnector;
+import org.apache.sis.storage.sql.SQLStoreProvider;
+import org.apache.sis.util.iso.Names;
+import org.opengis.metadata.Metadata;
+import org.opengis.parameter.ParameterDescriptor;
+import org.opengis.parameter.ParameterDescriptorGroup;
+import org.opengis.parameter.ParameterValueGroup;
+import org.opengis.util.GenericName;
+
+public class SQLProvider extends DataStoreProvider {
+
+    public static final String NAME = "SQL";
+    private static final Pattern STAR_WILDCARD = Pattern.compile("\\*+");
+    private static final Pattern INTERROGATION_WILDCARD = Pattern.compile("\\?+");
+    private static final Pattern NAME_SPLITTER = Pattern.compile("\\.|:");
+    private static final Pattern TABLE_SPLITTER = Pattern.compile("\\s*(,|;|\\s)\\s*");
+
+    private final SQLStoreProvider sisProvider;
+
+    public static final ParameterDescriptor<DataSource> LOCATION;
+    public static final ParameterDescriptor<String> QUERY;
+    public static final ParameterDescriptor<String> TABLES;
+
+    public static final ParameterDescriptorGroup INPUT;
+
+    static {
+        final ParameterBuilder builder = new ParameterBuilder();
+        builder.setRequired(true);
+        LOCATION = builder.addName(DataStoreProvider.LOCATION).create(DataSource.class, null);
+
+        builder.setRequired(false);
+        TABLES = builder.addName("table").create(String.class, null);
+        QUERY = builder.addName("query").create(String.class, null);
+
+        INPUT = builder.addName(NAME).createGroup(LOCATION, TABLES, QUERY);
+    }
+
+    public SQLProvider() {
+        sisProvider = new SQLStoreProvider();
+    }
+
+    @Override
+    public String getShortName() {
+        return NAME;
+    }
+
+    @Override
+    public ParameterDescriptorGroup getOpenParameters() {
+        return INPUT;
+    }
+
+    @Override
+    public ProbeResult probeContent(StorageConnector storageConnector) throws DataStoreException {
+        return sisProvider.probeContent(storageConnector);
+    }
+
+    @Override
+    public DataStore open(StorageConnector storageConnector) throws DataStoreException {
+        return sisProvider.open(storageConnector);
+    }
+
+    @Override
+    public DataStore open(ParameterValueGroup parameters) throws DataStoreException {
+        final Parameters p = Parameters.castOrWrap(parameters);
+        return new SQLStore(p);
+    }
+
+    class SQLStore extends DataStore implements Aggregate {
+        private final DataSource datasource;
+        private final Parameters parameters;
+        private final DataStore sisStore;
+
+        private final List<FeatureSet> datasets;
+
+        public SQLStore(Parameters parameters) throws DataStoreException {
+            this.datasource = parameters.getMandatoryValue(LOCATION);
+            this.parameters = parameters;
+
+            String tables = parameters.getValue(TABLES);
+            List<FeatureSet> tmpDatasets = new ArrayList<>();
+            if (tables == null || (tables = tables.trim()).isEmpty()) {
+                sisStore = null;
+            } else {
+                final GenericName[] tableNames = TABLE_SPLITTER.splitAsStream(tables)
+                        .map(table -> STAR_WILDCARD.matcher(table).replaceAll("%"))
+                        .map(table -> INTERROGATION_WILDCARD.matcher(table).replaceAll("_"))
+                        .map(table -> Names.createGenericName(null, ".", NAME_SPLITTER.split(table)))
+                        .toArray(GenericName[]::new);
+                final ParameterValueGroup sisParams = sisProvider.getOpenParameters().createValue();
+                sisParams.parameter(DataStoreProvider.LOCATION).setValue(datasource);
+                sisParams.parameter("tables").setValue(tableNames);
+                sisStore = sisProvider.open(sisParams);
+                tmpDatasets.addAll(org.geotoolkit.storage.DataStores.flatten(sisStore, false, FeatureSet.class));
+            }
+
+            String query = parameters.getValue(QUERY);
+            if (query != null && !(query = query.trim()).isEmpty()) {
+                try (Connection conn = datasource.getConnection()) {
+                    tmpDatasets.add(new QueryFeatureSet(query, datasource, conn));
+                } catch (SQLException e) {
+                    throw new DataStoreException(e);
+                }
+            }
+
+            datasets = Collections.unmodifiableList(tmpDatasets);
+        }
+
+        @Override
+        public Collection<? extends Resource> components() throws DataStoreException {
+            return datasets;
+        }
+
+        @Override
+        public Optional<ParameterValueGroup> getOpenParameters() {
+            return Optional.of(parameters);
+        }
+
+        @Override
+        public Metadata getMetadata() throws DataStoreException {
+            return new DefaultMetadata();
+        }
+
+        @Override
+        public void close() throws DataStoreException {
+            if (sisStore != null) sisStore.close();
+        }
+    }
+}

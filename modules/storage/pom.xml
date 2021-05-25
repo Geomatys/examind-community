@@ -29,6 +29,7 @@
         <module>cstl-store-metadatafile</module>
         <module>cstl-store-metadatanetcdf</module>
         <module>cstl-store-data-sensor</module>
+        <module>exa-store-data-sql</module>
     </modules>
 
 </project>

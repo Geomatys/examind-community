@@ -224,6 +224,11 @@
             <artifactId>cstl-engine-spring-security</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.examind.community.storage.sql</groupId>
+            <artifactId>exa-store-data-sql</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.apache.sis.non-free</groupId>
@@ -273,7 +278,6 @@
             <groupId>org.apache.sis.storage</groupId>
             <artifactId>sis-earth-observation</artifactId>
         </dependency>
-
         <!-- Logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
