@@ -44,6 +44,8 @@ public class SQLProvider extends DataStoreProvider {
     private static final Pattern TABLE_SPLITTER = Pattern.compile("\\s*(,|;|\\s)\\s*");
 
     public static final ParameterDescriptor<String> LOCATION;
+    public static final ParameterDescriptor<String> USER;
+    public static final ParameterDescriptor<String> PASSWORD;
     /**
      * An SQL query to consider as a feature set.
      *
@@ -64,16 +66,24 @@ public class SQLProvider extends DataStoreProvider {
                 .create(String.class, null);
 
         builder.setRequired(false);
+        USER = builder.addName("user")
+                .setDescription("User name to use when connecting to the database")
+                .create(String.class, null);
+        PASSWORD = builder.addName("password")
+                .setDescription("Password to use for connection")
+                .create(String.class, null);
+
         TABLES = builder.addName("tables")
                 .setDescription("A table or a set of tables to consider each as a feature set." +
                         " Table names must be separated by a space or a comma." +
-                        " They can contain SQL wildcards (_ or %)")
+                        " They can contain SQL wildcards (_ or %)." +
+                        " Views are also supported.")
                 .create(String.class, null);
         QUERY = builder.addName("query")
                 .setDescription("An SQL query to consider as a feature set")
                 .create(String.class, null);
 
-        INPUT = builder.addName(NAME).createGroup(LOCATION, TABLES, QUERY);
+        INPUT = builder.addName(NAME).createGroup(LOCATION, USER, PASSWORD, TABLES, QUERY);
     }
 
     // TODO: dependency injection would be preferable
