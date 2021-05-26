@@ -25,7 +25,6 @@ import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.StorageConnector;
-import org.apache.sis.storage.sql.SQLStore;
 import org.apache.sis.storage.sql.SQLStoreProvider;
 import org.apache.sis.util.iso.Names;
 import org.apache.sis.util.logging.Logging;
@@ -208,7 +207,9 @@ public class SQLProvider extends DataStoreProvider {
 
         @Override
         public Metadata getMetadata() throws DataStoreException {
-            return new DefaultMetadata();
+            if (sisStore != null) return sisStore.getMetadata();
+            else if (datasets.size() == 1) return datasets.get(0).getMetadata();
+            else return new DefaultMetadata();
         }
 
         @Override
