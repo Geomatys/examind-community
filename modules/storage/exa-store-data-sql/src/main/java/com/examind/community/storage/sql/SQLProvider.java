@@ -59,11 +59,19 @@ public class SQLProvider extends DataStoreProvider {
     static {
         final ParameterBuilder builder = new ParameterBuilder();
         builder.setRequired(true);
-        LOCATION = builder.addName(DataStoreProvider.LOCATION).create(String.class, null);
+        LOCATION = builder.addName(DataStoreProvider.LOCATION)
+                .setDescription("JDBC URL to use to connect to the database. User and password must be provided separately")
+                .create(String.class, null);
 
         builder.setRequired(false);
-        TABLES = builder.addName("tables").create(String.class, null);
-        QUERY = builder.addName("query").create(String.class, null);
+        TABLES = builder.addName("tables")
+                .setDescription("A table or a set of tables to consider each as a feature set." +
+                        " Table names must be separated by a space or a comma." +
+                        " They can contain SQL wildcards (_ or %)")
+                .create(String.class, null);
+        QUERY = builder.addName("query")
+                .setDescription("An SQL query to consider as a feature set")
+                .create(String.class, null);
 
         INPUT = builder.addName(NAME).createGroup(LOCATION, TABLES, QUERY);
     }
