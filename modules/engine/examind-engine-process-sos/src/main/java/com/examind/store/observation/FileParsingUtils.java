@@ -137,8 +137,8 @@ public class FileParsingUtils {
         final List<AnyScalar> fields = new ArrayList<>();
         for (Field phenomenon : phenomenons) {
             final UomProperty uom = SOSXmlFactory.buildUomProperty(version, phenomenon.unit, null);
-            final Quantity cat = SOSXmlFactory.buildQuantity(version, phenomenon.label, uom, null);
-            fields.add(SOSXmlFactory.buildAnyScalar(version, null, phenomenon.label, cat));
+            final Quantity cat = SOSXmlFactory.buildQuantity(version, phenomenon.id, uom, null);
+            fields.add(SOSXmlFactory.buildAnyScalar(version, null, phenomenon.id, cat));
         }
         return SOSXmlFactory.buildSimpleDatarecord(version, null, null, null, true, fields);
     }
@@ -148,8 +148,8 @@ public class FileParsingUtils {
         fields.add(TIME_FIELD.get(version));
         for (Field phenomenon : phenomenons) {
             final UomProperty uom = SOSXmlFactory.buildUomProperty(version, phenomenon.unit, null);
-            final Quantity cat = SOSXmlFactory.buildQuantity(version, phenomenon.label, uom, null);
-            fields.add(SOSXmlFactory.buildAnyScalar(version, null, phenomenon.label, cat));
+            final Quantity cat = SOSXmlFactory.buildQuantity(version, phenomenon.id, uom, null);
+            fields.add(SOSXmlFactory.buildAnyScalar(version, null, phenomenon.id, cat));
         }
         return SOSXmlFactory.buildSimpleDatarecord(version, null, null, null, true, fields);
     }

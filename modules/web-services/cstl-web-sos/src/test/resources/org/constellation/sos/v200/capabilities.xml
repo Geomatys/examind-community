@@ -251,11 +251,11 @@
       </ows:Parameter>
       <ows:Parameter name="observedProperty">
         <ows:AllowedValues>
-          <ows:Value>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon</ows:Value>
-          <ows:Value>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2</ows:Value>
-          <ows:Value>urn:ogc:def:phenomenon:GEOM:depth</ows:Value>
-          <ows:Value>urn:ogc:def:phenomenon:GEOM:salinity</ows:Value>
-          <ows:Value>urn:ogc:def:phenomenon:GEOM:temperature</ows:Value>
+          <ows:Value>aggregatePhenomenon</ows:Value>
+          <ows:Value>aggregatePhenomenon-2</ows:Value>
+          <ows:Value>depth</ows:Value>
+          <ows:Value>salinity</ows:Value>
+          <ows:Value>temperature</ows:Value>
         </ows:AllowedValues>
       </ows:Parameter>
       <ows:Parameter name="featureOfInterest">
@@ -499,7 +499,7 @@
           <ns43:procedure>urn:ogc:object:sensor:GEOM:10</ns43:procedure>
           <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</ns43:procedureDescriptionFormat>
           <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</ns43:procedureDescriptionFormat>
-          <ns43:observableProperty>urn:ogc:def:phenomenon:GEOM:depth</ns43:observableProperty>
+          <ns43:observableProperty>depth</ns43:observableProperty>
           <ns43:relatedFeature>
             <ns43:FeatureRelationship>
               <ns43:target xlink:href="station-001"/>
@@ -527,7 +527,7 @@
           <ns43:procedure>urn:ogc:object:sensor:GEOM:test-id</ns43:procedure>
           <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</ns43:procedureDescriptionFormat>
           <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</ns43:procedureDescriptionFormat>
-          <ns43:observableProperty>urn:ogc:def:phenomenon:GEOM:depth</ns43:observableProperty>
+          <ns43:observableProperty>depth</ns43:observableProperty>
           <ns43:relatedFeature>
             <ns43:FeatureRelationship>
               <ns43:target xlink:href="station-001"/>
@@ -550,10 +550,10 @@
           <ns43:procedure>urn:ogc:object:sensor:GEOM:12</ns43:procedure>
           <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</ns43:procedureDescriptionFormat>
           <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</ns43:procedureDescriptionFormat>
-          <ns43:observableProperty>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2</ns43:observableProperty>
-          <ns43:observableProperty>urn:ogc:def:phenomenon:GEOM:depth</ns43:observableProperty>
-          <ns43:observableProperty>urn:ogc:def:phenomenon:GEOM:salinity</ns43:observableProperty>
-          <ns43:observableProperty>urn:ogc:def:phenomenon:GEOM:temperature</ns43:observableProperty>
+          <ns43:observableProperty>aggregatePhenomenon-2</ns43:observableProperty>
+          <ns43:observableProperty>depth</ns43:observableProperty>
+          <ns43:observableProperty>salinity</ns43:observableProperty>
+          <ns43:observableProperty>temperature</ns43:observableProperty>
           <ns43:relatedFeature>
             <ns43:FeatureRelationship>
               <ns43:target xlink:href="station-001"/>
@@ -576,11 +576,11 @@
           <ns43:procedure>urn:ogc:object:sensor:GEOM:13</ns43:procedure>
           <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</ns43:procedureDescriptionFormat>
           <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</ns43:procedureDescriptionFormat>
-          <ns43:observableProperty>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon</ns43:observableProperty>
-          <ns43:observableProperty>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2</ns43:observableProperty>
-          <ns43:observableProperty>urn:ogc:def:phenomenon:GEOM:depth</ns43:observableProperty>
-          <ns43:observableProperty>urn:ogc:def:phenomenon:GEOM:salinity</ns43:observableProperty>
-          <ns43:observableProperty>urn:ogc:def:phenomenon:GEOM:temperature</ns43:observableProperty>
+          <ns43:observableProperty>aggregatePhenomenon</ns43:observableProperty>
+          <ns43:observableProperty>aggregatePhenomenon-2</ns43:observableProperty>
+          <ns43:observableProperty>depth</ns43:observableProperty>
+          <ns43:observableProperty>salinity</ns43:observableProperty>
+          <ns43:observableProperty>temperature</ns43:observableProperty>
           <ns43:relatedFeature>
             <ns43:FeatureRelationship>
               <ns43:target xlink:href="station-002"/>
@@ -603,9 +603,9 @@
           <ns43:procedure>urn:ogc:object:sensor:GEOM:2</ns43:procedure>
           <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</ns43:procedureDescriptionFormat>
           <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</ns43:procedureDescriptionFormat>
-          <ns43:observableProperty>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon</ns43:observableProperty>
-          <ns43:observableProperty>urn:ogc:def:phenomenon:GEOM:depth</ns43:observableProperty>
-          <ns43:observableProperty>urn:ogc:def:phenomenon:GEOM:temperature</ns43:observableProperty>
+          <ns43:observableProperty>aggregatePhenomenon</ns43:observableProperty>
+          <ns43:observableProperty>depth</ns43:observableProperty>
+          <ns43:observableProperty>temperature</ns43:observableProperty>
           <sos:phenomenonTime>
             <gml:TimePeriod gml:id="time-offering-2">
               <gml:beginPosition>2001-01-01</gml:beginPosition>
@@ -623,9 +623,9 @@
           <ns43:procedure>urn:ogc:object:sensor:GEOM:3</ns43:procedure>
           <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</ns43:procedureDescriptionFormat>
           <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</ns43:procedureDescriptionFormat>
-          <ns43:observableProperty>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon</ns43:observableProperty>
-          <ns43:observableProperty>urn:ogc:def:phenomenon:GEOM:depth</ns43:observableProperty>
-          <ns43:observableProperty>urn:ogc:def:phenomenon:GEOM:temperature</ns43:observableProperty>
+          <ns43:observableProperty>aggregatePhenomenon</ns43:observableProperty>
+          <ns43:observableProperty>depth</ns43:observableProperty>
+          <ns43:observableProperty>temperature</ns43:observableProperty>
           <ns43:relatedFeature>
             <ns43:FeatureRelationship>
               <ns43:target xlink:href="station-001"/>
@@ -648,9 +648,9 @@
           <ns43:procedure>urn:ogc:object:sensor:GEOM:4</ns43:procedure>
           <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</ns43:procedureDescriptionFormat>
           <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</ns43:procedureDescriptionFormat>
-          <ns43:observableProperty>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon</ns43:observableProperty>
-          <ns43:observableProperty>urn:ogc:def:phenomenon:GEOM:depth</ns43:observableProperty>
-          <ns43:observableProperty>urn:ogc:def:phenomenon:GEOM:temperature</ns43:observableProperty>
+          <ns43:observableProperty>aggregatePhenomenon</ns43:observableProperty>
+          <ns43:observableProperty>depth</ns43:observableProperty>
+          <ns43:observableProperty>temperature</ns43:observableProperty>
           <ns43:relatedFeature>
             <ns43:FeatureRelationship>
               <ns43:target xlink:href="station-001"/>
@@ -673,9 +673,9 @@
           <ns43:procedure>urn:ogc:object:sensor:GEOM:test-1</ns43:procedure>
           <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</ns43:procedureDescriptionFormat>
           <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</ns43:procedureDescriptionFormat>
-          <ns43:observableProperty>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon</ns43:observableProperty>
-          <ns43:observableProperty>urn:ogc:def:phenomenon:GEOM:depth</ns43:observableProperty>
-          <ns43:observableProperty>urn:ogc:def:phenomenon:GEOM:temperature</ns43:observableProperty>
+          <ns43:observableProperty>aggregatePhenomenon</ns43:observableProperty>
+          <ns43:observableProperty>depth</ns43:observableProperty>
+          <ns43:observableProperty>temperature</ns43:observableProperty>
           <ns43:relatedFeature>
             <ns43:FeatureRelationship>
               <ns43:target xlink:href="station-002"/>
@@ -709,7 +709,7 @@
           <ns43:procedure>urn:ogc:object:sensor:GEOM:7</ns43:procedure>
           <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</ns43:procedureDescriptionFormat>
           <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</ns43:procedureDescriptionFormat>
-          <ns43:observableProperty>urn:ogc:def:phenomenon:GEOM:temperature</ns43:observableProperty>
+          <ns43:observableProperty>temperature</ns43:observableProperty>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
           <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
         </sos:ObservationOffering>
@@ -721,9 +721,9 @@
           <ns43:procedure>urn:ogc:object:sensor:GEOM:8</ns43:procedure>
           <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</ns43:procedureDescriptionFormat>
           <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</ns43:procedureDescriptionFormat>
-          <ns43:observableProperty>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon</ns43:observableProperty>
-          <ns43:observableProperty>urn:ogc:def:phenomenon:GEOM:depth</ns43:observableProperty>
-          <ns43:observableProperty>urn:ogc:def:phenomenon:GEOM:temperature</ns43:observableProperty>
+          <ns43:observableProperty>aggregatePhenomenon</ns43:observableProperty>
+          <ns43:observableProperty>depth</ns43:observableProperty>
+          <ns43:observableProperty>temperature</ns43:observableProperty>
           <ns43:relatedFeature>
             <ns43:FeatureRelationship>
               <ns43:target xlink:href="station-006"/>
@@ -746,7 +746,7 @@
           <ns43:procedure>urn:ogc:object:sensor:GEOM:9</ns43:procedure>
           <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</ns43:procedureDescriptionFormat>
           <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</ns43:procedureDescriptionFormat>
-          <ns43:observableProperty>urn:ogc:def:phenomenon:GEOM:depth</ns43:observableProperty>
+          <ns43:observableProperty>depth</ns43:observableProperty>
           <ns43:relatedFeature>
             <ns43:FeatureRelationship>
               <ns43:target xlink:href="station-006"/>

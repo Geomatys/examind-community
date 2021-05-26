@@ -49,9 +49,11 @@ import java.util.logging.Logger;
 import org.constellation.api.CommonConstants;
 
 import static java.nio.file.StandardOpenOption.*;
+import org.apache.sis.metadata.iso.DefaultIdentifier;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.observation.xml.AbstractObservation;
 import org.geotoolkit.sos.netcdf.ExtractionResult;
+import org.opengis.metadata.Identifier;
 
 
 /**
@@ -169,7 +171,7 @@ public class FileObservationWriter implements ObservationWriter {
         }
     }
 
-    private String getNewObservationId() throws DataStoreException {
+    private Identifier getNewObservationId() throws DataStoreException {
         String obsID = null;
         boolean exist = true;
         try {
@@ -181,7 +183,7 @@ public class FileObservationWriter implements ObservationWriter {
                 exist = Files.exists(newFile);
                 i++;
             }
-            return obsID;
+            return new DefaultIdentifier(obsID);
         } catch (IOException ex) {
             throw new DataStoreException(ex.getMessage(), ex);
         }

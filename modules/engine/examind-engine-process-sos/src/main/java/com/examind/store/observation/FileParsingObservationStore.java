@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -239,7 +240,7 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
             Set<org.opengis.observation.Phenomenon> phenomenons, final Set<org.opengis.observation.sampling.SamplingFeature> samplingFeatures) {
 
         // On extrait les types de mesure trouvées dans la donnée
-        List<String> filteredMeasure = ob.getUsedFields();
+        Map<String, String> filteredMeasure = ob.getUsedFields();
 
         if (filteredMeasure.isEmpty() ||
             ("Profile".equals(ob.observationType) && filteredMeasure.size() == 1)) {
@@ -248,19 +249,20 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
         }
 
         final List<Field> fields = new ArrayList<>();
-        for (final String field : filteredMeasure) {
+        for (final Entry<String, String>  field : filteredMeasure.entrySet()) {
+            String key = field.getKey();
             String name;
             String uom;
-            int b = field.indexOf('(');
-            int o = field.indexOf(')');
+            int b = key.indexOf('(');
+            int o = key.indexOf(')');
             if (extractUom && b != -1 && o != -1 && b < o) {
-                name = field.substring(0, b).trim();
-                uom  = field.substring(b + 1, o);
+                name = key.substring(0, b).trim();
+                uom  = key.substring(b + 1, o);
             } else {
-                name = field;
+                name = key;
                 uom  = null;
             }
-            fields.add(new Field(name, null, 1, "", null, uom));
+            fields.add(new Field(name, field.getValue(), null, 1, "", null, uom));
         }
 
         // Get existing or create a new Phenomenon
@@ -306,7 +308,7 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
             result.phenomenons.add(phenomenon);
         }
 
-        for (String mf : filteredMeasure) {
+        for (String mf : filteredMeasure.keySet()) {
             if (!result.fields.contains(mf)) {
                 result.fields.add(mf);
             }

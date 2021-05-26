@@ -309,8 +309,8 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
             if (phen instanceof CompositePhenomenon) {
                 CompositePhenomenon composite = (CompositePhenomenon) phen;
                 for (PhenomenonProperty component : composite.getRealComponent()) {
-                    if (component.getPhenomenon() != null && component.getPhenomenon().getName() != null) {
-                        doc.add(new Field("observed_property",   component.getPhenomenon().getName().getCode(), ft));
+                    if (component.getPhenomenon() != null && component.getPhenomenon().getId() != null) {
+                        doc.add(new Field("observed_property",   component.getPhenomenon().getId(), ft));
                     } else if (component.getHref() != null) {
                         doc.add(new Field("observed_property",   component.getHref(), ft));
                     } else {
@@ -319,10 +319,10 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
                 }
 
                 // add the composite name
-                doc.add(new Field("observed_property",   phen.getName().getCode(), ft));
+                doc.add(new Field("observed_property",   phen.getId(), ft));
 
             } else if (phen != null) {
-                doc.add(new Field("observed_property",   phen.getName().getCode(), ft));
+                doc.add(new Field("observed_property",   phen.getId(), ft));
             }
 
             doc.add(new Field("feature_of_interest", ((AbstractGML)observation.getFeatureOfInterest()).getId(), ft));

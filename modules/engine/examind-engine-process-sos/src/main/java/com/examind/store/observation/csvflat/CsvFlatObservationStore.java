@@ -62,7 +62,8 @@ import org.constellation.exception.ConstellationStoreException;
 public class CsvFlatObservationStore extends FileParsingObservationStore implements ObservationStore {
 
     private final String valueColumn;
-    private final Set<String> codeColumns;
+    private final Set<String> obsPropColumns;
+    private final Set<String> obsPropNameColumns;
     private final String typeColumn;
 
     /**
@@ -78,7 +79,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
      * @param measureColumns the names (headers) of the measure columns
      * @param foiColumn the name (header) of the feature of interest column
      * @param valueColumn the name (header) of the measure column
-     * @param codeColumns the names (header) of the code measure columns
+     * @param obsPropColumns the names (header) of the code measure columns
      * 
      * @throws DataStoreException
      * @throws MalformedURLException
@@ -86,16 +87,17 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
     public CsvFlatObservationStore(final Path observationFile, final char separator, final char quotechar, final FeatureType featureType,
                                        final String mainColumn, final String dateColumn, final String dateTimeformat, final String longitudeColumn, final String latitudeColumn,
                                        final Set<String> measureColumns, String observationType, String foiColumn, final String procedureId, final String procedureColumn, final String zColumn,
-                                       final boolean extractUom, final String valueColumn, final Set<String> codeColumns, final String typeColumn) throws DataStoreException, MalformedURLException {
+                                       final boolean extractUom, final String valueColumn, final Set<String> obsPropColumns, final Set<String> obsPropNameColumns, final String typeColumn) throws DataStoreException, MalformedURLException {
         super(observationFile, separator, quotechar, featureType, mainColumn, dateColumn, dateTimeformat, longitudeColumn, latitudeColumn, measureColumns, observationType, foiColumn, procedureId, procedureColumn, zColumn, extractUom);
         this.valueColumn = valueColumn;
-        this.codeColumns = codeColumns;
+        this.obsPropColumns = obsPropColumns;
+        this.obsPropNameColumns = obsPropNameColumns;
         this.typeColumn = typeColumn;
 
         // special case for * measure columns
         if (measureColumns.size() == 1 && measureColumns.iterator().next().equals("*")) {
             try {
-                this.measureColumns = extractCodes(dataFile, codeColumns, separator);
+                this.measureColumns = extractCodes(dataFile, obsPropColumns, separator);
             } catch (ConstellationStoreException ex) {
                 throw new DataStoreException(ex);
             }
@@ -183,7 +185,8 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 int zIndex = -1;
                 int procIndex = -1;
                 int valueColumnIndex = -1;
-                List<Integer> codeColumnIndexes = new ArrayList<>();
+                List<Integer> obsPropColumnIndexes = new ArrayList<>();
+                List<Integer> obsPropNameColumnIndexes = new ArrayList<>();
                 int typeColumnIndex = -1;
 
                 // read headers
@@ -213,8 +216,11 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                         valueColumnIndex = i;
                         doubleFields.add(i);
                     }
-                    if (codeColumns.contains(header)) {
-                        codeColumnIndexes.add(i);
+                    if (obsPropColumns.contains(header)) {
+                        obsPropColumnIndexes.add(i);
+                    }
+                    if (obsPropNameColumns.contains(header)) {
+                        obsPropNameColumnIndexes.add(i);
                     }
                     if (header.equals(typeColumn)) {
                         typeColumnIndex = i;
@@ -227,8 +233,8 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     }
                 }
 
-                if (codeColumnIndexes.isEmpty()) {
-                    throw new DataStoreException("Unexpected columns code:" + Arrays.toString(codeColumns.toArray()));
+                if (obsPropColumnIndexes.isEmpty()) {
+                    throw new DataStoreException("Unexpected columns code:" + Arrays.toString(obsPropColumns.toArray()));
                 }
                 if (valueColumnIndex == -1) {
                     throw new DataStoreException("Unexpected column value:" + valueColumn);
@@ -313,23 +319,38 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                         currentTime = null;
                     }
 
-                    // Concatenate values from input code columns
-                    String concatenatedCodeColumnsValues = "";
+                    // Concatenate observedProperty from input code columns
+                    String observedProperty = "";
                     boolean first = true;
-                    for (Integer codeColumnIndex : codeColumnIndexes) {
+                    for (Integer codeColumnIndex : obsPropColumnIndexes) {
                         if (!first) {
-                            concatenatedCodeColumnsValues += "-";
+                            observedProperty += "-";
                         }
-                        concatenatedCodeColumnsValues += line[codeColumnIndex];
+                        observedProperty += line[codeColumnIndex];
                         first = false;
                     }
 
                     // checks if row matches the observed properties wanted
-                    if (!sortedMeasureColumns.contains(concatenatedCodeColumnsValues)) {
+                    if (!sortedMeasureColumns.contains(observedProperty)) {
                         continue;
                     }
 
                     ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentFoi, currentTime, sortedMeasureColumns, currentMainColumn, currentObstType);
+
+                    // Concatenate observedProperty name
+                    String observedPropertyName = "";
+                    boolean dfirst = true;
+                    for (Integer index : obsPropNameColumnIndexes) {
+                        if (!dfirst) {
+                            observedPropertyName += "-";
+                        }
+                        observedPropertyName += line[index];
+                        dfirst = false;
+                    }
+
+                    if (!observedPropertyName.isEmpty()) {
+                        currentBlock.updateObservedPropertyName(observedProperty, observedPropertyName);
+                    }
 
                     // update temporal interval
                     Long millis = null;
@@ -385,7 +406,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                         LOGGER.fine(String.format("Problem parsing double for measure field at line %d and column %d (value='%s'). skipping line...", lineNumber, valueColumnIndex, line[valueColumnIndex]));
                         continue;
                     }
-                    currentBlock.appendValue(mainValue, concatenatedCodeColumnsValues, measureValue, lineNumber);
+                    currentBlock.appendValue(mainValue, observedProperty, measureValue, lineNumber);
                 }
 
 

@@ -216,7 +216,6 @@ public class SosHarvesterProcessTest {
 
                 //we write the configuration file
                 final SOSConfiguration configuration = new SOSConfiguration();
-                configuration.setProfile("transactional");
                 configuration.getParameters().put("transactionSecurized", "false");
 
                 Integer sid = serviceBusiness.create("sos", "default", configuration, null, null);
@@ -2047,6 +2046,13 @@ public class SosHarvesterProcessTest {
         cc2.setValue("SUPPORT");
         in.values().add(cc2);
 
+        ParameterValue od1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_NAME_COLUMN_NAME).createValue();
+        od1.setValue("SUPPORT_NAME");
+        in.values().add(od1);
+        ParameterValue od2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_NAME_COLUMN_NAME).createValue();
+        od2.setValue("PARAMETER_NAME");
+        in.values().add(od2);
+
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
         //in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_COLUMN_NAME).setValue("platform_code");
         in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_ID_NAME).setValue("urn:surval");
@@ -2089,6 +2095,17 @@ public class SosHarvesterProcessTest {
         String observedProperty = offp.getObservedProperties().get(0);
 
         verifyAllObservedProperties(stsWorker, "urn:surval", Arrays.asList("25049001-7", "25049001-18"));
+
+        List<ObservedProperty> obsProperties = getFullObservedProperties(stsWorker, "urn:surval");
+        for(ObservedProperty op : obsProperties) {
+            if ("25049001-7".equals(op.getIotId())) {
+                Assert.assertEquals("Support : Masse d'eau, eau brute - Niveau : Surface (0-1m)", op.getName());
+            } else if ("25049001-18".equals(op.getIotId())) {
+                Assert.assertEquals("Support : Masse d'eau, eau brute - Niveau : Mi-profondeur", op.getName());
+            } else {
+                Assert.fail("Unexpected observed properties:" + op.getIotId());
+            }
+        }
 
         /*
         * Verify an inserted data
@@ -2249,6 +2266,17 @@ public class SosHarvesterProcessTest {
         ObservedPropertiesResponse resp = stsWorker.getObservedProperties(request);
         for (ObservedProperty op : resp.getValue()) {
             results.add(op.getIotId());
+        }
+        return results;
+    }
+
+    private static List<ObservedProperty> getFullObservedProperties(STSWorker stsWorker, String sensorId) throws CstlServiceException {
+        List<ObservedProperty> results = new ArrayList<>();
+        GetObservedProperties request = new GetObservedProperties();
+        request.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:" + sensorId);
+        ObservedPropertiesResponse resp = stsWorker.getObservedProperties(request);
+        for (ObservedProperty op : resp.getValue()) {
+            results.add(op);
         }
         return results;
     }

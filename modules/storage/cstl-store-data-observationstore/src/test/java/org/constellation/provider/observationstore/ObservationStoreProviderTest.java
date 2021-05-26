@@ -235,7 +235,7 @@ public class ObservationStoreProviderTest {
     public void existPhenomenonTest() throws Exception {
         assertNotNull(omPr);
 
-        boolean result = omPr.existPhenomenon("urn:ogc:def:phenomenon:GEOM:depth");
+        boolean result = omPr.existPhenomenon("depth");
         assertTrue(result);
         result = omPr.existPhenomenon("something");
         assertFalse(result);
@@ -249,11 +249,11 @@ public class ObservationStoreProviderTest {
         assertEquals(5, resultIds.size());
 
         Set<String> expectedIds = new HashSet<>();
-        expectedIds.add("urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon");
-        expectedIds.add("urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2");
-        expectedIds.add("urn:ogc:def:phenomenon:GEOM:depth");
-        expectedIds.add("urn:ogc:def:phenomenon:GEOM:temperature");
-        expectedIds.add("urn:ogc:def:phenomenon:GEOM:salinity");
+        expectedIds.add("aggregatePhenomenon");
+        expectedIds.add("aggregatePhenomenon-2");
+        expectedIds.add("depth");
+        expectedIds.add("temperature");
+        expectedIds.add("salinity");
         Assert.assertEquals(expectedIds, resultIds);
     }
 

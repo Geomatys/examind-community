@@ -115,13 +115,6 @@ public class OM2Utils {
         throw new IllegalArgumentException("Unable to get an id from the phenomenon");
     }
 
-    public static String getName(Phenomenon phen) {
-        if (phen instanceof org.geotoolkit.swe.xml.Phenomenon) {
-            return ((org.geotoolkit.swe.xml.Phenomenon)phen).getName().getCode();
-        }
-        throw new IllegalArgumentException("Unable to get an id from the phenomenon");
-    }
-
     public static boolean hasComponent(Phenomenon phen, CompositePhenomenon composite) {
         String phenId = getId(phen);
         for (Phenomenon component : composite.getComponent()) {

@@ -1034,7 +1034,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 Phenomenon obsPhen = (org.geotoolkit.swe.xml.Phenomenon) obs.getPropertyObservedProperty().getPhenomenon();
                 if (obsPhen instanceof CompositePhenomenon) {
                     // Issue 1 - with referenced phenomenon we want the full phenomenon only available in 1.0.0
-                    org.opengis.observation.Phenomenon p = getPhenomenon(((Phenomenon)obsPhen).getName().getCode(), "1.0.0");
+                    org.opengis.observation.Phenomenon p = getPhenomenon(((Phenomenon)obsPhen).getId(), "1.0.0");
                     // Issue 2 - with single phenomenon a composite is returned by obs.getPropertyObservedProperty().getPhenomenon()
                     // its a bug in current geotk
                     if (p instanceof CompositePhenomenon) {
@@ -1046,7 +1046,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                     // issue 3 - unexisting phenomenon in database, could be a computed one, so we iterate directly on its component
                     } else if (p == null) {
                         for (org.opengis.observation.Phenomenon phen : ((CompositePhenomenon)obsPhen).getComponent()) {
-                            phen = getPhenomenon(((Phenomenon)phen).getName().getCode(), "1.0.0");
+                            phen = getPhenomenon(((Phenomenon)phen).getId(), "1.0.0");
                             if (phen != null) {
                                 ObservedProperty mphen = buildPhenomenon(exp, (Phenomenon) phen, new NavigationPath(fn));
                                 datastream.addObservedPropertiesItem(mphen);
@@ -1153,7 +1153,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         if (template.getProcedure() instanceof org.geotoolkit.observation.xml.Process) {
             final SimpleQuery subquery = new SimpleQuery();
             PropertyIsEqualTo pe1 = ff.equals(ff.property("procedure"), ff.literal(((org.geotoolkit.observation.xml.Process) template.getProcedure()).getHref()));
-            PropertyIsEqualTo pe2 = ff.equals(ff.property("observedProperty"), ff.literal(((org.geotoolkit.swe.xml.Phenomenon) template.getObservedProperty()).getName().getCode()));
+            PropertyIsEqualTo pe2 = ff.equals(ff.property("observedProperty"), ff.literal(((org.geotoolkit.swe.xml.Phenomenon) template.getObservedProperty()).getId()));
             And and = ff.and(Arrays.asList(pe1, pe2));
             subquery.setFilter(and);
             return omProvider.getObservations(subquery, MEASUREMENT_QNAME, "inline", null, defaultHints);
@@ -1201,7 +1201,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             for (org.opengis.observation.Phenomenon sp : sps) {
                 if (sp instanceof CompositePhenomenon) {
                     // Issue 1 - with referenced phenomenon we want the full phenomenon only available in 1.0.0
-                    org.opengis.observation.Phenomenon p = getPhenomenon(((Phenomenon)sp).getName().getCode(), "1.0.0");
+                    org.opengis.observation.Phenomenon p = getPhenomenon(((Phenomenon)sp).getId(), "1.0.0");
                     // Issue 2 - with single phenomenon a composite is returned by obs.getPropertyObservedProperty().getPhenomenon()
                     // its a bug in current geotk
                     if (p instanceof CompositePhenomenon) {
@@ -1261,24 +1261,30 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     private ObservedProperty buildPhenomenon(ExpandOptions exp, Phenomenon s, NavigationPath fn) throws ConstellationStoreException {
         fn.observedProperties = true;
+        if (s == null) return null;
         String selfLink = getServiceUrl();
-        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/ObservedProperties(" + s.getName().getCode() + ")";
+        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/ObservedProperties(" + s.getId()+ ")";
         ObservedProperty obsProp = new ObservedProperty();
-        final String phenId = s.getName().getCode();
+        final String phenId = s.getId();
+        final String definition = s.getName().getCode();
+        String phenName = phenId;
+        if (s.getName().getDescription() != null) {
+            phenName = s.getName().getDescription().toString();
+        }
         String description = phenId;
         if (s.getDescription() != null) {
             description = s.getDescription();
         }
         obsProp = obsProp
                 .iotId(phenId)
-                .name(phenId)
-                .definition(phenId)
+                .name(phenName)
+                .definition(definition)
                 .description(description)
                 .iotSelfLink(selfLink.replace("$", phenId));
 
         Map<String, GeoJSONGeometry> sensorArea = new HashMap<>();
         if (exp.datastreams && !fn.datastreams) {
-            List<org.opengis.observation.Observation> linkedTemplates = getDatastreamForPhenomenon(s.getName().getCode());
+            List<org.opengis.observation.Observation> linkedTemplates = getDatastreamForPhenomenon(s.getId());
             for (org.opengis.observation.Observation template : linkedTemplates) {
                 obsProp.addDatastreamsItem(buildDatastream(exp, (AbstractObservation) template, sensorArea, new NavigationPath(fn)));
             }
@@ -1287,7 +1293,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         }
 
          if (exp.multiDatastreams && !fn.multiDatastreams) {
-            List<org.opengis.observation.Observation> linkedTemplates = getMultiDatastreamForPhenomenon(s.getName().getCode());
+            List<org.opengis.observation.Observation> linkedTemplates = getMultiDatastreamForPhenomenon(s.getId());
             for (org.opengis.observation.Observation template : linkedTemplates) {
                 obsProp.addMultiDatastreamsItem(buildMultiDatastream(exp, (AbstractObservation) template, sensorArea, new NavigationPath(fn)));
             }

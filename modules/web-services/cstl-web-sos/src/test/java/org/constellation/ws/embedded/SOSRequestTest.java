@@ -361,7 +361,7 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
                                       "offering-3",
                                       null,
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:3"),
-                                      Arrays.asList("urn:ogc:def:phenomenon:GEOM:depth"),
+                                      Arrays.asList("depth"),
                                       null,
                                       null,
                                       "text/xml; subtype=\"om/1.0.0\"",
@@ -425,7 +425,7 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
         URLConnection conec = getCapsUrl.openConnection();
 
         ObservationFilter request  = new ObservationFilter("urn:ogc:object:sensor:GEOM:3",
-                                      Arrays.asList("urn:ogc:def:phenomenon:GEOM:depth"),
+                                      Arrays.asList("depth"),
                                       null,
                                       null,
                                       null,

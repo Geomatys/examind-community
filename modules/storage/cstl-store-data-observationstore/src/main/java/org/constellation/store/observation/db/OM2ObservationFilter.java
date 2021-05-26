@@ -348,7 +348,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             if (phen instanceof CompositePhenomenon) {
                 final CompositePhenomenon compo = (CompositePhenomenon) phen;
                 for (Phenomenon child : compo.getComponent()) {
-                    results.add(((org.geotoolkit.swe.xml.Phenomenon)child).getName().getCode());
+                    results.add(((org.geotoolkit.swe.xml.Phenomenon)child).getId());
                 }
             } else {
                 results.add(phenomenon);
@@ -1065,7 +1065,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 if (composite.getComponent().size() == fields.size()) {
                     for (int i = 0; i < fields.size(); i++) {
                         org.geotoolkit.swe.xml.Phenomenon component = (org.geotoolkit.swe.xml.Phenomenon) composite.getComponent().get(i);
-                        if ((currentFields.isEmpty() || currentFields.contains(component.getName().getCode())) &&
+                        if ((currentFields.isEmpty() || currentFields.contains(component.getId())) &&
                             (fieldFilters.isEmpty() || fieldFilters.contains(i))) {
                             fieldPhen.add(new FieldPhenom(i, component, fields.get(i)));
                         }
@@ -1079,7 +1079,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                             if (fullComposite.getComponent().size() == fields.size()) {
                                 for (int i = 0; i < fields.size(); i++) {
                                     org.geotoolkit.swe.xml.Phenomenon component = (org.geotoolkit.swe.xml.Phenomenon) fullComposite.getComponent().get(i);
-                                    if ((currentFields.isEmpty() || currentFields.contains(component.getName().getCode())) &&
+                                    if ((currentFields.isEmpty() || currentFields.contains(component.getId())) &&
                                         (fieldFilters.isEmpty()  || fieldFilters.contains(i)) &&
                                         hasComponent(component, composite)) {
                                         fieldPhen.add(new FieldPhenom(i, component, fields.get(i)));
@@ -1103,7 +1103,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     if (composite.getComponent().size() == fields.size()) {
                         for (int i = 0; i < fields.size(); i++) {
                             org.geotoolkit.swe.xml.Phenomenon component = (org.geotoolkit.swe.xml.Phenomenon) composite.getComponent().get(i);
-                            if ((currentFields.isEmpty() || currentFields.contains(component.getName().getCode())) &&
+                            if ((currentFields.isEmpty() || currentFields.contains(component.getId())) &&
                                 (fieldFilters.isEmpty()  || fieldFilters.contains(i)) &&
                                 component.getId().equals(getId(phen))) {
                                 fieldPhen.add(new FieldPhenom(i, component, fields.get(i)));
@@ -1173,7 +1173,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     }*/
 
     protected Phenomenon getVirtualCompositePhenomenon(String version, Connection c, String procedure) throws DataStoreException {
-       String request = "SELECT \"field_definition\" FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" "
+       String request = "SELECT \"field_name\" FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" "
                       + "WHERE \"procedure\"=? "
                       + "AND NOT (\"order\"=1 AND \"field_type\"='Time') "
                       + "order by \"order\"";
@@ -1183,7 +1183,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 List<Phenomenon> components = new ArrayList<>();
                 int i = 0;
                 while (rs.next()) {
-                    final String fieldName = rs.getString("field_definition");
+                    final String fieldName = rs.getString("field_name");
                     Phenomenon phen = getPhenomenon(version, fieldName, c);
                     if (phen == null) {
                         throw new DataStoreException("Unable to link a procedure field to a phenomenon:" + fieldName);
@@ -1194,7 +1194,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     return components.get(0);
                 } else {
                     final String name = "computed-phen-" + procedure;
-                    return buildCompositePhenomenon(version, name, name, (String)null, components);
+                    return buildCompositePhenomenon(version, name, name, name,(String)null, components);
                 }
             }
        } catch (SQLException ex) {

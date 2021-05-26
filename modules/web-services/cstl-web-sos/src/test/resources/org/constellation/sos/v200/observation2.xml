@@ -18,7 +18,7 @@
     </om:phenomenonTime>
     <om:resultTime/>
     <om:procedure xlink:href="urn:ogc:object:sensor:GEOM:3"/>
-    <om:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
+    <om:observedProperty xlink:href="GEOM:depth"/>
     <om:featureOfInterest>
         <sams:SF_SpatialSamplingFeature gml:id="station-001">
             <gml:description>Point d'eau BSSS</gml:description>

@@ -379,25 +379,25 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     public void getObservedPropertyById() throws Exception {
         initPool();
 
-        URL getFoiUrl = new URL(getDefaultURL() + "/ObservedProperties(urn:ogc:def:phenomenon:GEOM:temperature)");
+        URL getFoiUrl = new URL(getDefaultURL() + "/ObservedProperties(temperature)");
 
         String result = getStringResponse(getFoiUrl) + "\n";
         String expResult = getStringFromFile("com/examind/sts/embedded/obsprop.json");
         compareJSON(expResult, result);
 
-        getFoiUrl = new URL(getDefaultURL() + "/ObservedProperties(urn:ogc:def:phenomenon:GEOM:temperature)?$expand=Datastreams,MultiDatastreams");
+        getFoiUrl = new URL(getDefaultURL() + "/ObservedProperties(temperature)?$expand=Datastreams,MultiDatastreams");
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/obsprop-exp.json");
         compareJSON(expResult, result);
 
-        getFoiUrl = new URL(getDefaultURL() + "/ObservedProperties(urn:ogc:def:phenomenon:GEOM:temperature)/Datastreams");
+        getFoiUrl = new URL(getDefaultURL() + "/ObservedProperties(temperature)/Datastreams");
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/obsprop-ds.json");
         compareJSON(expResult, result);
 
-        getFoiUrl = new URL(getDefaultURL() + "/ObservedProperties(urn:ogc:def:phenomenon:GEOM:temperature)/MultiDatastreams");
+        getFoiUrl = new URL(getDefaultURL() + "/ObservedProperties(temperature)/MultiDatastreams");
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/obsprop-mds.json");
@@ -793,14 +793,14 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     public void getLocationsFilterTest() throws Exception {
         initPool();
 
-        String filter = "Thing/Datastream/ObservedProperty/id eq urn:ogc:def:phenomenon:GEOM:temperature".replace(" ", "%20");
+        String filter = "Thing/Datastream/ObservedProperty/id eq temperature".replace(" ", "%20");
         URL getFoiUrl = new URL(getDefaultURL() + "/Locations?$filter=" + filter);
 
         String result = getStringResponse(getFoiUrl) + "\n";
         String expResult = getStringFromFile("com/examind/sts/embedded/loc-temp.json");
         compareJSON(expResult, result);
 
-        filter = "Thing/Datastream/ObservedProperty/id eq urn:ogc:def:phenomenon:GEOM:temperature or Thing/Datastream/ObservedProperty/id eq urn:ogc:def:phenomenon:GEOM:depth".replace(" ", "%20");
+        filter = "Thing/Datastream/ObservedProperty/id eq temperature or Thing/Datastream/ObservedProperty/id eq depth".replace(" ", "%20");
         getFoiUrl = new URL(getDefaultURL() + "/Locations?$filter=" + filter);
 
         result = getStringResponse(getFoiUrl) + "\n";
@@ -821,7 +821,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         expResult = getStringFromFile("com/examind/sts/embedded/loc-foi6_2.json");
         compareJSON(expResult, result);
 
-        filter = "Thing/Datastream/ObservedProperty/id eq urn:ogc:def:phenomenon:GEOM:temperature and Thing/Datastream/Observation/featureOfInterest/id eq station-006".replace(" ", "%20");
+        filter = "Thing/Datastream/ObservedProperty/id eq temperature and Thing/Datastream/Observation/featureOfInterest/id eq station-006".replace(" ", "%20");
         getFoiUrl = new URL(getDefaultURL() + "/Locations?$filter=" + filter);
 
         result = getStringResponse(getFoiUrl) + "\n";
@@ -1000,14 +1000,14 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         String expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-filter1.json");
         compareJSON(expResult, result);
 
-        filter = "ObservedProperty/id eq urn:ogc:def:phenomenon:GEOM:temperature".replace(" ", "%20");
+        filter = "ObservedProperty/id eq temperature".replace(" ", "%20");
         getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/Observations?$resultFormat=dataArray&$filter=" + filter);
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-filter2.json");
         compareJSON(expResult, result);
 
-        filter = "(time ge 2007-05-01T11:59:00Z and time le 2007-05-01T13:59:00Z) and ObservedProperty/id eq urn:ogc:def:phenomenon:GEOM:temperature".replace(" ", "%20");
+        filter = "(time ge 2007-05-01T11:59:00Z and time le 2007-05-01T13:59:00Z) and ObservedProperty/id eq temperature".replace(" ", "%20");
         getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/Observations?$resultFormat=dataArray&$filter=" + filter);
 
         result = getStringResponse(getFoiUrl) + "\n";
@@ -1034,14 +1034,14 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         String expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-filter2-1.json");
         compareJSON(expResult, result);
 
-        filter = "ObservedProperty/id eq urn:ogc:def:phenomenon:GEOM:temperature".replace(" ", "%20");
+        filter = "ObservedProperty/id eq temperature".replace(" ", "%20");
         getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:12)/Observations?$resultFormat=dataArray&$filter=" + filter);
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-filter2-2.json");
         compareJSON(expResult, result);
 
-        filter = "(time ge 2000-11-30T23:00:00Z and time le 2000-12-21T23:00:00Z) and (ObservedProperty/id eq urn:ogc:def:phenomenon:GEOM:temperature or ObservedProperty/id eq urn:ogc:def:phenomenon:GEOM:salinity or ObservedProperty/id eq urn:ogc:def:phenomenon:GEOM:depth)".replace(" ", "%20");
+        filter = "(time ge 2000-11-30T23:00:00Z and time le 2000-12-21T23:00:00Z) and (ObservedProperty/id eq temperature or ObservedProperty/id eq salinity or ObservedProperty/id eq depth)".replace(" ", "%20");
         getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:12)/Observations?$resultFormat=dataArray&$filter=" + filter);
 
         result = getStringResponse(getFoiUrl) + "\n";

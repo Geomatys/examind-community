@@ -22,10 +22,12 @@ package com.examind.store.observation;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -44,32 +46,35 @@ public class MeasureBuilder {
      
     private final boolean isProfile;
      
-    private final List<String> measureColumns;
+    private final Map<String, String> measureColumns = new LinkedHashMap<>();
 
     private final String mainColumn;
 
     public MeasureBuilder(boolean isProfile, List<String> measureColumns, String mainColumn) {
         this.isProfile = isProfile;
-        this.measureColumns = measureColumns;
+        // initialize description
+        for (String mc : measureColumns) {
+            this.measureColumns.put(mc, mc);
+        }
         this.mainColumn = mainColumn;
     }
 
     public MeasureBuilder(MeasureBuilder cmb, boolean isProfile) {
         this.isProfile = isProfile;
-        this.measureColumns =  cmb.measureColumns;
+        this.measureColumns.putAll(cmb.measureColumns);
         this.mainColumn =  cmb.mainColumn;
     }
      
      public void appendValue(Number mainValue, String measureCode, Double measureValue, int lineNumber) {
          if (!mmb.containsKey(mainValue)) {
             LinkedHashMap<String, Double> row = new LinkedHashMap<>();
-            for (String measure: measureColumns) {
+            for (String measure: measureColumns.keySet()) {
                 row.put(measure, Double.NaN);
             }
             mmb.put(mainValue, row);
         }
         // add measure code
-        if (measureCode != null && !measureCode.isEmpty() && measureColumns.contains(measureCode)) {
+        if (measureCode != null && !measureCode.isEmpty() && measureColumns.keySet().contains(measureCode)) {
             LinkedHashMap<String, Double> row = mmb.get(mainValue);
             if (row.containsKey(measureCode) && !row.get(measureCode).isNaN()) {
                 LOGGER.log(Level.FINE, "Duplicated value at line {0} and for main value {1} (value=''{2}'')", new Object[]{lineNumber, mainValue, measureValue});
@@ -92,17 +97,27 @@ public class MeasureBuilder {
         return result;
     }
 
-     public List<String> getUsedMeasureColumns() {
-         final Set<String> measureColumnFound = getMeasureFromMap();
+    public Map<String, String> getUsedMeasureColumns() {
+        final Set<String> measureColumnFound = getMeasureFromMap();
 
         // On complète les champs de mesures seulement avec celles trouvées dans la donnée
-        List<String> filteredMeasure = new ArrayList<>();
-        if (isProfile)  filteredMeasure.add(mainColumn);
-        for (String m: measureColumns) {
-            if (measureColumnFound.contains(m)) filteredMeasure.add(m);
+        Map<String, String> filteredMeasure = new LinkedHashMap<>();
+        if (isProfile) {
+            filteredMeasure.put(mainColumn, mainColumn);
+        }
+        for (Entry<String, String> m : measureColumns.entrySet()) {
+            if (measureColumnFound.contains(m.getKey())) {
+                filteredMeasure.put(m.getKey(), m.getValue());
+            }
         }
         return filteredMeasure;
-     }
+    }
+
+    public void updateObservedPropertyName(String observedProperty, String observedPropertyName) {
+        if (measureColumns.containsKey(observedProperty)) {
+            measureColumns.put(observedProperty, observedPropertyName);
+        }
+    }
      
      public MeasureStringBuilder buildMeasureStringBuilderFromMap() {
        final Set<String> measureColumnFound = getMeasureFromMap();
@@ -151,7 +166,7 @@ public class MeasureBuilder {
     public int getMeasureCount() {
         return mmb.size();
     }
-     
+
     private static class MainColumnComparator implements Comparator<Number> {
 
        @Override

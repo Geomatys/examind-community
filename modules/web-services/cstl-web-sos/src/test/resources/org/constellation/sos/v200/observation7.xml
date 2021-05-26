@@ -18,7 +18,7 @@
     </om:phenomenonTime>
     <om:resultTime/>
     <om:procedure xlink:href="urn:ogc:object:sensor:GEOM:9"/>
-    <om:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
+    <om:observedProperty xlink:href="depth"/>
     <om:featureOfInterest>
         <sams:SF_SpatialSamplingFeature gml:id="station-006">
             <gml:description>Geology traverse</gml:description>

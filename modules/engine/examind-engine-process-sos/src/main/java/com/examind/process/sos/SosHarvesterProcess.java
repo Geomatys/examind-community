@@ -150,10 +150,17 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         // csv-flat special
         final String typeColumn = inputParameters.getValue(TYPE_COLUMN);
         final String valueColumn = inputParameters.getValue(RESULT_COLUMN);
-        final List<String> codeColumns = new ArrayList<>();
+        final List<String> ObsPropColumns = new ArrayList<>();
         for (GeneralParameterValue param : inputParameters.values()) {
             if (param.getDescriptor().getName().getCode().equals(OBS_PROP_COLUMN.getName().getCode())) {
-                codeColumns.add(((ParameterValue)param).stringValue());
+                ObsPropColumns.add(((ParameterValue)param).stringValue());
+            }
+        }
+
+        final List<String> ObsPropNameColumns = new ArrayList<>();
+        for (GeneralParameterValue param : inputParameters.values()) {
+            if (param.getDescriptor().getName().getCode().equals(OBS_PROP_NAME_COLUMN.getName().getCode())) {
+                ObsPropNameColumns.add(((ParameterValue)param).stringValue());
             }
         }
 
@@ -298,7 +305,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             provConfig.getParameters().put(FileParsingObservationStoreFactory.EXTRACT_UOM.getName().toString(), Boolean.toString(extractUom));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_COLUMN.getName().toString(), procedureColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.RESULT_COLUMN.getName().toString(), valueColumn);
-            provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(codeColumns));
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(ObsPropColumns));
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_NAME_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(ObsPropNameColumns));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.TYPE_COLUMN.getName().toString(), typeColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.Z_COLUMN.getName().toString(), zColumn);
 

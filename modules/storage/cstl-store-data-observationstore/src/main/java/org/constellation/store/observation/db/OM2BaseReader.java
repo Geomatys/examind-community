@@ -58,6 +58,7 @@ import org.geotoolkit.swe.xml.AbstractTime;
 import org.geotoolkit.swe.xml.AnyScalar;
 import org.geotoolkit.swe.xml.Quantity;
 import org.geotoolkit.swe.xml.UomProperty;
+import org.opengis.metadata.Identifier;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -276,7 +277,13 @@ public class OM2BaseReader {
                         if (phenomenons.isEmpty()) {
                             result = base;
                         } else {
-                            result = buildCompositePhenomenon(version, id, base.getName().getCode(), base.getDescription(), phenomenons);
+                            Identifier identifier = base.getName();
+                            String name = identifier.getCode();
+                            String definition = identifier.getCode();
+                            if (identifier.getDescription() != null) {
+                                name = identifier.getDescription().toString();
+                            }
+                            result = buildCompositePhenomenon(version, id, name, definition, base.getDescription(), phenomenons);
                         }
                         if (cacheEnabled) {
                             cachedPhenomenon.put(key, result);
@@ -297,8 +304,9 @@ public class OM2BaseReader {
                 stmt.setString(1, observedProperty);
                 try(final ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
-                        String name = rs.getString(1);
-                        String phenID = rs.getString(3);
+                        String phenID = rs.getString(1);
+                        String name = rs.getString(3);
+                        String definition = rs.getString(4);
                         final String description = rs.getString(5);
 
                         // hack for valid phenomenon ID in 1.0.0 static fields
@@ -313,7 +321,7 @@ public class OM2BaseReader {
                                 name = phenID.substring(phenomenonIdBase.length());
                             }
                         }
-                        return buildPhenomenon(version, phenID, name, description);
+                        return buildPhenomenon(version, phenID, name, definition, description);
                     }
                 }
             }
@@ -405,7 +413,7 @@ public class OM2BaseReader {
     }
 
     protected Field getFieldForPhenomenon(final String procedureID, final String phenomenon, final Connection c) throws SQLException {
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND (\"field_definition\"= ?)")) {//NOSONAR
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND (\"field_name\"= ?)")) {//NOSONAR
             stmt.setString(1, procedureID);
             stmt.setString(2, phenomenon);
             try(final ResultSet rs = stmt.executeQuery()) {

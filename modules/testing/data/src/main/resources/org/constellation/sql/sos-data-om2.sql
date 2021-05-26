@@ -1,16 +1,16 @@
-INSERT INTO "om"."observed_properties" VALUES ('urn:ogc:def:phenomenon:GEOM:depth', 1, 'depth', 'urn:ogc:def:phenomenon:GEOM:depth', 'the depth in water');
-INSERT INTO "om"."observed_properties" VALUES ('urn:ogc:def:phenomenon:GEOM:temperature', 1, 'temperature', 'urn:ogc:def:phenomenon:GEOM:temperature', 'the temperature in celcius degree');
-INSERT INTO "om"."observed_properties" VALUES ('urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon', 1, 'aggregatePhenomenon', 'urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon', 'the aggregation of temperature and depth phenomenons');
-INSERT INTO "om"."observed_properties" VALUES ('urn:ogc:def:phenomenon:GEOM:salinity', 1, 'salinity', 'urn:ogc:def:phenomenon:GEOM:salinity', 'the salinity in water');
-INSERT INTO "om"."observed_properties" VALUES ('urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2', 1, 'aggregatePhenomenon-2', 'urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2', 'the aggregation of temperature depth, and salinity phenomenons');
+INSERT INTO "om"."observed_properties" VALUES ('depth',                 1, 'depth',                 'urn:ogc:def:phenomenon:GEOM:depth',                 'the depth in water');
+INSERT INTO "om"."observed_properties" VALUES ('temperature',           1, 'temperature',           'urn:ogc:def:phenomenon:GEOM:temperature',           'the temperature in celcius degree');
+INSERT INTO "om"."observed_properties" VALUES ('aggregatePhenomenon',   1, 'aggregatePhenomenon',   'urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon',   'the aggregation of temperature and depth phenomenons');
+INSERT INTO "om"."observed_properties" VALUES ('salinity',              1, 'salinity',              'urn:ogc:def:phenomenon:GEOM:salinity',              'the salinity in water');
+INSERT INTO "om"."observed_properties" VALUES ('aggregatePhenomenon-2', 1, 'aggregatePhenomenon-2', 'urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2', 'the aggregation of temperature depth, and salinity phenomenons');
 
 -- v100 --
-INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon', 'urn:ogc:def:phenomenon:GEOM:depth', 0);
-INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon', 'urn:ogc:def:phenomenon:GEOM:temperature', 1);
+INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('aggregatePhenomenon', 'depth', 0);
+INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('aggregatePhenomenon', 'temperature', 1);
 
-INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2', 'urn:ogc:def:phenomenon:GEOM:depth', 0);
-INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2', 'urn:ogc:def:phenomenon:GEOM:temperature', 1);
-INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2', 'urn:ogc:def:phenomenon:GEOM:salinity', 2);
+INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('aggregatePhenomenon-2', 'depth', 0);
+INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('aggregatePhenomenon-2', 'temperature', 1);
+INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('aggregatePhenomenon-2', 'salinity', 2);
 
 ---------
 
@@ -80,62 +80,62 @@ INSERT INTO "om"."offering_foi" VALUES ('offering-12','station-001');
 INSERT INTO "om"."offering_foi" VALUES ('offering-13','station-002');
 
 
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-2','urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon');
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-2','urn:ogc:def:phenomenon:GEOM:depth');
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-2','urn:ogc:def:phenomenon:GEOM:temperature');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-2','aggregatePhenomenon');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-2','depth');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-2','temperature');
 
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-3','urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon');
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-3','urn:ogc:def:phenomenon:GEOM:depth');
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-3','urn:ogc:def:phenomenon:GEOM:temperature');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-3','aggregatePhenomenon');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-3','depth');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-3','temperature');
 
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-4','urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon');
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-4','urn:ogc:def:phenomenon:GEOM:depth');
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-4','urn:ogc:def:phenomenon:GEOM:temperature');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-4','aggregatePhenomenon');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-4','depth');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-4','temperature');
 
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-5','urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon');
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-5','urn:ogc:def:phenomenon:GEOM:depth');
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-5','urn:ogc:def:phenomenon:GEOM:temperature');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-5','aggregatePhenomenon');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-5','depth');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-5','temperature');
 
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-7','urn:ogc:def:phenomenon:GEOM:temperature');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-7','temperature');
 
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-8','urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon');
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-8','urn:ogc:def:phenomenon:GEOM:depth');
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-8','urn:ogc:def:phenomenon:GEOM:temperature');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-8','aggregatePhenomenon');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-8','depth');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-8','temperature');
 
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-9','urn:ogc:def:phenomenon:GEOM:depth');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-9','depth');
 
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-10','urn:ogc:def:phenomenon:GEOM:depth');
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-11','urn:ogc:def:phenomenon:GEOM:depth');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-10','depth');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-11','depth');
 
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-12','urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2');
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-12','urn:ogc:def:phenomenon:GEOM:depth');
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-12','urn:ogc:def:phenomenon:GEOM:temperature');
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-12','urn:ogc:def:phenomenon:GEOM:salinity');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-12','aggregatePhenomenon-2');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-12','depth');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-12','temperature');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-12','salinity');
 
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-13','urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon');
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-13','urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2');
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-13','urn:ogc:def:phenomenon:GEOM:depth');
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-13','urn:ogc:def:phenomenon:GEOM:temperature');
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-13','urn:ogc:def:phenomenon:GEOM:salinity');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-13','aggregatePhenomenon');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-13','aggregatePhenomenon-2');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-13','depth');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-13','temperature');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-13','salinity');
 
-INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:201',   201, '2001-01-01 00:00:00.0', '2001-01-01 00:00:00.0', 'urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon',   'urn:ogc:object:sensor:GEOM:2',       'station-002');
-INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:406',   406, '2007-05-01 12:59:00.0', '2007-05-01 16:59:00.0', 'urn:ogc:def:phenomenon:GEOM:depth',                 'urn:ogc:object:sensor:GEOM:4',       'station-001');
-INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:304',   304, '2007-05-01 02:59:00.0', '2007-05-01 06:59:00.0', 'urn:ogc:def:phenomenon:GEOM:depth',                 'urn:ogc:object:sensor:GEOM:3',       'station-001');
-INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:305',   305, '2007-05-01 07:59:00.0', '2007-05-01 11:59:00.0', 'urn:ogc:def:phenomenon:GEOM:depth',                 'urn:ogc:object:sensor:GEOM:3',       'station-001');
-INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:307',   307, '2007-05-01 17:59:00.0', '2007-05-01 21:59:00.0', 'urn:ogc:def:phenomenon:GEOM:depth',                 'urn:ogc:object:sensor:GEOM:3',       'station-001');
-INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:507',   507, '2007-05-01 12:59:00.0', '2007-05-01 16:59:00.0', 'urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon',   'urn:ogc:object:sensor:GEOM:test-1',  'station-002');
-INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:801',   801, '2007-05-01 12:59:00.0', '2007-05-01 16:59:00.0', 'urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon',   'urn:ogc:object:sensor:GEOM:8',       'station-006');
-INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:702',   702,  NULL,                   NULL,                    'urn:ogc:def:phenomenon:GEOM:temperature',           'urn:ogc:object:sensor:GEOM:7',       'station-002');
-INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:901',   901, '2009-05-01 13:47:00.0', '2009-05-01 13:47:00.0', 'urn:ogc:def:phenomenon:GEOM:depth',                 'urn:ogc:object:sensor:GEOM:9',       'station-006');
-INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:1001', 1001, '2009-05-01 13:47:00.0', '2009-05-01 14:00:00.0', 'urn:ogc:def:phenomenon:GEOM:depth',                 'urn:ogc:object:sensor:GEOM:10',      'station-001');
-INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:1002', 1002, '2009-05-01 14:01:00.0', '2009-05-01 14:03:00.0', 'urn:ogc:def:phenomenon:GEOM:depth',                 'urn:ogc:object:sensor:GEOM:10',      'station-002');
-INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:1003', 1003, '2009-05-01 14:04:00.0', NULL,                    'urn:ogc:def:phenomenon:GEOM:depth',                 'urn:ogc:object:sensor:GEOM:10',      'station-002');
-INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:2000', 2000, '2009-05-01 13:47:00.0', '2009-05-01 14:03:00.0', 'urn:ogc:def:phenomenon:GEOM:depth',                 'urn:ogc:object:sensor:GEOM:test-id', 'station-001');
-INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:3000', 3000, '2000-12-01 00:00:00.0', '2012-12-22 00:00:00.0', 'urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2', 'urn:ogc:object:sensor:GEOM:12',      'station-001');
-INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:4000', 4000, '2000-01-01 00:00:00.0', '2000-04-01 00:00:00.0', 'urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon',   'urn:ogc:object:sensor:GEOM:13',      'station-002');
-INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:4001', 4001, '2000-05-01 00:00:00.0', '2000-07-01 00:00:00.0', 'urn:ogc:def:phenomenon:GEOM:depth',                 'urn:ogc:object:sensor:GEOM:13',      'station-002');
-INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:4002', 4002, '2000-08-01 00:00:00.0', '2000-10-01 00:00:00.0', 'urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2', 'urn:ogc:object:sensor:GEOM:13',      'station-002');
-INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:4003', 4003, '2000-11-01 00:00:00.0', '2001-01-01 00:00:00.0', 'urn:ogc:def:phenomenon:GEOM:temperature',           'urn:ogc:object:sensor:GEOM:13',      'station-002');
+INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:201',   201, '2001-01-01 00:00:00.0', '2001-01-01 00:00:00.0', 'aggregatePhenomenon',   'urn:ogc:object:sensor:GEOM:2',       'station-002');
+INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:406',   406, '2007-05-01 12:59:00.0', '2007-05-01 16:59:00.0', 'depth',                 'urn:ogc:object:sensor:GEOM:4',       'station-001');
+INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:304',   304, '2007-05-01 02:59:00.0', '2007-05-01 06:59:00.0', 'depth',                 'urn:ogc:object:sensor:GEOM:3',       'station-001');
+INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:305',   305, '2007-05-01 07:59:00.0', '2007-05-01 11:59:00.0', 'depth',                 'urn:ogc:object:sensor:GEOM:3',       'station-001');
+INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:307',   307, '2007-05-01 17:59:00.0', '2007-05-01 21:59:00.0', 'depth',                 'urn:ogc:object:sensor:GEOM:3',       'station-001');
+INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:507',   507, '2007-05-01 12:59:00.0', '2007-05-01 16:59:00.0', 'aggregatePhenomenon',   'urn:ogc:object:sensor:GEOM:test-1',  'station-002');
+INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:801',   801, '2007-05-01 12:59:00.0', '2007-05-01 16:59:00.0', 'aggregatePhenomenon',   'urn:ogc:object:sensor:GEOM:8',       'station-006');
+INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:702',   702,  NULL,                   NULL,                    'temperature',           'urn:ogc:object:sensor:GEOM:7',       'station-002');
+INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:901',   901, '2009-05-01 13:47:00.0', '2009-05-01 13:47:00.0', 'depth',                 'urn:ogc:object:sensor:GEOM:9',       'station-006');
+INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:1001', 1001, '2009-05-01 13:47:00.0', '2009-05-01 14:00:00.0', 'depth',                 'urn:ogc:object:sensor:GEOM:10',      'station-001');
+INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:1002', 1002, '2009-05-01 14:01:00.0', '2009-05-01 14:03:00.0', 'depth',                 'urn:ogc:object:sensor:GEOM:10',      'station-002');
+INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:1003', 1003, '2009-05-01 14:04:00.0', NULL,                    'depth',                 'urn:ogc:object:sensor:GEOM:10',      'station-002');
+INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:2000', 2000, '2009-05-01 13:47:00.0', '2009-05-01 14:03:00.0', 'depth',                 'urn:ogc:object:sensor:GEOM:test-id', 'station-001');
+INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:3000', 3000, '2000-12-01 00:00:00.0', '2012-12-22 00:00:00.0', 'aggregatePhenomenon-2', 'urn:ogc:object:sensor:GEOM:12',      'station-001');
+INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:4000', 4000, '2000-01-01 00:00:00.0', '2000-04-01 00:00:00.0', 'aggregatePhenomenon',   'urn:ogc:object:sensor:GEOM:13',      'station-002');
+INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:4001', 4001, '2000-05-01 00:00:00.0', '2000-07-01 00:00:00.0', 'depth',                 'urn:ogc:object:sensor:GEOM:13',      'station-002');
+INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:4002', 4002, '2000-08-01 00:00:00.0', '2000-10-01 00:00:00.0', 'aggregatePhenomenon-2', 'urn:ogc:object:sensor:GEOM:13',      'station-002');
+INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:4003', 4003, '2000-11-01 00:00:00.0', '2001-01-01 00:00:00.0', 'temperature',           'urn:ogc:object:sensor:GEOM:13',      'station-002');
 
 INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:2',  1, 'depth',       'Quantity', 'urn:ogc:def:phenomenon:GEOM:depth',        'm');
 INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:2',  2, 'temperature', 'Quantity', 'urn:ogc:def:phenomenon:GEOM:temperature',  '°C');

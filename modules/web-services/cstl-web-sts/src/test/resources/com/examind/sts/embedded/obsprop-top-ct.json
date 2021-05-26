@@ -1,12 +1,12 @@
 {
   "value" : [ {
-    "name" : "urn:ogc:def:phenomenon:GEOM:depth",
+    "name" : "depth",
     "definition" : "urn:ogc:def:phenomenon:GEOM:depth",
     "description" : "the depth in water",
-    "@iot.id" : "urn:ogc:def:phenomenon:GEOM:depth",
-    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:depth)",
-    "Datastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:depth)/Datastreams",
-    "MultiDatastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:depth)/MultiDatastreams"
+    "@iot.id" : "depth",
+    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/ObservedProperties(depth)",
+    "Datastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/ObservedProperties(depth)/Datastreams",
+    "MultiDatastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/ObservedProperties(depth)/MultiDatastreams"
   } ],
   "@iot.count" : 3,
   "@iot.nextLink" : "http://localhost:9090/WS/sts/default/ObservedProperties?$skip=1&$top=1"

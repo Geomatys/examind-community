@@ -389,7 +389,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 for (FieldPhenom phenField : phenFields) {
                     TemporalGeometricPrimitive tempTime = null;
                     if (includeTimeInTemplate) {
-                        tempTime = getTimeForTemplate(c, procedure, getName(phenField.phenomenon), featureID, version);
+                        tempTime = getTimeForTemplate(c, procedure, getId(phenField.phenomenon), featureID, version);
                     }
                     final Object result = buildMeasure(version, "measure-001", phenField.field.fieldUom, 0d);
                     observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + phenField.i, name + '-' + phenField.i, null, foi, phenField.phenomenon, procedure, result, tempTime));

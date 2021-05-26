@@ -239,6 +239,16 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             String.class,
             null, null, null
     );
+
+    public static final String OBS_PROP_NAME_COLUMN_NAME = "observed_properties_name_columns";
+    public static final String OBS_PROP_NAME_COLUMN_DESC = "Columns containing the observed property description (used with csv-flat)";
+    public static final ParameterDescriptor<String> OBS_PROP_NAME_COLUMN = new ExtendedParameterDescriptor<>(
+            OBS_PROP_NAME_COLUMN_NAME,
+            OBS_PROP_NAME_COLUMN_DESC,
+            0, 92,
+            String.class,
+            null, null, null
+    );
     
     public static final String TYPE_COLUMN_NAME = "type_column";
     public static final String TYPE_COLUMN_DESC = "type column";
@@ -259,7 +269,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
     public static final ParameterDescriptorGroup INPUT_DESC =
             PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, REMOTE_READ, SERVICE_ID, DATASET_IDENTIFIER, PROCEDURE_ID, PROCEDURE_COLUMN, OBS_TYPE,
                     SEPARATOR, CHARQUOTE, MAIN_COLUMN, Z_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, MEASURE_COLUMNS, REMOVE_PREVIOUS, EXTRACT_UOM,
-                    STORE_ID, FORMAT, RESULT_COLUMN, OBS_PROP_COLUMN, TYPE_COLUMN);
+                    STORE_ID, FORMAT, RESULT_COLUMN, OBS_PROP_COLUMN, OBS_PROP_NAME_COLUMN, TYPE_COLUMN);
 
     public static final String FILE_INSERTED_NAME = "files_inserted_count";
     public static final String FILE_INSERTED_DESC = "Number of files inserted ";

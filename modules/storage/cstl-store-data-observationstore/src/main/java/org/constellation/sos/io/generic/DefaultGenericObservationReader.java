@@ -318,6 +318,7 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
                     final CompositePhenomenonType phenomenon = new CompositePhenomenonType(phenomenonId,
                                                                                        compositeValues.getVariable("var15"),
                                                                                        compositeValues.getVariable("var16"),
+                                                                                       compositeValues.getVariable("var16"),
                                                                                        null,
                                                                                        components);
                     observedProperties.add(new PhenomenonPropertyType(phenomenon));
@@ -390,7 +391,7 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
             if (!exist) {
                 return getCompositePhenomenon(phenomenonName);
             }
-            return new PhenomenonType(phenomenonName, values.getVariable("var13"), values.getVariable("var14"));
+            return new PhenomenonType(phenomenonName, values.getVariable("var13"), values.getVariable("var13"), values.getVariable("var14"));
         } catch (ConstellationMetadataException ex) {
             throw new DataStoreException(ex);
         }
@@ -414,6 +415,7 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
             }
             compositeValues = loadData(Arrays.asList("var15", "var16"), phenomenonName);
             final CompositePhenomenonType phenomenon = new CompositePhenomenonType(phenomenonName,
+                                                                               compositeValues.getVariable("var15"),
                                                                                compositeValues.getVariable("var15"),
                                                                                compositeValues.getVariable("var16"),
                                                                                null,
