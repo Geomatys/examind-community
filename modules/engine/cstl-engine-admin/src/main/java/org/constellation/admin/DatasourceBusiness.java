@@ -41,6 +41,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -1020,16 +1021,9 @@ public class DatasourceBusiness implements IDatasourceBusiness {
                 params.put("url", ds.getUrl());
             }
         } else if (ds.getType().equals("database")) {
-            // decompose database url
-            String url = ds.getUrl();
-            String[] parts = url.split("/");
-            String dbName = parts[parts.length - 1];
-            String[] hostPort = parts[parts.length - 2].split(":");
-            params.put("host", hostPort[0]);
-            params.put("port", hostPort[1]);
-            params.put("database", dbName);
-            params.put("user", ds.getUsername());
-            params.put("password", ds.getPwd());
+             params.put("location", ds.getUrl());
+             params.put("user", ds.getUsername());
+             params.put("password", ds.getPwd());
         } else {
             if (params.containsKey("location")) {
                 params.put("location", path);
