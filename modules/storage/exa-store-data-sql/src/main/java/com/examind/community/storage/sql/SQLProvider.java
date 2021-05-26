@@ -1,12 +1,16 @@
 package com.examind.community.storage.sql;
 
+import com.zaxxer.hikari.HikariConfig;
+import java.net.URI;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Level;
 import java.util.regex.Pattern;
 import javax.sql.DataSource;
 import org.apache.sis.internal.sql.feature.QueryFeatureSet;
@@ -21,8 +25,10 @@ import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.StorageConnector;
+import org.apache.sis.storage.sql.SQLStore;
 import org.apache.sis.storage.sql.SQLStoreProvider;
 import org.apache.sis.util.iso.Names;
+import org.apache.sis.util.logging.Logging;
 import org.opengis.metadata.Metadata;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
@@ -37,9 +43,14 @@ public class SQLProvider extends DataStoreProvider {
     private static final Pattern NAME_SPLITTER = Pattern.compile("\\.|:");
     private static final Pattern TABLE_SPLITTER = Pattern.compile("\\s*(,|;|\\s)\\s*");
 
-    private final SQLStoreProvider sisProvider;
-
-    public static final ParameterDescriptor<DataSource> LOCATION;
+    public static final ParameterDescriptor<String> LOCATION;
+    /**
+     * An SQL query to consider as a feature set.
+     *
+     * We could handle many. However, multi-occurrence parameters are not yet well managed in add data > database form.
+     * Also, keeping a string and splitting it upon a given character could be tricky here, because queries are complex
+     * tests.
+     */
     public static final ParameterDescriptor<String> QUERY;
     public static final ParameterDescriptor<String> TABLES;
 
@@ -48,14 +59,19 @@ public class SQLProvider extends DataStoreProvider {
     static {
         final ParameterBuilder builder = new ParameterBuilder();
         builder.setRequired(true);
-        LOCATION = builder.addName(DataStoreProvider.LOCATION).create(DataSource.class, null);
+        LOCATION = builder.addName(DataStoreProvider.LOCATION).create(String.class, null);
 
         builder.setRequired(false);
-        TABLES = builder.addName("table").create(String.class, null);
+        TABLES = builder.addName("tables").create(String.class, null);
         QUERY = builder.addName("query").create(String.class, null);
 
         INPUT = builder.addName(NAME).createGroup(LOCATION, TABLES, QUERY);
     }
+
+    // TODO: dependency injection would be preferable
+    private static final DatasourceCache cache = new DatasourceCache();
+
+    private final SQLStoreProvider sisProvider;
 
     public SQLProvider() {
         sisProvider = new SQLStoreProvider();
@@ -87,6 +103,41 @@ public class SQLProvider extends DataStoreProvider {
         return new SQLStore(p);
     }
 
+    private DataSource createDatasource(Parameters config) {
+        String url = config.getMandatoryValue(LOCATION);
+        // Workaround: enforce valid JDBC URL if possible. Examind sometimes allow custom uri String.
+        if (url.startsWith("postgres:")) url = "jdbc:postgresql:" + url.substring(9);
+        else if (!url.startsWith("jdbc")) url = "jdbc:" + url;
+        String user = config.getValue(USER);
+        String password = config.getValue(PASSWORD);
+        if (user == null) {
+            final Map.Entry<String, String> userInfo = extractLoginPassword(url);
+            if (userInfo != null) {
+                user = userInfo.getKey();
+                password = userInfo.getValue();
+            }
+        }
+        final HikariConfig hikariConfig = new HikariConfig();
+        hikariConfig.setJdbcUrl(url);
+        hikariConfig.setUsername(user);
+        hikariConfig.setPassword(password);
+
+        return cache.getOrCreate(hikariConfig);
+    }
+
+    private Map.Entry<String, String> extractLoginPassword(String sourceUrl) {
+        // Maybe they're encoded in JDBC URL.
+        try {
+            final URI uri = new URI(sourceUrl);
+            final String userInfo = uri.getUserInfo();
+            if (userInfo != null) throw new UnsupportedOperationException("TODO: decode user info if any");
+        } catch (Exception e) {
+            Logging.getLogger("com.examind.storage.sql")
+                    .log(Level.FINE, "Error while analysing JDBC URL for a username", e);
+        }
+        return null;
+    }
+
     class SQLStore extends DataStore implements Aggregate {
         private final DataSource datasource;
         private final Parameters parameters;
@@ -95,7 +146,7 @@ public class SQLProvider extends DataStoreProvider {
         private final List<FeatureSet> datasets;
 
         public SQLStore(Parameters parameters) throws DataStoreException {
-            this.datasource = parameters.getMandatoryValue(LOCATION);
+            this.datasource = createDatasource(parameters);
             this.parameters = parameters;
 
             String tables = parameters.getValue(TABLES);
