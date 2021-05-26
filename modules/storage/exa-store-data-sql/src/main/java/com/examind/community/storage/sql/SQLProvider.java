@@ -45,6 +45,11 @@ public class SQLProvider extends DataStoreProvider {
     public static final ParameterDescriptor<String> LOCATION;
     public static final ParameterDescriptor<String> USER;
     public static final ParameterDescriptor<String> PASSWORD;
+    public static final ParameterDescriptor<Integer> MIN_IDLE;
+    public static final ParameterDescriptor<Integer> MAX_CONNECTIONS;
+    public static final ParameterDescriptor<Long> IDLE_TIMEOUT;
+    public static final ParameterDescriptor<Long> CONNECT_TIMEOUT;
+
     /**
      * An SQL query to consider as a feature set.
      *
@@ -60,11 +65,13 @@ public class SQLProvider extends DataStoreProvider {
     static {
         final ParameterBuilder builder = new ParameterBuilder();
         builder.setRequired(true);
+
         LOCATION = builder.addName(DataStoreProvider.LOCATION)
                 .setDescription("JDBC URL to use to connect to the database. User and password must be provided separately")
                 .create(String.class, null);
 
         builder.setRequired(false);
+
         USER = builder.addName("user")
                 .setDescription("User name to use when connecting to the database")
                 .create(String.class, null);
@@ -82,7 +89,27 @@ public class SQLProvider extends DataStoreProvider {
                 .setDescription("An SQL query to consider as a feature set")
                 .create(String.class, null);
 
-        INPUT = builder.addName(NAME).createGroup(LOCATION, USER, PASSWORD, TABLES, QUERY);
+        MIN_IDLE = builder.addName("minIdle")
+                .setDescription("Minimum number of idle (available) connections to try to maintain in the connection pool")
+                .create(Integer.class, null);
+
+        MAX_CONNECTIONS = builder.addName("maxConnections")
+                .setDescription("Maximum number of connections accepted in the pool")
+                .create(Integer.class, 5);
+
+        IDLE_TIMEOUT = builder.addName("idleTimeoutMs")
+                .setDescription("Maximum number of milliseconds to keep idle connections alive")
+                .create(Long.class, null);
+
+        CONNECT_TIMEOUT = builder.addName("connectTimeoutMs")
+                .setDescription("Time to wait for connection in milliseconds")
+                .create(Long.class, null);
+
+        INPUT = builder.addName(NAME).createGroup(
+                LOCATION, USER, PASSWORD,
+                TABLES, QUERY,
+                MIN_IDLE, MAX_CONNECTIONS, IDLE_TIMEOUT, CONNECT_TIMEOUT
+        );
     }
 
     // TODO: dependency injection would be preferable
@@ -138,6 +165,18 @@ public class SQLProvider extends DataStoreProvider {
         hikariConfig.setJdbcUrl(url);
         hikariConfig.setUsername(user);
         hikariConfig.setPassword(password);
+
+        final Integer minIdle = config.getValue(MIN_IDLE);
+        if (minIdle !=null) hikariConfig.setMinimumIdle(minIdle);
+
+        final Integer maxConnections = config.getValue(MAX_CONNECTIONS);
+        if (maxConnections !=null) hikariConfig.setMaximumPoolSize(maxConnections);
+
+        final Long idleTimeout = config.getValue(IDLE_TIMEOUT);
+        if (idleTimeout !=null) hikariConfig.setIdleTimeout(idleTimeout);
+
+        final Long connectTimeout = config.getValue(CONNECT_TIMEOUT);
+        if (connectTimeout !=null) hikariConfig.setConnectionTimeout(connectTimeout);
 
         return cache.getOrCreate(hikariConfig);
     }
