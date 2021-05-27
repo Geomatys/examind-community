@@ -9,13 +9,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.IntSupplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.xml.namespace.QName;
 
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.Metadata;
@@ -25,7 +26,6 @@ import org.apache.sis.storage.DataSet;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureNaming;
-import org.apache.sis.storage.IllegalNameException;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.WritableAggregate;
 import org.apache.sis.util.Classes;
@@ -43,6 +43,7 @@ import org.constellation.provider.DataProviders;
 import org.constellation.repository.DataRepository;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -111,7 +112,7 @@ final class DataStoreHandle implements AutoCloseable {
         final CachedData data = index.get(store, key.toString());
 
         if (store instanceof FeatureStore) {
-            ((FeatureStore) store).deleteFeatureType(data.nameAsStr);
+            ((FeatureStore) store).deleteFeatureType(data.dataName.toString());
         } else if (store instanceof WritableAggregate) {
             final Resource sisData = data.getOrCreate(null).getOrigin();
             ((WritableAggregate) store).remove(sisData);
@@ -122,12 +123,13 @@ final class DataStoreHandle implements AutoCloseable {
         return true;
     }
 
-    private Data create(final String dataName, Date version) throws DataStoreException {
-        final Resource rs = tryProxify(dataName, store.findResource(dataName));
-        return dataCreator.create(dataName, version, store, rs);
+    private Data create(final GenericName dataName, Date version) throws DataStoreException {
+        final String strName = dataName.toString();
+        final Resource rs = tryProxify(dataName, store.findResource(strName));
+        return dataCreator.create(strName, version, store, rs);
     }
 
-    private Resource tryProxify(final String dataName, final Resource target) {
+    private Resource tryProxify(final GenericName dataName, final Resource target) {
         if (target == null) return null;
         try {
             final IMetadataBusiness mdBiz = SpringHelper.getBean(IMetadataBusiness.class);
@@ -164,31 +166,35 @@ final class DataStoreHandle implements AutoCloseable {
     /**
      * HACK: That's a hack method to find back target data into Examind administration database. Note that a proper
      * management would require to completely refactor the system to unify Examind DTO with resource access mecanism.
-     * @param dataName Name of the data to search in Examind database. Must be of the form: [namespace:]codename.
-     * @return
+     * @param dataName Name of the data to search in Examind database. Must contain both namespace and code name as
+     *                 registered in Examind administration database.
+     * @return Examind registered ID for given data name.
      * @throws ConstellationException If given name format is not supported, or there's a problem with database access.
      */
-    private static int searchRelatedExamindData(final String providerName, final String dataName) throws ConstellationException {
+    private static int searchRelatedExamindData(final String providerName, final GenericName dataName) throws ConstellationException {
         final DataRepository dataBiz = SpringHelper.getBean(DataRepository.class);
-        final String[] splittedName = dataName.split(SEPARATOR);
-        final QName name;
-        if (splittedName.length < 1) throw new ConstellationException("Invalid data name: "+dataName);
-        else if (splittedName.length == 1) {
-            name = new QName(splittedName[0]);
-        } else if (splittedName.length == 2) {
-            if (splittedName[0].isEmpty()) name = new QName(splittedName[1]);
-            else name = new QName(splittedName[0], splittedName[1]);
+        final List<String> parsedNames = dataName.toFullyQualifiedName().getParsedNames().stream()
+                .map(name -> name.tip().toString())
+                .collect(Collectors.toList());
+        String ns = null, local = null;
+        if (parsedNames.isEmpty()) throw new ConstellationException("Invalid data name: "+dataName);
+        else if (parsedNames.size() == 1) {
+            local = parsedNames.get(0);
+        } else if (parsedNames.size() == 2) {
+            ns = parsedNames.get(0);
+            if (ns == "") ns = null;
+            local = parsedNames.get(1);
         } else throw new ConstellationException("Unsupported name format: Multiple namespaces in "+dataName);
-        final org.constellation.dto.Data databaseData = dataBiz.findDataFromProvider(name.getNamespaceURI(), name.getLocalPart(), providerName);
+        final org.constellation.dto.Data databaseData = dataBiz.findDataFromProvider(ns, local, providerName);
         if (databaseData == null || databaseData.getId() == null)
             throw new ConstellationException(String.format("No data found for name %s in provider %s", dataName, providerName));
         return databaseData.getId();
     }
 
     /**
-     * See {@link #searchRelatedExamindData(String, String)}
+     * @see #searchRelatedExamindData(String, GenericName)
      */
-    private static int searchRelatedExamindDataRuntimeException(final String providerName, final String dataName) {
+    private static int searchRelatedExamindDataRuntimeException(final String providerName, final GenericName dataName) {
         try {
             return searchRelatedExamindData(providerName, dataName);
         } catch (ConstellationException e) {
@@ -249,22 +255,20 @@ final class DataStoreHandle implements AutoCloseable {
      */
     private class CachedData {
         final GenericName dataName;
-        final String nameAsStr;
 
         WeakReference<Data> ref;
 
         private CachedData(GenericName dataName) {
             this.dataName = dataName;
-            nameAsStr = dataName.toString();
         }
 
         Data getOrCreate(final Date version) throws DataStoreException {
             // In case a version is given (~ 0.00001% of cases), skip cache.
-            if (version != null) return create(nameAsStr, version);
+            if (version != null) return create(dataName, version);
 
             Data cached = ref == null? null : ref.get();
             if (cached == null) {
-                cached = create(nameAsStr, null); // Ok because we short-circuit non-null version above.
+                cached = create(dataName, null); // Ok because we short-circuit non-null version above.
                 ref = new WeakReference<>(cached);
             }
             return cached;
