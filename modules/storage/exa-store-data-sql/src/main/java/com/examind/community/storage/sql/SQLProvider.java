@@ -3,7 +3,9 @@ package com.examind.community.storage.sql;
 import com.zaxxer.hikari.HikariConfig;
 import java.net.URI;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -11,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.sql.DataSource;
 import org.apache.sis.internal.sql.feature.QueryFeatureSet;
@@ -25,6 +28,7 @@ import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.StorageConnector;
+import org.apache.sis.storage.sql.SQLStore;
 import org.apache.sis.storage.sql.SQLStoreProvider;
 import org.apache.sis.util.iso.Names;
 import org.apache.sis.util.logging.Logging;
@@ -34,6 +38,8 @@ import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.GenericName;
 
+import static org.apache.sis.storage.sql.SQLStoreProvider.createTableName;
+
 public class SQLProvider extends DataStoreProvider {
 
     public static final String NAME = "SQL";
@@ -41,6 +47,20 @@ public class SQLProvider extends DataStoreProvider {
     private static final Pattern INTERROGATION_WILDCARD = Pattern.compile("\\?+");
     private static final Pattern NAME_SPLITTER = Pattern.compile("\\.|:");
     private static final Pattern TABLE_SPLITTER = Pattern.compile("\\s*(,|;|\\s)\\s*");
+
+    /**
+     * Search for any table containing geometries and/or geographies. Ignore tiger schema because it's a geocoder
+     * provided by default. Most of the time, it won"t be used by user.
+     */
+    private static final String DEFAULT_TABLE_SEARCH = "SELECT *\n" +
+            "FROM (\n" +
+            "         SELECT f_table_catalog, f_table_schema, f_table_name\n" +
+            "         FROM geometry_columns\n" +
+            "         UNION DISTINCT\n" +
+            "         SELECT f_table_catalog, f_table_schema, f_table_name\n" +
+            "         FROM geography_columns\n" +
+            "     ) as tmp\n" +
+            "WHERE f_table_schema != 'tiger';";
 
     public static final ParameterDescriptor<String> LOCATION;
     public static final ParameterDescriptor<String> USER;
@@ -61,6 +81,7 @@ public class SQLProvider extends DataStoreProvider {
     public static final ParameterDescriptor<String> TABLES;
 
     public static final ParameterDescriptorGroup INPUT;
+    static final Logger LOGGER = Logging.getLogger("com.examind.storage.sql");
 
     static {
         final ParameterBuilder builder = new ParameterBuilder();
@@ -188,8 +209,7 @@ public class SQLProvider extends DataStoreProvider {
             final String userInfo = uri.getUserInfo();
             if (userInfo != null) throw new UnsupportedOperationException("TODO: decode user info if any");
         } catch (Exception e) {
-            Logging.getLogger("com.examind.storage.sql")
-                    .log(Level.FINE, "Error while analysing JDBC URL for a username", e);
+            LOGGER.log(Level.FINE, "Error while analysing JDBC URL for a username", e);
         }
         return null;
     }
@@ -207,23 +227,35 @@ public class SQLProvider extends DataStoreProvider {
 
             String tables = parameters.getValue(TABLES);
             List<FeatureSet> tmpDatasets = new ArrayList<>();
-            if (tables == null || (tables = tables.trim()).isEmpty()) {
-                sisStore = null;
-            } else {
-                final GenericName[] tableNames = TABLE_SPLITTER.splitAsStream(tables)
+            String query = parameters.getValue(QUERY);
+            final boolean queryProvided = query != null && !(query = query.trim()).isEmpty();
+            final boolean tableProvided = tables != null && !(tables = tables.trim()).isEmpty();
+            final GenericName[] tableNames;
+            if (!queryProvided && !tableProvided) {
+                // No table and no query given by user. We'll try to get a predefined set from PostGIS metadata
+                LOGGER.log(Level.WARNING, "No table or query provided. A costly scan will be triggered to find a default set of tables to use");
+                try (Connection c = datasource.getConnection()) {
+                    tableNames = searchForGeometricTables(c);
+                } catch (Exception e) {
+                    throw new DataStoreException("Search for geometric columns failed", e);
+                }
+            } else if (tableProvided) {
+                tableNames = TABLE_SPLITTER.splitAsStream(tables)
                         .map(table -> STAR_WILDCARD.matcher(table).replaceAll("%"))
                         .map(table -> INTERROGATION_WILDCARD.matcher(table).replaceAll("_"))
                         .map(table -> Names.createGenericName(null, ".", NAME_SPLITTER.split(table)))
                         .toArray(GenericName[]::new);
-                final ParameterValueGroup sisParams = sisProvider.getOpenParameters().createValue();
-                sisParams.parameter(DataStoreProvider.LOCATION).setValue(datasource);
-                sisParams.parameter("tables").setValue(tableNames);
-                sisStore = sisProvider.open(sisParams);
-                tmpDatasets.addAll(org.geotoolkit.storage.DataStores.flatten(sisStore, false, FeatureSet.class));
+            } else {
+                tableNames = null;
             }
 
-            String query = parameters.getValue(QUERY);
-            if (query != null && !(query = query.trim()).isEmpty()) {
+            if (tableNames == null) {
+                sisStore = null;
+            } else {
+                sisStore = createForTables(datasource, tableNames);
+                tmpDatasets.addAll(org.geotoolkit.storage.DataStores.flatten(sisStore, false, FeatureSet.class));
+            }
+            if (queryProvided) {
                 try (Connection conn = datasource.getConnection()) {
                     tmpDatasets.add(new QueryFeatureSet(query, datasource, conn));
                 } catch (SQLException e) {
@@ -255,5 +287,26 @@ public class SQLProvider extends DataStoreProvider {
         public void close() throws DataStoreException {
             if (sisStore != null) sisStore.close();
         }
+    }
+
+    private DataStore createForTables(final DataSource datasource, final GenericName[] tableNames) throws DataStoreException {
+        final ParameterValueGroup sisParams = sisProvider.getOpenParameters().createValue();
+        sisParams.parameter(DataStoreProvider.LOCATION).setValue(datasource);
+        sisParams.parameter("tables").setValue(tableNames);
+        return sisProvider.open(sisParams);
+    }
+
+    private static GenericName[] searchForGeometricTables(Connection c) throws SQLException {
+        final List<GenericName> names = new ArrayList<>();
+        try (Statement s = c.createStatement(); ResultSet r = s.executeQuery(DEFAULT_TABLE_SEARCH)) {
+            while (r.next()) {
+                String catalog = r.getString(1);
+                String schema = r.getString(2);
+                String table = r.getString(3);
+
+                names.add(createTableName(catalog, schema, table));
+            }
+        }
+        return names.toArray(new GenericName[names.size()]);
     }
 }
