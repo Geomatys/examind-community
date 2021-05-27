@@ -154,7 +154,12 @@ public class SQLProvider extends DataStoreProvider {
 
     @Override
     public ProbeResult probeContent(StorageConnector storageConnector) throws DataStoreException {
-        return sisProvider.probeContent(storageConnector);
+        try {
+            return sisProvider.probeContent(storageConnector);
+        } catch (Exception e) {
+            LOGGER.log(Level.FINE, "Content probing failed using SQL provider", e);
+            return ProbeResult.UNSUPPORTED_STORAGE;
+        }
     }
 
     @Override
