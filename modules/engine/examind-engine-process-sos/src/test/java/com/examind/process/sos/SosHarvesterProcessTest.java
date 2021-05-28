@@ -87,11 +87,13 @@ import org.geotoolkit.sos.xml.v200.GetResultType;
 import org.geotoolkit.sts.GetHistoricalLocations;
 import org.geotoolkit.sts.GetObservations;
 import org.geotoolkit.sts.GetObservedProperties;
+import org.geotoolkit.sts.GetThingById;
 import org.geotoolkit.sts.json.DataArrayResponse;
 import org.geotoolkit.sts.json.HistoricalLocation;
 import org.geotoolkit.sts.json.HistoricalLocationsResponse;
 import org.geotoolkit.sts.json.ObservedPropertiesResponse;
 import org.geotoolkit.sts.json.ObservedProperty;
+import org.geotoolkit.sts.json.Thing;
 import org.geotoolkit.swe.xml.Phenomenon;
 import org.geotoolkit.swe.xml.v200.DataArrayPropertyType;
 import org.junit.AfterClass;
@@ -2000,7 +2002,11 @@ public class SosHarvesterProcessTest {
         ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
         Assert.assertNotNull(sc);
 
+        ServiceComplete sc2 = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
+        Assert.assertNotNull(sc2);
+
         sensorServBusiness.removeAllSensors(sc.getId());
+        sensorServBusiness.removeAllSensors(sc2.getId());
 
         SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
         sosWorker.setServiceUrl("http://localhost/examind/");
@@ -2031,19 +2037,22 @@ public class SosHarvesterProcessTest {
         in.parameter(SosHarvesterProcessDescriptor.LONGITUDE_COLUMN_NAME).setValue("LONGITUDE");
 
         ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
-        val1.setValue("25049001-7");
+        val1.setValue("7-FLORTOT");
         in.values().add(val1);
         ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
-        val2.setValue("25049001-18");
+        val2.setValue("18-FLORTOT");
         in.values().add(val2);
+        ParameterValue val3 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        val3.setValue("18-SALI");
+        in.values().add(val3);
 
         in.parameter(SosHarvesterProcessDescriptor.RESULT_COLUMN_NAME).setValue("VALUE");
 
         ParameterValue cc1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).createValue();
-        cc1.setValue("PLATFORM_ID");
+        cc1.setValue("SUPPORT");
         in.values().add(cc1);
         ParameterValue cc2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).createValue();
-        cc2.setValue("SUPPORT");
+        cc2.setValue("PARAMETER");
         in.values().add(cc2);
 
         ParameterValue od1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_NAME_COLUMN_NAME).createValue();
@@ -2054,10 +2063,18 @@ public class SosHarvesterProcessTest {
         in.values().add(od2);
 
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
-        //in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_COLUMN_NAME).setValue("platform_code");
-        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_ID_NAME).setValue("urn:surval");
+        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_COLUMN_NAME).setValue("PLATFORM_ID");
+        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_NAME_COLUMN_NAME).setValue("PLATFORM_NAME");
+        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_ID_NAME).setValue("urn:surval:");
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(true);
         in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
+
+        ParameterValue s1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
+        s1.setValue(new ServiceProcessReference(sc));
+        in.values().add(s1);
+        ParameterValue s2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
+        s2.setValue(new ServiceProcessReference(sc2));
+        in.values().add(s2);
 
         org.geotoolkit.process.Process proc = desc.createProcess(in);
         proc.call();
@@ -2066,7 +2083,11 @@ public class SosHarvesterProcessTest {
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
 
         // verify that the sensor has been created
-        Assert.assertNotNull(sensorBusiness.getSensor("urn:surval"));
+        Assert.assertNotNull(sensorBusiness.getSensor("urn:surval:25049001"));
+
+        Thing t = getThing(stsWorker, "urn:surval:25049001");
+        Assert.assertNotNull(t);
+        Assert.assertEquals("055-P-001 - Men er Roue", t.getName());
 
 
         Assert.assertEquals(1, getNbOffering(sosWorker, prev));
@@ -2077,7 +2098,7 @@ public class SosHarvesterProcessTest {
         * first extracted procedure
         */
 
-        ObservationOffering offp = getOffering(sosWorker, "urn:surval");
+        ObservationOffering offp = getOffering(sosWorker, "urn:surval:25049001");
         Assert.assertNotNull(offp);
 
         Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
@@ -2094,14 +2115,16 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(1, offp.getObservedProperties().size());
         String observedProperty = offp.getObservedProperties().get(0);
 
-        verifyAllObservedProperties(stsWorker, "urn:surval", Arrays.asList("25049001-7", "25049001-18"));
+        verifyAllObservedProperties(stsWorker, "urn:surval:25049001", Arrays.asList("7-FLORTOT", "18-FLORTOT", "18-SALI"));
 
-        List<ObservedProperty> obsProperties = getFullObservedProperties(stsWorker, "urn:surval");
+        List<ObservedProperty> obsProperties = getFullObservedProperties(stsWorker, "urn:surval:25049001");
         for(ObservedProperty op : obsProperties) {
-            if ("25049001-7".equals(op.getIotId())) {
-                Assert.assertEquals("Support : Masse d'eau, eau brute - Niveau : Surface (0-1m)", op.getName());
-            } else if ("25049001-18".equals(op.getIotId())) {
-                Assert.assertEquals("Support : Masse d'eau, eau brute - Niveau : Mi-profondeur", op.getName());
+            if ("7-FLORTOT".equals(op.getIotId())) {
+                Assert.assertEquals("Support : Masse d'eau, eau brute - Niveau : Surface (0-1m)-Flore Totale - abondance de cellules", op.getName());
+            } else if ("18-FLORTOT".equals(op.getIotId())) {
+                Assert.assertEquals("Support : Masse d'eau, eau brute - Niveau : Mi-profondeur-Flore Totale - abondance de cellules", op.getName());
+            } else if ("18-SALI".equals(op.getIotId())) {
+                Assert.assertEquals("Support : Masse d'eau, eau brute - Niveau : Mi-profondeur-Salinité", op.getName());
             } else {
                 Assert.fail("Unexpected observed properties:" + op.getIotId());
             }
@@ -2115,7 +2138,7 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
 
         GetHistoricalLocations hl = new GetHistoricalLocations();
-        hl.getExtraFilter().put("procedure", "urn:surval");
+        hl.getExtraFilter().put("procedure", "urn:surval:25049001");
         hl.getExpand().add("Locations");
         HistoricalLocationsResponse response = stsWorker.getHistoricalLocations(hl);
 
@@ -2123,8 +2146,8 @@ public class SosHarvesterProcessTest {
 
         HistoricalLocation loc1 = response.getValue().get(0);
         verifyHistoricalLocation(loc1, sdf, "2007-12-18T00:00:00Z", -3.093748, 47.534765);
-        int nbMeasure = getNbMeasure(stsWorker, "urn:surval");
-        Assert.assertEquals(989, nbMeasure);
+        int nbMeasure = getNbMeasure(stsWorker, "urn:surval:25049001");
+        Assert.assertEquals(791, nbMeasure);
 
     }
 
@@ -2268,6 +2291,12 @@ public class SosHarvesterProcessTest {
             results.add(op.getIotId());
         }
         return results;
+    }
+
+    private static Thing getThing(STSWorker stsWorker, String sensorId) throws CstlServiceException {
+        GetThingById request = new GetThingById();
+        request.setId(sensorId);
+        return stsWorker.getThingById(request);
     }
 
     private static List<ObservedProperty> getFullObservedProperties(STSWorker stsWorker, String sensorId) throws CstlServiceException {

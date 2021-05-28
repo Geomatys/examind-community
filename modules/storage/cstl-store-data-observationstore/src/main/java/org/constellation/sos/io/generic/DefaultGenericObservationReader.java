@@ -618,6 +618,7 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
             }
             final FeatureProperty foi = SOSXmlFactory.buildFeatureProperty(version, featureOfInterest);
             final Object result = getResult(resultID, resultModel, version);
+            final Process procedure = SOSXmlFactory.buildProcess(version, proc);
             if (version.equals("1.0.0")) {
                 if (resultModel.equals(OBSERVATION_QNAME)) {
 
@@ -627,7 +628,7 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
                                                          null,
                                                          foi,
                                                          observedProperty,
-                                                         proc,
+                                                         procedure,
                                                          result,
                                                          samplingTime);
                 } else if (resultModel.equals(MEASUREMENT_QNAME)) {
@@ -637,7 +638,7 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
                                                          null,
                                                          foi,
                                                          observedProperty,
-                                                         proc,
+                                                         procedure,
                                                          (Measure)result,
                                                          (org.geotoolkit.gml.xml.v311.TimePeriodType)samplingTime);
                 } else {
@@ -650,7 +651,7 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
                                                      null,
                                                      foi,
                                                      observedProperty,
-                                                     proc,
+                                                     procedure,
                                                      result,
                                                      samplingTime);
             } else {

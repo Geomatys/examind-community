@@ -1674,7 +1674,7 @@ public class SOSworker extends SensorWorker {
             }
         }
 
-        String sensorId = "";
+        Process sensorId = null;
         String assignedOffering = null;
         try {
             //we get the observation template provided with the sensor description.
@@ -1703,15 +1703,15 @@ public class SOSworker extends SensorWorker {
             //we create a new Identifier from the SensorML database
             final String smlExtractedIdentifier = SensorMLUtilities.getSmlID(process);
             if (temp.getProcedure() != null) {
-                sensorId  = temp.getProcedure();
+                sensorId  = (Process) temp.getProcedure();
                 LOGGER.log(Level.INFO, "using specified sensor ID:{0}", new Object[]{sensorId});
 
             } else if (!smlExtractedIdentifier.equals("unknow_identifier")){
-                sensorId  = smlExtractedIdentifier;
+                sensorId  = (Process) SOSXmlFactory.buildProcess(currentVersion, smlExtractedIdentifier);
 
                 LOGGER.log(Level.INFO, "using extracted sensor ID:{0}", new Object[]{sensorId});
             } else {
-                sensorId = sensorBusiness.getNewSensorId(smlProviderID);
+                sensorId = (Process) SOSXmlFactory.buildProcess(currentVersion, sensorBusiness.getNewSensorId(smlProviderID));
             }
 
             /*
@@ -1721,13 +1721,13 @@ public class SOSworker extends SensorWorker {
              * does we have to keep the one of the metadata instead of generating one?
              */
             if (process.getMember().size() == 1) {
-                process.getMember().get(0).getRealProcess().setId(sensorId);
+                process.getMember().get(0).getRealProcess().setId(sensorId.getHref());
             } else {
                 LOGGER.warning("multiple SensorML member");
             }
             //and we write it in the sensorML Database
             final String smlType = SensorMLUtilities.getSensorMLType(process);
-            Integer sid = sensorBusiness.create(sensorId, smlType, null, null, process, System.currentTimeMillis(), smlProviderID);
+            Integer sid = sensorBusiness.create(sensorId.getHref(), smlType, null, null, process, System.currentTimeMillis(), smlProviderID);
             sensorBusiness.addSensorToService(getServiceId(), sid);
 
             // and we record the position of the piezometer
@@ -1740,8 +1740,8 @@ public class SOSworker extends SensorWorker {
             if (omProvider != null) {
                 //we write the observation template in the O&amp;M database
                 omProvider.writeTemplate(temp.getObservation(), sensorId, temp.getFullObservedProperties(), temp.getFeatureOfInterest());
-                omProvider.writeLocation(sensorId, (Geometry) position);
-                assignedOffering = addSensorToOffering(sensorId, temp, currentVersion);
+                omProvider.writeLocation(sensorId.getHref(), (Geometry) position);
+                assignedOffering = addSensorToOffering(sensorId.getHref(), temp, currentVersion);
 
             } else {
                 LOGGER.warning("unable to record Sensor template and location in O&M datasource: no O&M writer");
@@ -1752,7 +1752,7 @@ public class SOSworker extends SensorWorker {
         }
 
         LOGGER.log(Level.INFO, "registerSensor processed in {0}ms", (System.currentTimeMillis() - start));
-        return buildInsertSensorResponse(currentVersion, sensorId, assignedOffering);
+        return buildInsertSensorResponse(currentVersion, sensorId.getHref(), assignedOffering);
     }
 
     /**
@@ -2130,7 +2130,8 @@ public class SOSworker extends SensorWorker {
 
         //we add the new sensor to the offering
         List<String>  offProc = new ArrayList<>();
-        final String processID = template.getProcedure();
+        final Process proc = (Process) template.getProcedure();
+        final String processID = proc.getHref();
         if (!offering.getProcedures().contains(processID)) {
             offProc.add(processID);
         }
@@ -2168,7 +2169,8 @@ public class SOSworker extends SensorWorker {
        LOGGER.log(Level.INFO, "offering {0} not present, first build", offeringName);
 
         //we add the template process
-        final String process = template.getProcedure();
+        final Process proc = (Process) template.getProcedure();
+        final String processID = proc.getHref();
 
         //we add the template phenomenon
         final List<String> observedProperties = template.getObservedProperties();
@@ -2186,7 +2188,7 @@ public class SOSworker extends SensorWorker {
             description = "Base offering containing all the sensors.";
         }
         // we create a the new Offering
-        Offering offering = new Offering(offeringName, offeringName, description, srsName, resultModel, Arrays.asList(process), Arrays.asList(featureOfInterest), observedProperties, null);
+        Offering offering = new Offering(offeringName, offeringName, description, srsName, resultModel, Arrays.asList(processID), Arrays.asList(featureOfInterest), observedProperties, null);
         omProvider.writeOffering(offering, observedPropertiesV100, acceptedSensorMLFormats.get(version), version);
     }
 

@@ -18,7 +18,7 @@
     "@iot.id" : "urn:ogc:object:sensor:GEOM:2-977439600000",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:2-977439600000)",
     "Things" : [ {
-      "name" : "urn:ogc:object:sensor:GEOM:2",
+      "name" : "Sensor 2",
       "description" : "urn:ogc:object:sensor:GEOM:2",
       "properties" : {
         "type" : "profile"
@@ -32,7 +32,7 @@
     "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:2-977439600000)/HistoricalLocations"
   } ],
   "Thing" : {
-    "name" : "urn:ogc:object:sensor:GEOM:2",
+    "name" : "Sensor 2",
     "description" : "urn:ogc:object:sensor:GEOM:2",
     "properties" : {
       "type" : "profile"

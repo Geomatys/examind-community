@@ -14,19 +14,19 @@ INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('aggr
 
 ---------
 
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:1',       x'000000000140efef0000000000413a6b2800000000', 27582, 1,  NULL, 'system',    'timeseries');
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:2',       x'000000000140f207a9e96900384139bf0a15544d08', 27582, 2,  NULL, 'component', 'profile');
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:3',       x'00000000014044000000000000c008000000000000', 4326,  3,  NULL, 'system',    'timeseries');
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:4',       x'000000000140240000000000004024000000000000', 4326,  4,  NULL, 'system',    'timeseries');
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:test-1',  x'000000000140140000000000004024000000000000', 4326,  5,  NULL, 'system',    'timeseries');
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:6',       x'000000000140140000000000004014000000000000', 4326,  6,  NULL, 'system',    'timeseries');
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:7',       x'00000000014145b7ca31487fc1c138da59f139abf8', 27582, 7,  NULL, 'system',    'timeseries');
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:8',       x'000000000140efef0000000000413a6b2800000000', 27582, 8,  NULL, 'system',    'timeseries');
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:9',       x'000000000140efef0000000000413a6b2800000000', 27582, 9,  NULL, 'system',    'profile');
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:10',      x'000000000140efef0000000000413a6b2800000000', 27582, 10, NULL, 'system',    'timeseries');
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:test-id', x'000000000140efef0000000000413a6b2800000000', 27582, 11, NULL, 'system',    'timeseries');
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:12',      x'000000000140efef0000000000413a6b2800000000', 27582, 12, NULL, 'system',    'timeseries');
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:13',      x'00000000014044000000000000c008000000000000',  4326, 13, NULL, 'system',    'timeseries');
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:1',       x'000000000140efef0000000000413a6b2800000000', 27582, 1,  NULL, 'system',    'timeseries', 'Sensor 1', null);
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:2',       x'000000000140f207a9e96900384139bf0a15544d08', 27582, 2,  NULL, 'component', 'profile',    'Sensor 2', null);
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:3',       x'00000000014044000000000000c008000000000000', 4326,  3,  NULL, 'system',    'timeseries', 'Sensor 3', null);
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:4',       x'000000000140240000000000004024000000000000', 4326,  4,  NULL, 'system',    'timeseries', 'Sensor 4', null);
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:test-1',  x'000000000140140000000000004024000000000000', 4326,  5,  NULL, 'system',    'timeseries', 'Sensor test 1', null);
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:6',       x'000000000140140000000000004014000000000000', 4326,  6,  NULL, 'system',    'timeseries', 'Sensor 6', null);
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:7',       x'00000000014145b7ca31487fc1c138da59f139abf8', 27582, 7,  NULL, 'system',    'timeseries', 'Sensor 7', null);
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:8',       x'000000000140efef0000000000413a6b2800000000', 27582, 8,  NULL, 'system',    'timeseries', 'Sensor 8', null);
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:9',       x'000000000140efef0000000000413a6b2800000000', 27582, 9,  NULL, 'system',    'profile',    'Sensor 9', null);
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:10',      x'000000000140efef0000000000413a6b2800000000', 27582, 10, NULL, 'system',    'timeseries', 'Sensor 10', null);
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:test-id', x'000000000140efef0000000000413a6b2800000000', 27582, 11, NULL, 'system',    'timeseries', 'Sensor test id', null);
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:12',      x'000000000140efef0000000000413a6b2800000000', 27582, 12, NULL, 'system',    'timeseries', 'Sensor 12', null);
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:13',      x'00000000014044000000000000c008000000000000',  4326, 13, NULL, 'system',    'timeseries', 'Sensor 13', null);
 
 
 INSERT INTO "om"."historical_locations" VALUES ('urn:ogc:object:sensor:GEOM:2',       '2000-12-01 00:00:00.0', x'00000000014147600cde7df17fc13603c2c1e79f50', 27582);

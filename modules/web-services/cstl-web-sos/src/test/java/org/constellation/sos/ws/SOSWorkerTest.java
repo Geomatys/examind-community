@@ -782,7 +782,7 @@ public abstract class SOSWorkerTest {
         expResult.getObservedProperty().setName(obsResult.getObservedProperty().getName());
         assertEquals(expResult.getObservedProperty().getName(), obsResult.getObservedProperty().getName());
         assertEquals(expResult.getObservedProperty(), obsResult.getObservedProperty());
-        assertEquals(expResult.getProcedure(), obsResult.getProcedure());
+        assertProcedureEquals(expResult.getProcedure(), obsResult.getProcedure());
         assertTrue("not a dataArray. Was:" + obsResult.getResult(), obsResult.getResult() instanceof DataArrayPropertyType);
         assertTrue("not a dataArray. Was:" + obsResult.getResult(), expResult.getResult() instanceof DataArrayPropertyType);
 
@@ -860,7 +860,7 @@ public abstract class SOSWorkerTest {
         expResult.getObservedProperty().setName(obsResult.getObservedProperty().getName());
         assertEquals(expResult.getObservedProperty().getName(), obsResult.getObservedProperty().getName());
         assertEquals(expResult.getObservedProperty(), obsResult.getObservedProperty());
-        assertEquals(expResult.getProcedure(), obsResult.getProcedure());
+        assertProcedureEquals(expResult.getProcedure(), obsResult.getProcedure());
 
         // do not compare datarray name (ID) because it depends on the implementation
         expR = (DataArrayPropertyType) expResult.getResult();
@@ -906,7 +906,7 @@ public abstract class SOSWorkerTest {
         expResult.getObservedProperty().setName(obsResult.getObservedProperty().getName());
         assertEquals(expResult.getObservedProperty().getName(), obsResult.getObservedProperty().getName());
         assertEquals(expResult.getObservedProperty(), obsResult.getObservedProperty());
-        assertEquals(expResult.getProcedure(), obsResult.getProcedure());
+        assertProcedureEquals(expResult.getProcedure(), obsResult.getProcedure());
 
         // do not compare datarray name (ID) because it depends on the implementation
         expR = (DataArrayPropertyType) expResult.getResult();
@@ -1093,7 +1093,7 @@ public abstract class SOSWorkerTest {
         assertEquals(expResult.getName(), obsResult.getName());
         assertEquals(expResult.getFeatureOfInterest(), obsResult.getFeatureOfInterest());
         assertPhenomenonEquals(expResult, obsResult);
-        assertEquals(expResult.getProcedure(), obsResult.getProcedure());
+        assertProcedureEquals(expResult.getProcedure(), obsResult.getProcedure());
 
         expR = (DataArrayPropertyType) expResult.getResult();
         obsR = (DataArrayPropertyType) obsResult.getResult();
@@ -1149,7 +1149,7 @@ public abstract class SOSWorkerTest {
         assertEquals(expResult.getName(), obsResult.getName());
         assertEquals(expResult.getPropertyFeatureOfInterest(), obsResult.getPropertyFeatureOfInterest());
         assertPhenomenonEquals(expResult, obsResult);
-        assertEquals(expResult.getProcedure(), obsResult.getProcedure());
+        assertProcedureEquals(expResult.getProcedure(), obsResult.getProcedure());
 
         expR = (DataArrayPropertyType) expResult.getResult();
         obsR = (DataArrayPropertyType) obsResult.getResult();
@@ -1206,7 +1206,7 @@ public abstract class SOSWorkerTest {
         assertEquals(expResult.getName(), obsResult.getName());
         assertEquals(expResult.getPropertyFeatureOfInterest(), obsResult.getPropertyFeatureOfInterest());
         assertPhenomenonEquals(expResult, obsResult);
-        assertEquals(expResult.getProcedure(), obsResult.getProcedure());
+        assertProcedureEquals(expResult.getProcedure(), obsResult.getProcedure());
 
         expR = (DataArrayPropertyType) expResult.getResult();
         obsR = (DataArrayPropertyType) obsResult.getResult();
@@ -1263,7 +1263,7 @@ public abstract class SOSWorkerTest {
         assertEquals(expResult.getName(), obsResult.getName());
         assertEquals(expResult.getPropertyFeatureOfInterest(), obsResult.getPropertyFeatureOfInterest());
         assertPhenomenonEquals(expResult, obsResult);
-        assertEquals(expResult.getProcedure(), obsResult.getProcedure());
+        assertProcedureEquals(expResult.getProcedure(), obsResult.getProcedure());
 
         expR = (DataArrayPropertyType) expResult.getResult();
         obsR = (DataArrayPropertyType) obsResult.getResult();
@@ -1302,7 +1302,7 @@ public abstract class SOSWorkerTest {
         assertEquals(expResult.getName(), obsResult.getName());
         assertEquals(expResult.getPropertyFeatureOfInterest(), obsResult.getPropertyFeatureOfInterest());
         assertPhenomenonEquals(expResult, obsResult);
-        assertEquals(expResult.getProcedure(), obsResult.getProcedure());
+        assertProcedureEquals(expResult.getProcedure(), obsResult.getProcedure());
 
         // do not compare datarray name (ID) because it depends on the implementation
         expR = (DataArrayPropertyType) expResult.getResult();
@@ -1342,7 +1342,7 @@ public abstract class SOSWorkerTest {
         assertEquals(expResult.getName(), obsResult.getName());
         assertEquals(expResult.getPropertyFeatureOfInterest(), obsResult.getPropertyFeatureOfInterest());
         assertPhenomenonEquals(expResult, obsResult);
-        assertEquals(expResult.getProcedure(), obsResult.getProcedure());
+        assertProcedureEquals(expResult.getProcedure(), obsResult.getProcedure());
 
         // do not compare datarray name (ID) because it depends on the implementation
         expR = (DataArrayPropertyType) expResult.getResult();
@@ -1383,7 +1383,7 @@ public abstract class SOSWorkerTest {
         assertEquals(expResult.getName(), obsResult.getName());
         assertEquals(expResult.getPropertyFeatureOfInterest(), obsResult.getPropertyFeatureOfInterest());
         assertPhenomenonEquals(expResult, obsResult);
-        assertEquals(expResult.getProcedure(), obsResult.getProcedure());
+        assertProcedureEquals(expResult.getProcedure(), obsResult.getProcedure());
 
         // do not compare datarray name (ID) because it depends on the implementation
         expR = (DataArrayPropertyType) expResult.getResult();
@@ -1445,7 +1445,7 @@ public abstract class SOSWorkerTest {
         assertEquals(expResult.getName(), obsResult.getName());
         assertEquals(expResult.getPropertyFeatureOfInterest(), obsResult.getPropertyFeatureOfInterest());
         assertPhenomenonEquals(expResult, obsResult);
-        assertEquals(expResult.getProcedure(), obsResult.getProcedure());
+        assertProcedureEquals(expResult.getProcedure(), obsResult.getProcedure());
 
         // do not compare datarray name (ID) because it depends on the implementation
         expR = (DataArrayPropertyType) expResult.getResult();
@@ -1564,6 +1564,7 @@ public abstract class SOSWorkerTest {
         expResult = (MeasurementType)obj.getValue();
 
         assertEquals(expResult.getName(), measResult.getName());
+        assertProcedureEquals(expResult.getProcedure(), measResult.getProcedure());
 
         assertTrue(measResult.getResult() instanceof MeasureType);
         resMeas = (MeasureType) measResult.getResult();
@@ -1636,7 +1637,7 @@ public abstract class SOSWorkerTest {
         assertEquals(sampCurveResult, sampCurveRxpResult);
         assertEquals(expResult.getPropertyFeatureOfInterest(), obsResult.getPropertyFeatureOfInterest());
         assertPhenomenonEquals(expResult, obsResult);
-        assertEquals(expResult.getProcedure(), obsResult.getProcedure());
+        assertProcedureEquals(expResult.getProcedure(), obsResult.getProcedure());
         assertTrue(obsResult.getResult() instanceof DataArrayPropertyType);
         DataArrayPropertyType arrayPropResult    = (DataArrayPropertyType) obsResult.getResult();
         DataArrayPropertyType arrayPropExpResult = (DataArrayPropertyType) expResult.getResult();
@@ -1677,7 +1678,7 @@ public abstract class SOSWorkerTest {
 
         assertEquals(expResult.getPropertyFeatureOfInterest(), obsResult.getPropertyFeatureOfInterest());
         assertPhenomenonEquals(expResult, obsResult);
-        assertEquals(expResult.getProcedure(), obsResult.getProcedure());
+        assertProcedureEquals(expResult.getProcedure(), obsResult.getProcedure());
 
         arrayPropResult    = (DataArrayPropertyType) obsResult.getResult();
         arrayPropExpResult = (DataArrayPropertyType) expResult.getResult();
@@ -1712,7 +1713,7 @@ public abstract class SOSWorkerTest {
 
         assertEquals(expResult.getPropertyFeatureOfInterest(), obsResult.getPropertyFeatureOfInterest());
         assertPhenomenonEquals(expResult, obsResult);
-        assertEquals(expResult.getProcedure(), obsResult.getProcedure());
+        assertProcedureEquals(expResult.getProcedure(), obsResult.getProcedure());
 
         arrayPropResult    = (DataArrayPropertyType) obsResult.getResult();
         arrayPropExpResult = (DataArrayPropertyType) expResult.getResult();
@@ -1758,7 +1759,7 @@ public abstract class SOSWorkerTest {
 
         assertEquals(expResult.getPropertyFeatureOfInterest(), obsResult.getPropertyFeatureOfInterest());
         assertPhenomenonEquals(expResult, obsResult);
-        assertEquals(expResult.getProcedure(), obsResult.getProcedure());
+        assertProcedureEquals(expResult.getProcedure(), obsResult.getProcedure());
 
         DataArrayPropertyType arrayPropResult    = (DataArrayPropertyType) obsResult.getResult();
         DataArrayPropertyType arrayPropExpResult = (DataArrayPropertyType) expResult.getResult();
@@ -1801,7 +1802,7 @@ public abstract class SOSWorkerTest {
 
         assertEquals(expResult.getPropertyFeatureOfInterest(), obsResult.getPropertyFeatureOfInterest());
         assertPhenomenonEquals(expResult, obsResult);
-        assertEquals(expResult.getProcedure(), obsResult.getProcedure());
+        assertProcedureEquals(expResult.getProcedure(), obsResult.getProcedure());
 
         arrayPropResult    = (DataArrayPropertyType) obsResult.getResult();
         arrayPropExpResult = (DataArrayPropertyType) expResult.getResult();
@@ -1853,7 +1854,7 @@ public abstract class SOSWorkerTest {
         assertEquals(expArray, resArray);
 
         assertPhenomenonEquals(expResult, result);
-        assertEquals(expResult.getProcedure(), result.getProcedure());
+        assertProcedureEquals(expResult.getProcedure(), result.getProcedure());
         assertEquals(expResult.getResult(), result.getResult());
         assertEquals(expResult.getSamplingTime(), result.getSamplingTime());
         assertEquals(expResult, result);
@@ -1881,6 +1882,7 @@ public abstract class SOSWorkerTest {
 
         assertEquals(expMeas, resMeas);
         assertEquals(expResult.getResult(), measResult.getResult());
+        assertProcedureEquals(expResult.getProcedure(), measResult.getProcedure());
         assertPhenomenonEquals(expResult, measResult);
         assertEquals(expResult, measResult);
 
@@ -1997,7 +1999,7 @@ public abstract class SOSWorkerTest {
         assertEquals(templateExpResult.getName(), obsResult.getName());
         assertEquals(templateExpResult.getPropertyFeatureOfInterest(), obsResult.getPropertyFeatureOfInterest());
         assertPhenomenonEquals(templateExpResult, obsResult);
-        assertEquals(templateExpResult.getProcedure(), obsResult.getProcedure());
+        assertProcedureEquals(templateExpResult.getProcedure(), obsResult.getProcedure());
 
         // do not compare datarray name (ID) because it depends on the implementation
         emptyNameAndId(((DataArrayPropertyType)templateExpResult.getResult()).getDataArray(), ((DataArrayPropertyType)obsResult.getResult()).getDataArray());
@@ -2075,7 +2077,7 @@ public abstract class SOSWorkerTest {
         assertEquals(templateExpResult.getName(), obsResult.getName());
         assertEquals(templateExpResult.getPropertyFeatureOfInterest(), obsResult.getPropertyFeatureOfInterest());
         assertPhenomenonEquals(templateExpResult, obsResult);
-        assertEquals(templateExpResult.getProcedure(), obsResult.getProcedure());
+        assertProcedureEquals(templateExpResult.getProcedure(), obsResult.getProcedure());
 
         // do not compare datarray name (ID) because it depends on the implementation
         DataArrayPropertyType expR = (DataArrayPropertyType) templateExpResult.getResult();
@@ -2237,7 +2239,7 @@ public abstract class SOSWorkerTest {
         assertEquals(templateExpResult.getName(), obsResult.getName());
         assertEquals(templateExpResult.getPropertyFeatureOfInterest(), obsResult.getPropertyFeatureOfInterest());
         assertPhenomenonEquals(templateExpResult, obsResult);
-        assertEquals(templateExpResult.getProcedure(), obsResult.getProcedure());
+        assertProcedureEquals(templateExpResult.getProcedure(), obsResult.getProcedure());
 
         // do not compare datarray name (ID) because it depends on the implementation
         expR = (DataArrayPropertyType) templateExpResult.getResult();
@@ -2313,7 +2315,7 @@ public abstract class SOSWorkerTest {
         assertEquals(templateExpResult.getName(), obsResult.getName());
         assertEquals(templateExpResult.getPropertyFeatureOfInterest(), obsResult.getPropertyFeatureOfInterest());
         assertPhenomenonEquals(templateExpResult, obsResult);
-        assertEquals(templateExpResult.getProcedure(), obsResult.getProcedure());
+        assertProcedureEquals(templateExpResult.getProcedure(), obsResult.getProcedure());
 
         // do not compare datarray name (ID) because it depends on the implementation
         expR = (DataArrayPropertyType) templateExpResult.getResult();
@@ -2704,6 +2706,19 @@ public abstract class SOSWorkerTest {
 
         }
         assertEquals(expResult.getObservedProperty(), obsResult.getObservedProperty());
+    }
+
+    private static void assertProcedureEquals(ProcessType expResult, ProcessType obsResult) {
+        assertEquals(expResult.getHref(), obsResult.getHref());
+
+        // due to transient field procedure name/description will not be equals. so if the code is equals, we assume that its correct
+        expResult.setName(obsResult.getName());
+        assertEquals(expResult.getName(), obsResult.getName());
+
+        expResult.setDescription(obsResult.getDescription());
+        assertEquals(expResult.getDescription(), obsResult.getDescription());
+
+        assertEquals(expResult, obsResult);
     }
 
     /**

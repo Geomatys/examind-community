@@ -48,6 +48,7 @@ import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationWriter;
 import org.geotoolkit.observation.xml.AbstractObservation;
+import org.geotoolkit.observation.xml.Process;
 import org.geotoolkit.sos.netcdf.ExtractionResult;
 import org.geotoolkit.sos.xml.ResponseModeType;
 import org.geotoolkit.storage.DataStores;
@@ -160,7 +161,8 @@ public class SOSGenericObservationStore extends AbstractObservationStore {
         final Set<String> observationIDS = currentFilter.filterObservation();
         for (String oid : observationIDS) {
             final AbstractObservation o = (AbstractObservation) reader.getObservation(oid, OBSERVATION_QNAME, ResponseModeType.INLINE, "2.0.0");
-            final ExtractionResult.ProcedureTree procedure = new ExtractionResult.ProcedureTree(o.getProcedure().getHref(), "Component", "timeseries");
+            final Process proc          =  o.getProcedure();
+            final ExtractionResult.ProcedureTree procedure = new ExtractionResult.ProcedureTree(proc.getHref(), proc.getName(), proc.getDescription(), "Component", "timeseries");
             if (sensorIDs == null || sensorIDs.contains(procedure.id)) {
                 if (!result.procedures.contains(procedure)) {
                     result.procedures.add(procedure);
@@ -195,7 +197,8 @@ public class SOSGenericObservationStore extends AbstractObservationStore {
         final List<Observation> observations = currentFilter.getObservations(Collections.emptyMap());
         for (Observation obs : observations) {
             final AbstractObservation o = (AbstractObservation)obs;
-            final ExtractionResult.ProcedureTree procedure = new ExtractionResult.ProcedureTree(o.getProcedure().getHref(), "Component", "timeseries");
+            final Process proc          =  o.getProcedure();
+            final ExtractionResult.ProcedureTree procedure = new ExtractionResult.ProcedureTree(proc.getHref(), proc.getName(), proc.getDescription(), "Component", "timeseries");
 
             if (!result.contains(procedure)) {
                 result.add(procedure);

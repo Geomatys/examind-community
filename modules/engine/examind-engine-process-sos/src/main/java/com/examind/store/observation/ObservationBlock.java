@@ -40,6 +40,8 @@ public class ObservationBlock {
 
     public String procedureId;
 
+    public String procedureName;
+
     public String featureID;
 
     public String observationType;
@@ -50,8 +52,9 @@ public class ObservationBlock {
     
     public GeoSpatialBound currentSpaBound;
 
-    public ObservationBlock(String procedureId, String featureID, MeasureBuilder cmb, String observationType) {
+    public ObservationBlock(String procedureId, String procedureName, String featureID, MeasureBuilder cmb, String observationType) {
         this.procedureId = procedureId;
+        this.procedureName = procedureName;
         this.featureID = featureID;
         this.cmb = cmb;
         this.currentSpaBound = new GeoSpatialBound();

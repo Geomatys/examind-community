@@ -147,6 +147,18 @@ public abstract class SensorWorker extends AbstractWorker {
         }
     }
 
+    protected Process getProcess(String procName, String version) throws ConstellationStoreException {
+        final SimpleQuery subquery = new SimpleQuery();
+        final Id filter = ff.id(Collections.singleton(ff.featureId(procName)));
+        subquery.setFilter(filter);
+        Collection<Process> sps = omProvider.getProcedures(subquery, Collections.singletonMap("version", version));
+        if (sps.isEmpty()) {
+            return null;
+        } else {
+            return sps.iterator().next();
+        }
+    }
+
     protected SOSProviderCapabilities getProviderCapabilities() throws ConstellationStoreException {
         return omProvider.getCapabilities();
     }

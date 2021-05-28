@@ -86,9 +86,9 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
      */
     public CsvFlatObservationStore(final Path observationFile, final char separator, final char quotechar, final FeatureType featureType,
                                        final String mainColumn, final String dateColumn, final String dateTimeformat, final String longitudeColumn, final String latitudeColumn,
-                                       final Set<String> measureColumns, String observationType, String foiColumn, final String procedureId, final String procedureColumn, final String zColumn,
+                                       final Set<String> measureColumns, String observationType, String foiColumn, final String procedureId, final String procedureColumn, final String procedureNameColumn, final String zColumn,
                                        final boolean extractUom, final String valueColumn, final Set<String> obsPropColumns, final Set<String> obsPropNameColumns, final String typeColumn) throws DataStoreException, MalformedURLException {
-        super(observationFile, separator, quotechar, featureType, mainColumn, dateColumn, dateTimeformat, longitudeColumn, latitudeColumn, measureColumns, observationType, foiColumn, procedureId, procedureColumn, zColumn, extractUom);
+        super(observationFile, separator, quotechar, featureType, mainColumn, dateColumn, dateTimeformat, longitudeColumn, latitudeColumn, measureColumns, observationType, foiColumn, procedureId, procedureColumn, procedureNameColumn, zColumn, extractUom);
         this.valueColumn = valueColumn;
         this.obsPropColumns = obsPropColumns;
         this.obsPropNameColumns = obsPropNameColumns;
@@ -184,6 +184,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 int foiIndex = -1;
                 int zIndex = -1;
                 int procIndex = -1;
+                int procNameIndex = -1;
                 int valueColumnIndex = -1;
                 List<Integer> obsPropColumnIndexes = new ArrayList<>();
                 List<Integer> obsPropNameColumnIndexes = new ArrayList<>();
@@ -227,6 +228,9 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     }
                     if (header.equals(procedureColumn)) {
                         procIndex = i;
+                    }
+                    if (header.equals(procedureNameColumn)) {
+                        procNameIndex = i;
                     }
                     if (header.equals(zColumn)) {
                         zIndex = i;
@@ -301,6 +305,12 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     } else {
                         currentProc = procedureId;
                     }
+
+                    // look for current procedure description
+                    String currentProcName = currentProc;
+                    if (procNameIndex != -1) {
+                        currentProcName = line[procNameIndex];
+                    }
                     
                     // look for current foi (for observation separation)
                     if (foiIndex != -1) {
@@ -335,7 +345,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                         continue;
                     }
 
-                    ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentFoi, currentTime, sortedMeasureColumns, currentMainColumn, currentObstType);
+                    ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentProcName, currentFoi, currentTime, sortedMeasureColumns, currentMainColumn, currentObstType);
 
                     // Concatenate observedProperty name
                     String observedPropertyName = "";
@@ -490,6 +500,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 int latitudeIndex = -1;
                 int longitudeIndex = -1;
                 int procedureIndex = -1;
+                int procDescIndex = -1;
                 int typeColumnIndex = -1;
 
                 // read headers
@@ -507,6 +518,8 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                         procedureIndex = i;
                     } else if (header.equals(typeColumn)) {
                         typeColumnIndex = i;
+                    } else if (header.equals(procedureNameColumn)) {
+                        procDescIndex = i;
                     }
                 }
 
@@ -529,13 +542,18 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
 
                     if (procedureIndex != -1) {
                         currentProc = procedureId + line[procedureIndex];
-                        if (!currentProc.equals(previousProc)) {
-                            procedureTree = new ProcedureTree(currentProc, PROCEDURE_TREE_TYPE, currentObstType.toLowerCase(), measureColumns);
-                            result.add(procedureTree);
-                        }
-
                     } else if (procedureTree == null) {
-                        procedureTree = new ProcedureTree(getProcedureID(), PROCEDURE_TREE_TYPE, currentObstType.toLowerCase(), measureColumns);
+                        currentProc = getProcedureID();
+                    }
+
+                    // look for current procedure description
+                    String currentProcDesc = currentProc;
+                    if (procDescIndex != -1) {
+                        currentProcDesc = line[procDescIndex];
+                    }
+
+                    if (!currentProc.equals(previousProc) || procedureTree == null) {
+                        procedureTree = new ProcedureTree(currentProc, currentProcDesc, null, PROCEDURE_TREE_TYPE, currentObstType.toLowerCase(), measureColumns);
                         result.add(procedureTree);
                     }
 

@@ -702,7 +702,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
 
 
     @Override
-    public void writeTemplate(Observation templateV100, String procedure, List<? extends Object> observedProperties, String featureOfInterest) throws ConstellationStoreException {
+    public void writeTemplate(Observation templateV100, Process procedure, List<? extends Object> observedProperties, String featureOfInterest) throws ConstellationStoreException {
         try {
             final List<PhenomenonProperty> obsProps = new ArrayList<>();
             for (Object obsProp : observedProperties) {
@@ -714,7 +714,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
                 }
             }
 
-            ((ObservationStore)getMainStore()).getWriter().writeObservationTemplate(new ObservationTemplate(procedure, obsProps, featureOfInterest, templateV100));
+            ((ObservationStore)getMainStore()).getWriter().writeObservationTemplate(new ObservationTemplate((org.geotoolkit.observation.xml.Process)procedure, obsProps, featureOfInterest, templateV100));
         } catch (DataStoreException ex) {
              throw new ConstellationStoreException(ex);
         }
@@ -909,6 +909,8 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             LOGGER.log(Level.WARNING, "GML Geometry can not be casted as Opengis one:{0}", gmlGeom);
         }
         ProcedureTree result  = new ProcedureTree(pt.id,
+                                                  pt.name,
+                                                  pt.description,
                                                   pt.type,
                                                   pt.omType,
                                                   bound.dateStart,
@@ -931,7 +933,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     private org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree toGeotk(ProcedureTree pt) {
         if (pt != null) {
             org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree result =
-                    new org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree(pt.getId(), pt.getType(), pt.getOmType(), pt.getFields());
+                    new org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree(pt.getId(), pt.getName(), pt.getDescription(), pt.getType(), pt.getOmType(), pt.getFields());
             result.spatialBound.addDate(pt.getDateStart());
             result.spatialBound.addDate(pt.getDateEnd());
             AbstractGeometry hgeom = null;

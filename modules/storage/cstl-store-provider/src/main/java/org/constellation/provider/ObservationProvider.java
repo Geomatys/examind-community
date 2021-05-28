@@ -102,7 +102,7 @@ public interface ObservationProvider extends DataProvider {
 
     void writeProcedure(final ProcedureTree procedure) throws ConstellationStoreException;
 
-    void writeTemplate(final Observation templateV100, String procedure, List<? extends Object> observedProperties, String featureOfInterest) throws ConstellationStoreException;
+    void writeTemplate(final Observation templateV100, Process procedure, List<? extends Object> observedProperties, String featureOfInterest) throws ConstellationStoreException;
 
     void updateProcedureLocation(final String procedureID, final Object position) throws ConstellationStoreException;
 

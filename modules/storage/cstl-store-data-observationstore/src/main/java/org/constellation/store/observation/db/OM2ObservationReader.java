@@ -375,7 +375,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
      */
     @Override
     public Phenomenon getPhenomenon(String identifier, String version) throws DataStoreException {
-        try(final Connection c = source.getConnection()) {
+        try (final Connection c = source.getConnection()) {
             return getPhenomenon(version, identifier, c);
         } catch (SQLException ex) {
             throw new DataStoreException("Error while retrieving phenomenon.", ex);
@@ -387,10 +387,11 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
      */
     @Override
     public Process getProcess(String identifier, String version) throws DataStoreException {
-        if (existProcedure(identifier)) {
-            return SOSXmlFactory.buildProcess(version, identifier);
+        try (final Connection c = source.getConnection()) {
+            return getProcess(version, identifier, c);
+        } catch (SQLException ex) {
+            throw new DataStoreException("Error while retrieving phenomenon.", ex);
         }
-        return null;
     }
 
     /**
@@ -703,12 +704,13 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                 name = identifier;
             }
 
+            final Process proc = getProcess(version, procedure, c);
             if (resultModel.equals(MEASUREMENT_QNAME)) {
                 final Object result = getResult(identifier, resultModel, version);
-                return OMXmlFactory.buildMeasurement(version, obsID, name, null, prop, phen, procedure, result, time);
+                return OMXmlFactory.buildMeasurement(version, obsID, name, null, prop, phen, proc, result, time);
             } else {
                 final Object result = getResult(identifier, resultModel, version);
-                return OMXmlFactory.buildObservation(version, obsID, name, null, prop, phen, procedure, result, time);
+                return OMXmlFactory.buildObservation(version, obsID, name, null, prop, phen, proc, result, time);
             }
 
         } catch (SQLException ex) {

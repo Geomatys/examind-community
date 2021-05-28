@@ -48,6 +48,8 @@ import org.geotoolkit.geometry.jts.SRIDGenerator;
 import org.geotoolkit.gml.JTStoGeometry;
 import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.gml.xml.FeatureProperty;
+import org.geotoolkit.observation.xml.Process;
+import org.geotoolkit.sos.xml.SOSXmlFactory;
 
 import static org.geotoolkit.sos.xml.SOSXmlFactory.*;
 import org.geotoolkit.swe.xml.AbstractBoolean;
@@ -477,6 +479,19 @@ public class OM2BaseReader {
                 return pid;
             }
         }
+    }
+
+    public org.opengis.observation.Process getProcess(String version, String identifier, final Connection c) throws SQLException {
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {//NOSONAR
+            stmt.setString(1, identifier);
+            try(final ResultSet rs = stmt.executeQuery()) {
+                String pid = null;
+                if (rs.next()) {
+                    return SOSXmlFactory.buildProcess(version, rs.getString("id"), rs.getString("name"), rs.getString("description"));
+                }
+            }
+        }
+        return null;
     }
 
     protected String getProcedureParent(final String procedureId, final Connection c) throws SQLException {

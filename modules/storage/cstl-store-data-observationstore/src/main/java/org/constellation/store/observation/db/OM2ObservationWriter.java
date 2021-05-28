@@ -28,6 +28,7 @@ import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.observation.ObservationWriter;
 import org.geotoolkit.observation.xml.AbstractObservation;
 import org.geotoolkit.observation.xml.v200.OMObservationType.InternalPhenomenon;
+import org.geotoolkit.observation.xml.Process;
 import org.geotoolkit.sampling.xml.SamplingFeature;
 import org.geotoolkit.sos.xml.ObservationOffering;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
@@ -116,7 +117,11 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             return writeObservation(template.getObservation());
         } else  {
             try(final Connection c = source.getConnection()) {
-                writeProcedure(new ProcedureTree(template.getProcedure(), null, null), null, c);
+                final Process proc =  template.getProcedure();
+                final String procedureID = proc.getHref();
+                final String procedureName = proc.getName();
+                final String procedureDesc = proc.getDescription();
+                writeProcedure(new ProcedureTree(procedureID, procedureName, procedureDesc, null, null), null, c);
                 for (PhenomenonProperty phen : template.getObservedProperties()) {
                     writePhenomenon(phen, c, true);
                 }
@@ -217,7 +222,9 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
             final org.geotoolkit.observation.xml.Process procedure = (org.geotoolkit.observation.xml.Process)observation.getProcedure();
             final String procedureID = procedure.getHref();
-            final int pid = writeProcedure(new ProcedureTree(procedureID, null, null), null, c);
+            final String procedureName = procedure.getName();
+            final String procedureDesc = procedure.getDescription();
+            final int pid = writeProcedure(new ProcedureTree(procedureID, procedureName, procedureDesc, null, null), null, c);
             stmt.setString(6, procedureID);
             final org.geotoolkit.sampling.xml.SamplingFeature foi = (org.geotoolkit.sampling.xml.SamplingFeature)observation.getFeatureOfInterest();
             final String foiID;
@@ -430,7 +437,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         }
                     }
 
-                    try(final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"procedures\" VALUES(?,?,?,?,?,?,?)")) {//NOSONAR
+                    try(final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"procedures\" VALUES(?,?,?,?,?,?,?,?,?)")) {//NOSONAR
                         stmtInsert.setString(1, procedure.id);
                         AbstractGeometry position = procedure.spatialBound.getLastGeometry("2.0.0");
                         if (position != null) {
@@ -460,6 +467,16 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                             stmtInsert.setString(7, procedure.omType);
                         } else {
                             stmtInsert.setNull(7, java.sql.Types.VARCHAR);
+                        }
+                        if (procedure.name != null) {
+                            stmtInsert.setString(8, procedure.name);
+                        } else {
+                            stmtInsert.setNull(8, java.sql.Types.VARCHAR);
+                        }
+                        if (procedure.description != null) {
+                            stmtInsert.setString(9, procedure.description);
+                        } else {
+                            stmtInsert.setNull(9, java.sql.Types.VARCHAR);
                         }
                         stmtInsert.executeUpdate();
                     }

@@ -54,6 +54,7 @@ import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.observation.ObservationWriter;
+import org.geotoolkit.observation.xml.Process;
 import org.geotoolkit.sampling.xml.SamplingFeature;
 import org.geotoolkit.sos.MeasureStringBuilder;
 import org.geotoolkit.sos.netcdf.ExtractionResult;
@@ -309,6 +310,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                         final String oid = dataFile.getFileName().toString() + '-' + obsCpt;
                         obsCpt++;
                         final String procedureID = getProcedureID();
+                        final Process proc = (Process) OMUtils.buildProcess(procedureID);
 
                         // sampling feature of interest
                         String foiID = "foi-" + UUID.randomUUID();
@@ -322,7 +324,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                         result.observations.add(OMUtils.buildObservation(oid,                           // id
                                                                          sp,                            // foi
                                                                          phenomenon,                    // phenomenon
-                                                                         procedureID,                   // procedure
+                                                                         proc,                          // procedure
                                                                          currentCount,                  // count
                                                                          datarecord,                    // result structure
                                                                          msb,                           // measures
@@ -435,6 +437,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                 final String oid = dataFile.getFileName().toString() + '-' + obsCpt;
                 obsCpt++;
                 final String procedureID = getProcedureID();
+                final Process proc = (Process) OMUtils.buildProcess(procedureID);
 
                 // sampling feature of interest
                 String foiID = "foi-" + UUID.randomUUID();
@@ -448,7 +451,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                 result.observations.add(OMUtils.buildObservation(oid,                           // id
                                                                  sp,                            // foi
                                                                  phenomenon,                    // phenomenon
-                                                                 procedureID,                   // procedure
+                                                                 proc,                          // procedure
                                                                  count,                         // count
                                                                  datarecord,                    // result structure
                                                                  msb,                           // measures
@@ -460,7 +463,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                 result.spatialBound.merge(globalSpaBound);
 
                 // build procedure tree
-                final ProcedureTree procedure = new ProcedureTree(procedureID, PROCEDURE_TREE_TYPE, observationType.toLowerCase());
+                final ProcedureTree procedure = new ProcedureTree(proc.getHref(), proc.getName(), proc.getDescription(), PROCEDURE_TREE_TYPE, observationType.toLowerCase());
                 procedure.spatialBound.merge(globalSpaBound);
                 result.procedures.add(procedure);
 
@@ -619,7 +622,9 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                 }
 
                 // procedure tree instanciation
-                final ProcedureTree procedureTree = new ProcedureTree(getProcedureID(), PROCEDURE_TREE_TYPE, observationType.toLowerCase(), measureFields);
+                final String procedureId = getProcedureID();
+                final Process proc = (Process) OMUtils.buildProcess(procedureId);
+                final ProcedureTree procedureTree = new ProcedureTree(proc.getHref(), proc.getName(), proc.getDescription(), PROCEDURE_TREE_TYPE, observationType.toLowerCase(), measureFields);
 
                 while (reader.hasNext()) {
                     final Row line = reader.next();

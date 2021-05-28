@@ -34,7 +34,6 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.inject.Named;
 import javax.xml.namespace.QName;
@@ -214,7 +213,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 if (sensorIds.contains(sensorId)) {
                     s = sensorBusiness.getSensor(sensorId);
                 }
-                Thing thing = buildThing(exp, sensorId, s, new NavigationPath());
+                Thing thing = buildThing(exp, sensorId, s, (org.geotoolkit.observation.xml.Process) proc, new NavigationPath());
                 things.add(thing);
             }
 
@@ -232,10 +231,11 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             if (req.getId() != null) {
                 final ExpandOptions exp = new ExpandOptions(req);
                 org.constellation.dto.Sensor s = sensorBusiness.getSensor(req.getId());
+                Process proc = getProcess(req.getId(), "2.0.0");
                 if (s == null) {
-                    return buildThing(exp, req.getId(), null, new NavigationPath());
+                    return buildThing(exp, req.getId(), null, (org.geotoolkit.observation.xml.Process) proc, new NavigationPath());
                 } else  if (sensorBusiness.isLinkedSensor(getServiceId(), s.getIdentifier())) {
-                    return buildThing(exp, req.getId(), s, new NavigationPath());
+                    return buildThing(exp, req.getId(), s, (org.geotoolkit.observation.xml.Process) proc, new NavigationPath());
                 }
             }
             return null;
@@ -920,7 +920,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         if (exp.things && !fn.things) {
             if (sensorID != null) {
                 org.constellation.dto.Sensor s = sensorBusiness.getSensor(sensorID);
-                datastream.setThing(buildThing(exp, sensorID, s, new NavigationPath(fn)));
+                datastream.setThing(buildThing(exp, sensorID, s, obs.getProcedure(), new NavigationPath(fn)));
             }
         } else {
             datastream.setThingIotNavigationLink(selfLink + "/Things");
@@ -1087,7 +1087,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         if (exp.things && fn.things) {
             if (sensorID != null) {
                 org.constellation.dto.Sensor s = sensorBusiness.getSensor(sensorID);
-                datastream.setThing(buildThing(exp, sensorID, s, new NavigationPath(fn)));
+                datastream.setThing(buildThing(exp, sensorID, s, obs.getProcedure(), new NavigationPath(fn)));
             }
         } else {
             datastream.setThingIotNavigationLink(selfLink + "/Things");
@@ -1565,7 +1565,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         return sensor;
     }
 
-    private Thing buildThing(ExpandOptions exp, String sensorID, org.constellation.dto.Sensor s, NavigationPath fn) throws ConstellationStoreException {
+    private Thing buildThing(ExpandOptions exp, String sensorID, org.constellation.dto.Sensor s, org.geotoolkit.observation.xml.Process p, NavigationPath fn) throws ConstellationStoreException {
         fn.things = true;
         String selfLink = getServiceUrl();
         selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Things("+ sensorID+ ")";
@@ -1576,8 +1576,17 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             properties.put("type", s.getOmType());
             thing.setProperties(properties);
         }
-        thing = thing.description(sensorID)
-                .name(sensorID)
+        String description = sensorID;
+        String name = sensorID;
+        if (p != null && p.getDescription() != null) {
+            description = p.getDescription();
+        }
+        if (p != null && p.getName()!= null) {
+            name = p.getName();
+        }
+
+        thing = thing.description(description)
+                .name(name)
                 .iotId(sensorID)
                 .iotSelfLink(selfLink);
 
@@ -1817,7 +1826,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         result.setName(locID);
 
          if (exp.things && !fn.things) {
-            result.addThingsItem(buildThing(exp, sensorID, s, new NavigationPath(fn)));
+            Process p = getProcess(sensorID, "2.0.0");
+            result.addThingsItem(buildThing(exp, sensorID, s, (org.geotoolkit.observation.xml.Process) p, new NavigationPath(fn)));
         } else {
             result = result.thingsIotNavigationLink(selfLink + "/Things");
         }
@@ -1876,7 +1886,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         result.setTime(d);
 
          if (exp.things && !fn.things) {
-            result = result.thing(buildThing(exp, sensorID, s, new NavigationPath(fn)));
+            Process p = getProcess(sensorID, "2.0.0");
+            result = result.thing(buildThing(exp, sensorID, s, (org.geotoolkit.observation.xml.Process) p, new NavigationPath(fn)));
         } else {
             result = result.thingIotNavigationLink(selfLink + "/Things");
         }

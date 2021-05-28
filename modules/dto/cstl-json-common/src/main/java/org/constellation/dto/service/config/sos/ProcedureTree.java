@@ -35,6 +35,10 @@ public class ProcedureTree {
 
     private String id;
 
+    private String name;
+
+    private String description;
+
     private String type;
 
     protected String omType;
@@ -60,8 +64,10 @@ public class ProcedureTree {
 
     }
 
-    public ProcedureTree(String id, String type, String omType, Date dateStart, Date dateEnd, Double minx, Double maxx, Double miny, Double maxy, List<String> fields, Geometry geom) {
+    public ProcedureTree(String id, String name, String description, String type, String omType, Date dateStart, Date dateEnd, Double minx, Double maxx, Double miny, Double maxy, List<String> fields, Geometry geom) {
         this.id = id;
+        this.name = name;
+        this.description = description;
         this.type = type;
         this.omType = omType;
         this.fields = fields;
@@ -258,10 +264,44 @@ public class ProcedureTree {
         this.historicalLocations = historicalLocations;
     }
 
+    /**
+     * @return the name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * @param name the name to set
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    /**
+     * @return the description
+     */
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * @param description the description to set
+     */
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("[ProcedureTree]\n");
         sb.append("id=").append(id).append('\n');
+        if (name != null) {
+            sb.append("name=").append(name).append("\n");
+        }
+        if (description != null) {
+            sb.append("description=").append(description).append("\n");
+        }
         if (type != null) {
             sb.append("type=").append(type).append("\n");
         }
@@ -320,6 +360,8 @@ public class ProcedureTree {
             final ProcedureTree that = (ProcedureTree) object;
             return Objects.equals(this.id,           that.id)   &&
                    Objects.equals(this.dateEnd,      that.dateEnd)   &&
+                   Objects.equals(this.name,          that.name)   &&
+                   Objects.equals(this.description,  that.description)   &&
                    Objects.equals(this.dateStart,    that.dateStart)   &&
                    Objects.equals(this.minx,         that.minx)   &&
                    Objects.equals(this.maxx,         that.maxx)   &&
@@ -339,6 +381,8 @@ public class ProcedureTree {
     public int hashCode() {
         int hash = 7;
         hash = 11 * hash + Objects.hashCode(this.id);
+        hash = 11 * hash + Objects.hashCode(this.name);
+        hash = 11 * hash + Objects.hashCode(this.description);
         hash = 11 * hash + Objects.hashCode(this.type);
         hash = 11 * hash + Objects.hashCode(this.omType);
         hash = 11 * hash + Objects.hashCode(this.children);

@@ -70,6 +70,7 @@ import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationWriter;
 import org.geotoolkit.observation.xml.AbstractObservation;
+import org.geotoolkit.observation.xml.Process;
 import org.geotoolkit.sos.netcdf.ExtractionResult;
 import org.geotoolkit.sos.xml.ResponseModeType;
 import org.geotoolkit.storage.DataStores;
@@ -269,7 +270,8 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
         final List<Observation> observations = currentFilter.getObservations(Collections.emptyMap());
         for (Observation obs : observations) {
             final AbstractObservation o = (AbstractObservation)obs;
-            final ExtractionResult.ProcedureTree procedure = new ExtractionResult.ProcedureTree(o.getProcedure().getHref(), "Component", "timeseries");
+            final Process proc          =  o.getProcedure();
+            final ExtractionResult.ProcedureTree procedure = new ExtractionResult.ProcedureTree(proc.getHref(), proc.getName(), proc.getDescription(), "Component", "timeseries");
             if (sensorIDs == null || sensorIDs.contains(procedure.id)) {
                 if (!result.procedures.contains(procedure)) {
                     result.procedures.add(procedure);
@@ -307,7 +309,8 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
         final List<Observation> observations = currentFilter.getObservations(Collections.emptyMap());
         for (Observation obs : observations) {
             final AbstractObservation o = (AbstractObservation)obs;
-            final ExtractionResult.ProcedureTree procedure = new ExtractionResult.ProcedureTree(o.getProcedure().getHref(), "Component", "timeseries");
+            final Process proc          =  o.getProcedure();
+            final ExtractionResult.ProcedureTree procedure = new ExtractionResult.ProcedureTree(proc.getHref(), proc.getName(), proc.getDescription(), "Component", "timeseries");
 
             if (!result.contains(procedure)) {
                 result.add(procedure);
@@ -320,7 +323,7 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
                 }
             }
             procedure.spatialBound.addTime(obs.getSamplingTime());
-            procedure.spatialBound.getHistoricalLocations().putAll(reader.getSensorLocations(o.getProcedure().getHref(), "2.0.0"));
+            procedure.spatialBound.getHistoricalLocations().putAll(reader.getSensorLocations(proc.getHref(), "2.0.0"));
         }
         return result;
     }

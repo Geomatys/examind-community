@@ -56,7 +56,6 @@ import org.geotoolkit.observation.xml.AbstractObservation;
 import org.geotoolkit.observation.xml.OMXmlFactory;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
-import org.geotoolkit.sos.xml.SOSXmlFactory;
 
 import static org.geotoolkit.sos.xml.SOSXmlFactory.*;
 import org.geotoolkit.swe.xml.AbstractDataRecord;
@@ -275,6 +274,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         boolean includeTimeInTemplate = getBooleanHint(hints, "includeTimeInTemplate", false);
         
         final List<Observation> observations = new ArrayList<>();
+        final Map<String, Process> processMap = new HashMap<>();
 
         try (final Connection c            = source.getConnection();
              final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
@@ -322,8 +322,15 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 for (Field f : fields) {
                     scal.add(f.getScalar(version));
                 }
+                final Process proc;
+                if (processMap.containsKey(procedure)) {
+                    proc = processMap.get(procedure);
+                } else {
+                    proc = getProcess(version, procedure, c);
+                    processMap.put(procedure, proc);
+                }
                 final Object result = buildComplexResult(version, scal, 0, encoding, null, observations.size());
-                Observation observation = OMXmlFactory.buildObservation(version, obsID, name, null, foi, phen, procedure, result, tempTime);
+                Observation observation = OMXmlFactory.buildObservation(version, obsID, name, null, foi, phen, proc, result, tempTime);
                 observations.add(observation);
             }
 
@@ -346,6 +353,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
         boolean includeTimeInTemplate = getBooleanHint(hints, "includeTimeInTemplate", false);
         final List<Observation> observations = new ArrayList<>();
+        final Map<String, Process> processMap = new HashMap<>();
 
         try (final Connection c              = source.getConnection();
              final PreparedStatement pstmt   = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
@@ -384,7 +392,14 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 if (mainField != null && "Time".equals(mainField.fieldType)) {
                     fields.remove(mainField);
                 }
-                
+                final Process proc;
+                if (processMap.containsKey(procedure)) {
+                    proc = processMap.get(procedure);
+                } else {
+                    proc = getProcess(version, procedure, c);
+                    processMap.put(procedure, proc);
+                }
+
                 List<FieldPhenom> phenFields = getPhenomenonFields(phen, fields, c, procedure);
                 for (FieldPhenom phenField : phenFields) {
                     TemporalGeometricPrimitive tempTime = null;
@@ -392,7 +407,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         tempTime = getTimeForTemplate(c, procedure, getId(phenField.phenomenon), featureID, version);
                     }
                     final Object result = buildMeasure(version, "measure-001", phenField.field.fieldUom, 0d);
-                    observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + phenField.i, name + '-' + phenField.i, null, foi, phenField.phenomenon, procedure, result, tempTime));
+                    observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + phenField.i, name + '-' + phenField.i, null, foi, phenField.phenomenon, proc, result, tempTime));
                 }
             }
         } catch (SQLException ex) {
@@ -423,6 +438,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             sqlRequest.replaceFirst("WHERE", "");
         }
         final Map<String, Observation> observations = new HashMap<>();
+        final Map<String, Process> processMap = new HashMap<>();
 
         try(final Connection c              = source.getConnection();
             final PreparedStatement pstmt   = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
@@ -586,7 +602,14 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
                     final TemporalGeometricPrimitive time = buildTimePeriod(version, timeID, firstTime, lastTime);
                     final Object result = buildComplexResult(version, scal, nbValue, encoding, values, observations.size());
-                    observation = OMXmlFactory.buildObservation(version, obsID, name, null, prop, phen, procedure, result, time);
+                    final Process proc;
+                    if (processMap.containsKey(procedure)) {
+                        proc = processMap.get(procedure);
+                    } else {
+                        proc = getProcess(version, procedure, c);
+                        processMap.put(procedure, proc);
+                    }
+                    observation = OMXmlFactory.buildObservation(version, obsID, name, null, prop, phen, proc, result, time);
                     observations.put(procedure + '-' + featureID, observation);
                 } else {
                     Date lastTime = null;
@@ -672,6 +695,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         }
 
         final List<Observation> observations = new ArrayList<>();
+        final Map<String, Process> processMap = new HashMap<>();
         try(final Connection c            = source.getConnection();
             final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
             final ResultSet rs            = pstmt.executeQuery()) {
@@ -689,6 +713,14 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 final Phenomenon phen = getPhenomenon(version, observedProperty, c);
                 final int pid = getPIDFromProcedure(procedure, c);
                 final List<Field> fields = readFields(procedure, c);
+
+                final Process proc;
+                if (processMap.containsKey(procedure)) {
+                    proc = processMap.get(procedure);
+                } else {
+                    proc = getProcess(version, procedure, c);
+                    processMap.put(procedure, proc);
+                }
 
                 String start = null;
                 if (startTime != null) {
@@ -775,7 +807,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                     }
                                     final FeatureProperty foi = buildFeatureProperty(version, feature); // do not share the same object
                                     final Object result = buildMeasure(version, "measure-00" + rid, field.field.fieldUom, dValue);
-                                    observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + field.i + '-' + rid, name + '-' + field.i + '-' + rid, null, foi, field.phenomenon, procedure, result, measureTime));
+                                    observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + field.i + '-' + rid, name + '-' + field.i + '-' + rid, null, foi, field.phenomenon, proc, result, measureTime));
                                 }
                             }
                         }
@@ -1462,7 +1494,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             final PreparedStatement pstmt =  sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
             final ResultSet rs            = pstmt.executeQuery()) {
             while (rs.next()) {
-                processes.add(SOSXmlFactory.buildProcess(version, rs.getString(1)));
+                processes.add(getProcess(version, rs.getString(1), c));
             }
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
