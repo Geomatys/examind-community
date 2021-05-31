@@ -266,7 +266,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
 
                     // verify that the line is not empty (meaning that not all of the measure value selected are empty)
                     if (verifyEmptyLine(line, lineNumber, doubleFields)) {
-                        LOGGER.info("skipping line due to none expected variable present.");
+                        LOGGER.fine("skipping line due to none expected variable present.");
                         continue;
                     }
                     
@@ -306,7 +306,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                         try {
                             currentTime = sdf.parse(line[dateIndex]).getTime();
                         } catch (ParseException ex) {
-                            LOGGER.warning(String.format("Problem parsing date for date field at line %d and column %d (value='%s'). skipping line...", lineNumber, dateIndex, line[dateIndex]));
+                            LOGGER.fine(String.format("Problem parsing date for date field at line %d and column %d (value='%s'). skipping line...", lineNumber, dateIndex, line[dateIndex]));
                             continue;
                         }
                     } else {
@@ -343,7 +343,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                             result.spatialBound.addDate(millis);
                             currentBlock.addDate(millis);
                         } catch (ParseException ex) {
-                            LOGGER.warning(String.format("Problem parsing date for date field at line %d and column %d (value='%s'). skipping line...", lineNumber, dateIndex, line[dateIndex]));
+                            LOGGER.fine(String.format("Problem parsing date for date field at line %d and column %d (value='%s'). skipping line...", lineNumber, dateIndex, line[dateIndex]));
                             continue;
                         }
                     }
@@ -373,7 +373,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                             }
                         }
                     } catch (ParseException | NumberFormatException ex) {
-                        LOGGER.warning(String.format("Problem parsing date/double for main field at line %d and column %d (value='%s'). skipping line...", lineNumber, mainIndex, line[mainIndex]));
+                        LOGGER.fine(String.format("Problem parsing date/double for main field at line %d and column %d (value='%s'). skipping line...", lineNumber, mainIndex, line[mainIndex]));
                         continue;
                     }
 
@@ -382,7 +382,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     try {
                         measureValue = parseDouble(line[valueColumnIndex]);
                     } catch (ParseException | NumberFormatException ex) {
-                        LOGGER.warning(String.format("Problem parsing double for measure field at line %d and column %d (value='%s'). skipping line...", lineNumber, valueColumnIndex, line[valueColumnIndex]));
+                        LOGGER.fine(String.format("Problem parsing double for measure field at line %d and column %d (value='%s'). skipping line...", lineNumber, valueColumnIndex, line[valueColumnIndex]));
                         continue;
                     }
                     currentBlock.appendValue(mainValue, concatenatedCodeColumnsValues, measureValue, lineNumber);
@@ -524,7 +524,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                         try {
                             dateParse = new SimpleDateFormat(this.dateFormat).parse(line[dateIndex]);
                         } catch (ParseException ex) {
-                            LOGGER.warning(String.format("Problem parsing date for main field at line %d and column %d (value='%s'). skipping line...", count, dateIndex, line[dateIndex]));
+                            LOGGER.fine(String.format("Problem parsing date for main field at line %d and column %d (value='%s'). skipping line...", count, dateIndex, line[dateIndex]));
                             continue;
                         }
                     }
@@ -535,7 +535,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                             DirectPosition dp = new GeneralDirectPosition(parseDouble(line[longitudeIndex]), parseDouble(line[latitudeIndex]));
                             geom = GMLXmlFactory.buildPoint("3.2.1", null, dp);
                         } catch (NumberFormatException | ParseException ex) {
-                            LOGGER.warning(String.format("Problem parsing lat/lon field at line %d.", count));
+                            LOGGER.fine(String.format("Problem parsing lat/lon field at line %d.", count));
                         }
                     }
                     procedureTree.spatialBound.addLocation(dateParse, geom);

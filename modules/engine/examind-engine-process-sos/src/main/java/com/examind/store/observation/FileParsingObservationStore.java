@@ -214,7 +214,7 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
                 break;
             } catch (NumberFormatException | ParseException ex) {
                 if (!line[i].isEmpty()) {
-                    LOGGER.warning(String.format("Problem parsing double value at line %d and column %d (value='%s')", lineNumber, i, line[i]));
+                    LOGGER.fine(String.format("Problem parsing double value at line %d and column %d (value='%s')", lineNumber, i, line[i]));
                 }
             }
         }

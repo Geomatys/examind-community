@@ -386,7 +386,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                             try {
                                 msb.appendValue((Double)(line.read(mainIndex)));
                             } catch (ClassCastException ex) {
-                                LOGGER.warning(String.format("Problem parsing double for main field at line %d and column %d (value='%s'). skipping line...", count, mainIndex, line.read(mainIndex)));
+                                LOGGER.fine(String.format("Problem parsing double for main field at line %d and column %d (value='%s'). skipping line...", count, mainIndex, line.read(mainIndex)));
                                 continue;
                             }
                         // assume that is a date otherwise
@@ -405,7 +405,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                                 }
                                 msb.appendDate(millis);
                             } catch (ClassCastException ex) {
-                                LOGGER.warning(String.format("Problem parsing date for main field at line %d and column %d (value='%s'). skipping line...", count, mainIndex, line.read(mainIndex)));
+                                LOGGER.fine(String.format("Problem parsing date for main field at line %d and column %d (value='%s'). skipping line...", count, mainIndex, line.read(mainIndex)));
                                 continue;
                             }
                         }
@@ -418,7 +418,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                             try {
                                 msb.appendValue((Double)value);
                             } catch (ClassCastException ex) {
-                                LOGGER.warning(String.format("Problem parsing double value at line %d and column %d (value='%s')", count, i, value));
+                                LOGGER.fine(String.format("Problem parsing double value at line %d and column %d (value='%s')", count, i, value));
                                 msb.appendValue(Double.NaN);
                             }
                         }
@@ -642,7 +642,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                             }
                             procedureTree.spatialBound.addDate(dateParse);
                         } catch (ClassCastException ex) {
-                            LOGGER.warning(String.format("Problem parsing date for main field at line %d and column %d (value='%s'). skipping line...", count, dateIndex, line.read(dateIndex)));
+                            LOGGER.fine(String.format("Problem parsing date for main field at line %d and column %d (value='%s'). skipping line...", count, dateIndex, line.read(dateIndex)));
                             continue;
                         }
                     }
@@ -653,7 +653,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                             DirectPosition dp = new GeneralDirectPosition((Double)line.read(longitudeIndex), (Double)line.read(latitudeIndex));
                             geom = GMLXmlFactory.buildPoint("3.2.1", null, dp);
                         } catch (NumberFormatException ex) {
-                            LOGGER.warning(String.format("Problem parsing lat/lon field at line %d.", count));
+                            LOGGER.fine(String.format("Problem parsing lat/lon field at line %d.", count));
                         }
                     }
                     procedureTree.spatialBound.addLocation(dateParse, geom);

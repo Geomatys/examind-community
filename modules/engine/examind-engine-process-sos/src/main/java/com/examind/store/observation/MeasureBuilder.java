@@ -72,7 +72,7 @@ public class MeasureBuilder {
         if (measureCode != null && !measureCode.isEmpty() && measureColumns.contains(measureCode)) {
             LinkedHashMap<String, Double> row = mmb.get(mainValue);
             if (row.containsKey(measureCode) && !row.get(measureCode).isNaN()) {
-                LOGGER.log(Level.WARNING, "Duplicated value at line {0} and for main value {1} (value=''{2}'')", new Object[]{lineNumber, mainValue, measureValue});
+                LOGGER.log(Level.FINE, "Duplicated value at line {0} and for main value {1} (value=''{2}'')", new Object[]{lineNumber, mainValue, measureValue});
             }
             row.put(measureCode, measureValue);
             mmb.put(mainValue, row);
