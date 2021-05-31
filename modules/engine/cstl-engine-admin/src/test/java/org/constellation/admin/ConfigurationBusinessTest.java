@@ -26,7 +26,6 @@ public class ConfigurationBusinessTest {
                 biz.removeDataIntegratedDirectory(candidate);
                 Assert.fail("We should not be able to delete a parent folder of any provider. Input provider Id was: "+candidate);
             } catch (IllegalArgumentException e) {
-                System.out.printf("%n%n ERRROR MESSAGE: %n%n %s %n%n", e.getMessage());
                 // That's the expected behavior. Just check that root directory still exists.
                 Assert.assertTrue(Files.exists(biz.getDataIntegratedDirectory(null)));
             }

@@ -26,6 +26,7 @@ import static org.constellation.ws.ExceptionCode.OPERATION_NOT_SUPPORTED;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Proxy;
 import java.net.MalformedURLException;
@@ -643,12 +644,14 @@ public abstract class AbstractWebService implements WebService{
     }
 
     protected void logPostParameters(final Object request) {
-        if (request != null) {
+        if (request != null && LOGGER.isLoggable(Level.INFO)) {
             final MarshallerPool pool = getMarshallerPool();
             try {
                 final Marshaller m = pool.acquireMarshaller();
-                m.marshal(request, System.out);
+                final StringWriter writer = new StringWriter();
+                m.marshal(request, writer);
                 pool.recycle(m);
+                LOGGER.info(writer.toString());
             } catch (JAXBException ex) {
                 LOGGER.log(Level.WARNING, "Error while marshalling the request", ex);
             }

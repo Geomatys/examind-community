@@ -234,7 +234,6 @@ public class WFSCIteWorkerTest {
         featureWriter.write(collection,writer);
         writer.flush();
         String xmlResult = writer.toString();
-        System.out.println(xmlResult);
         assertEquals(1, FeatureStoreUtilities.getCount(collection).intValue());
 
         /**

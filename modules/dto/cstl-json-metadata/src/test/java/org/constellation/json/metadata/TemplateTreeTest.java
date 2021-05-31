@@ -600,7 +600,9 @@ public class TemplateTreeTest {
         final RootObj root       =  objectMapper.readValue(stream, RootObj.class);
         final TemplateTree tree  = TemplateTree.getTreeFromRootObj(root);
         final ValueNode result   = tree.getRoot();
-        System.out.println(result.treeRepresentation());
-        // TODO
+
+        Assert.assertNotNull(result);
+        Assert.assertFalse(result.children.isEmpty());
+        // TODO: true comparison with ground truth
     }
 }

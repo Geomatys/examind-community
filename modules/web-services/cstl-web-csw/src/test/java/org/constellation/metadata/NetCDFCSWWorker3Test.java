@@ -199,7 +199,6 @@ public class NetCDFCSWWorker3Test extends CSWWorker3Test {
             metadataEquals(ExpResult1, isoResult, ComparisonMode.APPROXIMATE);
         } else if (obj instanceof Node) {
             Node resultNode = (Node) obj;
-            System.out.println(NodeUtilities.getStringFromNode(resultNode));
             Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/2005092200_sst_21-24.en.xml");
             DocumentComparator comparator = new DocumentComparator(expResultNode, resultNode);
             comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");

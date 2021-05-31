@@ -1214,8 +1214,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         pt = new PointType(e.getLowerCorner());
         geom = GeometrytoJTS.toJTS(pt, false);
         sb.append("Binary: ").append(org.apache.commons.codec.binary.Hex.encodeHexString(writer.write(geom))).append('\n');
-
-        System.out.println(sb.toString());
     }
 
     public static void compareJSON(String expected, String result) throws JsonProcessingException {

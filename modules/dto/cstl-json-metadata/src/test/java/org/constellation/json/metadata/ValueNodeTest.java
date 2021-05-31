@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import org.constellation.dto.metadata.RootObj;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -38,7 +39,8 @@ public class ValueNodeTest {
         final TemplateTree tree  = TemplateTree.getTreeFromRootObj(root);
         ValueNode node = tree.getRoot();
 
-        System.out.println(node.treeRepresentation());
+        Assert.assertNotNull(node);
+        // TODO: true comparison with ground truth
     }
 
 }

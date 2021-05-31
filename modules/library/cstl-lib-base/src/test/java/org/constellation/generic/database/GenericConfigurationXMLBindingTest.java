@@ -553,9 +553,9 @@ public class GenericConfigurationXMLBindingTest {
 
         assertTrue(obj instanceof JAXBElement);
         obj = ((JAXBElement)obj).getValue();
-        System.out.println(obj);
 
         assertTrue(obj instanceof Node);
+        // TODO: check content
     }
 
     @Test
@@ -616,7 +616,8 @@ public class GenericConfigurationXMLBindingTest {
         final ParameterValues values = new ParameterValues();
         values.getValues().put("providerId", "test");
         StringWriter sw = new StringWriter();
-        marshaller.marshal(values, System.out);
+        marshaller.marshal(values, sw);
+        // TODO: check values
     }
 
     @Test
@@ -627,6 +628,7 @@ public class GenericConfigurationXMLBindingTest {
         values.setStart(new Date(System.currentTimeMillis()));
         values.setEnd(new Date(System.currentTimeMillis() + 10000));
         StringWriter sw = new StringWriter();
-        marshaller.marshal(values, System.out);
+        marshaller.marshal(values, sw);
+        // TODO:check values
     }
 }

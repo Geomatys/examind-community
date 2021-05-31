@@ -38,6 +38,7 @@ import org.apache.sis.test.xml.DocumentComparator;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -896,8 +897,8 @@ public class ConfigurationXmlBindingTest {
 
 
         String s = mapper.writeValueAsString(ba);
-        System.out.println(s);
-
-
+        Assert.assertNotNull(s);
+        Assert.assertFalse(s.trim().isEmpty());
+        // TODO : true comparison with expected value
     }
 }

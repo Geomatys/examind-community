@@ -190,11 +190,7 @@ public class InternalMetadataStoreTest {
         Assert.assertEquals(MetadataType.ISO_19115, results.actualFormat);
         Assert.assertEquals(MetadataType.DIF, results.originalFormat);
 
-        System.out.println("\n\n\n\n\n\n\n\n");
         String result = NodeUtilities.getStringFromNode(results.node);
-        System.out.println(result);
-        System.out.println("\n\n\n\n\n\n\n\n");
-
 
         DocumentComparator comparator = new DocumentComparator(result, Util.getResourceAsStream("org/constellation/xml/metadata/iso-diff-SST.xml"));
         comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
@@ -209,11 +205,7 @@ public class InternalMetadataStoreTest {
         Assert.assertEquals(MetadataType.ISO_19115, results.actualFormat);
         Assert.assertEquals(MetadataType.DIF, results.originalFormat);
 
-        System.out.println("\n\n\n\n\n\n\n\n");
         String result = NodeUtilities.getStringFromNode(results.node);
-        System.out.println(result);
-        System.out.println("\n\n\n\n\n\n\n\n");
-
 
         DocumentComparator comparator = new DocumentComparator(result, Util.getResourceAsStream("org/constellation/xml/metadata/iso-diff-dif-1.xml"));
         comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
@@ -228,11 +220,7 @@ public class InternalMetadataStoreTest {
         Assert.assertEquals(MetadataType.DUBLINCORE_CSW202, results.actualFormat);
         Assert.assertEquals(MetadataType.DIF, results.originalFormat);
 
-        System.out.println("\n\n\n\n\n\n\n\n");
         String result = NodeUtilities.getStringFromNode(results.node);
-        System.out.println(result);
-        System.out.println("\n\n\n\n\n\n\n\n");
-
 
         DocumentComparator comparator = new DocumentComparator(result, Util.getResourceAsStream("org/constellation/xml/metadata/dif-1-FDC.xml"));
         comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
@@ -247,11 +235,7 @@ public class InternalMetadataStoreTest {
         Assert.assertEquals(MetadataType.DUBLINCORE_CSW202, results.actualFormat);
         Assert.assertEquals(MetadataType.ISO_19115, results.originalFormat);
 
-        System.out.println("\n\n\n\n\n\n\n\n");
         String result = NodeUtilities.getStringFromNode(results.node);
-        System.out.println(result);
-        System.out.println("\n\n\n\n\n\n\n\n");
-
 
         DocumentComparator comparator = new DocumentComparator(result, Util.getResourceAsStream("org/constellation/xml/metadata/meta1FDC.xml"));
         comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");

@@ -960,7 +960,6 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
         initServer();
 
-        System.out.println("\n\n DISTIBUTED SEARCH \n\n");
         // Creates a valid GetCapabilities url.
         final URL getCapsUrl = new URL(getCsw2URL());
 

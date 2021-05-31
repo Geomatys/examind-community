@@ -21,6 +21,7 @@ package org.constellation.metadata.index.elasticsearch;
 // J2SE dependencies
 
 import org.apache.sis.xml.MarshallerPool;
+import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.geotoolkit.csw.xml.v202.QueryConstraintType;
 import org.geotoolkit.ogc.xml.FilterMarshallerPool;
 import org.geotoolkit.ogc.xml.v110.FilterType;
@@ -87,7 +88,10 @@ public class ElasticSearchFilterParserTest {
 
     @Test
     public void dummyTestFilterTest() throws Exception {
-        System.out.println(QueryBuilders.boolQuery().must(QueryBuilders.termQuery("test", "ss")).must(QueryBuilders.termQuery("test", "ss")).toString());
+        final BoolQueryBuilder query = QueryBuilders.boolQuery()
+                .must(QueryBuilders.termQuery("test", "ss"))
+                .must(QueryBuilders.termQuery("test", "ss"));
+        // TODO: what to do ?
     }
     /**
      * Test simple comparison filter.

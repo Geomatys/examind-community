@@ -37,10 +37,7 @@ public class JSonUtilsTest {
         list.put("ab.d", "de");
 
         Map<String, Object> p2h = JsonUtils.toJSon(list);
-        System.out.println(p2h);
-
         Properties properties = JsonUtils.toProperties(p2h);
-
-        System.out.println(properties);
+        // TODO: check values
     }
 }

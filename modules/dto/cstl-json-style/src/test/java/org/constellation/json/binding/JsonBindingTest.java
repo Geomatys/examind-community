@@ -94,18 +94,24 @@ public class JsonBindingTest {
         isolineSymb.setRasterSymbolizer(rs);
         isolineSymb.setTextSymbolizer(ts);
         isolineSymb.setName("style-isoline");
-        objectMapper.writeValue(System.out, isolineSymb);
+
+        final StringWriter jsonWriter = new StringWriter(1024);
+        objectMapper.writeValue(jsonWriter, isolineSymb);
+        // TODO : check Jackson written Json
 
         org.geotoolkit.display2d.ext.isoline.symbolizer.IsolineSymbolizer geotkSymb =
                 (org.geotoolkit.display2d.ext.isoline.symbolizer.IsolineSymbolizer) isolineSymb.toType();
         DefaultMutableRule rule = new DefaultMutableRule();
         rule.symbolizers().add(geotkSymb);
 
-        sldParser.writeRule(System.out, rule, Specification.SymbologyEncoding.V_1_1_0);
+        final StringWriter xmlWriter = new StringWriter(1024);
+        sldParser.writeRule(xmlWriter, rule, Specification.SymbologyEncoding.V_1_1_0);
+        // TODO: use DOMComparator to check written value
 
         stroke = new Stroke(geotkSymb.getLineSymbolizer().getStroke());
-        objectMapper.writeValue(System.out, stroke);
-
+        final StringWriter jsonWriter2 = new StringWriter(1024);
+        objectMapper.writeValue(jsonWriter2, stroke);
+        // TODO : check Jackson written Json
     }
 
     public static InputStream getResourceAsStream(final String url) {

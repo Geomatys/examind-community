@@ -709,7 +709,6 @@ public class MetadataUnmarshallTest { //extends MetadataTest {
         online.setLinkage(u1);
         marshaller.marshal(online, sw);
         String result = sw.toString();
-        System.out.println(result);
 
         unmarshaller = testPool.acquireUnmarshaller();
         final DefaultOnlineResource expResult = (DefaultOnlineResource) unmarshaller.unmarshal(new StringReader(result));
@@ -733,7 +732,6 @@ public class MetadataUnmarshallTest { //extends MetadataTest {
 
         marshaller.marshal(data, sw);
         String result = sw.toString();
-        System.out.println(result);
 
         unmarshaller = testPool.acquireUnmarshaller();
         DefaultDataIdentification expResult = (DefaultDataIdentification) unmarshaller.unmarshal(new StringReader(result));
@@ -746,7 +744,6 @@ public class MetadataUnmarshallTest { //extends MetadataTest {
 
         marshaller.marshal(data, sw);
         result = sw.toString();
-        System.out.println(result);
 
         unmarshaller = testPool.acquireUnmarshaller();
         expResult = (DefaultDataIdentification) unmarshaller.unmarshal(new StringReader(result));

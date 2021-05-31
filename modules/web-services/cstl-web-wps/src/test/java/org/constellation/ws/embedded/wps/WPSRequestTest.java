@@ -840,7 +840,6 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
         postRequestFile(conec, "org/constellation/wps/json/ExecuteEcho.json", "application/json");
         result = getStringResponse(conec);
         expected = getStringFromFile("org/constellation/wps/json/ExecuteEchoResponse.json");
-        System.out.println(result);
         compareJSON(expected, result);
     }
 
