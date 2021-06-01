@@ -77,16 +77,16 @@ public enum ServiceDef {
     WPS_2_0_0(Specification.WPS, Organization.OGC, "2.0.0", Profile.NONE, "2.0.0", true, true),
 
     // OSGEO TMS service definitions
-    TMS(Specification.TMS, Organization.NONE, "1.0.0", Profile.NONE, null, false, true),
+    TMS(Specification.TMS, Organization.NONE, "1.0.0", Profile.NONE, "1.1.0", false, true),
 
     // 3DTiles service definitions
-    TILES3D(Specification.TILES3D, Organization.OGC, "1.0.0", Profile.NONE, null, true, true),
+    TILES3D(Specification.TILES3D, Organization.OGC, "1.0.0", Profile.NONE, "2.0.0", true, true),
 
     // QuantizedMesh service definitions
-    QUANTIZEDMESH(Specification.QUANTIZEDMESH, Organization.NONE, "1.0.0", Profile.NONE, null, true, true),
+    QUANTIZEDMESH(Specification.QUANTIZEDMESH, Organization.NONE, "1.0.0", Profile.NONE, "2.0.0", true, true),
 
     // VTS service definitions
-    VTS(Specification.VTS, Organization.NONE, "1.0.0", Profile.NONE, null, true, true);
+    VTS(Specification.VTS, Organization.NONE, "1.0.0", Profile.NONE, "2.0.0", true, true);
 
     /**
      * Name of the specification.
