@@ -13,7 +13,8 @@ build:
   stage: build
   script:
     - mvn clean install -ntp -Depsg.database.url="jdbc:hsqldb:mem:epsg" -Dtest.database.url="jdbc:hsqldb:mem:admin" -s $MAVEN_SETTINGS
-    - mvn javadoc:jar
+# TODO: activate back one day...
+#    - mvn javadoc:jar
   artifacts:
     paths:
       - modules/bundles/exa-bundle/target/
