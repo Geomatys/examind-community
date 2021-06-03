@@ -280,7 +280,7 @@ public class DataRestAPI extends AbstractRestAPI{
             }
 
             // 9. retrieve all the newly create datas
-            final List<DataBrief> briefs = dataBusiness.getDataBriefsFromDatasetId(dsId, true, true, null, null);
+            final List<DataBrief> briefs = dataBusiness.getDataBriefsFromDatasetId(dsId, true, true, null, null, true);
 
             return new ResponseEntity(briefs, OK);
         } catch(Exception ex) {
@@ -592,9 +592,9 @@ public class DataRestAPI extends AbstractRestAPI{
      * @param dataSetId given dataset id.
      * @return {@link DataSetBrief} built from the given dataset.
      */
-    private DataSetBrief buildDatsetBrief(final int dataSetId, List<DataBrief> children){
+    private DataSetBrief buildDatsetBrief(final int dataSetId, List<DataBrief> children) throws ConstellationException{
         if (children == null) {
-            children = dataBusiness.getDataBriefsFromDatasetId(dataSetId);
+            children = dataBusiness.getDataBriefsFromDatasetId(dataSetId, true, false, null, null, true);
         }
         final DataSetBrief dsb = datasetBusiness.getDatasetBrief(dataSetId, children);
         return dsb;

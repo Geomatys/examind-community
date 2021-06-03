@@ -86,7 +86,7 @@ public class PortrayalRestAPI {
         try {
             // OLD API
             if (dataId == null) {
-                final DataBrief brief = dataBusiness.getDataBrief(Util.parseQName(dataName), providerId);
+                final DataBrief brief = dataBusiness.getDataBrief(Util.parseQName(dataName), providerId, false);
                 dataId = brief.getId();
             }
             return new ResponseObject(mapBusiness.portraySLD(dataId, crs, bbox, width, height, sldBody, sldVersion, filter), MediaType.IMAGE_PNG, OK).getResponseEntity(response);
@@ -127,7 +127,7 @@ public class PortrayalRestAPI {
         try {
             // OLD API
             if (dataId == null) {
-                final DataBrief brief = dataBusiness.getDataBrief(Util.parseQName(dataName), providerId);
+                final DataBrief brief = dataBusiness.getDataBrief(Util.parseQName(dataName), providerId, false);
                 dataId = brief.getId();
             }
             return new ResponseObject(mapBusiness.portray(dataId, crs, bbox, width, height, sldProvider, styleId, filter), MediaType.IMAGE_PNG, OK).getResponseEntity(response);

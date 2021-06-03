@@ -152,20 +152,23 @@ public interface IDataBusiness {
      *
      * @param dataName given data name.
      * @param providerId given data provider as integer.
+     * @param fetchDataDescription If true, will retriee the envelope, and specific data informations (like columns, bands, etc)
      * @return {@link DataBrief}.
      * @throws ConstellationException is thrown if result fails.
      */
-    DataBrief getDataBrief(QName dataName, Integer providerId) throws ConstellationException;
+    DataBrief getDataBrief(QName dataName, Integer providerId, boolean fetchDataDescription) throws ConstellationException;
 
     /**
      * Returns {@link DataBrief} for given data name and provider identifier as string.
      *
      * @param fullName given data name.
      * @param providerIdentifier given data provider identifier.
+     * @param fetchDataDescription If true, will retriee the envelope, and specific data informations (like columns, bands, etc)
+     * 
      * @return {@link DataBrief}
      * @throws ConstellationException is thrown if result fails.
      */
-    DataBrief getDataBrief(QName fullName, String providerIdentifier) throws ConstellationException;
+    DataBrief getDataBrief(QName fullName, String providerIdentifier, boolean fetchDataDescription) throws ConstellationException;
 
     /**
      * Returns The data identifier for given data name and provider identifier as string.
@@ -232,17 +235,10 @@ public interface IDataBusiness {
      */
     List<DataBrief> getDataBriefsFromMetadataId(String metadataId);
 
-    /**
-     * Returns a list of {@link DataBrief} for given dataSet id.
-     *
-     * @param datasetId the given dataSet id.
-     * @return the list of {@link DataBrief}.
-     */
-    List<DataBrief> getDataBriefsFromDatasetId(Integer datasetId);
-
-    List<DataSummary> getDataSummaryFromDatasetId(Integer datasetId) throws ConfigurationException;
+    List<DataSummary> getDataSummaryFromDatasetId(Integer datasetId, boolean fetchDataDescription) throws ConfigurationException;
 
     /**
+     * 
      * Returns list of {@link DataBrief} for given dataSet id, with filter on the hidden and included flags.
      *
      * @param datasetId the given dataSet id.
@@ -250,11 +246,12 @@ public interface IDataBusiness {
      * @param hidden hidden flag filter.
      * @param sensorable sensorable flag filter, can be {@code null}.
      * @param published service published flag filter, can be {@code null}.
+     * @param fetchDataDescription If true, will retriee the envelope, and specific data informations (like columns, bands, etc)
      *
      * @return the list of {@link DataBrief}.
      * @throws org.constellation.exception.ConstellationException
      */
-    List<DataBrief> getDataBriefsFromDatasetId(final Integer datasetId, boolean included, boolean hidden, Boolean sensorable, Boolean published) throws ConstellationException;
+    List<DataBrief> getDataBriefsFromDatasetId(final Integer datasetId, boolean included, boolean hidden, Boolean sensorable, Boolean published, boolean fetchDataDescription) throws ConstellationException;
 
     /**
      * Returns list of {@link DataBrief} for given dataSet id, with filter on the hidden and included flags.

@@ -147,7 +147,7 @@ public class ServiceRestAPI extends AbstractRestAPI {
                 final List<Layer> layers = layerBusiness.getLayers(service.getId(), securityManager.getCurrentUserLogin());
                 final List<LayerSummary> layerSummaries = new ArrayList<>();
                 for (final Layer lay : layers) {
-                    final DataBrief db = dataBusiness.getDataBrief(lay.getName(), lay.getProviderID());
+                    final DataBrief db = dataBusiness.getDataBrief(lay.getDataId(), false);
                     final List<StyleBrief> sBriefs = Util.convertRefIntoStylesBrief(lay.getStyles());
                     final LayerSummary sum = new LayerSummary(lay, db, sBriefs);
                     layerSummaries.add(sum);

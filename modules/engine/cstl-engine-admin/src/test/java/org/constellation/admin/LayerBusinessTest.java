@@ -140,7 +140,7 @@ public class LayerBusinessTest {
     public void createTest() throws Exception {
 
         QName dataName = new QName("SSTMDE200305");
-        DataBrief db = dataBusiness.getDataBrief(dataName, coveragePID);
+        DataBrief db = dataBusiness.getDataBrief(dataName, coveragePID, false);
         Assert.assertNotNull(db);
 
         final Details frDetails = new Details("name", "identifier", Arrays.asList("keyword1", "keyword2"), "description", Arrays.asList("version1"), new Contact(), new AccessConstraint(), true, "FR");

@@ -19,15 +19,15 @@
 package org.constellation.process.data;
 
 import java.util.List;
-import org.constellation.business.IDataBusiness;
 import org.constellation.business.IStyleBusiness;
-import org.constellation.dto.DataBrief;
+import org.constellation.dto.Data;
 import org.constellation.dto.process.DatasetProcessReference;
 import org.constellation.dto.process.StyleProcessReference;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.process.AbstractCstlProcess;
 import static org.constellation.process.data.DatasetStyleLinkerProcessDescriptor.DATASET;
 import static org.constellation.process.data.DatasetStyleLinkerProcessDescriptor.STYLE;
+import org.constellation.repository.DataRepository;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.opengis.parameter.ParameterValueGroup;
@@ -43,7 +43,7 @@ public class DatasetStyleLinkerProcess extends AbstractCstlProcess {
     private IStyleBusiness styleBusiness;
 
     @Autowired
-    private IDataBusiness dataBusiness;
+    private DataRepository dataRepository;
 
     public DatasetStyleLinkerProcess(ProcessDescriptor desc, ParameterValueGroup parameter) {
         super(desc, parameter);
@@ -55,8 +55,8 @@ public class DatasetStyleLinkerProcess extends AbstractCstlProcess {
         final StyleProcessReference style   = inputParameters.getValue(STYLE);
         final DatasetProcessReference dataset = inputParameters.getValue(DATASET);
 
-        final List<DataBrief> briefs = dataBusiness.getDataBriefsFromDatasetId(dataset.getId());
-        for (DataBrief brief : briefs) {
+        final List<Data> briefs = dataRepository.findByDatasetId(dataset.getId());
+        for (Data brief : briefs) {
             try {
                 styleBusiness.linkToData(style.getId(), brief.getId());
             } catch (ConfigurationException ex) {

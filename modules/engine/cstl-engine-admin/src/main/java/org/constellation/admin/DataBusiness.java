@@ -209,7 +209,7 @@ public class DataBusiness implements IDataBusiness {
     public DataBrief getDataBrief(int dataId, boolean fetchDataDescription) throws ConstellationException {
         final Data data = dataRepository.findById(dataId);
         if (data != null) {
-            final List<DataBrief> dataBriefs = getDataBriefFrom(Collections.singletonList(data), null, null);
+            final List<DataBrief> dataBriefs = getDataBriefFrom(Collections.singletonList(data), null, null, fetchDataDescription);
             if (dataBriefs != null && dataBriefs.size() == 1) {
                 return dataBriefs.get(0);
             }
@@ -221,12 +221,12 @@ public class DataBusiness implements IDataBusiness {
      * {@inheritDoc}
      */
     @Override
-    public DataBrief getDataBrief(QName dataName,Integer providerId) throws ConstellationException {
+    public DataBrief getDataBrief(QName dataName,Integer providerId, boolean fetchDataDescription) throws ConstellationException {
         final Data data = dataRepository.findByNameAndNamespaceAndProviderId(dataName.getLocalPart(), dataName.getNamespaceURI(), providerId);
         if (data != null) {
             final List<Data> datas = new ArrayList<>();
             datas.add(data);
-            final List<DataBrief> dataBriefs = getDataBriefFrom(datas, null, null);
+            final List<DataBrief> dataBriefs = getDataBriefFrom(datas, null, null, fetchDataDescription);
             if (dataBriefs != null && dataBriefs.size() == 1) {
                 return dataBriefs.get(0);
             }
@@ -239,12 +239,12 @@ public class DataBusiness implements IDataBusiness {
      */
     @Override
     public DataBrief getDataBrief(final QName fullName,
-                                  final String providerIdentifier) throws ConstellationException {
+                                  final String providerIdentifier, boolean fetchDataDescription) throws ConstellationException {
         final Data data = dataRepository.findDataFromProvider(fullName.getNamespaceURI(), fullName.getLocalPart(), providerIdentifier);
         final List<Data> datas = new ArrayList<>();
         if (data != null) {
             datas.add(data);
-            final List<DataBrief> dataBriefs = getDataBriefFrom(datas, null, null);
+            final List<DataBrief> dataBriefs = getDataBriefFrom(datas, null, null, fetchDataDescription);
             if (dataBriefs != null && dataBriefs.size() == 1) {
                 return dataBriefs.get(0);
             }
@@ -288,7 +288,7 @@ public class DataBusiness implements IDataBusiness {
     @Override
     public List<DataBrief> getDataBriefsFromMetadataId(final String metadataId) {
         final List<Data> datas = findByMetadataId(metadataId);
-        return getDataBriefFrom(datas, null, null);
+        return getDataBriefFrom(datas, null, null, true);
     }
 
     /**
@@ -307,29 +307,20 @@ public class DataBusiness implements IDataBusiness {
      * {@inheritDoc}
      */
     @Override
-    public List<DataBrief> getDataBriefsFromDatasetId(final Integer datasetId) {
-        final List<Data> dataList = dataRepository.findByDatasetId(datasetId);
-        return getDataBriefFrom(dataList, null, null);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<DataSummary> getDataSummaryFromDatasetId(final Integer datasetId) throws ConfigurationException {
+    public List<DataSummary> getDataSummaryFromDatasetId(final Integer datasetId, boolean fetchDataDescription) throws ConfigurationException {
         final List<Data> dataList = dataRepository.findByDatasetId(datasetId);
         //sort by name by defaut
         dataList.sort((Data o1, Data o2) -> String.valueOf(o1.getName()).compareToIgnoreCase(String.valueOf(o2.getName())));
-        return getDataSummaryFrom(dataList, null, null);
+        return getDataSummaryFrom(dataList, null, null, fetchDataDescription);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public List<DataBrief> getDataBriefsFromDatasetId(Integer datasetId, boolean included, boolean hidden, Boolean sensorable, Boolean published) throws ConstellationException {
+    public List<DataBrief> getDataBriefsFromDatasetId(Integer datasetId, boolean included, boolean hidden, Boolean sensorable, Boolean published, boolean fetchDataDescription) throws ConstellationException {
         final List<Data> dataList = dataRepository.findByDatasetId(datasetId, included, hidden);
-        return getDataBriefFrom(dataList, sensorable, published);
+        return getDataBriefFrom(dataList, sensorable, published, fetchDataDescription);
     }
 
     @Override
@@ -403,16 +394,13 @@ public class DataBusiness implements IDataBusiness {
         return dataBriefs;
     }
 
-    protected List<DataBrief> getDataBriefFrom(final List<Data> datas, Boolean sensorable, Boolean published) {
-        return getDataBriefFrom(datas, sensorable, published, true);
-    }
-
-
     /**
      * Convert a list of {@link Data} to list of {@link DataBrief}.
+     *
      * @param datas given list of {@link Data}.
-     * @param sensorable
-     * @param published
+     * @param sensorable filter en sensorable data. can be {@code null}
+     * @param published filter en published data. can be {@code null}
+     * @param fetchDataDescription Flag to add or not data dscription (high cost)
      * @return the list of {@link DataBrief}.
      */
     protected List<DataBrief> getDataBriefFrom(final List<Data> datas, Boolean sensorable, Boolean published, Boolean fetchDataDescription) {
@@ -561,9 +549,10 @@ public class DataBusiness implements IDataBusiness {
      * @param datas given list of {@link Data}.
      * @param sensorable
      * @param published
+     * @param fetchDataDescription Flag to add or not data dscription (high cost)
      * @return the list of {@link DataBrief}.
      */
-    protected List<DataSummary> getDataSummaryFrom(final List<Data> datas, final Boolean sensorable, final Boolean published) throws ConfigurationException {
+    protected List<DataSummary> getDataSummaryFrom(final List<Data> datas, final Boolean sensorable, final Boolean published, Boolean fetchDataDescription) throws ConfigurationException {
         final List<DataSummary> dataSummaries = new ArrayList<>();
         if (datas == null) {
             return dataSummaries;
@@ -638,51 +627,54 @@ public class DataBusiness implements IDataBusiness {
 
             org.constellation.provider.Data provData = null;
 
-            try {
-                provData = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
-            } catch (Exception ex) {
-                LOGGER.log(Level.WARNING, "Unable to find a provider data: {" + data.getNamespace() + "} " + data.getName(), ex);
-            }
+            if (Boolean.TRUE.equals(fetchDataDescription)) {
+                try {
+                    provData = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
+                } catch (Exception ex) {
+                    LOGGER.log(Level.WARNING, "Unable to find a provider data: {" + data.getNamespace() + "} " + data.getName(), ex);
+                }
 
-            try {
-                if (provData != null) {
-                    StatInfo stats = null;
-                    if (DataType.COVERAGE.name().equals(data.getType()) && (data.getRendered() == null || !data.getRendered())) {
-                        stats = new StatInfo(data.getStatsState(), data.getStatsResult());
+                try {
+                    if (provData != null) {
+                        StatInfo stats = null;
+                        if (DataType.COVERAGE.name().equals(data.getType()) && (data.getRendered() == null || !data.getRendered())) {
+                            stats = new StatInfo(data.getStatsState(), data.getStatsResult());
+                        }
+                        final DataDescription dataDescription = provData.getDataDescription(stats);
+                        db.setDataDescription(dataDescription);
                     }
-                    final DataDescription dataDescription = provData.getDataDescription(stats);
-                    db.setDataDescription(dataDescription);
+                } catch (Exception e) {
+                    LOGGER.log(Level.WARNING, "Error retrieving statistics for the data  {" + data.getNamespace() + "} " + data.getName() + ":" + e.getMessage(), e);
                 }
-            } catch (Exception e) {
-                LOGGER.log(Level.WARNING, "Error retrieving statistics for the data  {" + data.getNamespace() + "} " + data.getName() + ":" + e.getMessage(), e);
-            }
 
-            // List of elevations, times and dim_range values.
-            final List<Dimension> dimensions = new ArrayList<>();
+                // List of elevations, times and dim_range values.
+                final List<Dimension> dimensions = new ArrayList<>();
 
-            /*
-             * Dimension: the available date
-             */
-            Dimension dim;
-            SortedSet<Date> dates=null;
-            try {
-                if (provData!= null) {
-                    dates = provData.getAvailableTimes();
+                /*
+                 * Dimension: the available date
+                 */
+                Dimension dim;
+                SortedSet<Date> dates=null;
+                try {
+                    if (provData!= null) {
+                        dates = provData.getAvailableTimes();
+                    }
+                } catch (Exception ex) {
+                    LOGGER.log(Level.WARNING, "Error retrieving dates values for the data: {" + data.getNamespace() + "} " + data.getName(), ex);
                 }
-            } catch (Exception ex) {
-                LOGGER.log(Level.WARNING, "Error retrieving dates values for the data: {" + data.getNamespace() + "} " + data.getName(), ex);
-            }
-            if (dates != null && !(dates.isEmpty())) {
-                final PeriodUtilities periodFormatter = new PeriodUtilities(ISO8601_FORMAT);
-                final String defaut = ISO8601_FORMAT.format(dates.last());
-                dim = new Dimension("time", "ISO8601", defaut, null);
-                dim.setValue(periodFormatter.getDatesRespresentation(dates));
-                dimensions.add(dim);
-            }
+                if (dates != null && !(dates.isEmpty())) {
+                    final PeriodUtilities periodFormatter = new PeriodUtilities(ISO8601_FORMAT);
+                    final String defaut = ISO8601_FORMAT.format(dates.last());
+                    dim = new Dimension("time", "ISO8601", defaut, null);
+                    dim.setValue(periodFormatter.getDatesRespresentation(dates));
+                    dimensions.add(dim);
+                }
 
-            // what about elevations?
+                // what about elevations?
 
-            db.setDimensions(dimensions);
+                db.setDimensions(dimensions);
+            }
+            
             dataSummaries.add(db);
         }
         return dataSummaries;
@@ -1229,7 +1221,7 @@ public class DataBusiness implements IDataBusiness {
     public Map.Entry<Integer, List<DataBrief>> filterAndGetBrief(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage) {
         final Map.Entry<Integer, List<Data>> entry = dataRepository.filterAndGet(filterMap, sortEntry, pageNumber, rowsPerPage);
         final List<Data> dataList = entry.getValue();
-        final List<DataBrief> results = getDataBriefFrom(dataList, null, null);
+        final List<DataBrief> results = getDataBriefFrom(dataList, null, null, true);
         return new AbstractMap.SimpleImmutableEntry<>(entry.getKey(), results);
     }
 

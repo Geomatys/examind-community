@@ -135,7 +135,7 @@ public class MapRestAPI {
 
             final List<LayerSummary> sumLayers = new ArrayList<>();
             for (final Layer lay : layers) {
-                final DataBrief db = dataBusiness.getDataBrief(lay.getName(), lay.getProviderID());
+                final DataBrief db = dataBusiness.getDataBrief(lay.getDataId(), false);
                 List<StyleBrief> layerStyleBrief = Util.convertRefIntoStylesBrief(lay.getStyles());
                 sumLayers.add(new LayerSummary(lay,db, layerStyleBrief));
             }
@@ -157,7 +157,7 @@ public class MapRestAPI {
         try {
             Integer sid = serviceBusiness.getServiceIdByIdentifierAndType(spec, id);
             if (sid == null) return new ResponseEntity(String.format("Target service %s/%s does not exist", spec, id), NOT_FOUND);
-            DataBrief db = dataBusiness.getDataBrief(new QName(layer.getLayerNamespace(), layer.getLayerId()), layer.getProviderId());
+            DataBrief db = dataBusiness.getDataBrief(new QName(layer.getLayerNamespace(), layer.getLayerId()), layer.getProviderId(), false);
             if (db == null) return new ResponseEntity("Target data not found",NOT_FOUND);
             layerBusiness.add(db.getId(), layer.getLayerAlias(), layer.getLayerNamespace(), layer.getLayerId(), sid, null);
             return new ResponseEntity(AcknowlegementType.success(String.format("Layer \"%s\" sucessfully added to %s service %s.", layer.getLayerId(), spec, id)), OK);

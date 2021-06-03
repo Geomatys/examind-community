@@ -90,7 +90,7 @@ public class DatasetRestAPI extends AbstractRestAPI {
             for (final Integer datasetId : datasets) {
                 final List<DataBrief> briefs;
                 if (includeData) {
-                    briefs = dataBusiness.getDataBriefsFromDatasetId(datasetId, true, false, sensorable, published);
+                    briefs = dataBusiness.getDataBriefsFromDatasetId(datasetId, true, false, sensorable, published, true);
                     if (briefs.isEmpty()) {
                         continue;
                     }
@@ -231,8 +231,13 @@ public class DatasetRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value = "/datasets/{datasetId}/datas", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getDatasetData(@PathVariable(value = "datasetId") int datasetId) {
-        if (datasetBusiness.existsById(datasetId)) {
-            return new ResponseEntity(dataBusiness.getDataBriefsFromDatasetId(datasetId), OK);
+        try {
+            if (datasetBusiness.existsById(datasetId)) {
+                return new ResponseEntity(dataBusiness.getDataBriefsFromDatasetId(datasetId, true, false, null, null, true), OK);
+            }
+        } catch(Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
@@ -246,7 +251,7 @@ public class DatasetRestAPI extends AbstractRestAPI {
     @RequestMapping(value = "/datasets/{datasetId}/datas/summary", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getDatasetDataSummary(@PathVariable(value = "datasetId") int datasetId) throws ConfigurationException, DataStoreException {
         if (datasetBusiness.existsById(datasetId)) {
-            return new ResponseEntity(dataBusiness.getDataSummaryFromDatasetId(datasetId), OK);
+            return new ResponseEntity(dataBusiness.getDataSummaryFromDatasetId(datasetId, true), OK);
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
@@ -381,9 +386,9 @@ public class DatasetRestAPI extends AbstractRestAPI {
      * @param dataSetId given dataset object.
      * @return {@link DataSetBrief} built from the given dataset.
      */
-    private DataSetBrief buildDatsetBrief(final int dataSetId, List<DataBrief> children){
+    private DataSetBrief buildDatsetBrief(final int dataSetId, List<DataBrief> children) throws ConstellationException {
         if (children == null) {
-            children = dataBusiness.getDataBriefsFromDatasetId(dataSetId);
+            children = dataBusiness.getDataBriefsFromDatasetId(dataSetId, true, false, null, null, true);
         }
         final DataSetBrief dsb = datasetBusiness.getDatasetBrief(dataSetId, children);
         return dsb;

@@ -310,8 +310,7 @@ public class LayerBusiness implements ILayerBusiness {
                 if (data != null) {
                     layerSummary.setName(data.getName());
                     layerSummary.setNamespace(data.getNamespace());
-                    final QName fullName = new QName(lay.getNamespace(), lay.getName());
-                    final DataBrief db = dataBusiness.getDataBrief(fullName, data.getProviderId());
+                    final DataBrief db = dataBusiness.getDataBrief(data.getId(), false);
                     if (db != null) {
                         layerSummary.setType(db.getType());
                         layerSummary.setSubtype(db.getSubtype());
