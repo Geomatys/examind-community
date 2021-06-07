@@ -63,7 +63,7 @@
         <joda.version>2.2</joda.version>
         <jooq.version>3.5.3</jooq.version>
         <jsp-api.version>2.2</jsp-api.version>
-        <logback.version>1.1.8</logback.version>
+        <logback.version>1.2.0</logback.version>
         <maven-plugin-api.version>2.0.9</maven-plugin-api.version>
         <metrics-spring.version>3.0.0-RC2</metrics-spring.version>
         <postgresql.version>42.2.2</postgresql.version>
