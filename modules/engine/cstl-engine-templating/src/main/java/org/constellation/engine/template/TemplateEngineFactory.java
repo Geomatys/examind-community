@@ -48,6 +48,8 @@ public class TemplateEngineFactory {
                         final Class clazz = gcl.parseClass(new GroovyCodeSource(reader, templateFile.getFileName().toString(), ""));
                         final Object aScript = clazz.newInstance();
                         return (TemplateEngine) aScript;
+                    } finally {
+                        Files.deleteIfExists(templateFile);
                     }
 
                 default:
