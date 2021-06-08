@@ -95,6 +95,7 @@ import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.temporal.util.TimeParser;
 import org.geotoolkit.wmts.WMTSUtilities;
 import org.geotoolkit.wmts.xml.WMTSMarshallerPool;
+import org.geotoolkit.wmts.xml.WMTSXmlFactory;
 import org.geotoolkit.wmts.xml.v100.Capabilities;
 import org.geotoolkit.wmts.xml.v100.ContentsType;
 import org.geotoolkit.wmts.xml.v100.Dimension;
@@ -855,6 +856,14 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                 return Optional.empty();
             }
         };
+    }
+
+    /**
+     * {@inheritDoc }
+     */
+    @Override
+    public Capabilities getCapabilities(String version) throws CstlServiceException {
+       return getCapabilities(new GetCapabilities("WMTS"));
     }
 
     /**

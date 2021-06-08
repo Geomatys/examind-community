@@ -18,8 +18,6 @@
  */
 package org.constellation.ws;
 
-//J2SE dependencies
-
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.VERSION_NEGOTIATION_FAILED;
 
@@ -588,6 +586,11 @@ public abstract class AbstractWorker implements Worker {
 
     @Override
     public Object getConfiguration() {
+        return null;
+    }
+
+    @Override
+    public Object getCapabilities(String version) throws CstlServiceException {
         return null;
     }
 }

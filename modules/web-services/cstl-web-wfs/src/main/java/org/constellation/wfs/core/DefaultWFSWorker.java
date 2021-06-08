@@ -66,7 +66,6 @@ import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.apache.sis.xml.Namespaces;
 import org.constellation.api.ServiceDef;
-import org.constellation.business.IDataBusiness;
 import org.constellation.dto.NameInProvider;
 import org.constellation.dto.contact.Details;
 import org.constellation.dto.service.config.wxs.FormatURL;
@@ -219,7 +218,6 @@ import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.CodeList;
 import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.w3c.dom.Element;
@@ -260,9 +258,6 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
     private List<StoredQueryDescription> storedQueries = new ArrayList<>();
 
     private final boolean isTransactionnal;
-
-    @Autowired
-    private IDataBusiness dataBuz;
 
     public DefaultWFSWorker(final String id) {
         super(id, ServiceDef.Specification.WFS);
@@ -2360,6 +2355,14 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             }
         }
         return results;
+    }
+
+    /**
+     * {@inheritDoc }
+     */
+    @Override
+    public WFSCapabilities getCapabilities(String version) throws CstlServiceException {
+       return getCapabilities(WFSXmlFactory.buildGetCapabilities(version, "WFS"));
     }
 
     private List<GenericName> getConfigurationTypeNames(String login) {

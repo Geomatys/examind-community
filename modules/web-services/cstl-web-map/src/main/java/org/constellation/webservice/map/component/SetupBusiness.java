@@ -18,11 +18,13 @@
  */
 package org.constellation.webservice.map.component;
 
+import com.examind.provider.component.ExaDataCreator;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
@@ -44,15 +46,19 @@ import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDataCoverageJob;
 import org.constellation.business.IProviderBusiness;
+import org.constellation.business.IServiceBusiness;
 import org.constellation.business.IStyleBusiness;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
+import org.constellation.dto.service.ServiceComplete;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConfigurationRuntimeException;
 import org.constellation.process.ExamindProcessFactory;
 import org.constellation.process.provider.CreateProviderDescriptor;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.DataProviderFactory;
+import org.constellation.ws.IWSEngine;
+import org.constellation.ws.Worker;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.nio.ZipUtilities;
 import org.geotoolkit.process.ProcessDescriptor;
@@ -109,6 +115,15 @@ public class SetupBusiness {
     @Inject
     private IDataCoverageJob dataCoverageJob;
 
+    @Inject
+    private IServiceBusiness serviceBusiness;
+
+    @Inject
+    private IWSEngine wsEngine;
+
+    @Inject
+    private ExaDataCreator dataCreator;
+
     @PostConstruct
     public void contextInitialized() {
         LOGGER.log(Level.INFO, "=== Initialize Application ===");
@@ -155,6 +170,29 @@ public class SetupBusiness {
             LOGGER.log(Level.FINE, "Start data analysis");
             dataCoverageJob.computeEmptyDataStatistics(true);
         }
+
+        boolean serviceWarmup = Application.getBooleanProperty(AppProperty.EXA_SERVICE_WARMUP, Boolean.FALSE);
+        if (serviceWarmup) {
+            long start = System.currentTimeMillis();
+            LOGGER.log(Level.INFO, "=== Start Services Warmup ===");
+            try {
+                for (ServiceComplete sc : serviceBusiness.getAllServices(null)) {
+                    try {
+                        Worker w = wsEngine.getInstance(sc.getType(), sc.getIdentifier());
+                        for (String version : sc.getVersions().split("µ")) {
+                            LOGGER.info("Get capabilities on " + sc.getType() + " " + sc.getIdentifier() + " version " + version);
+                            w.getCapabilities(version);
+                        }
+                    } catch (Exception ex) {
+                        LOGGER.log(Level.WARNING, "Error while warming up service:" + sc.getType() + " "+ sc.getIdentifier(), ex);
+                    }
+                }
+            } catch (Exception ex) {
+                LOGGER.log(Level.WARNING, "Error while warming up services", ex);
+            }
+            LOGGER.log(Level.INFO, "=== Services Warmup Finished in " + (System.currentTimeMillis() - start) + "ms ===");
+        }
+
     }
 
     /**

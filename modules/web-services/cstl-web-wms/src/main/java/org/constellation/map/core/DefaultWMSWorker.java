@@ -117,6 +117,7 @@ import org.apache.sis.portrayal.MapLayers;
 import org.apache.sis.portrayal.MapItem;
 import org.apache.sis.portrayal.MapLayer;
 import org.geotoolkit.filter.FilterUtilities;
+import org.apache.sis.util.Version;
 import org.geotoolkit.map.MapBuilder;
 import org.geotoolkit.ows.xml.OWSExceptionCode;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.CURRENT_UPDATE_SEQUENCE;
@@ -265,6 +266,15 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             layerDescriptions.add(outputLayer);
         }
         return new DescribeLayerResponseType("1.1.1", layerDescriptions);
+    }
+
+
+    /**
+     * {@inheritDoc }
+     */
+    @Override
+    public AbstractWMSCapabilities getCapabilities(String version) throws CstlServiceException {
+        return getCapabilities(new GetCapabilities(new Version(version)));
     }
 
     /**

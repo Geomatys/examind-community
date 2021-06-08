@@ -171,6 +171,7 @@ import org.geotoolkit.metadata.RecordInfo;
 import static org.geotoolkit.metadata.TypeNames.DIF_QNAME;
 import static org.geotoolkit.metadata.TypeNames.METADATA2_QNAME;
 import org.geotoolkit.ops.xml.OpenSearchXmlFactory;
+import org.geotoolkit.ows.xml.AcceptVersions;
 import org.w3._2005.atom.EntryType;
 import org.w3._2005.atom.FeedType;
 
@@ -1644,6 +1645,16 @@ public class CSWworker extends AbstractWorker implements Refreshable {
             result.append(qn.getPrefix()).append(qn.getLocalPart()).append('\n');
         }
         return result.toString();
+    }
+
+    /**
+     * {@inheritDoc }
+     */
+    @Override
+    public AbstractCapabilities getCapabilities(String version) throws CstlServiceException {
+        AcceptVersions versions = CswXmlFactory.buildAcceptVersion(version, new ArrayList<>(Arrays.asList(version)));
+        GetCapabilities request = CswXmlFactory.createGetCapabilities(version, versions, null, null, null, "CSW");
+        return getCapabilities(request);
     }
 
     /**

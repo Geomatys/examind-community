@@ -2191,6 +2191,15 @@ public class SOSworker extends SensorWorker {
     }
 
     /**
+     * {@inheritDoc }
+     */
+    @Override
+    public Capabilities getCapabilities(String version) throws CstlServiceException {
+        GetCapabilities request = SOSXmlFactory.buildGetCapabilities(version, "SOS");
+        return getCapabilities(request);
+    }
+
+    /**
      * Destroy and free the resource used by the worker.
      */
     @Override

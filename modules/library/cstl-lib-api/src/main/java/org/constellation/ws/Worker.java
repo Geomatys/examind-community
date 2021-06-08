@@ -128,4 +128,6 @@ public interface Worker {
      * Reset work capabilities cache
      */
     void clearCapabilitiesCache();
+
+    Object getCapabilities(String version) throws CstlServiceException;
 }

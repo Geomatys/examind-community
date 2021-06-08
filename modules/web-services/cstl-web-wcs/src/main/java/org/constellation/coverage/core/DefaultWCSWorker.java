@@ -124,6 +124,7 @@ import org.geotoolkit.ows.xml.AbstractOperationsMetadata;
 import org.geotoolkit.ows.xml.AbstractServiceIdentification;
 import org.geotoolkit.ows.xml.AbstractServiceProvider;
 import org.geotoolkit.ows.xml.AcceptFormats;
+import org.geotoolkit.ows.xml.AcceptVersions;
 import org.geotoolkit.ows.xml.BoundingBox;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.CURRENT_UPDATE_SEQUENCE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_CRS;
@@ -1347,6 +1348,16 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             env = combination;
         }
         return env;
+    }
+
+    /**
+     * {@inheritDoc }
+     */
+    @Override
+    public GetCapabilitiesResponse getCapabilities(String version) throws CstlServiceException {
+       AcceptVersions versions = WCSXmlFactory.buildAcceptVersion(version, Arrays.asList(version));
+       GetCapabilities request = WCSXmlFactory.createGetCapabilities(version, versions, null, null, null, "WCS");
+       return getCapabilities(request);
     }
 
     private static int dimensionIndex(final String dimension, final CoordinateReferenceSystem crs) {

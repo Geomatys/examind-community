@@ -126,6 +126,7 @@ import org.constellation.ws.UnauthorizedException;
 import org.geotoolkit.client.CapabilitiesException;
 import org.geotoolkit.gml.xml.Envelope;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
+import org.geotoolkit.ows.xml.v200.AcceptVersionsType;
 import org.geotoolkit.ows.xml.v200.AdditionalParameter;
 import org.geotoolkit.ows.xml.v200.AdditionalParametersType;
 import org.geotoolkit.processing.chain.model.Chain;
@@ -1479,6 +1480,16 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
         } catch (UnknowJobException ex) {
             throw new CstlServiceException(ex.getMessage(), ex, INVALID_PARAMETER_VALUE, "jobID", 404);
         }
+    }
+
+    /**
+     * {@inheritDoc }
+     */
+    @Override
+    public Capabilities getCapabilities(String version) throws CstlServiceException {
+       AcceptVersionsType versions =new AcceptVersionsType(version);
+       GetCapabilities request = new GetCapabilities(versions, null, null, null, WPS_SERVICE, null);
+       return getCapabilities(request);
     }
 
     @Override
