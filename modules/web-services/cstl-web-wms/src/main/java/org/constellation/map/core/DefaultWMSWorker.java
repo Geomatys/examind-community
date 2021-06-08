@@ -485,9 +485,8 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                     double[] nativeResolution = covdata.getGeometry().getResolution(true);
                     nativeResolutionX = nativeResolution[0];
                     nativeResolutionY = nativeResolution[1];
-                } catch (ConstellationStoreException ex) {
-                    LOGGER.log(Level.INFO, ex.getMessage(), ex);
-                    break;
+                } catch (Exception ex) {
+                    LOGGER.log(Level.WARNING, ex.getMessage(), ex);
                 }
             }
 
@@ -1339,10 +1338,14 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                     not create a 3D envelope, and let renderer get default slices.
                  */
                 for (LayerCache layer : layers) {
-                    final Date first = layer.getLastDate();
-                    if (first != null) {
-                        time[0] = time[1] = first;
-                        break;
+                    try {
+                        final Date first = layer.getLastDate();
+                        if (first != null) {
+                            time[0] = time[1] = first;
+                            break;
+                        }
+                    } catch(ConstellationStoreException ex) {
+                        LOGGER.log(Level.WARNING, ex.getMessage(), ex);
                     }
                 }
             }

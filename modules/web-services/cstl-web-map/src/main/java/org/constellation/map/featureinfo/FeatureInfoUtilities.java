@@ -48,6 +48,13 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.sis.coverage.grid.GridOrientation;
+import org.apache.sis.geometry.GeneralDirectPosition;
+import org.apache.sis.referencing.CRS;
+import org.apache.sis.util.Utilities;
+import org.opengis.geometry.Envelope;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.datum.PixelInCell;
 
 /**
  * Set of utilities methods for FeatureInfoFormat and GetFeatureInfoCfg manipulation.
@@ -378,11 +385,34 @@ public final class FeatureInfoUtilities extends Static {
      * transform between wanted location and data grid. If it fails, this error is thrown.
      * @throws TransformException In case of error while manually projecting input location in target grid.
      */
-    public static Stream<Map.Entry<SampleDimension, Object>> getCoverageValues(final GridCoverageResource datasource, final DirectPosition location) throws DataStoreException, FactoryException, TransformException {
-        final GridGeometry pointGeom = datasource.getGridGeometry().derive()
-                .rounding(GridRoundingMode.NEAREST)
-                .slice(location)
-                .build();
+    public static Stream<Map.Entry<SampleDimension, Object>> getCoverageValues(final GridCoverageResource datasource, DirectPosition location) throws DataStoreException, FactoryException, TransformException {
+        final GridGeometry pointGeom;
+        final GridGeometry dsrcGeom = datasource.getGridGeometry();
+        if (dsrcGeom.isDefined(GridGeometry.EXTENT)) {
+            pointGeom = datasource.getGridGeometry().derive()
+                    .rounding(GridRoundingMode.NEAREST)
+                    .slice(location)
+                    .build();
+        } else {
+            final CoordinateReferenceSystem pointCrs = location.getCoordinateReferenceSystem();
+            if (pointCrs != null && dsrcGeom.isDefined(GridGeometry.CRS)) {
+                final CoordinateReferenceSystem dataCrs = dsrcGeom.getCoordinateReferenceSystem();
+                final CoordinateReferenceSystem dataCrs2D = CRS.getHorizontalComponent(dataCrs);
+                if (!Utilities.equalsApproximately(pointCrs, dataCrs2D)) {
+                    final GeneralDirectPosition convertedLoc = new GeneralDirectPosition(dataCrs2D);
+                    CRS.findOperation(pointCrs, dataCrs2D, null).getMathTransform().transform(location, convertedLoc);
+                    location = convertedLoc;
+                }
+            }
+
+            Envelope sourceEnv = dsrcGeom.getEnvelope();
+            GeneralEnvelope env = new GeneralEnvelope(location, location);
+            for (int i = 0; i < env.getDimension(); i++) {
+                double s = sourceEnv.getSpan(i) / 100;
+                env.setRange(i, env.getMinimum(i) - s, env.getMaximum(i) + s);
+            }
+            pointGeom = new GridGeometry(new GridExtent(1, 1), env, GridOrientation.HOMOTHETY);
+        }
 
         final GridCoverage cvg = datasource.read(pointGeom).forConvertedValues(true);
         final List<SampleDimension> sampleDimensions = cvg.getSampleDimensions();
