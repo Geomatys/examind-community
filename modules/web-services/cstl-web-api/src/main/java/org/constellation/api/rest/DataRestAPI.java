@@ -45,7 +45,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.metadata.iso.citation.Citations;
-import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.IdentifiedObjects;
 import org.apache.sis.storage.DataStoreException;
@@ -55,6 +54,7 @@ import org.constellation.api.TilingMode;
 import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IDataBusiness;
+import org.constellation.business.IDataCoverageJob;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
@@ -139,6 +139,9 @@ public class DataRestAPI extends AbstractRestAPI{
 
     @Inject
     private IConfigurationBusiness configBusiness;
+
+    @Inject
+    private IDataCoverageJob dataCoverageJob;
 
     /**
      * Receive a {@link MultipartFile} which contain a data file to save on server,
@@ -806,6 +809,23 @@ public class DataRestAPI extends AbstractRestAPI{
         } catch(Exception ex) {
             LOGGER.log(Level.WARNING,ex.getLocalizedMessage(),ex);
             return new ErrorMessage(ex).message("Failed to remove datas").build();
+        }
+    }
+
+    /**
+     * Change the inclusion flag of a data (set to true).
+     *
+     * @param dataId Data identifier.
+     * @return
+     */
+    @RequestMapping(value="/datas/{dataId}/stats",method=POST,produces=APPLICATION_JSON_VALUE)
+    public ResponseEntity computeDataStats(@PathVariable("dataId") final int dataId) {
+        try {
+            dataCoverageJob.asyncUpdateDataStatistics(dataId);
+            return new ResponseEntity("Data statistics compute requested.",OK);
+        }catch(Exception ex){
+            LOGGER.log(Level.WARNING,ex.getLocalizedMessage(),ex);
+            return new ErrorMessage(ex).message("Failed to compute data statistics").build();
         }
     }
 
