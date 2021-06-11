@@ -174,7 +174,7 @@ public class MapRestAPI {
     @RequestMapping(value="/MAP/layer/add",method=PUT, consumes=APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
     public ResponseEntity addLayer(final @RequestBody org.constellation.dto.Layer layer) {
         try {
-            Integer layerId = layerBusiness.add(layer.getDataId(), layer.getNamespace(), layer.getName(), layer.getAlias(), layer.getService(), null);
+            Integer layerId = layerBusiness.add(layer.getDataId(),  layer.getAlias(), layer.getNamespace(), layer.getName(), layer.getService(), null);
             return new ResponseEntity(AcknowlegementType.success("Layer \"" + layerId + "\" successfully added to service \"" + layer.getService() + "\"."), OK);
         } catch(Throwable ex){
             return new ErrorMessage(ex).build();
