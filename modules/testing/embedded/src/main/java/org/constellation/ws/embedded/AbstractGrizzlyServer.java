@@ -147,7 +147,7 @@ public abstract class AbstractGrizzlyServer {
     protected IDataCoverageJob dataCoverageJob;
 
     protected static Class controllerConfiguration;
-
+    protected static Class apiControllerConfiguration = RestAPIControllerConfig.class;
     /**
      * Initialize and start the server.
      */
@@ -229,7 +229,9 @@ public abstract class AbstractGrizzlyServer {
         final DispatcherServlet servlet = new DispatcherServlet();
         final AnnotationConfigWebApplicationContext appContext = new AnnotationConfigWebApplicationContext();
         appContext.scan("org.constellation.api.rest");
-        appContext.register(RestAPIControllerConfig.class);
+        if (apiControllerConfiguration != null) {
+            appContext.register(apiControllerConfiguration);
+        }
         servlet.setApplicationContext(appContext);
         final ServletRegistrationBean servletBean = new ServletRegistrationBean(servlet, "/API/*");
         servletBean.setName("examindapi");
