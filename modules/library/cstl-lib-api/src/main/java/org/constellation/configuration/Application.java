@@ -203,6 +203,21 @@ public final class Application {
         return fallback;
     }
 
+    public static Float getFloatProperty(AppProperty key, Float fallback) {
+        String val = getProperty(key.getKey(), null);
+        if (val != null) {
+            return Float.parseFloat(val);
+        }
+        return fallback;
+    }
+    public static Float getFloatProperty(String key, Float fallback) {
+        String val = getProperty(key, null);
+        if (val != null) {
+            return Float.parseFloat(val);
+        }
+        return fallback;
+    }
+
     public static List<String> getListProperty(AppProperty key) {
         return getListProperty(key.getKey());
     }

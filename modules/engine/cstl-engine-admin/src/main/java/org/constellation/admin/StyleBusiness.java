@@ -73,8 +73,7 @@ import org.opengis.style.StyleFactory;
  * @version 0.9
  * @since 0.9
  */
-@Component
-@Primary
+@Component("exaStyleBusiness")
 public class StyleBusiness implements IStyleBusiness {
 
     @Inject
