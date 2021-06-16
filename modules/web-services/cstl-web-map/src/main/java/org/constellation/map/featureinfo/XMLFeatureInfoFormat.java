@@ -22,6 +22,8 @@ import java.awt.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -50,6 +52,7 @@ import org.geotoolkit.util.DateRange;
 import org.locationtech.jts.geom.Geometry;
 import org.opengis.feature.AttributeType;
 import org.opengis.feature.Feature;
+import org.opengis.feature.FeatureAssociationRole;
 import org.opengis.feature.PropertyType;
 import org.opengis.geometry.Envelope;
 import org.opengis.util.GenericName;
@@ -319,22 +322,41 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
 
         for (PropertyType pt : feature.getType().getProperties(true)) {
 
-            if (pt instanceof AttributeType) {
-                final AttributeType attType = (AttributeType) pt;
-                final GenericName propName = pt.getName();
-                String pLocal = propName.tip().toString();
-                if (pLocal.startsWith("@")) {
-                    pLocal = pLocal.substring(1);
+            final GenericName propName = pt.getName();
+            String pLocal = propName.tip().toString();
+            if (pLocal.startsWith("@")) {
+                pLocal = pLocal.substring(1);
+            }
+            pLocal = encodeXMLMark(pLocal);
+
+            final Object value = feature.getPropertyValue(propName.toString());
+
+            if (pt instanceof FeatureAssociationRole) {
+                Collection values;
+                if (!(value instanceof Collection))  {
+                    values = Arrays.asList(value);
+                } else {
+                    values = (Collection) value;
                 }
-                pLocal = encodeXMLMark(pLocal);
 
-                final Object value = feature.getPropertyValue(propName.toString());
-
+                for (Object v : values) {
+                    if (v instanceof Feature) {
+                        builder.append(margin).append('<').append(pLocal).append(">\n");
+                        margin += "\t";
+                        final Feature complex = (Feature) v;
+                        complexAttributetoXML(builder, complex, margin);
+                        margin = margin.substring(1);
+                        builder.append(margin).append("</").append(pLocal).append(">\n");
+                    }
+                }
+            } else if (pt instanceof AttributeType) {
+                final AttributeType attType = (AttributeType) pt;
+                
                 if (Geometry.class.isAssignableFrom(attType.getValueClass())) {
                     builder.append(margin).append('<').append(pLocal).append(">\n");
                     Geometry geom = (Geometry)value;
                     builder.append(encodeXML(geom.toText()));
-                    builder.append(margin).append("</").append(pLocal).append(">\n");
+                    builder.append("\n").append(margin).append("</").append(pLocal).append(">\n");
                 } else {
 
                     if (value instanceof Feature) {

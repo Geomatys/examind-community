@@ -40,6 +40,7 @@ import org.geotoolkit.display2d.service.SceneDef;
 import org.geotoolkit.feature.FeatureExt;
 import org.apache.sis.portrayal.MapLayer;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
+import org.opengis.feature.AttributeType;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureAssociationRole;
 import org.opengis.feature.PropertyType;
@@ -128,17 +129,21 @@ public class HTMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
                 for(Object cdt : (Collection)values) {
                     recursive((Feature)cdt, typeBuilder, dataBuilder, depth+1);
                 }
-            } else {
-                typeBuilder.append("<li>\n");
-                typeBuilder.append(pt.getName().tip().toString());
-                typeBuilder.append("</li>\n");
-
+            } else if (pt instanceof AttributeType){
                 final String valStr = toString(values);
-                dataBuilder.append("<a class=\"values\" title=\"");
-                dataBuilder.append(valStr);
-                dataBuilder.append("\">");
-                dataBuilder.append(valStr);
-                dataBuilder.append("</a>");
+
+                // exclude null properties
+                if (!"null".equals(valStr)) {
+                    typeBuilder.append("<li>\n");
+                    typeBuilder.append(pt.getName().tip().toString());
+                    typeBuilder.append("</li>\n");
+
+                    dataBuilder.append("<a class=\"values\" title=\"");
+                    dataBuilder.append(valStr);
+                    dataBuilder.append("\">");
+                    dataBuilder.append(valStr);
+                    dataBuilder.append("</a>");
+                }
             }
         }
         typeBuilder.append("</ul>\n");
@@ -215,7 +220,7 @@ public class HTMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             }
             final Unit unit = gsd.getUnits().orElse(null);
             if(unit!=null){
-                typeBuilder.append(unit.toString());
+                typeBuilder.append(" (").append(unit.toString()).append(")");
             }
             typeBuilder.append("</li>\n");
 

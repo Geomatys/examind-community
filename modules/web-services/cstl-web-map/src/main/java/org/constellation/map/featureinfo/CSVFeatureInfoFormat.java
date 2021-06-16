@@ -83,15 +83,13 @@ public class CSVFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             //feature type
             final StringBuilder typeBuilder = new StringBuilder();
             for(PropertyType pt : descs){
-                final GenericName propName = pt.getName();
-                typeBuilder.append(propName.toString());
-                typeBuilder.append(':');
-                if(pt instanceof AttributeType) {
-                    typeBuilder.append(((AttributeType)pt).getValueClass().getSimpleName());
-                } else {
-                    typeBuilder.append("Operation");
-                }
-                typeBuilder.append(';');
+                if (pt instanceof AttributeType) {
+                    final GenericName propName = pt.getName();
+                    typeBuilder.append(propName.toString());
+                    typeBuilder.append(':');
+                    typeBuilder.append(((AttributeType) pt).getValueClass().getSimpleName());
+                    typeBuilder.append(';');
+                } 
             }
             result.layerType = typeBuilder.toString();
             results.put(layerName, result);
@@ -101,13 +99,28 @@ public class CSVFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         //the feature values
         final StringBuilder dataBuilder = new StringBuilder();
         for(PropertyType pt : descs){
-            final Object value = feature.getPropertyValue(pt.getName().toString());
-            if(value instanceof Feature){
-                dataBuilder.append("...complex attribute, use GML or HTML output...");
-            }else if(value !=null){
-                dataBuilder.append(String.valueOf(value));
+            if (pt instanceof AttributeType) {
+                final Object value = feature.getPropertyValue(pt.getName().toString());
+                if (value instanceof Feature) {
+                    dataBuilder.append("...complex attribute, use GML or HTML output...");
+                } else if (value instanceof Collection) {
+                    Collection values = (Collection) value;
+                    boolean rm = false;
+                    for (Object v : values) {
+                        if (v instanceof Feature) {
+                            dataBuilder.append("...complex attribute, use GML or HTML output...,");
+                            rm = true;
+                        } else if (v != null) {
+                            dataBuilder.append(String.valueOf(v)).append(',');
+                            rm = true;
+                        }
+                    }
+                    if (rm) dataBuilder.deleteCharAt(dataBuilder.length() - 1);
+                } else if (value != null) {
+                    dataBuilder.append(String.valueOf(value));
+                }
+                dataBuilder.append(';');
             }
-            dataBuilder.append(';');
         }
         result.values.add(dataBuilder.toString());
     }
@@ -137,7 +150,7 @@ public class CSVFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
                 }
                 final Unit unit = gsd.getUnits().orElse(null);
                 if (unit!=null) {
-                    typeBuilder.append(unit.toString());
+                    typeBuilder.append(" (").append(unit.toString()).append(")");
                 }
                 typeBuilder.append(';');
             }

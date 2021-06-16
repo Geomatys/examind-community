@@ -7,6 +7,8 @@ import java.util.Objects;
 import javax.measure.Unit;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -14,6 +16,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @implNote Works only for writing.
  */
+@JsonInclude(Include.NON_NULL)
 public class CoverageInfo implements LayerInfo {
     private final String layer;
     private final Instant time;

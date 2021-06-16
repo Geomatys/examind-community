@@ -1159,8 +1159,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         String expResult
                 = "Lakes\n"
-                + "sis:envelope:Operation;sis:geometry:Operation;sis:identifier:String;the_geom:MultiPolygon;FID:String;NAME:String;\n"
-                + "BOX(6.0E-4 -0.0018, 0.0031 -1.0E-4);MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)));Lakes.1;MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)));101;Blue Lake;\n\n";
+                + "sis:identifier:String;the_geom:MultiPolygon;FID:String;NAME:String;\n"
+                + "Lakes.1;MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)));101;Blue Lake;\n\n";
 
         String result = getStringResponse(gfi);
 
@@ -1183,8 +1183,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         String expResult
                 = "BasicPolygons\n"
-                + "sis:envelope:Operation;sis:geometry:Operation;sis:identifier:String;the_geom:MultiPolygon;ID:String;\n"
-                + "BOX(-2 3, 1 6);MULTIPOLYGON (((-2 6, 1 6, 1 3, -2 3, -2 6)));BasicPolygons.2;MULTIPOLYGON (((-2 6, 1 6, 1 3, -2 3, -2 6)));;\n\n";
+                + "sis:identifier:String;the_geom:MultiPolygon;ID:String;\n"
+                + "BasicPolygons.2;MULTIPOLYGON (((-2 6, 1 6, 1 3, -2 3, -2 6)));;\n\n";
 
         String result = getStringResponse(gfi);
 
@@ -1213,7 +1213,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 + "		<ID>Lakes.1</ID>\n"
                 + "		<identifier>Lakes.1</identifier>\n"
                 + "		<the_geom>\n"
-                + "MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)))		</the_geom>\n"
+                + "MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)))\n"
+                + "		</the_geom>\n"
                 + "		<FID>101</FID>\n"
                 + "		<NAME>Blue Lake</NAME>\n"
                 + "	</Lakes_feature>\n"
@@ -1334,7 +1335,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                     "		<ID>Lakes.1</ID>\n" +
                     "		<identifier>Lakes.1</identifier>\n" +
                     "		<the_geom>\n" +
-                    "MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)))		</the_geom>\n" +
+                    "MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)))\n" +
+                    "		</the_geom>\n" +
                     "		<FID>101</FID>\n" +
                     "		<NAME>Blue Lake</NAME>\n" +
                     "	</Feature>\n" +
@@ -1904,10 +1906,6 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 + "    <body>\n"
                 + "<h2>Lakes</h2><br/><h2>Lakes.1</h2></br><div><div class=\"left-part\"><ul>\n"
                 + "<li>\n"
-                + "envelope</li>\n"
-                + "<li>\n"
-                + "geometry</li>\n"
-                + "<li>\n"
                 + "identifier</li>\n"
                 + "<li>\n"
                 + "the_geom</li>\n"
@@ -1916,7 +1914,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 + "<li>\n"
                 + "NAME</li>\n"
                 + "</ul>\n"
-                + "</div><div class=\"right-part\"><a class=\"values\" title=\"BOX(6.0E-4 -0.0018, 0.0031 -1.0E-4)\">BOX(6.0E-4 -0.0018, 0.0031 -1.0E-4)</a><a class=\"values\" title=\"MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)))\">MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)))</a><a class=\"values\" title=\"Lakes.1\">Lakes.1</a><a class=\"values\" title=\"MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)))\">MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)))</a><a class=\"values\" title=\"101\">101</a><a class=\"values\" title=\"Blue Lake\">Blue Lake</a></div></div><br/>    </body>\n"
+                + "</div><div class=\"right-part\"><a class=\"values\" title=\"Lakes.1\">Lakes.1</a><a class=\"values\" title=\"MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)))\">MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)))</a><a class=\"values\" title=\"101\">101</a><a class=\"values\" title=\"Blue Lake\">Blue Lake</a></div></div><br/>    </body>\n"
                 + "</html>";
 
         String result = getStringResponse(gfi);
@@ -2231,7 +2229,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         }
 
         String expResult
-                = "[{\"type\":\"coverage\",\"layer\":\"SSTMDE200305\",\"elevation\":null,\"values\":[{\"name\":\"0\",\"value\":201.0,\"unit\":null}],\"time\":null}]";
+                = "[{\"type\":\"coverage\",\"layer\":\"SSTMDE200305\",\"values\":[{\"name\":\"0\",\"value\":201.0,\"unit\":null}]}]";
 
         String result = getStringResponse(gfi);
         assertNotNull(result);
@@ -2245,7 +2243,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         }
 
         expResult
-                = "[{\"type\":\"coverage\",\"layer\":\"SST\",\"elevation\":null,\"values\":[{\"name\":\"0\",\"value\":201.0,\"unit\":null}],\"time\":null}]";
+                = "[{\"type\":\"coverage\",\"layer\":\"SST\",\"values\":[{\"name\":\"0\",\"value\":201.0,\"unit\":null}]}]";
 
         result = getStringResponse(gfi);
         assertNotNull(result);
@@ -2259,7 +2257,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         }
 
         expResult
-                = "[{\"type\":\"coverage\",\"layer\":\"martinique\",\"elevation\":null,\"values\":[{\"name\":\"0\",\"value\":63.0,\"unit\":null},{\"name\":\"1\",\"value\":92.0,\"unit\":null},{\"name\":\"2\",\"value\":132.0,\"unit\":null}],\"time\":null}]";
+                = "[{\"type\":\"coverage\",\"layer\":\"martinique\",\"values\":[{\"name\":\"0\",\"value\":63.0,\"unit\":null},{\"name\":\"1\",\"value\":92.0,\"unit\":null},{\"name\":\"2\",\"value\":132.0,\"unit\":null}]}]";
 
         result = getStringResponse(gfi);
         assertNotNull(result);
