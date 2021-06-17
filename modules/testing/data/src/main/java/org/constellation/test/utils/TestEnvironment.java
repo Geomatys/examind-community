@@ -35,6 +35,7 @@ import org.geotoolkit.data.shapefile.ShapefileFolderProvider;
 import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
+import org.geotoolkit.nio.ZipUtilities;
 import org.opengis.parameter.GeneralParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValue;
@@ -254,6 +255,12 @@ public class TestEnvironment {
             Path deployedPath = null;
             if (resource.path != null) {
                 deployedPath = IOUtilities.copyResource(resource.path, classloader, workspace, true);
+                if (IOUtilities.extension(deployedPath).equals("zip")) {
+                    Path target = deployedPath.resolveSibling(IOUtilities.filenameWithoutExtension(deployedPath));
+                    ZipUtilities.unzipNIO(deployedPath, target, false);
+                    IOUtilities.deleteSilently(deployedPath);
+                    deployedPath = target;
+                }
             }
             DeployedTestResource dtr = new DeployedTestResource(resource, deployedPath);
             results.put(resource, dtr);
