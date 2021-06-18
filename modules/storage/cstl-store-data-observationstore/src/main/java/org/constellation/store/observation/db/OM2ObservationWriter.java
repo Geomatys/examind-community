@@ -287,7 +287,15 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             for (Phenomenon phenomenon : phenomenons) {
                 if (phenomenon instanceof InternalPhenomenon) {
                     final InternalPhenomenon internal = (InternalPhenomenon)phenomenon;
-                    phenomenon = new PhenomenonType(internal.getName().getCode(), internal.getName().getCode());
+                    Identifier id = internal.getName();
+                    String phenId      = id.getCode();
+                    String name        = id.getCode();
+                    if (id.getDescription() != null) {
+                        name = id.getDescription().toString();
+                    }
+                    String definition  = id.getCode();
+                    String description = internal.getDescription();
+                    phenomenon = new PhenomenonType(phenId, name, definition, description);
                 }
                 final PhenomenonProperty phenomenonP = SOSXmlFactory.buildPhenomenonProperty("1.0.0", (org.geotoolkit.swe.xml.Phenomenon) phenomenon);
                 writePhenomenon(phenomenonP, c, false);
