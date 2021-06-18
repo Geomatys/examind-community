@@ -48,7 +48,21 @@ import org.constellation.business.IUserBusiness;
 import org.constellation.business.listener.IDataBusinessListener;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
-import org.constellation.dto.*;
+import org.constellation.dto.CstlUser;
+import org.constellation.dto.Data;
+import org.constellation.dto.DataBrief;
+import org.constellation.dto.DataDescription;
+import org.constellation.dto.DataSet;
+import org.constellation.dto.DataSummary;
+import org.constellation.dto.Dimension;
+import org.constellation.dto.Layer;
+import org.constellation.dto.ParameterValues;
+import org.constellation.dto.ProviderBrief;
+import org.constellation.dto.ServiceReference;
+import org.constellation.dto.SimpleDataDescription;
+import org.constellation.dto.StatInfo;
+import org.constellation.dto.Style;
+import org.constellation.dto.StyleBrief;
 import org.constellation.dto.importdata.FileBean;
 import org.constellation.dto.metadata.MetadataLightBrief;
 import org.constellation.dto.process.DataProcessReference;
@@ -466,6 +480,8 @@ public class DataBusiness implements IDataBusiness {
                         final DataDescription dataDescription = provData.getDataDescription(stats);
                         db.setDataDescription(dataDescription);
                     } else {
+                        // because UI can't support data without data description
+                        db.setDataDescription(new SimpleDataDescription());
                         LOGGER.warning("Unable to find a provider data: {" + data.getNamespace() + "} " + data.getName());
                     }
                 } catch (Exception e) {
@@ -625,11 +641,14 @@ public class DataBusiness implements IDataBusiness {
                 db.setPyramidConformProviderId(providerName);
             }
 
-            org.constellation.provider.Data provData = null;
-
             if (Boolean.TRUE.equals(fetchDataDescription)) {
+                org.constellation.provider.Data provData = null;
                 try {
                     provData = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
+                    if (provData == null) {
+                        // some implementation return null, other throw exception. TODO => harmonize
+                         LOGGER.log(Level.WARNING, "Unable to find a provider data: {" + data.getNamespace() + "} " + data.getName());
+                    }
                 } catch (Exception ex) {
                     LOGGER.log(Level.WARNING, "Unable to find a provider data: {" + data.getNamespace() + "} " + data.getName(), ex);
                 }
@@ -642,6 +661,9 @@ public class DataBusiness implements IDataBusiness {
                         }
                         final DataDescription dataDescription = provData.getDataDescription(stats);
                         db.setDataDescription(dataDescription);
+                    } else {
+                        // because UI can't support data without data description
+                        db.setDataDescription(new SimpleDataDescription());
                     }
                 } catch (Exception e) {
                     LOGGER.log(Level.WARNING, "Error retrieving statistics for the data  {" + data.getNamespace() + "} " + data.getName() + ":" + e.getMessage(), e);
@@ -865,12 +887,7 @@ public class DataBusiness implements IDataBusiness {
                     }
 
                     // delete associated files in integrated folder. the file name (p.getIdentifier()) is a folder.
-                    try {
-                        final Path provDir = configBusiness.getDataIntegratedDirectory(providerIdentifier);
-                        IOUtilities.deleteRecursively(provDir);
-                    } catch (IOException e) {
-                        LOGGER.log(Level.WARNING, "Error during delete data on FS for provider: {0}", providerIdentifier);
-                    }
+                    configBusiness.removeDataIntegratedDirectory(providerIdentifier);
                 }
 
                 // Relevant erase dataset when there is no more data in it. for now we remove it

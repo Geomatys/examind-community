@@ -295,7 +295,11 @@ public abstract class LayerWorker extends AbstractWorker {
         try {
             List<NameInProvider> nips = layerBusiness.getLayerNames(getServiceId(), login);
             for (NameInProvider nip : nips) {
-                results.add(getLayerCache(nip, login));
+                try {
+                    results.add(getLayerCache(nip, login));
+                } catch (CstlServiceException ex) {
+                    LOGGER.log(Level.WARNING, ex.getMessage());
+                }
             }
             return results;
         } catch (ConfigurationException ex) {

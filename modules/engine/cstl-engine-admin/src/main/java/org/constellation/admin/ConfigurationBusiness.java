@@ -86,7 +86,7 @@ public class ConfigurationBusiness implements IConfigurationBusiness {
             }
             org.geotoolkit.nio.IOUtilities.deleteRecursively(provDir);
         } catch (IOException e) {
-            LOGGER.log(Level.WARNING, "Error during delete data on FS for provider {0}", providerId);
+            LOGGER.log(Level.WARNING, "Error during delete data on FS for provider: {0}", providerId);
         }
     }
 
