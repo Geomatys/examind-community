@@ -22,7 +22,7 @@ package org.constellation.json.binding;
 import java.awt.Color;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.json.util.StyleUtilities;
-import org.opengis.filter.expression.Expression;
+import org.opengis.filter.Expression;
 import java.util.logging.Logger;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
@@ -30,7 +30,6 @@ import static org.constellation.json.util.StyleFactories.SF;
 import static org.constellation.json.util.StyleUtilities.literal;
 import static org.constellation.json.util.StyleUtilities.parseExpression;
 import static org.constellation.json.util.StyleUtilities.toHex;
-import org.geotoolkit.style.function.DefaultInterpolate;
 
 /**
  * @author Fabien Bernard (Geomatys).
@@ -61,7 +60,7 @@ public final class Stroke implements StyleElement<org.opengis.style.Stroke> {
         if (stroke.getColor() instanceof org.geotoolkit.style.function.Interpolate) {
             function = new Interpolate((org.geotoolkit.style.function.Interpolate)stroke.getColor());
         } else {
-            final Color col = stroke.getColor().evaluate(null, Color.class);
+            final Color col = (Color) stroke.getColor().apply(null);
             color = toHex(col);
         }
         final Expression opacityExp = stroke.getOpacity();
@@ -74,11 +73,11 @@ public final class Stroke implements StyleElement<org.opengis.style.Stroke> {
             width = StyleUtilities.toCQL(widthExp);
         }
         dashed  = (stroke.getDashArray() != null);
-        lineJoin = stroke.getLineJoin().evaluate(null, String.class);
-        lineCap = stroke.getLineCap().evaluate(null, String.class);
+        lineJoin = stroke.getLineJoin().apply(null).toString();
+        lineCap = stroke.getLineCap().apply(null).toString();
         dashArray = stroke.getDashArray();
         try{
-            dashOffset = Double.parseDouble(stroke.getDashOffset().evaluate(null, String.class));
+            dashOffset = Double.parseDouble(stroke.getDashOffset().apply(null).toString());
         }catch(Exception ex){
             //do nothing
         }

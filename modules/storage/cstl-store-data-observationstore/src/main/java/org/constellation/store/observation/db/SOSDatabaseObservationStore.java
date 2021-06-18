@@ -43,7 +43,6 @@ import java.util.stream.StreamSupport;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.sis.internal.storage.AbstractFeatureSet;
 import org.apache.sis.internal.storage.StoreResource;
-import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.parameter.Parameters;
 import org.apache.sis.storage.Aggregate;
@@ -62,6 +61,7 @@ import org.geotoolkit.data.om.OMFeatureTypes;
 import static org.geotoolkit.data.om.OMFeatureTypes.*;
 import org.geotoolkit.data.om.xml.XmlObservationUtils;
 import org.geotoolkit.feature.FeatureExt;
+import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.storage.feature.GenericNameIndex;
 import org.geotoolkit.jdbc.DBCPDataSource;
 import org.geotoolkit.jdbc.ManageableDataSource;
@@ -79,9 +79,7 @@ import org.geotoolkit.util.NamesExt;
 import org.locationtech.jts.io.WKBWriter;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
-import org.opengis.filter.FilterFactory;
-import org.opengis.filter.Id;
-import org.opengis.filter.identity.FeatureId;
+import org.opengis.filter.ResourceId;
 import org.opengis.metadata.Metadata;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
@@ -163,7 +161,7 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
 
             // build database structure if needed
             buildDatasource();
-            
+
             reader = new OM2ObservationReader(source, isPostgres, schemaPrefix, properties, timescaleDB);
             writer = new OM2ObservationWriter(source, isPostgres, schemaPrefix, properties, timescaleDB);
             filter = new OM2ObservationFilterReader(source, isPostgres, schemaPrefix, properties, timescaleDB);
@@ -206,13 +204,13 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
         return source.getConnection();
     }
 
-    public FeatureId getNewFeatureId() {
+    public ResourceId getNewFeatureId() {
         try (final Connection cnx = getConnection();
              final PreparedStatement stmtLastId = cnx.prepareStatement(SQL_GET_LAST_ID);
              final ResultSet result = stmtLastId.executeQuery()){
             if (result.next()) {
                 final int nb = result.getInt(1) + 1;
-                return DefaultFactories.forBuildin(FilterFactory.class).featureId("sampling-point-" + nb);
+                return FilterUtilities.FF.resourceId("sampling-point-" + nb);
             }
         } catch (SQLException ex) {
             LOGGER.log(Level.WARNING, null, ex);
@@ -294,8 +292,6 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
                 result.observations.add(o);
             }
         }
-
-
         return result;
     }
 
@@ -448,19 +444,19 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
 
         @Override
         public void add(Iterator<? extends Feature> features) throws DataStoreException {
-            final Set<FeatureId> result = new LinkedHashSet<>();
+            final Set<ResourceId> result = new LinkedHashSet<>();
 
             try (Connection cnx = getConnection();
                  PreparedStatement stmtWrite = cnx.prepareStatement(SQL_WRITE_SAMPLING_POINT)) {
 
                 while (features.hasNext()) {
                     final Feature feature = features.next();
-                    FeatureId identifier = FeatureExt.getId(feature);
-                    if (identifier == null || identifier.getID().isEmpty()) {
+                    ResourceId identifier = FeatureExt.getId(feature);
+                    if (identifier == null || identifier.getIdentifier().isEmpty()) {
                         identifier = getNewFeatureId();
                     }
 
-                    stmtWrite.setString(1, identifier.getID());
+                    stmtWrite.setString(1, identifier.getIdentifier());
                     Collection<String> names = ((Collection)feature.getPropertyValue(ATT_NAME.toString()));
                     Collection<String> sampleds = ((Collection)feature.getPropertyValue(ATT_SAMPLED.toString()));
                     stmtWrite.setString(2, (String) names.iterator().next());
@@ -487,8 +483,7 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
             }
             //todo return created ids
             //return result;
-            Id id = DefaultFactories.forBuildin(FilterFactory.class).id(result);
-            listeners.fire(new FeatureStoreContentEvent(this, FeatureStoreContentEvent.Type.ADD, getType().getName(), id), FeatureStoreContentEvent.class);
+            listeners.fire(new FeatureStoreContentEvent(this, FeatureStoreContentEvent.Type.ADD, getType().getName(), result), FeatureStoreContentEvent.class);
         }
 
         @Override
@@ -527,6 +522,5 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
         public synchronized <T extends StoreEvent> void removeListener(Class<T> eventType, StoreListener<? super T> listener) {
             listeners.removeListener(eventType, listener);
         }
-
     }
 }

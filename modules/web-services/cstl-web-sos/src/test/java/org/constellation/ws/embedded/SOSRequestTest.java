@@ -452,12 +452,12 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
         result = result.replace("\\n", "\n").replace("\"", "");
         assertEquals(expResult, result);
     }
-    
+
     @Test
     @Order(order=10)
     public void listInstanceTest() throws Exception {
         initPool();
-        
+
         URL liUrl = new URL("http://localhost:" + getCurrentPort() + "/API/OGC/sos/all");
 
         URLConnection conec = liUrl.openConnection();

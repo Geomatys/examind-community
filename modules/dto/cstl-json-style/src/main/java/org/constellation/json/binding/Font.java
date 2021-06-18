@@ -21,7 +21,7 @@ package org.constellation.json.binding;
 
 import org.apache.sis.util.logging.Logging;
 import org.constellation.json.util.StyleUtilities;
-import org.opengis.filter.expression.Expression;
+import org.opengis.filter.Expression;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,7 +70,7 @@ public final class Font implements StyleElement<org.opengis.style.Font> {
             italic = styleStr.toLowerCase().contains("italic");
         }
         for (final Expression fam : font.getFamily()) {
-            family.add(fam.evaluate(null, String.class));
+            family.add((String) fam.apply(null));
         }
     }
 

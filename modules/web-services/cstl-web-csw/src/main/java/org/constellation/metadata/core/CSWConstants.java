@@ -38,12 +38,11 @@ import org.geotoolkit.ows.xml.AbstractResponsiblePartySubset;
 import org.geotoolkit.ows.xml.AbstractServiceIdentification;
 import org.geotoolkit.ows.xml.AbstractServiceProvider;
 import org.geotoolkit.ows.xml.OWSXmlFactory;
-import org.opengis.filter.capability.Operator;
-import org.opengis.filter.capability.SpatialOperator;
+import org.geotoolkit.filter.capability.Operator;
+import org.geotoolkit.filter.capability.SpatialOperator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
@@ -64,7 +63,7 @@ import org.geotoolkit.ops.xml.v110.CompleteQueryType;
 import org.geotoolkit.ops.xml.v110.OpenSearchDescription;
 import org.geotoolkit.ops.xml.v110.Url;
 import org.geotoolkit.opsp.xml.v100.Parameter;
-import org.opengis.filter.capability.FilterCapabilities;
+import org.geotoolkit.filter.capability.FilterCapabilities;
 import org.w3._2005.atom.DateTimeType;
 import org.w3._2005.atom.FeedType;
 import org.w3._2005.atom.PersonType;
@@ -389,16 +388,17 @@ public abstract class CSWConstants {
         final org.geotoolkit.ogc.xml.v110.SpatialCapabilitiesType spatial = new org.geotoolkit.ogc.xml.v110.SpatialCapabilitiesType(geom, spaOp);
         csw202FC.setSpatialCapabilities(spatial);
 
-        final Operator[] compOps = new Operator[9];
-        compOps[0] = org.geotoolkit.ogc.xml.v110.ComparisonOperatorType.BETWEEN;
-        compOps[1] = org.geotoolkit.ogc.xml.v110.ComparisonOperatorType.EQUAL_TO;
-        compOps[2] = org.geotoolkit.ogc.xml.v110.ComparisonOperatorType.NOT_EQUAL_TO;
-        compOps[3] = org.geotoolkit.ogc.xml.v110.ComparisonOperatorType.LESS_THAN;
-        compOps[4] = org.geotoolkit.ogc.xml.v110.ComparisonOperatorType.LESS_THAN_EQUAL_TO;
-        compOps[5] = org.geotoolkit.ogc.xml.v110.ComparisonOperatorType.GREATER_THAN;
-        compOps[6] = org.geotoolkit.ogc.xml.v110.ComparisonOperatorType.GREATER_THAN_EQUAL_TO;
-        compOps[7] = org.geotoolkit.ogc.xml.v110.ComparisonOperatorType.LIKE;
-        compOps[8] = org.geotoolkit.ogc.xml.v110.ComparisonOperatorType.NULL_CHECK;
+        final Operator[] compOps = new Operator[] {
+            Operator.BETWEEN,
+            Operator.EQUAL_TO,
+            Operator.NOT_EQUAL_TO,
+            Operator.LESS_THAN,
+            Operator.LESS_THAN_EQUAL_TO,
+            Operator.GREATER_THAN,
+            Operator.GREATER_THAN_EQUAL_TO,
+            Operator.LIKE,
+            Operator.NULL_CHECK
+        };
         final ComparisonOperatorsType compOp = new ComparisonOperatorsType(compOps);
         final org.geotoolkit.ogc.xml.v110.ScalarCapabilitiesType scalar = new org.geotoolkit.ogc.xml.v110.ScalarCapabilitiesType(compOp, null, true);
 
@@ -451,7 +451,6 @@ public abstract class CSWConstants {
         //csw300FC.setIdCapabilities(id);
 
         CSW_FILTER_CAPABILITIES.put("3.0.0", csw300FC);
-
     }
 
     /**
@@ -616,7 +615,7 @@ public abstract class CSWConstants {
 
         param = new Parameter("startDate", "{time:start}", "Start date to be compared with the data acquisition time.");
         params.add(param);
-        
+
         param = new Parameter("endDate", "{time:end}", "End date to be compared with the data acquisition time.");
         params.add(param);
 

@@ -21,7 +21,7 @@ package org.constellation.json.binding;
 
 import org.apache.sis.util.logging.Logging;
 import org.constellation.json.util.StyleUtilities;
-import org.opengis.filter.expression.Expression;
+import org.opengis.filter.Expression;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;

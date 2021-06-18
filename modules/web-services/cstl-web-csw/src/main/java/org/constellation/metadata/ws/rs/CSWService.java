@@ -89,6 +89,7 @@ import static org.constellation.metadata.core.CSWConstants.RESULT_TYPE;
 import static org.constellation.metadata.core.CSWConstants.START_POSITION;
 import static org.constellation.metadata.core.CSWConstants.TYPENAMES;
 import org.constellation.ws.rs.ResponseObject;
+import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.gml.JTStoGeometry;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.GMLXmlFactory;
@@ -102,10 +103,9 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
-import org.opengis.filter.And;
 import org.opengis.filter.Filter;
-import org.opengis.filter.expression.Literal;
-import org.opengis.filter.sort.SortOrder;
+import org.opengis.filter.Literal;
+import org.opengis.filter.SortOrder;
 import org.opengis.geometry.DirectPosition;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.util.FactoryException;
@@ -337,7 +337,7 @@ public class CSWService extends OGCWebService<CSWworker> {
 
         final String version    = getParameter(VERSION_PARAMETER, true);
         final String service    = getParameter(SERVICE_PARAMETER, true);
-        
+
         w.checkVersionSupported(version, false);
 
         //we get the value of result type, if not set we put default value "HITS"
@@ -503,7 +503,7 @@ public class CSWService extends OGCWebService<CSWworker> {
         final String sort          = getParameter("SORTBY", false);
 
         if (sort != null) {
-            final List<org.opengis.filter.sort.SortBy> sorts = new ArrayList<>();
+            final List<org.opengis.filter.SortProperty> sorts = new ArrayList<>();
             StringTokenizer tokens = new StringTokenizer(sort, ",;");
             while (tokens.hasMoreTokens()) {
                 final String token = tokens.nextToken().trim();
@@ -513,7 +513,7 @@ public class CSWService extends OGCWebService<CSWworker> {
                     final String order       = token.substring(token.indexOf(':') + 1);
                     SortOrder orderType;
                     try {
-                        orderType = SortOrder.valueOf(order);
+                        orderType = FilterUtilities.sortOrder(order);
                     } catch (IllegalArgumentException e){
                         throw new CstlServiceException("The SortOrder Name " + order + NOT_EXIST,
                                                       INVALID_PARAMETER_VALUE, "SortBy");
@@ -533,7 +533,7 @@ public class CSWService extends OGCWebService<CSWworker> {
 
         final String version    = getParameter(VERSION_PARAMETER, true);
         final String service    = getParameter(SERVICE_PARAMETER, true);
-        
+
         w.checkVersionSupported(version, false);
 
         String outputFormat = getParameter(OUTPUT_FORMAT, false);
@@ -731,7 +731,7 @@ public class CSWService extends OGCWebService<CSWworker> {
             if (filters.size() == 1) {
                 constraintObject = (Filter) FilterXmlFactory.buildFilter(filterVersion, filters.get(0));
             } else {
-                And and = FilterXmlFactory.buildAnd(filterVersion, filters.toArray(new Object[filters.size()]));
+                Filter and = FilterXmlFactory.buildAnd(filterVersion, filters.toArray(new Object[filters.size()]));
                 constraintObject = (Filter) FilterXmlFactory.buildFilter(filterVersion, and);;
             }
             return CswXmlFactory.createQueryConstraint(version, constraintObject, filterVersion);
@@ -750,7 +750,7 @@ public class CSWService extends OGCWebService<CSWworker> {
 
         w.checkVersionSupported(version, false);
 
-                
+
         String eSetName         = getParameter("ELEMENTSETNAME", false);
         ElementSetType elementSet = ElementSetType.SUMMARY;
         if (eSetName != null) {
@@ -793,7 +793,7 @@ public class CSWService extends OGCWebService<CSWworker> {
 
         final String version    = getParameter(VERSION_PARAMETER, true);
         final String service    = getParameter(SERVICE_PARAMETER, true);
-        
+
         w.checkVersionSupported(version, false);
 
         String outputFormat = getParameter("OUTPUTFORMAT", false);
@@ -845,7 +845,7 @@ public class CSWService extends OGCWebService<CSWworker> {
 
         final String version    = getParameter(VERSION_PARAMETER, true);
         final String service    = getParameter(SERVICE_PARAMETER, true);
-        
+
         w.checkVersionSupported(version, false);
 
 

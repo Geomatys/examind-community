@@ -25,13 +25,14 @@ import org.apache.sis.util.Utilities;
 import org.geotoolkit.filter.visitor.DuplicatingFilterVisitor;
 import org.geotoolkit.geometry.BoundingBox;
 import org.geotoolkit.geometry.jts.JTS;
-import org.opengis.filter.expression.Literal;
+import org.opengis.filter.Literal;
 import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
 
 import java.util.logging.Level;
+import org.apache.sis.internal.filter.FunctionNames;
 import org.apache.sis.util.logging.Logging;
 
 /**
@@ -39,47 +40,35 @@ import org.apache.sis.util.logging.Logging;
  * @author Johann Sorel (Geomatys)
  */
 public class CrsAdjustFilterVisitor extends DuplicatingFilterVisitor{
-
-    private final CoordinateReferenceSystem baseCrs;
-    private final CoordinateReferenceSystem replacementCrs;
-
     public CrsAdjustFilterVisitor(final CoordinateReferenceSystem baseCrs, final CoordinateReferenceSystem replacementCrs) {
-        this.baseCrs = baseCrs;
-        this.replacementCrs = replacementCrs;
-    }
-
-    @Override
-    public Object visit(final Literal expression, final Object extraData) {
-        Object obj = expression.getValue();
-        try {
-            if(obj instanceof BoundingBox){
-                BoundingBox bbox = (BoundingBox) obj;
-                if(Utilities.equalsIgnoreMetadata(bbox.getCoordinateReferenceSystem(), baseCrs)){
-                    final Envelope e = Envelopes.transform(bbox, replacementCrs);
-                    final BoundingBox rbbox = new BoundingBox(replacementCrs);
-                    rbbox.setBounds(new BoundingBox(e));
-
-                    obj = rbbox;
+        setExpressionHandler(FunctionNames.Literal, (e) -> {
+            final Literal expression = (Literal) e;
+            Object obj = expression.getValue();
+            try {
+                if (obj instanceof BoundingBox) {
+                    BoundingBox bbox = (BoundingBox) obj;
+                    if(Utilities.equalsIgnoreMetadata(bbox.getCoordinateReferenceSystem(), baseCrs)){
+                        final Envelope env = Envelopes.transform(bbox, replacementCrs);
+                        final BoundingBox rbbox = new BoundingBox(replacementCrs);
+                        rbbox.setBounds(new BoundingBox(env));
+                        obj = rbbox;
+                    }
+                } else if(obj instanceof Geometry) {
+                    Geometry geo = (Geometry) obj;
+                    geo = (Geometry) geo.clone();
+                    final CoordinateReferenceSystem geoCrs = JTS.findCoordinateReferenceSystem(geo);
+                    if(geoCrs == null){
+                        JTS.setCRS(geo, replacementCrs);
+                    }else if(Utilities.equalsIgnoreMetadata(geoCrs, baseCrs)){
+                        geo = JTS.transform(geo, CRS.findOperation(baseCrs, replacementCrs, null).getMathTransform());
+                        JTS.setCRS(geo, replacementCrs);
+                    }
+                    obj = geo;
                 }
-            }else if(obj instanceof Geometry){
-
-                Geometry geo = (Geometry) obj;
-                geo = (Geometry) geo.clone();
-                final CoordinateReferenceSystem geoCrs = JTS.findCoordinateReferenceSystem(geo);
-                if(geoCrs == null){
-                    JTS.setCRS(geo, replacementCrs);
-                }else if(Utilities.equalsIgnoreMetadata(geoCrs, baseCrs)){
-                    geo = JTS.transform(geo, CRS.findOperation(baseCrs, replacementCrs, null).getMathTransform());
-                    JTS.setCRS(geo, replacementCrs);
-                }
-                obj = geo;
-
+            } catch (FactoryException | TransformException ex) {
+                Logging.getLogger("org.constellation.wfs.ws").log(Level.SEVERE, null, ex);
             }
-        } catch (FactoryException | TransformException ex) {
-            Logging.getLogger("org.constellation.wfs.ws").log(Level.SEVERE, null, ex);
-        }
-
-        return getFactory(extraData).literal(obj);
+            return ff.literal(obj);
+        });
     }
-
 }

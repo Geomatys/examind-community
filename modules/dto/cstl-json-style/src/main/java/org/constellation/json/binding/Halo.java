@@ -40,7 +40,7 @@ public class Halo implements StyleElement<org.opengis.style.Halo>{
     public Halo(final org.opengis.style.Halo halo){
         ensureNonNull("halo", halo);
         try{
-            radius = Double.parseDouble(halo.getRadius().evaluate(null, String.class));
+            radius = Double.parseDouble(halo.getRadius().apply(null).toString());
         }catch(Exception ex){
             //do nothing
         }

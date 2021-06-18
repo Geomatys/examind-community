@@ -24,7 +24,6 @@ import org.constellation.dto.contact.Contact;
 import org.constellation.dto.contact.Details;
 import org.constellation.ws.MimeType;
 import static org.constellation.api.ServiceConstants.*;
-import org.geotoolkit.ogc.xml.v110.ComparisonOperatorType;
 import org.geotoolkit.ogc.xml.v110.ComparisonOperatorsType;
 import org.geotoolkit.ogc.xml.v110.GeometryOperandsType;
 import org.geotoolkit.ogc.xml.v110.IdCapabilitiesType;
@@ -55,8 +54,8 @@ import org.geotoolkit.sos.xml.SOSXmlFactory;
 import org.geotoolkit.sos.xml.v100.FilterCapabilities;
 import org.geotoolkit.sos.xml.v200.InsertionCapabilitiesPropertyType;
 import org.geotoolkit.sos.xml.v200.InsertionCapabilitiesType;
-import org.opengis.filter.capability.Operator;
-import org.opengis.filter.capability.SpatialOperator;
+import org.geotoolkit.filter.capability.Operator;
+import org.geotoolkit.filter.capability.SpatialOperator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -138,15 +137,16 @@ public final class SOSConstants {
 
         SOS_FILTER_CAPABILITIES_V100.setTemporalCapabilities(temporal);
 
-        final Operator[] compOps = new Operator[8];
-        compOps[0] = ComparisonOperatorType.BETWEEN;
-        compOps[1] = ComparisonOperatorType.EQUAL_TO;
-        compOps[2] = ComparisonOperatorType.NOT_EQUAL_TO;
-        compOps[3] = ComparisonOperatorType.LESS_THAN;
-        compOps[4] = ComparisonOperatorType.LESS_THAN_EQUAL_TO;
-        compOps[5] = ComparisonOperatorType.GREATER_THAN;
-        compOps[6] = ComparisonOperatorType.GREATER_THAN_EQUAL_TO;
-        compOps[7] = ComparisonOperatorType.LIKE;
+        final Operator[] compOps = new Operator[] {
+            Operator.BETWEEN,
+            Operator.EQUAL_TO,
+            Operator.NOT_EQUAL_TO,
+            Operator.LESS_THAN,
+            Operator.LESS_THAN_EQUAL_TO,
+            Operator.GREATER_THAN,
+            Operator.GREATER_THAN_EQUAL_TO,
+            Operator.LIKE
+        };
         final ComparisonOperatorsType compOp = new ComparisonOperatorsType(compOps);
         final ScalarCapabilitiesType scalar = new ScalarCapabilitiesType(compOp, null, false);
         SOS_FILTER_CAPABILITIES_V100.setScalarCapabilities(scalar);

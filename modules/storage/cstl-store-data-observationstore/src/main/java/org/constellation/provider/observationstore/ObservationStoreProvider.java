@@ -37,7 +37,6 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 import org.apache.sis.internal.storage.ResourceOnFileSystem;
 import org.apache.sis.internal.storage.query.SimpleQuery;
-import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
@@ -74,17 +73,12 @@ import static org.geotoolkit.sos.xml.SOSXmlFactory.buildOffering;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimePeriod;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.swe.xml.PhenomenonProperty;
-import org.opengis.filter.Id;
-import org.opengis.filter.And;
 import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
-import org.opengis.filter.Or;
-import org.opengis.filter.PropertyIsEqualTo;
-import org.opengis.filter.expression.Literal;
-import org.opengis.filter.expression.PropertyName;
-import org.opengis.filter.spatial.BBOX;
-import org.opengis.filter.temporal.BinaryTemporalOperator;
+import org.opengis.filter.Literal;
+import org.opengis.filter.ValueReference;
+import org.opengis.filter.TemporalOperator;
 import org.opengis.geometry.Geometry;
 import org.opengis.geometry.primitive.Point;
 import org.opengis.observation.Observation;
@@ -98,6 +92,16 @@ import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.util.GenericName;
 import static org.constellation.provider.observationstore.ObservationProviderUtils.*;
+import org.geotoolkit.filter.FilterUtilities;
+import org.geotoolkit.ogc.xml.BBOX;
+import org.opengis.filter.BinarySpatialOperator;
+import org.opengis.filter.ComparisonOperatorName;
+import org.opengis.filter.Expression;
+import org.opengis.filter.LogicalOperator;
+import org.opengis.filter.LogicalOperatorName;
+import org.opengis.filter.ResourceId;
+import org.opengis.filter.SpatialOperatorName;
+import org.opengis.util.CodeList;
 
 /**
  *
@@ -330,7 +334,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             throw new ConstellationStoreException(ex);
         }
     }
-    
+
     @Override
     public List<String> getFeaturesOfInterestForBBOX(List<String> offerings, final org.opengis.geometry.Envelope e, String version) throws ConstellationStoreException {
         List<String> results = new ArrayList<>();
@@ -339,7 +343,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
         }
         return results;
     }
-    
+
     @Override
     public List<SamplingFeature> getFullFeaturesOfInterestForBBOX(String offname, final org.opengis.geometry.Envelope env, String version) throws ConstellationStoreException {
         final Envelope e = getOrCastEnvelope(env);
@@ -376,20 +380,20 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
         }
         return results;
     }
-    
+
     @Override
     public List<String> getFeaturesOfInterestForBBOX(String offname, final org.opengis.geometry.Envelope e, String version) throws ConstellationStoreException {
         return getFullFeaturesOfInterestForBBOX(offname, e, version).stream().map(sp -> getIDFromObject(sp)).collect(Collectors.toList());
     }
-    
+
     private List<SamplingFeature> getFeaturesOfInterestForOffering(String offname, String version) throws ConstellationStoreException {
         final SimpleQuery subquery = new SimpleQuery();
-        FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
-        final PropertyIsEqualTo filter = ff.equals(ff.property("offering"), ff.literal(offname));
+        FilterFactory ff = FilterUtilities.FF;
+        final Filter filter = ff.equal(ff.property("offering"), ff.literal(offname));
         subquery.setFilter(filter);
         return getFeatureOfInterest(subquery, Collections.singletonMap("version", version));
     }
-    
+
 
     @Override
     public Collection<String> getOfferingNames(Query q, final Map<String,String> hints) throws ConstellationStoreException {
@@ -986,30 +990,31 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     }
 
     private void handleFilter(int mode, Filter filter, final ObservationFilterReader localOmFilter, List<String> observedProperties, List<String> procedures, List<String> fois) throws ConstellationStoreException, DataStoreException {
-        if (Filter.INCLUDE.equals(filter)) {
+        if (Filter.include().equals(filter)) {
             return;
         }
 
         // actually there is no OR or AND filter properly supported
-        if (filter instanceof And) {
-            for (Filter f : ((And) filter).getChildren()) {
+        CodeList type = filter.getOperatorType();
+        if (type == LogicalOperatorName.AND) {
+            for (Filter f : ((LogicalOperator<?>) filter).getOperands()) {
                 handleFilter(mode, f, localOmFilter, observedProperties, procedures, fois);
             }
 
-        } else if (filter instanceof Or) {
-            for (Filter f : ((Or) filter).getChildren()) {
+        } else if (type == LogicalOperatorName.OR) {
+            for (Filter f : ((LogicalOperator<?>) filter).getOperands()) {
                 handleFilter(mode, f, localOmFilter, observedProperties, procedures, fois);
             }
 
             // Temoral filter
-        } else if (filter instanceof BinaryTemporalOperator) {
-            
-            localOmFilter.setTimeFilter((BinaryTemporalOperator) filter);
+        } else if (filter instanceof TemporalOperator) {
 
-        } else if (filter instanceof Id) {
-            final Id idf = (Id) filter;
+            localOmFilter.setTimeFilter((TemporalOperator) filter);
+
+        } else if (filter instanceof ResourceId) {
+            final ResourceId idf = (ResourceId) filter;
             List<String> ids = new ArrayList<>();
-            idf.getIDs().stream().forEach(id -> ids.add((String) id));
+            ids.add(idf.getIdentifier());
 
             switch (mode) {
                 case GET_FEA:
@@ -1031,13 +1036,14 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
                     break;
             }
 
-        } else if (filter instanceof BBOX) {
-            final BBOX bbox = (BBOX) filter;
+        } else if (type == SpatialOperatorName.BBOX) {
+            final BBOX bbox = BBOX.wrap((BinarySpatialOperator) filter);
             final Envelope env;
-            if (bbox.getExpression2() instanceof org.opengis.geometry.Envelope) {
-                env = getOrCastEnvelope((org.opengis.geometry.Envelope)bbox.getExpression2());
-            } else if (bbox.getExpression2() instanceof Literal) {
-                Literal lit = (Literal) bbox.getExpression2();
+            Expression e2 = bbox.getOperand2();
+            if (e2 instanceof org.opengis.geometry.Envelope) {
+                env = getOrCastEnvelope((org.opengis.geometry.Envelope) e2);
+            } else if (e2 instanceof Literal) {
+                Literal lit = (Literal) e2;
                 if (lit.getValue() instanceof org.opengis.geometry.Envelope) {
                     env = getOrCastEnvelope((org.opengis.geometry.Envelope)lit.getValue());
                 } else {
@@ -1046,7 +1052,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             } else {
                 throw new ConstellationStoreException("Unexpected bbox expression type for geometry");
             }
-            
+
             switch (mode) {
                 case GET_LOC:
                     localOmFilter.setBoundingBox(env);
@@ -1063,12 +1069,12 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
                         }
                     }
             }
-            
-        } else if (filter instanceof PropertyIsEqualTo) {
-            final PropertyIsEqualTo ef = (PropertyIsEqualTo) filter;
-            final PropertyName name    = (PropertyName) ef.getExpression1();
-            final String pNameStr      = name.getPropertyName();
-            final Literal value        = (Literal) ef.getExpression2();
+
+        } else if (type == ComparisonOperatorName.PROPERTY_IS_EQUAL_TO) {
+            final BinaryComparisonOperator ef = (BinaryComparisonOperator) filter;
+            final ValueReference name    = (ValueReference) ef.getOperand1();
+            final String pNameStr      = name.getXPath();
+            final Literal value        = (Literal) ef.getOperand2();
             if (pNameStr.equals("observedProperty")) {
                 observedProperties.add((String) value.getValue());
             } else if (pNameStr.equals("procedure")) {
@@ -1095,8 +1101,8 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             }
         } else if (filter instanceof BinaryComparisonOperator) {
             final BinaryComparisonOperator ef = (BinaryComparisonOperator) filter;
-            final PropertyName name    = (PropertyName) ef.getExpression1();
-            final String pNameStr      = name.getPropertyName();
+            final ValueReference name    = (ValueReference) ef.getOperand1();
+            final String pNameStr      = name.getXPath();
             String cleanPname = pNameStr;
             if (pNameStr.contains("[")) {
                 cleanPname = pNameStr.substring(0, pNameStr.indexOf('['));
@@ -1111,7 +1117,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             throw new ConstellationStoreException("Unknow filter operation.\nAnother possibility is that the content of your time filter is empty or unrecognized.");
         }
     }
-    
+
     private String getVersionFromHints(Map<String, String> hints) {
         String version = "2.0.0";
         if (hints != null) {
@@ -1144,7 +1150,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     @Override
     public String getDatasourceKey() {
         /*
-         * special implementation for OM2 database otherwise return the identifier. 
+         * special implementation for OM2 database otherwise return the identifier.
          * this code,  if we want to keep it, should me moved to the observationStore interface/implementation.
          */
         final ParameterValueGroup source = getSource();
@@ -1161,5 +1167,4 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
         }
         return getId();
     }
-
 }

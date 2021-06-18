@@ -63,7 +63,6 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.logging.Logger;
 import org.apache.sis.internal.storage.query.SimpleQuery;
-import org.apache.sis.internal.system.DefaultFactories;
 import org.geotoolkit.gml.xml.FeatureProperty;
 import org.geotoolkit.observation.xml.AbstractObservation;
 
@@ -71,6 +70,7 @@ import static org.geotoolkit.sml.xml.SensorMLUtilities.getSensorMLType;
 import static org.geotoolkit.sml.xml.SensorMLUtilities.getSmlID;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.ObservationProvider;
+import org.geotoolkit.filter.FilterUtilities;
 import org.opengis.filter.FilterFactory;
 import org.opengis.observation.CompositePhenomenon;
 import org.opengis.observation.Phenomenon;
@@ -334,11 +334,11 @@ public final class SensorUtils {
     }
 
     public static Set<String> getPhenomenonFromSensor(final String sensorID, final ObservationProvider provider, boolean decompose) throws ConstellationStoreException {
-        final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
+        final FilterFactory ff = FilterUtilities.FF;
         final Set<String> phenomenons = new HashSet<>();
 
         SimpleQuery query = new SimpleQuery();
-        query.setFilter(ff.equals(ff.property("procedure"), ff.literal(sensorID)));
+        query.setFilter(ff.equal(ff.property("procedure"), ff.literal(sensorID)));
         Collection<Phenomenon> phenos = provider.getPhenomenon(query, Collections.emptyMap());
         phenos.forEach(p -> {
             org.geotoolkit.swe.xml.Phenomenon phen = (org.geotoolkit.swe.xml.Phenomenon)p;

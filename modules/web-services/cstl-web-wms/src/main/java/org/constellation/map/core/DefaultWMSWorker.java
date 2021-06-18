@@ -41,7 +41,6 @@ import org.apache.sis.cql.CQLException;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.internal.storage.query.SimpleQuery;
-import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.internal.util.UnmodifiableArrayList;
 import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.measure.Range;
@@ -117,6 +116,7 @@ import org.geotoolkit.inspire.xml.vs.LanguagesType;
 import org.apache.sis.portrayal.MapLayers;
 import org.apache.sis.portrayal.MapItem;
 import org.apache.sis.portrayal.MapLayer;
+import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.map.MapBuilder;
 import org.geotoolkit.ows.xml.OWSExceptionCode;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.CURRENT_UPDATE_SEQUENCE;
@@ -156,7 +156,7 @@ import org.geotoolkit.wms.xml.v130.Capability;
 import org.opengis.feature.Feature;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
-import org.opengis.filter.expression.Expression;
+import org.opengis.filter.Expression;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -492,7 +492,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
 
             // Verify extra dimensions
             if (!layer.getConfiguration().getDimensions().isEmpty()) {
-               
+
                 try {
                     final MapItem mi = data.getMapLayer(null, null);
                     applyLayerFiltersAndDims(mi, userLogin);
@@ -1553,7 +1553,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             Integer lid = (Integer) fml.getUserProperties().get("layerId");
             final FilterAndDimension layerFnD = getLayerFilterDimensions(lid);
             if (layerFnD.getFilter() != null) {
-                Filter filterGt = Filter.INCLUDE;
+                Filter filterGt = Filter.include();
                 try {
                     filterGt = new DtoToOGCFilterTransformer(new FilterFactoryImpl()).visitFilter(layerFnD.getFilter());
                 } catch (FactoryException e) {
@@ -1621,8 +1621,8 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
 
         FeatureSet fs = (FeatureSet) resource;
 
-        final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
-        Filter filter = Filter.INCLUDE;
+        final FilterFactory ff = FilterUtilities.FF;
+        Filter filter = Filter.include();
         for (final DimensionDef def : defs) {
             final Envelope dimEnv;
             try {
@@ -1658,12 +1658,12 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
     private static Collection<Range> getDimensionRange(FeatureSet fs, Expression lower, Expression upper) throws DataStoreException {
 
         final Set<String> properties = new HashSet<>();
-        lower.accept(ListingPropertyVisitor.VISITOR, properties);
-        upper.accept(ListingPropertyVisitor.VISITOR, properties);
+        ListingPropertyVisitor.VISITOR.visit(lower, properties);
+        ListingPropertyVisitor.VISITOR.visit(upper, properties);
 
         final SimpleQuery qb = new SimpleQuery();
         final List<SimpleQuery.Column> columns = new ArrayList<>();
-        final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
+        final FilterFactory ff = FilterUtilities.FF;
         for (String property : properties) {
             columns.add(new SimpleQuery.Column(ff.property(property)));
         }
@@ -1675,10 +1675,8 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                     .map(f -> {
                         return new Range(
                                 Comparable.class,
-                                lower.evaluate(f, Comparable.class),
-                                true,
-                                upper.evaluate(f, Comparable.class),
-                                true
+                                (Comparable) lower.apply(f), true,
+                                (Comparable) upper.apply(f), true
                         );
                     })
                     .collect(Collectors.toList());

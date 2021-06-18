@@ -128,7 +128,7 @@ public class JooqUserRepository extends
     public int delete(Integer userId) {
         int deleteRole = deleteRole(userId);
         LOGGER.log(Level.FINER, "Delete {0} role references", deleteRole);
-        
+
         return dsl.delete(CSTL_USER).where(CSTL_USER.ID.eq(userId)).execute();
     }
 

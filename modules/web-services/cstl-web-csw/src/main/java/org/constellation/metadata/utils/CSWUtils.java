@@ -16,7 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.constellation.metadata.utils;
 
 import java.text.DateFormat;
@@ -57,14 +56,13 @@ import org.geotoolkit.ows.xml.AbstractOperationsMetadata;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.geotoolkit.temporal.object.ISODateParser;
 import org.opengis.filter.Filter;
-import org.opengis.filter.expression.Literal;
+import org.opengis.filter.Literal;
 import org.w3._2005.atom.CategoryType;
 import org.w3._2005.atom.DateTimeType;
 import org.w3._2005.atom.EntryType;
 import org.w3._2005.atom.FeedType;
 import org.w3._2005.atom.IdType;
 import org.w3._2005.atom.LinkType;
-import org.w3._2005.atom.ObjectFactory;
 import org.w3._2005.atom.PersonType;
 import org.w3._2005.atom.TextType;
 import org.w3c.dom.Node;
@@ -96,9 +94,7 @@ public class CSWUtils {
      * Return the request (or default) outputFormat (MIME type) of the response.
      * if the format is not supported it throws a WebService Exception.
      *
-     * @param request
      * @return the outputFormat (MIME type) of the response.
-     * @throws CstlServiceException
      */
     public static String getOutputFormat(final AbstractCswRequest request) throws CstlServiceException {
 
@@ -124,8 +120,6 @@ public class CSWUtils {
      *
      * @param obj Object to transform in Node.
      * @param pool Marshaller Pool handling the object marshalling.
-     * @return
-     * @throws CstlServiceException
      */
     public static Node transformToNode(final Object obj, final MarshallerPool pool) throws CstlServiceException {
         if (obj instanceof Node) {

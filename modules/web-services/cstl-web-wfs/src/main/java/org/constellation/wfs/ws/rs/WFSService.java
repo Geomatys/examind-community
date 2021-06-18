@@ -135,7 +135,7 @@ import static org.geotoolkit.wfs.xml.WFSXmlFactory.buildSections;
 import static org.geotoolkit.wfs.xml.WFSXmlFactory.buildSortBy;
 import static org.geotoolkit.wfs.xml.WFSXmlFactory.buildStoredQuery;
 import static org.geotoolkit.wfs.xml.WFSXmlFactory.buildTransaction;
-import org.opengis.filter.sort.SortOrder;
+import org.opengis.filter.SortOrder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

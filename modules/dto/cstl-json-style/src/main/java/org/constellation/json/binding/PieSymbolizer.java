@@ -45,7 +45,7 @@ public class PieSymbolizer implements Symbolizer {
         ensureNonNull("symbolizer", symbolizer);
         name = symbolizer.getName();
         if (symbolizer.getSize() != null) {
-            size = symbolizer.getSize().evaluate(null, Double.class);
+            size = Double.parseDouble(symbolizer.getSize().apply(null).toString());
         }
         if (symbolizer.getGroup() != null) {
             group = StyleUtilities.toCQL(symbolizer.getGroup());
@@ -59,10 +59,10 @@ public class PieSymbolizer implements Symbolizer {
         if (symbolizer.getColorQuarters() != null) {
             for (final org.geotoolkit.display2d.ext.pie.PieSymbolizer.ColorQuarter colorQuarter : symbolizer.getColorQuarters()) {
                 final ColorQuarter colorQuarterToAdd = new ColorQuarter();
-                final Color color = colorQuarter.getColor().evaluate(null, Color.class);
+                final Color color = (Color) colorQuarter.getColor().apply(null);
                 final String colorHex = StyleUtilities.toHex(color);
                 colorQuarterToAdd.setColor(colorHex);
-                colorQuarterToAdd.setQuarter(colorQuarter.getQuarter().evaluate(null, String.class));
+                colorQuarterToAdd.setQuarter(colorQuarter.getQuarter().apply(null).toString());
                 colorQuarters.add(colorQuarterToAdd);
             }
         }

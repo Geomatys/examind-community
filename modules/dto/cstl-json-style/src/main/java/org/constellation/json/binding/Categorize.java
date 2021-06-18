@@ -21,11 +21,10 @@ package org.constellation.json.binding;
 
 
 import org.constellation.json.util.StyleUtilities;
-import org.geotoolkit.filter.DefaultLiteral;
 import org.geotoolkit.style.StyleConstants;
 import org.geotoolkit.style.function.ThreshholdsBelongTo;
-import org.opengis.filter.expression.Expression;
-import org.opengis.filter.expression.Literal;
+import org.opengis.filter.Expression;
+import org.opengis.filter.Literal;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -37,6 +36,7 @@ import java.util.Map;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import static org.constellation.json.util.StyleFactories.SF;
+import static org.geotoolkit.filter.FilterUtilities.FF;
 
 /**
  * @author Benjamin Garcia (Geomatys)
@@ -64,13 +64,13 @@ public class Categorize implements Function {
                 final Expression expression = entry.getKey();
                 final Expression colorHexExp = entry.getValue();
 
-                if (colorHexExp instanceof DefaultLiteral) {
-                    final Object colorHex = ((DefaultLiteral) colorHexExp).getValue();
+                if (colorHexExp instanceof Literal) {
+                    final Object colorHex = ((Literal) colorHexExp).getValue();
                     ip.setColor(StyleUtilities.toHex((Color) colorHex));
                 }
 
-                if (expression instanceof DefaultLiteral) {
-                    final Object obj = ((DefaultLiteral) expression).getValue();
+                if (expression instanceof Literal) {
+                    final Object obj = ((Literal) expression).getValue();
                     if (obj instanceof Double) {
                         if (Double.isNaN((double) obj)) {
                             ip.setData(null);
@@ -107,10 +107,10 @@ public class Categorize implements Function {
         }
         points.removeAll(nullPoints);
         final Map<Expression, Expression> values = new HashMap<>();
-        values.put(StyleConstants.CATEGORIZE_LESS_INFINITY, new DefaultLiteral<Color>(Color.GRAY));
+        values.put(StyleConstants.CATEGORIZE_LESS_INFINITY, FF.literal(Color.GRAY));
         for (final InterpolationPoint ip : points) {
-            values.put(new DefaultLiteral<Double>(ip.getData().doubleValue()),
-                       new DefaultLiteral<String>(ip.getColor()));
+            values.put(FF.literal(ip.getData().doubleValue()),
+                       FF.literal(ip.getColor()));
         }
         final org.geotoolkit.style.function.Categorize categorize = SF.categorizeFunction(StyleConstants.DEFAULT_CATEGORIZE_LOOKUP,
                 values,
@@ -131,8 +131,8 @@ public class Categorize implements Function {
         //init final threshold map and coefficient
         final Map<Expression, Expression> valuesRecompute = new HashMap<>();
         if (nanColor != null) {
-            valuesRecompute.put(new DefaultLiteral<>(Double.NaN),
-                                new DefaultLiteral<>(Color.decode(nanColor)));
+            valuesRecompute.put(FF.literal(Double.NaN),
+                                FF.literal(Color.decode(nanColor)));
         }
 
         if (min != null && max != null && nbPoints != null) {
@@ -140,8 +140,8 @@ public class Categorize implements Function {
             // Loop to create values with new point evaluation
             for (int i = 0; i < nbPoints; i++) {
                 double val = min + (coefficient * i);
-                Color color = categorize.evaluate(val, Color.class);
-                valuesRecompute.put(new DefaultLiteral<>(val), new DefaultLiteral<>(color));
+                Color color = (Color) categorize.apply(val);
+                valuesRecompute.put(FF.literal(val), FF.literal(color));
             }
         }
 
@@ -183,7 +183,7 @@ public class Categorize implements Function {
     }
 
     @Override
-    public org.opengis.filter.expression.Function toType() {
+    public Expression toType() {
 
         //remove nan point if exists because it is added later, and it cause error for max/min values
         final List<InterpolationPoint> nullPoints = new ArrayList<>();
@@ -197,19 +197,18 @@ public class Categorize implements Function {
         // create first threshold map to create first categorize function.
         Map<Expression, Expression> values = new HashMap<>(0);
         if (nanColor != null) {
-            values.put(new DefaultLiteral<>(Double.NaN),
-                    new DefaultLiteral<>(nanColor));
+            values.put(FF.literal(Double.NaN),
+                    FF.literal(nanColor));
         }
-        values.put(StyleConstants.CATEGORIZE_LESS_INFINITY,new DefaultLiteral<>("#00ffffff"));
+        values.put(StyleConstants.CATEGORIZE_LESS_INFINITY, FF.literal("#00ffffff"));
         for (final InterpolationPoint ip : points) {
-            values.put(new DefaultLiteral<Double>(ip.getData().doubleValue()),
-                    new DefaultLiteral<String>(ip.getColor()));
+            values.put(FF.literal(ip.getData().doubleValue()),
+                    FF.literal(ip.getColor()));
         }
         return SF.categorizeFunction(StyleConstants.DEFAULT_CATEGORIZE_LOOKUP,
                 values,
                 ThreshholdsBelongTo.PRECEDING,
                 StyleConstants.DEFAULT_FALLBACK);
-
     }
 
     private static class InterpolationPointComparator implements Comparator<InterpolationPoint> {

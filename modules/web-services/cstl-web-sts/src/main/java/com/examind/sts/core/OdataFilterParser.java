@@ -22,9 +22,9 @@ import static com.examind.sts.core.STSUtils.parseDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.referencing.CommonCRS;
 import org.constellation.ws.CstlServiceException;
+import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.gml.xml.GMLXmlFactory;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
@@ -33,7 +33,7 @@ import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
-import org.opengis.filter.FilterFactory2;
+import org.geotoolkit.filter.FilterFactory2;
 import org.opengis.geometry.Envelope;
 import org.opengis.temporal.TemporalObject;
 
@@ -48,7 +48,7 @@ public class OdataFilterParser {
     private static final String PHENOMENON_TIME = "phenomenontime";
 
     public OdataFilterParser() {
-        this.ff = DefaultFactories.forBuildin(FilterFactory.class);
+        this.ff = FilterUtilities.FF;
     }
 
     public Filter parserFilter(String filterStr) throws CstlServiceException {
@@ -197,7 +197,7 @@ public class OdataFilterParser {
                 if (properties[properties.length - 1].equals("id")) {
                     Object literal = parseObjectValue(value);
                     String realProperty = getSupportedProperties(properties[properties.length - 2]);
-                    return ff.equals(ff.property(realProperty), ff.literal(literal));
+                    return ff.equal(ff.property(realProperty), ff.literal(literal));
                 } else {
                     throw new CstlServiceException("malformed or unknow filter propertyName. was expecting something/id ", INVALID_PARAMETER_VALUE, "FILTER");
                 }
@@ -206,11 +206,11 @@ public class OdataFilterParser {
                 Object literal;
                 if (realProperty.startsWith("result") && !realProperty.equalsIgnoreCase(RESULT_TIME)) {
                     literal = parseObjectValue(value);
-                    return ff.equals(ff.property(realProperty), ff.literal(literal));
+                    return ff.equal(ff.property(realProperty), ff.literal(literal));
                 } else {
                     realProperty = getSupportedTemporalProperties(realProperty);
                     literal      = parseTemporalObj(value);
-                    return ff.equals(ff.property(realProperty), ff.literal(literal));
+                    return ff.equal(ff.property(realProperty), ff.literal(literal));
                 }
             } else {
                 throw new CstlServiceException("malformed filter propertyName. was expecting something/id or something/result", INVALID_PARAMETER_VALUE, "FILTER");

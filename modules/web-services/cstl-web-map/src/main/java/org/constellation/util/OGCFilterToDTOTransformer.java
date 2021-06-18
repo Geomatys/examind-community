@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import org.apache.sis.internal.feature.AttributeConvention;
-import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.IdentifiedObjects;
 import org.apache.sis.util.logging.Logging;
@@ -37,46 +36,24 @@ import org.geotoolkit.ogc.xml.OGCJAXBStatics;
 import org.geotoolkit.referencing.ReferencingUtilities;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
-import org.opengis.filter.And;
+import org.opengis.filter.BetweenComparisonOperator;
 import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
-import org.opengis.filter.Id;
-import org.opengis.filter.Not;
-import org.opengis.filter.Or;
-import org.opengis.filter.PropertyIsBetween;
-import org.opengis.filter.PropertyIsEqualTo;
-import org.opengis.filter.PropertyIsGreaterThan;
-import org.opengis.filter.PropertyIsGreaterThanOrEqualTo;
-import org.opengis.filter.PropertyIsLessThan;
-import org.opengis.filter.PropertyIsLessThanOrEqualTo;
-import org.opengis.filter.PropertyIsLike;
-import org.opengis.filter.PropertyIsNotEqualTo;
-import org.opengis.filter.PropertyIsNull;
-import org.opengis.filter.expression.Add;
-import org.opengis.filter.expression.Divide;
-import org.opengis.filter.expression.Expression;
-import org.opengis.filter.expression.Function;
-import org.opengis.filter.expression.Literal;
-import org.opengis.filter.expression.Multiply;
-import org.opengis.filter.expression.NilExpression;
-import org.opengis.filter.expression.PropertyName;
-import org.opengis.filter.expression.Subtract;
-import org.opengis.filter.identity.FeatureId;
-import org.opengis.filter.identity.Identifier;
-import org.opengis.filter.spatial.BBOX;
-import org.opengis.filter.spatial.Beyond;
-import org.opengis.filter.spatial.BinarySpatialOperator;
-import org.opengis.filter.spatial.Contains;
-import org.opengis.filter.spatial.Crosses;
-import org.opengis.filter.spatial.DWithin;
-import org.opengis.filter.spatial.Disjoint;
-import org.opengis.filter.spatial.Equals;
-import org.opengis.filter.spatial.Intersects;
-import org.opengis.filter.spatial.Overlaps;
-import org.opengis.filter.spatial.Touches;
-import org.opengis.filter.spatial.Within;
+import org.opengis.filter.Expression;
+import org.opengis.filter.Literal;
+import org.opengis.filter.ValueReference;
+import org.opengis.filter.ResourceId;
+import org.opengis.filter.BinarySpatialOperator;
+import org.opengis.filter.ComparisonOperatorName;
+import org.opengis.filter.DistanceOperatorName;
+import org.opengis.filter.LikeOperator;
+import org.opengis.filter.LogicalOperator;
+import org.opengis.filter.LogicalOperatorName;
+import org.opengis.filter.NullOperator;
+import org.opengis.filter.SpatialOperatorName;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.util.CodeList;
 import org.opengis.util.FactoryException;
 
 /**
@@ -85,107 +62,92 @@ import org.opengis.util.FactoryException;
  */
 public class OGCFilterToDTOTransformer {
 
-    private static final FilterFactory FF = DefaultFactories.forBuildin(FilterFactory.class);
+    private static final FilterFactory FF = org.geotoolkit.filter.FilterUtilities.FF;
 
     public OGCFilterToDTOTransformer() {
     }
 
     public String extract(final Expression exp) {
-
-        if (exp instanceof Function) {
-            throw new UnsupportedOperationException("Function transformation is not supported yet");
-        } else if (exp instanceof Multiply) {
-            throw new UnsupportedOperationException("Function transformation is not supported yet");
-        } else if (exp instanceof Literal) {
-
+        if (exp instanceof Literal) {
             Object val = ((Literal) exp).getValue();
             if (val instanceof Color) {
                 val = FilterUtilities.toString((Color)val);
+                if (val == null) return null;
             }
             return val.toString();
-        } else if (exp instanceof Add) {
-            throw new UnsupportedOperationException("Function transformation is not supported yet");
-        } else if (exp instanceof Divide) {
-            throw new UnsupportedOperationException("Function transformation is not supported yet");
-        } else if (exp instanceof Subtract) {
-            throw new UnsupportedOperationException("Function transformation is not supported yet");
-        } else if (exp instanceof PropertyName) {
-
-            return ((PropertyName) exp).getPropertyName();
-        } else if (exp instanceof NilExpression) {
-            //DO nothing on NILL expression
+        } else if (exp instanceof ValueReference) {
+            return ((ValueReference) exp).getXPath();
         } else {
-            throw new IllegalArgumentException("Unknowed expression element :" + exp);
+            throw new UnsupportedOperationException("Function transformation is not supported yet");
         }
-        return null;
     }
 
     public org.constellation.dto.Filter visit(final Filter filter) {
-        if (filter.equals(Filter.INCLUDE)) {
+        if (filter.equals(Filter.include())) {
             return null;
         }
-        if (filter.equals(Filter.EXCLUDE)) {
+        if (filter.equals(Filter.exclude())) {
             return null;
         }
-
-        if (filter instanceof PropertyIsBetween) {
-            final PropertyIsBetween pib = (PropertyIsBetween) filter;
+        final CodeList<?> type = filter.getOperatorType();
+        if (filter instanceof BetweenComparisonOperator) {
+            final BetweenComparisonOperator pib = (BetweenComparisonOperator) filter;
             String lower = extract(pib.getLowerBoundary());
             String upper = extract(pib.getUpperBoundary());
             String field = extract(pib.getExpression());
             return new org.constellation.dto.Filter(field, lower + '/' + upper, OGCJAXBStatics.FILTER_COMPARISON_ISBETWEEN);
 
-        } else if (filter instanceof PropertyIsEqualTo) {
+        } else if (type == ComparisonOperatorName.PROPERTY_IS_EQUAL_TO) {
             final BinaryComparisonOperator pit = (BinaryComparisonOperator) filter;
-            String field = extract(pit.getExpression1());
-            String value = extract(pit.getExpression2());
+            String field = extract(pit.getOperand1());
+            String value = extract(pit.getOperand2());
             return new org.constellation.dto.Filter(field, value, OGCJAXBStatics.FILTER_COMPARISON_ISEQUAL);
 
-        } else if (filter instanceof PropertyIsGreaterThan) {
+        } else if (type == ComparisonOperatorName.PROPERTY_IS_GREATER_THAN) {
             final BinaryComparisonOperator pit = (BinaryComparisonOperator) filter;
-            String field = extract(pit.getExpression1());
-            String value = extract(pit.getExpression2());
+            String field = extract(pit.getOperand1());
+            String value = extract(pit.getOperand2());
             return new org.constellation.dto.Filter(field, value, OGCJAXBStatics.FILTER_COMPARISON_ISGREATER);
 
-        } else if (filter instanceof PropertyIsGreaterThanOrEqualTo) {
+        } else if (type == ComparisonOperatorName.PROPERTY_IS_GREATER_THAN_OR_EQUAL_TO) {
             final BinaryComparisonOperator pit = (BinaryComparisonOperator) filter;
-            String field = extract(pit.getExpression1());
-            String value = extract(pit.getExpression2());
+            String field = extract(pit.getOperand1());
+            String value = extract(pit.getOperand2());
             return new org.constellation.dto.Filter(field, value, OGCJAXBStatics.FILTER_COMPARISON_ISGREATEROREQUAL);
 
-        } else if (filter instanceof PropertyIsLessThan) {
+        } else if (type == ComparisonOperatorName.PROPERTY_IS_LESS_THAN) {
             final BinaryComparisonOperator pit = (BinaryComparisonOperator) filter;
-            String field = extract(pit.getExpression1());
-            String value = extract(pit.getExpression2());
+            String field = extract(pit.getOperand1());
+            String value = extract(pit.getOperand2());
             return new org.constellation.dto.Filter(field, value, OGCJAXBStatics.FILTER_COMPARISON_ISLESS);
 
-        } else if (filter instanceof PropertyIsLessThanOrEqualTo) {
+        } else if (type == ComparisonOperatorName.PROPERTY_IS_LESS_THAN_OR_EQUAL_TO) {
             final BinaryComparisonOperator pit = (BinaryComparisonOperator) filter;
-            String field = extract(pit.getExpression1());
-            String value = extract(pit.getExpression2());
+            String field = extract(pit.getOperand1());
+            String value = extract(pit.getOperand2());
             return new org.constellation.dto.Filter(field, value, OGCJAXBStatics.FILTER_COMPARISON_ISLESSOREQUAL);
 
-        } else if (filter instanceof PropertyIsLike) {
-            final PropertyIsLike pis = (PropertyIsLike) filter;
-            final String field = extract(pis.getExpression());
-            final String value = pis.getLiteral();
+        } else if (filter instanceof LikeOperator) {
+            final LikeOperator<Object> pis = (LikeOperator) filter;
+            final String field = extract(pis.getExpressions().get(0));
+            final String value = (String) ((Literal) pis.getExpressions().get(1)).getValue();
             return new org.constellation.dto.Filter(field, value, OGCJAXBStatics.FILTER_COMPARISON_ISLIKE);
 
-        } else if (filter instanceof PropertyIsNotEqualTo) {
+        } else if (type == ComparisonOperatorName.PROPERTY_IS_NOT_EQUAL_TO) {
             final BinaryComparisonOperator pit = (BinaryComparisonOperator) filter;
-            String field = extract(pit.getExpression1());
-            String value = extract(pit.getExpression2());
+            String field = extract(pit.getOperand1());
+            String value = extract(pit.getOperand2());
             return new org.constellation.dto.Filter(field, value, OGCJAXBStatics.FILTER_COMPARISON_ISNOTEQUAL);
 
-        } else if (filter instanceof PropertyIsNull) {
-            final PropertyIsNull pis = (PropertyIsNull) filter;
-            String field = extract(pis.getExpression());
+        } else if (filter instanceof NullOperator) {
+            final NullOperator<Object> pis = (NullOperator) filter;
+            String field = extract(pis.getExpressions().get(0));
             return new org.constellation.dto.Filter(field, null, OGCJAXBStatics.FILTER_COMPARISON_ISNOTEQUAL);
 
-        } else if (filter instanceof And) {
-            final And and = (And) filter;
+        } else if (type == LogicalOperatorName.AND) {
+            final LogicalOperator<Object> and = (LogicalOperator) filter;
             List<org.constellation.dto.Filter> filters = new ArrayList<>();
-            for (final Filter f : and.getChildren()) {
+            for (final Filter f : and.getOperands()) {
                 org.constellation.dto.Filter ele = visit(f);
                 if (ele != null) {
                     filters.add(ele);
@@ -193,10 +155,10 @@ public class OGCFilterToDTOTransformer {
             }
             return new org.constellation.dto.Filter(OGCJAXBStatics.FILTER_LOGIC_AND, filters);
 
-        } else if (filter instanceof Or) {
-            final Or or = (Or) filter;
+        } else if (type == LogicalOperatorName.OR) {
+            final LogicalOperator<Object> or = (LogicalOperator) filter;
             List<org.constellation.dto.Filter> filters = new ArrayList<>();
-            for (final Filter f : or.getChildren()) {
+            for (final Filter f : or.getOperands()) {
                 org.constellation.dto.Filter ele = visit(f);
                 if (ele != null) {
                     filters.add(ele);
@@ -204,19 +166,19 @@ public class OGCFilterToDTOTransformer {
             }
             return new org.constellation.dto.Filter(OGCJAXBStatics.FILTER_LOGIC_OR, filters);
 
-        } else if (filter instanceof Not) {
-            final Not not = (Not) filter;
-            final org.constellation.dto.Filter sf = visit(not.getFilter());
+        } else if (type == LogicalOperatorName.NOT) {
+            final LogicalOperator<Object> not = (LogicalOperator) filter;
+            final org.constellation.dto.Filter sf = visit(not.getOperands().get(0));
             return new org.constellation.dto.Filter(OGCJAXBStatics.FILTER_LOGIC_NOT, Arrays.asList(sf));
 
-        } else if (filter instanceof FeatureId) {
+        } else if (filter instanceof ResourceId) {
             throw new IllegalArgumentException("Not parsed yet : " + filter);
 
-        } else if (filter instanceof BBOX) {
-            final BBOX bbox = (BBOX) filter;
+        } else if (type == SpatialOperatorName.BBOX) {
+            final BinarySpatialOperator bbox = (BinarySpatialOperator) filter;
 
-            final Expression left = bbox.getExpression1();
-            final Expression right = bbox.getExpression2();
+            final Expression left = bbox.getOperand1();
+            final Expression right = bbox.getOperand2();
 
             final String field;
             final double minx;
@@ -225,8 +187,8 @@ public class OGCFilterToDTOTransformer {
             final double maxy;
             String srs;
 
-            if (left instanceof PropertyName) {
-                field = ((PropertyName) left).getPropertyName();
+            if (left instanceof ValueReference) {
+                field = ((ValueReference) left).getXPath();
 
                 final Object objGeom = ((Literal) right).getValue();
                 if (objGeom instanceof org.opengis.geometry.Envelope) {
@@ -255,8 +217,8 @@ public class OGCFilterToDTOTransformer {
                     throw new IllegalArgumentException("invalid bbox element : " + filter);
                 }
 
-            } else if (right instanceof PropertyName) {
-                field = ((PropertyName) right).getPropertyName();
+            } else if (right instanceof ValueReference) {
+                field = ((ValueReference) right).getXPath();
 
                 final Object objGeom = ((Literal) left).getValue();
                 if (objGeom instanceof org.opengis.geometry.Envelope) {
@@ -294,17 +256,15 @@ public class OGCFilterToDTOTransformer {
 
             return new org.constellation.dto.Filter(field, sb.toString(), OGCJAXBStatics.FILTER_SPATIAL_BBOX);
 
-        } else if (filter instanceof Id) {
+        } else if (filter instanceof ResourceId) {
             //todo OGC filter can not handle ID when we are inside another filter type
             //so here we make a small tric to change an id filter in a serie of propertyequal filter
             //this is not really legal but we dont have the choice here
             //we should propose an evolution of ogc filter do consider id filter as a comparison filter
-            final PropertyName n = FF.property(AttributeConvention.IDENTIFIER_PROPERTY.toString());
+            final ValueReference n = FF.property(AttributeConvention.IDENTIFIER_PROPERTY.toString());
             final List<String> lst = new ArrayList<>();
 
-            for (Identifier ident : ((Id) filter).getIdentifiers()) {
-                lst.add(ident.getID().toString());
-            }
+            lst.add(((ResourceId) filter).getIdentifier());
 
             if (lst.isEmpty()) {
                 return null;
@@ -322,17 +282,17 @@ public class OGCFilterToDTOTransformer {
         } else if (filter instanceof BinarySpatialOperator) {
             final BinarySpatialOperator spatialOp = (BinarySpatialOperator) filter;
 
-            Expression exp1 = spatialOp.getExpression1();
-            Expression exp2 = spatialOp.getExpression2();
+            Expression exp1 = spatialOp.getOperand1();
+            Expression exp2 = spatialOp.getOperand2();
 
-            if (!(exp1 instanceof PropertyName)) {
+            if (!(exp1 instanceof ValueReference)) {
                 //flip order
                 final Expression ex = exp1;
                 exp1 = exp2;
                 exp2 = ex;
             }
 
-            if (!(exp1 instanceof PropertyName)) {
+            if (!(exp1 instanceof ValueReference)) {
                 throw new IllegalArgumentException("Filter can not be transformed in wml filter, "
                         + "expression are not of the requiered type ");
             }
@@ -375,43 +335,43 @@ public class OGCFilterToDTOTransformer {
                 throw new IllegalArgumentException("Type is not geometric or envelope.");
             }
 
-            if (filter instanceof Beyond) {
+            if (type == DistanceOperatorName.BEYOND) {
 
                 return new org.constellation.dto.Filter(pnt, writeGeoJSON(jaxEnv, jaxGeom), OGCJAXBStatics.FILTER_SPATIAL_BEYOND);
 
-            } else if (filter instanceof Contains) {
+            } else if (type == SpatialOperatorName.CONTAINS) {
 
                 return new org.constellation.dto.Filter(pnt, writeGeoJSON(jaxEnv, jaxGeom), OGCJAXBStatics.FILTER_SPATIAL_CONTAINS);
 
-            } else if (filter instanceof Crosses) {
+            } else if (type == SpatialOperatorName.CROSSES) {
 
                 return new org.constellation.dto.Filter(pnt, writeGeoJSON(jaxEnv, jaxGeom), OGCJAXBStatics.FILTER_SPATIAL_CROSSES);
 
-            } else if (filter instanceof DWithin) {
+            } else if (type == DistanceOperatorName.WITHIN) {
 
                 return new org.constellation.dto.Filter(pnt, writeGeoJSON(jaxEnv, jaxGeom), OGCJAXBStatics.FILTER_SPATIAL_DWITHIN);
 
-            } else if (filter instanceof Disjoint) {
+            } else if (type == SpatialOperatorName.DISJOINT) {
 
                 return new org.constellation.dto.Filter(pnt, writeGeoJSON(jaxEnv, jaxGeom), OGCJAXBStatics.FILTER_SPATIAL_DISJOINT);
 
-            } else if (filter instanceof Equals) {
+            } else if (type == SpatialOperatorName.EQUALS) {
 
                 return new org.constellation.dto.Filter(pnt, writeGeoJSON(jaxEnv, jaxGeom), OGCJAXBStatics.FILTER_SPATIAL_EQUALS);
 
-            } else if (filter instanceof Intersects) {
+            } else if (type == SpatialOperatorName.INTERSECTS) {
 
                 return new org.constellation.dto.Filter(pnt, writeGeoJSON(jaxEnv, jaxGeom), OGCJAXBStatics.FILTER_SPATIAL_INTERSECTS);
 
-            } else if (filter instanceof Overlaps) {
+            } else if (type == SpatialOperatorName.OVERLAPS) {
 
                 return new org.constellation.dto.Filter(pnt, writeGeoJSON(jaxEnv, jaxGeom), OGCJAXBStatics.FILTER_SPATIAL_OVERLAPS);
 
-            } else if (filter instanceof Touches) {
+            } else if (type == SpatialOperatorName.TOUCHES) {
 
                 return new org.constellation.dto.Filter(pnt, writeGeoJSON(jaxEnv, jaxGeom), OGCJAXBStatics.FILTER_SPATIAL_TOUCHES);
 
-            } else if (filter instanceof Within) {
+            } else if (type == SpatialOperatorName.WITHIN) {
 
                 return new org.constellation.dto.Filter(pnt, writeGeoJSON(jaxEnv, jaxGeom), OGCJAXBStatics.FILTER_SPATIAL_WITHIN);
             } else {
@@ -431,5 +391,4 @@ public class OGCFilterToDTOTransformer {
         }
         return null;
     }
-
 }

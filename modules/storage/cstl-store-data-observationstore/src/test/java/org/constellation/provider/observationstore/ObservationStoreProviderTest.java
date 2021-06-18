@@ -36,7 +36,6 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.xml.bind.Marshaller;
 import org.apache.sis.internal.storage.query.SimpleQuery;
-import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
@@ -49,6 +48,7 @@ import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.ObservationProvider;
 import org.constellation.util.Util;
+import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.gml.xml.v321.TimeInstantType;
 import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.geotoolkit.internal.sql.DefaultDataSource;
@@ -64,8 +64,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.FilterFactory;
-import org.opengis.filter.PropertyIsEqualTo;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.Process;
@@ -94,7 +94,7 @@ public class ObservationStoreProviderTest {
         url = "jdbc:derby:memory:OM2Test2;create=true";
         ds = new DefaultDataSource(url);
 
-        ff = DefaultFactories.forBuildin(FilterFactory.class);
+        ff = FilterUtilities.FF;
 
         Connection con = ds.getConnection();
 
@@ -316,12 +316,12 @@ public class ObservationStoreProviderTest {
         Assert.assertEquals(expectedIds, resultIds);
 
         SimpleQuery query = new SimpleQuery();
-        PropertyIsEqualTo filter = ff.equals(ff.property("sensorType") , ff.literal("component"));
+        BinaryComparisonOperator filter = ff.equal(ff.property("sensorType") , ff.literal("component"));
         query.setFilter(filter);
         resultIds = omPr.getProcedureNames(query, Collections.EMPTY_MAP);
         assertEquals(1, resultIds.size());
 
-        filter = ff.equals(ff.property("sensorType") , ff.literal("system"));
+        filter = ff.equal(ff.property("sensorType") , ff.literal("system"));
         query.setFilter(filter);
         resultIds = omPr.getProcedureNames(query, Collections.EMPTY_MAP);
         assertEquals(12, resultIds.size());
@@ -380,12 +380,12 @@ public class ObservationStoreProviderTest {
         Assert.assertEquals(expectedIds, resultIds);
 
         SimpleQuery query = new SimpleQuery();
-        PropertyIsEqualTo filter = ff.equals(ff.property("sensorType") , ff.literal("component"));
+        BinaryComparisonOperator filter = ff.equal(ff.property("sensorType") , ff.literal("component"));
         query.setFilter(filter);
         resultIds = omPr.getOfferingNames(query, Collections.EMPTY_MAP);
         assertEquals(1, resultIds.size());
 
-        filter = ff.equals(ff.property("sensorType") , ff.literal("system"));
+        filter = ff.equal(ff.property("sensorType") , ff.literal("system"));
         query.setFilter(filter);
         resultIds = omPr.getOfferingNames(query, Collections.EMPTY_MAP);
         assertEquals(12, resultIds.size());
@@ -448,31 +448,31 @@ public class ObservationStoreProviderTest {
 
         result = omPr.getTimeForProcedure("2.0.0", "urn:ogc:object:sensor:GEOM:10");
         assertPeriodEquals("2009-05-01T13:47:00.0Z", "2009-05-01T14:04:00.0Z", result);
-        
+
         result = omPr.getTimeForProcedure("2.0.0", "urn:ogc:object:sensor:GEOM:12");
         assertPeriodEquals("2000-12-01T00:00:00.0Z", "2000-12-22T00:00:00.0Z",result);
 
         result = omPr.getTimeForProcedure("2.0.0", "urn:ogc:object:sensor:GEOM:3");
         assertPeriodEquals("2007-05-01T02:59:00.0Z", "2007-05-01T21:59:00.0Z",result);
-        
+
         result = omPr.getTimeForProcedure("2.0.0", "urn:ogc:object:sensor:GEOM:4");
         assertPeriodEquals("2007-05-01T12:59:00.0Z", "2007-05-01T16:59:00.0Z",result);
-        
+
         result = omPr.getTimeForProcedure("2.0.0", "urn:ogc:object:sensor:GEOM:test-1");
         assertPeriodEquals("2007-05-01T12:59:00.0Z", "2007-05-01T16:59:00.0Z",result);
-        
+
         result = omPr.getTimeForProcedure("2.0.0", "urn:ogc:object:sensor:GEOM:6");
         Assert.assertNull(result);
-        
+
         result = omPr.getTimeForProcedure("2.0.0", "urn:ogc:object:sensor:GEOM:7");
         Assert.assertNull(result);
-        
+
         result = omPr.getTimeForProcedure("2.0.0", "urn:ogc:object:sensor:GEOM:8");
         assertPeriodEquals("2007-05-01T12:59:00.0Z", "2007-05-01T16:59:00.0Z",result);
-        
+
         result = omPr.getTimeForProcedure("2.0.0", "urn:ogc:object:sensor:GEOM:9");
         assertPeriodEquals("2009-05-01T13:47:00.0Z", "2009-05-01T13:47:00.0Z",result);
-        
+
         result = omPr.getTimeForProcedure("2.0.0", "urn:ogc:object:sensor:GEOM:test-id");
         assertPeriodEquals("2009-05-01T13:47:00.0Z", "2009-05-01T14:03:00.0Z",result);
     }
@@ -497,7 +497,7 @@ public class ObservationStoreProviderTest {
 
         // Because of the 2 Feature of interest, it returns 2 templates
         SimpleQuery query = new SimpleQuery();
-        PropertyIsEqualTo filter = ff.equals(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:10"));
+        BinaryComparisonOperator filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:10"));
         query.setFilter(filter);
         results = omPr.getObservations(query,  OBSERVATION_QNAME, "resultTemplate", null, Collections.singletonMap("version", "1.0.0"));
         assertEquals(2, results.size());
@@ -531,7 +531,7 @@ public class ObservationStoreProviderTest {
 
         // Because of the multiple observed properties, it returns 4 templates
         query = new SimpleQuery();
-        filter = ff.equals(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:13"));
+        filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:13"));
         query.setFilter(filter);
         results = omPr.getObservations(query,  OBSERVATION_QNAME, "resultTemplate", null, Collections.singletonMap("version", "1.0.0"));
         assertEquals(4, results.size());
@@ -551,7 +551,7 @@ public class ObservationStoreProviderTest {
         assertEquals(1, results.size());
         assertEquals("computed-phen-urn:ogc:object:sensor:GEOM:13", getPhenomenonId(results.get(0)));
 
-        
+
     }
 
     private static String getPhenomenonId(Observation o) {
@@ -583,7 +583,7 @@ public class ObservationStoreProviderTest {
         assertEquals(74, resultIds.size());
 
         SimpleQuery query = new SimpleQuery();
-        PropertyIsEqualTo filter = ff.equals(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:test-1"));
+        BinaryComparisonOperator filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:test-1"));
         query.setFilter(filter);
         resultIds = omPr.getObservationNames(query, MEASUREMENT_QNAME, "inline", Collections.EMPTY_MAP);
 
@@ -613,7 +613,7 @@ public class ObservationStoreProviderTest {
         expectedIds.add("urn:ogc:object:observation:GEOM:507-5");
         Assert.assertEquals(expectedIds, resultIds);
 
-        filter = ff.equals(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:13"));
+        filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:13"));
         query.setFilter(filter);
         resultIds = omPr.getObservationNames(query, MEASUREMENT_QNAME, "inline", Collections.EMPTY_MAP);
 
@@ -628,7 +628,7 @@ public class ObservationStoreProviderTest {
         expectedIds.add("urn:ogc:object:observation:GEOM:4000-1-2");
         expectedIds.add("urn:ogc:object:observation:GEOM:4000-1-3");
         expectedIds.add("urn:ogc:object:observation:GEOM:4000-1-4");
-        
+
         expectedIds.add("urn:ogc:object:observation:GEOM:4001-0-1");
         expectedIds.add("urn:ogc:object:observation:GEOM:4001-0-2");
         expectedIds.add("urn:ogc:object:observation:GEOM:4001-0-3");
@@ -705,5 +705,4 @@ public class ObservationStoreProviderTest {
             throw new AssertionError("Not a time period");
         }
     }
-
 }

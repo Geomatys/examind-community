@@ -43,7 +43,6 @@ import org.apache.sis.feature.builder.FeatureTypeBuilder;
 import org.apache.sis.internal.feature.AttributeConvention;
 import org.apache.sis.internal.storage.AbstractFeatureSet;
 import org.apache.sis.internal.storage.StoreResource;
-import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.parameter.Parameters;
 import org.apache.sis.referencing.CRS;
@@ -62,6 +61,7 @@ import org.geotoolkit.storage.feature.FeatureReader;
 import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
 import org.geotoolkit.storage.feature.FeatureWriter;
 import org.geotoolkit.feature.FeatureExt;
+import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.storage.feature.GenericNameIndex;
 import org.geotoolkit.jdbc.ManageableDataSource;
 import org.geotoolkit.storage.DataStores;
@@ -71,8 +71,7 @@ import org.locationtech.jts.io.WKBReader;
 import org.locationtech.jts.io.WKBWriter;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
-import org.opengis.filter.FilterFactory;
-import org.opengis.filter.identity.FeatureId;
+import org.opengis.filter.ResourceId;
 import org.opengis.metadata.Metadata;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
@@ -178,7 +177,7 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
         }
     }
 
-    public FeatureId getNewFeatureId() {
+    public ResourceId getNewFeatureId() {
         Connection cnx = null;
         PreparedStatement stmtLastId = null;
         try {
@@ -193,15 +192,14 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
                 if (id != null) {
                     try {
                         final int i = Integer.parseInt(id.substring(sensorIdBase.length()));
-                        return DefaultFactories.forBuildin(FilterFactory.class).featureId(sensorIdBase + i);
+                        return FilterUtilities.FF.resourceId(sensorIdBase + i);
                     } catch (NumberFormatException ex) {
                         LOGGER.warning("a snesor ID is malformed in procedures tables");
                     }
                 } else {
-                    return DefaultFactories.forBuildin(FilterFactory.class).featureId(sensorIdBase + 1);
+                    return FilterUtilities.FF.resourceId(sensorIdBase + 1);
                 }
             }
-
         } catch (SQLException ex) {
             LOGGER.log(Level.WARNING, null, ex);
         } finally {
@@ -331,7 +329,6 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
         public void remove() throws FeatureStoreRuntimeException {
             throw new FeatureStoreRuntimeException("Not supported.");
         }
-
     }
 
     private class OMWriter extends OMReader implements FeatureWriter {
@@ -363,7 +360,7 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
 
             try (PreparedStatement stmtDelete = cnx.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\" = ?")) {//NOSONAR
 
-                stmtDelete.setString(1, FeatureExt.getId(candidate).getID());
+                stmtDelete.setString(1, FeatureExt.getId(candidate).getIdentifier());
                 stmtDelete.executeUpdate();
 
             } catch (SQLException ex) {
@@ -411,7 +408,7 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
 
         @Override
         public void add(Iterator<? extends Feature> features) throws DataStoreException {
-            final List<FeatureId> result = new ArrayList<>();
+            final List<ResourceId> result = new ArrayList<>();
 
             Connection cnx = null;
             PreparedStatement stmtWrite = null;
@@ -421,12 +418,12 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
 
                 while (features.hasNext()) {
                     final Feature feature = features.next();
-                    FeatureId identifier = FeatureExt.getId(feature);
-                    if (identifier == null || identifier.getID().isEmpty()) {
+                    ResourceId identifier = FeatureExt.getId(feature);
+                    if (identifier == null || identifier.getIdentifier().isEmpty()) {
                         identifier = getNewFeatureId();
                     }
 
-                    stmtWrite.setString(1, identifier.getID());
+                    stmtWrite.setString(1, identifier.getIdentifier());
                     final Optional<Geometry> geometry = FeatureExt.getDefaultGeometryValue(feature)
                             .filter(Geometry.class::isInstance)
                             .map(Geometry.class::cast);

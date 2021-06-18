@@ -26,10 +26,6 @@ import org.geotoolkit.swe.xml.DataArray;
 import org.geotoolkit.swe.xml.TextBlock;
 import org.geotoolkit.temporal.object.ISODateParser;
 import org.opengis.filter.Filter;
-import org.opengis.filter.temporal.After;
-import org.opengis.filter.temporal.Before;
-import org.opengis.filter.temporal.During;
-import org.opengis.filter.temporal.TEquals;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
 
@@ -41,6 +37,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.geotoolkit.observation.ObservationStoreException;
 import org.geotoolkit.observation.Utils;
+import org.opengis.filter.TemporalOperator;
+import org.opengis.filter.TemporalOperatorName;
+import org.opengis.util.CodeList;
 
 /**
  *
@@ -66,10 +65,12 @@ public class DatablockParser {
 
             for (Filter bound: eventTimes) {
                 LOGGER.log(Level.FINER, " Values: {0}", values);
-                if (bound instanceof TEquals) {
-                    final TEquals filter = (TEquals) bound;
-                    if (filter.getExpression2() instanceof Instant) {
-                        final Instant ti    = (Instant) filter.getExpression2();
+                CodeList<?> type = bound.getOperatorType();
+                if (type == TemporalOperatorName.EQUALS) {
+                    final TemporalOperator filter = (TemporalOperator) bound;
+                    Object e2 = filter.getExpressions().get(1);
+                    if (e2 instanceof Instant) {
+                        final Instant ti = (Instant) e2;
                         final Timestamp boundEquals = getTimestampValue(ti.getDate());
 
                         LOGGER.finer("TE case 1");
@@ -77,9 +78,9 @@ public class DatablockParser {
                         values = parseDataBlock(values.values.toString(), array.getEncoding(), null, null, boundEquals);
                     }
 
-                } else if (bound instanceof After) {
-                    final After filter = (After) bound;
-                    final Instant ti   = (Instant) filter.getExpression2();
+                } else if (type == TemporalOperatorName.AFTER) {
+                    final TemporalOperator<Object> filter = (TemporalOperator) bound;
+                    final Instant ti = (Instant) filter.getExpressions().get(1);
                     final Timestamp boundBegin = getTimestampValue(ti.getDate());
 
                     // case 1 the period overlaps the bound
@@ -88,9 +89,9 @@ public class DatablockParser {
                         values = parseDataBlock(values.values.toString(), array.getEncoding(), boundBegin, null, null);
                     }
 
-                } else if (bound instanceof Before) {
-                    final Before filter = (Before) bound;
-                    final Instant ti    = (Instant) filter.getExpression2();
+                } else if (type == TemporalOperatorName.BEFORE) {
+                    final TemporalOperator<Object> filter = (TemporalOperator) bound;
+                    final Instant ti = (Instant) filter.getExpressions().get(1);
                     final Timestamp boundEnd = getTimestampValue(ti.getDate());
 
                     // case 1 the period overlaps the bound
@@ -99,9 +100,9 @@ public class DatablockParser {
                         values = parseDataBlock(values.values.toString(), array.getEncoding(), null, boundEnd, null);
                     }
 
-                } else if (bound instanceof During) {
-                    final During filter = (During) bound;
-                    final Period tp     = (Period)filter.getExpression2();
+                } else if (type == TemporalOperatorName.DURING) {
+                    final TemporalOperator<Object> filter = (TemporalOperator) bound;
+                    final Period tp = (Period) filter.getExpressions().get(1);
                     final Timestamp boundBegin = getTimestampValue(tp.getBeginning().getDate());
                     final Timestamp boundEnd   = getTimestampValue(tp.getEnding().getDate());
 
@@ -120,10 +121,8 @@ public class DatablockParser {
                         LOGGER.finer("TD case 3");
                         values = parseDataBlock(values.values.toString(), array.getEncoding(), boundBegin, boundEnd, null);
                     }
-
                 }
             }
-
 
         //if this is a simple observation, or if there is no time bound
         } else {

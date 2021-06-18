@@ -22,7 +22,7 @@ package org.constellation.json.binding;
 import java.util.ArrayList;
 import java.util.List;
 import static org.constellation.json.util.StyleFactories.FF;
-import org.opengis.filter.expression.Expression;
+import org.opengis.filter.Expression;
 
 /**
  *

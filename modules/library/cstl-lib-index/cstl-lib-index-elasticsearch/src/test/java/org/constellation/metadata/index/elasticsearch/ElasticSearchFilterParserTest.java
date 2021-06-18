@@ -32,8 +32,6 @@ import org.geotoolkit.ogc.xml.v110.PropertyIsBetweenType;
 import org.geotoolkit.ogc.xml.v110.PropertyIsEqualToType;
 import org.geotoolkit.ogc.xml.v110.PropertyNameType;
 import org.geotoolkit.ogc.xml.v110.UpperBoundaryType;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -72,18 +70,9 @@ public class ElasticSearchFilterParserTest {
         pool = FilterMarshallerPool.getInstance();
     }
 
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-    }
-
     @Before
     public void setUp() throws Exception {
         filterParser = new ElasticSearchFilterParser(false);
-    }
-
-    @After
-    public void tearDown() throws Exception {
-
     }
 
     @Test
@@ -93,17 +82,16 @@ public class ElasticSearchFilterParserTest {
                 .must(QueryBuilders.termQuery("test", "ss"));
         // TODO: what to do ?
     }
+
     /**
      * Test simple comparison filter.
-     *
-     * @throws java.lang.Exception
      */
     @Test
     public void simpleComparisonFilterTest() throws Exception {
 
         Unmarshaller filterUnmarshaller = pool.acquireUnmarshaller();
 
-        /**
+        /*
          * Test 1: a simple Filter propertyIsLike
          */
         String XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"                                                               +
@@ -128,8 +116,7 @@ public class ElasticSearchFilterParserTest {
         XContentBuilder result = (XContentBuilder) spaQuery.getQuery();
         assertEquals(Strings.toString(result), "{\"wildcard\":{\"Title\":\"*vm*\"}}");
 
-
-        /**
+        /*
          * Test 2: a simple Filter PropertyIsEqualTo
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"    +
@@ -155,7 +142,7 @@ public class ElasticSearchFilterParserTest {
         result = (XContentBuilder) spaQuery.getQuery();
         assertEquals(Strings.toString(result), "{\"term\":{\"Title\":\"VM\"}}");
 
-        /**
+        /*
          * Test 3: a simple Filter PropertyIsNotEqualTo
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"    +
@@ -195,8 +182,7 @@ public class ElasticSearchFilterParserTest {
                                 "}";
         assertEquals(Strings.toString(result), expectedResult.replace(" ",""));
 
-
-        /**
+        /*
          * Test 4: a simple Filter PropertyIsNull
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"    +
@@ -221,7 +207,7 @@ public class ElasticSearchFilterParserTest {
         result = (XContentBuilder) spaQuery.getQuery();
         assertEquals(Strings.toString(result), "{\"missing\":{\"field\":\"Title\"}}");
 
-        /**
+        /*
          * Test 5: a simple Filter PropertyIsGreaterThanOrEqualTo
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"           +
@@ -247,7 +233,7 @@ public class ElasticSearchFilterParserTest {
         result = (XContentBuilder) spaQuery.getQuery();
         assertEquals(Strings.toString(result), "{\"range\":{\"CreationDate\":{\"gte\":\"2007-06-02\"}}}");
 
-        /**
+        /*
          * Test 6: a simple Filter PropertyIsGreaterThan
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"           +
@@ -273,7 +259,7 @@ public class ElasticSearchFilterParserTest {
         result = (XContentBuilder) spaQuery.getQuery();
         assertEquals(Strings.toString(result), "{\"range\":{\"CreationDate\":{\"gt\":\"2007-06-02\"}}}");
 
-        /**
+        /*
          * Test 7: a simple Filter PropertyIsLessThan
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"           +
@@ -299,8 +285,7 @@ public class ElasticSearchFilterParserTest {
         result = (XContentBuilder) spaQuery.getQuery();
         assertEquals(Strings.toString(result), "{\"range\":{\"CreationDate\":{\"lt\":\"2007-06-02\"}}}");
 
-
-         /**
+        /*
          * Test 8: a simple Filter PropertyIsLessThanOrEqualTo
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"           +
@@ -326,8 +311,7 @@ public class ElasticSearchFilterParserTest {
         result = (XContentBuilder) spaQuery.getQuery();
         assertEquals(Strings.toString(result), "{\"range\":{\"CreationDate\":{\"lte\":\"2007-06-02\"}}}");
 
-
-        /**
+        /*
          * Test 9: a simple Filter PropertyIsBetween
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">" +
@@ -358,7 +342,7 @@ public class ElasticSearchFilterParserTest {
         result = (XContentBuilder) spaQuery.getQuery();
         assertEquals(Strings.toString(result), "{\"range\":{\"CreationDate\":{\"gte\":\"2007-06-02\",\"lte\":\"2007-06-04\"}}}");
 
-         /**
+        /*
          * Test 10: a simple empty Filter
          */
         QueryConstraintType nullConstraint = null;
@@ -368,7 +352,7 @@ public class ElasticSearchFilterParserTest {
 
         assertEquals(spaQuery.getTextQuery(), "metafile:doc");
 
-        /**
+        /*
          * Test 11: a simple Filter PropertyIsLessThanOrEqualTo with numeric field
          */
         filter = FilterParserUtils.cqlToFilter("CloudCover <= 12");
@@ -384,7 +368,7 @@ public class ElasticSearchFilterParserTest {
         result = (XContentBuilder) spaQuery.getQuery();
         assertEquals(Strings.toString(result), "{\"range\":{\"CloudCover\":{\"lte\":12}}}");
 
-        /**
+        /*
          * Test 11: a simple Filter PropertyIsGreaterThan with numeric field
          */
         filter = FilterParserUtils.cqlToFilter("CloudCover > 12");
@@ -400,7 +384,7 @@ public class ElasticSearchFilterParserTest {
         result = (XContentBuilder) spaQuery.getQuery();
         assertEquals(Strings.toString(result), "{\"range\":{\"CloudCover\":{\"gt\":12}}}");
 
-        /**
+        /*
          * Test 12: a simple Filter PropertyIsGreaterThan with numeric field + typeName
          */
         filter = FilterParserUtils.cqlToFilter("CloudCover > 12");
@@ -442,7 +426,7 @@ public class ElasticSearchFilterParserTest {
     public void comparisonFilterOnDateTest() throws Exception {
         Unmarshaller filterUnmarshaller = pool.acquireUnmarshaller();
 
-        /**
+        /*
          * Test 1: a simple Filter PropertyIsEqualTo on a Date field
          */
         String XMLrequest =
@@ -469,7 +453,7 @@ public class ElasticSearchFilterParserTest {
         XContentBuilder result = (XContentBuilder) spaQuery.getQuery();
         assertEquals(Strings.toString(result), "{\"term\":{\"CreationDate\":\"2007-06-02\"}}");
 
-        /**
+        /*
          * Test 2: a simple Filter PropertyIsLike on a Date field
          */
         XMLrequest =
@@ -496,7 +480,7 @@ public class ElasticSearchFilterParserTest {
         result = (XContentBuilder) spaQuery.getQuery();
         assertEquals(Strings.toString(result), "{\"wildcard\":{\"CreationDate\":\"200*0602\"}}");
 
-        /**
+        /*
          * Test 3: a simple Filter PropertyIsLike on a identifier field
          */
         XMLrequest =
@@ -523,7 +507,7 @@ public class ElasticSearchFilterParserTest {
         result = (XContentBuilder) spaQuery.getQuery();
         assertEquals(Strings.toString(result), "{\"wildcard\":{\"identifier\":\"*chain_acq_1*\"}}");
 
-        /**
+        /*
          * Test 4: a simple Filter PropertyIsLike on a identifier field + typeName
          */
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(filter, "1.1.0"), null, null, Arrays.asList(METADATA_QNAME));
@@ -537,8 +521,6 @@ public class ElasticSearchFilterParserTest {
 
     /**
      * Test simple logical filter (unary and binary).
-     *
-     * @throws java.lang.Exception
      */
     @Test
     public void FiltertoCQLTest() throws Exception {
@@ -554,27 +536,25 @@ public class ElasticSearchFilterParserTest {
         final PropertyIsBetweenType pib = new PropertyIsBetweenType(factory.createPropertyName(propertyName), low, upp);
         FilterType filter = new FilterType(pib);
         String result = FilterParserUtils.filterToCql(filter);
-        String expResult = "";
+        String expResult = "\"ATTR1\" BETWEEN '10' AND '20'";
         assertEquals(expResult, result);
 
         final LiteralType lit = new LiteralType("10");
         final PropertyIsEqualToType pe = new PropertyIsEqualToType(lit, propertyName, Boolean.TRUE);
         filter = new FilterType(pe);
         result = FilterParserUtils.filterToCql(filter);
-        expResult = "";
+        expResult = "\"ATTR1\" = '10'";
         assertEquals(expResult, result);
     }
 
     /**
      * Test simple logical filter (unary and binary).
-     *
-     * @throws java.lang.Exception
      */
     @Test
     public void simpleLogicalFilterTest() throws Exception {
 
         Unmarshaller filterUnmarshaller = pool.acquireUnmarshaller();
-        /**
+        /*
          * Test 1: a simple Filter AND between two propertyIsEqualTo
          */
         String XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"         +
@@ -605,7 +585,7 @@ public class ElasticSearchFilterParserTest {
         XContentBuilder result = (XContentBuilder) spaQuery.getQuery();
         assertEquals(Strings.toString(result), "{\"bool\":{\"should\":[{\"term\":{\"Title\":\"starship trooper\"}},{\"term\":{\"Author\":\"Timothee Gustave\"}}],\"minimum_should_match\":2}}");
 
-        /**
+        /*
          * Test 2: a simple Filter OR between two propertyIsEqualTo
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"                +
@@ -636,8 +616,7 @@ public class ElasticSearchFilterParserTest {
         result = (XContentBuilder) spaQuery.getQuery();
         assertEquals(Strings.toString(result), "{\"bool\":{\"should\":[{\"term\":{\"Title\":\"starship trooper\"}},{\"term\":{\"Author\":\"Timothee Gustave\"}}]}}");
 
-
-        /**
+        /*
          * Test 3: a simple Filter OR between three propertyIsEqualTo
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"                +
@@ -673,8 +652,7 @@ public class ElasticSearchFilterParserTest {
         result = (XContentBuilder) spaQuery.getQuery();
         assertEquals(Strings.toString(result), "{\"bool\":{\"should\":[{\"term\":{\"Title\":\"starship trooper\"}},{\"term\":{\"Author\":\"Timothee Gustave\"}},{\"term\":{\"Id\":\"268\"}}]}}");
 
-
-        /**
+        /*
          * Test 4: a simple Filter Not propertyIsEqualTo
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"                 +
@@ -715,7 +693,7 @@ public class ElasticSearchFilterParserTest {
                             "}";
         assertEquals(Strings.toString(result), expresult.replace(" ", "").replaceAll("starshiptrooper", "starship trooper"));
 
-        /**
+        /*
          * Test 5: a simple Filter Not propertyIsNotEqualTo
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"                 +
@@ -765,7 +743,7 @@ public class ElasticSearchFilterParserTest {
                     "}";
         assertEquals(Strings.toString(result), expresult.replace(" ", "").replaceAll("starshiptrooper", "starship trooper"));
 
-        /**
+        /*
          * Test 6: a simple Filter Not PropertyIsGreaterThanOrEqualTo
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"                 +
@@ -808,7 +786,7 @@ public class ElasticSearchFilterParserTest {
                             "}";
         assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
-        /**
+        /*
          * Test 7: a simple Filter Not PropertyIsGreaterThanOrEqualTo + typeName
          */
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(filter, "1.1.0"), null, null, Arrays.asList(METADATA_QNAME));
@@ -849,15 +827,13 @@ public class ElasticSearchFilterParserTest {
 
     /**
      * Test simple Spatial filter
-     *
-     * @throws java.lang.Exception
      */
     @Test
     public void simpleSpatialFilterTest() throws Exception {
 
         Unmarshaller filterUnmarshaller = pool.acquireUnmarshaller();
 
-        /**
+        /*
          * Test 1: a simple spatial Filter Intersects
          */
         String XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"          "  +
@@ -898,7 +874,7 @@ public class ElasticSearchFilterParserTest {
                             "}";
         assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
-        /**
+        /*
          * Test 2: a simple Distance Filter DWithin
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"          " +
@@ -935,7 +911,7 @@ public class ElasticSearchFilterParserTest {
                     "}";
         assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
-        /**
+        /*
          * Test 3: a simple spatial Filter Intersects
          */
         XMLrequest =       "<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"          "  +
@@ -980,15 +956,13 @@ public class ElasticSearchFilterParserTest {
 
     /**
      * Test invalid Filter
-     *
-     * @throws java.lang.Exception
      */
     @Test
     public void errorFilterTest() throws Exception {
 
         Unmarshaller filterUnmarshaller = pool.acquireUnmarshaller();
 
-        /**
+        /*
          * Test 1: a simple Filter PropertyIsGreaterThanOrEqualTo with bad time format
          */
         String XMLrequest =
@@ -1021,7 +995,7 @@ public class ElasticSearchFilterParserTest {
 
        // assertTrue(error); TODO
 
-        /**
+        /*
          * Test 2: a simple Filter propertyIsLike without literal
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"                                                               +
@@ -1049,7 +1023,7 @@ public class ElasticSearchFilterParserTest {
         }
         assertTrue(error);
 
-        /**
+        /*
          * Test 3: a simple Filter PropertyIsNull without propertyName
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"    +
@@ -1077,7 +1051,7 @@ public class ElasticSearchFilterParserTest {
         }
         assertTrue(error);
 
-        /**
+        /*
          * Test 4: a simple Filter PropertyIsBetween without upper boundary
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">" +
@@ -1109,7 +1083,7 @@ public class ElasticSearchFilterParserTest {
         }
         assertTrue(error);
 
-         /**
+        /*
          * Test 5: a simple Filter PropertyIsBetween without lower boundary
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">" +
@@ -1141,7 +1115,7 @@ public class ElasticSearchFilterParserTest {
         }
         assertTrue(error);
 
-         /**
+        /*
          * Test 6: a simple Filter PropertyIsLessThanOrEqualTo without propertyName
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"           +
@@ -1175,14 +1149,12 @@ public class ElasticSearchFilterParserTest {
 
     /**
      * Test Multiple Spatial Filter
-     *
-     * @throws java.lang.Exception
      */
     @Test
     public void multipleSpatialFilterTest() throws Exception {
 
         Unmarshaller filterUnmarshaller = pool.acquireUnmarshaller();
-        /**
+        /*
          * Test 1: two spatial Filter with AND
          */
         String XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"                "  +
@@ -1249,8 +1221,7 @@ public class ElasticSearchFilterParserTest {
                             "}";
         assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
-
-        /**
+        /*
          * Test 2: three spatial Filter with OR
          */
        XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"                "  +
@@ -1333,8 +1304,7 @@ public class ElasticSearchFilterParserTest {
                     "}";
         assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
-
-         /**
+        /*
          * Test 3: three spatial Filter F1 AND (F2 OR F3)
          */
        XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"                   "  +
@@ -1424,7 +1394,7 @@ public class ElasticSearchFilterParserTest {
                     "}";
         assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
-         /**
+        /*
          * Test 4: three spatial Filter (NOT F1) AND F2 AND F3
          */
        XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"                   "  +
@@ -1519,7 +1489,7 @@ public class ElasticSearchFilterParserTest {
                     "}";
         assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
-        /**
+        /*
          * Test 5: three spatial Filter NOT (F1 OR F2) AND F3
          */
        XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"                      "  +
@@ -1625,15 +1595,13 @@ public class ElasticSearchFilterParserTest {
 
     /**
      * Test complex query with both comparison, logical and spatial query
-     *
-     * @throws java.lang.Exception
      */
     @Test
     public void multipleMixedFilterTest() throws Exception {
 
         Unmarshaller filterUnmarshaller = pool.acquireUnmarshaller();
 
-        /**
+        /*
          * Test 1: PropertyIsLike AND INTERSECT
          */
         String XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"                          " +
@@ -1697,7 +1665,7 @@ public class ElasticSearchFilterParserTest {
 
         //assertTrue(spaFilter.getOGCFilter() instanceof Intersects);
 
-        /**
+        /*
          * Test 2: PropertyIsLike AND INTERSECT AND propertyIsEquals
          */
         XMLrequest =       "<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"                          " +
@@ -1764,7 +1732,7 @@ public class ElasticSearchFilterParserTest {
                     "}";
         assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
-        /**
+        /*
          * Test 3:  INTERSECT AND propertyIsEquals AND BBOX
          */
         XMLrequest =       "<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"                          " +
@@ -1840,7 +1808,7 @@ public class ElasticSearchFilterParserTest {
                     "}";
         assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
-        /**
+        /*
          * Test 4: PropertyIsLike OR INTERSECT OR propertyIsEquals
          */
         XMLrequest =       "<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"                          " +
@@ -1906,8 +1874,7 @@ public class ElasticSearchFilterParserTest {
                     "}";
         assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
-
-         /**
+        /*
          * Test 5:  INTERSECT OR propertyIsEquals OR BBOX
          */
         XMLrequest =       "<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"                          " +
@@ -1982,7 +1949,7 @@ public class ElasticSearchFilterParserTest {
                     "}";
         assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
-        /**
+        /*
          * Test 6:  INTERSECT AND (propertyIsEquals OR BBOX)
          */
         XMLrequest =       "<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"                          " +
@@ -2064,8 +2031,7 @@ public class ElasticSearchFilterParserTest {
                     "}";
         assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
-
-        /**
+        /*
          * Test 7:  propertyIsNotEquals OR (propertyIsLike AND DWITHIN)
          */
         XMLrequest =       "<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"                                  " +
@@ -2142,8 +2108,7 @@ public class ElasticSearchFilterParserTest {
                     "}";
         assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
-
-        /**
+        /*
          * Test 8:  propertyIsLike AND INTERSECT AND (propertyIsEquals OR BBOX) AND (propertyIsNotEquals OR (Beyond AND propertyIsLike))
          */
         XMLrequest =       "<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"                                  " +
@@ -2287,8 +2252,7 @@ public class ElasticSearchFilterParserTest {
                     "}";
         assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
-
-        /**
+        /*
          * Test 9:  NOT propertyIsLike AND NOT INTERSECT AND NOT (propertyIsEquals OR BBOX) AND (propertyIsNotEquals OR (Beyond AND propertyIsLike))
          */
         XMLrequest =       "<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"                                  " +
@@ -2467,6 +2431,4 @@ public class ElasticSearchFilterParserTest {
 
         pool.recycle(filterUnmarshaller);
     }
-
-
 }

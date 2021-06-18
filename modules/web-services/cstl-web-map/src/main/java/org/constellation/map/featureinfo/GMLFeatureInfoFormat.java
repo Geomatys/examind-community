@@ -156,7 +156,7 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             strs = new ArrayList<>();
             coverages.put(fullLayerName, strs);
         }
-        
+
         StringBuilder builder = new StringBuilder();
 
         final String endMark = ">\n";
@@ -255,7 +255,7 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
                         .append("</elevation>").append("\n");
             }
         }
-        
+
         StringBuilder variableBuilder = new StringBuilder();
         StringBuilder valuesBuilder = new StringBuilder();
         for (final Map.Entry<SampleDimension,Object> entry : results) {
@@ -321,7 +321,7 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
                 builder.append(margin).append("<").append(encodeXMLMark(ftLocal)).append("_feature").append(">\n");
 
                 margin += "\t";
-                builder.append(margin).append("<ID>").append(encodeXML(FeatureExt.getId(feature).getID())).append("</ID>\n");
+                builder.append(margin).append("<ID>").append(encodeXML(FeatureExt.getId(feature).getIdentifier())).append("</ID>\n");
                 XMLFeatureInfoFormat.complexAttributetoXML(builder, feature, margin);
 
                 // end featureType mark

@@ -34,7 +34,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @JsonSubTypes.Type(value = Interpolate.class, name = "interpolate"),
     @JsonSubTypes.Type(value = Categorize.class, name = "categorize")
 })
-public interface Function extends StyleElement<org.opengis.filter.expression.Function> {
+public interface Function extends StyleElement<org.opengis.filter.Expression> {
 
     public Double getInterval();
 

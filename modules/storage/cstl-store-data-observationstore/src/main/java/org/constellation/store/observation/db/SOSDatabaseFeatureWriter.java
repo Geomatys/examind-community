@@ -49,7 +49,7 @@ class SOSDatabaseFeatureWriter extends SOSDatabaseFeatureReader implements Featu
         }
 
         try (PreparedStatement stmtDelete = cnx.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"sampling_features\" WHERE \"id\" = ?")) {//NOSONAR
-            stmtDelete.setString(1, FeatureExt.getId(candidate).getID());
+            stmtDelete.setString(1, FeatureExt.getId(candidate).getIdentifier());
             stmtDelete.executeUpdate();
         } catch (SQLException ex) {
             LOGGER.log(Level.WARNING, "Error while removing features", ex);
@@ -60,5 +60,4 @@ class SOSDatabaseFeatureWriter extends SOSDatabaseFeatureReader implements Featu
     public void write() throws FeatureStoreRuntimeException {
         throw new FeatureStoreRuntimeException("Not supported.");
     }
-
 }

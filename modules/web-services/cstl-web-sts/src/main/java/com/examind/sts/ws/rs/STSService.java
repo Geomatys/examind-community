@@ -37,7 +37,7 @@ import org.constellation.ws.rs.ResponseObject;
 import org.geotoolkit.ows.xml.ExceptionResponse;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.geotoolkit.ows.xml.RequestBase;
-import org.opengis.filter.sort.SortOrder;
+import org.opengis.filter.SortOrder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;

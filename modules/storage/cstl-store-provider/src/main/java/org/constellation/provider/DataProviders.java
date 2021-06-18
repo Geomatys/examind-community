@@ -64,6 +64,7 @@ import org.constellation.repository.ProviderRepository;
 import org.constellation.util.ParamUtilities;
 import org.constellation.util.nio.PathExtensionVisitor;
 import org.geotoolkit.feature.FeatureExt;
+import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.geometry.GeometricUtilities;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.io.wkt.PrjFiles;
@@ -74,20 +75,15 @@ import org.geotoolkit.storage.StoreMetadataExt;
 import org.geotoolkit.storage.feature.FeatureStore;
 import org.geotoolkit.storage.feature.FileFeatureStoreFactory;
 import org.geotoolkit.storage.memory.ExtendedFeatureStore;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.CoordinateSequence;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.LinearRing;
-import org.locationtech.jts.geom.Polygon;
-import org.locationtech.jts.geom.impl.CoordinateArraySequence;
 import org.opengis.feature.AttributeType;
 import org.opengis.feature.FeatureType;
 import org.opengis.feature.PropertyNotFoundException;
 import org.opengis.feature.PropertyType;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
-import org.opengis.filter.expression.Literal;
+import org.opengis.filter.Literal;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.extent.Extent;
 import org.opengis.metadata.extent.GeographicBoundingBox;
@@ -209,7 +205,7 @@ public final class DataProviders extends Static{
      * @param providerId Provider identifier.
      * @param namespace Namespace of the data.
      * @param name Name of the data.
-     * 
+     *
      * @return The matching {@link Data} or {@code null} idf the provider does not contains this data.
      *
      * @throws ConfigurationException If the Provider does not exist.
@@ -367,7 +363,7 @@ public final class DataProviders extends Static{
                  c = CRS.forCode(crs);
              } catch (FactoryException ex) {
                  throw new ConstellationException("Failed to decode CRS: " + crs, ex);
-             } 
+             }
         }
         return computeScales(providerId, dataId, c);
     }
@@ -845,7 +841,7 @@ public final class DataProviders extends Static{
 
         return prop;
     }
-    
+
     protected static Style createEnvelopeStyle(final FeatureType envelopeFeatureType) throws ConstellationStoreException {
         StyleFactory SF;
         try {
@@ -866,19 +862,14 @@ public final class DataProviders extends Static{
         final Class cla = type.getValueClass();
         final Description desc = SF.description(new SimpleInternationalString(""), new SimpleInternationalString(""));
         final List<FeatureTypeStyle> fts = new ArrayList<>();
-        final Rule r = SF.rule("bounds-rule", desc, null, 0, Double.MAX_VALUE, Arrays.asList(polygonSymbol), Filter.INCLUDE);
+        final Rule r = SF.rule("bounds-rule", desc, null, 0, Double.MAX_VALUE, Arrays.asList(polygonSymbol), Filter.include());
         fts.add(SF.featureTypeStyle("bounds-type", desc, null, null, null, Arrays.asList(r)));
         final Style style =  SF.style("bounds-sld", desc, true, fts, null);
         return style;
     }
 
     private static PolygonSymbolizer createRandomPolygonSymbolizer(StyleFactory SF) throws ConstellationStoreException {
-        FilterFactory FF;
-        try {
-            FF = DefaultFactories.forBuildin(FilterFactory.class);
-        } catch (Exception ex) {
-            throw new ConstellationStoreException("Unable to find a filter factory.", ex);
-        }
+        FilterFactory FF = FilterUtilities.FF;
         final Unit uom       = Units.POINT;
         final Fill fill      =  SF.fill(null, FF.literal(Color.BLACK), FF.literal(0.6f) );
         final Stroke stroke  =  SF.stroke(FF.literal(Color.BLACK), null, FF.literal(1), null, null, null, null);

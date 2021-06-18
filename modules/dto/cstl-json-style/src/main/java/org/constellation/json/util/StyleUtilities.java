@@ -43,7 +43,6 @@ import org.constellation.json.binding.StyleElement;
 import org.constellation.json.binding.Symbolizer;
 import static org.constellation.json.util.StyleFactories.FF;
 import org.geotoolkit.cql.CQL;
-import org.geotoolkit.filter.visitor.DuplicatingFilterVisitor;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.LinearRing;
@@ -53,8 +52,8 @@ import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 import org.opengis.filter.Filter;
-import org.opengis.filter.expression.Expression;
-import org.opengis.filter.expression.NilExpression;
+import org.opengis.filter.Expression;
+import org.opengis.filter.NilOperator;
 
 /**
  * @author Fabien Bernard (Geomatys).
@@ -65,16 +64,18 @@ public final class StyleUtilities extends Static {
 
     private static final Logger LOGGER = Logging.getLogger("org.constellation.json.util");
 
+    private static Expression nil() {
+        return FF.literal(null);
+    }
+
     /**
      * Parse given string as CQL and returns Expression.
-     * @param exp
-     * @return
      */
     public static Expression parseExpression(final String exp) {
         try{
             return CQL.parseExpression(exp);
         } catch (CQLException ex) {
-            return Expression.NIL;
+            return nil();
         }
     }
 
@@ -85,7 +86,7 @@ public final class StyleUtilities extends Static {
      * @return {String}
      */
     public static String toCQL(final Expression exp) {
-        if(exp instanceof NilExpression) {
+        if(exp instanceof NilOperator) {
             return "";
         } else {
             return CQL.write(exp);
@@ -99,16 +100,15 @@ public final class StyleUtilities extends Static {
      * @return {String}
      */
     public static String toCQL(Filter f) {
-        f = (Filter) f.accept(new NoNilFilter(),null);
         return CQL.write(f);
     }
 
     public static Expression opacity(final double opacity) {
-        return (opacity >= 0 && opacity <= 1.0) ? FF.literal(opacity) : Expression.NIL;
+        return (opacity >= 0 && opacity <= 1.0) ? FF.literal(opacity) : nil();
     }
 
     public static Expression literal(final Object value) {
-        return value != null ? FF.literal(value) : Expression.NIL;
+        return value != null ? FF.literal(value) : nil();
     }
 
     public static <T> T type(final StyleElement<T> elt) {
@@ -238,12 +238,5 @@ public final class StyleUtilities extends Static {
      */
     public static boolean isAssignableToPoint(final Class<?> clazz) {
         return Point.class.isAssignableFrom(clazz) || MultiPoint.class.isAssignableFrom(clazz);
-    }
-
-    private static class NoNilFilter extends DuplicatingFilterVisitor {
-        @Override
-        public Object visit(NilExpression expression, Object extraData) {
-            return ff.literal(null);
-        }
     }
 }

@@ -88,8 +88,8 @@ import org.apache.sis.storage.DataStore;
 import org.geotoolkit.util.StringUtilities;
 import org.geotoolkit.xml.AnchoredMarshallerPool;
 import org.geotoolkit.xsd.xml.v2001.XSDMarshallerPool;
-import org.opengis.filter.capability.FilterCapabilities;
-import org.opengis.filter.sort.SortOrder;
+import org.geotoolkit.filter.capability.FilterCapabilities;
+import org.opengis.filter.SortOrder;
 import org.opengis.util.CodeList;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -815,13 +815,13 @@ public class CSWworker extends AbstractWorker implements Refreshable {
             //we look for a sorting request (for now only one sort is used)
             final SortBy sortBy = query.getSortBy();
             if (sortBy != null && sortBy.getSortProperty().size() > 0) {
-                final org.opengis.filter.sort.SortBy first = sortBy.getSortProperty().get(0);
-                if (first.getPropertyName() == null || first.getPropertyName().getPropertyName() == null || first.getPropertyName().getPropertyName().isEmpty()) {
+                final org.opengis.filter.SortProperty first = sortBy.getSortProperty().get(0);
+                if (first.getValueReference()== null || first.getValueReference().getXPath() == null || first.getValueReference().getXPath().isEmpty()) {
                     throw new CstlServiceException("A SortBy filter must specify a propertyName.",
                                                   NO_APPLICABLE_CODE);
                 }
 
-                final String propertyName = StringUtilities.removePrefix(first.getPropertyName().getPropertyName()) + "_sort";
+                final String propertyName = StringUtilities.removePrefix(first.getValueReference().getXPath()) + "_sort";
                 final boolean desc        = !first.getSortOrder().equals(SortOrder.ASCENDING);
                 final Character fieldType =  indexSearcher.getNumericFields().get(propertyName);
                 indexQuery.setSort(propertyName, desc, fieldType);

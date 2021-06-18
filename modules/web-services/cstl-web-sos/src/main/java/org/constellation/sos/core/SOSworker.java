@@ -39,7 +39,6 @@ import java.util.UUID;
 import java.util.logging.Level;
 import javax.inject.Named;
 import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import org.apache.sis.internal.storage.query.SimpleQuery;
 import org.apache.sis.xml.MarshallerPool;
@@ -163,6 +162,7 @@ import org.constellation.exception.ConstellationStoreException;
 import com.examind.sensor.ws.SensorUtils;
 import java.util.stream.Collectors;
 import org.constellation.api.WorkerState;
+import org.geotoolkit.ogc.xml.BBOX;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildOffering;
 import org.geotoolkit.swe.xml.AbstractDataComponent;
@@ -182,29 +182,18 @@ import org.geotoolkit.swes.xml.ObservationTemplate;
 import org.geotoolkit.temporal.object.ISODateParser;
 import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.geotoolkit.util.StringUtilities;
+import org.opengis.filter.BetweenComparisonOperator;
+import org.opengis.filter.BinaryComparisonOperator;
+import org.opengis.filter.BinarySpatialOperator;
+import org.opengis.filter.ComparisonOperatorName;
 import org.opengis.filter.Filter;
-import org.opengis.filter.Id;
-import org.opengis.filter.PropertyIsBetween;
-import org.opengis.filter.PropertyIsEqualTo;
-import org.opengis.filter.PropertyIsGreaterThan;
-import org.opengis.filter.PropertyIsLessThan;
-import org.opengis.filter.PropertyIsLike;
-import org.opengis.filter.expression.Expression;
-import org.opengis.filter.expression.PropertyName;
-import org.opengis.filter.identity.Identifier;
-import org.opengis.filter.spatial.BBOX;
-import org.opengis.filter.temporal.After;
-import org.opengis.filter.temporal.Before;
-import org.opengis.filter.temporal.Begins;
-import org.opengis.filter.temporal.BegunBy;
-import org.opengis.filter.temporal.During;
-import org.opengis.filter.temporal.EndedBy;
-import org.opengis.filter.temporal.Ends;
-import org.opengis.filter.temporal.Meets;
-import org.opengis.filter.temporal.OverlappedBy;
-import org.opengis.filter.temporal.TContains;
-import org.opengis.filter.temporal.TEquals;
-import org.opengis.filter.temporal.TOverlaps;
+import org.opengis.filter.Expression;
+import org.opengis.filter.LikeOperator;
+import org.opengis.filter.ValueReference;
+import org.opengis.filter.ResourceId;
+import org.opengis.filter.SpatialOperatorName;
+import org.opengis.filter.TemporalOperator;
+import org.opengis.filter.TemporalOperatorName;
 import org.opengis.geometry.Geometry;
 import org.opengis.observation.Measurement;
 import org.opengis.observation.Observation;
@@ -374,9 +363,6 @@ public class SOSworker extends SensorWorker {
 
     /**
      * Load the Capabilites document from a configuration file if its present.
-     *
-     * @param configurationDirectory
-     * @throws JAXBException
      */
     private void loadCachedCapabilities() {
         //we fill the cachedCapabilities if we have to
@@ -404,8 +390,6 @@ public class SOSworker extends SensorWorker {
      *      ServiceIdentification, ServiceProvider, Contents, operationMetadata.
      *
      * @return a capabilities document.
-     *
-     * @throws org.constellation.ws.CstlServiceException
      */
     public Capabilities getCapabilities(final GetCapabilities request) throws CstlServiceException {
         isWorking();
@@ -504,7 +488,7 @@ public class SOSworker extends SensorWorker {
                 SimpleQuery stQuery = null;
                 if (sensorTypeFilter != null) {
                     stQuery = new SimpleQuery();
-                    PropertyIsEqualTo filter = ff.equals(ff.property("sensorType") , ff.literal("component"));
+                    BinaryComparisonOperator filter = ff.equal(ff.property("sensorType") , ff.literal("component"));
                     stQuery.setFilter(filter);
                 }
 
@@ -655,8 +639,6 @@ public class SOSworker extends SensorWorker {
      *
      * @param request A document specifying the id of the sensor that we want the description.
      * @return A sensor description
-     *
-     * @throws org.constellation.ws.CstlServiceException
      */
     public Object describeSensor(final DescribeSensor request) throws CstlServiceException  {
         LOGGER.log(Level.INFO, "DescribeSensor request processing\n");
@@ -760,7 +742,7 @@ public class SOSworker extends SensorWorker {
         final String currentVersion = request.getVersion().toString();
         final List<Observation> observation;
         try {
-            final Set<Identifier> oids = new LinkedHashSet<>();
+            final Set<ResourceId> oids = new LinkedHashSet<>();
             for (String oid : request.getObservation()) {
                 if (oid.isEmpty()) {
                     final String locator;
@@ -771,10 +753,15 @@ public class SOSworker extends SensorWorker {
                     }
                     throw new CstlServiceException("Empty observation id", MISSING_PARAMETER_VALUE, locator);
                 }
-                oids.add(ff.featureId(oid));
+                oids.add(ff.resourceId(oid));
             }
             final SimpleQuery subquery = new SimpleQuery();
-            Id filter = ff.id(oids);
+            Filter filter;
+            switch (oids.size()) {
+                case 0:  filter = Filter.exclude(); break;
+                case 1:  filter = oids.iterator().next(); break;
+                default: filter = ff.or(oids); break;
+            }
             subquery.setFilter(filter);
             observation = omProvider.getObservations(subquery, request.getResultModel(), "inline", request.getResponseFormat(), Collections.singletonMap("version", currentVersion));
 
@@ -791,9 +778,6 @@ public class SOSworker extends SensorWorker {
      * the restriction specified in the query.
      *
      * @param requestObservation a document specifying the parameter of the request.
-     * @return
-     *
-     * @throws org.constellation.ws.CstlServiceException
      */
     public Object getObservation(final GetObservation requestObservation) throws CstlServiceException {
         LOGGER.log(Level.INFO, "getObservation request processing\n");
@@ -985,15 +969,15 @@ public class SOSworker extends SensorWorker {
             final List<String> featureOfInterest = new ArrayList<>(requestObservation.getFeatureIds());
 
             // if the request is a spatial operator
-            BBOX bboxFilter = null;
+            BinarySpatialOperator bboxFilter = null;
             if (requestObservation.getSpatialFilter() != null) {
                 // for a BBOX Spatial ops
-                if (requestObservation.getSpatialFilter() instanceof BBOX) {
-                    final Envelope e = getEnvelopeFromBBOX(currentVersion, (BBOX)requestObservation.getSpatialFilter());
+                if (requestObservation.getSpatialFilter().getOperatorType() == SpatialOperatorName.BBOX) {
+                    final Envelope e = getEnvelopeFromBBOX(currentVersion, BBOX.wrap((BinarySpatialOperator)requestObservation.getSpatialFilter()));
 
                     if (e != null && e.isCompleteEnvelope2D() || isCompleteEnvelope3D(e)) {
                         if (pc.isBoundedObservation) {
-                            bboxFilter = (BBOX)requestObservation.getSpatialFilter();
+                            bboxFilter = (BinarySpatialOperator)requestObservation.getSpatialFilter();
                         } else {
                             final List<String> matchingFeatureOfInterest = omProvider.getFeaturesOfInterestForBBOX(offerings.stream().map(off -> off.getId()).collect(Collectors.toList()), e, currentVersion);
                             if (!matchingFeatureOfInterest.isEmpty()) {
@@ -1025,42 +1009,42 @@ public class SOSworker extends SensorWorker {
             if (requestObservation.getComparisonFilter() != null) {
 
                 final Filter filter = requestObservation.getComparisonFilter();
+                CodeList type = filter.getOperatorType();
 
                 //we treat the different operation
-                if (filter instanceof PropertyIsLessThan) {
+                if (type == ComparisonOperatorName.PROPERTY_IS_LESS_THAN) {
 
-                    final Expression propertyName  = ((PropertyIsLessThan)filter).getExpression1();
-                    final Expression literal       = ((PropertyIsLessThan)filter).getExpression2();
+                    final Expression propertyName  = ((BinaryComparisonOperator) filter).getOperand1();
+                    final Expression literal       = ((BinaryComparisonOperator) filter).getOperand2();
                     if (literal == null || propertyName == null) {
                         throw new CstlServiceException(" to use the operation Less Than you must specify the propertyName and the litteral",
                                                       MISSING_PARAMETER_VALUE, "lessThan");
                     }
 
+                } else if (type == ComparisonOperatorName.PROPERTY_IS_GREATER_THAN) {
 
-                } else if (filter instanceof PropertyIsGreaterThan) {
-
-                    final Expression propertyName  = ((PropertyIsGreaterThan)filter).getExpression1();
-                    final Expression literal       = ((PropertyIsGreaterThan)filter).getExpression2();
+                    final Expression propertyName  = ((BinaryComparisonOperator) filter).getOperand1();
+                    final Expression literal       = ((BinaryComparisonOperator) filter).getOperand2();
                     if (propertyName == null || literal == null) {
                         throw new CstlServiceException(" to use the operation Greater Than you must specify the propertyName and the litteral",
                                                      MISSING_PARAMETER_VALUE, "greaterThan");
                     }
 
-                } else if (filter instanceof PropertyIsEqualTo) {
+                } else if (type == ComparisonOperatorName.PROPERTY_IS_EQUAL_TO) {
 
-                    final PropertyName propertyName  = (PropertyName)((PropertyIsEqualTo)filter).getExpression1();
-                    final Expression literal         = ((PropertyIsEqualTo)filter).getExpression2();
-                    if (propertyName == null || propertyName.getPropertyName() == null || propertyName.getPropertyName().isEmpty() || literal == null) {
+                    final ValueReference propertyName  = (ValueReference)((BinaryComparisonOperator)filter).getOperand1();
+                    final Expression literal = ((BinaryComparisonOperator)filter).getOperand2();
+                    if (propertyName == null || propertyName.getXPath() == null || propertyName.getXPath().isEmpty() || literal == null) {
                          throw new CstlServiceException(" to use the operation Equal you must specify the propertyName and the litteral",
                                                        INVALID_PARAMETER_VALUE, "propertyIsEqualTo"); // cite test
                     }
                     resultFilter = filter;
 
-                } else if (filter instanceof PropertyIsLike) {
+                } else if (filter instanceof LikeOperator) {
                     throw new CstlServiceException(NOT_SUPPORTED, OPERATION_NOT_SUPPORTED, "propertyIsLike");
 
-                } else if (filter instanceof PropertyIsBetween) {
-                    final PropertyIsBetween pib = (PropertyIsBetween) filter;
+                } else if (filter instanceof BetweenComparisonOperator) {
+                    final BetweenComparisonOperator pib = (BetweenComparisonOperator) filter;
                     if (pib.getExpression() == null) {
                         throw new CstlServiceException("To use the operation Between you must specify the propertyName and the litteral",
                                                       MISSING_PARAMETER_VALUE, "propertyIsBetween");
@@ -1087,7 +1071,6 @@ public class SOSworker extends SensorWorker {
 
                 /*
                  * - The filterReader execute a request and return directly the observations
-                 *
                  */
                 final List<Observation> matchingResult;
                 final Envelope computedBounds;
@@ -1165,9 +1148,6 @@ public class SOSworker extends SensorWorker {
 
     /**
      * Web service operation
-     * @param request
-     * @return
-     * @throws org.constellation.ws.CstlServiceException
      */
     public GetResultResponse getResult(final GetResult request) throws CstlServiceException {
         LOGGER.log(Level.INFO, "getResult request processing\n");
@@ -1235,15 +1215,15 @@ public class SOSworker extends SensorWorker {
             final SOSProviderCapabilities pc = getProviderCapabilities();
 
              // if the request is a spatial operator
-            BBOX bboxFilter = null;
+            BinarySpatialOperator bboxFilter = null;
             if (request.getSpatialFilter() != null) {
                 // for a BBOX Spatial ops
-                if (request.getSpatialFilter() instanceof BBOX) {
-                    final Envelope e = getEnvelopeFromBBOX(currentVersion, (BBOX)request.getSpatialFilter());
+                if (request.getSpatialFilter().getOperatorType() == SpatialOperatorName.BBOX) {
+                    final Envelope e = getEnvelopeFromBBOX(currentVersion, BBOX.wrap((BinarySpatialOperator)request.getSpatialFilter()));
 
                     if (e != null && e.isCompleteEnvelope2D()) {
                         if (pc.isBoundedObservation) {
-                            bboxFilter = (BBOX)request.getSpatialFilter();
+                            bboxFilter = (BinarySpatialOperator) request.getSpatialFilter();
                         } else {
                             fois.addAll(omProvider.getFeaturesOfInterestForBBOX(offering, e, currentVersion));
                         }
@@ -1258,12 +1238,12 @@ public class SOSworker extends SensorWorker {
             //we treat the time constraint
             final List<Filter> times = request.getTemporalFilter();
 
-            /**
+            /*
              * The template time :
              */
             // case TEquals with time instant
             if (time instanceof Instant) {
-               final TEquals equals  = buildTimeEquals(currentVersion, null, time);
+               final TemporalOperator equals  = buildTimeEquals(currentVersion, null, time);
                times.add(equals);
 
             } else if (time instanceof Period) {
@@ -1271,17 +1251,17 @@ public class SOSworker extends SensorWorker {
 
                 //case TBefore
                 if (TimeIndeterminateValueType.BEFORE.equals(((GmlInstant)tp.getBeginning()).getTimePosition().getIndeterminatePosition())) {
-                    final Before before  = buildTimeBefore(currentVersion, null, tp.getEnding());
+                    final TemporalOperator before = buildTimeBefore(currentVersion, null, tp.getEnding());
                     times.add(before);
 
                 //case TAfter
                 } else if (TimeIndeterminateValueType.NOW.equals((((GmlInstant)tp.getEnding()).getTimePosition()).getIndeterminatePosition())) {
-                    final After after  = buildTimeAfter(currentVersion, null, tp.getBeginning());
+                    final TemporalOperator after = buildTimeAfter(currentVersion, null, tp.getBeginning());
                     times.add(after);
 
                 //case TDuring/TEquals  (here the sense of T_Equals with timePeriod is lost but not very usefull)
                 } else {
-                    final During during  = buildTimeDuring(currentVersion, null, tp);
+                    final TemporalOperator during = buildTimeDuring(currentVersion, null, tp);
                     times.add(during);
                 }
             }
@@ -1351,14 +1331,14 @@ public class SOSworker extends SensorWorker {
                 return buildFeatureCollection(currentVersion, "feature-collection-1", features);
             }
 
-            /**
+            /*
              * - Spatial filter mode
              */
             if (request.getSpatialFilters() != null && !request.getSpatialFilters().isEmpty()) {
                 AbstractFeature result = null;
                 final Filter spatialFilter = request.getSpatialFilters().get(0); // TODO handle multiple filters (SOS 2.0.0)
-                if (spatialFilter instanceof BBOX) {
-                    final BBOX bboxFilter = (BBOX) spatialFilter;
+                if (spatialFilter.getOperatorType() == SpatialOperatorName.BBOX) {
+                    final BBOX bboxFilter = BBOX.wrap((BinarySpatialOperator) spatialFilter);
                     // CITE
                     if (bboxFilter.getPropertyName() == null || bboxFilter.getPropertyName().isEmpty()) {
                         final String locator = currentVersion.equals("2.0.0") ?  "ValueReference" :  "propertyName";
@@ -1386,7 +1366,7 @@ public class SOSworker extends SensorWorker {
                 return result;
             }
 
-           /**
+           /*
             * - Filter mode
             */
             boolean ofilter = false;
@@ -1421,7 +1401,7 @@ public class SOSworker extends SensorWorker {
                 final List<SamplingFeature> features = omProvider.getFeatureOfInterest(query, Collections.singletonMap("version", currentVersion));
                 return buildFeatureCollection(currentVersion, "feature-collection-1", features);
 
-            /**
+            /*
              * - Request for all foi
              */
             } else {
@@ -1583,10 +1563,11 @@ public class SOSworker extends SensorWorker {
             }
 
             final List<Filter> filters   = new ArrayList<>();
-            final PropertyName procedure = ff.property("procedure");
-            getProcedureForOffering(request.getOffering(), currentVersion).forEach(pr -> filters.add(ff.equals(procedure, ff.literal(((Process) pr).getHref()))));
+            final ValueReference procedure = ff.property("procedure");
+            getProcedureForOffering(request.getOffering(), currentVersion).forEach(pr ->
+                    filters.add(ff.equal(procedure, ff.literal(((Process) pr).getHref()))));
 
-            filters.add(ff.equals(ff.property("observedProperty"), ff.literal(request.getObservedProperty())));
+            filters.add(ff.equal(ff.property("observedProperty"), ff.literal(request.getObservedProperty())));
 
             // we clone the filter for this request
             final SimpleQuery query = new SimpleQuery();
@@ -1634,8 +1615,6 @@ public class SOSworker extends SensorWorker {
      *
      * @param request A request containing a SensorML File describing a Sensor,
      *                         and an observation template for this sensor.
-     * @return
-     * @throws org.constellation.ws.CstlServiceException
      */
     public InsertSensorResponse registerSensor(final InsertSensor request) throws CstlServiceException {
         assertTransactionnal(REGISTER_SENSOR);
@@ -1761,8 +1740,6 @@ public class SOSworker extends SensorWorker {
      * in the O&amp;M database.
      *
      * @param request an InsertObservation request containing an O&amp;M object and a Sensor id.
-     * @return
-     * @throws CstlServiceException
      */
     public InsertObservationResponse insertObservation(final InsertObservation request) throws CstlServiceException {
         assertTransactionnal(INSERT_OBSERVATION);
@@ -1874,30 +1851,35 @@ public class SOSworker extends SensorWorker {
      *
      * @return true if there is no errors in the time constraint else return false.
      */
-    private Filter buildFilter(final List<Filter> times, List<String> observedProperties, List<String> procedures, List<String> featuresOfInterest, BBOX bbox, Filter resultFilter) throws CstlServiceException {
+    private Filter buildFilter(final List<Filter> times, List<String> observedProperties, List<String> procedures,
+            List<String> featuresOfInterest, BinarySpatialOperator bbox, Filter resultFilter) throws CstlServiceException
+    {
         final List<Filter> filters = new ArrayList<>();
         for (Filter time: times) {
+            CodeList type = time.getOperatorType();
 
             // The operation Time Equals
-            if (time instanceof TEquals) {
+            if (type == TemporalOperatorName.EQUALS) {
                filters.add(time);
 
             // The operation Time before
-            } else if (time instanceof Before) {
+            } else if (type == TemporalOperatorName.BEFORE) {
                filters.add(time);
 
 
             // The operation Time after
-            } else if (time instanceof After) {
+            } else if (type == TemporalOperatorName.AFTER) {
                 filters.add(time);
 
 
             // The time during operation
-            } else if (time instanceof During) {
+            } else if (type == TemporalOperatorName.DURING) {
                filters.add(time);
 
-            } else if (time instanceof Begins|| time instanceof BegunBy || time instanceof TContains ||time instanceof EndedBy || time instanceof Ends || time instanceof Meets
-                       || time instanceof TOverlaps|| time instanceof OverlappedBy) {
+            } else if (type == TemporalOperatorName.BEGINS || type == TemporalOperatorName.BEGUN_BY || type == TemporalOperatorName.CONTAINS
+                    || type == TemporalOperatorName.ENDED_BY || type == TemporalOperatorName.ENDS || type == TemporalOperatorName.MEETS
+                       || type == TemporalOperatorName.OVERLAPS || type == TemporalOperatorName.OVERLAPPED_BY)
+            {
                 throw new CstlServiceException("This operation is not take in charge by the Web Service, supported one are: TM_Equals, TM_After, TM_Before, TM_During",
                                               OPERATION_NOT_SUPPORTED);
             } else {
@@ -1908,17 +1890,17 @@ public class SOSworker extends SensorWorker {
         }
         if (observedProperties != null) {
             for (String observedProperty : observedProperties) {
-                filters.add(ff.equals(ff.property("observedProperty"), ff.literal(observedProperty)));
+                filters.add(ff.equal(ff.property("observedProperty"), ff.literal(observedProperty)));
             }
         }
         if (procedures != null) {
             for (String procedure : procedures) {
-                filters.add(ff.equals(ff.property("procedure"), ff.literal(procedure)));
+                filters.add(ff.equal(ff.property("procedure"), ff.literal(procedure)));
             }
         }
         if (featuresOfInterest != null) {
             for (String featureOfInterest : featuresOfInterest) {
-                filters.add(ff.equals(ff.property("featureOfInterest"), ff.literal(featureOfInterest)));
+                filters.add(ff.equal(ff.property("featureOfInterest"), ff.literal(featureOfInterest)));
             }
         }
         if (bbox != null) {
@@ -1932,7 +1914,7 @@ public class SOSworker extends SensorWorker {
         } else if (filters.size() > 1) {
             return ff.and(filters);
         } else {
-            return Filter.INCLUDE;
+            return Filter.include();
         }
     }
 
@@ -1941,14 +1923,15 @@ public class SOSworker extends SensorWorker {
         //In template mode  his method return a temporal Object.
         TemporalGeometricPrimitive templateTime = null;
         for (Filter time: times) {
+            CodeList type = time.getOperatorType();
 
             // The operation Time Equals
-            if (time instanceof TEquals) {
-                final TEquals filter = (TEquals) time;
+            if (type == TemporalOperatorName.EQUALS) {
+                final TemporalOperator filter = (TemporalOperator) time;
 
                 // we get the property name (not used for now)
                 //String propertyName = time.getTEquals().getPropertyName();
-                final Object timeFilter   = filter.getExpression2();
+                final Object timeFilter   = filter.getExpressions().get(1);
 
                 if (timeFilter instanceof TemporalGeometricPrimitive) {
                     templateTime = (TemporalGeometricPrimitive) timeFilter;
@@ -1959,12 +1942,12 @@ public class SOSworker extends SensorWorker {
                 }
 
             // The operation Time before
-            } else if (time instanceof Before) {
-                final Before filter = (Before) time;
+            } else if (type == TemporalOperatorName.BEFORE) {
+                final TemporalOperator filter = (TemporalOperator) time;
 
                 // we get the property name (not used for now)
                 // String propertyName = time.getTBefore().getPropertyName();
-                final Object timeFilter   = filter.getExpression2();
+                final Object timeFilter   = filter.getExpressions().get(1);
 
                 if (timeFilter instanceof Instant) {
                     final Instant ti = (Instant)timeFilter;
@@ -1975,12 +1958,12 @@ public class SOSworker extends SensorWorker {
                 }
 
             // The operation Time after
-            } else if (time instanceof After) {
-                final After filter = (After) time;
+            } else if (type == TemporalOperatorName.AFTER) {
+                final TemporalOperator filter = (TemporalOperator) time;
 
                 // we get the property name (not used for now)
                 //String propertyName = time.getTAfter().getPropertyName();
-                final Object timeFilter   = filter.getExpression2();
+                final Object timeFilter   = filter.getExpressions().get(1);
 
                 if (timeFilter instanceof Instant) {
                     final Instant ti = (Instant)timeFilter;
@@ -1992,12 +1975,12 @@ public class SOSworker extends SensorWorker {
                 }
 
             // The time during operation
-            } else if (time instanceof During) {
-                final During filter = (During) time;
+            } else if (type == TemporalOperatorName.DURING) {
+                final TemporalOperator filter = (TemporalOperator) time;
 
                 // we get the property name (not used for now)
                 //String propertyName = time.getTDuring().getPropertyName();
-                final Object timeFilter   = filter.getExpression2();
+                final Object timeFilter   = filter.getExpressions().get(1);
                 if (timeFilter instanceof Period) {
                     templateTime = (Period)timeFilter;
 
@@ -2006,8 +1989,10 @@ public class SOSworker extends SensorWorker {
                                                   INVALID_PARAMETER_VALUE, EVENT_TIME);
                 }
 
-            } else if (time instanceof Begins|| time instanceof BegunBy || time instanceof TContains ||time instanceof EndedBy || time instanceof Ends || time instanceof Meets
-                       || time instanceof TOverlaps|| time instanceof OverlappedBy) {
+            } else if (type == TemporalOperatorName.BEGINS || type == TemporalOperatorName.BEGUN_BY || type == TemporalOperatorName.CONTAINS
+                    || type == TemporalOperatorName.ENDED_BY || type == TemporalOperatorName.ENDS || type == TemporalOperatorName.MEETS
+                    || type == TemporalOperatorName.OVERLAPS || type == TemporalOperatorName.OVERLAPPED_BY)
+            {
                 throw new CstlServiceException("This operation is not take in charge by the Web Service, supported one are: TM_Equals, TM_After, TM_Before, TM_During",
                                               OPERATION_NOT_SUPPORTED);
             } else {

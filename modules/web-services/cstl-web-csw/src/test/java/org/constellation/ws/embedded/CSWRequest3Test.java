@@ -512,7 +512,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         GetRecordsResponseType grResult = (GetRecordsResponseType) result;
         assertEquals(1, grResult.getSearchResults().getAny().size());
 
-        /**
+        /*
          * get all the records
          */
         conec = getCapsUrl.openConnection();
@@ -538,7 +538,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
         initServer();
 
-        /**
+        /*
          * KVP search csw output 1: term filter
          */
         String query = "q=Lorem";
@@ -565,7 +565,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         expResultID.add("urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f");
         assertEquals(expResultID, resultID);
 
-        /**
+        /*
          * KVP search csw output 2: term filters
          */
         query = "q=Lorem%2BVegetation";
@@ -600,7 +600,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
         initServer();
 
-        /**
+        /*
          * KVP search csw output 1: term filter
          */
         String query = "recordIds=urn:uuid:a06af396-3105-442d-8b40-22b57a90d2f2";
@@ -626,7 +626,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         expResultID.add("urn:uuid:a06af396-3105-442d-8b40-22b57a90d2f2");
         assertEquals(expResultID, resultID);
 
-        /**
+        /*
          * KVP search csw output 2: term filters
          */
         query = "recordIds=urn:uuid:a06af396-3105-442d-8b40-22b57a90d2f2,urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f";
@@ -658,7 +658,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
     @Order(order=8)
     public void testCSWOpenSearchSpatial() throws Exception {
         initServer();
-        /**
+        /*
          * KVP search csw output 3 BBOX filter
          */
         String query = "bbox=13.754,60.042,17.920,68.410";
@@ -683,7 +683,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         expResultID.add("urn:uuid:1ef30a8b-876d-4828-9246-c37ab4510bbd");
         expResultID.add("L2-LST");
         assertEquals(expResultID, resultID);
-        
+
         query = "bbox=13.754,60.042,17.920,68.410";
         kvpsUrl = new URL(getOpenSearchURL() + "request=GetRecords&service=CSW&version=3.0.0&" + query + "&outputSchema=http://www.opengis.net/cat/csw/3.0&outputFormat=application/xml");
         conec = kvpsUrl.openConnection();
@@ -707,7 +707,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         expResultID.add("L2-LST");
         assertEquals(expResultID, resultID);
 
-         /**
+        /*
          * KVP search csw output 4: geometry filter
          */
         query = "POLYGON((60.042%2013.754,60.042%2017.920,68.410%2017.920,68.410%2013.754,60.042%2013.754))&relation=Contains";
@@ -733,7 +733,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         expResultID.add("L2-LST");
         assertEquals(expResultID, resultID);
 
-         /**
+        /*
          * KVP search csw output 5: lat lon radius (Probably bugged as we need to set 10000km to get results...)
          */
         query = "lat=64.1&lon=15.2&radius=10000000";
@@ -760,7 +760,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         expResultID.add("urn:uuid:9a669547-b69b-469f-a11f-2d875366bbdc");
         expResultID.add("L2-LST");
         assertEquals(expResultID, resultID);
-        
+
         query = "bbox=13.754,60.042,17.920,68.410&q=surface";
         kvpsUrl = new URL(getOpenSearchURL() + "request=GetRecords&service=CSW&version=3.0.0&" + query + "&outputSchema=http://www.opengis.net/cat/csw/3.0&outputFormat=application/xml");
         conec = kvpsUrl.openConnection();
@@ -782,14 +782,14 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         expResultID = new HashSet<>();
         expResultID.add("L2-LST");
         assertEquals(expResultID, resultID);
-        
+
     }
 
     @Test
     @Order(order=9)
     public void testCSWOpenSearchTemporal() throws Exception {
         initServer();
-         /**
+        /*
          * KVP search csw output 6:time instant equals
          */
         String query = "startDate=2003-05-09Z";
@@ -814,7 +814,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         expResultID.add("urn:uuid:e9330592-0932-474b-be34-c3a3bb67c7db");
         assertEquals(expResultID, resultID);
 
-        /**
+        /*
          * KVP search csw output 7:time period anyInteracts
          */
         query = "startDate=2010-05-09T00:00:00Z&endDate=2011-06-14T00:00:00Z";
@@ -846,7 +846,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
         initServer();
 
-        /**
+        /*
          * KVP search atom output 1: term filter
          */
         String query = "q=Lorem";
@@ -880,8 +880,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         assertEquals(1, grResult.getLinksByRel("self").size());
         assertEquals(1, grResult.getLinksByRel("search").size());
 
-
-        /**
+        /*
          * KVP search atom output 3: full search startPos=1
          */
         query = "";
@@ -890,7 +889,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
         String strResult = getStringResponse(conec);
         String expResult = org.geotoolkit.nio.IOUtilities.toString(Util.getResourceAsStream("org/constellation/embedded/test/atom1.xml"));
-        domCompare(strResult, expResult, new ArrayList<>(), Arrays.asList("http://www.w3.org/2005/Atom:updated"));
+        domCompare(strResult, expResult, null, Arrays.asList("http://www.w3.org/2005/Atom:updated"));
 
         query = "startPosition=11";
         kvpsUrl = new URL(getOpenSearchURL() + "service=CSW&version=3.0.0&" + query + "&outputFormat=application/atom%2Bxml&sortby=identifier:asc");
@@ -898,9 +897,9 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
         strResult = getStringResponse(conec);
         expResult = org.geotoolkit.nio.IOUtilities.toString(Util.getResourceAsStream("org/constellation/embedded/test/atom2.xml"));
-        domCompare(strResult, expResult, new ArrayList<>(), Arrays.asList("http://www.w3.org/2005/Atom:updated"));
+        domCompare(strResult, expResult, null, Arrays.asList("http://www.w3.org/2005/Atom:updated"));
 
-        /**
+        /*
          * KVP search atom output 4: full search maxRecords=5
          */
         query = "maxRecords=5";
@@ -909,7 +908,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
         strResult = getStringResponse(conec);
         expResult = org.geotoolkit.nio.IOUtilities.toString(Util.getResourceAsStream("org/constellation/embedded/test/atom3.xml"));
-        domCompare(strResult, expResult, new ArrayList<>(), Arrays.asList("http://www.w3.org/2005/Atom:updated"));
+        domCompare(strResult, expResult, null, Arrays.asList("http://www.w3.org/2005/Atom:updated"));
 
         query = "maxRecords=5&startPosition=6";
         kvpsUrl = new URL(getOpenSearchURL() + "service=CSW&version=3.0.0&" + query + "&outputFormat=application/atom%2Bxml&sortby=identifier:asc");
@@ -917,9 +916,9 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
         strResult = getStringResponse(conec);
         expResult = org.geotoolkit.nio.IOUtilities.toString(Util.getResourceAsStream("org/constellation/embedded/test/atom4.xml"));
-        domCompare(strResult, expResult, new ArrayList<>(), Arrays.asList("http://www.w3.org/2005/Atom:updated"));
+        domCompare(strResult, expResult, null, Arrays.asList("http://www.w3.org/2005/Atom:updated"));
 
-        /**
+        /*
          * KVP search atom output 5: full search on collection CSW
          */
         kvpsUrl = new URL(getOpenSearch2URL() + "service=CSW&version=3.0.0&outputFormat=application/atom%2Bxml&sortby=identifier:asc");
@@ -927,9 +926,9 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
         strResult = getStringResponse(conec);
         expResult = org.geotoolkit.nio.IOUtilities.toString(Util.getResourceAsStream("org/constellation/embedded/test/atom5.xml"));
-        domCompare(strResult, expResult, new ArrayList<>(), Arrays.asList("http://www.w3.org/2005/Atom:updated"));
+        domCompare(strResult, expResult, null, Arrays.asList("http://www.w3.org/2005/Atom:updated"));
 
-        /**
+        /*
          * KVP search atom output 6: full search with empty parameters
          */
         kvpsUrl = new URL(getOpenSearchURL() + "service=CSW&version=3.0.0&q&maxRecords&startPosition&bbox&recordIds&geometry&relation&lat&lon&radius&name&startDate&endDate&trelation&outputFormat=application/atom%2Bxml");
@@ -937,10 +936,8 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
         strResult = getStringResponse(conec);
         expResult = org.geotoolkit.nio.IOUtilities.toString(Util.getResourceAsStream("org/constellation/embedded/test/atom6.xml"));
-        domCompare(strResult, expResult, new ArrayList<>(), Arrays.asList("http://www.w3.org/2005/Atom:updated"));
+        domCompare(strResult, expResult, null, Arrays.asList("http://www.w3.org/2005/Atom:updated"));
     }
-
-
 
     @Test
     @Order(order=11)
@@ -962,7 +959,6 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
         // Creates a valid GetCapabilities url.
         final URL getCapsUrl = new URL(getCsw2URL());
-
 
         // for a POST request
         URLConnection conec = getCapsUrl.openConnection();
@@ -986,8 +982,6 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         FederatedSearchResultType federatedResult = (FederatedSearchResultType) grResult.getSearchResults().getFederatedSearchResults().get(0);
         assertNotNull(federatedResult.getSearchResult());
         assertEquals(13, federatedResult.getSearchResult().getAny().size());
-
-
 
         // no distribution
         conec = getCapsUrl.openConnection();
@@ -1022,8 +1016,6 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
         assertEquals(1, grResult.getSearchResults().getAny().size());
      }
-
-
 
     @Test
     @Order(order=13)
@@ -1114,8 +1106,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         conec = niUrl.openConnection();
         obj = unmarshallJsonResponse(conec, AcknowlegementType.class);
 
-
-        /**
+        /*
          * REFRESH INDEX
          */
         niUrl = new URL("http://localhost:" + getCurrentPort() + "/API/CSW/default/index/refresh");
@@ -1156,7 +1147,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         expResult = new AcknowlegementType("Success",  "The specified record has been deleted from the CSW");
         assertEquals(expResult, obj);
 
-        /**
+        /*
          * REFRESH INDEX
          */
         niUrl = new URL("http://localhost:" + getCurrentPort() + "/API/CSW/default/index/refresh");
@@ -1229,7 +1220,6 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         conec = niUrl.openConnection();
         obj = unmarshallJsonResponse(conec, AcknowlegementType.class);
 
-
          // verify that the number of record have increased
         niUrl = new URL(getCswURL() + "request=getRecords&version=3.0.0&service=CSW&typenames=csw:Record");
 
@@ -1298,7 +1288,6 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         assertTrue(obj instanceof AcknowlegementType);
         AcknowlegementType expResult = new AcknowlegementType("Success",  "The specified record have been remove from the CSW index");
         assertEquals(expResult, obj);
-
 
         //clear the csw cache
         niUrl = new URL("http://localhost:" + getCurrentPort() + "/API/CSW/default/clearCache");
@@ -1374,7 +1363,6 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         AcknowlegementType expResult = new AcknowlegementType("Success",  "All records have been deleted from the CSW");
         assertEquals(expResult, obj);
 
-
         //clear the csw cache
         niUrl = new URL("http://localhost:" + getCurrentPort() + "/API/CSW/default/clearCache");
         conec = niUrl.openConnection();
@@ -1416,7 +1404,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         }
         assertNotNull(cswProtocol);
         assertEquals(result.getAvailableServices().toString(), 1, result.getAvailableServices().size());
-        
+
         URL liUrl = new URL("http://localhost:" + getCurrentPort() + "/API/OGC/csw/all");
 
         conec = liUrl.openConnection();
@@ -1431,7 +1419,6 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         instances.add(new Instance(2, "default", "Constellation CSW Server", "CS-W 2.0.2/AP ISO19115/19139 for service, datasets and applications", "csw", versions, 0, ServiceStatus.STARTED, "null/csw/default"));
         InstanceReport expResult2 = new InstanceReport(instances);
         assertEquals(expResult2, obj);
-
     }
 
     public void createDataset(String resourceName, String identifier) throws Exception {

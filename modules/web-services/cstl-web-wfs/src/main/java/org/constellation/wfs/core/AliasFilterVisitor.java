@@ -20,11 +20,13 @@
 package org.constellation.wfs.core;
 
 import org.geotoolkit.filter.visitor.DuplicatingFilterVisitor;
-import org.opengis.filter.expression.PropertyName;
+import org.opengis.filter.ValueReference;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Function;
+import org.apache.sis.internal.filter.FunctionNames;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.util.GenericName;
 
@@ -34,26 +36,25 @@ import org.opengis.util.GenericName;
  */
 public class AliasFilterVisitor extends DuplicatingFilterVisitor {
 
-    private final Map<String, GenericName> aliases;
-
     public AliasFilterVisitor(final Map<String, GenericName> aliases) {
+        final Map<String, GenericName> fa;
         if (aliases != null) {
-            this.aliases = aliases;
+            fa = aliases;
         } else {
-            this.aliases = new HashMap<>();
+            fa = new HashMap<>();
         }
-    }
-
-    @Override
-    public Object visit(final PropertyName expression, final Object extraData) {
-        for (Entry<String, GenericName> entry : aliases.entrySet()) {
-            if (expression.getPropertyName().startsWith(entry.getKey() + "/")) {
-                String nmsp = NamesExt.getNamespace(entry.getValue());
-                if (nmsp == null) nmsp = "";
-                final String newPropertyName = '{' + nmsp + '}' + entry.getValue().tip().toString() + expression.getPropertyName().substring(entry.getKey().length());
-                return getFactory(extraData).property(newPropertyName);
+        final Function previous = getExpressionHandler(FunctionNames.ValueReference);
+        setExpressionHandler(FunctionNames.ValueReference, (e) -> {
+            final ValueReference expression = (ValueReference) e;
+            for (Entry<String, GenericName> entry : fa.entrySet()) {
+                if (expression.getXPath().startsWith(entry.getKey() + "/")) {
+                    String nmsp = NamesExt.getNamespace(entry.getValue());
+                    if (nmsp == null) nmsp = "";
+                    final String newPropertyName = '{' + nmsp + '}' + entry.getValue().tip().toString() + expression.getXPath().substring(entry.getKey().length());
+                    return ff.property(newPropertyName);
+                }
             }
-        }
-        return super.visit(expression, extraData);
+            return previous.apply(expression);
+        });
     }
 }

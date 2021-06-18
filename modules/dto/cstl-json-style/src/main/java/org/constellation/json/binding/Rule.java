@@ -19,16 +19,12 @@
 
 package org.constellation.json.binding;
 
-import org.constellation.json.util.StyleUtilities;
 import org.geotoolkit.style.MutableRule;
-import org.opengis.filter.PropertyIsLike;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import static org.constellation.json.util.StyleFactories.SF;
 import static org.constellation.json.util.StyleUtilities.filter;
 import static org.constellation.json.util.StyleUtilities.listType;

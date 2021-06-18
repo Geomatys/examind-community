@@ -56,18 +56,11 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildCompositePhenomenon;
 import org.opengis.filter.BinaryComparisonOperator;
-import org.opengis.filter.PropertyIsEqualTo;
-import org.opengis.filter.PropertyIsGreaterThan;
-import org.opengis.filter.PropertyIsGreaterThanOrEqualTo;
-import org.opengis.filter.PropertyIsLessThan;
-import org.opengis.filter.PropertyIsLessThanOrEqualTo;
-import org.opengis.filter.expression.Literal;
-import org.opengis.filter.expression.PropertyName;
-import org.opengis.filter.temporal.After;
-import org.opengis.filter.temporal.Before;
-import org.opengis.filter.temporal.BinaryTemporalOperator;
-import org.opengis.filter.temporal.During;
-import org.opengis.filter.temporal.TEquals;
+import org.opengis.filter.ComparisonOperatorName;
+import org.opengis.filter.Literal;
+import org.opengis.filter.TemporalOperator;
+import org.opengis.filter.TemporalOperatorName;
+import org.opengis.filter.ValueReference;
 import org.opengis.observation.CompositePhenomenon;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 
@@ -108,7 +101,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     protected List<Integer> fieldFilters = new ArrayList<>();
 
     protected List<Integer> measureIdFilters = new ArrayList<>();
-    
+
     protected GeneralEnvelope envelopeFilter = null;
 
     /**
@@ -337,7 +330,6 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 sqlRequest.append(" ( ").append(sb).append(") ");
                 firstFilter = false;
             }
-
         }
     }
 
@@ -495,13 +487,13 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      * {@inheritDoc}
      */
     @Override
-    public void setTimeFilter(final BinaryTemporalOperator tFilter) throws DataStoreException {
+    public void setTimeFilter(final TemporalOperator tFilter) throws DataStoreException {
         if (tFilter == null) return;
         // we get the property name (not used for now)
         // String propertyName = tFilter.getExpression1()
-        final Object time = tFilter.getExpression2();
-        
-        if (tFilter instanceof TEquals) {
+        final Object time = tFilter.getExpressions().get(1);
+        TemporalOperatorName type = tFilter.getOperatorType();
+        if (type == TemporalOperatorName.EQUALS) {
             // if the temporal object is a period
             if (time instanceof Period) {
                 final Period tp       = (Period) time;
@@ -542,8 +534,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 throw new ObservationStoreException("TM_Equals operation require timeInstant or TimePeriod!",
                         INVALID_PARAMETER_VALUE, EVENT_TIME);
             }
-        } else if (tFilter instanceof Before) {
-    
+        } else if (type == TemporalOperatorName.BEFORE) {
+
             // for the operation before the temporal object must be an timeInstant
             if (time instanceof Instant) {
                 final Instant ti      = (Instant) time;
@@ -563,8 +555,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 throw new ObservationStoreException("TM_Before operation require timeInstant!",
                         INVALID_PARAMETER_VALUE, EVENT_TIME);
             }
-        } else if (tFilter instanceof After) {
-     
+        } else if (type == TemporalOperatorName.AFTER) {
+
             // for the operation after the temporal object must be an timeInstant
             if (time instanceof Instant) {
                 final Instant ti         = (Instant) time;
@@ -587,8 +579,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 throw new ObservationStoreException("TM_After operation require timeInstant!",
                         INVALID_PARAMETER_VALUE, EVENT_TIME);
             }
-        } else if (tFilter instanceof During) {
-            
+        } else if (type == TemporalOperatorName.DURING) {
+
             if (time instanceof Period) {
                 final Period tp       = (Period) time;
                 final Timestamp begin = new Timestamp(tp.getBeginning().getDate().getTime());
@@ -630,14 +622,14 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      */
     @Override
     public void setResultFilter(final BinaryComparisonOperator filter) throws DataStoreException {
-        if (!(filter.getExpression1() instanceof PropertyName)) {
+        if (!(filter.getOperand1() instanceof ValueReference)) {
             throw new ObservationStoreException("Expression is null or not a propertyName on result filter");
         }
-        if (!(filter.getExpression2() instanceof Literal)) {
+        if (!(filter.getOperand2() instanceof Literal)) {
             throw new ObservationStoreException("Expression is null or not a Literal on result filter");
         }
-        final String propertyName = ((PropertyName)filter.getExpression1()).getPropertyName();
-        final Literal value = (Literal) filter.getExpression2();
+        final String propertyName = ((ValueReference)filter.getOperand1()).getXPath();
+        final Literal value = (Literal) filter.getOperand2();
         final String operator = getSQLOperator(filter);
         // apply only on one phenonemenon
         if (propertyName.contains("[")) {
@@ -647,32 +639,32 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 throw new ObservationStoreException("Malformed propertyName in result filter:" + propertyName);
             }
             String index = propertyName.substring(opos + 1, cpos);
-            
+
             // if the field is not a number this will fail.
             sqlMeasureRequest.append(" AND ($phen").append(index).append(operator).appendObjectValue(value.getValue()).append(")");
-            
-        // apply only on all phenonemenon    
+
+        // apply only on all phenonemenon
         } else {
             sqlMeasureRequest.append(" ${allphen").append(operator).appendObjectValue(value.getValue()).append("} ");
         }
     }
-    
+
     private String getSQLOperator(final BinaryComparisonOperator filter) throws ObservationStoreException {
-        if (filter instanceof PropertyIsEqualTo) {
+        ComparisonOperatorName type = filter.getOperatorType();
+        if (type == ComparisonOperatorName.PROPERTY_IS_EQUAL_TO) {
             return " = ";
-        } else if (filter instanceof PropertyIsGreaterThan) {
+        } else if (type == ComparisonOperatorName.PROPERTY_IS_GREATER_THAN) {
             return " > ";
-        } else if (filter instanceof PropertyIsGreaterThanOrEqualTo) {
+        } else if (type == ComparisonOperatorName.PROPERTY_IS_GREATER_THAN_OR_EQUAL_TO) {
             return " >= ";
-        } else if (filter instanceof PropertyIsLessThan) {
+        } else if (type == ComparisonOperatorName.PROPERTY_IS_LESS_THAN) {
             return " < ";
-        } else if (filter instanceof PropertyIsLessThanOrEqualTo) {
+        } else if (type == ComparisonOperatorName.PROPERTY_IS_LESS_THAN_OR_EQUAL_TO) {
             return " <= ";
         } else {
             throw new ObservationStoreException("Unsuported binary comparison filter");
         }
     }
-
 
     /**
      * {@inheritDoc}
@@ -1130,9 +1122,9 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      * We need this method because some procedure got multiple observation with only a phenomon component,
      * and not the full composite.
      * some other are registered with composite that are a subset of the global procedure phenomenon.
-     * 
+     *
      * @return
-     
+
     protected Phenomenon getGlobalCompositePhenomenon(String version, Connection c, String procedure) throws DataStoreException {
        String request = "SELECT DISTINCT(\"observed_property\") FROM \"" + schemaPrefix + "om\".\"observations\" o, \"" + schemaPrefix + "om\".\"components\" c "
                       + "WHERE \"procedure\"=? ";

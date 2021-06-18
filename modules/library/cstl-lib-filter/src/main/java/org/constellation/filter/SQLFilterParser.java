@@ -20,8 +20,8 @@
 package org.constellation.filter;
 
 import org.geotoolkit.temporal.object.TemporalUtilities;
-import org.opengis.filter.PropertyIsLike;
-import org.opengis.filter.expression.PropertyName;
+import org.opengis.filter.LikeOperator;
+import org.opengis.filter.ValueReference;
 
 import javax.xml.namespace.QName;
 import java.text.DateFormat;
@@ -45,11 +45,6 @@ import org.geotoolkit.ogc.xml.UnaryLogicOperator;
 import org.geotoolkit.ogc.xml.XMLFilter;
 
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
-
-// JAXB dependencies
-// Apache Lucene dependencies
-// Geotoolkit dependencies
-// GeoAPI dependencies
 
 
 /**
@@ -106,7 +101,7 @@ public class SQLFilterParser extends AbstractFilterParser {
             if (main instanceof LogicOperator) {
                 response = treatLogicalOperator((LogicOperator)main);
 
-            // we treat directly comparison operator: PropertyIsLike, IsNull, IsBetween, ...
+            // we treat directly comparison operator: LikeOperator, IsNull, IsBetween, ...
             } else if (main instanceof ComparisonOperator) {
                 nbField                          = 1;
                 response = new SQLQuery(treatComparisonOperator((ComparisonOperator)main));
@@ -150,7 +145,7 @@ public class SQLFilterParser extends AbstractFilterParser {
         if (logicOps instanceof BinaryLogicOperator) {
             final BinaryLogicOperator binary = (BinaryLogicOperator) logicOps;
 
-            // we treat directly comparison operator: PropertyIsLike, IsNull, IsBetween, ...
+            // we treat directly comparison operator: LikeOperator, IsNull, IsBetween, ...
             for (Object child : binary.getFilters()) {
 
                 if (child instanceof ComparisonOperator) {
@@ -238,7 +233,7 @@ public class SQLFilterParser extends AbstractFilterParser {
         } else if (logicOps instanceof UnaryLogicOperator) {
             final UnaryLogicOperator unary = (UnaryLogicOperator) logicOps;
 
-            // we treat comparison operator: PropertyIsLike, IsNull, IsBetween, ...
+            // we treat comparison operator: LikeOperator, IsNull, IsBetween, ...
             if (unary.getChild() instanceof ComparisonOperator) {
                 queryBuilder.append(treatComparisonOperator(reverseComparisonOperator((ComparisonOperator) unary.getChild())));
 
@@ -284,8 +279,8 @@ public class SQLFilterParser extends AbstractFilterParser {
      * {@inheritDoc}
      */
     @Override
-    protected void addComparisonFilter(StringBuilder response, PropertyName propertyName, Object literalValue, String operator) throws FilterParserException {
-        response.append('v').append(nbField).append(".\"path\" = '").append(transformSyntax(propertyName.getPropertyName())).append("' AND ");
+    protected void addComparisonFilter(StringBuilder response, ValueReference propertyName, Object literalValue, String operator) throws FilterParserException {
+        response.append('v').append(nbField).append(".\"path\" = '").append(transformSyntax(propertyName.getXPath())).append("' AND ");
         response.append('v').append(nbField).append(".\"value\" ").append(operator);
         if (FilterParserUtils.isDateField(propertyName)) {
             literalValue = extractDateValue(literalValue);
@@ -330,7 +325,7 @@ public class SQLFilterParser extends AbstractFilterParser {
      * {@inheritDoc}
      */
     @Override
-    protected String translateSpecialChar(final PropertyIsLike pil) {
+    protected String translateSpecialChar(final LikeOperator pil) {
         return FilterParserUtils.translateSpecialChar(pil, "%", "%", "\\");
     }
 

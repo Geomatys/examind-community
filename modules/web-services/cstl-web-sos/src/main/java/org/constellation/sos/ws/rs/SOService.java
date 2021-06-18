@@ -51,7 +51,6 @@ import org.geotoolkit.swes.xml.DescribeSensor;
 import org.geotoolkit.swes.xml.InsertSensor;
 import org.geotoolkit.util.StringUtilities;
 import org.opengis.filter.Filter;
-import org.opengis.filter.spatial.BBOX;
 import org.opengis.observation.ObservationCollection;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
@@ -110,11 +109,8 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
+import org.opengis.filter.SpatialOperator;
 
-// Jersey dependencies
-//JAXB dependencies
-// Constellation dependencies
-// Geotoolkit dependencies
 
 /**
  *
@@ -316,10 +312,6 @@ public class SOService extends OGCWebService<SOSworker> {
 
     /**
      * Build request object from KVP parameters.
-     *
-     * @param request
-     * @return
-     * @throws CstlServiceException
      */
     private RequestBase adaptQuery(String request, final Worker w) throws CstlServiceException {
          if (INSERT_OBSERVATION .equalsIgnoreCase(request) ||
@@ -755,7 +747,7 @@ public class SOService extends OGCWebService<SOSworker> {
         }
     }
 
-    private BBOX parseBBoxFilter(final String bboxStr) {
+    private SpatialOperator parseBBoxFilter(final String bboxStr) {
         final String[] part = bboxStr.split(",");
         final String valueReference = part[0];
         final double[] coord = new double[4];

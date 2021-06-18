@@ -33,7 +33,6 @@ import java.util.logging.Level;
 import javax.measure.Unit;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.storage.GridCoverageResource;
-import org.apache.sis.util.Numbers;
 import org.constellation.api.DataType;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.Data;
@@ -232,7 +231,7 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             } else {
                 bandName = "band_" + index;
             }
-            
+
             final Unit unit = dim.getUnits().orElse(null);
             if (unit != null) {
                 builder.append(margin).append("<").append(encodeXMLMark(bandName)).append(" unit =\"").append(unit.toString()).append("\">");
@@ -294,7 +293,7 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
 
             builder.append(margin).append("<Layer>").append(encodeXML(layer.getIdentifier())).append("</Layer>\n");
             builder.append(margin).append("<Name>").append(encodeXML(ftLocal)).append("</Name>\n");
-            builder.append(margin).append("<ID>").append(encodeXML(FeatureExt.getId(feature).getID())).append("</ID>\n");
+            builder.append(margin).append("<ID>").append(encodeXML(FeatureExt.getId(feature).getIdentifier())).append("</ID>\n");
 
             complexAttributetoXML(builder, feature, margin);
         } else {

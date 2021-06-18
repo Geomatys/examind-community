@@ -33,15 +33,9 @@ import org.geotoolkit.ogc.xml.v110.PropertyIsBetweenType;
 import org.geotoolkit.ogc.xml.v110.PropertyIsEqualToType;
 import org.geotoolkit.ogc.xml.v110.PropertyNameType;
 import org.geotoolkit.ogc.xml.v110.UpperBoundaryType;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.opengis.filter.spatial.BBOX;
-import org.opengis.filter.spatial.Contains;
-import org.opengis.filter.spatial.DWithin;
-import org.opengis.filter.spatial.Intersects;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
@@ -57,6 +51,8 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import org.opengis.filter.DistanceOperatorName;
+import org.opengis.filter.SpatialOperatorName;
 
 /**
  * A suite of test verifying the transformation of an XML filter into a Lucene Query/filter
@@ -74,31 +70,20 @@ public class LuceneFilterParserTest {
         pool = FilterMarshallerPool.getInstance();
     }
 
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-    }
-
     @Before
     public void setUp() throws Exception {
         filterParser = new LuceneFilterParser();
     }
 
-    @After
-    public void tearDown() throws Exception {
-
-    }
-
     /**
      * Test simple comparison filter.
-     *
-     * @throws java.lang.Exception
      */
     @Test
     public void simpleComparisonFilterTest() throws Exception {
 
         Unmarshaller filterUnmarshaller = pool.acquireUnmarshaller();
 
-        /**
+        /*
          * Test 1: a simple Filter propertyIsLike
          */
         String XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"                                                               +
@@ -123,8 +108,7 @@ public class LuceneFilterParserTest {
         assertEquals(spaQuery.getSubQueries().size(), 0);
         assertEquals(spaQuery.getTextQuery(), "Title:(*VM*)");
 
-
-        /**
+        /*
          * Test 2: a simple Filter PropertyIsEqualTo
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"    +
@@ -150,7 +134,7 @@ public class LuceneFilterParserTest {
         assertEquals(spaQuery.getSubQueries().size(), 0);
         assertEquals(spaQuery.getTextQuery(), "Title:\"VM\"");
 
-        /**
+        /*
          * Test 3: a simple Filter PropertyIsNotEqualTo
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"    +
@@ -176,8 +160,7 @@ public class LuceneFilterParserTest {
         assertEquals(spaQuery.getSubQueries().size(), 0);
         assertEquals(spaQuery.getTextQuery(), "metafile:doc NOT Title:\"VM\"");
 
-
-        /**
+        /*
          * Test 4: a simple Filter PropertyIsNull
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"    +
@@ -202,7 +185,7 @@ public class LuceneFilterParserTest {
         assertEquals(spaQuery.getSubQueries().size(), 0);
         assertEquals(spaQuery.getTextQuery(), "Title:null");
 
-        /**
+        /*
          * Test 5: a simple Filter PropertyIsGreaterThanOrEqualTo
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"           +
@@ -228,7 +211,7 @@ public class LuceneFilterParserTest {
         assertEquals(spaQuery.getSubQueries().size(), 0);
         assertEquals(spaQuery.getTextQuery(), "CreationDate:[\"20070602000000\" TO 30000101000000]");
 
-        /**
+        /*
          * Test 6: a simple Filter PropertyIsGreaterThan
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"           +
@@ -254,7 +237,7 @@ public class LuceneFilterParserTest {
         assertEquals(spaQuery.getSubQueries().size(), 0);
         assertEquals(spaQuery.getTextQuery(), "CreationDate:{\"20070602000000\" TO 30000101000000}");
 
-        /**
+        /*
          * Test 7: a simple Filter PropertyIsLessThan
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"           +
@@ -280,8 +263,7 @@ public class LuceneFilterParserTest {
         assertEquals(spaQuery.getSubQueries().size(), 0);
         assertEquals(spaQuery.getTextQuery(), "CreationDate:{00000101000000 TO \"20070602000000\"}");
 
-
-         /**
+        /*
          * Test 8: a simple Filter PropertyIsLessThanOrEqualTo
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"           +
@@ -307,8 +289,7 @@ public class LuceneFilterParserTest {
         assertEquals(spaQuery.getSubQueries().size(), 0);
         assertEquals(spaQuery.getTextQuery(), "CreationDate:[00000101000000 TO \"20070602000000\"]");
 
-
-        /**
+        /*
          * Test 9: a simple Filter PropertyIsBetween
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">" +
@@ -339,7 +320,7 @@ public class LuceneFilterParserTest {
         assertEquals(spaQuery.getSubQueries().size(), 0);
         assertEquals(spaQuery.getTextQuery(), "CreationDate:[\"20070602000000\" TO 30000101000000]CreationDate:[00000101000000 TO \"20070604000000\"]");
 
-         /**
+        /*
          * Test 10: a simple empty Filter
          */
         QueryConstraintType nullConstraint = null;
@@ -349,7 +330,7 @@ public class LuceneFilterParserTest {
         assertEquals(spaQuery.getSubQueries().size(), 0);
         assertNull(spaQuery.getTextQuery());
 
-        /**
+        /*
          * Test 11: a simple Filter PropertyIsLessThanOrEqualTo with numeric field
          */
         filter = FilterParserUtils.cqlToFilter("CloudCover <= 12");
@@ -365,7 +346,7 @@ public class LuceneFilterParserTest {
         assertEquals(spaQuery.getSubQueries().size(), 0);
         assertEquals(spaQuery.getTextQuery(), "CloudCover:[-2147483648 TO 12]");
 
-        /**
+        /*
          * Test 11: a simple Filter PropertyIsGreaterThan with numeric field
          */
         filter = FilterParserUtils.cqlToFilter("CloudCover > 12");
@@ -381,7 +362,7 @@ public class LuceneFilterParserTest {
         assertEquals(spaQuery.getSubQueries().size(), 0);
         assertEquals(spaQuery.getTextQuery(), "CloudCover:{12 TO 2147483648}");
 
-        /**
+        /*
          * Test 12: a simple Filter PropertyIsGreaterThan with numeric field + typeName
          */
         filter = FilterParserUtils.cqlToFilter("CloudCover > 12");
@@ -404,7 +385,7 @@ public class LuceneFilterParserTest {
     public void comparisonFilterOnDateTest() throws Exception {
         Unmarshaller filterUnmarshaller = pool.acquireUnmarshaller();
 
-        /**
+        /*
          * Test 1: a simple Filter PropertyIsEqualTo on a Date field
          */
         String XMLrequest =
@@ -431,7 +412,7 @@ public class LuceneFilterParserTest {
         assertEquals(spaQuery.getSubQueries().size(), 0);
         assertEquals(spaQuery.getTextQuery(), "CreationDate:\"20070602000000\"");
 
-        /**
+        /*
          * Test 2: a simple Filter PropertyIsLike on a Date field
          */
         XMLrequest =
@@ -458,7 +439,7 @@ public class LuceneFilterParserTest {
         assertEquals(spaQuery.getSubQueries().size(), 0);
         assertEquals(spaQuery.getTextQuery(), "CreationDate:(200*0602)");
 
-        /**
+        /*
          * Test 3: a simple Filter PropertyIsLike on a identifier field
          */
         XMLrequest =
@@ -485,7 +466,7 @@ public class LuceneFilterParserTest {
         assertEquals(spaQuery.getSubQueries().size(), 0);
         assertEquals(spaQuery.getTextQuery(), "identifier:(*chain_acq_1*)");
 
-        /**
+        /*
          * Test 4: a simple Filter PropertyIsLike on a identifier field + typeName
          */
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(filter, "1.1.0"), null, null, Arrays.asList(METADATA_QNAME));
@@ -499,8 +480,6 @@ public class LuceneFilterParserTest {
 
     /**
      * Test simple logical filter (unary and binary).
-     *
-     * @throws java.lang.Exception
      */
     @Test
     public void FiltertoCQLTest() throws Exception {
@@ -516,27 +495,25 @@ public class LuceneFilterParserTest {
         final PropertyIsBetweenType pib = new PropertyIsBetweenType(factory.createPropertyName(propertyName), low, upp);
         FilterType filter = new FilterType(pib);
         String result = FilterParserUtils.filterToCql(filter);
-        String expResult = "";
+        String expResult = "\"ATTR1\" BETWEEN '10' AND '20'";
         assertEquals(expResult, result);
 
         final LiteralType lit = new LiteralType("10");
         final PropertyIsEqualToType pe = new PropertyIsEqualToType(lit, propertyName, Boolean.TRUE);
         filter = new FilterType(pe);
         result = FilterParserUtils.filterToCql(filter);
-        expResult = "";
+        expResult = "\"ATTR1\" = '10'";
         assertEquals(expResult, result);
     }
 
     /**
      * Test simple logical filter (unary and binary).
-     *
-     * @throws java.lang.Exception
      */
     @Test
     public void simpleLogicalFilterTest() throws Exception {
 
         Unmarshaller filterUnmarshaller = pool.acquireUnmarshaller();
-        /**
+        /*
          * Test 1: a simple Filter AND between two propertyIsEqualTo
          */
         String XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"         +
@@ -567,7 +544,7 @@ public class LuceneFilterParserTest {
         assertEquals(spaQuery.getSubQueries().size(), 0);
         assertEquals(spaQuery.getTextQuery(), "(Title:\"starship trooper\" AND Author:\"Timothee Gustave\")");
 
-        /**
+        /*
          * Test 2: a simple Filter OR between two propertyIsEqualTo
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"                +
@@ -598,8 +575,7 @@ public class LuceneFilterParserTest {
         assertEquals(spaQuery.getSubQueries().size(), 0);
         assertEquals(spaQuery.getTextQuery(), "(Title:\"starship trooper\" OR Author:\"Timothee Gustave\")");
 
-
-        /**
+        /*
          * Test 3: a simple Filter OR between three propertyIsEqualTo
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"                +
@@ -635,8 +611,7 @@ public class LuceneFilterParserTest {
         assertEquals(spaQuery.getSubQueries().size(), 0);
         assertEquals(spaQuery.getTextQuery(), "(Title:\"starship trooper\" OR Author:\"Timothee Gustave\" OR Id:\"268\")");
 
-
-        /**
+        /*
          * Test 4: a simple Filter Not propertyIsEqualTo
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"                 +
@@ -664,7 +639,7 @@ public class LuceneFilterParserTest {
         assertEquals(spaQuery.getTextQuery(), "Title:\"starship trooper\"");
         assertEquals(spaQuery.getLogicalOperator(), LogicalFilterType.NOT);
 
-        /**
+        /*
          * Test 5: a simple Filter Not propertyIsNotEqualTo
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"                 +
@@ -692,7 +667,7 @@ public class LuceneFilterParserTest {
         assertEquals(spaQuery.getTextQuery(), "metafile:doc NOT Title:\"starship trooper\"");
         assertEquals(spaQuery.getLogicalOperator(), LogicalFilterType.NOT);
 
-        /**
+        /*
          * Test 6: a simple Filter Not PropertyIsGreaterThanOrEqualTo
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"                 +
@@ -720,7 +695,7 @@ public class LuceneFilterParserTest {
         assertEquals(spaQuery.getTextQuery(), "CreationDate:[\"20070602000000\" TO 30000101000000]");
         assertEquals(spaQuery.getLogicalOperator(), LogicalFilterType.NOT);
 
-        /**
+        /*
          * Test 7: a simple Filter Not PropertyIsGreaterThanOrEqualTo + typeName
          */
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(filter, "1.1.0"), null, null, Arrays.asList(METADATA_QNAME));
@@ -737,15 +712,13 @@ public class LuceneFilterParserTest {
 
     /**
      * Test simple Spatial filter
-     *
-     * @throws java.lang.Exception
      */
     @Test
     public void simpleSpatialFilterTest() throws Exception {
 
         Unmarshaller filterUnmarshaller = pool.acquireUnmarshaller();
 
-        /**
+        /*
          * Test 1: a simple spatial Filter Intersects
          */
         String XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"          "  +
@@ -778,9 +751,9 @@ public class LuceneFilterParserTest {
         assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
         LuceneOGCSpatialQuery spatialFilter = (LuceneOGCSpatialQuery) spaQuery.getQuery();
 
-        assertTrue(spatialFilter.getOGCFilter() instanceof Intersects);
+        assertEquals(SpatialOperatorName.INTERSECTS, spatialFilter.getOGCFilter().getOperatorType());
 
-        /**
+        /*
          * Test 2: a simple Distance Filter DWithin
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"          " +
@@ -814,9 +787,9 @@ public class LuceneFilterParserTest {
         assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
         spatialFilter = (LuceneOGCSpatialQuery) spaQuery.getQuery();
 
-        assertTrue(spatialFilter.getOGCFilter() instanceof DWithin);
+        assertEquals(DistanceOperatorName.WITHIN, spatialFilter.getOGCFilter().getOperatorType());
 
-        /**
+        /*
          * Test 3: a simple spatial Filter Intersects
          */
         XMLrequest =       "<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"          "  +
@@ -848,22 +821,20 @@ public class LuceneFilterParserTest {
         assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
         spatialFilter = (LuceneOGCSpatialQuery) spaQuery.getQuery();
 
-        assertTrue(spatialFilter.getOGCFilter() instanceof Intersects);
+        assertEquals(SpatialOperatorName.INTERSECTS, spatialFilter.getOGCFilter().getOperatorType());
 
         pool.recycle(filterUnmarshaller);
     }
 
     /**
      * Test invalid Filter
-     *
-     * @throws java.lang.Exception
      */
     @Test
     public void errorFilterTest() throws Exception {
 
         Unmarshaller filterUnmarshaller = pool.acquireUnmarshaller();
 
-        /**
+        /*
          * Test 1: a simple Filter PropertyIsGreaterThanOrEqualTo with bad time format
          */
         String XMLrequest =
@@ -893,10 +864,9 @@ public class LuceneFilterParserTest {
             assertEquals(INVALID_PARAMETER_VALUE, ex.getExceptionCode());
             error = true;
         }
-
         assertTrue(error);
 
-        /**
+        /*
          * Test 2: a simple Filter propertyIsLike without literal
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"                                                               +
@@ -924,7 +894,7 @@ public class LuceneFilterParserTest {
         }
         assertTrue(error);
 
-        /**
+        /*
          * Test 3: a simple Filter PropertyIsNull without propertyName
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"    +
@@ -952,7 +922,7 @@ public class LuceneFilterParserTest {
         }
         assertTrue(error);
 
-        /**
+        /*
          * Test 4: a simple Filter PropertyIsBetween without upper boundary
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">" +
@@ -984,7 +954,7 @@ public class LuceneFilterParserTest {
         }
         assertTrue(error);
 
-         /**
+        /*
          * Test 5: a simple Filter PropertyIsBetween without lower boundary
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">" +
@@ -1016,7 +986,7 @@ public class LuceneFilterParserTest {
         }
         assertTrue(error);
 
-         /**
+        /*
          * Test 6: a simple Filter PropertyIsLessThanOrEqualTo without propertyName
          */
         XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:apiso=\"http://www.opengis.net/cat/csw/apiso/1.0\">"           +
@@ -1050,14 +1020,12 @@ public class LuceneFilterParserTest {
 
     /**
      * Test Multiple Spatial Filter
-     *
-     * @throws java.lang.Exception
      */
     @Test
     public void multipleSpatialFilterTest() throws Exception {
 
         Unmarshaller filterUnmarshaller = pool.acquireUnmarshaller();
-        /**
+        /*
          * Test 1: two spatial Filter with AND
          */
         String XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"                "  +
@@ -1104,7 +1072,7 @@ public class LuceneFilterParserTest {
         assertEquals(boolQuery.clauses().get(0).getOccur(), BooleanClause.Occur.MUST);
         assertEquals(boolQuery.clauses().get(1).getOccur(), BooleanClause.Occur.MUST);
 
-        /**
+        /*
          * Test 2: three spatial Filter with OR
          */
        XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"                "  +
@@ -1161,13 +1129,13 @@ public class LuceneFilterParserTest {
 
         //we verify each filter
         LuceneOGCSpatialQuery f1 = (LuceneOGCSpatialQuery) boolQuery.clauses().get(0).getQuery();
-        assertTrue(f1.getOGCFilter() instanceof Intersects);
+        assertEquals(SpatialOperatorName.INTERSECTS, f1.getOGCFilter().getOperatorType());
 
         LuceneOGCSpatialQuery f2 = (LuceneOGCSpatialQuery) boolQuery.clauses().get(1).getQuery();
-        assertTrue(f2.getOGCFilter() instanceof Contains);
+        assertEquals(SpatialOperatorName.CONTAINS, f2.getOGCFilter().getOperatorType());
 
         LuceneOGCSpatialQuery f3 = (LuceneOGCSpatialQuery) boolQuery.clauses().get(2).getQuery();
-        assertTrue(f3.getOGCFilter() instanceof BBOX);
+        assertEquals(SpatialOperatorName.BBOX, f3.getOGCFilter().getOperatorType());
 
          /**
          * Test 3: three spatial Filter F1 AND (F2 OR F3)
@@ -1226,7 +1194,7 @@ public class LuceneFilterParserTest {
 
         //we verify each filter
         f1 = (LuceneOGCSpatialQuery) boolQuery.clauses().get(1).getQuery();
-        assertTrue(f1.getOGCFilter() instanceof Intersects);
+        assertEquals(SpatialOperatorName.INTERSECTS, f1.getOGCFilter().getOperatorType());
 
         BooleanQuery cf2 = (BooleanQuery) boolQuery.clauses().get(0).getQuery();
         assertEquals(cf2.clauses().size(),       2);
@@ -1236,12 +1204,12 @@ public class LuceneFilterParserTest {
 
 
         LuceneOGCSpatialQuery cf2_1 = (LuceneOGCSpatialQuery) cf2.clauses().get(0).getQuery();
-        assertTrue(cf2_1.getOGCFilter() instanceof Contains);
+        assertEquals(SpatialOperatorName.CONTAINS, cf2_1.getOGCFilter().getOperatorType());
 
         LuceneOGCSpatialQuery cf2_2 = (LuceneOGCSpatialQuery) cf2.clauses().get(1).getQuery();
-        assertTrue(cf2_2.getOGCFilter() instanceof BBOX);
+        assertEquals(SpatialOperatorName.BBOX, cf2_2.getOGCFilter().getOperatorType());
 
-         /**
+        /*
          * Test 4: three spatial Filter (NOT F1) AND F2 AND F3
          */
        XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"                   "  +
@@ -1305,14 +1273,14 @@ public class LuceneFilterParserTest {
         assertEquals(cf1.clauses().get(1).getOccur(), BooleanClause.Occur.MUST);
 
         LuceneOGCSpatialQuery cf1_1 = (LuceneOGCSpatialQuery) cf1.clauses().get(0).getQuery();
-        assertTrue(cf1_1.getOGCFilter() instanceof Intersects);
+        assertEquals(SpatialOperatorName.INTERSECTS, cf1_1.getOGCFilter().getOperatorType());
 
 
         f2 = (LuceneOGCSpatialQuery) boolQuery.clauses().get(1).getQuery();
-        assertTrue(f2.getOGCFilter() instanceof Contains);
+        assertEquals(SpatialOperatorName.CONTAINS, f2.getOGCFilter().getOperatorType());
 
         f3 = (LuceneOGCSpatialQuery) boolQuery.clauses().get(2).getQuery();
-        assertTrue(f3.getOGCFilter() instanceof BBOX);
+        assertEquals(SpatialOperatorName.BBOX, f3.getOGCFilter().getOperatorType());
 
         /**
          * Test 5: three spatial Filter NOT (F1 OR F2) AND F3
@@ -1385,29 +1353,27 @@ public class LuceneFilterParserTest {
 
         assertTrue(cf1_cf1.clauses().get(0).getQuery() instanceof LuceneOGCSpatialQuery);
         LuceneOGCSpatialQuery cf1_cf1_1 = (LuceneOGCSpatialQuery) cf1_cf1.clauses().get(0).getQuery();
-        assertTrue(cf1_cf1_1.getOGCFilter() instanceof Intersects);
+        assertEquals(SpatialOperatorName.INTERSECTS, cf1_cf1_1.getOGCFilter().getOperatorType());
 
         assertTrue(cf1_cf1.clauses().get(1).getQuery() instanceof LuceneOGCSpatialQuery);
         LuceneOGCSpatialQuery cf1_cf1_2 = (LuceneOGCSpatialQuery) cf1_cf1.clauses().get(1).getQuery();
-        assertTrue(cf1_cf1_2.getOGCFilter() instanceof Contains);
+        assertEquals(SpatialOperatorName.CONTAINS, cf1_cf1_2.getOGCFilter().getOperatorType());
 
         f2 = (LuceneOGCSpatialQuery) boolQuery.clauses().get(1).getQuery();
-        assertTrue(f2.getOGCFilter() instanceof BBOX);
+        assertEquals(SpatialOperatorName.BBOX, f2.getOGCFilter().getOperatorType());
 
         pool.recycle(filterUnmarshaller);
     }
 
     /**
      * Test complex query with both comparison, logical and spatial query
-     *
-     * @throws java.lang.Exception
      */
     @Test
     public void multipleMixedFilterTest() throws Exception {
 
         Unmarshaller filterUnmarshaller = pool.acquireUnmarshaller();
 
-        /**
+        /*
          * Test 1: PropertyIsLike AND INTERSECT
          */
         String XMLrequest ="<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"                          " +
@@ -1447,9 +1413,9 @@ public class LuceneFilterParserTest {
         assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
         LuceneOGCSpatialQuery spaFilter = (LuceneOGCSpatialQuery) spaQuery.getQuery();
 
-        assertTrue(spaFilter.getOGCFilter() instanceof Intersects);
+        assertEquals(SpatialOperatorName.INTERSECTS, spaFilter.getOGCFilter().getOperatorType());
 
-        /**
+        /*
          * Test 2: PropertyIsLike AND INTERSECT AND propertyIsEquals
          */
         XMLrequest =       "<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"                          " +
@@ -1493,9 +1459,9 @@ public class LuceneFilterParserTest {
         assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
         spaFilter = (LuceneOGCSpatialQuery) spaQuery.getQuery();
 
-        assertTrue(spaFilter.getOGCFilter() instanceof Intersects);
+        assertEquals(SpatialOperatorName.INTERSECTS, spaFilter.getOGCFilter().getOperatorType());
 
-        /**
+        /*
          * Test 3:  INTERSECT AND propertyIsEquals AND BBOX
          */
         XMLrequest =       "<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"                          " +
@@ -1547,12 +1513,12 @@ public class LuceneFilterParserTest {
         assertEquals(boolQuery.clauses().get(1).getOccur(), BooleanClause.Occur.MUST);
 
         LuceneOGCSpatialQuery f1 = (LuceneOGCSpatialQuery) boolQuery.clauses().get(0).getQuery();
-        assertTrue (f1.getOGCFilter() instanceof Intersects);
+        assertEquals(SpatialOperatorName.INTERSECTS, f1.getOGCFilter().getOperatorType());
 
         LuceneOGCSpatialQuery f2 = (LuceneOGCSpatialQuery) boolQuery.clauses().get(1).getQuery();
-        assertTrue (f2.getOGCFilter() instanceof BBOX);
+        assertEquals(SpatialOperatorName.BBOX, f2.getOGCFilter().getOperatorType());
 
-        /**
+        /*
          * Test 4: PropertyIsLike OR INTERSECT OR propertyIsEquals
          */
         XMLrequest =       "<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"                          " +
@@ -1597,9 +1563,9 @@ public class LuceneFilterParserTest {
         assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
         spaFilter = (LuceneOGCSpatialQuery) spaQuery.getQuery();
 
-        assertTrue(spaFilter.getOGCFilter() instanceof Intersects);
+        assertEquals(SpatialOperatorName.INTERSECTS, spaFilter.getOGCFilter().getOperatorType());
 
-         /**
+        /*
          * Test 5:  INTERSECT OR propertyIsEquals OR BBOX
          */
         XMLrequest =       "<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"                          " +
@@ -1652,12 +1618,12 @@ public class LuceneFilterParserTest {
         assertEquals(boolQuery.clauses().get(1).getOccur(), BooleanClause.Occur.SHOULD);
 
         f1 = (LuceneOGCSpatialQuery) boolQuery.clauses().get(0).getQuery();
-        assertTrue (f1.getOGCFilter() instanceof Intersects);
+        assertEquals(SpatialOperatorName.INTERSECTS, f1.getOGCFilter().getOperatorType());
 
         f2 = (LuceneOGCSpatialQuery) boolQuery.clauses().get(1).getQuery();
-        assertTrue (f2.getOGCFilter() instanceof BBOX);
+        assertEquals(SpatialOperatorName.BBOX, f2.getOGCFilter().getOperatorType());
 
-        /**
+        /*
          * Test 6:  INTERSECT AND (propertyIsEquals OR BBOX)
          */
         XMLrequest =       "<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"                          " +
@@ -1707,7 +1673,7 @@ public class LuceneFilterParserTest {
         assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
         spaFilter = (LuceneOGCSpatialQuery) spaQuery.getQuery();
 
-        assertTrue (spaFilter.getOGCFilter() instanceof Intersects);
+        assertEquals(SpatialOperatorName.INTERSECTS, spaFilter.getOGCFilter().getOperatorType());
 
         SpatialQuery subQuery1 = spaQuery.getSubQueries().get(0);
         assertTrue  (subQuery1.getQuery() != null);
@@ -1718,9 +1684,9 @@ public class LuceneFilterParserTest {
         assertTrue(subQuery1.getQuery() instanceof LuceneOGCSpatialQuery);
         spaFilter = (LuceneOGCSpatialQuery) subQuery1.getQuery();
 
-        assertTrue (spaFilter.getOGCFilter() instanceof BBOX);
+        assertEquals(SpatialOperatorName.BBOX, spaFilter.getOGCFilter().getOperatorType());
 
-        /**
+        /*
          * Test 7:  propertyIsNotEquals OR (propertyIsLike AND DWITHIN)
          */
         XMLrequest =       "<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"                                  " +
@@ -1773,10 +1739,9 @@ public class LuceneFilterParserTest {
         assertTrue(subQuery1.getQuery() instanceof LuceneOGCSpatialQuery);
         spaFilter = (LuceneOGCSpatialQuery) subQuery1.getQuery();
 
-        assertTrue (spaFilter.getOGCFilter() instanceof DWithin);
+        assertEquals(DistanceOperatorName.WITHIN, spaFilter.getOGCFilter().getOperatorType());
 
-
-        /**
+        /*
          * Test 8:  propertyIsLike AND INTERSECT AND (propertyIsEquals OR BBOX) AND (propertyIsNotEquals OR (Beyond AND propertyIsLike))
          */
         XMLrequest =       "<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"                                  " +
@@ -1849,7 +1814,7 @@ public class LuceneFilterParserTest {
         assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
         spaFilter = (LuceneOGCSpatialQuery) spaQuery.getQuery();
 
-        assertTrue (spaFilter.getOGCFilter() instanceof Intersects);
+        assertEquals(SpatialOperatorName.INTERSECTS, spaFilter.getOGCFilter().getOperatorType());
 
         subQuery1 = spaQuery.getSubQueries().get(0);
         assertTrue  (subQuery1.getQuery() != null);
@@ -1860,7 +1825,7 @@ public class LuceneFilterParserTest {
         assertTrue(subQuery1.getQuery() instanceof LuceneOGCSpatialQuery);
         spaFilter = (LuceneOGCSpatialQuery) subQuery1.getQuery();
 
-        assertTrue (spaFilter.getOGCFilter() instanceof BBOX);
+        assertEquals(SpatialOperatorName.BBOX, spaFilter.getOGCFilter().getOperatorType());
 
         SpatialQuery subQuery2 = spaQuery.getSubQueries().get(1);
         assertTrue  (subQuery2.getQuery() == null);
@@ -1877,11 +1842,9 @@ public class LuceneFilterParserTest {
         assertTrue(subQuery2_1.getQuery() instanceof LuceneOGCSpatialQuery);
         spaFilter = (LuceneOGCSpatialQuery) subQuery2_1.getQuery();
 
-        assertTrue (spaFilter.getOGCFilter() instanceof  DWithin);
+        assertEquals(DistanceOperatorName.WITHIN, spaFilter.getOGCFilter().getOperatorType());
 
-
-
-        /**
+        /*
          * Test 9:  NOT propertyIsLike AND NOT INTERSECT AND NOT (propertyIsEquals OR BBOX) AND (propertyIsNotEquals OR (Beyond AND propertyIsLike))
          */
         XMLrequest =       "<ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"                                  " +
@@ -1967,7 +1930,7 @@ public class LuceneFilterParserTest {
 
         f1 = (LuceneOGCSpatialQuery) boolQuery.clauses().get(0).getQuery();
 
-        assertTrue (f1.getOGCFilter() instanceof Intersects);
+        assertEquals(SpatialOperatorName.INTERSECTS, f1.getOGCFilter().getOperatorType());
 
         // first sub-query
         subQuery1 = spaQuery.getSubQueries().get(0);
@@ -1994,7 +1957,7 @@ public class LuceneFilterParserTest {
         assertTrue(subQuery2_1.getQuery() instanceof LuceneOGCSpatialQuery);
         spaFilter = (LuceneOGCSpatialQuery) subQuery2_1.getQuery();
 
-        assertTrue (spaFilter.getOGCFilter() instanceof BBOX);
+        assertEquals(SpatialOperatorName.BBOX, spaFilter.getOGCFilter().getOperatorType());
 
         // third sub-query
         SpatialQuery subQuery3 = spaQuery.getSubQueries().get(2);
@@ -2012,10 +1975,8 @@ public class LuceneFilterParserTest {
         assertTrue(subQuery3_1.getQuery() instanceof LuceneOGCSpatialQuery);
         spaFilter = (LuceneOGCSpatialQuery) subQuery3_1.getQuery();
 
-        assertTrue (spaFilter.getOGCFilter() instanceof  DWithin);
+        assertEquals(DistanceOperatorName.WITHIN, spaFilter.getOGCFilter().getOperatorType());
 
         pool.recycle(filterUnmarshaller);
     }
-
-
 }

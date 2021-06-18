@@ -48,7 +48,7 @@ public final class PolygonSymbolizer implements Symbolizer {
             fill = new Fill(symbolizer.getFill());
         };
         try{
-            perpendicularOffset = Double.parseDouble(symbolizer.getPerpendicularOffset().evaluate(null, String.class));
+            perpendicularOffset = Double.parseDouble(symbolizer.getPerpendicularOffset().apply(null).toString());
         }catch(Exception ex){
             //do nothing
         }

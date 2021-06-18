@@ -24,9 +24,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 import org.apache.sis.cql.CQLException;
-import org.apache.sis.filter.DefaultFilterFactory;
 import org.apache.sis.internal.storage.query.SimpleQuery;
-import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.portrayal.MapItem;
 import org.apache.sis.storage.Query;
 import org.apache.sis.storage.Resource;
@@ -38,8 +36,8 @@ import org.apache.sis.portrayal.MapLayer;
 import org.apache.sis.storage.DataStore;
 import org.geotoolkit.map.MapBuilder;
 import org.opengis.filter.Filter;
-import org.opengis.filter.FilterFactory;
-import org.opengis.filter.FilterFactory2;
+import org.geotoolkit.filter.FilterFactory2;
+import org.geotoolkit.filter.FilterUtilities;
 import org.opengis.style.Style;
 import org.opengis.util.GenericName;
 
@@ -54,7 +52,7 @@ public abstract class DefaultGeoData<T extends Resource> extends AbstractData<T>
     }
 
     protected Filter buildDimFilter(final String dimName, final String dimValue) {
-        final FilterFactory2 factory = (FilterFactory2) DefaultFactories.forBuildin(FilterFactory.class);
+        final FilterFactory2 factory = FilterUtilities.FF;
         Object value = dimValue;
         try {
             value = Double.parseDouble(dimValue);
@@ -63,7 +61,7 @@ public abstract class DefaultGeoData<T extends Resource> extends AbstractData<T>
             LOGGER.log(Level.FINER, "Received dimension value is not a number", ex);
         }
 
-        return factory.equals(factory.property(dimName), factory.literal(value));
+        return factory.equal(factory.property(dimName), factory.literal(value));
     }
 
     private Filter toFilter(Map.Entry param) {
@@ -106,14 +104,14 @@ public abstract class DefaultGeoData<T extends Resource> extends AbstractData<T>
         return extras.entrySet().stream()
                 .map(this::toFilter)
                 .filter(Objects::nonNull)
-                .reduce(new DefaultFilterFactory()::and)
+                .reduce(FilterUtilities.FF::and)
                 .map(filter-> {
                     final SimpleQuery query = new SimpleQuery();
-                    query.setFilter(filter);
+                    query.setFilter((Filter) filter);
                     return query;
                 });
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -124,15 +122,15 @@ public abstract class DefaultGeoData<T extends Resource> extends AbstractData<T>
         }
         final MapLayer layer = MapBuilder.createLayer(origin);
         if (styleI != null) layer.setStyle(styleI);
-        
+
         final String title = getName().tip().toString();
         layer.setIdentifier(title);
         layer.setTitle(title);
-        
+
         resolveQuery(params).ifPresent(query -> layer.setQuery(query));
 
         return layer;
     }
-    
+
     protected abstract Style getDefaultStyle() throws ConstellationStoreException;
 }

@@ -37,18 +37,15 @@ import org.opengis.feature.Operation;
 import org.opengis.feature.PropertyNotFoundException;
 import org.opengis.feature.PropertyType;
 import org.opengis.filter.FilterFactory;
-import org.opengis.filter.expression.PropertyName;
+import org.opengis.filter.ValueReference;
 import org.opengis.geometry.Envelope;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.util.GenericName;
 
 import org.apache.sis.internal.feature.AttributeConvention;
-import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
 
-import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.storage.feature.FeatureStoreUtilities;
 import org.geotoolkit.storage.feature.query.Query;
 import org.geotoolkit.storage.feature.query.QueryBuilder;
@@ -63,7 +60,7 @@ import org.constellation.dto.StatInfo;
 import org.constellation.exception.ConstellationStoreException;
 import org.locationtech.jts.geom.Geometry;
 
-import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
+import org.geotoolkit.filter.FilterUtilities;
 
 /**
  * Default layer details for a datastore type.
@@ -78,10 +75,10 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
      */
     protected static final int MARGIN = 4;
 
-    protected final PropertyName dateStartField;
-    protected final PropertyName dateEndField;
-    protected final PropertyName elevationStartField;
-    protected final PropertyName elevationEndField;
+    protected final ValueReference dateStartField;
+    protected final ValueReference dateEndField;
+    protected final ValueReference elevationStartField;
+    protected final ValueReference elevationEndField;
 
     /**
      * Data version date. Use to query Features is input FeatureStore is versioned.
@@ -106,7 +103,7 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
         super(name, origin, store);
         this.versionDate = versionDate;
 
-        final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
+        final FilterFactory ff = FilterUtilities.FF;
 
         if(dateStart != null)       this.dateStartField = ff.property(dateStart);
         else                        this.dateStartField = null;
@@ -129,7 +126,7 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
     protected MutableStyle getDefaultStyle() throws ConstellationStoreException {
         return RandomStyleBuilder.createDefaultVectorStyle(getType());
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -155,7 +152,7 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
         final SortedSet<Date> dates = new TreeSet<>();
         if (dateStartField != null) {
             try {
-                final AttributeType desc = (AttributeType) dateStartField.evaluate(origin.getType());
+                final AttributeType desc = (AttributeType) dateStartField.apply(origin.getType());
 
                 if(desc == null){
                     LOGGER.log(Level.WARNING , "Invalide field : "+ dateStartField + " Doesnt exists in layer :" + name);
@@ -170,7 +167,7 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
 
                 final QueryBuilder builder = new QueryBuilder();
                 builder.setTypeName(name);
-                builder.setProperties(new String[]{dateStartField.getPropertyName()});
+                builder.setProperties(new String[]{dateStartField.getXPath()});
                 builder.setVersionDate(versionDate);
                 final Query query = builder.buildQuery();
 
@@ -178,7 +175,7 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
                     Iterator<Feature> features = stream.iterator();
                     while(features.hasNext()){
                         final Feature sf = features.next();
-                        final Date date = dateStartField.evaluate(sf,Date.class);
+                        final Date date = (Date) dateStartField.apply(sf);
                         if(date != null){
                             dates.add(date);
                         }
@@ -202,7 +199,7 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
         if (elevationStartField != null) {
 
             try {
-                final AttributeType desc = (AttributeType) elevationStartField.evaluate(origin.getType());
+                final AttributeType desc = (AttributeType) elevationStartField.apply(origin.getType());
                 if(desc == null){
                     LOGGER.log(Level.WARNING , "Invalid field : "+ elevationStartField + " Does not exist in layer :" + name);
                     return elevations;
@@ -216,7 +213,7 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
 
                 final QueryBuilder builder = new QueryBuilder();
                 builder.setTypeName(name);
-                builder.setProperties(new String[]{elevationStartField.getPropertyName()});
+                builder.setProperties(new String[]{elevationStartField.getXPath()});
                 builder.setVersionDate(versionDate);
                 final Query query = builder.buildQuery();
 
@@ -224,7 +221,7 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
                     Iterator<Feature> features = stream.iterator();
                     while (features.hasNext()) {
                         final Feature sf = features.next();
-                        final Number ele = elevationStartField.evaluate(sf,Number.class);
+                        final Number ele = (Number) elevationStartField.apply(sf);
                         if(ele != null){
                             elevations.add(ele);
                         }
@@ -360,7 +357,6 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
                 }
             }
         }
-
         return null;
     }
 }

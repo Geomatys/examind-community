@@ -20,7 +20,7 @@ package org.constellation.filter;
 
 import org.geotoolkit.lucene.filter.SpatialQuery;
 import org.geotoolkit.temporal.object.TemporalUtilities;
-import org.opengis.filter.PropertyIsLike;
+import org.opengis.filter.LikeOperator;
 
 import javax.xml.namespace.QName;
 import java.text.DateFormat;
@@ -46,10 +46,9 @@ import org.geotoolkit.ogc.xml.SpatialOperator;
 import org.geotoolkit.ogc.xml.TemporalOperator;
 import org.geotoolkit.ogc.xml.UnaryLogicOperator;
 import org.geotoolkit.ogc.xml.XMLFilter;
-import org.opengis.filter.expression.Literal;
-import org.opengis.filter.expression.PropertyName;
+import org.opengis.filter.Literal;
+import org.opengis.filter.ValueReference;
 import org.opengis.temporal.Instant;
-
 
 
 /**
@@ -131,7 +130,7 @@ public class LuceneFilterParser extends AbstractFilterParser {
             if (main instanceof LogicOperator) {
                 response = treatLogicalOperator((LogicOperator)main);
 
-            // we treat directly comparison operator: PropertyIsLike, IsNull, IsBetween, ...
+            // we treat directly comparison operator: LikeOperator, IsNull, IsBetween, ...
             } else if (main instanceof ComparisonOperator) {
                 response = new SpatialQuery(treatComparisonOperator((ComparisonOperator)main), null, LogicalFilterType.AND);
 
@@ -172,7 +171,7 @@ public class LuceneFilterParser extends AbstractFilterParser {
 
             for (Object child : binary.getFilters()) {
 
-                // we treat directly comparison operator: PropertyIsLike, IsNull, IsBetween, ...
+                // we treat directly comparison operator: LikeOperator, IsNull, IsBetween, ...
                 if (child instanceof ComparisonOperator) {
                     queryBuilder.append(treatComparisonOperator((ComparisonOperator)child));
                     queryBuilder.append(" ").append(operator.toUpperCase()).append(" ");
@@ -236,7 +235,7 @@ public class LuceneFilterParser extends AbstractFilterParser {
         } else if (logicOps instanceof UnaryLogicOperator) {
             final UnaryLogicOperator unary = (UnaryLogicOperator) logicOps;
 
-            // we treat comparison operator: PropertyIsLike, IsNull, IsBetween, ...
+            // we treat comparison operator: LikeOperator, IsNull, IsBetween, ...
             if (unary.getChild() instanceof ComparisonOperator) {
                 queryBuilder.append(treatComparisonOperator((ComparisonOperator) unary.getChild()));
 
@@ -289,7 +288,7 @@ public class LuceneFilterParser extends AbstractFilterParser {
      * {@inheritDoc}
      */
     @Override
-    protected void addComparisonFilter(final StringBuilder response, final PropertyName propertyName, final Object literalValue, final String operator) throws FilterParserException {
+    protected void addComparisonFilter(final StringBuilder response, final ValueReference propertyName, final Object literalValue, final String operator) throws FilterParserException {
         final String literal;
         final boolean isDate   = FilterParserUtils.isDateField(propertyName);
         final boolean isNumber = literalValue instanceof Number;
@@ -314,7 +313,7 @@ public class LuceneFilterParser extends AbstractFilterParser {
         if ("!=".equals(operator)) {
             response.append("metafile:doc NOT ");
         }
-        response.append(removePrefix(propertyName.getPropertyName())).append(":");
+        response.append(removePrefix(propertyName.getXPath())).append(":");
 
         if ("LIKE".equals(operator)) {
             response.append('(').append(literal).append(')');
@@ -396,7 +395,7 @@ public class LuceneFilterParser extends AbstractFilterParser {
      * {@inheritDoc}
      */
     @Override
-    protected String translateSpecialChar(final PropertyIsLike pil) {
+    protected String translateSpecialChar(final LikeOperator pil) {
         return FilterParserUtils.translateSpecialChar(pil, "*", "?", "\\");
     }
 

@@ -30,7 +30,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXBException;
 import org.apache.sis.internal.storage.query.SimpleQuery;
-import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IServiceBusiness;
@@ -49,6 +48,7 @@ import java.util.Map;
 import org.constellation.api.CommonConstants;
 import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.util.NamedId;
+import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.gml.xml.v321.TimeInstantType;
 import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.geotoolkit.nio.ZipUtilities;
@@ -88,8 +88,8 @@ public class SensorServiceBusiness {
 
     @Autowired
     protected IServiceBusiness serviceBusiness;
-    
-    protected final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
+
+    protected final FilterFactory ff = FilterUtilities.FF;
 
     public boolean importSensor(final Integer serviceID, final Path sensorFile, final String type) throws ConfigurationException {
         LOGGER.info("Importing sensor");
@@ -234,8 +234,8 @@ public class SensorServiceBusiness {
         final ObservationProvider pr = getOMProvider(id);
         try {
             SimpleQuery query = new SimpleQuery();
-            final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
-            query.setFilter(ff.equals(ff.property("observedProperty"), ff.literal(observedProperty)));
+            final FilterFactory ff = FilterUtilities.FF;
+            query.setFilter(ff.equal(ff.property("observedProperty"), ff.literal(observedProperty)));
             List<Process> processes = pr.getProcedures(query, Collections.emptyMap());
             List<String> results = new ArrayList<>();
             processes.forEach(p -> results.add(((org.geotoolkit.observation.xml.Process)p).getHref()));
@@ -388,7 +388,7 @@ public class SensorServiceBusiness {
             throw new ConfigurationException(ex);
         }
     }
-    
+
     private Filter buildFilter(final Date start, final Date end, List<String> observedProperties, List<String> featuresOfInterest)  {
         final List<Filter> filters = new ArrayList<>();
         if (start != null && end != null) {
@@ -404,12 +404,12 @@ public class SensorServiceBusiness {
 
         if (observedProperties != null) {
             for (String observedProperty : observedProperties) {
-                filters.add(ff.equals(ff.property("observedProperty"), ff.literal(observedProperty)));
+                filters.add(ff.equal(ff.property("observedProperty"), ff.literal(observedProperty)));
             }
         }
         if (featuresOfInterest != null) {
             for (String featureOfInterest : featuresOfInterest) {
-                filters.add(ff.equals(ff.property("featureOfInterest"), ff.literal(featureOfInterest)));
+                filters.add(ff.equal(ff.property("featureOfInterest"), ff.literal(featureOfInterest)));
             }
         }
         if (filters.size() == 1) {
@@ -417,7 +417,7 @@ public class SensorServiceBusiness {
         } else if (filters.size() > 1) {
             return ff.and(filters);
         } else {
-            return Filter.INCLUDE;
+            return Filter.include();
         }
     }
 

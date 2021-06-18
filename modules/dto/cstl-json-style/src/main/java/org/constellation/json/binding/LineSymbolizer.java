@@ -45,7 +45,7 @@ public final class LineSymbolizer implements Symbolizer {
             stroke = new Stroke(symbolizer.getStroke());
         }
         try{
-            perpendicularOffset = Double.parseDouble(symbolizer.getPerpendicularOffset().evaluate(null, String.class));
+            perpendicularOffset = Double.parseDouble(symbolizer.getPerpendicularOffset().apply(null).toString());
         }catch(Exception ex){
             //do nothing
         }

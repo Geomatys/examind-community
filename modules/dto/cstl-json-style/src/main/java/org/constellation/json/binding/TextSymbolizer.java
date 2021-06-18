@@ -20,7 +20,7 @@
 package org.constellation.json.binding;
 
 import org.constellation.json.util.StyleUtilities;
-import org.opengis.filter.expression.Expression;
+import org.opengis.filter.Expression;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import static org.constellation.json.util.StyleFactories.SF;

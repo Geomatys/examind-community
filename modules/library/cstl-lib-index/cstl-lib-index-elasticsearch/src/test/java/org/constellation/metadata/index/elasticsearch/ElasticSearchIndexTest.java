@@ -36,7 +36,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import org.opengis.filter.FilterFactory2;
+import org.geotoolkit.filter.FilterFactory2;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -50,19 +50,18 @@ import java.net.URL;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sis.internal.system.DefaultFactories;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.gml.xml.v321.DirectPositionType;
 import org.geotoolkit.gml.xml.v321.EnvelopeType;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import org.opengis.filter.FilterFactory;
-import org.opengis.filter.Not;
+import org.opengis.filter.Filter;
 
 
 /**
@@ -73,7 +72,7 @@ import org.opengis.filter.Not;
 @RunWith(TestRunner.class)
 public class ElasticSearchIndexTest {
 
-    protected static final FilterFactory2 FF = (FilterFactory2) DefaultFactories.forBuildin(FilterFactory.class);
+    protected static final FilterFactory2 FF = FilterUtilities.FF;
 
 
     private static final Logger LOGGER = Logging.getLogger("org.constellation.metadata");
@@ -1127,7 +1126,7 @@ public class ElasticSearchIndexTest {
          */
         resultReport = "";
 
-        Not f = FF.not(FF.bbox(GEOM_PROP, -20, -20, 20, 20, "CRS:84"));
+        Filter f = FF.not(FF.bbox(GEOM_PROP, -20, -20, 20, 20, "CRS:84"));
         sf = SpatialFilterBuilder.build(f, false);
         spatialQuery = new SpatialQuery(null, sf);
 

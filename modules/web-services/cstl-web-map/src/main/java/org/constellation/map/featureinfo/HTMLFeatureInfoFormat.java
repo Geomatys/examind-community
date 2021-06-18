@@ -97,7 +97,7 @@ public class HTMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         final StringBuilder typeBuilder = new StringBuilder();
         final StringBuilder dataBuilder = new StringBuilder();
 
-        typeBuilder.append("<h2>").append(FeatureExt.getId(feature).getID()).append("</h2>");
+        typeBuilder.append("<h2>").append(FeatureExt.getId(feature).getIdentifier()).append("</h2>");
         typeBuilder.append("</br>");
         typeBuilder.append("<div>");
         typeBuilder.append("<div class=\"left-part\">");

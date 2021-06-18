@@ -41,7 +41,6 @@ import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.util.iso.DefaultInternationalString;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IStyleBusiness;
-import org.constellation.dto.DataBrief;
 import org.constellation.exception.TargetNotFoundException;
 import org.constellation.dto.ParameterValues;
 import org.constellation.json.binding.AutoIntervalValues;
@@ -67,6 +66,7 @@ import org.constellation.json.util.StyleUtilities;
 import org.constellation.provider.Data;
 import org.constellation.provider.DefaultCoverageData;
 import org.geotoolkit.display2d.ext.isoline.symbolizer.IsolineSymbolizer;
+import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.internal.InternalUtilities;
 import org.geotoolkit.style.DefaultDescription;
 import org.geotoolkit.style.DefaultLineSymbolizer;
@@ -81,9 +81,7 @@ import org.geotoolkit.style.interval.DefaultIntervalPalette;
 import org.geotoolkit.style.interval.IntervalPalette;
 import org.opengis.feature.Feature;
 import org.opengis.filter.Filter;
-import org.opengis.filter.FilterFactory2;
-import org.opengis.filter.expression.Function;
-import org.opengis.filter.expression.PropertyName;
+import org.geotoolkit.filter.FilterFactory2;
 import org.opengis.sld.LayerStyle;
 import org.opengis.sld.NamedLayer;
 import org.opengis.sld.UserLayer;
@@ -114,7 +112,8 @@ import static org.geotoolkit.style.StyleConstants.*;
 import org.geotoolkit.style.io.PaletteReader;
 import org.opengis.feature.AttributeType;
 import org.opengis.feature.PropertyType;
-import org.opengis.filter.FilterFactory;
+import org.opengis.filter.Expression;
+import org.opengis.filter.ValueReference;
 import org.opengis.style.ColorMap;
 import org.opengis.style.StyleFactory;
 import org.springframework.http.MediaType;
@@ -155,7 +154,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                 mutableRules.addAll(style.featureTypeStyles().get(0).rules());
             }
             // search related rule
-            Function function = null;
+            Expression function = null;
             boolean ruleFound = false;
             search:
             for (final MutableRule mutableRule : mutableRules) {
@@ -173,8 +172,8 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                             final IsolineSymbolizer isolineSymbolizer = (IsolineSymbolizer) symbolizer;
                             if (isolineSymbolizer.getLineSymbolizer() != null &&
                                 isolineSymbolizer.getLineSymbolizer().getStroke() != null &&
-                                isolineSymbolizer.getLineSymbolizer().getStroke().getColor() instanceof Function) {
-                                function = (Function) isolineSymbolizer.getLineSymbolizer().getStroke().getColor();
+                                isolineSymbolizer.getLineSymbolizer().getStroke().getColor() instanceof Expression) {
+                                function = (Expression) isolineSymbolizer.getLineSymbolizer().getStroke().getColor();
                                 break search;
                             }
                         }
@@ -260,9 +259,9 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                 double maximum = Double.NEGATIVE_INFINITY;
 
                 final MutableStyleFactory SF = (MutableStyleFactory) DefaultFactories.forBuildin(StyleFactory.class);
-                final FilterFactory2 FF = (FilterFactory2) DefaultFactories.forBuildin(FilterFactory.class);
+                final FilterFactory2 FF = FilterUtilities.FF;
 
-                final PropertyName property = FF.property(attribute);
+                final ValueReference property = FF.property(attribute);
 
                 final SimpleQuery query = new SimpleQuery();
                 query.setColumns(new SimpleQuery.Column(FF.property(attribute)));
@@ -271,7 +270,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                     Iterator<Feature> it = featureSet.iterator();
                     while(it.hasNext()){
                         final Feature feature = it.next();
-                        final Number number = property.evaluate(feature, Number.class);
+                        final Number number = (Number) property.apply(feature);
                         final Double value = number.doubleValue();
                         values.add(value);
                         if (value < minimum) {
@@ -339,8 +338,8 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                     * Create new rule deriving the base symbolizer.
                     */
                     final MutableRule rule = SF.rule();
-                    rule.setName((count++)+" - AutoInterval - " + property.getPropertyName());
-                    rule.setDescription(new DefaultDescription(new DefaultInternationalString(property.getPropertyName()+" "+start+" - "+end),null));
+                    rule.setName((count++)+" - AutoInterval - " + property.getXPath());
+                    rule.setDescription(new DefaultDescription(new DefaultInternationalString(property.getXPath()+" "+start+" - "+end),null));
                     rule.setFilter(interval);
                     rule.symbolizers().add(derivateSymbolizer(symbolizer, palette.interpolate(step)));
                     newRules.add(rule);
@@ -488,8 +487,8 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                 * II - Extract all different values.
                 */
                 final MutableStyleFactory SF = (MutableStyleFactory) DefaultFactories.forBuildin(StyleFactory.class);
-                final FilterFactory2 FF = (FilterFactory2) DefaultFactories.forBuildin(FilterFactory.class);
-                final PropertyName property = FF.property(attribute);
+                final FilterFactory2 FF = FilterUtilities.FF;
+                final ValueReference property = FF.property(attribute);
                 final List<Object> differentValues = new ArrayList<>();
 
                 final SimpleQuery query = new SimpleQuery();
@@ -499,7 +498,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                     Iterator<Feature> it = featureSet.iterator();
                     while(it.hasNext()){
                         final Feature feature = it.next();
-                        final Object value = property.evaluate(feature);
+                        final Object value = property.apply(feature);
                         if (!differentValues.contains(value)) {
                             differentValues.add(value);
                         }
@@ -529,18 +528,18 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                     final Filter filter;
                     if(value instanceof String && !value.toString().isEmpty() && value.toString().contains("'")){
                         final String val = ((String) value).replaceAll("'","\\"+"'");
-                        filter = FF.like(property,FF.literal(val).toString(),"*","?","\\",true);
+                        filter = FF.like(property, FF.literal(val).toString(), '*', '?', '\\', true);
                     }else {
-                        filter = FF.equals(property, FF.literal(value));
+                        filter = FF.equal(property, FF.literal(value));
                     }
 
                     /*
                      * Create new rule derivating the base symbolizer.
                      */
                     final MutableRule rule = SF.rule(derivateSymbolizer(symbolizer, palette.interpolate(step)));
-                    rule.setName((count++)+" - AutoUnique - " + property.getPropertyName());
+                    rule.setName((count++)+" - AutoUnique - " + property.getXPath());
                     final Object valStr = value instanceof String && ((String) value).isEmpty() ? "''":value;
-                    rule.setDescription(new DefaultDescription(new DefaultInternationalString(property.getPropertyName()+" = "+valStr),null));
+                    rule.setDescription(new DefaultDescription(new DefaultInternationalString(property.getXPath()+" = "+valStr),null));
                     rule.setFilter(filter);
                     newRules.add(rule);
                 }
@@ -595,8 +594,8 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                 FeatureSet fs = (FeatureSet) rs;
 
                 final Map<Object,Long> mapping = new LinkedHashMap<>();
-                final FilterFactory2 FF = (FilterFactory2) DefaultFactories.forBuildin(FilterFactory.class);
-                final PropertyName property = FF.property(attribute);
+                final FilterFactory2 FF = FilterUtilities.FF;
+                final ValueReference property = FF.property(attribute);
 
                 final SimpleQuery query = new SimpleQuery();
                 query.setColumns(new SimpleQuery.Column(FF.property(attribute)));
@@ -620,7 +619,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                         Iterator<Feature> it = featureSet.iterator();
                         while (it.hasNext()) {
                             final Feature feature = it.next();
-                            final Number number = property.evaluate(feature, Number.class);
+                            final Number number = (Number) property.apply(feature);
                             if (number != null) {
                                 final Double value = number.doubleValue();
                                 values.add(value);
@@ -664,7 +663,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                         Iterator<Feature> it = featureSet.iterator();
                         while(it.hasNext()){
                             final Feature feature = it.next();
-                            Object value = property.evaluate(feature);
+                            Object value = property.apply(feature);
                             if(value == null){
                                 value = "null";
                             }

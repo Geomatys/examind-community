@@ -24,8 +24,8 @@ import org.apache.sis.util.Static;
 import org.geotoolkit.sld.DefaultSLDFactory;
 import org.geotoolkit.sld.MutableSLDFactory;
 import org.geotoolkit.style.MutableStyleFactory;
-import org.opengis.filter.FilterFactory;
-import org.opengis.filter.FilterFactory2;
+import org.geotoolkit.filter.FilterFactory2;
+import org.geotoolkit.filter.FilterUtilities;
 import org.opengis.style.StyleFactory;
 
 /**
@@ -48,5 +48,5 @@ public final class StyleFactories extends Static {
     /**
      * Filters factory.
      */
-    public static final FilterFactory2 FF = (FilterFactory2) DefaultFactories.forBuildin(FilterFactory.class);
+    public static final FilterFactory2 FF = FilterUtilities.FF;
 }

@@ -23,24 +23,28 @@
 
 package org.constellation.wfs.core;
 
+import java.util.function.Function;
+import org.apache.sis.internal.filter.FunctionNames;
 import org.geotoolkit.filter.visitor.DuplicatingFilterVisitor;
-import org.opengis.filter.expression.PropertyName;
+import org.opengis.filter.ValueReference;
 
 /**
  * temporary hack for GML 3.2
- *                
+ *
  * @author Guilhem Legal (Geomatys)
  */
 public class GMLNamespaceVisitor extends DuplicatingFilterVisitor{
-
-    @Override
-    public Object visit(final PropertyName expression, final Object extraData) {
-        if (expression.getPropertyName().indexOf("http://www.opengis.net/gml/3.2")   != -1 ||
-            expression.getPropertyName().indexOf("http://www.opengis.net/gml/3.2.1") != -1) {
-            String newPropertyName = expression.getPropertyName().replace("http://www.opengis.net/gml/3.2", "http://www.opengis.net/gml");
-            newPropertyName = newPropertyName.replace("http://www.opengis.net/gml/3.2.1", "http://www.opengis.net/gml");
-            return getFactory(extraData).property(newPropertyName);
-        }
-        return super.visit(expression, extraData);
+    public GMLNamespaceVisitor() {
+        final Function previous = getExpressionHandler(FunctionNames.ValueReference);
+        setExpressionHandler(FunctionNames.ValueReference, (e) -> {
+            final ValueReference expression = (ValueReference) e;
+            if (expression.getXPath().indexOf("http://www.opengis.net/gml/3.2")   != -1 ||
+                expression.getXPath().indexOf("http://www.opengis.net/gml/3.2.1") != -1) {
+                String newPropertyName = expression.getXPath().replace("http://www.opengis.net/gml/3.2", "http://www.opengis.net/gml");
+                newPropertyName = newPropertyName.replace("http://www.opengis.net/gml/3.2.1", "http://www.opengis.net/gml");
+                return ff.property(newPropertyName);
+            }
+            return previous.apply(expression);
+        });
     }
 }

@@ -69,12 +69,9 @@ import org.locationtech.jts.geom.GeometryCollection;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
-import org.opengis.filter.expression.Literal;
-import org.opengis.filter.temporal.After;
-import org.opengis.filter.temporal.Before;
-import org.opengis.filter.temporal.BinaryTemporalOperator;
-import org.opengis.filter.temporal.During;
-import org.opengis.filter.temporal.TEquals;
+import org.opengis.filter.Literal;
+import org.opengis.filter.TemporalOperator;
+import org.opengis.filter.TemporalOperatorName;
 import org.opengis.geometry.Geometry;
 import org.opengis.observation.CompositePhenomenon;
 import org.opengis.observation.Observation;
@@ -110,12 +107,12 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
      * {@inheritDoc}
      */
     @Override
-    public void setTimeFilter(final BinaryTemporalOperator tFilter) throws DataStoreException {
+    public void setTimeFilter(final TemporalOperator tFilter) throws DataStoreException {
         // we get the property name (not used for now)
         // String propertyName = tFilter.getExpression1()
-        Object time = tFilter.getExpression2();
-
-        if (tFilter instanceof TEquals) {
+        Object time = tFilter.getExpressions().get(1);
+        TemporalOperatorName type = tFilter.getOperatorType();
+        if (type == TemporalOperatorName.EQUALS) {
             if (time instanceof Literal && !(time instanceof TemporalGeometricPrimitive)) {
                 time = ((Literal)time).getValue();
             }
@@ -156,7 +153,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 throw new ObservationStoreException("TM_Equals operation require timeInstant or TimePeriod!",
                         INVALID_PARAMETER_VALUE, EVENT_TIME);
             }
-        } else if (tFilter instanceof Before) {
+        } else if (type == TemporalOperatorName.BEFORE) {
             if (time instanceof Literal && !(time instanceof TemporalGeometricPrimitive)) {
                 time = ((Literal)time).getValue();
             }
@@ -184,7 +181,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         INVALID_PARAMETER_VALUE, EVENT_TIME);
             }
 
-        } else if (tFilter instanceof After) {
+        } else if (type == TemporalOperatorName.AFTER) {
             if (time instanceof Literal && !(time instanceof TemporalGeometricPrimitive)) {
                 time = ((Literal)time).getValue();
             }
@@ -212,7 +209,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         INVALID_PARAMETER_VALUE, EVENT_TIME);
             }
 
-        } else if (tFilter instanceof During) {
+        } else if (type == TemporalOperatorName.DURING) {
             if (time instanceof Literal && !(time instanceof TemporalGeometricPrimitive)) {
                 time = ((Literal)time).getValue();
             }
@@ -272,7 +269,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         sqlRequest.append(" ORDER BY \"procedure\" ");
         sqlRequest = appendPaginationToRequest(sqlRequest, hints);
         boolean includeTimeInTemplate = getBooleanHint(hints, "includeTimeInTemplate", false);
-        
+
         final List<Observation> observations = new ArrayList<>();
         final Map<String, Process> processMap = new HashMap<>();
 
@@ -383,7 +380,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     final SamplingFeature feature = getFeatureOfInterest(featureID, version, c);
                     foi = buildFeatureProperty(version, feature);
                 }
-                
+
                 /*
                  *  BUILD RESULT
                  */
@@ -828,7 +825,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     public Object getResults(final Map<String,String> hints) throws DataStoreException {
         Integer decimationSize         = getIntegerHint(hints, "decimSize");
         boolean includeTimeForProfile  = getBooleanHint(hints, "includeTimeForProfile", false);
-        
+
         if (decimationSize != null && !"count".equals(responseFormat)) {
             if (timescaleDB) {
                 return getDecimatedResultsTimeScale(decimationSize, includeTimeForProfile);
@@ -1632,10 +1629,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     double maxx = minx + xStep;
                     double miny = envMiny + j*yStep;
                     double maxy = miny + yStep;
-                    geoCells[i][j] = new Envelope(minx, maxx, miny, maxy); 
+                    geoCells[i][j] = new Envelope(minx, maxx, miny, maxy);
                 }
             }
-            
+
             // prepare a first grid reducing the gris size by 10
             // in order to reduce the cell by cell intersect
             // and perform a pre-search

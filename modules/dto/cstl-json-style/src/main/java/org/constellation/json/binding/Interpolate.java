@@ -20,7 +20,6 @@
 package org.constellation.json.binding;
 
 import org.constellation.json.util.StyleUtilities;
-import org.geotoolkit.filter.DefaultLiteral;
 import org.geotoolkit.style.StyleConstants;
 import org.geotoolkit.style.function.Method;
 import org.geotoolkit.style.function.Mode;
@@ -33,8 +32,9 @@ import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import static org.constellation.json.util.StyleFactories.FF;
 import static org.constellation.json.util.StyleFactories.SF;
 import static org.constellation.json.util.StyleUtilities.listType;
-import org.opengis.filter.expression.Expression;
-import org.opengis.filter.expression.PropertyName;
+import org.opengis.filter.Expression;
+import org.opengis.filter.ValueReference;
+import org.opengis.filter.Literal;
 
 /**
  * @author Fabien Bernard (Geomatys).
@@ -64,16 +64,16 @@ public final class Interpolate implements Function {
                 if (nanColor == null &&
                         point.getData() instanceof Double &&
                         Double.isNaN((double) point.getData())) {
-                    if (point.getValue() instanceof DefaultLiteral) {
-                        final Object colorHex = ((DefaultLiteral) point.getValue()).getValue();
+                    if (point.getValue() instanceof Literal) {
+                        final Object colorHex = ((Literal) point.getValue()).getValue();
                         nanColor = StyleUtilities.toHex(((Color) colorHex));
                     }
                 }
             }
             this.interval = (double) interpolate.getInterpolationPoints().size();
         }
-        if (interpolate.getLookupValue() instanceof PropertyName) {
-            propertyName = ((PropertyName)interpolate.getLookupValue()).getPropertyName();
+        if (interpolate.getLookupValue() instanceof ValueReference) {
+            propertyName = ((ValueReference)interpolate.getLookupValue()).getXPath();
         }
     }
 
@@ -126,7 +126,7 @@ public final class Interpolate implements Function {
             // Loop to create points with new point evaluation
             for (int i = 0; i < nbPoints; i++) {
                 final double val = min + (coefficient * i);
-                final Color color = inter.evaluate(val, Color.class);
+                final Color color = (Color) inter.apply(val);
                 final InterpolationPoint point = new InterpolationPoint();
                 point.setColor(StyleUtilities.toHex(color));
                 point.setData(val);
@@ -167,7 +167,7 @@ public final class Interpolate implements Function {
     }
 
     @Override
-    public org.opengis.filter.expression.Function toType() {
+    public Expression toType() {
 
         //remove nan point if exists because it is added later, and it cause error for max/min values
         final List<InterpolationPoint> nullPoints = new ArrayList<>();
@@ -194,7 +194,5 @@ public final class Interpolate implements Function {
                 Method.COLOR,
                 Mode.LINEAR,
                 StyleConstants.DEFAULT_FALLBACK);
-
     }
-
 }

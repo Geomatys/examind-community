@@ -19,34 +19,33 @@
 
 package org.constellation.wfs.core;
 
+import java.util.function.Function;
+import org.apache.sis.internal.filter.FunctionNames;
 import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.filter.visitor.DuplicatingFilterVisitor;
 import org.opengis.feature.FeatureType;
-import org.opengis.filter.expression.PropertyName;
+import org.opengis.filter.ValueReference;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class UnprefixerFilterVisitor extends DuplicatingFilterVisitor{
-
-    private final FeatureType ft;
+public class UnprefixerFilterVisitor extends DuplicatingFilterVisitor {
 
     public UnprefixerFilterVisitor(final FeatureType ft) {
-        this.ft = ft;
-    }
-
-    @Override
-    public Object visit(final PropertyName expression, final Object extraData) {
-        String prefix = "";
-        if (NamesExt.getNamespace(ft.getName()) != null) {
-            prefix = "{" + NamesExt.getNamespace(ft.getName()) + "}";
-        }
-        prefix = prefix + ft.getName().tip().toString();
-        if (expression.getPropertyName().startsWith(prefix)) {
-            final String newPropertyName = expression.getPropertyName().substring(prefix.length());
-            return getFactory(extraData).property(newPropertyName);
-        }
-        return super.visit(expression, extraData);
+        final Function previous = getExpressionHandler(FunctionNames.ValueReference);
+        setExpressionHandler(FunctionNames.ValueReference, (e) -> {
+            final ValueReference expression = (ValueReference) e;
+            String prefix = "";
+            if (NamesExt.getNamespace(ft.getName()) != null) {
+                prefix = "{" + NamesExt.getNamespace(ft.getName()) + "}";
+            }
+            prefix = prefix + ft.getName().tip().toString();
+            if (expression.getXPath().startsWith(prefix)) {
+                final String newPropertyName = expression.getXPath().substring(prefix.length());
+                return ff.property(newPropertyName);
+            }
+            return previous.apply(expression);
+        });
     }
 }

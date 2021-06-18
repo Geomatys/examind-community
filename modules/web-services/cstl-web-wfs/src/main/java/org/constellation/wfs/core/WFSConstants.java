@@ -25,7 +25,6 @@ import org.constellation.dto.contact.Details;
 import org.geotoolkit.ogc.xml.Conformance;
 import org.geotoolkit.ogc.xml.FilterXmlFactory;
 import org.geotoolkit.ogc.xml.v110.ArithmeticOperatorsType;
-import org.geotoolkit.ogc.xml.v110.ComparisonOperatorType;
 import org.geotoolkit.ogc.xml.v110.IdCapabilitiesType;
 import org.geotoolkit.ogc.xml.v110.ScalarCapabilitiesType;
 import org.geotoolkit.ogc.xml.v200.FilterType;
@@ -49,13 +48,13 @@ import org.geotoolkit.wfs.xml.v200.ParameterExpressionType;
 import org.geotoolkit.wfs.xml.v200.QueryExpressionTextType;
 import org.geotoolkit.wfs.xml.v200.QueryType;
 import org.geotoolkit.wfs.xml.v200.StoredQueryDescriptionType;
-import org.opengis.filter.capability.ComparisonOperators;
-import org.opengis.filter.capability.FilterCapabilities;
+import org.geotoolkit.filter.capability.ComparisonOperators;
+import org.geotoolkit.filter.capability.FilterCapabilities;
 import org.opengis.filter.capability.GeometryOperand;
-import org.opengis.filter.capability.Operator;
-import org.opengis.filter.capability.SpatialCapabilities;
-import org.opengis.filter.capability.SpatialOperator;
-import org.opengis.filter.capability.SpatialOperators;
+import org.geotoolkit.filter.capability.Operator;
+import org.geotoolkit.filter.capability.SpatialCapabilities;
+import org.geotoolkit.filter.capability.SpatialOperator;
+import org.geotoolkit.filter.capability.SpatialOperators;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -126,17 +125,17 @@ public final class WFSConstants {
         final SpatialCapabilities spatialCapabilties = FilterXmlFactory.buildSpatialCapabilities("1.1.0", geometryOperands, spatialOperators);
 
         final ArithmeticOperatorsType arithmetic = new ArithmeticOperatorsType(true, null);
-        final Operator[] compaOperatorList = new Operator[9];
-        compaOperatorList[0] = ComparisonOperatorType.BETWEEN;
-        compaOperatorList[1] = ComparisonOperatorType.EQUAL_TO;
-        compaOperatorList[2] = ComparisonOperatorType.GREATER_THAN;
-        compaOperatorList[3] = ComparisonOperatorType.GREATER_THAN_EQUAL_TO;
-        compaOperatorList[4] = ComparisonOperatorType.LESS_THAN;
-        compaOperatorList[5] = ComparisonOperatorType.LESS_THAN_EQUAL_TO;
-        compaOperatorList[6] = ComparisonOperatorType.LIKE;
-        compaOperatorList[7] = ComparisonOperatorType.NOT_EQUAL_TO;
-        compaOperatorList[8] = ComparisonOperatorType.NULL_CHECK;
-
+        final Operator[] compaOperatorList = new Operator[] {
+            Operator.BETWEEN,
+            Operator.EQUAL_TO,
+            Operator.GREATER_THAN,
+            Operator.GREATER_THAN_EQUAL_TO,
+            Operator.LESS_THAN,
+            Operator.LESS_THAN_EQUAL_TO,
+            Operator.LIKE,
+            Operator.NOT_EQUAL_TO,
+            Operator.NULL_CHECK
+        };
         final ComparisonOperators comparisons = FilterXmlFactory.buildComparisonOperators("1.1.0", compaOperatorList);
         final ScalarCapabilitiesType scalarCapabilities = new ScalarCapabilitiesType(comparisons, arithmetic, true);
 

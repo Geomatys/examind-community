@@ -36,7 +36,7 @@ import org.constellation.json.binding.TextSymbolizer;
 import org.constellation.json.util.StyleUtilities;
 import org.geotoolkit.style.MutableRule;
 import org.geotoolkit.style.MutableStyle;
-import org.opengis.filter.PropertyIsLike;
+import org.opengis.filter.LikeOperator;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
@@ -109,7 +109,7 @@ public class StyleConverterBusiness implements IStyleConverterBusiness {
                 result.setFilter(StyleUtilities.toCQL(rule.getFilter()));
 
                 //for generated rules auto unique values we need to escape quotes.
-                if(result.getFilter().contains("''") && !result.getFilter().endsWith("''") && rule.getFilter() instanceof PropertyIsLike){
+                if(result.getFilter().contains("''") && !result.getFilter().endsWith("''") && rule.getFilter() instanceof LikeOperator){
                     result.setFilter(result.getFilter().replaceAll("''","\\\\'"));
                 }
             }

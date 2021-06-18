@@ -53,11 +53,9 @@ import org.geotoolkit.ogc.xml.v200.TimeEqualsType;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.Filter;
-import org.opengis.filter.temporal.After;
-import org.opengis.filter.temporal.Before;
-import org.opengis.filter.temporal.BinaryTemporalOperator;
-import org.opengis.filter.temporal.During;
-import org.opengis.filter.temporal.TEquals;
+import org.opengis.filter.TemporalOperator;
+import org.opengis.filter.TemporalOperatorName;
+
 /**
  * TODO
  *
@@ -255,11 +253,12 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
      * {@inheritDoc}
      */
     @Override
-    public void setTimeFilter(final BinaryTemporalOperator tFilter) throws DataStoreException {
+    public void setTimeFilter(final TemporalOperator tFilter) throws DataStoreException {
         // we get the property name (not used for now)
         // String propertyName = tFilter.getExpression1()
-        Object time = tFilter.getExpression2();
-        if (tFilter instanceof TEquals) {
+        Object time = tFilter.getExpressions().get(1);
+        TemporalOperatorName type = tFilter.getOperatorType();
+        if (type == TemporalOperatorName.EQUALS) {
             eventTimes.add(new TimeEqualsType("result_time", time));
             if (time instanceof Period) {
                 final Period tp = (Period) time;
@@ -288,7 +287,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
                 throw new ObservationStoreException("TM_Equals operation require timeInstant or TimePeriod!",
                         INVALID_PARAMETER_VALUE, EVENT_TIME);
             }
-        } else if (tFilter instanceof Before) {
+        } else if (type == TemporalOperatorName.BEFORE) {
             eventTimes.add(new TimeBeforeType("result_time", time));
             // for the operation before the temporal object must be an timeInstant
             if (time instanceof Instant) {
@@ -303,7 +302,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
                 throw new ObservationStoreException("TM_Before operation require timeInstant!",
                         INVALID_PARAMETER_VALUE, EVENT_TIME);
             }
-        } else if (tFilter instanceof After) {
+        } else if (type == TemporalOperatorName.AFTER) {
             eventTimes.add(new TimeAfterType("result_time", time));
             // for the operation after the temporal object must be an timeInstant
             if (time instanceof Instant) {
@@ -322,7 +321,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
                 throw new ObservationStoreException("TM_After operation require timeInstant!",
                         INVALID_PARAMETER_VALUE, EVENT_TIME);
             }
-        } else if (tFilter instanceof During) {
+        } else if (type == TemporalOperatorName.DURING) {
             eventTimes.add(new TimeDuringType("result_time", time));
             if (time instanceof Period) {
                 final Period tp = (Period) time;

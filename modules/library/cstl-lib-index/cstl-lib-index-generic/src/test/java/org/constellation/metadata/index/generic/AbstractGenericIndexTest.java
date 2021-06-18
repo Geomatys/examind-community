@@ -11,7 +11,7 @@ import org.geotoolkit.index.LogicalFilterType;
 import org.geotoolkit.lucene.filter.LuceneOGCSpatialQuery;
 import org.geotoolkit.lucene.filter.SpatialQuery;
 import org.geotoolkit.lucene.index.LuceneIndexSearcher;
-import org.opengis.filter.FilterFactory2;
+import org.geotoolkit.filter.FilterFactory2;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import java.util.*;
@@ -21,13 +21,12 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.TermQuery;
-import org.apache.sis.internal.system.DefaultFactories;
 import org.constellation.test.utils.SpringTestRunner;
+import org.geotoolkit.filter.FilterUtilities;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import org.junit.runner.RunWith;
-import org.opengis.filter.FilterFactory;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -42,7 +41,7 @@ import org.springframework.test.context.ContextConfiguration;
 public abstract class AbstractGenericIndexTest {
 
     protected FilterFactory2 getFF() {
-        return (FilterFactory2) DefaultFactories.forBuildin(FilterFactory.class);
+        return FilterUtilities.FF;
     }
 
     protected static final Logger LOGGER = Logging.getLogger("org.constellation.metadata");

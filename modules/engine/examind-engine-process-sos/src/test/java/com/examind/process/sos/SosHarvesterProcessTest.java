@@ -189,7 +189,7 @@ public class SosHarvesterProcessTest {
 
         writeResourceDataFile(ltDirectory,   "com/examind/process/sos/LakeTile_001.dbf", "LakeTile_001.dbf");
         writeResourceDataFile(ltDirectory,   "com/examind/process/sos/LakeTile_002.dbf", "LakeTile_002.dbf");
-        
+
         writeResourceDataFile(rtDirectory,   "com/examind/process/sos/rivertile_001.dbf", "rivertile_001.dbf");
         writeResourceDataFile(rtDirectory,   "com/examind/process/sos/rivertile_002.dbf", "rivertile_002.dbf");
 
@@ -272,17 +272,17 @@ public class SosHarvesterProcessTest {
         Assert.assertNotNull(sc);
 
         sensorServBusiness.removeAllSensors(sc.getId());
-        
+
         SOSworker worker = (SOSworker) wsEngine.buildWorker("sos", "default");
         worker.setServiceUrl("http://localhost/examind/");
 
         STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
         stsWorker.setServiceUrl("http://localhost/examind/");
-        
+
         int prev = getNbOffering(worker, 0);
-        
+
         Assert.assertEquals(13, prev);
-        
+
         String sensorId = "urn:sensor:1";
 
         String datasetId = "SOS_DATA";
@@ -344,14 +344,14 @@ public class SosHarvesterProcessTest {
 
         HistoricalLocation loc1 = response.getValue().get(0);
         verifyHistoricalLocation(loc1, sdf, "2018-11-02T07:10:52Z", -6.81, 44.06);
-       
+
         int nbMeasure = getNbMeasure(stsWorker, sensorId);
         Assert.assertEquals(1609, nbMeasure);
-        
+
         verifyAllObservedProperties(stsWorker, sensorId, Arrays.asList("TEMP (degree_Celsius)", "PSAL (psu)", "PRES (decibar)"));
-        
+
         Assert.assertEquals(4, offp.getFeatureOfInterestIds().size());
-        
+
         List<SamplingFeature> fois  = getFeatureOfInterest(worker, offp.getFeatureOfInterestIds());
         verifySamplingFeature(fois,  "251",  -6.81,  44.06);
         verifySamplingFeature(fois,  "252",  -6.581, 44.01);
@@ -395,13 +395,13 @@ public class SosHarvesterProcessTest {
 
         loc1 = response.getValue().get(0);
         verifyHistoricalLocation(loc1, sdf, "2018-11-02T07:10:52Z", -6.81, 44.06);
-        
+
         HistoricalLocation loc2 = response.getValue().get(1);
         verifyHistoricalLocation(loc2, sdf, "2018-11-05T22:03:31Z", -6.581, 44.01);
-        
+
         HistoricalLocation loc8 = response.getValue().get(7);
         verifyHistoricalLocation(loc8, sdf, "2018-11-27T15:09:17Z", -5.04, 44.154);
-        
+
         nbMeasure = getNbMeasure(stsWorker, sensorId);
         Assert.assertEquals(3209, nbMeasure);
 
@@ -437,12 +437,12 @@ public class SosHarvesterProcessTest {
 
         loc1 = response.getValue().get(0);
         verifyHistoricalLocation(loc1, sdf, "2018-11-02T07:10:52Z", -6.81, 44.06);
-        
+
         nbMeasure = getNbMeasure(stsWorker, sensorId);
         Assert.assertEquals(1609, nbMeasure);
-        
+
         Assert.assertEquals(4, offp.getFeatureOfInterestIds().size());
-        
+
         fois  = getFeatureOfInterest(worker, offp.getFeatureOfInterestIds());
         verifySamplingFeature(fois,  "251",  -6.81,  44.06);
         verifySamplingFeature(fois,  "252",  -6.581, 44.01);
@@ -457,21 +457,21 @@ public class SosHarvesterProcessTest {
         ServiceComplete sos = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
         Assert.assertNotNull(sos);
         sensorServBusiness.removeAllSensors(sos.getId());
-        
+
         ServiceComplete sts = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
         Assert.assertNotNull(sts);
         sensorServBusiness.removeAllSensors(sts.getId());
-        
+
         SOSworker worker = (SOSworker) wsEngine.buildWorker("sos", "default");
         worker.setServiceUrl("http://localhost/examind/");
 
         STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
         stsWorker.setServiceUrl("http://localhost/examind/");
-        
+
         int prev = getNbOffering(worker, 0);
-        
+
         Assert.assertEquals(13, prev);
-        
+
         String sensorId = "urn:sensor:2";
 
         String datasetId = "SOS_DATA";
@@ -496,7 +496,7 @@ public class SosHarvesterProcessTest {
         in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_ID_NAME).setValue(sensorId);
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(false);
         in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sos));
-        
+
         ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
         val1.setValue(new ServiceProcessReference(sos));
         in.values().add(val1);
@@ -523,29 +523,29 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals("2018-10-31T06:42:00.000", time.getEndPosition().getValue());
 
         Assert.assertEquals(3, offp.getFeatureOfInterestIds().size());
-        
+
         String observedProperty = offp.getObservedProperties().get(0);
         Assert.assertEquals("PSAL LEVEL1 (psu)", observedProperty);
 
         /*
         * Verify inserted results
         */
-        
+
         GetResultResponseType gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, null));
         String expectedResult =  getResourceAsString("com/examind/process/sos/tsg-FMLW-datablock-values.txt");
         Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
-        
-        
+
+
         String resultForFoi1 = getResourceAsString("com/examind/process/sos/tsg-FMLW-datablock-values-1.txt");
         String resultForFoi2 = getResourceAsString("com/examind/process/sos/tsg-FMLW-datablock-values-2.txt");
         String resultForFoi3 = getResourceAsString("com/examind/process/sos/tsg-FMLW-datablock-values-3.txt");
 
-        
+
         String foi = offp.getFeatureOfInterestIds().get(0);
         gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
         String result = gr.getResultValues().toString() + '\n';
         Assert.assertTrue(result.equals(resultForFoi1) ||  result.equals(resultForFoi2) || result.equals(resultForFoi3));
-        
+
         foi = offp.getFeatureOfInterestIds().get(1);
         gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
         result = gr.getResultValues().toString() + '\n';
@@ -556,14 +556,14 @@ public class SosHarvesterProcessTest {
         result = gr.getResultValues().toString() + '\n';
         Assert.assertTrue(result.equals(resultForFoi1) ||  result.equals(resultForFoi2) || result.equals(resultForFoi3));
 
-        
+
         GetHistoricalLocations hl = new GetHistoricalLocations();
         hl.getExtraFilter().put("procedure", sensorId);
         hl.getExpand().add("Locations");
         HistoricalLocationsResponse response = stsWorker.getHistoricalLocations(hl);
 
         Assert.assertEquals(1236, response.getValue().size());
-        
+
         int nbMeasure = getNbMeasure(stsWorker, sensorId);
         Assert.assertEquals(1236, nbMeasure);
     }
@@ -575,19 +575,19 @@ public class SosHarvesterProcessTest {
         ServiceComplete sos = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
         Assert.assertNotNull(sos);
         sensorServBusiness.removeAllSensors(sos.getId());
-        
+
         ServiceComplete sts = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
         Assert.assertNotNull(sts);
         sensorServBusiness.removeAllSensors(sts.getId());
-        
+
         SOSworker worker = (SOSworker) wsEngine.buildWorker("sos", "default");
         worker.setServiceUrl("http://localhost/examind/");
 
         STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
         stsWorker.setServiceUrl("http://localhost/examind/");
-        
+
         int prev = getNbOffering(worker, 0);
-        
+
         Assert.assertEquals(13, prev);
 
         String sensorId = "urn:sensor:3";
@@ -645,7 +645,7 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals("2018-11-30T11:59:00.000", time.getEndPosition().getValue());
 
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
-        
+
         List<SamplingFeature> fois  = getFeatureOfInterest(worker, offp.getFeatureOfInterestIds());
         verifySamplingFeature(fois, -4.9683,  48.2903);
 
@@ -666,10 +666,10 @@ public class SosHarvesterProcessTest {
         HistoricalLocationsResponse response = stsWorker.getHistoricalLocations(hl);
 
         Assert.assertEquals(1, response.getValue().size());
-        
+
         int nbMeasure = getNbMeasure(stsWorker, sensorId);
         Assert.assertEquals(1509, nbMeasure);
-        
+
         verifyAllObservedProperties(stsWorker, sensorId, Arrays.asList("TEMP LEVEL0 (degree_Celsius)", "VEPK LEVEL0 (meter2 second)"));
     }
 
@@ -681,17 +681,17 @@ public class SosHarvesterProcessTest {
         Assert.assertNotNull(sc);
 
         sensorServBusiness.removeAllSensors(sc.getId());
-        
+
         SOSworker worker = (SOSworker) wsEngine.buildWorker("sos", "default");
         worker.setServiceUrl("http://localhost/examind/");
-        
+
         STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
         stsWorker.setServiceUrl("http://localhost/examind/");
-        
+
         int prev = getNbOffering(worker, 0);
-        
+
         Assert.assertEquals(13, prev);
-                
+
         String sensorId = "urn:sensor:5";
 
         String datasetId = "SOS_DATA";
@@ -742,10 +742,10 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals("2018-11-30T12:30:00.000", time.getEndPosition().getValue());
 
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
-        
+
         List<SamplingFeature> fois  = getFeatureOfInterest(worker, offp.getFeatureOfInterestIds());
         String foi = verifySamplingFeature(fois, -4.9683,  48.2903);
-        
+
         Assert.assertEquals(1, offp.getObservedProperties().size());
         String observedProperty = offp.getObservedProperties().get(0);
 
@@ -778,7 +778,7 @@ public class SosHarvesterProcessTest {
 
         String value = daResult.getDataArray().getValues();
         Assert.assertEquals(expectedResult, value + '\n');
-        
+
         int nbMeasure = getNbMeasure(stsWorker, sensorId);
         Assert.assertEquals(3020, nbMeasure);
     }
@@ -789,19 +789,19 @@ public class SosHarvesterProcessTest {
         ServiceComplete sos = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
         Assert.assertNotNull(sos);
         sensorServBusiness.removeAllSensors(sos.getId());
-        
+
         ServiceComplete sts = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
         Assert.assertNotNull(sts);
         sensorServBusiness.removeAllSensors(sts.getId());
-        
+
         SOSworker worker = (SOSworker) wsEngine.buildWorker("sos", "default");
         worker.setServiceUrl("http://localhost/examind/");
-        
+
         STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
         stsWorker.setServiceUrl("http://localhost/examind/");
-        
+
         int prev = getNbOffering(worker, 0);
-        
+
         Assert.assertEquals(13, prev);
 
         String sensorId = "urn:sensor:dbf:1";
@@ -858,14 +858,14 @@ public class SosHarvesterProcessTest {
 
         Assert.assertEquals(4, offp.getFeatureOfInterestIds().size());
         List<SamplingFeature> fois  = getFeatureOfInterest(worker, offp.getFeatureOfInterestIds());
-        
+
         Assert.assertEquals(1, offp.getObservedProperties().size());
         String observedProperty = offp.getObservedProperties().get(0);
         Assert.assertEquals("height", observedProperty);
 
         /*
-        * Verify an inserted time serie
-        */
+         * Verify an inserted time serie
+         */
         String foi = verifySamplingFeature(fois, "54008001708");
         GetResultResponseType gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
         String expectedResult = getResourceAsString("com/examind/process/sos/LakeTile_foi-1.txt");
@@ -875,30 +875,30 @@ public class SosHarvesterProcessTest {
         gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
         expectedResult = getResourceAsString("com/examind/process/sos/LakeTile_foi-2.txt");
         Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
-        
+
         verifySamplingFeature(fois,        ""); // TODO verify why we have a empty id here
         verifySamplingFeature(fois,        "54008001446;54008001453");
-        
+
         int nbMeasure = getNbMeasure(stsWorker, sensorId);
         Assert.assertEquals(9, nbMeasure);
     }
-    
+
     @Test
     @Order(order = 5)
     public void harvestDBFTS2Test() throws Exception {
         ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
         Assert.assertNotNull(sc);
-        
+
         sensorServBusiness.removeAllSensors(sc.getId());
-        
+
         SOSworker worker = (SOSworker) wsEngine.buildWorker("sos", "default");
         worker.setServiceUrl("http://localhost/examind/");
-        
+
         STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
         stsWorker.setServiceUrl("http://localhost/examind/");
 
         int prev = getNbOffering(worker, 0);
-        
+
         Assert.assertEquals(13, prev);
 
         String sensorId = "urn:sensor:dbf:2";
@@ -954,13 +954,13 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals("2022-06-15T23:21:00.641", time.getEndPosition().getValue());
 
         Assert.assertEquals(64, offp.getFeatureOfInterestIds().size());
-        
+
         List<SamplingFeature> fois  = getFeatureOfInterest(worker, offp.getFeatureOfInterestIds());
-        
+
         Assert.assertEquals(1, offp.getObservedProperties().size());
 
         String observedProperty = offp.getObservedProperties().get(0);
-        
+
         verifyAllObservedProperties(stsWorker, sensorId, Arrays.asList("height", "width"));
 
         /*
@@ -975,7 +975,7 @@ public class SosHarvesterProcessTest {
         gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
         expectedResult = getResourceAsString("com/examind/process/sos/rivertile_foi-2.txt");
         Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
-        
+
         int nbMeasure = getNbMeasure(stsWorker, sensorId);
         Assert.assertEquals(85, nbMeasure);
 
@@ -987,17 +987,17 @@ public class SosHarvesterProcessTest {
 
         ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
         Assert.assertNotNull(sc);
-        
+
         sensorServBusiness.removeAllSensors(sc.getId());
-        
+
         SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
         sosWorker.setServiceUrl("http://localhost/examind/");
 
         STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
         stsWorker.setServiceUrl("http://localhost/examind/");
-        
+
         int prev = getNbOffering(sosWorker, 0);
-        
+
         Assert.assertEquals(13, prev);
 
         String datasetId = "SOS_DATA";
@@ -1045,7 +1045,7 @@ public class SosHarvesterProcessTest {
         verifyAllObservedProperties(stsWorker, "p001", Arrays.asList("TEMP (degree_Celsius)", "VEPK (meter2 second)"));
         verifyAllObservedProperties(stsWorker, "p002", Arrays.asList("TEMP (degree_Celsius)", "VEPK (meter2 second)"));
         verifyAllObservedProperties(stsWorker, "p003", Arrays.asList("TEMP (degree_Celsius)", "VEPK (meter2 second)"));
-        
+
         /*
         * first extracted procedure
         */
@@ -1087,7 +1087,7 @@ public class SosHarvesterProcessTest {
 
         int nbMeasure = getNbMeasure(stsWorker, "p001");
         Assert.assertEquals(95, nbMeasure);
-        
+
         /*
         * second extracted procedure
         */
@@ -1146,7 +1146,7 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
         fois  = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
         foi = verifySamplingFeature(fois, -5.3, 51.2);
-        
+
         observedProperty = offp.getObservedProperties().get(0);
 
         /*
@@ -1165,7 +1165,7 @@ public class SosHarvesterProcessTest {
 
         loc1 = response.getValue().get(0);
         verifyHistoricalLocation(loc1, sdf, "2000-07-31T11:00:00Z", -5.3, 51.2);
-        
+
         nbMeasure = getNbMeasure(stsWorker, "p003");
         Assert.assertEquals(35, nbMeasure);
 
@@ -1177,7 +1177,7 @@ public class SosHarvesterProcessTest {
 
         ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
         Assert.assertNotNull(sc);
-        
+
         sensorServBusiness.removeAllSensors(sc.getId());
 
         SOSworker worker = (SOSworker) wsEngine.buildWorker("sos", "default");
@@ -1185,11 +1185,11 @@ public class SosHarvesterProcessTest {
 
         STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
         stsWorker.setServiceUrl("http://localhost/examind/");
-        
+
         int prev = getNbOffering(worker, 0);
-        
+
         Assert.assertEquals(13, prev);
-        
+
         // ???
         String sensorId = "urn:sensor:bgdata";
 
@@ -1243,7 +1243,7 @@ public class SosHarvesterProcessTest {
 
         Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
         TimePeriodType time = (TimePeriodType) offp.getTime();
-        
+
         Assert.assertEquals("2020-03-24T00:25:47.000", time.getBeginPosition().getValue());
         Assert.assertEquals("2020-03-24T08:48:00.000", time.getEndPosition().getValue());
 
@@ -1252,17 +1252,17 @@ public class SosHarvesterProcessTest {
         List<SamplingFeature> fois  = getFeatureOfInterest(worker, offp.getFeatureOfInterestIds());
         verifySamplingFeatureNotSame(fois);
         String foi = verifySamplingFeature(fois, 68.2395, -61.4234);
-        
+
         Assert.assertNotNull(foi);
-        
+
         verifyAllObservedProperties(stsWorker, sensorId, Arrays.asList("30", "35", "66"));
-        
+
 
         Object o = worker.getObservation(new GetObservationType("2.0.0", "SOS",Arrays.asList(offp.getId()), null, Arrays.asList(sensorId), null, null, null,null));
         Assert.assertTrue(o instanceof ObservationCollection);
-        
+
         ObservationCollection oc = (ObservationCollection)o;
-        
+
         String observedProperty = null;
         for (Observation obs : oc.getMember()) {
             if (obs.getFeatureOfInterest() instanceof SamplingFeature) {
@@ -1285,18 +1285,18 @@ public class SosHarvesterProcessTest {
         hl.getExtraFilter().put("procedure", sensorId);
         hl.getExpand().add("Locations");
         HistoricalLocationsResponse response = stsWorker.getHistoricalLocations(hl);
-        
+
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
         Assert.assertEquals(11, response.getValue().size());
-        
+
         HistoricalLocation loc1 = response.getValue().get(0);
         verifyHistoricalLocation(loc1, sdf, "2020-03-24T00:25:47Z", -35.27835, -3.61021);
-        
+
         int nbMeasure = getNbMeasure(stsWorker, sensorId);
         Assert.assertEquals(9566, nbMeasure);
     }
-    
+
     @Test
     @Order(order = 6)
     public void harvesterCSVCoriolisProfileTest() throws Exception {
@@ -1304,19 +1304,19 @@ public class SosHarvesterProcessTest {
         ServiceComplete sos = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
         Assert.assertNotNull(sos);
         sensorServBusiness.removeAllSensors(sos.getId());
-        
+
         ServiceComplete sts = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
         Assert.assertNotNull(sts);
         sensorServBusiness.removeAllSensors(sts.getId());
-        
+
         SOSworker worker = (SOSworker) wsEngine.buildWorker("sos", "default");
         worker.setServiceUrl("http://localhost/examind/");
 
         STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
         stsWorker.setServiceUrl("http://localhost/examind/");
-        
+
         int prev = getNbOffering(worker, 0);
-        
+
         Assert.assertEquals(13, prev);
 
         String datasetId = "SOS_DATA";
@@ -1371,8 +1371,8 @@ public class SosHarvesterProcessTest {
         Assert.assertNotNull(sensorBusiness.getSensor("urn:template:1901290"));
         Assert.assertNotNull(sensorBusiness.getSensor("urn:template:1901689"));
         Assert.assertNotNull(sensorBusiness.getSensor("urn:template:1901710"));
-        
-        
+
+
         Assert.assertNull(sensorBusiness.getSensor("urn:template:666999"));
 
         Assert.assertEquals(11, getNbOffering(worker, prev));
@@ -1382,7 +1382,7 @@ public class SosHarvesterProcessTest {
 
         Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
         TimePeriodType time = (TimePeriodType) offp.getTime();
-        
+
 
         // ???
         Assert.assertEquals("2020-03-24T05:07:54.000", time.getBeginPosition().getValue());
@@ -1391,9 +1391,9 @@ public class SosHarvesterProcessTest {
 
         List<SamplingFeature> fois  = getFeatureOfInterest(worker, offp.getFeatureOfInterestIds());
         String foi = verifySamplingFeature(fois, 68.2395, -61.4234);
-        
+
         Assert.assertNotNull(foi);
-        
+
         //-61.4234,68.2395
         String observedProperty = offp.getObservedProperties().get(0);
 
@@ -1408,36 +1408,36 @@ public class SosHarvesterProcessTest {
         hl.getExtraFilter().put("procedure", "urn:template:1901290");
         hl.getExpand().add("Locations");
         HistoricalLocationsResponse response = stsWorker.getHistoricalLocations(hl);
-        
+
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
         Assert.assertEquals(1, response.getValue().size());
-        
+
         HistoricalLocation loc1 = response.getValue().get(0);
         verifyHistoricalLocation(loc1, sdf, "2020-03-24T05:07:54Z", 68.2395, -61.4234);
-        
+
         int nbMeasure = getNbMeasure(stsWorker, "urn:template:1901290");
         Assert.assertEquals(68, nbMeasure);
-        
+
        /*
         * second
         */
-        
+
         offp = getOffering(worker, "urn:template:1901689");
         Assert.assertNotNull(offp);
 
         Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
         time = (TimePeriodType) offp.getTime();
-        
+
         Assert.assertEquals("2020-03-24T08:48:00.000", time.getBeginPosition().getValue());
 
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
 
         fois  = getFeatureOfInterest(worker, offp.getFeatureOfInterestIds());
         foi = verifySamplingFeature(fois, -25.92446, 5.92986);
-        
+
         Assert.assertNotNull(foi);
-        
+
         observedProperty = offp.getObservedProperties().get(0);
 
         /*
@@ -1451,15 +1451,15 @@ public class SosHarvesterProcessTest {
         hl.getExtraFilter().put("procedure", "urn:template:1901689");
         hl.getExpand().add("Locations");
         response = stsWorker.getHistoricalLocations(hl);
-        
+
         Assert.assertEquals(1, response.getValue().size());
-        
+
         loc1 = response.getValue().get(0);
         verifyHistoricalLocation(loc1, sdf, "2020-03-24T08:48:00Z", -25.92446, 5.92986);
-        
+
         nbMeasure = getNbMeasure(stsWorker, "urn:template:1901689");
         Assert.assertEquals(503, nbMeasure);
-        
+
         // verify that all the sensors have at least one of the three observed properties
         List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(sos.getId(), null);
         for (String sid : sensorIds) {
@@ -1468,24 +1468,24 @@ public class SosHarvesterProcessTest {
             }
         }
     }
-    
+
     @Test
     @Order(order = 7)
     public void harvesterCSVCoriolisTSTest() throws Exception {
 
         ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
         Assert.assertNotNull(sc);
-        
+
         sensorServBusiness.removeAllSensors(sc.getId());
-        
+
         SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
         sosWorker.setServiceUrl("http://localhost/examind/");
 
         STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
         stsWorker.setServiceUrl("http://localhost/examind/");
-        
+
         int prev = getNbOffering(sosWorker, 0);
-        
+
         Assert.assertEquals(13, prev);
 
         String datasetId = "SOS_DATA_2";
@@ -1531,12 +1531,12 @@ public class SosHarvesterProcessTest {
         // verify that the sensor has been created
         Assert.assertNotNull(sensorBusiness.getSensor("urn:template:1501563"));
         Assert.assertNotNull(sensorBusiness.getSensor("urn:template:1501564"));
-        
+
         // not matching the measure
         Assert.assertNull(sensorBusiness.getSensor("urn:template:1301603"));
-        
+
         Assert.assertEquals(301, getNbOffering(sosWorker, prev));
-        
+
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
         /*
@@ -1548,18 +1548,18 @@ public class SosHarvesterProcessTest {
 
         Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
         TimePeriodType time = (TimePeriodType) offp.getTime();
-        
+
         Assert.assertEquals("2020-03-24", time.getBeginPosition().getValue());
         Assert.assertEquals("2020-03-24T10:00:00.000", time.getEndPosition().getValue());
 
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
         List<SamplingFeature> fois  = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
         String foi = verifySamplingFeatureLine(fois,21);
-        
+
         Assert.assertEquals(1, offp.getObservedProperties().size());
         String observedProperty = offp.getObservedProperties().get(0);
         Assert.assertEquals("35", observedProperty);
-        
+
         /*
         * Verify an inserted data
         */
@@ -1579,7 +1579,7 @@ public class SosHarvesterProcessTest {
 
         HistoricalLocation loc2 = response.getValue().get(1);
         verifyHistoricalLocation(loc2, sdf, "2020-03-24T00:30:00Z", -20.5456, -29.995);
-        
+
         int nbMeasure = getNbMeasure(stsWorker, "urn:template:1501563");
         Assert.assertEquals(21, nbMeasure);
 
@@ -1599,7 +1599,7 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
         fois  = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
         foi = verifySamplingFeatureLine(fois, 21);
-        
+
         Assert.assertEquals(1, offp.getObservedProperties().size());
         observedProperty = offp.getObservedProperties().get(0);
 
@@ -1623,14 +1623,14 @@ public class SosHarvesterProcessTest {
 
         loc2 = response.getValue().get(1);
         verifyHistoricalLocation(loc2, sdf, "2020-03-24T00:30:00Z", -23.2064, -30.3484);
-        
+
         nbMeasure = getNbMeasure(stsWorker, "urn:template:1501564");
         Assert.assertEquals(21, nbMeasure);
-        
+
         /*
         * third extracted procedure with a lot of mesure code
         */
-        
+
         offp = getOffering(sosWorker, "urn:template:1801573");
         Assert.assertNotNull(offp);
 
@@ -1643,23 +1643,23 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
         fois  = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
         foi = verifySamplingFeatureLine(fois, 600);
-        
+
         Assert.assertEquals(1, offp.getObservedProperties().size());
         observedProperty = offp.getObservedProperties().get(0); // composite
-        
+
         List<String> observedProperties = getObservedProperties(stsWorker, "urn:template:1801573");
-        
+
         Assert.assertEquals(2, observedProperties.size());
         Assert.assertEquals("30", observedProperties.get(0));
         Assert.assertEquals("35", observedProperties.get(1));
-        
+
         nbMeasure = getNbMeasure(stsWorker, "urn:template:1801573");
         Assert.assertEquals(600, nbMeasure);
-        
+
         /*
         * fourth extracted procedure with only measure 1
         */
-        
+
         offp = getOffering(sosWorker, "urn:template:2100914");
         Assert.assertNotNull(offp);
 
@@ -1672,15 +1672,15 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
         fois  = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
         foi = verifySamplingFeature(fois, 137.91875, 16.01637);
-        
+
         Assert.assertEquals(1, offp.getObservedProperties().size());
         observedProperty = offp.getObservedProperties().get(0);
 
         Assert.assertEquals("35", observedProperty);
-        
+
         nbMeasure = getNbMeasure(stsWorker, "urn:template:2100914");
         Assert.assertEquals(4, nbMeasure);
-        
+
         // verify that all the sensors have at least one of the two observed properties
         List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(sc.getId(), null);
         for (String sid : sensorIds) {
@@ -1688,9 +1688,9 @@ public class SosHarvesterProcessTest {
                 verifyObservedProperties(stsWorker, sid, Arrays.asList("30", "35"));
             }
         }
-        
+
     }
-    
+
     @Test
     @Order(order = 7)
     public void harvesterCSVCoriolisMultiTypeTest() throws Exception {
@@ -1698,19 +1698,19 @@ public class SosHarvesterProcessTest {
         ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
         Assert.assertNotNull(sc);
         sensorServBusiness.removeAllSensors(sc.getId());
-        
+
         sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
         Assert.assertNotNull(sc);
         sensorServBusiness.removeAllSensors(sc.getId());
-        
+
         SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
         sosWorker.setServiceUrl("http://localhost/examind/");
 
         STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
         stsWorker.setServiceUrl("http://localhost/examind/");
-        
+
         int prev = getNbOffering(sosWorker, 0);
-        
+
         Assert.assertEquals(13, prev);
 
         String datasetId = "SOS_DATA_3";
@@ -1756,12 +1756,12 @@ public class SosHarvesterProcessTest {
         // verify that the sensor has been created
         Assert.assertNotNull(sensorBusiness.getSensor("1501563"));
         Assert.assertNotNull(sensorBusiness.getSensor("1501564"));
-        
+
         // not matching the measure
         Assert.assertNull(sensorBusiness.getSensor("urn:template:1301603"));
-        
+
         Assert.assertEquals(312, getNbOffering(sosWorker, prev));
-        
+
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
         /*
@@ -1773,18 +1773,18 @@ public class SosHarvesterProcessTest {
 
         Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
         TimePeriodType time = (TimePeriodType) offp.getTime();
-        
+
         Assert.assertEquals("2020-03-24", time.getBeginPosition().getValue());
         Assert.assertEquals("2020-03-24T10:00:00.000", time.getEndPosition().getValue());
 
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
         List<SamplingFeature> fois  = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
         String foi = verifySamplingFeatureLine(fois,21);
-        
+
         Assert.assertEquals(1, offp.getObservedProperties().size());
         String observedProperty = offp.getObservedProperties().get(0);
         Assert.assertEquals("35", observedProperty);
-        
+
         /*
         * Verify an inserted data
         */
@@ -1804,7 +1804,7 @@ public class SosHarvesterProcessTest {
 
         HistoricalLocation loc2 = response.getValue().get(1);
         verifyHistoricalLocation(loc2, sdf, "2020-03-24T00:30:00Z", -20.5456, -29.995);
-        
+
         int nbMeasure = getNbMeasure(stsWorker, "1501563");
         Assert.assertEquals(21, nbMeasure);
 
@@ -1824,11 +1824,11 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
         fois = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
         foi  = verifySamplingFeatureLine(fois,21);
-        
+
         Assert.assertEquals(1, offp.getObservedProperties().size());
         observedProperty = offp.getObservedProperties().get(0);
         Assert.assertEquals("35", observedProperty);
-        
+
         /*
         * Verify an inserted data
         */
@@ -1845,17 +1845,17 @@ public class SosHarvesterProcessTest {
 
         loc1 = response.getValue().get(0);
         verifyHistoricalLocation(loc1, sdf, "2020-03-24T00:00:00Z", -23.209, -30.3464);
-        
+
         loc2 = response.getValue().get(1);
         verifyHistoricalLocation(loc2, sdf, "2020-03-24T00:30:00Z", -23.2064, -30.3484);
-        
+
         nbMeasure = getNbMeasure(stsWorker, "1501564");
         Assert.assertEquals(21, nbMeasure);
-        
+
         /*
         * third extracted procedure with a lot of mesure code (TIMESERIE)
         */
-        
+
         offp = getOffering(sosWorker, "1801573");
         Assert.assertNotNull(offp);
 
@@ -1868,23 +1868,23 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
         fois = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
         foi  = verifySamplingFeatureLine(fois,600);
-        
+
         Assert.assertEquals(1, offp.getObservedProperties().size());
         observedProperty = offp.getObservedProperties().get(0); // composite
         List<String> observedProperties = getObservedProperties(stsWorker, "1801573");
-        
+
         Assert.assertEquals(2, observedProperties.size());
         Assert.assertEquals("30", observedProperties.get(0));
         Assert.assertEquals("35", observedProperties.get(1));
-        
+
 
         nbMeasure = getNbMeasure(stsWorker, "1801573");
         Assert.assertEquals(600, nbMeasure);
-        
+
         /*
         * fourth extracted procedure with only measure 1 (TIMESERIE)
         */
-        
+
         offp = getOffering(sosWorker, "2100914");
         Assert.assertNotNull(offp);
 
@@ -1897,20 +1897,20 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
         fois = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
         foi = verifySamplingFeature(fois, 137.91875, 16.01637);
-        
+
         Assert.assertEquals(1, offp.getObservedProperties().size());
         observedProperty = offp.getObservedProperties().get(0);
         Assert.assertEquals("35", observedProperty);
-        
+
         nbMeasure = getNbMeasure(stsWorker, "2100914");
         Assert.assertEquals(4, nbMeasure);
-        
+
         // verify that those profiles sensors has been created
         Assert.assertNotNull(sensorBusiness.getSensor("1901290"));
         Assert.assertNotNull(sensorBusiness.getSensor("1901689"));
         Assert.assertNotNull(sensorBusiness.getSensor("1901710"));
 
-        
+
        /*
         * fifth extracted procedure with only measure 1 (PROFILE)
         */
@@ -1919,7 +1919,7 @@ public class SosHarvesterProcessTest {
 
         Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
         time = (TimePeriodType) offp.getTime();
-        
+
 
         // ???
         Assert.assertEquals("2020-03-24T05:07:54.000", time.getBeginPosition().getValue());
@@ -1927,7 +1927,7 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
         fois = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
         foi  = verifySamplingFeature(fois, 68.2395, -61.4234);
-        
+
         observedProperty = offp.getObservedProperties().get(0);
 
         /*
@@ -1941,27 +1941,27 @@ public class SosHarvesterProcessTest {
         hl.getExtraFilter().put("procedure", "1901290");
         hl.getExpand().add("Locations");
         response = stsWorker.getHistoricalLocations(hl);
-        
+
         sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
         Assert.assertEquals(1, response.getValue().size());
-        
+
         loc1 = response.getValue().get(0);
         verifyHistoricalLocation(loc1, sdf, "2020-03-24T05:07:54Z", 68.2395, -61.4234);
-        
+
         nbMeasure = getNbMeasure(stsWorker, "1901290");
         Assert.assertEquals(68, nbMeasure);
-        
+
        /*
         * sixth (PROFILE)
         */
-        
+
         offp = getOffering(sosWorker, "1901689");
         Assert.assertNotNull(offp);
 
         Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
         time = (TimePeriodType) offp.getTime();
-        
+
 
         // ???
         Assert.assertEquals("2020-03-24T08:48:00.000", time.getBeginPosition().getValue());
@@ -1969,7 +1969,7 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
         fois = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
         foi  = verifySamplingFeature(fois, -25.92446, 5.92986);
-        
+
         //-61.4234,68.2395
         observedProperty = offp.getObservedProperties().get(0);
 
@@ -1984,15 +1984,15 @@ public class SosHarvesterProcessTest {
         hl.getExtraFilter().put("procedure", "1901689");
         hl.getExpand().add("Locations");
         response = stsWorker.getHistoricalLocations(hl);
-        
+
         Assert.assertEquals(1, response.getValue().size());
-        
+
         loc1 = response.getValue().get(0);
         verifyHistoricalLocation(loc1, sdf, "2020-03-24T08:48:00Z", -25.92446, 5.92986);
-        
+
         nbMeasure = getNbMeasure(stsWorker, "1901689");
         Assert.assertEquals(503, nbMeasure);
-        
+
     }
 
     @Test
@@ -2441,7 +2441,7 @@ public class SosHarvesterProcessTest {
         int nbMeasure = getNbMeasure(stsWorker, "urn:sensor:surval:60007755");
         Assert.assertEquals(4, nbMeasure);
     }
-    
+
     private static List<String> getObservedProperties(STSWorker stsWorker, String sensorId) throws CstlServiceException {
         List<String> results = new ArrayList<>();
         GetObservedProperties request = new GetObservedProperties();
@@ -2469,7 +2469,7 @@ public class SosHarvesterProcessTest {
         }
         return results;
     }
-    
+
     private static void verifyAllObservedProperties(STSWorker stsWorker, String sensorId, List<String> expectedObsProp) throws CstlServiceException {
         List<String> obsProp = getObservedProperties(stsWorker, sensorId);
         boolean ok = obsProp.containsAll(expectedObsProp);
@@ -2482,7 +2482,7 @@ public class SosHarvesterProcessTest {
         }
         Assert.assertTrue(msg, ok);
     }
-    
+
     private static void verifyObservedProperties(STSWorker stsWorker, String sensorId, List<String> expectedObsProp) throws CstlServiceException {
         List<String> obsProp = getObservedProperties(stsWorker, sensorId);
         boolean ok = false;
@@ -2501,7 +2501,7 @@ public class SosHarvesterProcessTest {
         }
         Assert.assertTrue(msg, ok);
     }
-    
+
     private static Integer getNbMeasure(STSWorker stsWorker, String sensorId) throws CstlServiceException {
         GetObservations request = new GetObservations();
         request.setResultFormat("dataArray");
@@ -2523,13 +2523,13 @@ public class SosHarvesterProcessTest {
         }
         return offp;
     }
-    
+
     private static int getNbOffering(SOSworker worker, int offset) throws CstlServiceException {
         Capabilities capa        = worker.getCapabilities(new GetCapabilitiesType());
         Contents ct              = capa.getContents();
         return ct.getOfferings().size() - offset;
     }
-    
+
     private static List<SamplingFeature> getFeatureOfInterest(SOSworker worker, List<String> foids) throws CstlServiceException {
         List<SamplingFeature> results = new ArrayList<>();
         AbstractFeature o = worker.getFeatureOfInterest(new GetFeatureOfInterestType("2.0.0", "SOS", foids));
@@ -2544,7 +2544,7 @@ public class SosHarvesterProcessTest {
         }
         return results;
     }
-    
+
     private String verifySamplingFeatureLine(List<SamplingFeature> fois, int nbPoint) {
        String foi = null;
        for (SamplingFeature sp : fois) {
@@ -2558,11 +2558,11 @@ public class SosHarvesterProcessTest {
         Assert.assertNotNull(foi);
         return foi;
     }
-    
+
     private String verifySamplingFeature(List<SamplingFeature> fois,  double x, double y) {
         return verifySamplingFeature(fois, null, x, y);
     }
-    
+
     private String verifySamplingFeature(List<SamplingFeature> fois, String id, double x, double y) {
        String foi = null;
        for (SamplingFeature sp : fois) {
@@ -2571,7 +2571,7 @@ public class SosHarvesterProcessTest {
                 PointType pt = (PointType) sp.getGeometry();
                 if (pt.getDirectPosition().getOrdinate(0) == x &&
                     pt.getDirectPosition().getOrdinate(1) == y) {
-                    
+
                     foi = sp.getId();
                 }
             }
@@ -2579,7 +2579,7 @@ public class SosHarvesterProcessTest {
         Assert.assertNotNull(foi);
         return foi;
     }
-    
+
     private String verifySamplingFeature(List<SamplingFeature> fois, String id) {
        String foi = null;
        for (SamplingFeature sp : fois) {
@@ -2590,7 +2590,7 @@ public class SosHarvesterProcessTest {
         Assert.assertNotNull(foi);
         return foi;
     }
-    
+
     private void verifySamplingFeatureNotSame(List<SamplingFeature> fois) {
        Set<String> alreadyFound = new HashSet<>();
        for (SamplingFeature sp : fois) {
@@ -2604,7 +2604,7 @@ public class SosHarvesterProcessTest {
             }
         }
     }
-    
+
     private static void verifyHistoricalLocation(HistoricalLocation loc1, SimpleDateFormat sdf, String date, double x, double y) throws ParseException {
         Assert.assertEquals(loc1.getTime().getTime(), sdf.parse(date).getTime());
         Assert.assertEquals(1, loc1.getLocations().size());

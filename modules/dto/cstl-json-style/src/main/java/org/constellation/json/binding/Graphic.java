@@ -20,7 +20,7 @@
 package org.constellation.json.binding;
 
 import org.constellation.json.util.StyleUtilities;
-import org.opengis.filter.expression.Expression;
+import org.opengis.filter.Expression;
 import org.opengis.style.GraphicalSymbol;
 
 import java.util.ArrayList;

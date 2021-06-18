@@ -21,45 +21,29 @@ import org.geotoolkit.gml.xml.LineString;
 import org.geotoolkit.gml.xml.LinearRing;
 import org.geotoolkit.gml.xml.Point;
 import org.geotoolkit.gml.xml.Polygon;
+import org.geotoolkit.ogc.xml.BBOX;
 import org.geotoolkit.ogc.xml.v110.LowerBoundaryType;
 import org.geotoolkit.ogc.xml.v110.UpperBoundaryType;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.locationtech.jts.geom.Geometry;
-import org.opengis.filter.And;
+import org.opengis.filter.BetweenComparisonOperator;
 import org.opengis.filter.BinaryComparisonOperator;
+import org.opengis.filter.BinarySpatialOperator;
+import org.opengis.filter.ComparisonOperatorName;
+import org.opengis.filter.DistanceOperator;
+import org.opengis.filter.DistanceOperatorName;
 import org.opengis.filter.Filter;
-import org.opengis.filter.Not;
-import org.opengis.filter.Or;
-import org.opengis.filter.PropertyIsBetween;
-import org.opengis.filter.PropertyIsEqualTo;
-import org.opengis.filter.PropertyIsGreaterThan;
-import org.opengis.filter.PropertyIsGreaterThanOrEqualTo;
-import org.opengis.filter.PropertyIsLessThan;
-import org.opengis.filter.PropertyIsLessThanOrEqualTo;
-import org.opengis.filter.PropertyIsLike;
-import org.opengis.filter.PropertyIsNotEqualTo;
-import org.opengis.filter.PropertyIsNull;
-import org.opengis.filter.expression.Expression;
-import org.opengis.filter.expression.Literal;
-import org.opengis.filter.expression.PropertyName;
-import org.opengis.filter.spatial.BBOX;
-import org.opengis.filter.spatial.Beyond;
-import org.opengis.filter.spatial.BinarySpatialOperator;
-import org.opengis.filter.spatial.Contains;
-import org.opengis.filter.spatial.Crosses;
-import org.opengis.filter.spatial.DWithin;
-import org.opengis.filter.spatial.Disjoint;
-import org.opengis.filter.spatial.DistanceBufferOperator;
-import org.opengis.filter.spatial.Equals;
-import org.opengis.filter.spatial.Intersects;
-import org.opengis.filter.spatial.Overlaps;
-import org.opengis.filter.spatial.Touches;
-import org.opengis.filter.spatial.Within;
-import org.opengis.filter.temporal.After;
-import org.opengis.filter.temporal.Before;
-import org.opengis.filter.temporal.BinaryTemporalOperator;
-import org.opengis.filter.temporal.During;
-import org.opengis.filter.temporal.TEquals;
+import org.opengis.filter.Expression;
+import org.opengis.filter.LikeOperator;
+import org.opengis.filter.Literal;
+import org.opengis.filter.LogicalOperator;
+import org.opengis.filter.LogicalOperatorName;
+import org.opengis.filter.NullOperator;
+import org.opengis.filter.SpatialOperatorName;
+import org.opengis.filter.TemporalOperator;
+import org.opengis.filter.TemporalOperatorName;
+import org.opengis.filter.ValueReference;
+import org.opengis.util.CodeList;
 import org.opengis.util.FactoryException;
 
 /**
@@ -77,8 +61,8 @@ public class SpatialFilterBuilder {
     }
 
     private static XContentBuilder build(Filter filter, XContentBuilder builder, boolean withPlugin) throws IOException, FilterParserException {
-        if (filter instanceof BBOX) {
-            BBOX bbox = (BBOX)filter;
+        if (filter.getOperatorType() == SpatialOperatorName.BBOX) {
+            BBOX bbox = BBOX.wrap((BinarySpatialOperator) filter);
             final String propertyName = bbox.getPropertyName();
             final String crsName      = bbox.getSRS();
 
@@ -97,7 +81,7 @@ public class SpatialFilterBuilder {
                        .startObject("geoextent")
                        .field("filter", "BBOX");
                 builder = addEnvelope(builder, bbox.getMinX(), bbox.getMaxX(), bbox.getMinY(), bbox.getMaxY(), withPlugin);
-                builder.field("CRS",       crsName)
+                builder.field("CRS", crsName)
                        .endObject()
                        .endObject();
             } else {
@@ -109,15 +93,15 @@ public class SpatialFilterBuilder {
                        .endObject();
             }
 
-        } else if (filter instanceof DistanceBufferOperator) {
+        } else if (filter instanceof DistanceOperator) {
 
-            final DistanceBufferOperator dist = (DistanceBufferOperator) filter;
-            final double distance             = dist.getDistance();
-            final String units                = dist.getDistanceUnits();
-            final Expression geom             = dist.getExpression2();
+            final DistanceOperator dist = (DistanceOperator) filter;
+            final double distance   = dist.getDistance().getValue().doubleValue();
+            final String units      = dist.getDistance().getUnit().toString();
+            final Expression geom   = (Expression) dist.getExpressions().get(1);
 
             //we verify that all the parameters are specified
-            if (dist.getExpression1() == null) {
+            if (dist.getExpressions().get(0) == null) {
                  throw new FilterParserException("An distanceBuffer operator must specified the propertyName.",
                                                  INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
             }
@@ -144,11 +128,12 @@ public class SpatialFilterBuilder {
             }
             addDistance(builder, distance, units, withPlugin);
 
-            if (filter instanceof  DWithin) {
+            final CodeList<?> type = filter.getOperatorType();
+            if (type == DistanceOperatorName.WITHIN) {
                 if (withPlugin) {
                     builder.field("filter", "DWITHIN");
                 }
-            } else if (filter instanceof  Beyond) {
+            } else if (type == DistanceOperatorName.BEYOND) {
                 if (withPlugin) {
                     builder.field("filter", "BEYOND");
                 } else {
@@ -170,20 +155,20 @@ public class SpatialFilterBuilder {
 
             String propertyName = null;
             Object gmlGeometry  = null;
-            Object inGeom       = binSpatial.getExpression2();
+            Object inGeom       = binSpatial.getExpressions().get(1);
 
             if (inGeom instanceof Literal) {
                 inGeom = ((Literal)inGeom).getValue();
             }
 
             // the propertyName
-            if (binSpatial.getExpression1() != null) {
-                propertyName = ((PropertyName)binSpatial.getExpression1()).getPropertyName();
+            if (binSpatial.getExpressions().get(0) != null) {
+                propertyName = ((ValueReference) binSpatial.getExpressions().get(0)).getXPath();
             }
 
             // geometric object: envelope
             if (inGeom instanceof Envelope) {
-                gmlGeometry = binSpatial.getExpression2();
+                gmlGeometry = binSpatial.getExpressions().get(1);
 
             // JTS geometry
             } else  if (inGeom instanceof Geometry) {
@@ -222,8 +207,8 @@ public class SpatialFilterBuilder {
             builder.endObject()
                    .endObject();
 
-        } else if (filter instanceof Not) {
-            Not not = (Not)filter;
+        } else if (filter.getOperatorType() == LogicalOperatorName.NOT) {
+            LogicalOperator<Object> not = (LogicalOperator)filter;
             builder.startObject("bool");
 
             builder.startObject("must")
@@ -233,44 +218,44 @@ public class SpatialFilterBuilder {
                    .endObject();
 
             builder.startObject("must_not");
-            build(not.getFilter(), builder, withPlugin);
+            build(not.getOperands().get(0), builder, withPlugin);
             builder.endObject();
 
             builder.endObject();
-        } else if (filter instanceof Or) {
-            Or or = (Or)filter;
+        } else if (filter.getOperatorType() == LogicalOperatorName.OR) {
+            LogicalOperator<Object> or = (LogicalOperator)filter;
             builder.startObject("bool");
 
             builder.startArray("should");
-            for (Filter f : or.getChildren()) {
+            for (Filter f : or.getOperands()) {
                 builder.startObject();
                 build(f, builder, withPlugin);
                 builder.endObject();
             }
             builder.endArray();
             builder.endObject();
-            
-        } else if (filter instanceof And) {
-            And and = (And)filter;
+
+        } else if (filter.getOperatorType() == LogicalOperatorName.AND) {
+            LogicalOperator<Object> and = (LogicalOperator)filter;
             builder.startObject("bool");
 
             builder.startArray("should");
-            for (Filter f : and.getChildren()) {
+            for (Filter f : and.getOperands()) {
                 builder.startObject();
                 build(f, builder, withPlugin);
                 builder.endObject();
             }
             builder.endArray();
-            builder.field("minimum_should_match", and.getChildren().size());
+            builder.field("minimum_should_match", and.getOperands().size());
             builder.endObject();
-            
-        } else if (filter instanceof PropertyIsLike ) {
 
-            final PropertyIsLike pil = (PropertyIsLike) filter;
-            final PropertyName propertyName;
+        } else if (filter instanceof LikeOperator) {
+
+            final LikeOperator pil = (LikeOperator) filter;
+            final ValueReference propertyName;
             //we get the field
-            if (pil.getExpression() != null && pil.getLiteral() != null) {
-                propertyName = (PropertyName) pil.getExpression();
+            if (pil.getExpressions().get(0) != null && pil.getExpressions().get(1) != null) {
+                propertyName = (ValueReference) pil.getExpressions().get(0);
             } else {
                 throw new FilterParserException("An operator propertyIsLike must specified the propertyName and a literal value.",
                                                  INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
@@ -278,16 +263,16 @@ public class SpatialFilterBuilder {
 
             //we format the value by replacing the specified special char by the elasticSearch special char
             final String brutValue = FilterParserUtils.translateSpecialChar(pil, "*", "?", "\\").toLowerCase();
-            final String term      = removePrefix(propertyName.getPropertyName());
-            
+            final String term      = removePrefix(propertyName.getXPath());
+
             builder.startObject("wildcard")
                                 .field(term, brutValue)
                     .endObject();
 
-        } else if (filter instanceof PropertyIsBetween) {
+        } else if (filter instanceof BetweenComparisonOperator) {
 
-            final PropertyIsBetween pib     = (PropertyIsBetween) filter;
-            final PropertyName propertyName = (PropertyName) pib.getExpression();
+            final BetweenComparisonOperator pib = (BetweenComparisonOperator) filter;
+            final ValueReference propertyName = (ValueReference) pib.getExpression();
             final LowerBoundaryType low     = (LowerBoundaryType) pib.getLowerBoundary();
             Literal lowLit = null;
             if (low != null) {
@@ -299,11 +284,11 @@ public class SpatialFilterBuilder {
                 uppLit = upp.getLiteral();
             }
             if (propertyName == null || lowLit == null || uppLit == null) {
-                throw new FilterParserException("A PropertyIsBetween operator must be constitued of a lower boundary containing a literal, "
+                throw new FilterParserException("A BetweenComparisonOperator operator must be constitued of a lower boundary containing a literal, "
                                              + "an upper boundary containing a literal and a property name.", INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
             } else {
 
-                final String term        = removePrefix(propertyName.getPropertyName());
+                final String term        = removePrefix(propertyName.getXPath());
                 final Object lowLitValue = lowLit.getValue();
                 final Object upLitValue = uppLit.getValue();
 
@@ -315,13 +300,13 @@ public class SpatialFilterBuilder {
                            .endObject();
             }
 
-        } else if (filter instanceof PropertyIsNull) {
-             final PropertyIsNull pin = (PropertyIsNull) filter;
+        } else if (filter instanceof NullOperator) {
+             final NullOperator pin = (NullOperator) filter;
 
             //we get the field
-            if (pin.getExpression() != null) {
-                final PropertyName propertyName = (PropertyName) pin.getExpression();
-                final String term               = removePrefix(propertyName.getPropertyName());
+            if (pin.getExpressions().get(0) != null) {
+                final ValueReference propertyName = (ValueReference) pin.getExpressions().get(0);
+                final String term               = removePrefix(propertyName.getXPath());
 
                 builder.startObject("missing")
                             .field("field", term)
@@ -334,23 +319,23 @@ public class SpatialFilterBuilder {
         } else if (filter instanceof BinaryComparisonOperator) {
 
             final BinaryComparisonOperator bc = (BinaryComparisonOperator) filter;
-            final PropertyName propertyName   = (PropertyName) bc.getExpression1();
-            final Literal literal             = (Literal) bc.getExpression2();
+            final ValueReference propertyName   = (ValueReference) bc.getExpressions().get(0);
+            final Literal literal             = (Literal) bc.getExpressions().get(1);
 
             if (propertyName == null || literal == null) {
                 throw new FilterParserException("A binary comparison operator must be constitued of a literal and a property name.",
                                                  INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
             } else {
-                final String term         = removePrefix(propertyName.getPropertyName());
+                final String term         = removePrefix(propertyName.getXPath());
                 final Object literalValue = literal.getValue();
 
-                if (filter instanceof PropertyIsEqualTo) {
+                if (filter.getOperatorType() == ComparisonOperatorName.PROPERTY_IS_EQUAL_TO) {
 
                     builder.startObject("term")
                                 .field(term, literalValue)
                            .endObject();
 
-                } else if (bc instanceof PropertyIsNotEqualTo) {
+                } else if (bc.getOperatorType() == ComparisonOperatorName.PROPERTY_IS_NOT_EQUAL_TO) {
 
                     builder.startObject("bool");
 
@@ -368,7 +353,7 @@ public class SpatialFilterBuilder {
 
                     builder.endObject();
 
-                } else if (bc instanceof PropertyIsGreaterThanOrEqualTo) {
+                } else if (bc.getOperatorType() == ComparisonOperatorName.PROPERTY_IS_GREATER_THAN_OR_EQUAL_TO) {
 
                     builder.startObject("range")
                                 .startObject(term)
@@ -377,7 +362,7 @@ public class SpatialFilterBuilder {
                            .endObject();
 
 
-                } else if (bc instanceof PropertyIsGreaterThan) {
+                } else if (bc.getOperatorType() == ComparisonOperatorName.PROPERTY_IS_GREATER_THAN) {
 
                     builder.startObject("range")
                                 .startObject(term)
@@ -385,7 +370,7 @@ public class SpatialFilterBuilder {
                                 .endObject()
                            .endObject();
 
-                } else if (bc instanceof  PropertyIsLessThan) {
+                } else if (bc.getOperatorType() == ComparisonOperatorName.PROPERTY_IS_LESS_THAN) {
 
                     builder.startObject("range")
                                 .startObject(term)
@@ -393,7 +378,7 @@ public class SpatialFilterBuilder {
                                 .endObject()
                            .endObject();
 
-                } else if (bc instanceof PropertyIsLessThanOrEqualTo) {
+                } else if (bc.getOperatorType() == ComparisonOperatorName.PROPERTY_IS_LESS_THAN_OR_EQUAL_TO) {
 
                     builder.startObject("range")
                                 .startObject(term)
@@ -407,25 +392,25 @@ public class SpatialFilterBuilder {
                                                      INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
                 }
             }
-        } else if (filter instanceof BinaryTemporalOperator) {
+        } else if (filter instanceof TemporalOperator) {
 
-            final BinaryTemporalOperator bc = (BinaryTemporalOperator) filter;
-            final PropertyName propertyName = (PropertyName) bc.getExpression1();
-            final Literal literal           = (Literal) bc.getExpression2();
+            final TemporalOperator bc = (TemporalOperator) filter;
+            final ValueReference propertyName = (ValueReference) bc.getExpressions().get(0);
+            final Literal literal           = (Literal) bc.getExpressions().get(1);
 
             if (propertyName == null || literal == null) {
                 throw new FilterParserException("A binary temporal operator must be constitued of a TimeObject and a property name.",
                                                  INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
             } else {
-                final String term         = removePrefix(propertyName.getPropertyName());
+                final String term         = removePrefix(propertyName.getXPath());
                 final Object literalValue = literal.getValue();
 
-                if (bc instanceof TEquals) {
+                if (bc.getOperatorType() == TemporalOperatorName.EQUALS) {
                     builder.startObject("term")
                                 .field(term, literalValue)
                            .endObject();
 
-                } else if (bc instanceof After) {
+                } else if (bc.getOperatorType() == TemporalOperatorName.AFTER) {
 
                     builder.startObject("range")
                                 .startObject(term)
@@ -433,7 +418,7 @@ public class SpatialFilterBuilder {
                                 .endObject()
                            .endObject();
 
-                } else if (bc instanceof Before) {
+                } else if (bc.getOperatorType() == TemporalOperatorName.BEFORE) {
 
                     builder.startObject("range")
                                 .startObject(term)
@@ -441,7 +426,7 @@ public class SpatialFilterBuilder {
                                 .endObject()
                            .endObject();
 
-                } else if (bc instanceof During) {
+                } else if (bc.getOperatorType() == TemporalOperatorName.DURING) {
 
                     throw new FilterParserException("TODO during", INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
 
@@ -458,21 +443,21 @@ public class SpatialFilterBuilder {
 
     private static void addSpatialRelation(XContentBuilder builder, Filter filter, boolean withPlugin) throws IOException, FilterParserException {
         String fieldName = withPlugin ? "filter" : "relation";
-        if (filter instanceof  Contains) {
+        if (filter.getOperatorType() == SpatialOperatorName.CONTAINS) {
             builder.field(fieldName,  tolower("CONTAINS", withPlugin));
-        } else if (filter instanceof  Crosses) {
+        } else if (filter.getOperatorType() == SpatialOperatorName.CROSSES) {
             builder.field(fieldName,  tolower("CROSSES", withPlugin));
-        } else if (filter instanceof  Disjoint) {
+        } else if (filter.getOperatorType() == SpatialOperatorName.DISJOINT) {
             builder.field(fieldName,  tolower("DISJOINT", withPlugin));
-        } else if (filter instanceof  Equals) {
+        } else if (filter.getOperatorType() == SpatialOperatorName.EQUALS) {
             builder.field(fieldName,  tolower("EQUALS", withPlugin));
-        } else if (filter instanceof  Intersects) {
+        } else if (filter.getOperatorType() == SpatialOperatorName.INTERSECTS) {
             builder.field(fieldName,  tolower("INTERSECTS", withPlugin));
-        } else if (filter instanceof  Overlaps) {
+        } else if (filter.getOperatorType() == SpatialOperatorName.OVERLAPS) {
             builder.field(fieldName,  tolower("OVERLAPS", withPlugin));
-        } else if (filter instanceof  Touches) {
+        } else if (filter.getOperatorType() == SpatialOperatorName.TOUCHES) {
             builder.field(fieldName,  tolower("TOUCHES", withPlugin));
-        } else if (filter instanceof  Within) {
+        } else if (filter.getOperatorType() == SpatialOperatorName.WITHIN) {
             builder.field(fieldName,  tolower("WITHIN", withPlugin));
         } else {
             throw new FilterParserException("Unknow bynary spatial operator.",

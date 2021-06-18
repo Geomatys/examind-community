@@ -22,88 +22,80 @@ package org.constellation.wfs.core;
 import org.geotoolkit.filter.visitor.DuplicatingFilterVisitor;
 import org.opengis.feature.AttributeType;
 import org.opengis.feature.FeatureType;
-import org.opengis.filter.PropertyIsEqualTo;
-import org.opengis.filter.PropertyIsNotEqualTo;
-import org.opengis.filter.expression.Expression;
-import org.opengis.filter.expression.Literal;
-import org.opengis.filter.expression.PropertyName;
+import org.opengis.filter.BinaryComparisonOperator;
+import org.opengis.filter.ComparisonOperatorName;
+import org.opengis.filter.Expression;
+import org.opengis.filter.Literal;
+import org.opengis.filter.ValueReference;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
 public class LiteralCorrectionVisitor extends DuplicatingFilterVisitor {
-
-    private final FeatureType ft;
-
     public LiteralCorrectionVisitor(final FeatureType ft) {
-        this.ft = ft;
-    }
+        setFilterHandler(ComparisonOperatorName.PROPERTY_IS_EQUAL_TO, (f) -> {
+            final BinaryComparisonOperator filter = (BinaryComparisonOperator) f;
+            final Expression exp1 = filter.getOperand1();
+            final Expression exp2 = filter.getOperand2();
+            if (exp1 instanceof ValueReference) {
+                final ValueReference property = (ValueReference) exp1;
+                if (exp2 instanceof Literal) {
+                    final Literal literal = (Literal) exp2;
 
-    @Override
-    public Object visit(final PropertyIsEqualTo filter, final Object extraData) {
-        final Expression exp1 = filter.getExpression1();
-        final Expression exp2 = filter.getExpression2();
-        if (exp1 instanceof PropertyName) {
-            final PropertyName property = (PropertyName) exp1;
-            if (exp2 instanceof Literal) {
-                final Literal literal = (Literal) exp2;
-
-                // Add a support for a filter on boolean property using integer 0 or 1
-                if (ft != null) {
-                    final Object obj = property.evaluate(ft);
-                    if (obj instanceof AttributeType) {
-                        final AttributeType descriptor = (AttributeType) obj;
-                        if (descriptor.getValueClass().equals(Boolean.class) && literal.getValue() instanceof Number) {
-                            final Literal booleanLit;
-                            if (literal.getValue().equals(1.0)) {
-                                booleanLit = getFactory(extraData).literal(true);
-                            } else {
-                                booleanLit = getFactory(extraData).literal(false);
+                    // Add a support for a filter on boolean property using integer 0 or 1
+                    if (ft != null) {
+                        final Object obj = property.apply(ft);
+                        if (obj instanceof AttributeType) {
+                            final AttributeType descriptor = (AttributeType) obj;
+                            if (descriptor.getValueClass().equals(Boolean.class) && literal.getValue() instanceof Number) {
+                                final Literal booleanLit;
+                                if (literal.getValue().equals(1.0)) {
+                                    booleanLit = ff.literal(true);
+                                } else {
+                                    booleanLit = ff.literal(false);
+                                }
+                                return ff.equal(exp1, booleanLit);
+                            } else if (descriptor.getValueClass().equals(String.class) && literal.getValue() instanceof Number) {
+                                final Literal stringLit = ff.literal(String.valueOf(literal.getValue()));
+                                return ff.equal(exp1, stringLit);
                             }
-                            return getFactory(extraData).equals(exp1, booleanLit);
-                        } else if (descriptor.getValueClass().equals(String.class) && literal.getValue() instanceof Number) {
-                            final Literal stringLit = getFactory(extraData).literal(String.valueOf(literal.getValue()));
-                            return getFactory(extraData).equals(exp1, stringLit);
                         }
                     }
                 }
             }
-        }
-        return filter;
-    }
+            return filter;
+        });
+        setFilterHandler(ComparisonOperatorName.PROPERTY_IS_NOT_EQUAL_TO, (f) -> {
+            final BinaryComparisonOperator filter = (BinaryComparisonOperator) f;
+            final Expression exp1 = filter.getOperand1();
+            final Expression exp2 = filter.getOperand2();
+            if (exp1 instanceof ValueReference) {
+                final ValueReference property = (ValueReference) exp1;
+                if (exp2 instanceof Literal) {
+                    final Literal literal = (Literal) exp2;
 
-    @Override
-    public Object visit(final PropertyIsNotEqualTo filter, final Object extraData) {
-        final Expression exp1 = filter.getExpression1();
-        final Expression exp2 = filter.getExpression2();
-        if (exp1 instanceof PropertyName) {
-            final PropertyName property = (PropertyName) exp1;
-            if (exp2 instanceof Literal) {
-                final Literal literal = (Literal) exp2;
-
-                // Add a support for a filter on boolean property using integer 0 or 1
-                if (ft != null) {
-                    final AttributeType descriptor = (AttributeType) property.evaluate(ft);
-                    if (descriptor != null) {
-                        if (descriptor.getValueClass().equals(Boolean.class) && literal.getValue() instanceof Number) {
-                            final Literal booleanLit;
-                            if (literal.getValue().equals(1.0)) {
-                                booleanLit = getFactory(extraData).literal(true);
-                            } else {
-                                booleanLit = getFactory(extraData).literal(false);
+                    // Add a support for a filter on boolean property using integer 0 or 1
+                    if (ft != null) {
+                        final AttributeType descriptor = (AttributeType) property.apply(ft);
+                        if (descriptor != null) {
+                            if (descriptor.getValueClass().equals(Boolean.class) && literal.getValue() instanceof Number) {
+                                final Literal booleanLit;
+                                if (literal.getValue().equals(1.0)) {
+                                    booleanLit = ff.literal(true);
+                                } else {
+                                    booleanLit = ff.literal(false);
+                                }
+                                return ff.notEqual(exp1, booleanLit);
+                            } else if (descriptor.getValueClass().equals(String.class) && literal.getValue() instanceof Number) {
+                                final Literal stringLit = ff.literal(String.valueOf(literal.getValue()));
+                                return ff.notEqual(exp1, stringLit);
                             }
-                            return getFactory(extraData).notEqual(exp1, booleanLit);
-                        } else if (descriptor.getValueClass().equals(String.class) && literal.getValue() instanceof Number) {
-                            final Literal stringLit = getFactory(extraData).literal(String.valueOf(literal.getValue()));
-                            return getFactory(extraData).notEqual(exp1, stringLit);
                         }
                     }
                 }
             }
-        }
-        return filter;
+            return filter;
+        });
     }
-
-
 }

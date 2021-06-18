@@ -30,8 +30,10 @@ import org.geotoolkit.ogc.xml.XMLFilter;
 import org.geotoolkit.ogc.xml.v110.FilterType;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
-import org.opengis.filter.PropertyIsLike;
-import org.opengis.filter.expression.PropertyName;
+import org.opengis.filter.Filter;
+import org.opengis.filter.LikeOperator;
+import org.opengis.filter.Literal;
+import org.opengis.filter.ValueReference;
 
 /**
  *
@@ -46,7 +48,6 @@ public class FilterParserUtils {
      * @return An OGC Filter Object.
      *
      * @throws org.geotoolkit.cql.CQLException
-     * @throws javax.xml.bind.JAXBException
      */
     public static FilterType cqlToFilter(final String cqlQuery) throws CQLException, JAXBException {
         final FilterType result;
@@ -67,18 +68,18 @@ public class FilterParserUtils {
      * @return A CSQL query string
      *
      * @throws org.geotoolkit.cql.CQLException
-     * @throws javax.xml.bind.JAXBException
      */
     public static String filterToCql(final FilterType filter) throws CQLException, JAXBException {
-        return CQL.write(filter);
+        Filter f = filter;
+        if (filter.getSpatialOps() != null) f = filter.getSpatialOps().getValue();
+        else if (filter.getTemporalOps() != null) f = filter.getTemporalOps().getValue();
+        else if (filter.getComparisonOps() != null) f = filter.getComparisonOps().getValue();
+        else if (filter.getLogicOps() != null) f = filter.getLogicOps().getValue();
+        return CQL.write(f);
     }
 
     /**
      * Extract a OCG filter from the query constraint of the received request.
-     *
-     * @param constraint
-     * @return
-     * @throws FilterParserException
      */
     public static XMLFilter getFilterFromConstraint(final QueryConstraint constraint) throws FilterParserException {
 
@@ -127,14 +128,20 @@ public class FilterParserUtils {
      *
      * @return A formatted value.
      */
-    public static String translateSpecialChar(final PropertyIsLike pil, final String wildchar, final String singleChar, final String escapeChar) {
-        String brutValue = pil.getLiteral();
-        brutValue = brutValue.replace(pil.getWildCard(), wildchar);
-        brutValue = brutValue.replace(pil.getSingleChar(), singleChar);
-        brutValue = brutValue.replace(pil.getEscape(), escapeChar);
+    public static String translateSpecialChar(final LikeOperator pil, final String wildchar, final String singleChar, final String escapeChar) {
+        Object v = pil.getExpressions().get(1);
+        String brutValue;
+        if (v instanceof String) {
+            brutValue = (String) v;         // Illegal, but nevertheless happen with some Geotk implementations.
+        } else {
+            brutValue = (String) ((Literal) v).getValue();
+        }
+        brutValue = brutValue.replace(String.valueOf(pil.getWildCard()), wildchar);
+        brutValue = brutValue.replace(String.valueOf(pil.getSingleChar()), singleChar);
+        brutValue = brutValue.replace(String.valueOf(pil.getEscapeChar()), escapeChar);
 
         //for a date we remove the '-'
-        if (isDateField((PropertyName) pil.getExpression())) {
+        if (isDateField((ValueReference) pil.getExpressions().get(0))) {
             brutValue = brutValue.replaceAll("-", "");
             brutValue = brutValue.replace("Z", "");
         }
@@ -148,9 +155,9 @@ public class FilterParserUtils {
      * @param pName A property name extract from a filter.
      * @return true is the specified property has to be treated as a date Field.
      */
-    public static boolean isDateField(final PropertyName pName) {
-        if (pName != null && pName.getPropertyName() != null) {
-            String propertyName = pName.getPropertyName();
+    public static boolean isDateField(final ValueReference pName) {
+        if (pName != null && pName.getXPath() != null) {
+            String propertyName = pName.getXPath();
             final int semicolonPos = propertyName.lastIndexOf(':');
             if (semicolonPos != -1) {
                 propertyName = propertyName.substring(semicolonPos + 1);
@@ -174,5 +181,4 @@ public class FilterParserUtils {
         }
         return false;
     }
-
 }

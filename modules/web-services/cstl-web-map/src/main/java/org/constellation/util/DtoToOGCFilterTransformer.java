@@ -18,10 +18,8 @@ package org.constellation.util;
 
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javax.xml.namespace.QName;
 
 import org.geotoolkit.util.NamesExt;
@@ -38,12 +36,11 @@ import org.apache.sis.util.ObjectConverters;
 
 import org.opengis.util.GenericName;
 import org.opengis.filter.Filter;
-import org.opengis.filter.FilterFactory2;
+import org.geotoolkit.filter.FilterFactory2;
 import org.opengis.filter.MatchAction;
-import org.opengis.filter.expression.Expression;
-import org.opengis.filter.expression.PropertyName;
-import org.opengis.filter.identity.Identifier;
-import org.opengis.filter.sort.SortBy;
+import org.opengis.filter.Expression;
+import org.opengis.filter.ValueReference;
+import org.opengis.filter.SortProperty;
 import org.opengis.util.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.apache.sis.util.UnconvertibleObjectException;
@@ -86,7 +83,7 @@ public class DtoToOGCFilterTransformer {
             return visitIds(ft);
         } else {
             //this case should not happen but if so, we consider it's an ALL features filter
-            return Filter.INCLUDE;
+            return Filter.include();
         }
 
     }
@@ -122,7 +119,7 @@ public class DtoToOGCFilterTransformer {
             } else if (OGCJAXBStatics.FILTER_SPATIAL_DISJOINT.equalsIgnoreCase(OpName)) {
                 return filterFactory.disjoint(left, right);
             } else if (OGCJAXBStatics.FILTER_SPATIAL_EQUALS.equalsIgnoreCase(OpName)) {
-                return filterFactory.equal(left, right);
+                return filterFactory.equals(left, right);
             } else if (OGCJAXBStatics.FILTER_SPATIAL_INTERSECTS.equalsIgnoreCase(OpName)) {
                 return filterFactory.intersects(left, right);
             } else if (OGCJAXBStatics.FILTER_SPATIAL_OVERLAPS.equalsIgnoreCase(OpName)) {
@@ -191,14 +188,14 @@ public class DtoToOGCFilterTransformer {
         } else if (isBinaryLogicOp(f)) {
 
             if (OGCJAXBStatics.FILTER_LOGIC_AND.equalsIgnoreCase(OpName)) {
-                final List<Filter> filters = new ArrayList<>();
+                final List<Filter<Object>> filters = new ArrayList<>();
 
                 for (org.constellation.dto.Filter ele : f.getFilters()) {
                     filters.add(visitFilter(ele));
                 }
 
                 if (filters.isEmpty()) {
-                    return Filter.INCLUDE;
+                    return Filter.include();
                 } else if (filters.size() == 1) {
                     return filters.get(0);
                 } else {
@@ -206,23 +203,21 @@ public class DtoToOGCFilterTransformer {
                 }
 
             } else if (OGCJAXBStatics.FILTER_LOGIC_OR.equalsIgnoreCase(OpName)) {
-                final List<Filter> filters = new ArrayList<>();
+                final List<Filter<Object>> filters = new ArrayList<>();
 
                 for (org.constellation.dto.Filter ele : f.getFilters()) {
                     filters.add(visitFilter(ele));
                 }
 
                 if (filters.isEmpty()) {
-                    return Filter.INCLUDE;
+                    return Filter.include();
                 } else if (filters.size() == 1) {
                     return filters.get(0);
                 } else {
                     return filterFactory.or(filters);
                 }
             }
-
         }
-
         throw new IllegalArgumentException("Unknowed filter element" + OpName);
     }
 
@@ -262,11 +257,11 @@ public class DtoToOGCFilterTransformer {
 
             final Expression expr = visitPropertyName(f.getField());
             final String pattern = visitLiteral(f.getValue()).toString();
-            final String wild = "*";
-            final String single = "?";
-            final String escape = "/";
+            final char wild = '*';
+            final char single = '?';
+            final char escape = '/';
 
-            return filterFactory.like(expr, pattern, wild, single, escape);
+            return filterFactory.like(expr, pattern, wild, single, escape, true);
 
         } else if (OGCJAXBStatics.FILTER_COMPARISON_ISBETWEEN.equalsIgnoreCase(OpName)) {
 
@@ -295,17 +290,15 @@ public class DtoToOGCFilterTransformer {
      * Transform a SLD IDS Filter v1.1 in GT filter.
      */
     public Filter visitIds(org.constellation.dto.Filter f) {
-        final Set<Identifier> ids = new HashSet<>();
-        ids.add(filterFactory.featureId(f.getValue()));
-        return filterFactory.id(ids);
+        return filterFactory.resourceId(f.getValue());
     }
 
-    public List<SortBy> visitSortBy(final SortByType type) {
-        final List<SortBy> sorts = new ArrayList<>();
+    public List<SortProperty> visitSortBy(final SortByType type) {
+        final List<SortProperty> sorts = new ArrayList<>();
 
         for (final SortPropertyType spt : type.getSortProperty()) {
-            final PropertyName pn = visitPropertyName(spt.getPropertyName());
-            sorts.add(filterFactory.sort(pn.getPropertyName(), spt.getSortOrder()));
+            final ValueReference pn = visitPropertyName(spt.getValueReference());
+            sorts.add(filterFactory.sort(pn, spt.getSortOrder()));
         }
 
         return sorts;
@@ -327,14 +320,14 @@ public class DtoToOGCFilterTransformer {
         return filterFactory.literal(genv);
     }
 
-    public PropertyName visitPropertyName(final PropertyNameType pnt) {
+    public ValueReference visitPropertyName(final PropertyNameType pnt) {
         if (pnt != null) {
             return visitPropertyName(pnt.getContent());
         }
         return null;
     }
 
-    public PropertyName visitPropertyName(final String pnt) {
+    public ValueReference visitPropertyName(final String pnt) {
         String brutPname = pnt;
         if (brutPname.indexOf(':') == -1) {
             return filterFactory.property(brutPname);
