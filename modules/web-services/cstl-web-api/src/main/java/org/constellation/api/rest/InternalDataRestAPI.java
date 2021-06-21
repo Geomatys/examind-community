@@ -206,7 +206,7 @@ public class InternalDataRestAPI extends AbstractRestAPI {
             providerBusiness.createOrUpdateData(prId, null, false, hidden, userId);
 
             // 3. For each created data
-            final List<DataBrief> briefs = providerBusiness.getDataBriefsFromProviderId(prId, null, true, hidden, false);
+            final List<DataBrief> briefs = providerBusiness.getDataBriefsFromProviderId(prId, null, true, hidden, false, false);
             for (DataBrief brief : briefs) {
 
                 // 3.1 we init the metadata
@@ -243,7 +243,7 @@ public class InternalDataRestAPI extends AbstractRestAPI {
             final List<DataBrief> briefs = new ArrayList<>();
             final List<Integer> dataIds = providerBusiness.getDataIdsFromProviderId(prId, null, true, false);
             for (final Integer dataId : dataIds) {
-                briefs.add(dataBusiness.getDataBrief(dataId, true));
+                briefs.add(dataBusiness.getDataBrief(dataId, true, true));
             }
             return new ResponseEntity(briefs, OK);
         } catch (Exception ex) {

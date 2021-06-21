@@ -268,7 +268,7 @@ public class LayerBusiness implements ILayerBusiness {
         for(final Layer lay : layers) {
             DataBrief db = null;
             if (lay.getDataId() != null) {
-                db = dataBusiness.getDataBrief(lay.getDataId(), false);
+                db = dataBusiness.getDataBrief(lay.getDataId(), false, true);
             }
             String owner = userBusiness.findById(lay.getOwnerId()).map(CstlUser::getLogin).orElse(null);
             // Styles ?

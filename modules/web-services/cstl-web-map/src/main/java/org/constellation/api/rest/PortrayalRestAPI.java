@@ -88,7 +88,7 @@ public class PortrayalRestAPI {
                 if (dataName == null || providerId == null) {
                     return  new ResponseEntity(BAD_REQUEST);
                 }
-                final DataBrief brief = dataBusiness.getDataBrief(Util.parseQName(dataName), providerId, false);
+                final DataBrief brief = dataBusiness.getDataBrief(Util.parseQName(dataName), providerId, false, false);
                 if (brief != null) {
                     dataId = brief.getId();
                 } else {
@@ -136,7 +136,7 @@ public class PortrayalRestAPI {
                 if (dataName == null || providerId == null) {
                     return  new ResponseEntity(BAD_REQUEST);
                 }
-                final DataBrief brief = dataBusiness.getDataBrief(Util.parseQName(dataName), providerId, false);
+                final DataBrief brief = dataBusiness.getDataBrief(Util.parseQName(dataName), providerId, false, false);
                 if (brief != null) {
                     dataId = brief.getId();
                 } else {

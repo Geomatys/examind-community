@@ -198,6 +198,12 @@ function DatasetExplorerController($scope, $rootScope, $element, $timeout, $filt
                     return angular.isObject(datum) && angular.isNumber(datum.id);
                 })
                 .filter(function (datum) {
+                    
+                    // parse dimensions and extract stats.
+                    if (angular.isArray(datum.dimensions)) {
+                        transformDimension(datum);
+                    }
+                    
                     // filter by dimensions
                     var isFiltered = false;
 
@@ -256,6 +262,25 @@ function DatasetExplorerController($scope, $rootScope, $element, $timeout, $filt
                 $rootScope.$broadcast('examind:dashboard:data:refresh:map');
             }
         }
+    }
+    
+    function transformDimension(datum) {
+        datum.dimensions = datum.dimensions
+            .map(function (dimension) {
+                return angular.extend(dimension, extractValuesOf(dimension))
+            })
+            .filter(function (candidate) {
+                return angular.isDefined(candidate) && angular.isArray(candidate.values) && candidate.values.length > 0;
+            })
+            .map(function (dimension) {
+                dimension.stats = computeStatsOf(dimension, true);
+                return dimension;
+            })
+            .reduce(function (accumulator, dimension, index, array) {
+                accumulator[dimension.name] = dimension;
+
+                return accumulator;
+            }, {});
     }
 
     function computeStatsOf(dimension, isGlobal) {
@@ -408,7 +433,7 @@ function DatasetExplorerController($scope, $rootScope, $element, $timeout, $filt
         _error = null;
 
         if (angular.isObject(_dataset) && angular.isNumber(_dataset.id)) {
-            _loader = Examind.datas.getDatasetDataSummary(_dataset.id).then(function (response) {
+            _loader = Examind.datas.getDatasetData(_dataset.id).then(function (response) {
                 _dataset.data = response.data;
 
                 _featuresCollection.clear();
@@ -419,22 +444,7 @@ function DatasetExplorerController($scope, $rootScope, $element, $timeout, $filt
                     .map(function (datum) {
                         // parse dimensions and extract stats.
                         if (angular.isArray(datum.dimensions)) {
-                            datum.dimensions = datum.dimensions
-                                .map(function (dimension) {
-                                    return angular.extend(dimension, extractValuesOf(dimension))
-                                })
-                                .filter(function (candidate) {
-                                    return angular.isDefined(candidate) && angular.isArray(candidate.values) && candidate.values.length > 0;
-                                })
-                                .map(function (dimension) {
-                                    dimension.stats = computeStatsOf(dimension, true);
-                                    return dimension;
-                                })
-                                .reduce(function (accumulator, dimension, index, array) {
-                                    accumulator[dimension.name] = dimension;
-
-                                    return accumulator;
-                                }, {});
+                            transformDimension(datum);
                         }
 
                         return datum;

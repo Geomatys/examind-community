@@ -162,7 +162,7 @@ public class DataRestAPI extends AbstractRestAPI{
         try {
             final int userId = assertAuthentificated(req);
             for (Integer dataId : dataIds) {
-                DataBrief brief = dataBusiness.getDataBrief(dataId, false);
+                DataBrief brief = dataBusiness.getDataBrief(dataId, false, true);
                 List<MetadataLightBrief> metadatas = brief.getMetadatas();
                 for (MetadataLightBrief metadata : metadatas) {
                     final Object dataObj = metadataBusiness.getMetadata(metadata.getId());
@@ -279,10 +279,10 @@ public class DataRestAPI extends AbstractRestAPI{
 
             for (final MetadataBrief md : entry.getValue()) {
                 if (md.getDatasetId() != null) {
-                    final DataSetBrief dsb = buildDatsetBrief(md.getDatasetId(), null);
+                    final DataSetBrief dsb = buildDatsetBrief(md.getDatasetId(), null, true, true);
                     briefs.addAll(dsb.getData());
                 } else if (md.getDataId() != null) {
-                    final DataBrief db = dataBusiness.getDataBrief(md.getDataId(), true);
+                    final DataBrief db = dataBusiness.getDataBrief(md.getDataId(), true, true);
                     briefs.add(db);
                 }
             }
@@ -372,9 +372,9 @@ public class DataRestAPI extends AbstractRestAPI{
      * @param dataSetId given dataset id.
      * @return {@link DataSetBrief} built from the given dataset.
      */
-    private DataSetBrief buildDatsetBrief(final int dataSetId, List<DataBrief> children) throws ConstellationException{
+    private DataSetBrief buildDatsetBrief(final int dataSetId, List<DataBrief> children, boolean fetchDataDescription, boolean fetchDataAssociations) throws ConstellationException{
         if (children == null) {
-            children = dataBusiness.getDataBriefsFromDatasetId(dataSetId, true, false, null, null, true);
+            children = dataBusiness.getDataBriefsFromDatasetId(dataSetId, true, false, null, null, fetchDataDescription, fetchDataAssociations);
         }
         final DataSetBrief dsb = datasetBusiness.getDatasetBrief(dataSetId, children);
         return dsb;
@@ -489,7 +489,7 @@ public class DataRestAPI extends AbstractRestAPI{
     @RequestMapping(value="/datas/{dataId}",method=GET,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity getData(@PathVariable("dataId") int dataId) {
         try {
-            return new ResponseEntity(dataBusiness.getDataBrief(dataId, true),OK);
+            return new ResponseEntity(dataBusiness.getDataBrief(dataId, true, true),OK);
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
@@ -500,13 +500,14 @@ public class DataRestAPI extends AbstractRestAPI{
     public ResponseEntity getDataList(@RequestParam(value="type",       required=false) String type,
                                       @RequestParam(value="published",  required=false) Boolean published,
                                       @RequestParam(value="sensorable", required=false) Boolean sensorable,
-                                      @RequestParam(value="fetchDataDescription", required=false) Boolean fetchDataDescription) {
+                                      @RequestParam(value="fetchDataDescription", required=false, defaultValue = "true") Boolean fetchDataDescription,
+                                      @RequestParam(value="fetchDataAssociation", required=false, defaultValue = "true") Boolean fetchDataAssociation) {
         try {
             final List<DataBrief> results = new ArrayList<>();
             // only providers that have a no parent
             final List<Integer> providerIds = providerBusiness.getProviderIdsAsInt();
             for (final Integer providerId : providerIds) {
-                final List<DataBrief> briefs = dataBusiness.getDataBriefsFromProviderId(providerId, type, true, false, sensorable, published, fetchDataDescription);
+                final List<DataBrief> briefs = dataBusiness.getDataBriefsFromProviderId(providerId, type, true, false, sensorable, published, fetchDataDescription, fetchDataAssociation);
                 results.addAll(briefs);
             }
             return new ResponseEntity(results, OK);
@@ -829,7 +830,7 @@ public class DataRestAPI extends AbstractRestAPI{
     @RequestMapping(value="/datas/{dataId}/description",method=GET,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity dataDescription(@PathVariable("dataId") final int dataId) {
         try {
-            DataBrief db = dataBusiness.getDataBrief(dataId, true);
+            DataBrief db = dataBusiness.getDataBrief(dataId, true, false);
             if (db != null) {
                  return new ResponseEntity(db.getDataDescription() ,OK);
             }
@@ -849,7 +850,7 @@ public class DataRestAPI extends AbstractRestAPI{
     @RequestMapping(value="/datas/{dataId}/geographicExtent",method=GET,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity dataGeographicExtent(@PathVariable("dataId") final int dataId) {
         try {
-            DataBrief db = dataBusiness.getDataBrief(dataId, true);
+            DataBrief db = dataBusiness.getDataBrief(dataId, true, false);
             if (db != null) {
                 return new ResponseEntity(db.getDataDescription() ,OK);
             }
@@ -890,7 +891,7 @@ public class DataRestAPI extends AbstractRestAPI{
         GeneralEnvelope globalEnv = null;
         for (final Integer dataId : dataIds) {
             try {
-                final DataBrief db = dataBusiness.getDataBrief(dataId, true);
+                final DataBrief db = dataBusiness.getDataBrief(dataId, true, false);
                 final DataDescription ddesc = db.getDataDescription();
                 if (ddesc != null) {
                     final double[] bbox = ddesc.getBoundingBox();

@@ -19,6 +19,7 @@
 
 package org.constellation.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import javax.xml.bind.annotation.*;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -34,7 +35,8 @@ import org.constellation.dto.metadata.MetadataLightBrief;
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public final class DataBrief extends Data implements Serializable {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class DataBrief extends Data implements Serializable {
 
     @XmlElement(name="provider")
     private String provider;
@@ -68,6 +70,9 @@ public final class DataBrief extends Data implements Serializable {
 
     @XmlTransient
     private DataDescription dataDescription;
+
+    @XmlElement(name="dimension")
+    private List<Dimension> dimensions = new ArrayList<>(0);
 
     public DataBrief() {
 
@@ -172,10 +177,37 @@ public final class DataBrief extends Data implements Serializable {
         this.linkedDatas = linkedDatas;
     }
 
+    public List<Dimension> getDimensions() {
+        return dimensions;
+    }
+
+    public void setDimensions(List<Dimension> dimensions) {
+        this.dimensions = dimensions;
+    }
+
     @Override
     public String toString() {
-
-        StringBuilder sb = new StringBuilder("targetStyle:\n");
+        StringBuilder sb = new StringBuilder(super.toString());
+        if (this.title != null) {
+            sb.append("title: ").append(title).append('\n');
+        }
+        if (this.owner != null) {
+            sb.append("owner: ").append(owner).append('\n');
+        }
+        if (this.provider != null) {
+            sb.append("provider: ").append(provider).append('\n');
+        }
+        if (this.pyramidConformProviderId != null) {
+            sb.append("pyramidConformProviderId: ").append(pyramidConformProviderId).append('\n');
+        }
+        if (this.parent != null) {
+            sb.append("parent: ").append(parent).append('\n');
+        }
+        sb.append("dimensions:\n");
+        for (Dimension s : dimensions) {
+            sb.append(s).append('\n');
+        }
+        sb.append("targetStyle:\n");
         for (StyleBrief s : targetStyle) {
             sb.append(s).append('\n');
         }
@@ -191,24 +223,10 @@ public final class DataBrief extends Data implements Serializable {
         for (DataBrief s : linkedDatas) {
             sb.append(s).append('\n');
         }
-
-
-        return "DataBrief{" +
-                "name='" + getName() + "'\n" +
-                "namespace='" + getNamespace() + "'\n" +
-                "provider='" + provider + "'\n" +
-                "parent='" + parent + "'\n" +
-                "title='" + title + "'\n" +
-                "date=" + getDate() +
-                "type='" + getType() + "'\n" +
-                "subtype='" + getSubtype() + "'\n" +
-                "sensorable='" + getSensorable() + "'\n" +
-                "rendered='" + getRendered() + "'\n" +
-                "statsState=" + getStatsState() + "'\n" +
-                "statsResult=" + getStatsResult() + "'\n" +
-                "dataDescription=" + dataDescription +
-                "owner='" + owner + "'\n" +
-                 sb.toString() +
-                '}';
+        sb.append("matadataDatas:\n");
+        for (MetadataLightBrief s : metadatas) {
+            sb.append(s).append('\n');
+        }
+        return sb.toString();
     }
 }

@@ -256,7 +256,7 @@ public class PyramidBusinessTest {
 
         Assert.assertEquals(1, dataIds.size());
 
-        DataBrief db = dataBusiness.getDataBrief(dataIds.get(0), false);
+        DataBrief db = dataBusiness.getDataBrief(dataIds.get(0), false, true);
 
         final DataProvider inProvider = DataProviders.getProvider(db.getProviderId());
         final Data inD = inProvider.get(NamesExt.create(db.getName()));

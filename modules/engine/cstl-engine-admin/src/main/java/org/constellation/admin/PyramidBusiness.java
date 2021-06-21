@@ -159,7 +159,7 @@ public class PyramidBusiness implements IPyramidBusiness {
 
         final List<DataBrief> briefs = new ArrayList<>();
         for (Integer dataId : dataIds) {
-            briefs.add(dataBusiness.getDataBrief(dataId, false));
+            briefs.add(dataBusiness.getDataBrief(dataId, false, true));
         }
 
         if (!briefs.isEmpty()) {

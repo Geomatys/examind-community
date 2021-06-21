@@ -167,13 +167,13 @@ public class DataBusinessTest {
      */
     @Test
     public void coverageWrappedForMetadata() throws Exception {
-        DataBrief testData = dataBusiness.getDataBrief(COVERAGE1_NAME, coverage1PID, true);
+        DataBrief testData = dataBusiness.getDataBrief(COVERAGE1_NAME, coverage1PID, true, true);
         testMetadataWrapping(testData);
     }
 
     @Test
     public void featureWrappedForMetadata() throws Exception {
-        DataBrief testData = dataBusiness.getDataBrief(FEATURE_NAME, vectorPID, true);
+        DataBrief testData = dataBusiness.getDataBrief(FEATURE_NAME, vectorPID, true, true);
         testMetadataWrapping(testData);
     }
 
@@ -208,12 +208,12 @@ public class DataBusinessTest {
 
     @Test
     public void dataCoverageTest() throws Exception {
-        DataBrief db = dataBusiness.getDataBrief(COVERAGE1_NAME, coverage1PID, true);
+        DataBrief db = dataBusiness.getDataBrief(COVERAGE1_NAME, coverage1PID, true, true);
         Assert.assertNotNull(db);
 
         LOGGER.info("wait for SSTMDE200305 stats to complete.....");
         while (db.getStatsState() == null || db.getStatsState().equals(StatisticState.STATE_PENDING))  {
-            db = dataBusiness.getDataBrief(COVERAGE1_NAME, coverage1PID, true);
+            db = dataBusiness.getDataBrief(COVERAGE1_NAME, coverage1PID, true, true);
             Thread.sleep(1000);
         }
         Assert.assertEquals("COMPLETED", db.getStatsState());
@@ -226,7 +226,7 @@ public class DataBusinessTest {
 
     @Test
     public void dataVectorTest() throws Exception {
-        DataBrief db = dataBusiness.getDataBrief(FEATURE_NAME, vectorPID, true);
+        DataBrief db = dataBusiness.getDataBrief(FEATURE_NAME, vectorPID, true, true);
         Assert.assertNotNull(db);
         Assert.assertNotNull(db.getDataDescription());
         Assert.assertTrue(db.getDataDescription() instanceof FeatureDataDescription);
@@ -249,12 +249,12 @@ public class DataBusinessTest {
 
     @Test
     public void dataAggregateTest() throws Exception {
-        DataBrief db = dataBusiness.getDataBrief(AGG_DATA_NAME, aggregatedPID, true);
+        DataBrief db = dataBusiness.getDataBrief(AGG_DATA_NAME, aggregatedPID, true, true);
         Assert.assertNotNull(db);
 
         LOGGER.info("wait for Aggregated data stats to complete.....");
         while (db.getStatsState() == null || db.getStatsState().equals("PENDING"))  {
-            db = dataBusiness.getDataBrief(AGG_DATA_NAME, aggregatedPID, true);
+            db = dataBusiness.getDataBrief(AGG_DATA_NAME, aggregatedPID, true, true);
             Thread.sleep(1000);
         }
         Assert.assertEquals("COMPLETED", db.getStatsState());
@@ -267,7 +267,7 @@ public class DataBusinessTest {
 
     @Test
     public void dataVectorRawModelTest() throws Exception {
-        DataBrief db = dataBusiness.getDataBrief(FEATURE_NAME, vectorPID, true);
+        DataBrief db = dataBusiness.getDataBrief(FEATURE_NAME, vectorPID, true, true);
 
         Map<String,Object> results = dataBusiness.getDataRawModel(db.getId());
         Assert.assertNotNull(results);
@@ -276,7 +276,7 @@ public class DataBusinessTest {
 
     @Test
     public void dataCoverageRawModelTest() throws Exception {
-        DataBrief db = dataBusiness.getDataBrief(COVERAGE1_NAME, coverage1PID, true);
+        DataBrief db = dataBusiness.getDataBrief(COVERAGE1_NAME, coverage1PID, true, true);
 
         Map<String,Object> results = dataBusiness.getDataRawModel(db.getId());
         Assert.assertNotNull(results);

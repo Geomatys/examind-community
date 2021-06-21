@@ -281,7 +281,7 @@ public class MapContextBusiness implements IMapContextBusiness {
                 }
             }
             if (dataID != null) {
-                DataBrief db = dataBusiness.getDataBrief(dataID, true);
+                DataBrief db = dataBusiness.getDataBrief(dataID, true, false);
                 final DataDescription ddesc = db.getDataDescription();
                 if (ddesc != null) {
                     final double[] bbox = ddesc.getBoundingBox();
@@ -400,7 +400,7 @@ public class MapContextBusiness implements IMapContextBusiness {
     public Data getMapContextDataId(int id) throws ConstellationException {
         final MapContextDTO mc = mapContextRepository.findById(id);
         if (mc != null) {
-            return dataBusiness.getDataBrief(new QName(mc.getName()), INTERNAL_MAP_CONTEXT_PROVIDER, false);
+            return dataBusiness.getDataBrief(new QName(mc.getName()), INTERNAL_MAP_CONTEXT_PROVIDER, false, false);
         }
         throw new TargetNotFoundException("No mapcontext found with id: " + id);
     }

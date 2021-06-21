@@ -24,11 +24,8 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 import org.constellation.dto.Data;
 import org.constellation.dto.DataBrief;
-import org.constellation.dto.DataSummary;
-import org.constellation.dto.importdata.FileBean;
 import org.constellation.dto.metadata.MetadataLightBrief;
 import org.constellation.dto.process.DataProcessReference;
-import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 
 /**
@@ -102,11 +99,12 @@ public interface IDataBusiness {
      * Returns {@link DataBrief} for given data name and provider id as integer.
      *
      * @param dataId data id.
-     * @param fetchDataDescription If true, will retriee the envelope, and specific data informations (like columns, bands, etc)
+     * @param fetchDataDescription If true, will retrieve the envelope, and specific data informations (like columns, bands, etc)
+     * @param fetchAssociations If true, will retrieve the data linked object (like sensors, services, metadatas, etc)
      * @return {@link DataBrief}.
      * @throws ConstellationException is thrown if result fails.
      */
-    DataBrief getDataBrief(int dataId, boolean fetchDataDescription) throws ConstellationException;
+    DataBrief getDataBrief(int dataId, boolean fetchDataDescription, boolean fetchAssociations) throws ConstellationException;
 
     /**
      * Returns a map structure describing the resource of this data.
@@ -123,10 +121,11 @@ public interface IDataBusiness {
      * @param dataName given data name.
      * @param providerId given data provider as integer.
      * @param fetchDataDescription If true, will retriee the envelope, and specific data informations (like columns, bands, etc)
+     * @param fetchAssociations If true, will retrieve the data linked object (like sensors, services, metadatas, etc)
      * @return {@link DataBrief}.
      * @throws ConstellationException is thrown if result fails.
      */
-    DataBrief getDataBrief(QName dataName, Integer providerId, boolean fetchDataDescription) throws ConstellationException;
+    DataBrief getDataBrief(QName dataName, Integer providerId, boolean fetchDataDescription, boolean fetchAssociations) throws ConstellationException;
 
     /**
      * Returns {@link DataBrief} for given data name and provider identifier as string.
@@ -134,11 +133,12 @@ public interface IDataBusiness {
      * @param fullName given data name.
      * @param providerIdentifier given data provider identifier.
      * @param fetchDataDescription If true, will retriee the envelope, and specific data informations (like columns, bands, etc)
+     * @param fetchAssociations If true, will retrieve the data linked object (like sensors, services, metadatas, etc)
      * 
      * @return {@link DataBrief}
      * @throws ConstellationException is thrown if result fails.
      */
-    DataBrief getDataBrief(QName fullName, String providerIdentifier, boolean fetchDataDescription) throws ConstellationException;
+    DataBrief getDataBrief(QName fullName, String providerIdentifier, boolean fetchDataDescription, boolean fetchAssociations) throws ConstellationException;
 
     /**
      * Returns The data identifier for given data name and provider identifier as string.
@@ -178,8 +178,6 @@ public interface IDataBusiness {
      */
     List<DataBrief> getDataBriefsFromMetadataId(String metadataId);
 
-    List<DataSummary> getDataSummaryFromDatasetId(Integer datasetId, boolean fetchDataDescription) throws ConfigurationException;
-
     /**
      * 
      * Returns list of {@link DataBrief} for given dataSet id, with filter on the hidden and included flags.
@@ -190,11 +188,12 @@ public interface IDataBusiness {
      * @param sensorable sensorable flag filter, can be {@code null}.
      * @param published service published flag filter, can be {@code null}.
      * @param fetchDataDescription If true, will retriee the envelope, and specific data informations (like columns, bands, etc)
-     *
+     * @param fetchAssociations If true, will retrieve the data linked object (like sensors, services, metadatas, etc)
+     * 
      * @return the list of {@link DataBrief}.
      * @throws org.constellation.exception.ConstellationException
      */
-    List<DataBrief> getDataBriefsFromDatasetId(final Integer datasetId, boolean included, boolean hidden, Boolean sensorable, Boolean published, boolean fetchDataDescription) throws ConstellationException;
+    List<DataBrief> getDataBriefsFromDatasetId(final Integer datasetId, boolean included, boolean hidden, Boolean sensorable, Boolean published, boolean fetchDataDescription, boolean fetchAssociations) throws ConstellationException;
 
     /**
      * Returns list of {@link DataBrief} for given dataSet id, with filter on the hidden and included flags.
@@ -206,11 +205,12 @@ public interface IDataBusiness {
      * @param sensorable sensorable flag filter, can be {@code null}.
      * @param published service published flag filter, can be {@code null}.
      * @param fetchDataDescription If true, will retriee the envelope, and specific data informations (like columns, bands, etc)
-     *
+     * @param fetchAssociations If true, will retrieve the data linked object (like sensors, services, metadatas, etc)
+     * 
      * @return the list of {@link DataBrief}.
      * @throws org.constellation.exception.ConstellationException
      */
-    List<DataBrief> getDataBriefsFromProviderId(final Integer providerId, String datatype, boolean included, boolean hidden, Boolean sensorable, Boolean published, boolean fetchDataDescription) throws ConstellationException;
+    List<DataBrief> getDataBriefsFromProviderId(final Integer providerId, String datatype, boolean included, boolean hidden, Boolean sensorable, Boolean published, boolean fetchDataDescription, boolean fetchAssociations) throws ConstellationException;
 
     /**
      * Returns a list of light {@link DataBrief} for given style id.

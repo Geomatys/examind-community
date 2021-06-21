@@ -396,7 +396,7 @@ public class MapContextRestAPI extends AbstractRestAPI {
                 QName layerDataName = layerName;
                 String provider="";
                 try {
-                    final DataBrief data = dataBusiness.getDataBrief(dataID, false);
+                    final DataBrief data = dataBusiness.getDataBrief(dataID, false, false);
                     final String namespace = data.getNamespace();
                     final String dataName = data.getName();
                     layerDataName = new QName(namespace, dataName);

@@ -178,7 +178,7 @@ public class AddLayerToMapService extends AbstractCstlProcess {
         try {
             Integer sid = serviceBusiness.getServiceIdByIdentifierAndType(serviceType, serviceInstance);
             if (sid != null) {
-                DataBrief db = dataBusiness.getDataBrief(layerQName, providerID, false);
+                DataBrief db = dataBusiness.getDataBrief(layerQName, providerID, false, false);
                 if (db != null) {
                     layerBusiness.add(db.getId(), layerAlias, namespace, name, sid, newLayer);
                 }

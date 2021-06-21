@@ -139,11 +139,12 @@ public interface IProviderBusiness {
      * @param included included flag filter
      * @param hidden hidden flag fliter.
      * @param fetchDataDescription If true, will retriee the envelope, and specific data informations (like columns, bands, etc)
+     * @param fetchAssociations If true, will retrieve the data linked object (like sensors, services, metadatas, etc)
      * @return
      *
      * @throws org.constellation.exception.ConstellationException
      */
-    List<DataBrief> getDataBriefsFromProviderId(Integer id, String dataType, boolean included, boolean hidden, boolean fetchDataDescription) throws ConstellationException;
+    List<DataBrief> getDataBriefsFromProviderId(Integer id, String dataType, boolean included, boolean hidden, boolean fetchDataDescription, boolean fetchAssociations) throws ConstellationException;
 
     List<Style> getStylesFromProviderId(Integer id);
 

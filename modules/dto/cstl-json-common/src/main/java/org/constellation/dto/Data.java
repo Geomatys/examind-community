@@ -18,6 +18,7 @@
  */
 package org.constellation.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
@@ -28,6 +29,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author Guilhem Legal (Geomatys)
  */
 @XmlRootElement
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Data extends Identifiable implements Serializable {
 
     private String name;
@@ -298,14 +300,61 @@ public class Data extends Identifiable implements Serializable {
     }
 
     @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder(super.toString());
+        if (this.name != null) {
+            sb.append("name: ").append(name).append('\n');
+        }
+        if (this.namespace != null) {
+            sb.append("namespace: ").append(namespace).append('\n');
+        }
+        if (this.providerId != null) {
+            sb.append("providerId: ").append(providerId).append('\n');
+        }
+        if (this.type != null) {
+            sb.append("type: ").append(type).append('\n');
+        }
+        if (this.subtype != null) {
+            sb.append("subtype: ").append(subtype).append('\n');
+        }
+        if (this.sensorable != null) {
+            sb.append("sensorable: ").append(sensorable).append('\n');
+        }
+        if (this.date != null) {
+            sb.append("date: ").append(date).append('\n');
+        }
+        if (this.ownerId != null) {
+            sb.append("ownerId: ").append(ownerId).append('\n');
+        }
+        if (this.datasetId != null) {
+            sb.append("datasetId: ").append(datasetId).append('\n');
+        }
+        if (this.statsResult != null) {
+            sb.append("statsResult: ").append(statsResult).append('\n');
+        }
+        if (this.statsState != null) {
+            sb.append("statsState: ").append(statsState).append('\n');
+        }
+        if (this.included != null) {
+            sb.append("included: ").append(included).append('\n');
+        }
+        if (this.rendered != null) {
+            sb.append("rendered: ").append(rendered).append('\n');
+        }
+        if (this.hidden != null) {
+            sb.append("hidden: ").append(hidden).append('\n');
+        }
+        return sb.toString();
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (obj == this) {
             return true;
         }
-        if (obj instanceof Data) {
+        if (obj instanceof Data && super.equals(obj)) {
             Data that = (Data) obj;
-            return Objects.equals(this.id, that.id)
-                    && Objects.equals(this.name, that.name)
+            return     Objects.equals(this.name, that.name)
                     && Objects.equals(this.namespace, that.namespace)
                     && Objects.equals(this.providerId, that.providerId)
                     && Objects.equals(this.type, that.type)
@@ -326,7 +375,7 @@ public class Data extends Identifiable implements Serializable {
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 71 * hash + Objects.hashCode(this.id);
+        hash = 71 * hash + super.hashCode();
         hash = 71 * hash + Objects.hashCode(this.name);
         hash = 71 * hash + Objects.hashCode(this.namespace);
         hash = 71 * hash + Objects.hashCode(this.providerId);

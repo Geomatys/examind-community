@@ -34,7 +34,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
 
-import org.apache.sis.storage.DataStoreException;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IMetadataBusiness;
@@ -43,7 +42,6 @@ import org.constellation.dto.Page;
 import org.constellation.dto.PagedSearch;
 import org.constellation.dto.Sort;
 import org.constellation.dto.metadata.RootObj;
-import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.json.metadata.Template;
 import org.constellation.json.metadata.bean.TemplateResolver;
@@ -90,14 +88,14 @@ public class DatasetRestAPI extends AbstractRestAPI {
             for (final Integer datasetId : datasets) {
                 final List<DataBrief> briefs;
                 if (includeData) {
-                    briefs = dataBusiness.getDataBriefsFromDatasetId(datasetId, true, false, sensorable, published, true);
+                    briefs = dataBusiness.getDataBriefsFromDatasetId(datasetId, true, false, sensorable, published, true, true);
                     if (briefs.isEmpty()) {
                         continue;
                     }
                 } else {
                     briefs = new ArrayList<>();
                 }
-                datasetBriefs.add(buildDatsetBrief(datasetId, briefs));
+                datasetBriefs.add(buildDatsetBrief(datasetId, briefs, true, true));
             }
             return new ResponseEntity(datasetBriefs, OK);
         } catch (ConstellationException ex) {
@@ -133,7 +131,7 @@ public class DatasetRestAPI extends AbstractRestAPI {
                 datasetBusiness.updateMetadata(dsId, metadata, hidden);
 
                 // get the brief to return
-                DataSetBrief brief = buildDatsetBrief(dsId, new ArrayList<>());
+                DataSetBrief brief = buildDatsetBrief(dsId, new ArrayList<>(), true, true);
 
                 return new ResponseEntity(brief, OK);
             } else {
@@ -233,25 +231,11 @@ public class DatasetRestAPI extends AbstractRestAPI {
     public ResponseEntity getDatasetData(@PathVariable(value = "datasetId") int datasetId) {
         try {
             if (datasetBusiness.existsById(datasetId)) {
-                return new ResponseEntity(dataBusiness.getDataBriefsFromDatasetId(datasetId, true, false, null, null, true), OK);
+                return new ResponseEntity(dataBusiness.getDataBriefsFromDatasetId(datasetId, true, false, null, null, true, false), OK);
             }
         } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
-        }
-        return new ResponseEntity(HttpStatus.NOT_FOUND);
-    }
-
-    /**
-     * Lists the data summary of the dataset with the specified {@literal datasetId}.
-     *
-     * @param datasetId the dataset id.
-     * @return the {@link List} of {@link org.constellation.dto.DataSummary}s.
-     */
-    @RequestMapping(value = "/datasets/{datasetId}/datas/summary", method = GET, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity getDatasetDataSummary(@PathVariable(value = "datasetId") int datasetId) throws ConfigurationException, DataStoreException {
-        if (datasetBusiness.existsById(datasetId)) {
-            return new ResponseEntity(dataBusiness.getDataSummaryFromDatasetId(datasetId, true), OK);
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
@@ -386,9 +370,9 @@ public class DatasetRestAPI extends AbstractRestAPI {
      * @param dataSetId given dataset object.
      * @return {@link DataSetBrief} built from the given dataset.
      */
-    private DataSetBrief buildDatsetBrief(final int dataSetId, List<DataBrief> children) throws ConstellationException {
+    private DataSetBrief buildDatsetBrief(final int dataSetId, List<DataBrief> children, boolean fetchDataDescription, boolean fetchDataAssociations) throws ConstellationException {
         if (children == null) {
-            children = dataBusiness.getDataBriefsFromDatasetId(dataSetId, true, false, null, null, true);
+            children = dataBusiness.getDataBriefsFromDatasetId(dataSetId, true, false, null, null, fetchDataDescription, fetchDataAssociations);
         }
         final DataSetBrief dsb = datasetBusiness.getDatasetBrief(dataSetId, children);
         return dsb;

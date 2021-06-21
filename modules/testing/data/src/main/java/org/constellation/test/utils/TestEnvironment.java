@@ -315,7 +315,7 @@ public class TestEnvironment {
            if (dpr != null) {
                int pid = dpr.createProvider(providerBusiness, datasetId);
                int dsId = providerBusiness.createOrUpdateData(pid, datasetId, true, false, null);
-               List<DataImport> datas = providerBusiness.getDataBriefsFromProviderId(pid, null, true, false, false)
+               List<DataImport> datas = providerBusiness.getDataBriefsFromProviderId(pid, null, true, false, false, false)
                        .stream().map(db -> new DataImport(db.getId(), db.getNamespace(), db.getName()))
                        .collect(Collectors.toList());
                return new ProviderImport(pid, dsId, datas);
@@ -342,7 +342,7 @@ public class TestEnvironment {
                dpr.dataDir = location;
                int pid = dpr.createProvider(providerBusiness, datasetId);
                int dsId = providerBusiness.createOrUpdateData(pid, datasetId, true, false, null);
-               List<DataImport> datas = providerBusiness.getDataBriefsFromProviderId(pid, null, true, false, false)
+               List<DataImport> datas = providerBusiness.getDataBriefsFromProviderId(pid, null, true, false, false, false)
                        .stream().map(db -> new DataImport(db.getId(), db.getNamespace(), db.getName()))
                        .collect(Collectors.toList());
                return new ProviderImport(pid, dsId, datas);
@@ -398,7 +398,7 @@ public class TestEnvironment {
 
             int pid = providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "computed-resource", source);
             int dsId = providerBusiness.createOrUpdateData(pid, datasetId, true, false, null);
-            List<DataImport> datas = providerBusiness.getDataBriefsFromProviderId(pid, null, true, false, false)
+            List<DataImport> datas = providerBusiness.getDataBriefsFromProviderId(pid, null, true, false, false, false)
                        .stream().map(db -> new DataImport(db.getId(), db.getNamespace(), db.getName()))
                        .collect(Collectors.toList());
             return new ProviderImport(pid, dsId, datas);

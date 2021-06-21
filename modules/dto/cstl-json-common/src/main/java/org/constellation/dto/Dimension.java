@@ -17,6 +17,10 @@
 
 package org.constellation.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlValue;
 
@@ -24,6 +28,8 @@ import javax.xml.bind.annotation.XmlValue;
  *
  * @author guilhem
  */
+@JsonInclude(Include.NON_NULL)
+@XmlAccessorType(XmlAccessType.FIELD)
 public class Dimension {
 
     @XmlValue

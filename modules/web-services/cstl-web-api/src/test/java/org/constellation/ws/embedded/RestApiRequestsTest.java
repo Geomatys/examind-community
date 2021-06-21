@@ -211,7 +211,7 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
 
         init();
         Assert.assertNotNull("no observation file provider found", omPID);
-        List<DataBrief> datas = getDataBusiness().getDataBriefsFromProviderId(omPID, null, true, false, null, null, false);
+        List<DataBrief> datas = getDataBusiness().getDataBriefsFromProviderId(omPID, null, true, false, null, null, false, false);
         LOGGER.log(Level.INFO, "Provider {0} contains {1} resources", new Object[] {omPID, datas.size()});
         Integer dataId = getDataBusiness().getDataId(new QName("http://www.opengis.net/sampling/1.0","single-observations"), omPID);
         Assert.assertNotNull("no single-observations data found", dataId);

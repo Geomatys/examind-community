@@ -228,11 +228,11 @@ public class ProviderBusiness implements IProviderBusiness {
     }
 
     @Override
-    public List<DataBrief> getDataBriefsFromProviderId(Integer id, String dataType, boolean included, boolean hidden, boolean fetchDataDescription) throws ConstellationException{
+    public List<DataBrief> getDataBriefsFromProviderId(Integer id, String dataType, boolean included, boolean hidden, boolean fetchDataDescription, boolean fetchDataAssociations) throws ConstellationException{
         final List<DataBrief> results = new ArrayList<>();
         final List<Integer> datas = getDataIdsFromProviderId(id, dataType, included, hidden);
         for (final Integer dataId : datas) {
-            results.add(dataBusiness.getDataBrief(dataId, fetchDataDescription));
+            results.add(dataBusiness.getDataBrief(dataId, fetchDataDescription, fetchDataAssociations));
         }
         return results;
     }

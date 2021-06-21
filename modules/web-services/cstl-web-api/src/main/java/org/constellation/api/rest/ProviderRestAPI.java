@@ -314,7 +314,7 @@ public class ProviderRestAPI extends AbstractRestAPI {
     public ResponseEntity getDataListsForProvider(@PathVariable("id") final int providerId) {
         final List<DataBrief> briefs;
         try {
-            briefs = providerBusiness.getDataBriefsFromProviderId(providerId, null, true, false, true);
+            briefs = providerBusiness.getDataBriefsFromProviderId(providerId, null, true, false, true, true);
         } catch (Exception ex) {
             return new ErrorMessage(ex).build();
         }

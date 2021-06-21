@@ -38,7 +38,6 @@ import org.apache.sis.coverage.grid.GridCoverageProcessor;
 import org.apache.sis.coverage.grid.GridDerivation;
 import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
-import org.apache.sis.coverage.grid.IncompleteGridGeometryException;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.image.Interpolation;
 import org.apache.sis.internal.util.UnmodifiableArrayList;
@@ -84,7 +83,6 @@ import org.opengis.referencing.cs.CoordinateSystemAxis;
 import org.opengis.referencing.datum.PixelInCell;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
-import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
 
 /**
@@ -205,7 +203,7 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
             } else {
                 LOGGER.log(Level.WARNING, "Unable to get a GridGeometry for coverage data:{0}", name);
             }
-        } catch (FactoryException | TransformException | DataStoreException | IncompleteGridGeometryException e) {
+        } catch (Exception e) {
             throw new ConstellationStoreException("Unable to extract available times from coverage data " + name, e);
         }
         return dates;
@@ -238,7 +236,7 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
             } else {
                 LOGGER.log(Level.WARNING, "Unable to get a GridGeometry for coverage data:{0}", name);
             }
-        } catch (TransformException | DataStoreException | IncompleteGridGeometryException e) {
+        } catch (Exception e) {
             throw new ConstellationStoreException("Unable to extract available elevations from coverage data " + name, e);
         }
 
