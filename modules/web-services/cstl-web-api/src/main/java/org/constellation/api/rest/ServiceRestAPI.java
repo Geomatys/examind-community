@@ -36,7 +36,8 @@ import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IServiceBusiness;
-import org.constellation.dto.DataBrief;
+import org.constellation.dto.CstlUser;
+import org.constellation.dto.Data;
 import org.constellation.dto.StyleBrief;
 import org.constellation.dto.service.Instance;
 import org.constellation.dto.service.config.wxs.Layer;
@@ -147,9 +148,10 @@ public class ServiceRestAPI extends AbstractRestAPI {
                 final List<Layer> layers = layerBusiness.getLayers(service.getId(), securityManager.getCurrentUserLogin());
                 final List<LayerSummary> layerSummaries = new ArrayList<>();
                 for (final Layer lay : layers) {
-                    final DataBrief db = dataBusiness.getDataBrief(lay.getDataId(), false);
+                    final Data db = dataBusiness.getData(lay.getDataId());
+                    final String owner = userBusiness.findById(db.getOwnerId()).map(CstlUser::getLogin).orElse(null);
                     final List<StyleBrief> sBriefs = Util.convertRefIntoStylesBrief(lay.getStyles());
-                    final LayerSummary sum = new LayerSummary(lay, db, sBriefs);
+                    final LayerSummary sum = new LayerSummary(lay, db, owner, sBriefs);
                     layerSummaries.add(sum);
                 }
                 final ServiceLayersDTO servLay = new ServiceLayersDTO(service, layerSummaries);

@@ -117,12 +117,6 @@ public class Layer {
     @XmlElement(name="Modified-Date")
     private Date date;
 
-    @XmlElement(name="providerType")
-    private String providerType;
-
-    @XmlElement(name="providerID")
-    private String providerID;
-
     @XmlElement(name = "owner")
     private Integer owner;
 
@@ -131,6 +125,32 @@ public class Layer {
     private List<GetFeatureInfoCfg> getFeatureInfoCfgs;
 
     public Layer() {
+    }
+
+    public Layer(Layer that) {
+        if (that != null) {
+            this.abstrac = that.abstrac;
+            this.id = that.id;
+            this.dataId = that.dataId;
+            this.attribution = that.attribution;
+            this.authorityURL = that.authorityURL;
+            this.crs = that.crs;
+            this.dataURL = that.dataURL;
+            this.filter = that.filter;
+            this.alias = that.alias;
+            this.version = that.version;
+            this.identifier = that.identifier;
+            this.keywords = that.keywords;
+            this.metadataURL = that.metadataURL;
+            this.name = that.name;
+            this.styles = that.styles;
+            this.opaque = that.opaque;
+            this.multiLangTitle = that.multiLangTitle;
+            this.multiLangAbstract = that.multiLangAbstract;
+            this.multiLangKeywords = that.multiLangKeywords;
+            this.title = that.title;
+            this.getFeatureInfoCfgs = that.getFeatureInfoCfgs;
+        }
     }
 
     public Layer(final QName name) {
@@ -350,14 +370,6 @@ public class Layer {
         this.opaque = opaque;
     }
 
-    public String getProviderID() {
-        return providerID;
-    }
-
-    public void setProviderID(final String providerID) {
-        this.providerID = providerID;
-    }
-
     /**
      * @return the crs
      */
@@ -392,14 +404,6 @@ public class Layer {
 
     public void setDate(final Date date) {
         this.date = date;
-    }
-
-    public String getProviderType() {
-        return providerType;
-    }
-
-    public void setProviderType(final String providerType) {
-        this.providerType = providerType;
     }
 
     public Integer getOwner() {
@@ -587,7 +591,7 @@ public class Layer {
                    Objects.equals(this.opaque,       that.opaque) &&
                    Objects.equals(this.multiLangTitle,    that.multiLangTitle) &&
                    Objects.equals(this.multiLangAbstract, that.multiLangAbstract) &&
-                   Objects.equals(this.multiLangKeywords, that.multiLangAbstract) &&
+                   Objects.equals(this.multiLangKeywords, that.multiLangKeywords) &&
                    Objects.equals(this.title,        that.title) &&
                    Objects.equals(this.getFeatureInfoCfgs, that.getFeatureInfoCfgs);
         }

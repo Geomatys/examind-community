@@ -135,9 +135,10 @@ public class MapRestAPI {
 
             final List<LayerSummary> sumLayers = new ArrayList<>();
             for (final Layer lay : layers) {
-                final DataBrief db = dataBusiness.getDataBrief(lay.getDataId(), false);
+                final Data db = dataBusiness.getData(lay.getDataId());
+                final String owner = userBusiness.findById(db.getOwnerId()).get().getLogin();
                 List<StyleBrief> layerStyleBrief = Util.convertRefIntoStylesBrief(lay.getStyles());
-                sumLayers.add(new LayerSummary(lay,db, layerStyleBrief));
+                sumLayers.add(new LayerSummary(lay, db, owner, layerStyleBrief));
             }
             return new ResponseEntity(sumLayers, OK);
         } catch(Exception ex){

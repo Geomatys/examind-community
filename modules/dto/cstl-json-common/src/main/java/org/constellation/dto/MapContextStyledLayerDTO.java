@@ -77,10 +77,8 @@ public class MapContextStyledLayerDTO extends LayerSummary implements Comparable
                 String dataType,
                 String dataSubType,
                 String dataOwner,
-                String dataProvider,
-                Integer dataProviderID,
                 final List<StyleBrief> targetStyles) {
-            super(layerId, layerName, layerNamespace, layerAlias, serviceID, dataId, date, layerConfig, ownerId, layerTitle, dataType, dataSubType, dataOwner, dataProvider, dataProviderID, targetStyles);
+            super(layerId, layerName, layerNamespace, layerAlias, serviceID, dataId, date, layerConfig, ownerId, layerTitle, dataType, dataSubType, dataOwner, targetStyles);
             this.id = id;
             this.mapcontextId = mapcontextId;
             this.layerId = layerId;
@@ -123,9 +121,10 @@ public class MapContextStyledLayerDTO extends LayerSummary implements Comparable
 		Boolean iswms,
 		Integer dataId,
                 final Layer layer,
-                final DataBrief db,
+                final Data db,
+                final String owner,
                 final List<StyleBrief> layerStyles) {
-        super(layer, db, layerStyles);
+        super(layer, db, owner, layerStyles);
         this.id = id;
         this.mapcontextId = mapcontextId;
         this.layerId = layerId;
@@ -163,9 +162,8 @@ public class MapContextStyledLayerDTO extends LayerSummary implements Comparable
 		Boolean layerVisible,
                 final org.constellation.dto.Layer layer,
                 final Data db,
-                final String provider,
                 final String owner) {
-        super(layer, db, provider, owner);
+        super(layer, db, owner);
         this.id = id;
         this.mapcontextId = mapcontextId;
         this.layerId = layer.getId();

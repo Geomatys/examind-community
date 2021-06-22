@@ -45,6 +45,7 @@ import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IUserBusiness;
 import org.constellation.dto.CstlUser;
+import org.constellation.dto.Data;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.DataDescription;
 import org.constellation.dto.Layer;
@@ -384,17 +385,14 @@ public class MapContextBusiness implements IMapContextBusiness {
             final Integer dataID = styledLayer.getDataId();
             if (layerID != null) {
                 final Layer layer = layerRepository.findById(layerID);
-                final DataBrief db = dataBusiness.getDataBrief(layer.getDataId(), true);
+                final Data db = dataBusiness.getData(layer.getDataId());
 
-                final ProviderBrief provider = providerBusiness.getProvider(db.getProviderId());
                 final QName name = new QName(layer.getNamespace(), layer.getName());
 
                 final org.constellation.dto.service.config.wxs.Layer layerConfig = new org.constellation.dto.service.config.wxs.Layer(layer.getId(), name);
                 layerConfig.setAlias(layer.getAlias());
                 layerConfig.setDate(layer.getDate());
                 layerConfig.setOwner(layer.getOwnerId());
-                layerConfig.setProviderID(provider.getIdentifier());
-                layerConfig.setProviderType(provider.getType());
                 layerConfig.setDataId(layer.getDataId());
 
                 final List<Integer> styledLays = styledLayerRepository.findByLayer(layer.getId());
@@ -408,8 +406,9 @@ public class MapContextBusiness implements IMapContextBusiness {
                     drs.add(dr);
                 }
                 layerConfig.setStyles(drs);
+                String owner = userBusiness.findById(db.getOwnerId()).map(CstlUser::getLogin).orElse(null);
 
-                dto = buildMapContextStyledLayer(styledLayer, layerConfig, db);
+                dto = buildMapContextStyledLayer(styledLayer, layerConfig, db, owner);
 
                 if (styledLayer.getStyleId() != null) {
                     // Extract style information for this layer
@@ -425,14 +424,12 @@ public class MapContextBusiness implements IMapContextBusiness {
                 dto.setServiceIdentifier(serviceRecord.getIdentifier());
                 dto.setServiceVersions(serviceRecord.getVersions());
             } else if (dataID != null) {
-                final DataBrief db = dataBusiness.getDataBrief(dataID, true);
+                final Data db = dataBusiness.getData(dataID);
                 final QName dataName = new QName(db.getNamespace(), db.getName());
                 final org.constellation.dto.service.config.wxs.Layer layerConfig = new org.constellation.dto.service.config.wxs.Layer(styledLayer.getLayerId(), dataName);
                 layerConfig.setAlias(db.getName());
                 layerConfig.setDate(db.getDate());
                 layerConfig.setOwner(db.getOwnerId());
-                layerConfig.setProviderID(provider.getIdentifier());
-                layerConfig.setProviderType(provider.getType());
                 layerConfig.setDataId(dataID);
 
                 // Fill styles
@@ -447,8 +444,8 @@ public class MapContextBusiness implements IMapContextBusiness {
                     drs.add(dr);
                 }
                 layerConfig.setStyles(drs);
-
-                dto = buildMapContextStyledLayer(styledLayer, layerConfig, db);
+                String owner = userBusiness.findById(db.getOwnerId()).map(CstlUser::getLogin).orElse(null);
+                dto = buildMapContextStyledLayer(styledLayer, layerConfig, db, owner);
 
                 if (styledLayer.getStyleId() != null) {
                     // Extract style information for this layer
@@ -469,7 +466,7 @@ public class MapContextBusiness implements IMapContextBusiness {
     }
 
     private static MapContextStyledLayerDTO buildMapContextStyledLayer(MapContextStyledLayerDTO mcSl, final org.constellation.dto.service.config.wxs.Layer layer,
-                final DataBrief db) {
+                final Data db, String owner) {
         List<StyleBrief> layerStyleBrief = null;
         if (layer != null) {
             layerStyleBrief = Util.convertRefIntoStylesBrief(layer.getStyles());
@@ -487,7 +484,7 @@ public class MapContextBusiness implements IMapContextBusiness {
                 mcSl.getExternalServiceVersion(),
                 mcSl.getExternalStyle(),
                 mcSl.isIswms(),
-                mcSl.getDataId(), layer, db, layerStyleBrief);
+                mcSl.getDataId(), layer, db, owner, layerStyleBrief);
 
     }
 }

@@ -49,7 +49,6 @@ import org.constellation.dto.Data;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.Layer;
 import org.constellation.dto.NameInProvider;
-import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.StyleReference;
 import org.constellation.dto.service.Service;
 import org.constellation.dto.service.config.wxs.FilterAndDimension;
@@ -61,7 +60,6 @@ import org.constellation.exception.TargetNotFoundException;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.constellation.repository.DataRepository;
 import org.constellation.repository.LayerRepository;
-import org.constellation.repository.ProviderRepository;
 import org.constellation.repository.StyleRepository;
 import org.constellation.ws.LayerSecurityFilter;
 import org.constellation.ws.MapFactory;
@@ -88,8 +86,6 @@ public class LayerBusiness implements ILayerBusiness {
     protected LayerRepository layerRepository;
     @Autowired
     protected DataRepository dataRepository;
-    @Autowired
-    private ProviderRepository providerRepository;
     @Autowired
     protected IServiceBusiness serviceBusiness;
     @Autowired
@@ -313,7 +309,6 @@ public class LayerBusiness implements ILayerBusiness {
                     layerSummary.setType(db.getType());
                     layerSummary.setSubtype(db.getSubtype());
                     layerSummary.setOwner(db.getOwner());
-                    layerSummary.setProvider(db.getProvider());
                 }
             }
             layerSummary.setId(lay.getId());
@@ -535,7 +530,6 @@ public class LayerBusiness implements ILayerBusiness {
      * @throws ConfigurationException
      */
     private org.constellation.dto.service.config.wxs.Layer toLayerConfig(Layer layer) throws ConfigurationException {
-        final ProviderBrief provider  = providerRepository.findForData(layer.getDataId());
         final QName name         = new QName(layer.getNamespace(), layer.getName());
         org.constellation.dto.service.config.wxs.Layer layerConfig = readLayerConfiguration(layer.getConfig());
         if (layerConfig == null) {
@@ -548,8 +542,6 @@ public class LayerBusiness implements ILayerBusiness {
         layerConfig.setAlias(layer.getAlias());
         layerConfig.setDate(layer.getDate());
         layerConfig.setOwner(layer.getOwnerId());
-        layerConfig.setProviderID(provider.getIdentifier());
-        layerConfig.setProviderType(provider.getType());
         layerConfig.setDataId(layer.getDataId());
 
         // TODO layerDto.setAbstrac();

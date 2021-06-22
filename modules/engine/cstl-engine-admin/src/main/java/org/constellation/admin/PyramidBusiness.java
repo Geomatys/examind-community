@@ -374,9 +374,10 @@ public class PyramidBusiness implements IPyramidBusiness {
 
         for (final MapContextStyledLayerDTO layer : mc.getLayers()) {
 
-            final Integer providerIdentifier = layer.getProviderId();
-            final String dataName = layer.getName();
-            if (providerIdentifier == null) {
+            final Integer dataId = layer.getDataId();
+
+            // external Layer
+            if (dataId == null) {
                 URL serviceUrl;
                 try {
                     serviceUrl = new URL(layer.getExternalServiceUrl());
@@ -387,21 +388,22 @@ public class PyramidBusiness implements IPyramidBusiness {
                 //it is a wms layer
                 final String serviceVersion = layer.getExternalServiceVersion() != null ? layer.getExternalServiceVersion() : "1.3.0";
                 final WebMapClient wmsServer = new WebMapClient(serviceUrl, WMSVersion.getVersion(serviceVersion));
-                final WMSResource wmsLayer = new WMSResource(wmsServer, dataName);
+                final WMSResource wmsLayer = new WMSResource(wmsServer, layer.getName());
                 context.getComponents().add(MapBuilder.createLayer(wmsLayer));
                 continue;
             }
             //get data
             final Data inData;
             try {
-                inData = DataProviders.getProviderData(providerIdentifier, null, dataName);
+                final org.constellation.dto.Data dbD = dataBusiness.getData(dataId);
+                inData = DataProviders.getProviderData(dbD.getProviderId(), dbD.getNamespace(), dbD.getName());
             } catch (ConfigurationException ex) {
-                LOGGER.log(Level.WARNING, "Provider " + providerIdentifier + " does not exist");
+                LOGGER.log(Level.WARNING, "Data " + dataId + " does not exist");
                 continue;
             }
 
             if (inData  == null) {
-                LOGGER.log(Level.WARNING, "Data " + dataName + " does not exist in provider " + providerIdentifier);
+                LOGGER.log(Level.WARNING, "Data: " + dataId + " does not exist.");
                 continue;
             }
 

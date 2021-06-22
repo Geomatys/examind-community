@@ -91,7 +91,7 @@ public class MapcontextRepositoryTest extends AbstractRepositoryTest {
         /*
          * layers
          */
-        MapContextStyledLayerDTO mpl =  new MapContextStyledLayerDTO(null, mpid1, 0, 100, true, l1, db, "provider-test2", owner.getLogin());
+        MapContextStyledLayerDTO mpl =  new MapContextStyledLayerDTO(null, mpid1, 0, 100, true, l1, db, owner.getLogin());
         List<MapContextStyledLayerDTO> layers = new ArrayList<>();
         layers.add(mpl);
         mapcontextRepository.setLinkedLayers(mpid1, layers);

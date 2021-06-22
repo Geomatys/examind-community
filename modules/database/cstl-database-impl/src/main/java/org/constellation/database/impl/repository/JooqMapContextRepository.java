@@ -279,8 +279,6 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
             String dataType = null;
             String dataSubType = null;
             String dataOwner = null;
-            String dataProvider = null;
-            Integer dataProviderID = null;
             Integer ownerId = null;
             if (data != null) {
                 dataType = data.getType();
@@ -289,8 +287,6 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
                 if (user.isPresent()) {
                     dataOwner = user.get().getLogin();
                 }
-                dataProvider = providerRepository.findOne(data.getProviderId()).getIdentifier();
-                dataProviderID = data.getProviderId();
                 ownerId = data.getOwnerId();
             }
             // TODO target styles
@@ -320,8 +316,6 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
                     dataType,
                     dataSubType,
                     dataOwner,
-                    dataProvider,
-                    dataProviderID,
                     null);
         }
         return null;
