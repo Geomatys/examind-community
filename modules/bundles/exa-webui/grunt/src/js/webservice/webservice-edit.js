@@ -731,6 +731,23 @@ angular.module('cstl-webservice-edit', [
             );
         };
     })
+    .controller('LayerInfoAddModalController', function($scope, $modalInstance,Examind,Growl,layer){
+        $scope.layer = layer;
+        $scope.layerForm = {
+            "alias": layer.alias,
+            "title": layer.title
+        };
+
+        $scope.close = function() {
+            $modalInstance.dismiss('close');
+        };
+
+        $scope.save = function() {
+            $scope.layer.alias = $scope.layerForm.alias;
+            $scope.layer.title = $scope.layerForm.title;
+            $modalInstance.close();
+        };
+    })
     .controller('EditCSWMetadataModalController', function($scope, $modalInstance, $controller,Growl,Examind,serviceId,recordId,type,template) {
         //$scope.provider = id;
         $scope.serviceId = serviceId;
@@ -1056,8 +1073,8 @@ angular.module('cstl-webservice-edit', [
         };
 
     })
-    .controller('WMSAddLayerModalController', function($scope, $modalInstance, service,
-                                                        Growl, Examind, epsgCodes) {
+    .controller('WMSAddLayerModalController', function($scope, $modal, $modalInstance, service,
+                                                        Growl, Examind, epsgCodes, Dashboard) {
         var DEFAULT_PROJECTION = {
             code:"EPSG:3857",
             desc:"3857 - WGS 84 / Pseudo-Mercator"
@@ -1132,25 +1149,53 @@ angular.module('cstl-webservice-edit', [
                 );
             } else {
                 //using angular.forEach to avoid jsHint warning when declaring function in loop
-                angular.forEach($scope.values.listSelect, function(value){
-                    var providerId = value.provider;
-                    providerId = value.pyramidConformProviderId?value.pyramidConformProviderId:value.provider;
-                    Examind.map.addLayer($scope.service.type, $scope.service.identifier,
-                        {layerAlias: value.name,
-                            layerId: value.name,
-                            serviceType: $scope.service.type,
-                            serviceId: $scope.service.identifier,
-                            providerId: providerId,
-                            layerNamespace: value.namespace}).then(
-                        function(response) {//on success
-                            Growl('success', 'Success', response.data.message);
-                            $scope.close();
-                        },
-                        function(err) {//on error
-                            Growl('error', 'Error', err.data.message);
-                            $scope.dismiss();
-                        }
-                    );
+                angular.forEach($scope.values.listSelect, function (value) {
+                    var layer = {
+                        name: value.name,
+                        namespace: value.namespace,
+                        alias: value.name,
+                        service: $scope.service.id,
+                        dataId: value.id,
+                        date: '',
+                        config: '',
+                        ownerId: value.ownerId,
+                        title: ''
+                    };
+
+                    if ($scope.values.listSelect.length === 1) {
+                        var modal = $modal.open({
+                            templateUrl: 'views/data/layerInfo.html',
+                            controller: 'LayerInfoAddModalController',
+                            resolve: {
+                                'layer': function () {
+                                    return layer;
+                                }
+                            }
+                        });
+                        modal.result.then(function () {
+                            Examind.map.addLayerNew(layer).then(
+                                function (response) {//on success
+                                    Growl('success', 'Success', response.data.message);
+                                    $scope.close();
+                                },
+                                function (err) {//on error
+                                    Growl('error', 'Error', err.data.message);
+                                    $scope.dismiss();
+                                }
+                            );
+                        });
+                    } else {
+                        Examind.map.addLayerNew(layer).then(
+                            function (response) {//on success
+                                Growl('success', 'Success', response.data.message);
+                                $scope.close();
+                            },
+                            function (err) {//on error
+                                Growl('error', 'Error', err.data.message);
+                                $scope.dismiss();
+                            }
+                        );
+                    }
                 });
             }
         };

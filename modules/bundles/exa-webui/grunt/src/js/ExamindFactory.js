@@ -2215,6 +2215,15 @@ function Examind($http, url) {
          *
          * @returns {Promise}
          */
+        addLayerNew : function(layer) {
+            return self.request({
+                method: 'PUT',
+                url: 'MAP/layer/add',
+                headers: {'Accept': 'application/json'},
+                data: layer
+            });
+        },
+        
         addLayer : function(type, id, addLayer) {
             return self.request({
                 method: 'PUT',
