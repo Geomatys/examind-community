@@ -50,6 +50,7 @@
         <bean class="org.constellation.wps.ws.rs.WPSJSONResponseWriter" />
         <bean class="org.constellation.ws.rs.provider.ExceptionReportWriter" />
         <bean class="org.constellation.api.rest.converter.ProfileMessageConverter" />
+        <bean class="org.constellation.ws.rs.provider.ByteArrayWriter" />
         <bean class="org.constellation.ws.rs.provider.RenderedImageWriter" />
         <bean class="org.constellation.api.rest.converter.PortrayalMessageConverter" />
         <bean class="org.constellation.api.rest.converter.WMTSCapabilitiesMessageConverter" />

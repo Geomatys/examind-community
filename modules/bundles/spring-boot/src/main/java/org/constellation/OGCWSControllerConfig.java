@@ -40,6 +40,7 @@ import org.constellation.wps.ws.rs.WPSResponseWriter;
 import org.constellation.ws.rs.provider.ExceptionReportWriter;
 import org.constellation.api.rest.converter.PortrayalMessageConverter;
 import org.constellation.api.rest.converter.ProfileMessageConverter;
+import org.constellation.ws.rs.provider.ByteArrayWriter;
 import org.constellation.ws.rs.provider.RenderedImageWriter;
 
 import org.springframework.context.annotation.Configuration;
@@ -80,6 +81,7 @@ public class OGCWSControllerConfig extends WebMvcConfigurationSupport {
         converters.add(new ProfileMessageConverter());
         converters.add(new RenderedImageWriter());
         converters.add(new ExceptionReportWriter());
+        converters.add(new ByteArrayWriter());
         converters.add(new StringHttpMessageConverter());
         converters.add(new MappingJackson2HttpMessageConverter());
     }
