@@ -317,7 +317,7 @@ public class MapContextBusiness implements IMapContextBusiness {
     @Transactional
     public void updateContext(MapContextLayersDTO mapContext) {
         mapContextRepository.update(mapContext);
-    }
+        }
 
     @Override
     @Transactional

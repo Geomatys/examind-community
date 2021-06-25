@@ -18,9 +18,15 @@
  */
 package org.constellation.process.provider;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.sis.parameter.Parameters;
 import org.constellation.admin.SpringHelper;
+import org.constellation.api.ProviderConstants;
+import org.constellation.business.IDataBusiness;
 import org.constellation.business.IProviderBusiness;
+import org.constellation.dto.Data;
+import org.constellation.dto.ProviderBrief;
 import org.constellation.exception.ConstellationException;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.provider.DataProviders;
@@ -31,11 +37,13 @@ import org.opengis.parameter.ParameterValueGroup;
 import static org.constellation.process.provider.DeleteProviderDescriptor.*;
 
 /**
- * Remove a provider from constellation.
+ * Remove one or all providers from Examind.
+ * the default providers (used for styling in ui) are not removed.
  *
  * @author Quentin Boileau (Geomatys)
  * @author Fabien Bernard (Geomatys)
  * @author Johann Sorel (Geomatys)
+ * @author Guilhem Legal (Geomatys)
  */
 public final class DeleteProvider extends AbstractCstlProcess{
 
@@ -50,7 +58,7 @@ public final class DeleteProvider extends AbstractCstlProcess{
     private static ParameterValueGroup toParameter(String providerId, Boolean deletaData) {
         Parameters params = Parameters.castOrWrap(INSTANCE.getInputDescriptor().createValue());
         params.getOrCreate(PROVIDER_ID).setValue(providerId);
-        params.getOrCreate(DELETE_DATA).setValue(deletaData);
+        params.getOrCreate(ONLY_HIDDEN_DATA).setValue(deletaData);
         return params;
     }
 
@@ -59,28 +67,51 @@ public final class DeleteProvider extends AbstractCstlProcess{
      */
     @Override
     protected void execute() throws ProcessException {
-        final Integer providerID  = inputParameters.getValue(PROVIDER_ID); // required
-        final Boolean deleteData = inputParameters.getValue(DELETE_DATA); // optional
+        final Integer providerID  = inputParameters.getValue(PROVIDER_ID);
+        final Boolean onlyHidden = inputParameters.getValue(ONLY_HIDDEN_DATA);
 
-        // Retrieve or not the provider instance.
         final IProviderBusiness providerBusiness = SpringHelper.getBean(IProviderBusiness.class);
+        final IDataBusiness dataBusiness = SpringHelper.getBean(IDataBusiness.class);
 
-        if (providerBusiness.getProvider(providerID) == null) {
-            throw new ProcessException("Unable to delete the provider with id \"" + providerID + "\". Not found.", this, null);
+        List<Integer> pids = new ArrayList<>();
+        if (providerID != null) {
+            pids.add(providerID);
+        } else {
+            pids = providerBusiness.getProviderIdsAsInt();
         }
 
-        // Remove provider from its registry.
-        if (Boolean.TRUE.equals(deleteData)) {
-            try {
-                DataProviders.getProvider(providerID).removeAll();
-            } catch (ConstellationException ex) {
-                throw new ProcessException("Failed to delete provider : " + providerID+"  "+ex.getMessage(), this, ex);
+        int part = 100 / pids.size();
+        int i = 1;
+        ploop:for (Integer pid : pids) {
+            checkDismissed();
+            ProviderBrief provider = providerBusiness.getProvider(pid);
+            if (provider == null) {
+                throw new ProcessException("Unable to delete the provider with id \"" + pid + "\". Not found.", this, null);
             }
-        }
-        try {
-            providerBusiness.removeProvider(providerID);
-        } catch (ConstellationException ex) {
-            throw new ProcessException("Failed to delete provider : " + providerID+"  "+ex.getMessage(), this, ex);
+            try {
+                // skip internal providers
+                if (ProviderConstants.DEFAULT_PROVIDERS.contains(provider.getIdentifier())) {
+                    continue;
+                }
+                fireProgressing("Removing Provider", i*part, false);
+
+
+                // Remove provider from its registry.
+                if (Boolean.TRUE.equals(onlyHidden)) {
+                    List<Integer> dids = providerBusiness.getDataIdsFromProviderId(pid);
+                    for (Integer did : dids) {
+                        Data d = dataBusiness.getData(did);
+                        if (!d.getHidden() || d.getDatasetId() != null || "pyramid".equals(d.getSubtype())) {
+                            continue ploop;
+                        }
+                    }
+                }
+                LOGGER.info("Removing provider: " + provider.getIdentifier());
+                providerBusiness.removeProvider(pid);
+            } catch (Exception ex) {
+                throw new ProcessException("Failed to delete provider : " + pid +"  "+ex.getMessage(), this, ex);
+            }
+            i++;
         }
     }
 

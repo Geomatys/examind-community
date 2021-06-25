@@ -58,6 +58,7 @@ import javax.xml.bind.Marshaller;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.util.MetadataUtilities;
+import static org.constellation.api.ProviderConstants.INTERNAL_SENSOR_PROVIDER;
 import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.exception.ConfigurationException;
@@ -384,13 +385,13 @@ public class SensorBusiness implements ISensorBusiness {
 
     @Override
     public Integer getDefaultInternalProviderID() throws ConfigurationException {
-        Integer provider = providerBusiness.getIDFromIdentifier("default-internal-sensor");
+        Integer provider = providerBusiness.getIDFromIdentifier(INTERNAL_SENSOR_PROVIDER);
         if (provider == null) {
             // TODO fill missing parameters
             final DataStoreProvider factory = DataStores.getProviderById("cstlsensor");
             if (factory != null) {
                 ParameterValueGroup params = factory.getOpenParameters().createValue();
-                provider = providerBusiness.create("default-internal-sensor", SPI_NAMES.SENSOR_SPI_NAME, params);
+                provider = providerBusiness.create(INTERNAL_SENSOR_PROVIDER, SPI_NAMES.SENSOR_SPI_NAME, params);
                 if (provider == null) {
                     throw new ConfigurationException("Fail to create default internal sensor provider");
                 }

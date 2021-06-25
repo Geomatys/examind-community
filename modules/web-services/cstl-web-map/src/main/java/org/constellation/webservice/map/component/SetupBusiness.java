@@ -37,6 +37,8 @@ import org.apache.sis.parameter.Parameters;
 
 import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
+import static org.constellation.api.ProviderConstants.GENERIC_SHAPE_PROVIDER;
+import static org.constellation.api.ProviderConstants.GENERIC_TIF_PROVIDER;
 import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IDataBusiness;
@@ -275,8 +277,7 @@ public class SetupBusiness {
             final Path dst = dataDirectory.resolve("shapes");
 
                 final String featureStoreStr = "data-store";
-                final String shpProvName = "generic_shp";
-                Integer provider = providerBusiness.getIDFromIdentifier(shpProvName);
+                Integer provider = providerBusiness.getIDFromIdentifier(GENERIC_SHAPE_PROVIDER);
                 if (provider == null) {
                     // Acquire SHP provider service instance.
                     DataProviderFactory shpService = null;
@@ -292,7 +293,7 @@ public class SetupBusiness {
                     }
 
                 final ParameterValueGroup source = Parameters.castOrWrap(shpService.getProviderDescriptor().createValue());
-                source.parameter("id").setValue(shpProvName);
+                source.parameter("id").setValue(GENERIC_SHAPE_PROVIDER);
                 source.parameter("providerType").setValue("vector");
                 source.parameter("create_dataset").setValue(false);
 
@@ -317,7 +318,7 @@ public class SetupBusiness {
                     desc.createProcess(inputs).call();
 
                     // set hidden true for this data
-                    final Integer p = providerBusiness.getIDFromIdentifier(shpProvName);
+                    final Integer p = providerBusiness.getIDFromIdentifier(GENERIC_SHAPE_PROVIDER);
                     if (p != null) {
                         final List<Integer> datas = providerBusiness.getDataIdsFromProviderId(p);
                         for (final Integer dataId : datas) {
@@ -340,26 +341,24 @@ public class SetupBusiness {
          */
         private void initializeDefaultRasterData() {
             final Path dst = dataDirectory.resolve("raster");
+            final String coverageFileStr = "data-store";
 
-                final String coverageFileStr = "data-store";
-                final String tifProvName = "generic_world_tif";
-
-                if (providerBusiness.getIDFromIdentifier(tifProvName) == null) {
-                    // Acquire TIFF provider service instance.
-                    DataProviderFactory tifService = null;
-                    for (final DataProviderFactory service : DataProviders.getFactories()) {
-                        if (service.getName().equals(coverageFileStr)) {
-                            tifService = service;
-                            break;
-                        }
+            if (providerBusiness.getIDFromIdentifier(GENERIC_TIF_PROVIDER) == null) {
+                // Acquire TIFF provider service instance.
+                DataProviderFactory tifService = null;
+                for (final DataProviderFactory service : DataProviders.getFactories()) {
+                    if (service.getName().equals(coverageFileStr)) {
+                        tifService = service;
+                        break;
                     }
-                    if (tifService == null) {
-                        LOGGER.log(Level.WARNING, "TIFF provider service not found.");
-                        return;
-                    }
+                }
+                if (tifService == null) {
+                    LOGGER.log(Level.WARNING, "TIFF provider service not found.");
+                    return;
+                }
 
                 final ParameterValueGroup source = tifService.getProviderDescriptor().createValue();
-                source.parameter("id").setValue(tifProvName);
+                source.parameter("id").setValue(GENERIC_TIF_PROVIDER);
                 source.parameter("providerType").setValue("raster");
                 source.parameter("create_dataset").setValue(false);
 
@@ -385,7 +384,7 @@ public class SetupBusiness {
                     desc.createProcess(inputs).call();
 
                     // set hidden true for this data
-                    final Integer p = providerBusiness.getIDFromIdentifier(tifProvName);
+                    final Integer p = providerBusiness.getIDFromIdentifier(GENERIC_TIF_PROVIDER);
                     if (p != null) {
                         final List<Integer> datas = providerBusiness.getDataIdsFromProviderId(p);
                         for (final Integer dataId : datas) {
@@ -397,7 +396,6 @@ public class SetupBusiness {
                     // happen
                 } catch (ProcessException ex) {
                     LOGGER.log(Level.WARNING, "An error occurred when creating default TIFF provider.", ex);
-                    return;
                 }
             }
         }

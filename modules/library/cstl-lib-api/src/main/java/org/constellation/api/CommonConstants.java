@@ -21,11 +21,10 @@ package org.constellation.api;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
-import org.apache.sis.internal.util.UnmodifiableArrayList;
 
 /**
  *
- * @author Guilhem Legal (Geomatys) Legal (Geomatys)
+ * @author Guilhem Legal (Geomatys)
  * @since 0.9
  */
 public class CommonConstants {

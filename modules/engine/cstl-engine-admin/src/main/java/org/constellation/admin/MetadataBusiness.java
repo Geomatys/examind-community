@@ -83,6 +83,7 @@ import org.apache.sis.util.iso.Types;
 import static org.apache.sis.xml.XML.SCHEMAS;
 import static org.constellation.api.CommonConstants.CSW_CONFIG_ONLY_PUBLISHED;
 import static org.constellation.api.CommonConstants.CSW_CONFIG_PARTIAL;
+import static org.constellation.api.ProviderConstants.INTERNAL_METADATA_PROVIDER;
 import org.constellation.api.ServiceDef;
 import org.constellation.dto.metadata.GroupStatBrief;
 import org.constellation.dto.metadata.OwnerStatBrief;
@@ -1758,12 +1759,12 @@ public class MetadataBusiness implements IMetadataBusiness {
 
     @Override
      public Integer getDefaultInternalProviderID() throws ConfigurationException {
-        Integer providerId = providerBusiness.getIDFromIdentifier("default-internal-metadata");
+        Integer providerId = providerBusiness.getIDFromIdentifier(INTERNAL_METADATA_PROVIDER);
         if (providerId == null) {
             final DataStoreProvider factory = DataStores.getProviderById("InternalCstlmetadata");
             if (factory != null) {
                 ParameterValueGroup params = factory.getOpenParameters().createValue();
-                providerId = providerBusiness.create("default-internal-metadata", IProviderBusiness.SPI_NAMES.METADATA_SPI_NAME, params);
+                providerId = providerBusiness.create(INTERNAL_METADATA_PROVIDER, IProviderBusiness.SPI_NAMES.METADATA_SPI_NAME, params);
                 if (providerId == null) {
                     LOGGER.warning("Fail to create default internal metadata provider");
                 }

@@ -91,7 +91,7 @@ public class ImportData extends AbstractCstlProcess {
 
         final DataSource ds = datasourceBusiness.getDatasource(datasourceId);
         try {
-            LOGGER.info("Waiting for Datasource analysis to complete...");
+            fireProgressing("Waiting for Datasource analysis to complete...", 0, false);
             // waiting for analysis to be complete
             String analysisState = datasourceBusiness.getDatasourceAnalysisState(datasourceId);
             if (analysisState == null || IDatasourceBusiness.AnalysisState.NOT_STARTED.name().equals(analysisState)) {
@@ -109,7 +109,7 @@ public class ImportData extends AbstractCstlProcess {
                 }
             }
 
-             LOGGER.info("Waiting for Datasource analysis completed");
+            fireProgressing("Datasource analysis completed.", 10, false);
 
              datasourceBusiness.recordSelectedPath(datasourceId);
              List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(datasourceId, Integer.MAX_VALUE);
@@ -117,25 +117,26 @@ public class ImportData extends AbstractCstlProcess {
              LOGGER.log(Level.INFO, "{0} files to integrate.", paths.size());
              List<Integer> outputDatas = new ArrayList<>();
              int i = 1;
+             int part = 90 / paths.size();
              for (DataSourceSelectedPath p : paths) {
                  List<Integer> storeDatas = new ArrayList<>();
                  if ("INTEGRATED".equals(p.getStatus())) {
-                    LOGGER.log(Level.INFO, "Integrating sampled data file:" + p.getPath() + " (" + i + "/" + paths.size() + ")");
+                    fireProgressing("Integrating sampled data file:" + p.getPath() + " (" + i + "/" + paths.size() + ")", 10 + (i*part), false);
                     List<Integer> datas = providerBusiness.getDataIdsFromProviderId(p.getProviderId());
                     for (Integer dataId : datas) {
                          storeDatas.add(dataId);
                          dataBusiness.updateDataDataSetId(dataId, datasetId);
                      }
                  } else if ("NO_DATA".equals(p.getStatus()) ||"ERROR".equals(p.getStatus())) {
-                     LOGGER.log(Level.INFO, "No data / Error in file: {0}", p.getPath() + " (" + i + "/" + paths.size() + ")");
+                     fireProgressing("No data / Error in file: " + p.getPath() + " (" + i + "/" + paths.size() + ")", 10 + (i*part), false);
                  } else {
-                     LOGGER.log(Level.INFO, "Integrating data file: {0}", p.getPath() + " (" + i + "/" + paths.size() + ")");
+                     fireProgressing("Integrating data file: " + p.getPath() + " (" + i + "/" + paths.size() + ")", 10 + (i*part), false);
                      ResourceStoreAnalysisV3 store = datasourceBusiness.treatDataPath(p, ds.getId(), provConfig, true, datasetId, userId);
                      for (ResourceAnalysisV3 rs : store.getResources()) {
                          storeDatas.add(rs.getId());
                      }
                  }
-                 LOGGER.log(Level.INFO, "{0} datas to integrate.", storeDatas.size());
+                 LOGGER.log(Level.FINE, "{0} datas to integrate.", storeDatas.size());
                  final List<Integer> failedDatas = new ArrayList<>();
                  for (Integer dataId : storeDatas) {
                      if (styleId != null) {

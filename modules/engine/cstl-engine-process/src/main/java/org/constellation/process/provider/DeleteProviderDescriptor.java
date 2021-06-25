@@ -40,24 +40,24 @@ public class DeleteProviderDescriptor extends AbstractProcessDescriptor {
     private static final ParameterBuilder BUILDER = new ParameterBuilder();
 
     public static final String PROVIDER_ID_NAME = "provider_id";
-    private static final String PROVIDER_ID_REMARKS = "Identifier of the provider to remove.";
+    private static final String PROVIDER_ID_REMARKS = "Identifier of the provider to remove (if not set, all the providers will be removed).";
     public static final ParameterDescriptor<Integer> PROVIDER_ID = BUILDER
             .addName(PROVIDER_ID_NAME)
             .setRemarks(PROVIDER_ID_REMARKS)
-            .setRequired(true)
+            .setRequired(false)
             .create(Integer.class, null);
 
-    public static final String DELETE_DATA_NAME = "delete_data";
-    private static final String DELETE_DATA_REMARKS = "Delete data.";
-    public static final ParameterDescriptor<Boolean> DELETE_DATA = BUILDER
-            .addName(DELETE_DATA_NAME)
-            .setRemarks(DELETE_DATA_REMARKS)
+    public static final String ONLY_HIDDEN_DATA_NAME = "only_hidden_data";
+    private static final String ONLY_HIDDEN_DATA_REMARKS = "Flag to remove provider containing only hidden (non-pyramid) data.";
+    public static final ParameterDescriptor<Boolean> ONLY_HIDDEN_DATA = BUILDER
+            .addName(ONLY_HIDDEN_DATA_NAME)
+            .setRemarks(ONLY_HIDDEN_DATA_REMARKS)
             .setRequired(false)
             .create(Boolean.class, null);
 
     /**Input parameters */
     public static final ParameterDescriptorGroup INPUT_DESC = BUILDER.addName("InputParameters").setRequired(true)
-            .createGroup(PROVIDER_ID, DELETE_DATA);
+            .createGroup(PROVIDER_ID, ONLY_HIDDEN_DATA);
 
 
     /**Output parameters */

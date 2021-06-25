@@ -23,6 +23,7 @@ import java.util.logging.Logger;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import org.geotoolkit.process.ProcessDescriptor;
+import org.geotoolkit.process.ProcessException;
 import org.geotoolkit.processing.AbstractProcess;
 import org.opengis.parameter.ParameterValueGroup;
 
@@ -69,4 +70,9 @@ public abstract class AbstractCstlProcess extends AbstractProcess {
         LOGGER.log(Level.WARNING, text, ex);
     }
 
+    protected void checkDismissed() throws ProcessException {
+        if (isDimissed()) {
+            throw new ProcessException("Cancelled by user.", this);
+        }
+    }
 }
