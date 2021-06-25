@@ -1353,6 +1353,7 @@
   "sessions.title": "Sessions actives de [<b>{{username}}</b>]",
   "label.user": "Utilisateur",
   "confirm.delete.dialog": "Confirmer la suppression ?",
+  "confirm.cancel.task": "Confirmer l'annulation de tâche ?",
   "validate.users.password": "Les mots de passe ne correspondent pas.",
   "validate.required.fields": "Champs requis.",
   "label.user.search": "Recherche sur l'identifiant",

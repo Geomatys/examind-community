@@ -156,9 +156,22 @@ angular.module('cstl-process-dashboard', ['cstl-restapi', 'cstl-services', 'ui.b
         };
 
         $scope.deleteTask = function(idTask) {
-            Examind.tasks.deleteParamsTask(idTask).then(function(){
-                $scope.init();
-                $scope.selected=null;
+            var dlg = $modal.open({
+                templateUrl: 'views/modal-confirm.html',
+                controller: 'ModalConfirmController',
+                resolve: {
+                    'keyMsg': function () {
+                        return "confirm.delete.dialog";
+                    }
+                }
+            });
+            dlg.result.then(function (cfrm) {
+                if (cfrm) {
+                    Examind.tasks.deleteParamsTask(idTask).then(function(){
+                        $scope.init();
+                        $scope.selected=null;
+                    });
+                }
             });
         };
 
@@ -184,11 +197,24 @@ angular.module('cstl-process-dashboard', ['cstl-restapi', 'cstl-services', 'ui.b
         };
 
         $scope.cancelTask = function(idTask) {
-            Examind.tasks.cancelTaskParam(idTask).then(function(){
-                Growl('success', 'Success', 'The tasks have been cancelled');
-                $scope.init();
-            }).catch(function(){
-                Growl('error', 'Error', "Can't cancel this tasks");
+            var dlg = $modal.open({
+                templateUrl: 'views/modal-confirm.html',
+                controller: 'ModalConfirmController',
+                resolve: {
+                    'keyMsg': function () {
+                        return "confirm.cancel.task";
+                    }
+                }
+            });
+            dlg.result.then(function (cfrm) {
+                if (cfrm) {
+                    Examind.tasks.cancelTaskParam(idTask).then(function(){
+                        Growl('success', 'Success', 'The tasks have been cancelled');
+                        $scope.init();
+                    }).catch(function(){
+                        Growl('error', 'Error', "Can't cancel this tasks");
+                    });
+                }
             });
         };
 

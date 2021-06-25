@@ -1278,6 +1278,7 @@
   "login.disabled": "This account is disabled, thank you to contact an administrator to reactivate it.",
   "label.user": "User",
   "confirm.delete.dialog": "Confirm delete ?",
+  "confirm.cancel.task": "Confirm task canceling ?",
   "validate.users.password": "Passwords don't match.",
   "validate.required.fields": "Required fields.",
   "label.user.search": "research on login",
