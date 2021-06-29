@@ -21,6 +21,8 @@ import java.net.URI;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
@@ -43,6 +45,7 @@ import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.observation.AbstractObservationStoreFactory;
 import org.geotoolkit.util.NamesExt;
+import org.geotoolkit.util.StringUtilities;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
@@ -55,9 +58,11 @@ import org.opengis.feature.IdentifiedType;
 import org.opengis.feature.Property;
 import org.opengis.metadata.Identifier;
 import org.opengis.parameter.GeneralParameterDescriptor;
+import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterNotFoundException;
+import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 
 /**
@@ -94,16 +99,6 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
             .addName("latitude_column")
             .setRequired(true)
             .create(String.class, "LATITUDE (degree_north)");
-
-    public static final ParameterDescriptor<String> MEASURE_COLUMNS = PARAM_BUILDER
-            .addName("measure_columns")
-            .setRequired(false)
-            .create(String.class, null);
-
-    public static final ParameterDescriptor<String> MEASURE_COLUMNS_SEPARATOR = PARAM_BUILDER
-            .addName("measure_columns_separator")
-            .setRequired(false)
-            .create(String.class, "\\|");
 
     public static final ParameterDescriptor<String> FOI_COLUMN = PARAM_BUILDER
             .addName("feature_of_interest_column")
@@ -152,6 +147,11 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
 
     public static final ParameterDescriptor<String> OBS_PROP_NAME_COLUMN = PARAM_BUILDER
             .addName("observed_properties_name_columns")
+            .setRequired(false)
+            .create(String.class, null);
+
+    public static final ParameterDescriptor<String> OBS_PROP_FILTER_COLUMN = PARAM_BUILDER
+            .addName("observed_properties_filter_columns")
             .setRequired(false)
             .create(String.class, null);
     
@@ -310,5 +310,11 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
         });
 
         return ftb.build();
+    }
+
+    protected static Set<String> getMultipleValues(final ParameterValueGroup params, final String descCode) {
+        final ParameterValue<String> paramValues = (ParameterValue<String>) params.parameter(descCode);
+        return paramValues.getValue() == null ?
+                Collections.emptySet() : new HashSet<>(StringUtilities.toStringList(paramValues.getValue()));
     }
 }

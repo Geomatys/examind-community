@@ -188,16 +188,6 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(false)
             .create(String.class, null);
 
-    public static final String MEASURE_COLUMNS_NAME = "measure_columns";
-    public static final String MEASURE_COLUMNS_DESC =  "A set of measure columns to extract";
-    public static final ParameterDescriptor<String> MEASURE_COLUMNS  = new ExtendedParameterDescriptor<>(
-                MEASURE_COLUMNS_NAME,
-                MEASURE_COLUMNS_DESC,
-                0, 92,
-                String.class,
-                null, null, null
-                );
-
     public static final String REMOVE_PREVIOUS_NAME = "remove_previous_integration";
     public static final String REMOVE_PREVIOUS_DESC = "remove previous integration";
     public static final ParameterDescriptor<Boolean> REMOVE_PREVIOUS = PARAM_BUILDER
@@ -257,6 +247,16 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             String.class,
             null, null, null
     );
+
+    public static final String OBS_PROP_COLUMNS_FILTER_NAME = "observed_properties_columns_filters";
+    public static final String OBS_PROP_COLUMNS_FILTER_DESC =  "A filter on observed properties to extract";
+    public static final ParameterDescriptor<String> OBS_PROP_COLUMNS_FILTER  = new ExtendedParameterDescriptor<>(
+                OBS_PROP_COLUMNS_FILTER_NAME,
+                OBS_PROP_COLUMNS_FILTER_DESC,
+                0, 92,
+                String.class,
+                null, null, null
+                );
     
     public static final String TYPE_COLUMN_NAME = "type_column";
     public static final String TYPE_COLUMN_DESC = "type column";
@@ -276,8 +276,8 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
 
     public static final ParameterDescriptorGroup INPUT_DESC =
             PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, REMOTE_READ, SERVICE_ID, DATASET_IDENTIFIER, PROCEDURE_ID, PROCEDURE_COLUMN, PROCEDURE_NAME_COLUMN, OBS_TYPE,
-                    SEPARATOR, CHARQUOTE, MAIN_COLUMN, Z_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, MEASURE_COLUMNS, REMOVE_PREVIOUS, EXTRACT_UOM,
-                    STORE_ID, FORMAT, RESULT_COLUMN, OBS_PROP_COLUMN, OBS_PROP_NAME_COLUMN, TYPE_COLUMN);
+                    SEPARATOR, CHARQUOTE, MAIN_COLUMN, Z_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, REMOVE_PREVIOUS, EXTRACT_UOM,
+                    STORE_ID, FORMAT, RESULT_COLUMN, OBS_PROP_COLUMN, OBS_PROP_NAME_COLUMN, OBS_PROP_COLUMNS_FILTER, TYPE_COLUMN);
 
     public static final String FILE_INSERTED_NAME = "files_inserted_count";
     public static final String FILE_INSERTED_DESC = "Number of files inserted ";

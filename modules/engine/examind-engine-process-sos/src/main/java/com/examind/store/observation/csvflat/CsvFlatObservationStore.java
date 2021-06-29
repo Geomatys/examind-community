@@ -76,7 +76,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
      * @param dateTimeformat the date format (see {@link SimpleDateFormat})
      * @param longitudeColumn the name (header) of the longitude column
      * @param latitudeColumn the name (header) of the latitude column
-     * @param measureColumns the names (headers) of the measure columns
+     * @param obsPropFilterColumns the names (headers) of the measure columns
      * @param foiColumn the name (header) of the feature of interest column
      * @param valueColumn the name (header) of the measure column
      * @param obsPropColumns the names (header) of the code measure columns
@@ -86,23 +86,23 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
      */
     public CsvFlatObservationStore(final Path observationFile, final char separator, final char quotechar, final FeatureType featureType,
                                        final String mainColumn, final String dateColumn, final String dateTimeformat, final String longitudeColumn, final String latitudeColumn,
-                                       final Set<String> measureColumns, String observationType, String foiColumn, final String procedureId, final String procedureColumn, final String procedureNameColumn, final String zColumn,
+                                       final Set<String> obsPropFilterColumns, String observationType, String foiColumn, final String procedureId, final String procedureColumn, final String procedureNameColumn, final String zColumn,
                                        final boolean extractUom, final String valueColumn, final Set<String> obsPropColumns, final Set<String> obsPropNameColumns, final String typeColumn) throws DataStoreException, MalformedURLException {
-        super(observationFile, separator, quotechar, featureType, mainColumn, dateColumn, dateTimeformat, longitudeColumn, latitudeColumn, measureColumns, observationType, foiColumn, procedureId, procedureColumn, procedureNameColumn, zColumn, extractUom);
+        super(observationFile, separator, quotechar, featureType, mainColumn, dateColumn, dateTimeformat, longitudeColumn, latitudeColumn, obsPropFilterColumns, observationType, foiColumn, procedureId, procedureColumn, procedureNameColumn, zColumn, extractUom);
         this.valueColumn = valueColumn;
         this.obsPropColumns = obsPropColumns;
         this.obsPropNameColumns = obsPropNameColumns;
         this.typeColumn = typeColumn;
 
         // special case for * measure columns
-        if (measureColumns.size() == 1 && measureColumns.iterator().next().equals("*")) {
+        if (obsPropFilterColumns.isEmpty()) {
             try {
                 this.measureColumns = extractCodes(dataFile, obsPropColumns, separator);
             } catch (ConstellationStoreException ex) {
                 throw new DataStoreException(ex);
             }
         } else {
-             this.measureColumns = measureColumns;
+             this.measureColumns = obsPropFilterColumns;
         }
 
     }

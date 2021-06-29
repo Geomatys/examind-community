@@ -301,10 +301,10 @@ public class SosHarvesterProcessTest {
         in.parameter(SosHarvesterProcessDescriptor.LATITUDE_COLUMN_NAME).setValue("LATITUDE (degree_north)");
         in.parameter(SosHarvesterProcessDescriptor.LONGITUDE_COLUMN_NAME).setValue("LONGITUDE (degree_east)");
 
-        ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).createValue();
         val1.setValue("TEMP (degree_Celsius)");
         in.values().add(val1);
-        ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).createValue();
         val2.setValue("PSAL (psu)");
         in.values().add(val2);
 
@@ -490,7 +490,7 @@ public class SosHarvesterProcessTest {
         in.parameter(SosHarvesterProcessDescriptor.LATITUDE_COLUMN_NAME).setValue("LATITUDE (degree_north)");
         in.parameter(SosHarvesterProcessDescriptor.LONGITUDE_COLUMN_NAME).setValue("LONGITUDE (degree_east)");
 
-        in.parameter(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).setValue("PSAL LEVEL1 (psu)");
+        in.parameter(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).setValue("PSAL LEVEL1 (psu)");
 
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Trajectory");
         in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_ID_NAME).setValue(sensorId);
@@ -608,10 +608,10 @@ public class SosHarvesterProcessTest {
         in.parameter(SosHarvesterProcessDescriptor.LATITUDE_COLUMN_NAME).setValue("LATITUDE (degree_north)");
         in.parameter(SosHarvesterProcessDescriptor.LONGITUDE_COLUMN_NAME).setValue("LONGITUDE (degree_east)");
 
-        ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).createValue();
         val1.setValue("TEMP LEVEL0 (degree_Celsius)");
         in.values().add(val1);
-        ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).createValue();
         val2.setValue("VEPK LEVEL0 (meter2 second)");
         in.values().add(val2);
 
@@ -710,10 +710,10 @@ public class SosHarvesterProcessTest {
         in.parameter(SosHarvesterProcessDescriptor.LATITUDE_COLUMN_NAME).setValue("LATITUDE (degree_north)");
         in.parameter(SosHarvesterProcessDescriptor.LONGITUDE_COLUMN_NAME).setValue("LONGITUDE (degree_east)");
 
-        ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).createValue();
         val1.setValue("TEMP LEVEL0 (degree_Celsius)");
         in.values().add(val1);
-        ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).createValue();
         val2.setValue("VZMX LEVEL0 (meter)");
         in.values().add(val2);
 
@@ -826,7 +826,7 @@ public class SosHarvesterProcessTest {
 
         in.parameter(SosHarvesterProcessDescriptor.FOI_COLUMN_NAME).setValue("prior_id");
 
-        in.parameter(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).setValue("height");
+        in.parameter(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).setValue("height");
 
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
         in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_ID_NAME).setValue(sensorId);
@@ -923,10 +923,10 @@ public class SosHarvesterProcessTest {
 
         in.parameter(SosHarvesterProcessDescriptor.FOI_COLUMN_NAME).setValue("node_id");
 
-        ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).createValue();
         val1.setValue("height");
         in.values().add(val1);
-        ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).createValue();
         val2.setValue("width");
         in.values().add(val2);
 
@@ -1016,10 +1016,10 @@ public class SosHarvesterProcessTest {
         in.parameter(SosHarvesterProcessDescriptor.LATITUDE_COLUMN_NAME).setValue("LATITUDE");
         in.parameter(SosHarvesterProcessDescriptor.LONGITUDE_COLUMN_NAME).setValue("LONGITUDE");
 
-        ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).createValue();
         val1.setValue("TEMP (degree_Celsius)");
         in.values().add(val1);
-        ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).createValue();
         val2.setValue("VEPK (meter2 second)");
         in.values().add(val2);
 
@@ -1210,13 +1210,13 @@ public class SosHarvesterProcessTest {
         in.parameter(SosHarvesterProcessDescriptor.LATITUDE_COLUMN_NAME).setValue("latitude");
         in.parameter(SosHarvesterProcessDescriptor.LONGITUDE_COLUMN_NAME).setValue("longitude");
 
-        ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMNS_FILTER_NAME).createValue();
         val1.setValue("30");
         in.values().add(val1);
-        ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMNS_FILTER_NAME).createValue();
         val2.setValue("35");
         in.values().add(val2);
-        ParameterValue val3 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        ParameterValue val3 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMNS_FILTER_NAME).createValue();
         val3.setValue("66");
         in.values().add(val3);
 
@@ -1254,10 +1254,9 @@ public class SosHarvesterProcessTest {
         String foi = verifySamplingFeature(fois, 68.2395, -61.4234);
 
         Assert.assertNotNull(foi);
-
-        verifyAllObservedProperties(stsWorker, sensorId, Arrays.asList("30", "35", "66"));
-
-
+        
+        verifyAllObservedProperties(stsWorker, sensorId, Arrays.asList("30", "35", "66", "z_value"));
+        
         Object o = worker.getObservation(new GetObservationType("2.0.0", "SOS",Arrays.asList(offp.getId()), null, Arrays.asList(sensorId), null, null, null,null));
         Assert.assertTrue(o instanceof ObservationCollection);
 
@@ -1336,13 +1335,13 @@ public class SosHarvesterProcessTest {
         in.parameter(SosHarvesterProcessDescriptor.LATITUDE_COLUMN_NAME).setValue("latitude");
         in.parameter(SosHarvesterProcessDescriptor.LONGITUDE_COLUMN_NAME).setValue("longitude");
 
-        ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMNS_FILTER_NAME).createValue();
         val1.setValue("30");
         in.values().add(val1);
-        ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMNS_FILTER_NAME).createValue();
         val2.setValue("35");
         in.values().add(val2);
-        ParameterValue val3 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        ParameterValue val3 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMNS_FILTER_NAME).createValue();
         val3.setValue("66");
         in.values().add(val3);
 
@@ -1505,10 +1504,10 @@ public class SosHarvesterProcessTest {
         in.parameter(SosHarvesterProcessDescriptor.LATITUDE_COLUMN_NAME).setValue("latitude");
         in.parameter(SosHarvesterProcessDescriptor.LONGITUDE_COLUMN_NAME).setValue("longitude");
 
-        ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMNS_FILTER_NAME).createValue();
         val1.setValue("30");
         in.values().add(val1);
-        ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMNS_FILTER_NAME).createValue();
         val2.setValue("35");
         in.values().add(val2);
 
@@ -1730,10 +1729,10 @@ public class SosHarvesterProcessTest {
         in.parameter(SosHarvesterProcessDescriptor.LATITUDE_COLUMN_NAME).setValue("latitude");
         in.parameter(SosHarvesterProcessDescriptor.LONGITUDE_COLUMN_NAME).setValue("longitude");
 
-        ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMNS_FILTER_NAME).createValue();
         val1.setValue("30");
         in.values().add(val1);
-        ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMNS_FILTER_NAME).createValue();
         val2.setValue("35");
         in.values().add(val2);
 
@@ -2036,13 +2035,13 @@ public class SosHarvesterProcessTest {
         in.parameter(SosHarvesterProcessDescriptor.LATITUDE_COLUMN_NAME).setValue("LATITUDE");
         in.parameter(SosHarvesterProcessDescriptor.LONGITUDE_COLUMN_NAME).setValue("LONGITUDE");
 
-        ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMNS_FILTER_NAME).createValue();
         val1.setValue("7-FLORTOT");
         in.values().add(val1);
-        ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMNS_FILTER_NAME).createValue();
         val2.setValue("18-FLORTOT");
         in.values().add(val2);
-        ParameterValue val3 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        ParameterValue val3 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMNS_FILTER_NAME).createValue();
         val3.setValue("18-SALI");
         in.values().add(val3);
 
@@ -2195,7 +2194,7 @@ public class SosHarvesterProcessTest {
                 "date_format: yyyy-MM-dd'T'HH:mm:ss'Z'",
                 "longitude_column: longitude",
                 "latitude_column: latitude",
-                "measure_columns:",
+                "observed_properties_columns_filters:",
                 "- '30'",
                 "- '35'",
                 "- '66'",
@@ -2240,7 +2239,7 @@ public class SosHarvesterProcessTest {
 
         Assert.assertNotNull(foi);
 
-        verifyAllObservedProperties(stsWorker, sensorId, Arrays.asList("30", "35", "66"));
+        verifyAllObservedProperties(stsWorker, sensorId, Arrays.asList("30", "35", "66", "z_value"));
 
 
         Object o = worker.getObservation(new GetObservationType("2.0.0", "SOS",Arrays.asList(offp.getId()), null, Arrays.asList(sensorId), null, null, null,null));
@@ -2264,6 +2263,130 @@ public class SosHarvesterProcessTest {
          */
         GetResultResponseType gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
         String expectedResult = getResourceAsString("com/examind/process/sos/bigdata-datablock-values.txt");
+        Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
+
+        GetHistoricalLocations hl = new GetHistoricalLocations();
+        hl.getExtraFilter().put("procedure", sensorId);
+        hl.getExpand().add("Locations");
+        HistoricalLocationsResponse response = stsWorker.getHistoricalLocations(hl);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+        Assert.assertEquals(11, response.getValue().size());
+
+        HistoricalLocation loc1 = response.getValue().get(0);
+        verifyHistoricalLocation(loc1, sdf, "2020-03-24T00:25:47Z", -35.27835, -3.61021);
+
+        int nbMeasure = getNbMeasure(stsWorker, sensorId);
+        Assert.assertEquals(9566, nbMeasure);
+    }
+
+    @Test
+    @Order(order = 9)
+    public void harvesterCSVCoriolisProfileSingleFromYamlNoFIlterTest() throws ConstellationException, NoSuchIdentifierException, ProcessException, IOException, ParseException {
+        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
+        Assert.assertNotNull(sc);
+
+        sensorServBusiness.removeAllSensors(sc.getId());
+
+        SOSworker worker = (SOSworker) wsEngine.buildWorker("sos", "default");
+        worker.setServiceUrl("http://localhost/examind/");
+
+        STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
+        stsWorker.setServiceUrl("http://localhost/examind/");
+
+        int prev = getNbOffering(worker, 0);
+
+        Assert.assertEquals(13, prev);
+
+        String sensorId = "urn:sensor:bgdata";
+
+        String datasetId = "SOS_DATA";
+
+        // Create a temporary yaml file.
+        Path tempFile = Files.createTempFile(null, null);
+        List<String> listYamlParameter = Arrays.asList(
+                "process_name: sosHarvester",
+                "data_folder: "+bigdataDirectory.toUri().toString(),
+                "sensor_service:",
+                "   service:",
+                "      identifier: default",
+                "      type: sos",
+                "dataset_identifier: "+datasetId,
+                "procedure_id: "+sensorId,
+                "#procedure_column: test string",
+                "observation_type: Profile",
+                "separator: ','",
+                "main_column: z_value",
+                "date_column: station_date",
+                "date_format: yyyy-MM-dd'T'HH:mm:ss'Z'",
+                "longitude_column: longitude",
+                "latitude_column: latitude",
+                "remove_previous_integration: true",
+                "store_id: observationCsvFlatFile",
+                "format: 'text/csv; subtype=\"om\"'",
+                "result_column: parameter_value",
+                "observed_properties_columns:",
+                "- parameter_code",
+                "type_column : file_type"
+        );
+        Files.write(tempFile, listYamlParameter, StandardOpenOption.APPEND);
+
+        ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(AdminProcessRegistry.NAME, "yamlReader");
+        ParameterValueGroup in = desc.getInputDescriptor().createValue();
+
+        in.parameter(ProcessFromYamlProcessDescriptor.DATA_FOLDER_NAME).setValue(tempFile);
+        Process process = desc.createProcess(in); // Create the process
+
+        process.call();// Call the process.
+
+        // verify that the dataset has been created
+        Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
+
+        // verify that the sensor has been created
+        Assert.assertNotNull(sensorBusiness.getSensor(sensorId));
+
+        ObservationOffering offp = getOffering(worker, sensorId);
+        Assert.assertNotNull(offp);
+
+        Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
+        TimePeriodType time = (TimePeriodType) offp.getTime();
+
+        Assert.assertEquals("2020-03-24T00:25:47.000", time.getBeginPosition().getValue());
+        Assert.assertEquals("2020-03-24T08:48:00.000", time.getEndPosition().getValue());
+
+        Assert.assertEquals(11, offp.getFeatureOfInterestIds().size());
+
+        List<SamplingFeature> fois  = getFeatureOfInterest(worker, offp.getFeatureOfInterestIds());
+        verifySamplingFeatureNotSame(fois);
+        String foi = verifySamplingFeature(fois, 68.2395, -61.4234);
+
+        Assert.assertNotNull(foi);
+
+        verifyAllObservedProperties(stsWorker, sensorId, Arrays.asList("30", "35", "66", "z_value", "68", "70" ,"99"));
+
+
+        Object o = worker.getObservation(new GetObservationType("2.0.0", "SOS",Arrays.asList(offp.getId()), null, Arrays.asList(sensorId), null, null, null,null));
+        Assert.assertTrue(o instanceof ObservationCollection);
+
+        ObservationCollection oc = (ObservationCollection)o;
+
+        String observedProperty = null;
+        for (Observation obs : oc.getMember()) {
+            if (obs.getFeatureOfInterest() instanceof SamplingFeature) {
+                SamplingFeature sf = (SamplingFeature) obs.getFeatureOfInterest();
+                if (sf.getId().equals(foi)) {
+                    observedProperty = ((Phenomenon)obs.getObservedProperty()).getName().getCode();
+                }
+            }
+        }
+        Assert.assertNotNull(observedProperty);
+
+        /*
+         * Verify an inserted profile
+         */
+        GetResultResponseType gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
+        String expectedResult = getResourceAsString("com/examind/process/sos/bigdata-datablock-values-7.txt");
         Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
 
         GetHistoricalLocations hl = new GetHistoricalLocations();
@@ -2325,7 +2448,7 @@ public class SosHarvesterProcessTest {
                 "date_format: dd/MM/yy",
                 "longitude_column: LONGITUDE",
                 "latitude_column: LATITUDE",
-                "measure_columns:",
+                "observed_properties_columns_filters:",
                 "- 11-SALI",
                 "- 12-NO2",
                 "- 2-NB_DECHETS",
@@ -2476,8 +2599,22 @@ public class SosHarvesterProcessTest {
         String msg = "";
         if (!ok) {
             msg = sensorId + " observed properties missing:\n";
+            for (String o : expectedObsProp) {
+                if (!obsProp.contains(o)) {
+                    msg = msg + o + '\n';
+                }
+            }
+        }
+        Assert.assertTrue(msg, ok);
+
+        ok = expectedObsProp.containsAll(obsProp);
+        msg = "";
+        if (!ok) {
+            msg = sensorId + " observed properties supplementary:\n";
             for (String o : obsProp) {
-                msg = msg + o + '\n';
+                if (!expectedObsProp.contains(o)) {
+                    msg = msg + o + '\n';
+                }
             }
         }
         Assert.assertTrue(msg, ok);

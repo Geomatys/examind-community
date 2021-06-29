@@ -169,10 +169,10 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         int nbFileInserted = 0;
         int nbObsInserted  = 0;
 
-        final List<String> measureColumns = new ArrayList<>();
+        final List<String> obsPropFilterColumns = new ArrayList<>();
         for (GeneralParameterValue param : inputParameters.values()) {
-            if (param.getDescriptor().getName().getCode().equals(MEASURE_COLUMNS.getName().getCode())) {
-                measureColumns.add(((ParameterValue)param).stringValue());
+            if (param.getDescriptor().getName().getCode().equals(OBS_PROP_COLUMNS_FILTER.getName().getCode())) {
+                obsPropFilterColumns.add(((ParameterValue)param).stringValue());
             }
         }
         
@@ -299,8 +299,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             provConfig.getParameters().put(FileParsingObservationStoreFactory.LONGITUDE_COLUMN.getName().toString(), longitudeColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.LATITUDE_COLUMN.getName().toString(), latitudeColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.FOI_COLUMN.getName().toString(), foiColumn);
-            provConfig.getParameters().put(FileParsingObservationStoreFactory.MEASURE_COLUMNS_SEPARATOR.getName().toString(), ",");
-            provConfig.getParameters().put(FileParsingObservationStoreFactory.MEASURE_COLUMNS.getName().toString(), StringUtilities.toCommaSeparatedValues(measureColumns));
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_FILTER_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(obsPropFilterColumns));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBSERVATION_TYPE.getName().toString(), observationType);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_ID.getName().toString(), procedureId);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.EXTRACT_UOM.getName().toString(), Boolean.toString(extractUom));

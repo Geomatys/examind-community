@@ -29,7 +29,6 @@ import org.geotoolkit.storage.StoreMetadataExt;
 import org.geotoolkit.storage.feature.FileFeatureStoreFactory;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
-import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 
 import java.io.IOException;
@@ -58,8 +57,8 @@ public class CsvFlatObservationStoreFactory extends FileParsingObservationStoreF
 
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR
             = PARAM_BUILDER.addName(NAME).addName("ObservationCsvFlatFileParameters").createGroup(IDENTIFIER, NAMESPACE, CSVProvider.PATH, CSVProvider.SEPARATOR,
-                    MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, MEASURE_COLUMNS, MEASURE_COLUMNS_SEPARATOR, FOI_COLUMN, OBSERVATION_TYPE,
-                    PROCEDURE_ID, PROCEDURE_COLUMN, PROCEDURE_NAME_COLUMN, Z_COLUMN, EXTRACT_UOM, RESULT_COLUMN, OBS_PROP_COLUMN, OBS_PROP_NAME_COLUMN, TYPE_COLUMN, CHARQUOTE);
+                    MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, OBSERVATION_TYPE,
+                    PROCEDURE_ID, PROCEDURE_COLUMN, PROCEDURE_NAME_COLUMN, Z_COLUMN, EXTRACT_UOM, RESULT_COLUMN, OBS_PROP_COLUMN, OBS_PROP_NAME_COLUMN, OBS_PROP_FILTER_COLUMN, TYPE_COLUMN, CHARQUOTE);
 
     @Override
     public String getShortName() {
@@ -73,8 +72,6 @@ public class CsvFlatObservationStoreFactory extends FileParsingObservationStoreF
 
     @Override
     public CsvFlatObservationStore open(final ParameterValueGroup params) throws DataStoreException {
-
-        final String measureColumnsSeparator = (String) params.parameter(MEASURE_COLUMNS_SEPARATOR.getName().toString()).getValue();
 
         final URI uri = (URI) params.parameter(CSVProvider.PATH.getName().toString()).getValue();
         final char separator = (Character) params.parameter(CSVProvider.SEPARATOR.getName().toString()).getValue();
@@ -95,21 +92,15 @@ public class CsvFlatObservationStoreFactory extends FileParsingObservationStoreF
         final String zColumn = (String) params.parameter(Z_COLUMN.getName().toString()).getValue();
         final String observationType = (String) params.parameter(OBSERVATION_TYPE.getName().toString()).getValue();
         final Boolean extractUom = (Boolean) params.parameter(EXTRACT_UOM.getName().toString()).getValue();
-        final ParameterValue<String> measureCols = (ParameterValue<String>) params.parameter(MEASURE_COLUMNS.getName().toString());
-        final Set<String> measureColumns = measureCols.getValue() == null ?
-                Collections.emptySet() : new HashSet<>(Arrays.asList(measureCols.getValue().split(measureColumnsSeparator)));
+        final Set<String> obsPropFilterColumns = getMultipleValues(params, OBS_PROP_FILTER_COLUMN.getName().toString());
         final String valueColumn = (String) params.parameter(RESULT_COLUMN.getName().toString()).getValue();
-        final ParameterValue<String> obsPropCols = (ParameterValue<String>) params.parameter(OBS_PROP_COLUMN.getName().toString());
-        final Set<String> obsPropColumns = obsPropCols.getValue() == null ?
-                Collections.emptySet() : new HashSet<>(Arrays.asList(obsPropCols.getValue().split(measureColumnsSeparator)));
-        final ParameterValue<String> obsPropNameCols = (ParameterValue<String>) params.parameter(OBS_PROP_NAME_COLUMN.getName().toString());
-        final Set<String> obsPropNameColumns = obsPropNameCols.getValue() == null ?
-                Collections.emptySet() : new HashSet<>(Arrays.asList(obsPropNameCols.getValue().split(measureColumnsSeparator)));
+        final Set<String> obsPropColumns = getMultipleValues(params, OBS_PROP_COLUMN.getName().toString());
+        final Set<String> obsPropNameColumns = getMultipleValues(params, OBS_PROP_NAME_COLUMN.getName().toString());
         final String typeColumn = (String) params.parameter(TYPE_COLUMN.getName().toString()).getValue();
         try {
             return new CsvFlatObservationStore(Paths.get(uri),
-                    separator, quotechar, readType(uri, separator, quotechar, dateColumn, longitudeColumn, latitudeColumn, measureColumns),
-                    mainColumn, dateColumn, dateFormat, longitudeColumn, latitudeColumn, measureColumns, observationType,
+                    separator, quotechar, readType(uri, separator, quotechar, dateColumn, longitudeColumn, latitudeColumn, obsPropFilterColumns),
+                    mainColumn, dateColumn, dateFormat, longitudeColumn, latitudeColumn, obsPropFilterColumns, observationType,
                     foiColumn, procedureId, procedureColumn, procedureNameColumn, zColumn, extractUom, valueColumn, obsPropColumns, obsPropNameColumns, typeColumn);
         } catch (IOException ex) {
             LOGGER.log(Level.WARNING, "problem opening csv file", ex);

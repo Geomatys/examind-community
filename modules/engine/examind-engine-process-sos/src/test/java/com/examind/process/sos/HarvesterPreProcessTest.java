@@ -37,6 +37,7 @@ import org.constellation.test.utils.SpringTestRunner;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
+import org.geotoolkit.processing.chain.model.Chain;
 import org.geotoolkit.utility.parameter.ExtendedParameterDescriptor;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -102,8 +103,8 @@ public class HarvesterPreProcessTest {
 
             if (!initialized) {
 
-                for (ProcessDescriptor chainDesc : ChainProcessRetriever.getChainDescriptors()) {
-                    processBusiness.deleteChainProcess(ExamindDynamicProcessFactory.NAME, chainDesc.getIdentifier().getCode());
+                for (Chain chainDesc : ChainProcessRetriever.getChainModels()) {
+                    processBusiness.deleteChainProcess(ExamindDynamicProcessFactory.NAME, chainDesc.getName());
                 }
                 initialized = true;
             }

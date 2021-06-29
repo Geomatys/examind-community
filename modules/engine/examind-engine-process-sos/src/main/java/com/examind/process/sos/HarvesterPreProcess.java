@@ -81,15 +81,15 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         final String taskName        = inputParameters.getValue(HarvesterPreProcessDescriptor.TASK_NAME);
         String format                = inputParameters.getValue(HarvesterPreProcessDescriptor.FORMAT);
 
-        final String valueColumn    = inputParameters.getValue(HarvesterPreProcessDescriptor.RESULT_COLUMN);
+        final String resultColumn    = inputParameters.getValue(HarvesterPreProcessDescriptor.RESULT_COLUMN);
         final String typeColumn     = inputParameters.getValue(HarvesterPreProcessDescriptor.TYPE_COLUMN);
         final String separator      = inputParameters.getValue(HarvesterPreProcessDescriptor.SEPARATOR);
         final String charquote      = inputParameters.getValue(HarvesterPreProcessDescriptor.CHARQUOTE);
 
-        final List<String> codeColumns = new ArrayList<>();
+        final List<String> obsPropColumns = new ArrayList<>();
         for (GeneralParameterValue param : inputParameters.values()) {
             if (param.getDescriptor().getName().getCode().equals(HarvesterPreProcessDescriptor.OBS_PROP_COLUMN.getName().getCode())) {
-                codeColumns.add(((ParameterValue)param).stringValue());
+                obsPropColumns.add(((ParameterValue)param).stringValue());
             }
         }
 
@@ -105,8 +105,8 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
 
         if (csvFlat) {
             ext = ".csv";
-            if (valueColumn == null || codeColumns.isEmpty()) {
-                throw new ProcessException("The value column, code column can't be null", this);
+            if (resultColumn == null || obsPropColumns.isEmpty()) {
+                throw new ProcessException("The result column, obs prop column can't be null", this);
             }
         } else {
             if (observationType == null) {
@@ -165,8 +165,7 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
 
                     // extract codes
                     if (csvFlat) {
-                        Set<String> currentCodes = extractCodes(child, codeColumns, separator.charAt(0));
-                        currentCodes.add("*");
+                        Set<String> currentCodes = extractCodes(child, obsPropColumns, separator.charAt(0));
                         codes.addAll(currentCodes);
                     }
                 }
@@ -249,16 +248,6 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         final Parameter FCparam = new Parameter(FOI_COLUMN_NAME, String.class, FOI_COLUMN_DESC, FOI_COLUMN_DESC, 0, 1, null, headers);
         inputs.add(FCparam);
 
-        if (csvFlat) {
-            List<String> sortedCodes = new ArrayList<>(codes);
-            Collections.sort(sortedCodes);
-            final Parameter MCSparam = new Parameter(MEASURE_COLUMNS_NAME, String.class, MEASURE_COLUMNS_DESC, MEASURE_COLUMNS_DESC, 0, 92, null, sortedCodes.toArray());
-            inputs.add(MCSparam);
-        } else {
-            final Parameter MCSparam = new Parameter(MEASURE_COLUMNS_NAME, String.class, MEASURE_COLUMNS_DESC, MEASURE_COLUMNS_DESC, 0, 92, null, headers);
-            inputs.add(MCSparam);
-        }
-
         final Parameter RPparam = new Parameter(REMOVE_PREVIOUS_NAME, Boolean.class, REMOVE_PREVIOUS_DESC, REMOVE_PREVIOUS_DESC, 0, 1, false);
         inputs.add(RPparam);
 
@@ -266,23 +255,34 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         inputs.add(EUparam);
 
         if ("csv".equals(format)) {
+
+            final Parameter CCparam = new Parameter(OBS_PROP_COLUMN_NAME, String.class, OBS_PROP_COLUMN_DESC, OBS_PROP_COLUMN_DESC, 0, 92, null, headers);
+            inputs.add(CCparam);
+
             final Parameter SIparam = new Parameter(STORE_ID_NAME, String.class, STORE_ID_DESC, STORE_ID_DESC, 1, 1, "observationCsvFile");
             inputs.add(SIparam);
 
             final Parameter FOparam = new Parameter(FORMAT_NAME, String.class, FORMAT_DESC, FORMAT_DESC, 1, 1, "text/csv; subtype=\"om\"");
             inputs.add(FOparam);
+
         } else if (csvFlat) {
+
+            final Parameter CCparam = new Parameter(OBS_PROP_COLUMN_NAME, String.class, OBS_PROP_COLUMN_DESC, OBS_PROP_COLUMN_DESC, 0, obsPropColumns.size(), null, obsPropColumns.toArray());
+            inputs.add(CCparam);
+
+            List<String> sortedCodes = new ArrayList<>(codes);
+            Collections.sort(sortedCodes);
+            final Parameter MCSparam = new Parameter(OBS_PROP_COLUMNS_FILTER_NAME, String.class, OBS_PROP_COLUMNS_FILTER_DESC, OBS_PROP_COLUMNS_FILTER_DESC, 0, 92, null, sortedCodes.toArray());
+            inputs.add(MCSparam);
+
             final Parameter SIparam = new Parameter(STORE_ID_NAME, String.class, STORE_ID_DESC, STORE_ID_DESC, 1, 1, "observationCsvFlatFile");
             inputs.add(SIparam);
 
             final Parameter FOparam = new Parameter(FORMAT_NAME, String.class, FORMAT_DESC, FORMAT_DESC, 1, 1, "text/csv; subtype=\"om\"");
             inputs.add(FOparam);
             
-            final Parameter VCparam = new Parameter(RESULT_COLUMN_NAME, String.class, RESULT_COLUMN_DESC, RESULT_COLUMN_DESC, 1, 1, valueColumn);
+            final Parameter VCparam = new Parameter(RESULT_COLUMN_NAME, String.class, RESULT_COLUMN_DESC, RESULT_COLUMN_DESC, 1, 1, resultColumn);
             inputs.add(VCparam);
-
-            final Parameter CCparam = new Parameter(OBS_PROP_COLUMN_NAME, String.class, OBS_PROP_COLUMN_DESC, OBS_PROP_COLUMN_DESC, 0, codeColumns.size(), null, codeColumns.toArray());
-            inputs.add(CCparam);
 
             final Parameter TCparam = new Parameter(TYPE_COLUMN_NAME, String.class, TYPE_COLUMN_DESC, TYPE_COLUMN_DESC, 0, 1, typeColumn);
             inputs.add(TCparam);

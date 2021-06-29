@@ -68,7 +68,7 @@ public class DbfObservationStoreFactory extends FileParsingObservationStoreFacto
 
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR
             = PARAM_BUILDER.addName(NAME).addName("ObservationDbfFileParameters").createGroup(IDENTIFIER, NAMESPACE, DbaseFileProvider.PATH,
-                    MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, MEASURE_COLUMNS, MEASURE_COLUMNS_SEPARATOR, FOI_COLUMN, OBSERVATION_TYPE, PROCEDURE_ID, PROCEDURE_COLUMN);
+                    MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, OBS_PROP_COLUMN, FOI_COLUMN, OBSERVATION_TYPE, PROCEDURE_ID, PROCEDURE_COLUMN);
 
 
     private static ParameterDescriptorGroup parameters(final String name, final int minimumOccurs) {
@@ -90,8 +90,6 @@ public class DbfObservationStoreFactory extends FileParsingObservationStoreFacto
 
     @Override
     public DbfObservationStore open(final ParameterValueGroup params) throws DataStoreException {
-        final String measureColumnsSeparator = (String) params.parameter(MEASURE_COLUMNS_SEPARATOR.getName().toString()).getValue();
-
         final URI uri = (URI) params.parameter(DbaseFileProvider.PATH.getName().toString()).getValue();
         final String mainColumn = (String) params.parameter(MAIN_COLUMN.getName().toString()).getValue();
         final String dateColumn = (String) params.parameter(DATE_COLUMN.getName().toString()).getValue();
@@ -102,12 +100,10 @@ public class DbfObservationStoreFactory extends FileParsingObservationStoreFacto
         final String procedureId = (String) params.parameter(PROCEDURE_ID.getName().toString()).getValue();
         final String procedureColumn = (String) params.parameter(PROCEDURE_COLUMN.getName().toString()).getValue();
         final String observationType = (String) params.parameter(OBSERVATION_TYPE.getName().toString()).getValue();
-        final ParameterValue<String> measureCols = (ParameterValue<String>) params.parameter(MEASURE_COLUMNS.getName().toString());
-        final Set<String> measureColumns = measureCols.getValue() == null ?
-                Collections.emptySet() : new HashSet<>(Arrays.asList(measureCols.getValue().split(measureColumnsSeparator)));
+        final Set<String> obsPropColumns = getMultipleValues(params, OBS_PROP_COLUMN.getName().toString());
         try {
             return new DbfObservationStore(Paths.get(uri),
-                    mainColumn, dateColumn, dateFormat, longitudeColumn, latitudeColumn, measureColumns, observationType, foiColumn, procedureId, procedureColumn);
+                    mainColumn, dateColumn, dateFormat, longitudeColumn, latitudeColumn, obsPropColumns, observationType, foiColumn, procedureId, procedureColumn);
         } catch (IOException ex) {
             LOGGER.log(Level.WARNING, "problem opening dbf file", ex);
             throw new DataStoreException(ex);
