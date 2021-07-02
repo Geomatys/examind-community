@@ -70,7 +70,7 @@
         <slf4j.version>1.7.25</slf4j.version>
         <spring.version>5.2.11.RELEASE</spring.version>
         <spring-boot.version>2.3.6.RELEASE</spring-boot.version>
-        <spring-security.version>5.4.2</spring-security.version>
+        <spring-security.version>5.4.7</spring-security.version>
         <stax-utils.version>20060502</stax-utils.version>
         <validation-api.version>2.0.1.Final</validation-api.version>
         <woodstox.version>4.1.2</woodstox.version>
