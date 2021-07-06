@@ -1,7 +1,23 @@
+/*
+ *    Constellation - An open source and standard compliant SDI
+ *    http://www.constellation-sdi.org
+ *
+ * Copyright 2021 Geomatys.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.constellation.metadata.index.elasticsearch;
 
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.elasticsearch.cluster.health.ClusterHealthStatus;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.index.IndexResponse;
@@ -9,11 +25,6 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.StringWriter;
-import java.net.URL;
-import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -21,15 +32,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.http.HttpHost;
-import org.constellation.exception.ConfigurationException;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 import org.elasticsearch.action.admin.cluster.settings.ClusterUpdateSettingsResponse;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.ElasticsearchException;
@@ -46,11 +59,11 @@ import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
 import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.common.Strings;
-import org.elasticsearch.common.settings.Settings.Builder;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.Scroll;
@@ -66,20 +79,13 @@ public class ElasticSearchClient {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.metadata.index.elasticsearch");
 
-    private final Settings _configuration;
-
     private RestHighLevelClient client;
 
     private final String id;
 
     // Constructors ----------------------------------------------------------------
-    private ElasticSearchClient(final String id, final Properties configuration) {
+    private ElasticSearchClient(final String id) {
         this.id = id;
-        Builder builder = Settings.builder();
-        for (Entry entry : configuration.entrySet()) {
-            builder.put((String)entry.getKey(), (String)entry.getValue());
-        }
-        this._configuration = builder.build();
     }
 
     protected ClusterHealthStatus getHealthStatus() throws IOException {
@@ -111,10 +117,22 @@ public class ElasticSearchClient {
         }
     }
 
-    public void startClient(String host) throws ElasticsearchException, UnknownHostException {
+    public void startClient(String host, int port, String scheme, String user, String pwd) throws ElasticsearchException, UnknownHostException {
         // on startup
-        this.client = new RestHighLevelClient(
-                RestClient.builder(new HttpHost(host, 9200, "http")));
+        RestClientBuilder builder = RestClient.builder(new HttpHost(host, port, scheme));
+        if (user != null && pwd != null) {
+            final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+            credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(user, pwd));
+            builder = builder.setHttpClientConfigCallback(new RestClientBuilder.HttpClientConfigCallback() {
+                @Override
+                public HttpAsyncClientBuilder customizeHttpClient(
+                        HttpAsyncClientBuilder httpClientBuilder) {
+                    return httpClientBuilder
+                            .setDefaultCredentialsProvider(credentialsProvider);
+                }
+            });
+        }
+        this.client = new RestHighLevelClient(builder);
     }
 
     public RestHighLevelClient getClient() {
@@ -395,15 +413,15 @@ public class ElasticSearchClient {
         }
     }
 
-    public static synchronized ElasticSearchClient getClientInstance(String host, String clusterName) throws UnknownHostException, ElasticsearchException {
-        final String key = host + clusterName;
+    public static synchronized ElasticSearchClient getClientInstance(String host, int port, String scheme, String user, String pwd) throws UnknownHostException, ElasticsearchException {
+        if (scheme == null) {
+            scheme = "http";
+        }
+        final String key = scheme + host + port;
         ElasticSearchClient instance = CLIENT_INSTANCE.get(key);
         if (instance == null) {
-            Properties properties = new Properties();
-            properties.put("cluster.name", clusterName);
-             properties.put("client.transport.sniff", "true");
-            instance = new ElasticSearchClient(key, properties);
-            instance.startClient(host);
+            instance = new ElasticSearchClient(key);
+            instance.startClient(host, port, scheme, user, pwd);
             CLIENT_INSTANCE.put(key, instance);
             CLIENT_COUNTER.put(key, new AtomicInteger());
         }
@@ -411,40 +429,17 @@ public class ElasticSearchClient {
         return instance;
     }
 
-    public static synchronized void releaseClientInstance(String host, String clusterName) {
-        final String key = host + clusterName;
+    public static synchronized void releaseClientInstance(String host, int port, String scheme) {
+        if (scheme == null) {
+            scheme = "http";
+        }
+        final String key = scheme + host + port;
         if (CLIENT_INSTANCE.containsKey(key)) {
             ElasticSearchClient client = CLIENT_INSTANCE.get(key);
             if (CLIENT_COUNTER.get(key).decrementAndGet() <= 0) {
                 CLIENT_INSTANCE.remove(key);
                 client.close();
             }
-        }
-    }
-
-    public static Map<String, Object> getServerInfo(String sourceURL) throws ConfigurationException {
-
-        try {
-            final URL source          = new URL(sourceURL);
-            final URLConnection conec = source.openConnection();
-            conec.setReadTimeout(20000);
-            InputStream in = conec.getInputStream();
-            InputStreamReader conv = new InputStreamReader(in, "UTF8");
-
-
-            final StringWriter out = new StringWriter();
-            char[] buffer          = new char[1024];
-            int size;
-
-            while ((size = conv.read(buffer, 0, 1024)) > 0) {
-                out.write(new String(buffer, 0, size));
-            }
-
-            //we convert the brut String value into UTF-8 encoding
-            String response = out.toString();
-            return new ObjectMapper().readValue(response, HashMap.class);
-        } catch (IOException ex) {
-            throw new ConfigurationException(ex);
         }
     }
 }

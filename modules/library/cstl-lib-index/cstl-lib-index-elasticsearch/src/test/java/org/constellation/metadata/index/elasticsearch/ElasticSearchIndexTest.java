@@ -18,7 +18,6 @@
  */
 package org.constellation.metadata.index.elasticsearch;
 
-// J2SE dependencies
 import org.apache.sis.util.logging.Logging;
 
 import org.constellation.metadata.CSWQueryable;
@@ -104,16 +103,13 @@ public class ElasticSearchIndexTest {
             return;
         }
 
-        Map<String, Object> infos = ElasticSearchClient.getServerInfo("http://localhost:9200");
-        String clusterName = (String) infos.get("cluster_name");
-
         LOGGER.info("\n\n ELASTIC-SEARCH SERVER PRESENT \n\n");
 
         IOUtilities.deleteRecursively(configDirectory.toPath());
         List<Node> object         = fillTestData();
         String indexName          = "ElasticSearchIndexTest" + UUID.randomUUID().toString();
-        indexer                   = new ElasticSearchNodeIndexer(object, "localhost", clusterName, indexName, new HashMap<>(), true);
-        indexSearcher             = new ElasticSearchIndexSearcher("localhost", clusterName, indexName);
+        indexer                   = new ElasticSearchNodeIndexer(object, "localhost", 9200, null, null, null, indexName, new HashMap<>(), true);
+        indexSearcher             = new ElasticSearchIndexSearcher("localhost", 9200, null, null, null, indexName);
     }
 
     @AfterClass

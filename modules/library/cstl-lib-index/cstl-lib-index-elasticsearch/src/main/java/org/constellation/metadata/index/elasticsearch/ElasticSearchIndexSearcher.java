@@ -45,14 +45,17 @@ public class ElasticSearchIndexSearcher implements IndexSearcher {
 
     private final String hostName;
 
-    private final String clusterName;
+    private final String scheme;
 
-    public ElasticSearchIndexSearcher(final String host, final String clusterName, final String indexName) throws IndexingException {
+    private final int port;
+
+    public ElasticSearchIndexSearcher(final String host, int port, String scheme, String user, String pwd, final String indexName) throws IndexingException {
         this.indexName   = indexName.toLowerCase();
-        this.clusterName = clusterName;
+        this.scheme      = scheme;
         this.hostName    = host;
+        this.port        = port;
         try {
-            this.client = ElasticSearchClient.getClientInstance(host, clusterName);
+            this.client = ElasticSearchClient.getClientInstance(host, port, scheme, user, pwd);
         } catch (UnknownHostException | ElasticsearchException ex) {
             throw new IndexingException("error while connecting ELasticSearch cluster", ex);
         }
@@ -103,6 +106,6 @@ public class ElasticSearchIndexSearcher implements IndexSearcher {
 
     @Override
     public void destroy() {
-        ElasticSearchClient.releaseClientInstance(hostName, clusterName);
+        ElasticSearchClient.releaseClientInstance(hostName, port, scheme);
     }
 }

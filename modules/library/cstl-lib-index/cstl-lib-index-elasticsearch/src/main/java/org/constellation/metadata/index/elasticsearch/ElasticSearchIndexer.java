@@ -60,7 +60,9 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
 
     private final String hostName;
 
-    private final String clusterName;
+    private final String scheme;
+
+    private final int port;
 
     private final Map<String, PathType> additionalQueryable;
 
@@ -80,16 +82,17 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
      */
     protected static final List<String> indexationToStop = new ArrayList<>();
 
-    public ElasticSearchIndexer(final MetadataStore store, final String host, final String clusterName, final String indexName,
+    public ElasticSearchIndexer(final MetadataStore store, final String host, int port, String scheme, String user, String pwd, final String indexName,
             final Map<String, PathType> additionalQueryable) throws IndexingException {
 
-        this.clusterName         = clusterName;
+        this.scheme              = scheme;
         this.hostName            = host;
+        this.port                = port;
         this.indexName           = indexName.toLowerCase();
         this.additionalQueryable = additionalQueryable;
         this.store              = store;
         try {
-            this.client      = ElasticSearchClient.getClientInstance(host, clusterName);
+            this.client      = ElasticSearchClient.getClientInstance(host, port, scheme, user, pwd);
         } catch (UnknownHostException | ElasticsearchException  ex) {
             throw new IndexingException("error while connecting ELasticSearch cluster", ex);
         }
@@ -578,7 +581,7 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
 
     @Override
     public void destroy() {
-        ElasticSearchClient.releaseClientInstance(hostName, clusterName);
+        ElasticSearchClient.releaseClientInstance(hostName, port, scheme);
     }
 
     public boolean isWithPlugin() {
