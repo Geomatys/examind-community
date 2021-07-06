@@ -2,9 +2,21 @@ package com.examind.community.storage.sql;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.HikariPoolMXBean;
+import java.lang.management.ManagementFactory;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.management.JMX;
+import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
 import javax.sql.DataSource;
+import org.apache.sis.util.collection.BackingStoreException;
+import org.apache.sis.util.logging.Logging;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 
@@ -14,11 +26,69 @@ import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
  */
 class DatasourceCache {
 
+    private Timer timer;
     private final Map<DbKey, DataSource> datasources = new ConcurrentHashMap<>();
 
     DataSource getOrCreate(HikariConfig dbConf) {
         final DbKey key = new DbKey(dbConf);
-        return datasources.computeIfAbsent(key, k -> new HikariDataSource(k.config));
+        return datasources.computeIfAbsent(key, this::createDatasource);
+    }
+
+    private DataSource createDatasource(final DbKey key) {
+        final HikariDataSource datasource = new HikariDataSource(key.config);
+        if (key.config.isRegisterMbeans()) {
+            listenJMX(datasource);
+        }
+        return datasource;
+    }
+
+    private void listenJMX(HikariDataSource datasource) {
+        final Logger logger = Logging.getLogger("com.examind.community.storage.sql.metrics");
+        final String poolName = datasource.getPoolName();
+        final String jmxId = String.format("com.zaxxer.hikari:type=Pool (%s)", poolName);
+        MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+        final HikariPoolMXBean poolJmx;
+        try {
+            poolJmx = JMX.newMXBeanProxy(mBeanServer, new ObjectName(jmxId), HikariPoolMXBean.class);
+        } catch (MalformedObjectNameException e) {
+            throw new BackingStoreException(e);
+        }
+
+        final Timer timer = getOrCreateTimer();
+        timer.schedule(logTask(poolName, poolJmx, logger), 2000, 2000);
+    }
+
+    private TimerTask logTask(String poolName, HikariPoolMXBean poolJmx, Logger logger) {
+        return new TimerTask() {
+            @Override
+            public void run() {
+                logger.log(Level.FINE, () -> report(poolName, poolJmx));
+            }
+        };
+    }
+
+    private String report(String poolName, HikariPoolMXBean poolJmx) {
+        return String.format(
+                "%n-- SQL Connection Pool report (%s) --%n" +
+                        "Idle           : %d%n" +
+                        "Active         : %d%n" +
+                        "Total          : %d%n" +
+                        "Waiting threads: %d%n" +
+                        "--%n",
+                poolName,
+                poolJmx.getIdleConnections(),
+                poolJmx.getActiveConnections(),
+                poolJmx.getTotalConnections(),
+                poolJmx.getThreadsAwaitingConnection()
+        );
+    }
+
+    private synchronized Timer getOrCreateTimer() {
+        if (timer == null) {
+            timer = new Timer("HikariCP Pool JMX", true);
+        }
+        return timer;
+
     }
 
     private static class DbKey {

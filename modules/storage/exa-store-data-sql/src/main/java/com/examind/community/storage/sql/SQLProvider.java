@@ -28,7 +28,6 @@ import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.StorageConnector;
-import org.apache.sis.storage.sql.SQLStore;
 import org.apache.sis.storage.sql.SQLStoreProvider;
 import org.apache.sis.util.iso.Names;
 import org.apache.sis.util.logging.Logging;
@@ -70,6 +69,7 @@ public class SQLProvider extends DataStoreProvider {
     public static final ParameterDescriptor<Long> IDLE_TIMEOUT;
     public static final ParameterDescriptor<Long> CONNECT_TIMEOUT;
     public static final ParameterDescriptor<Long> LEAK_DETECTION_THRESHOLD;
+    public static final ParameterDescriptor<Boolean> ACTIVATE_JMX_METRICS;
 
     /**
      * An SQL query to consider as a feature set.
@@ -132,11 +132,17 @@ public class SQLProvider extends DataStoreProvider {
                         " before a message is logged indicating a possible connection leak. A value of 0 means leak " +
                         "detection is disabled (this is the default behavior).")
                 .create(Long.class, 0L);
+
+        ACTIVATE_JMX_METRICS = builder.addName("activateJmxMetrics")
+                .setDescription("DEBUG/ADMINISTRATOR OPTION: If true, Hikari datasource will be asked to post pool " +
+                        "information through JMX. The JMX metrics will then be logged (level FINE or DEBUG)")
+                .create(Boolean.class, false);
+
         INPUT = builder.addName(NAME).createGroup(
                 LOCATION, USER, PASSWORD,
                 TABLES, QUERY,
                 MIN_IDLE, MAX_CONNECTIONS, IDLE_TIMEOUT, CONNECT_TIMEOUT,
-                LEAK_DETECTION_THRESHOLD
+                LEAK_DETECTION_THRESHOLD, ACTIVATE_JMX_METRICS
         );
     }
 
@@ -213,6 +219,9 @@ public class SQLProvider extends DataStoreProvider {
 
         final Long leakDetectionThreshold = config.getValue(LEAK_DETECTION_THRESHOLD);
         if (leakDetectionThreshold != null) hikariConfig.setLeakDetectionThreshold(leakDetectionThreshold);
+
+        final Boolean activateJmx = config.getValue(ACTIVATE_JMX_METRICS);
+        if (activateJmx != null) hikariConfig.setRegisterMbeans(activateJmx);
 
         return cache.getOrCreate(hikariConfig);
     }
