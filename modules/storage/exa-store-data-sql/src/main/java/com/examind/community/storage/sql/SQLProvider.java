@@ -69,6 +69,7 @@ public class SQLProvider extends DataStoreProvider {
     public static final ParameterDescriptor<Integer> MAX_CONNECTIONS;
     public static final ParameterDescriptor<Long> IDLE_TIMEOUT;
     public static final ParameterDescriptor<Long> CONNECT_TIMEOUT;
+    public static final ParameterDescriptor<Long> LEAK_DETECTION_THRESHOLD;
 
     /**
      * An SQL query to consider as a feature set.
@@ -126,10 +127,16 @@ public class SQLProvider extends DataStoreProvider {
                 .setDescription("Time to wait for connection in milliseconds")
                 .create(Long.class, null);
 
+        LEAK_DETECTION_THRESHOLD = builder.addName("leakDetectionThreshold")
+                .setDescription("DEBUG/ADMINISTRATOR OPTION: amount of time that a connection can be out of the pool" +
+                        " before a message is logged indicating a possible connection leak. A value of 0 means leak " +
+                        "detection is disabled (this is the default behavior).")
+                .create(Long.class, 0L);
         INPUT = builder.addName(NAME).createGroup(
                 LOCATION, USER, PASSWORD,
                 TABLES, QUERY,
-                MIN_IDLE, MAX_CONNECTIONS, IDLE_TIMEOUT, CONNECT_TIMEOUT
+                MIN_IDLE, MAX_CONNECTIONS, IDLE_TIMEOUT, CONNECT_TIMEOUT,
+                LEAK_DETECTION_THRESHOLD
         );
     }
 
@@ -203,6 +210,9 @@ public class SQLProvider extends DataStoreProvider {
 
         final Long connectTimeout = config.getValue(CONNECT_TIMEOUT);
         if (connectTimeout !=null) hikariConfig.setConnectionTimeout(connectTimeout);
+
+        final Long leakDetectionThreshold = config.getValue(LEAK_DETECTION_THRESHOLD);
+        if (leakDetectionThreshold != null) hikariConfig.setLeakDetectionThreshold(leakDetectionThreshold);
 
         return cache.getOrCreate(hikariConfig);
     }
