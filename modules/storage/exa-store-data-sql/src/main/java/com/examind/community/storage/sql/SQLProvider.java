@@ -117,7 +117,7 @@ public class SQLProvider extends DataStoreProvider {
 
         MAX_CONNECTIONS = builder.addName("maxConnections")
                 .setDescription("Maximum number of connections accepted in the pool")
-                .create(Integer.class, 5);
+                .create(Integer.class, 10);
 
         IDLE_TIMEOUT = builder.addName("idleTimeoutMs")
                 .setDescription("Maximum number of milliseconds to keep idle connections alive")
