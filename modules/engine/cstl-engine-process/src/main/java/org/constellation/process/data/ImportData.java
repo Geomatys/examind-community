@@ -101,6 +101,7 @@ public class ImportData extends AbstractCstlProcess {
             final String pendingState = IDatasourceBusiness.AnalysisState.PENDING.name();
             while (pendingState.equals(datasourceBusiness.getDatasourceAnalysisState(datasourceId))) {
                 synchronized (this) {
+                    checkDismissed();
                     try {
                         wait(200);
                     } catch (InterruptedException ex) {
@@ -119,6 +120,7 @@ public class ImportData extends AbstractCstlProcess {
              int i = 1;
              int part = 90 / paths.size();
              for (DataSourceSelectedPath p : paths) {
+                 checkDismissed();
                  List<Integer> storeDatas = new ArrayList<>();
                  if ("INTEGRATED".equals(p.getStatus())) {
                     fireProgressing("Integrating sampled data file:" + p.getPath() + " (" + i + "/" + paths.size() + ")", 10 + (i*part), false);
