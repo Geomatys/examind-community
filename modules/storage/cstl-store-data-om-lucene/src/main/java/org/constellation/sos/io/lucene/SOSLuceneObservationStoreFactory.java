@@ -60,18 +60,6 @@ public class SOSLuceneObservationStoreFactory extends AbstractObservationStoreFa
     public static final ParameterDescriptor<Path> CONFIG_DIRECTORY =
              BUILDER.addName("config-directory").setRemarks("config-directory").setRequired(true).create(Path.class,null);
 
-    public static final ParameterDescriptor<String> PHENOMENON_ID_BASE =
-             BUILDER.addName("phenomenon-id-base").setRemarks("phenomenon-id-base").setRequired(false).create( String.class, null);
-
-    public static final ParameterDescriptor<String> OBSERVATION_TEMPLATE_ID_BASE =
-             BUILDER.addName("observation-template-id-base").setRemarks("observation-template-id-base").setRequired(false).create( String.class, null);
-
-    public static final ParameterDescriptor<String> OBSERVATION_ID_BASE =
-             BUILDER.addName("observation-id-base").setRemarks("observation-id-base").setRequired(false).create( String.class, null);
-
-    public static final ParameterDescriptor<String> SENSOR_ID_BASE =
-             BUILDER.addName("sensor-id-base").setRemarks("sensor-id-base").setRequired(false).create( String.class, null);
-
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR = BUILDER.addName(NAME).addName("SOSLuceneParameters").setRequired(true)
             .createGroup(IDENTIFIER,DATA_DIRECTORY,CONFIG_DIRECTORY, PHENOMENON_ID_BASE, OBSERVATION_TEMPLATE_ID_BASE, OBSERVATION_ID_BASE, SENSOR_ID_BASE);
 

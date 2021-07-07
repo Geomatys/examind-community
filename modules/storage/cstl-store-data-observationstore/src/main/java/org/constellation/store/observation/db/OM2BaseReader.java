@@ -42,13 +42,15 @@ import java.util.logging.Logger;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.logging.Logging;
-import org.constellation.api.CommonConstants;
 import org.constellation.util.Util;
 import org.geotoolkit.geometry.jts.SRIDGenerator;
 import org.geotoolkit.gml.JTStoGeometry;
 import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.gml.xml.FeatureProperty;
-import org.geotoolkit.observation.xml.Process;
+import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_ID_BASE_NAME;
+import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_TEMPLATE_ID_BASE_NAME;
+import static org.geotoolkit.observation.AbstractObservationStoreFactory.PHENOMENON_ID_BASE_NAME;
+import static org.geotoolkit.observation.AbstractObservationStoreFactory.SENSOR_ID_BASE_NAME;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 
 import static org.geotoolkit.sos.xml.SOSXmlFactory.*;
@@ -115,20 +117,20 @@ public class OM2BaseReader {
     public OM2BaseReader(final Map<String, Object> properties, final String schemaPrefix, final boolean cacheEnabled, final boolean isPostgres, final boolean timescaleDB) throws DataStoreException {
         this.isPostgres = isPostgres;
         this.timescaleDB = timescaleDB;
-        final String phenID = (String) properties.get(CommonConstants.PHENOMENON_ID_BASE);
+        final String phenID = (String) properties.get(PHENOMENON_ID_BASE_NAME);
         if (phenID == null) {
             this.phenomenonIdBase      = "";
         } else {
             this.phenomenonIdBase      = phenID;
         }
-        final String sidBase = (String) properties.get(CommonConstants.SENSOR_ID_BASE);
+        final String sidBase = (String) properties.get(SENSOR_ID_BASE_NAME);
         if (sidBase == null) {
             this.sensorIdBase = "";
         } else {
             this.sensorIdBase = sidBase;
         }
-        this.observationTemplateIdBase = (String) properties.get(CommonConstants.OBSERVATION_TEMPLATE_ID_BASE);
-        final String oidBase           = (String) properties.get(CommonConstants.OBSERVATION_ID_BASE);
+        this.observationTemplateIdBase = (String) properties.get(OBSERVATION_TEMPLATE_ID_BASE_NAME);
+        final String oidBase           = (String) properties.get(OBSERVATION_ID_BASE_NAME);
         if (oidBase == null) {
             this.observationIdBase = "";
         } else {

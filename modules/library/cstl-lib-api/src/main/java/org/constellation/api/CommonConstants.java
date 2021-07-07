@@ -65,10 +65,7 @@ public class CommonConstants {
     public static final String SENSORML_100_FORMAT_V200 = "http://www.opengis.net/sensorML/1.0.0";
     public static final String SENSORML_101_FORMAT_V200 = "http://www.opengis.net/sensorML/1.0.1";
 
-    public static final String SENSOR_ID_BASE = "sensorIdBase";
-    public static final String OBSERVATION_ID_BASE = "observationIdBase";
-    public static final String OBSERVATION_TEMPLATE_ID_BASE = "observationTemplateIdBase";
-    public static final String PHENOMENON_ID_BASE = "phenomenonIdBase";
+    public static final String SENSOR_ID_BASE = "sensor-id-base";
     public static final String ALWAYS_FEATURE_COLLECTION = "alwaysFeatureCollection";
     public static final String SHEMA_PREFIX = "schemaPrefix";
     public static final String SENSOR_TYPE_FILTER = "sensorTypeFilter";

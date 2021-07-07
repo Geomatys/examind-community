@@ -64,7 +64,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
-import org.constellation.api.CommonConstants;
 
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVATION_MODEL;
@@ -74,6 +73,10 @@ import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
 import static org.constellation.api.CommonConstants.SENSORML_100_FORMAT_V200;
 import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V200;
 import org.constellation.exception.ConstellationMetadataException;
+import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_ID_BASE_NAME;
+import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_TEMPLATE_ID_BASE_NAME;
+import static org.geotoolkit.observation.AbstractObservationStoreFactory.PHENOMENON_ID_BASE_NAME;
+import static org.geotoolkit.observation.AbstractObservationStoreFactory.SENSOR_ID_BASE_NAME;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildDirectPosition;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildFeatureProperty;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildLineString;
@@ -103,10 +106,10 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
 
     public DefaultGenericObservationReader(Automatic configuration, Map<String, Object> properties) throws ConstellationMetadataException {
         super(configuration);
-        this.observationIdBase = (String) properties.get(CommonConstants.OBSERVATION_ID_BASE);
-        this.phenomenonIdBase  = (String) properties.get(CommonConstants.PHENOMENON_ID_BASE);
-        this.sensorIdBase      = (String) properties.get(CommonConstants.SENSOR_ID_BASE);
-        this.observationIdTemplateBase = (String) properties.get(CommonConstants.OBSERVATION_TEMPLATE_ID_BASE);
+        this.observationIdBase = (String) properties.get(OBSERVATION_ID_BASE_NAME);
+        this.phenomenonIdBase  = (String) properties.get(PHENOMENON_ID_BASE_NAME);
+        this.sensorIdBase      = (String) properties.get(SENSOR_ID_BASE_NAME);
+        this.observationIdTemplateBase = (String) properties.get(OBSERVATION_TEMPLATE_ID_BASE_NAME);
     }
 
     /**

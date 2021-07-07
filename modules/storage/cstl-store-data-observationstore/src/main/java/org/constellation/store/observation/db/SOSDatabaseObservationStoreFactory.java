@@ -91,18 +91,6 @@ public class SOSDatabaseObservationStoreFactory extends AbstractObservationStore
     public static final ParameterDescriptor<String> USER =
              BUILDER.addName("user").setRemarks("User").setRequired(false).create(String.class, null);
 
-    public static final ParameterDescriptor<String> PHENOMENON_ID_BASE =
-             BUILDER.addName("phenomenon-id-base").setRemarks("phenomenon-id-base").setRequired(false).create(String.class, null);
-
-    public static final ParameterDescriptor<String> OBSERVATION_TEMPLATE_ID_BASE =
-             BUILDER.addName("observation-template-id-base").setRemarks("observation-template-id-base").setRequired(false).create(String.class, null);
-
-    public static final ParameterDescriptor<String> OBSERVATION_ID_BASE =
-             BUILDER.addName("observation-id-base").setRemarks("observation-id-base").setRequired(false).create(String.class, null);
-
-    public static final ParameterDescriptor<String> SENSOR_ID_BASE =
-             BUILDER.addName("sensor-id-base").setRemarks("sensor-id-base").setRequired(false).create(String.class, null);
-
     public static final ParameterDescriptor<String> SCHEMA_PREFIX =
              BUILDER.addName("schema-prefix").setRemarks("schema-prefix").setRequired(false).create(String.class, null);
     

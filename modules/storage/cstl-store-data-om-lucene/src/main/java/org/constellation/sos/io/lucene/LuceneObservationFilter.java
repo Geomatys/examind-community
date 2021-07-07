@@ -40,11 +40,11 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.constellation.api.CommonConstants;
 
 import static org.constellation.api.CommonConstants.EVENT_TIME;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.sos.io.lucene.LuceneObervationUtils.getLuceneTimeValue;
+import static org.geotoolkit.observation.AbstractObservationStoreFactory.PHENOMENON_ID_BASE_NAME;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.ogc.xml.v200.TimeAfterType;
 import org.geotoolkit.ogc.xml.v200.TimeBeforeType;
@@ -86,7 +86,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
     }
 
     public LuceneObservationFilter(final Path confDirectory, final Map<String, Object> properties) throws DataStoreException {
-        this.phenomenonIdBase  = (String) properties.get(CommonConstants.PHENOMENON_ID_BASE);
+        this.phenomenonIdBase  = (String) properties.get(PHENOMENON_ID_BASE_NAME);
         try {
             this.searcher = new LuceneObservationSearcher(confDirectory, "");
         } catch (IndexingException ex) {

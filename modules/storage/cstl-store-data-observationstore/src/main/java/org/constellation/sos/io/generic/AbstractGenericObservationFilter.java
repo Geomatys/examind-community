@@ -39,8 +39,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.constellation.api.CommonConstants;
 import org.constellation.generic.BDDUtils;
+import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_ID_BASE_NAME;
+import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_TEMPLATE_ID_BASE_NAME;
+import static org.geotoolkit.observation.AbstractObservationStoreFactory.PHENOMENON_ID_BASE_NAME;
 
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import org.opengis.filter.BinaryComparisonOperator;
@@ -100,9 +102,9 @@ public abstract class AbstractGenericObservationFilter implements ObservationFil
     protected static final Logger LOGGER = Logging.getLogger("org.constellation.sos.io.generic");
 
     public AbstractGenericObservationFilter(final Automatic configuration, final Map<String, Object> properties) throws DataStoreException {
-        this.observationIdBase         = (String) properties.get(CommonConstants.OBSERVATION_ID_BASE);
-        this.observationTemplateIdBase = (String) properties.get(CommonConstants.OBSERVATION_TEMPLATE_ID_BASE);
-        this.phenomenonIdBase          = (String) properties.get(CommonConstants.PHENOMENON_ID_BASE);
+        this.observationIdBase         = (String) properties.get(OBSERVATION_ID_BASE_NAME);
+        this.observationTemplateIdBase = (String) properties.get(OBSERVATION_TEMPLATE_ID_BASE_NAME);
+        this.phenomenonIdBase          = (String) properties.get(PHENOMENON_ID_BASE_NAME);
         if (configuration == null) {
             throw new DataStoreException("The configuration object is null");
         }

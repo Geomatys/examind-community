@@ -57,18 +57,6 @@ public class SOSGenericObservationStoreFactory extends AbstractObservationStoreF
              BUILDER.addName("Configuration").setRemarks("Configuration").setRequired(true).create(Automatic.class,null);
 
 
-    public static final ParameterDescriptor<String> PHENOMENON_ID_BASE =
-             BUILDER.addName("phenomenon-id-base").setRemarks("phenomenon-id-base").setRequired(false).create(String.class, null);
-
-    public static final ParameterDescriptor<String> OBSERVATION_TEMPLATE_ID_BASE =
-             BUILDER.addName("observation-template-id-baseobservation-template-id-base").setRequired(false).create(String.class, null);
-
-    public static final ParameterDescriptor<String> OBSERVATION_ID_BASE =
-             BUILDER.addName("observation-id-base").setRemarks("observation-id-base").setRequired(false).create(String.class, null);
-
-    public static final ParameterDescriptor<String> SENSOR_ID_BASE =
-             BUILDER.addName("sensor-id-base").setRemarks("sensor-id-base").setRequired(false).create(String.class, null);
-
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR = BUILDER.addName(NAME).addName("SOSGenericParameters").setRequired(true)
             .createGroup(IDENTIFIER,CONFIGURATION, PHENOMENON_ID_BASE, OBSERVATION_TEMPLATE_ID_BASE, OBSERVATION_ID_BASE, SENSOR_ID_BASE);
 

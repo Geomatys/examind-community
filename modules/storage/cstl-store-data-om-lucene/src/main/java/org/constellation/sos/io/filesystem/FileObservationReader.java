@@ -53,9 +53,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-import org.constellation.api.CommonConstants;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
+import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_ID_BASE_NAME;
+import static org.geotoolkit.observation.AbstractObservationStoreFactory.PHENOMENON_ID_BASE_NAME;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.Process;
@@ -102,8 +103,8 @@ public class FileObservationReader implements ObservationReader {
     }
 
     public FileObservationReader(final Path dataDirectory, final Map<String, Object> properties) throws DataStoreException {
-        this.observationIdBase = (String) properties.get(CommonConstants.OBSERVATION_ID_BASE);
-        this.phenomenonIdBase  = (String) properties.get(CommonConstants.PHENOMENON_ID_BASE);
+        this.observationIdBase = (String) properties.get(OBSERVATION_ID_BASE_NAME);
+        this.phenomenonIdBase  = (String) properties.get(PHENOMENON_ID_BASE_NAME);
         if (Files.isDirectory(dataDirectory)) {
             offeringDirectory            = dataDirectory.resolve("offerings");
             phenomenonDirectory          = dataDirectory.resolve("phenomenons");

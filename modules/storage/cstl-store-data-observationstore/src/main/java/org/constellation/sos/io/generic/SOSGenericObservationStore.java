@@ -18,7 +18,6 @@ package org.constellation.sos.io.generic;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -33,14 +32,9 @@ import org.apache.sis.metadata.iso.identification.DefaultDataIdentification;
 import org.apache.sis.referencing.NamedIdentifier;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
-import org.constellation.api.CommonConstants;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.exception.ConstellationMetadataException;
-import static org.constellation.sos.io.generic.SOSGenericObservationStoreFactory.OBSERVATION_ID_BASE;
-import static org.constellation.sos.io.generic.SOSGenericObservationStoreFactory.OBSERVATION_TEMPLATE_ID_BASE;
-import static org.constellation.sos.io.generic.SOSGenericObservationStoreFactory.PHENOMENON_ID_BASE;
-import static org.constellation.sos.io.generic.SOSGenericObservationStoreFactory.SENSOR_ID_BASE;
 import org.geotoolkit.data.om.xml.XmlObservationUtils;
 import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.observation.AbstractObservationStore;
@@ -56,7 +50,6 @@ import org.geotoolkit.swe.xml.PhenomenonProperty;
 import org.opengis.metadata.Metadata;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
-import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.util.GenericName;
@@ -74,15 +67,9 @@ public class SOSGenericObservationStore extends AbstractObservationStore {
     public SOSGenericObservationStore(final ParameterValueGroup params) throws DataStoreException {
         super(params);
         try {
-
-            // password
             final Automatic conf = (Automatic) params.parameter(SOSGenericObservationStoreFactory.CONFIGURATION.getName().toString()).getValue();
 
-            final Map<String,Object> properties = new HashMap<>();
-            extractParameter(params, CommonConstants.PHENOMENON_ID_BASE, PHENOMENON_ID_BASE, properties);
-            extractParameter(params, CommonConstants.OBSERVATION_ID_BASE, OBSERVATION_ID_BASE, properties);
-            extractParameter(params, CommonConstants.OBSERVATION_TEMPLATE_ID_BASE, OBSERVATION_TEMPLATE_ID_BASE, properties);
-            extractParameter(params, CommonConstants.SENSOR_ID_BASE, SENSOR_ID_BASE, properties);
+            final Map<String,Object> properties = getBasicProperties();
 
             reader = new DefaultGenericObservationReader(conf, properties);
             writer = null;
@@ -97,13 +84,6 @@ public class SOSGenericObservationStore extends AbstractObservationStore {
         return DataStores.getProviderById(SOSGenericObservationStoreFactory.NAME);
     }
 
-    private void extractParameter(final ParameterValueGroup params, String key, ParameterDescriptor<String> param, final Map<String,Object> properties) {
-        final String value = (String) params.parameter(param.getName().toString()).getValue();
-        if (value != null) {
-            properties.put(key, value);
-        }
-    }
-
     @Override
     public Metadata getMetadata() throws DataStoreException {
         final String name = "generic-observation";
@@ -116,35 +96,6 @@ public class SOSGenericObservationStore extends AbstractObservationStore {
         metadata.setIdentificationInfo(Collections.singleton(identification));
         metadata.transitionTo(ModifiableMetadata.State.FINAL);
         return metadata;
-    }
-
-    @Override
-    public Set<GenericName> getProcedureNames() {
-        final Set<GenericName> names = new HashSet<>();
-        try {
-            for (String process : reader.getProcedureNames()) {
-                names.add(NamesExt.create(process));
-            }
-
-        } catch (DataStoreException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
-        }
-        return names;
-    }
-
-    @Override
-    public ExtractionResult getResults() throws DataStoreException {
-        return getResults(null, null, new HashSet<>(), new HashSet<>());
-    }
-
-    @Override
-    public ExtractionResult getResults(final String affectedSensorId, final List<String> sensorIDs) throws DataStoreException {
-        return getResults(affectedSensorId, sensorIDs, new HashSet<>(), new HashSet<>());
-    }
-
-    @Override
-    public ExtractionResult getResults(final List<String> sensorIDs) throws DataStoreException {
-        return getResults(null, sensorIDs, new HashSet<>(), new HashSet<>());
     }
 
     @Override
@@ -220,16 +171,6 @@ public class SOSGenericObservationStore extends AbstractObservationStore {
         if (reader != null) reader.destroy();
         if (writer != null) writer.destroy();
         if (filter != null) filter.destroy();
-    }
-
-    @Override
-    public Set<String> getPhenomenonNames() {
-        try {
-            return new HashSet(reader.getPhenomenonNames());
-        } catch (DataStoreException ex) {
-            LOGGER.log(Level.WARNING, "Error while retrieving phenomenons", ex);
-        }
-        return new HashSet<>();
     }
 
     @Override
