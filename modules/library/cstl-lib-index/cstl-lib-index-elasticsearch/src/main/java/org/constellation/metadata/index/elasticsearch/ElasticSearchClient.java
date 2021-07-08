@@ -61,6 +61,8 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.core.CountRequest;
+import org.elasticsearch.client.core.CountResponse;
 import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.common.Strings;
@@ -231,12 +233,13 @@ public class ElasticSearchClient {
         return map;
     }
 
-   public SearchHit[] search(final String index, final String queryJson, final QueryBuilder query, final QueryBuilder filter, final int start, final int limit, final String type,final Sort sort) throws IOException {
-       /* SearchRequestBuilder builder = client.prepareSearch(index)
-                                             .setSearchType(SearchType.DEFAULT);*/
+   public SearchHit[] search(final String index, final String queryJson, final QueryBuilder query, 
+           final QueryBuilder filter, final int start, final int limit, final String type, final Sort sort,
+           final boolean fetchSource, final List<String> fields) throws IOException {
 
         SearchSourceBuilder builder = new SearchSourceBuilder();
-
+        builder = builder.fetchSource(fetchSource);
+        
         if (queryJson != null) {
             builder = builder.query(QueryBuilders.wrapperQuery(queryJson));
         } else if (query != null) {
@@ -254,7 +257,11 @@ public class ElasticSearchClient {
         if (sort != null) {
             builder = builder.sort(sort.getField(), SortOrder.valueOf(sort.getOrder()));
         }
-
+        if (fields != null && !fields.isEmpty()) {
+            for (String field : fields) {
+                builder = builder.docValueField(field);
+            }
+        }
         if (limit < 10000) {
             builder = builder.size(limit);
             SearchRequest sRequest = new SearchRequest(index);
@@ -291,6 +298,10 @@ public class ElasticSearchClient {
         }
     }
 
+    public SearchHit[] search(final String index, final String queryJson, final QueryBuilder query, final QueryBuilder filter, final int start, final int limit, final String type, final Sort sort) throws IOException {
+        return search(index, queryJson, query, filter, start, limit, type, sort, true, null);
+    }
+
     public SearchHit[] StringSearch(final String index, final String term, final String value, final int limit) throws IOException {
         return search(index, null, QueryBuilders.termQuery(term, value), null, -1, limit, null, null);
     }
@@ -310,6 +321,26 @@ public class ElasticSearchClient {
     public SearchHit[] searchAll(final String index, final int limit) throws IOException {
         return search(index, null, QueryBuilders.matchAllQuery(), null, -1, limit, null, null);
     }
+
+    public long count(final String index, final String queryJson, QueryBuilder query, final QueryBuilder filter) throws IOException {
+        SearchSourceBuilder builder = new SearchSourceBuilder();
+
+        if (queryJson != null) {
+            builder = builder.query(QueryBuilders.wrapperQuery(queryJson));
+        } else if (query != null) {
+            builder = builder.query(query);
+        }
+        if (filter != null) {
+            builder = builder.postFilter(filter);
+        }
+
+        builder = builder.fetchSource(false);
+        CountRequest sRequest = new CountRequest(index);
+        sRequest.query(builder.query());
+        final CountResponse response = client.count(sRequest, RequestOptions.DEFAULT);
+        return response.getCount();
+    }
+
 
     private static XContentBuilder getAnalyzer() throws IOException {
         return XContentFactory.jsonBuilder()
