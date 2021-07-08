@@ -72,7 +72,9 @@ public class CommonConstants {
 
     public static final String SOS = "SOS";
     public static final String ALL = "All";
+    public static final String OBJECT_TYPE = "objectType";
     public static final String OFFERING = "offering";
+    public static final String LOCATION = "location";
     public static final String OBSERVED_PROPERTY = "observedProperty";
     public static final String EVENT_TIME = "eventTime";
     public static final String PROCEDURE = "procedure";
@@ -86,6 +88,7 @@ public class CommonConstants {
     public static final String RESPONSE_MODE = "responseMode";
     public static final String RESPONSE_FORMAT = "responseFormat";
     public static final String RESULT_MODEL = "resultModel";
+    public static final String RESULT = "result";
     public static final String NOT_SUPPORTED = "This operation is not take in charge by the Web Service";
     public static final String RESPONSE_FORMAT_V100_XML     = "text/xml; subtype=\"om/1.0.0\"";
     public static final String RESPONSE_FORMAT_V200_XML     = "http://www.opengis.net/om/2.0";

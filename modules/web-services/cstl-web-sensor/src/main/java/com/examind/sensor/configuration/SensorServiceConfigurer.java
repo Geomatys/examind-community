@@ -46,7 +46,7 @@ public class SensorServiceConfigurer extends OGCConfigurer implements ISensorCon
     public Instance getInstance(final Integer id, final String lang) throws ConfigurationException {
         final Instance instance = super.getInstance(id, lang);
         try {
-            instance.setLayersNumber(sensorServBusiness.getSensorIds(id).size());
+            instance.setLayersNumber((int)sensorServBusiness.getSensorCount(id));
         } catch (ConfigurationException ex) {
             LOGGER.log(Level.WARNING, "Error while getting sensor count on Sensor instance:" + id, ex);
         }

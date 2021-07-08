@@ -41,8 +41,14 @@ import org.apache.sis.internal.storage.query.SimpleQuery;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.util.Utilities;
 import org.apache.sis.xml.MarshallerPool;
+import static org.constellation.api.CommonConstants.FEATURE_OF_INTEREST;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
+import static org.constellation.api.CommonConstants.OBJECT_TYPE;
+import static org.constellation.api.CommonConstants.OBSERVATION;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
+import static org.constellation.api.CommonConstants.PROCEDURE;
+import static org.constellation.api.CommonConstants.RESPONSE_MODE;
+import static org.constellation.api.CommonConstants.RESULT_MODEL;
 import org.constellation.api.ServiceDef;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
@@ -199,7 +205,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         try {
             final SimpleQuery subquery = buildExtraFilterQuery(req, true);
             if (req.getCount()) {
-                count = new BigDecimal(omProvider.getProcedureNames(subquery, new HashMap<>()).size());
+                count = new BigDecimal(omProvider.getCount(subquery, new HashMap(Collections.singletonMap(OBJECT_TYPE, PROCEDURE))));
             }
             final ExpandOptions exp = new ExpandOptions(req);
             List<Process> procs = omProvider.getProcedures(subquery, new HashMap<>());
@@ -973,7 +979,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             hints.put("includeTimeInTemplate", "true");
             hints.put("singleObservedPropertyInTemplate", "true");
             if (req.getCount()) {
-                count = new BigDecimal(omProvider.getObservationNames(subquery, OBSERVATION_QNAME, "resultTemplate", hints).size());
+                hints.put(OBJECT_TYPE, OBSERVATION);
+                hints.put(RESPONSE_MODE, "resultTemplate");
+                hints.put(RESULT_MODEL, OBSERVATION_QNAME.toString());
+                count = new BigDecimal(omProvider.getCount(subquery, hints));
             }
             List<org.opengis.observation.Observation> templates = omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", null, hints);
             Map<String, GeoJSONGeometry> sensorArea = new HashMap<>();
@@ -1438,7 +1447,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             // latest sensor locations
             } else {
                 if (req.getCount()) {
-                    count = new BigDecimal(omProvider.getProcedureNames(subquery, new HashMap<>()).size());
+                    count = new BigDecimal(omProvider.getCount(subquery, new HashMap(Collections.singletonMap(OBJECT_TYPE, PROCEDURE))));
                 }
                 List<Process> procs = omProvider.getProcedures(subquery, new HashMap<>());
                 List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), null);
@@ -1476,7 +1485,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         try {
             final SimpleQuery subquery = buildExtraFilterQuery(req, true);
             if (req.getCount()) {
-                count = new BigDecimal(omProvider.getProcedureNames(subquery, new HashMap<>()).size());
+                count = new BigDecimal(omProvider.getCount(subquery, new HashMap(Collections.singletonMap(OBJECT_TYPE, PROCEDURE))));
             }
             List<Process> procs = omProvider.getProcedures(subquery, new HashMap<>());
 
@@ -1776,7 +1785,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             final ExpandOptions exp = new ExpandOptions(req);
             final SimpleQuery subquery = buildExtraFilterQuery(req, true);
             if (req.getCount()) {
-                count = new BigDecimal(omProvider.getFeatureOfInterestNames(subquery, new HashMap<>()).size());
+                count = new BigDecimal(omProvider.getCount(subquery, new HashMap(Collections.singletonMap(OBJECT_TYPE, FEATURE_OF_INTEREST))));
             }
             List<SamplingFeature> sps = omProvider.getFeatureOfInterest(subquery, new HashMap<>());
             for (SamplingFeature sp : sps) {

@@ -46,6 +46,8 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 import org.constellation.api.CommonConstants;
+import static org.constellation.api.CommonConstants.OBJECT_TYPE;
+import static org.constellation.api.CommonConstants.PROCEDURE;
 import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.util.NamedId;
 import org.geotoolkit.filter.FilterUtilities;
@@ -226,6 +228,15 @@ public class SensorServiceBusiness {
         final ObservationProvider pr = getOMProvider(id);
         try {
             return pr.getProcedureNames(null, Collections.EMPTY_MAP);
+        } catch (ConstellationStoreException ex) {
+            throw new ConfigurationException(ex);
+        }
+    }
+
+    public long getSensorCount(final Integer id) throws ConfigurationException {
+        final ObservationProvider pr = getOMProvider(id);
+        try {
+            return pr.getCount(null, Collections.singletonMap(OBJECT_TYPE, PROCEDURE));
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }

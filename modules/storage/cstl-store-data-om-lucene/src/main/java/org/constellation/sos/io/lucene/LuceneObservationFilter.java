@@ -40,9 +40,15 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import static org.constellation.api.CommonConstants.EVENT_TIME;
+import static org.constellation.api.CommonConstants.FEATURE_OF_INTEREST;
+import static org.constellation.api.CommonConstants.LOCATION;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
+import static org.constellation.api.CommonConstants.OBSERVATION;
+import static org.constellation.api.CommonConstants.OBSERVED_PROPERTY;
+import static org.constellation.api.CommonConstants.OFFERING;
+import static org.constellation.api.CommonConstants.PROCEDURE;
+import static org.constellation.api.CommonConstants.RESULT;
 import static org.constellation.sos.io.lucene.LuceneObervationUtils.getLuceneTimeValue;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.PHENOMENON_ID_BASE_NAME;
 import org.geotoolkit.observation.ObservationFilterReader;
@@ -75,9 +81,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
 
     protected final String phenomenonIdBase;
 
-    protected boolean getFoi = false;
-    protected boolean getPhen = false;
-
+    protected String objectType = null;
     private static final String OR_OPERATOR = " OR ";
 
     public LuceneObservationFilter(final LuceneObservationFilter omFilter) throws DataStoreException {
@@ -112,7 +116,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
         }
         this.resultModel = resultModel;
         this.requestMode = requestMode;
-        this.getFoi = false;
+        this.objectType = OBSERVATION;
         eventTimes.clear();
     }
 
@@ -127,7 +131,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
             luceneRequest = new StringBuilder("type:observation AND template:FALSE AND procedure:\"" + procedure + "\" ");
         }
         this.resultModel = resultModel;
-        this.getFoi = false;
+        this.objectType = RESULT;
         eventTimes.clear();
     }
 
@@ -137,8 +141,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
     @Override
     public void initFilterGetPhenomenon() throws DataStoreException {
         luceneRequest = new StringBuilder("type:phenomenon");
-        getFoi = false;
-        getPhen = true;
+        this.objectType = OBSERVED_PROPERTY;
         eventTimes.clear();
     }
 
@@ -148,19 +151,20 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
     @Override
     public void initFilterGetSensor() throws DataStoreException {
         luceneRequest = new StringBuilder("type:procedure");
-        getFoi = false;
+        this.objectType = PROCEDURE;
         eventTimes.clear();
     }
 
     @Override
     public void initFilterOffering() throws DataStoreException {
         luceneRequest = new StringBuilder("type:offering");
-        getFoi = false;
+        this.objectType = OFFERING;
         eventTimes.clear();
     }
 
     @Override
     public void initFilterGetLocations() throws DataStoreException {
+        this.objectType = LOCATION;
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -170,7 +174,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
     @Override
     public void initFilterGetFeatureOfInterest() throws DataStoreException {
         luceneRequest = new StringBuilder("type:foi");
-        getFoi = true;
+        this.objectType = FEATURE_OF_INTEREST;
     }
 
     /**
@@ -198,6 +202,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
     @Override
     public void setObservedProperties(final List<String> phenomenon) {
         if (phenomenon != null && !allPhenonenon(phenomenon) && !phenomenon.isEmpty()) {
+            boolean getPhen = OBSERVED_PROPERTY.equals(objectType);
             luceneRequest.append(" AND( ");
             for (String p : phenomenon) {
                 if (getPhen) {
@@ -221,9 +226,10 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
     @Override
     public void setFeatureOfInterest(final List<String> fois) {
         if (fois != null && !fois.isEmpty()) {
+            boolean getFOI = FEATURE_OF_INTEREST.equals(objectType);
             luceneRequest.append(" AND (");
             for (String foi : fois) {
-                if (getFoi) {
+                if (getFOI) {
                     luceneRequest.append("id:").append(foi).append(" OR ");
                 } else {
                     luceneRequest.append("feature_of_interest:").append(foi).append(" OR ");
@@ -503,5 +509,23 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
     @Override
     public void setProcedureType(String type) throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public long getCount() throws DataStoreException {
+        if (objectType == null) {
+            throw new DataStoreException("initialisation of the filter missing.");
+        }
+        // TODO optimize
+        switch (objectType) {
+            case FEATURE_OF_INTEREST: return filterFeatureOfInterest().size();
+            case OBSERVED_PROPERTY:   return filterPhenomenon().size();
+            case PROCEDURE:           return filterProcedure().size();
+            case LOCATION:            throw new DataStoreException("not implemented yet.");
+            case OFFERING:            return filterOffering().size();
+            case OBSERVATION:         return filterObservation().size();
+            case RESULT:              return filterResult().size();
+        }
+        throw new DataStoreException("initialisation of the filter missing.");
     }
 }

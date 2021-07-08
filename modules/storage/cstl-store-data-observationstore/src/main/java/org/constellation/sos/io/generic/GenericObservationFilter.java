@@ -47,8 +47,14 @@ import java.util.Set;
 import java.util.logging.Level;
 
 import static org.constellation.api.CommonConstants.EVENT_TIME;
+import static org.constellation.api.CommonConstants.FEATURE_OF_INTEREST;
+import static org.constellation.api.CommonConstants.LOCATION;
+import static org.constellation.api.CommonConstants.OBSERVATION;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
+import static org.constellation.api.CommonConstants.OBSERVED_PROPERTY;
+import static org.constellation.api.CommonConstants.OFFERING;
 import static org.constellation.api.CommonConstants.PROCEDURE;
+import static org.constellation.api.CommonConstants.RESULT;
 import org.constellation.sos.ws.DatablockParser;
 import static org.constellation.sos.ws.DatablockParser.getResultValues;
 import org.geotoolkit.observation.ObservationReader;
@@ -88,6 +94,8 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
 
     protected final List<Filter> eventTimes = new ArrayList<>();
 
+    protected String objectType = null;
+    
     /**
      * Clone a  Generic Observation Filter for CSTL O&amp;M datasource.
      * @param omFilter
@@ -141,6 +149,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         currentQuery.addFrom(from);
         currentQuery.addWhere(where);
         eventTimes.clear();
+        objectType = OBSERVATION;
     }
 
     /**
@@ -158,6 +167,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         currentQuery.addFrom(from);
         currentQuery.addWhere(where);
         eventTimes.clear();
+        this.objectType = RESULT;
     }
 
     /**
@@ -172,6 +182,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         currentQuery.addSelect(select);
         currentQuery.addFrom(from);
         eventTimes.clear();
+        this.objectType = OBSERVED_PROPERTY;
     }
 
     /**
@@ -186,6 +197,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         currentQuery.addSelect(select);
         currentQuery.addFrom(from);
         eventTimes.clear();
+        this.objectType = PROCEDURE;
     }
 
     /**
@@ -194,6 +206,24 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     @Override
     public void initFilterGetFeatureOfInterest() throws DataStoreException {
         // do nothing no implemented
+        this.objectType = FEATURE_OF_INTEREST;
+    }
+
+    @Override
+    public void initFilterOffering() throws DataStoreException {
+        this.objectType = OFFERING;
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void initFilterGetLocations() throws DataStoreException {
+        this.objectType = LOCATION;
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void initFilterGetProcedureTimes() throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     /**
@@ -458,21 +488,6 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     }
 
     @Override
-    public void initFilterOffering() throws DataStoreException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public void initFilterGetLocations() throws DataStoreException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public void initFilterGetProcedureTimes() throws DataStoreException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
     public Set<String> filterOffering() throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
@@ -564,6 +579,24 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
             processes.add(pr);
         }
         return processes;
+    }
+
+    @Override
+    public long getCount() throws DataStoreException {
+        if (objectType == null) {
+            throw new DataStoreException("initialisation of the filter missing.");
+        }
+        // TODO optimize
+        switch (objectType) {
+            case FEATURE_OF_INTEREST: return filterFeatureOfInterest().size();
+            case OBSERVED_PROPERTY:   return filterPhenomenon().size();
+            case PROCEDURE:           return filterProcedure().size();
+            case LOCATION:            throw new DataStoreException("not implemented yet.");
+            case OFFERING:            return filterOffering().size();
+            case OBSERVATION:         return filterObservation().size();
+            case RESULT:              return filterResult().size();
+        }
+        throw new DataStoreException("initialisation of the filter missing.");
     }
 
     @Override

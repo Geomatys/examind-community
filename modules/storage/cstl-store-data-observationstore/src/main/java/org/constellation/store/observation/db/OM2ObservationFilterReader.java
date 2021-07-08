@@ -42,6 +42,7 @@ import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStoreException;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
+import static org.constellation.api.CommonConstants.LOCATION;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.RESPONSE_MODE;
 import static org.constellation.store.observation.db.OM2BaseReader.defaultCRS;
@@ -111,8 +112,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         // we get the property name (not used for now)
         // String propertyName = tFilter.getExpression1()
         Object time = tFilter.getExpressions().get(1);
+        boolean getLoc = LOCATION.equals(objectType);
         TemporalOperatorName type = tFilter.getOperatorType();
         if (type == TemporalOperatorName.EQUALS) {
+
             if (time instanceof Literal && !(time instanceof TemporalGeometricPrimitive)) {
                 time = ((Literal)time).getValue();
             }
@@ -1283,6 +1286,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
      */
     private Map<Object, long[]> getMainFieldStep(FilterSQLRequest request, final Field mainField, final Connection c, final int width) throws SQLException {
         boolean profile = "profile".equals(currentOMType);
+        boolean getLoc = LOCATION.equals(objectType);
         if (getLoc) {
             request.replaceFirst("SELECT hl.\"procedure\", hl.\"time\", st_asBinary(\"location\") as \"location\", hl.\"crs\" ",
                                  "SELECT MIN(\"" + mainField.fieldName + "\"), MAX(\"" + mainField.fieldName + "\"), hl.\"procedure\" ");

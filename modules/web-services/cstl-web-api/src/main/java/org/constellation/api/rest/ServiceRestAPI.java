@@ -229,9 +229,9 @@ public class ServiceRestAPI extends AbstractRestAPI {
             if (configurer != null) {
                 return configurer.getInstance(service.getId(), lang);
             }
-        } catch (IllegalArgumentException | NotRunningServiceException ex) {
-            // can appears when switching branch, must not break the operation
-            LOGGER.warning("unknow specification:" + service.getType());
+        } catch (Exception ex) {
+            // one service failing must not break the entire operation
+            LOGGER.log(Level.WARNING, "Error while looking for instance: " + service.getType() + " - " + service.getIdentifier(), ex);
         }
         return new Instance(service);
     }

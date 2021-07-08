@@ -39,8 +39,17 @@ import org.apache.sis.internal.storage.query.SimpleQuery;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
+import org.constellation.api.CommonConstants;
+import static org.constellation.api.CommonConstants.FEATURE_OF_INTEREST;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
+import static org.constellation.api.CommonConstants.OBJECT_TYPE;
+import static org.constellation.api.CommonConstants.OBSERVATION;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
+import static org.constellation.api.CommonConstants.OBSERVED_PROPERTY;
+import static org.constellation.api.CommonConstants.OFFERING;
+import static org.constellation.api.CommonConstants.PROCEDURE;
+import static org.constellation.api.CommonConstants.RESPONSE_MODE;
+import static org.constellation.api.CommonConstants.RESULT_MODEL;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.sos.ProcedureTree;
@@ -210,6 +219,9 @@ public class ObservationStoreProviderTest {
         expectedIds.add("station-005");
         expectedIds.add("station-006");
         Assert.assertEquals(expectedIds, resultIds);
+
+        long result = omPr.getCount(null, Collections.singletonMap(OBJECT_TYPE, FEATURE_OF_INTEREST));
+        assertEquals(result, 6L);
     }
 
     @Test
@@ -255,6 +267,9 @@ public class ObservationStoreProviderTest {
         expectedIds.add("temperature");
         expectedIds.add("salinity");
         Assert.assertEquals(expectedIds, resultIds);
+
+        long result = omPr.getCount(null, Collections.singletonMap(OBJECT_TYPE, OBSERVED_PROPERTY));
+        assertEquals(result, 5L);
     }
 
     @Test
@@ -315,16 +330,24 @@ public class ObservationStoreProviderTest {
         expectedIds.add("urn:ogc:object:sensor:GEOM:test-id");
         Assert.assertEquals(expectedIds, resultIds);
 
+        long result = omPr.getCount(null, Collections.singletonMap(OBJECT_TYPE, PROCEDURE));
+        assertEquals(result, 13L);
+
         SimpleQuery query = new SimpleQuery();
         BinaryComparisonOperator filter = ff.equal(ff.property("sensorType") , ff.literal("component"));
         query.setFilter(filter);
         resultIds = omPr.getProcedureNames(query, Collections.EMPTY_MAP);
         assertEquals(1, resultIds.size());
 
+        result = omPr.getCount(query, Collections.singletonMap(OBJECT_TYPE, PROCEDURE));
+        assertEquals(result, 1L);
+
         filter = ff.equal(ff.property("sensorType") , ff.literal("system"));
         query.setFilter(filter);
         resultIds = omPr.getProcedureNames(query, Collections.EMPTY_MAP);
         assertEquals(12, resultIds.size());
+        result = omPr.getCount(query, Collections.singletonMap(OBJECT_TYPE, PROCEDURE));
+        assertEquals(result, 12L);
     }
 
     @Test
@@ -379,16 +402,25 @@ public class ObservationStoreProviderTest {
         expectedIds.add("offering-9");
         Assert.assertEquals(expectedIds, resultIds);
 
+        long result = omPr.getCount(null, Collections.singletonMap(OBJECT_TYPE, OFFERING));
+        assertEquals(result, 13L);
+
         SimpleQuery query = new SimpleQuery();
         BinaryComparisonOperator filter = ff.equal(ff.property("sensorType") , ff.literal("component"));
         query.setFilter(filter);
         resultIds = omPr.getOfferingNames(query, Collections.EMPTY_MAP);
         assertEquals(1, resultIds.size());
+        
+        result = omPr.getCount(query, Collections.singletonMap(OBJECT_TYPE, OFFERING));
+        assertEquals(result, 1L);
 
         filter = ff.equal(ff.property("sensorType") , ff.literal("system"));
         query.setFilter(filter);
         resultIds = omPr.getOfferingNames(query, Collections.EMPTY_MAP);
         assertEquals(12, resultIds.size());
+
+        result = omPr.getCount(query, Collections.singletonMap(OBJECT_TYPE, OFFERING));
+        assertEquals(result, 12L);
     }
 
     @Test
@@ -419,6 +451,13 @@ public class ObservationStoreProviderTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:13-2");
         Assert.assertEquals(expectedIds, resultIds);
 
+        Map<String, String> hints = new HashMap<>();
+        hints.put(OBJECT_TYPE, OBSERVATION);
+        hints.put(RESPONSE_MODE, "resultTemplate");
+        hints.put(RESULT_MODEL, MEASUREMENT_QNAME.toString());
+        long result = omPr.getCount(null, hints);
+        assertEquals(result, 18L);
+
         resultIds = omPr.getObservationNames(null, OBSERVATION_QNAME, "resultTemplate", Collections.EMPTY_MAP);
         assertEquals(11, resultIds.size());
 
@@ -435,6 +474,13 @@ public class ObservationStoreProviderTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:2");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:test-id");
         Assert.assertEquals(expectedIds, resultIds);
+
+        hints = new HashMap<>();
+        hints.put(OBJECT_TYPE, OBSERVATION);
+        hints.put(RESPONSE_MODE, "resultTemplate");
+        hints.put(RESULT_MODEL, OBSERVATION_QNAME.toString());
+        result = omPr.getCount(null, hints);
+        assertEquals(result, 11L);
     }
 
     @Test
@@ -579,8 +625,22 @@ public class ObservationStoreProviderTest {
         Collection<String> resultIds = omPr.getObservationNames(null, MEASUREMENT_QNAME, "inline", Collections.EMPTY_MAP);
         assertEquals(111, resultIds.size());
 
+        Map<String, String> hints = new HashMap<>();
+        hints.put(OBJECT_TYPE, OBSERVATION);
+        hints.put(RESPONSE_MODE, "inline");
+        hints.put(RESULT_MODEL, MEASUREMENT_QNAME.toString());
+        long result = omPr.getCount(null, hints);
+        assertEquals(result, 111L);
+
         resultIds = omPr.getObservationNames(null, OBSERVATION_QNAME, "inline", Collections.EMPTY_MAP);
         assertEquals(74, resultIds.size());
+
+        hints = new HashMap<>();
+        hints.put(OBJECT_TYPE, OBSERVATION);
+        hints.put(RESPONSE_MODE, "inline");
+        hints.put(RESULT_MODEL, OBSERVATION_QNAME.toString());
+        result = omPr.getCount(null, hints);
+        assertEquals(result, 74L);
 
         SimpleQuery query = new SimpleQuery();
         BinaryComparisonOperator filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:test-1"));
@@ -602,6 +662,13 @@ public class ObservationStoreProviderTest {
         expectedIds.add("urn:ogc:object:observation:GEOM:507-1-5");
         Assert.assertEquals(expectedIds, resultIds);
 
+        hints = new HashMap<>();
+        hints.put(OBJECT_TYPE, OBSERVATION);
+        hints.put(RESPONSE_MODE, "inline");
+        hints.put(RESULT_MODEL, MEASUREMENT_QNAME.toString());
+        result = omPr.getCount(query, hints);
+        assertEquals(result, 10L);
+
         resultIds = omPr.getObservationNames(query, OBSERVATION_QNAME, "inline", Collections.EMPTY_MAP);
         assertEquals(5, resultIds.size());
 
@@ -612,6 +679,13 @@ public class ObservationStoreProviderTest {
         expectedIds.add("urn:ogc:object:observation:GEOM:507-4");
         expectedIds.add("urn:ogc:object:observation:GEOM:507-5");
         Assert.assertEquals(expectedIds, resultIds);
+
+        hints = new HashMap<>();
+        hints.put(OBJECT_TYPE, OBSERVATION);
+        hints.put(RESPONSE_MODE, "inline");
+        hints.put(RESULT_MODEL, OBSERVATION_QNAME.toString());
+        result = omPr.getCount(query, hints);
+        assertEquals(result, 5L);
 
         filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:13"));
         query.setFilter(filter);
@@ -649,6 +723,13 @@ public class ObservationStoreProviderTest {
 
         Assert.assertEquals(expectedIds, resultIds);
 
+        hints = new HashMap<>();
+        hints.put(OBJECT_TYPE, OBSERVATION);
+        hints.put(RESPONSE_MODE, "inline");
+        hints.put(RESULT_MODEL, MEASUREMENT_QNAME.toString());
+        result = omPr.getCount(query, hints);
+        assertEquals(result, 23L);
+
         resultIds = omPr.getObservationNames(query, OBSERVATION_QNAME, "inline", Collections.EMPTY_MAP);
         assertEquals(13, resultIds.size());
 
@@ -668,6 +749,12 @@ public class ObservationStoreProviderTest {
         expectedIds.add("urn:ogc:object:observation:GEOM:4003-3");
         Assert.assertEquals(expectedIds, resultIds);
 
+        hints = new HashMap<>();
+        hints.put(OBJECT_TYPE, OBSERVATION);
+        hints.put(RESPONSE_MODE, "inline");
+        hints.put(RESULT_MODEL, OBSERVATION_QNAME.toString());
+        result = omPr.getCount(query, hints);
+        assertEquals(result, 13L);
     }
 
     @Test

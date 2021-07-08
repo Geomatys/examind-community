@@ -134,4 +134,6 @@ public interface ObservationProvider extends DataProvider {
      * @return a key identifyng the datasource.
      */
     String getDatasourceKey();
+
+    long getCount(Query q, final Map<String,String> hints) throws ConstellationStoreException;
 }

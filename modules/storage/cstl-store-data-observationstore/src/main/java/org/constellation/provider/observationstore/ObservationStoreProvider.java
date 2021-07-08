@@ -43,9 +43,18 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.Query;
 import org.apache.sis.storage.Resource;
+import static org.constellation.api.CommonConstants.FEATURE_OF_INTEREST;
+import static org.constellation.api.CommonConstants.LOCATION;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
+import static org.constellation.api.CommonConstants.OBJECT_TYPE;
+import static org.constellation.api.CommonConstants.OBSERVATION;
 import static org.constellation.api.CommonConstants.OBSERVATION_MODEL;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
+import static org.constellation.api.CommonConstants.OBSERVED_PROPERTY;
+import static org.constellation.api.CommonConstants.OFFERING;
+import static org.constellation.api.CommonConstants.PROCEDURE;
+import static org.constellation.api.CommonConstants.RESPONSE_MODE;
+import static org.constellation.api.CommonConstants.RESULT_MODEL;
 import org.constellation.dto.service.config.sos.Offering;
 import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
@@ -844,6 +853,64 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             handleQuery(q, localOmFilter, GET_RES, hints);
             localOmFilter.setResponseFormat(responseFormat);
             return localOmFilter.getResults(hints);
+
+        } catch (DataStoreException ex) {
+            throw new ConstellationStoreException(ex);
+        }
+    }
+
+    @Override
+    public long getCount(Query q, Map<String, String> hints) throws ConstellationStoreException {
+        try {
+            final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
+            final String objectType = hints.get(OBJECT_TYPE);
+            if (objectType == null) {
+                throw new ConstellationStoreException("Missing objectType parameter for getCount()");
+            }
+            final String responseMode = hints.get(RESPONSE_MODE);
+            ResponseModeType rmode;
+            if (responseMode != null) {
+                rmode = ResponseModeType.fromValue(responseMode);
+            } else {
+                rmode = ResponseModeType.INLINE;
+            }
+            final String resultModel = hints.get(RESULT_MODEL);
+            QName rmodel;
+            if (resultModel != null) {
+                rmodel = QName.valueOf(resultModel);
+            } else {
+                rmodel = OBSERVATION_QNAME;
+            }
+            int mode;
+            switch (objectType) {
+                case OBSERVED_PROPERTY:
+                    localOmFilter.initFilterGetPhenomenon();
+                    mode = GET_PHEN;
+                    break;
+                case PROCEDURE:
+                    localOmFilter.initFilterGetSensor();
+                    mode = GET_PROC;
+                    break;
+                case FEATURE_OF_INTEREST:
+                    localOmFilter.initFilterGetFeatureOfInterest();
+                    mode = GET_FEA;
+                    break;
+                case OFFERING:
+                    localOmFilter.initFilterOffering();
+                    mode = GET_OFF;
+                    break;
+                case LOCATION:
+                    localOmFilter.initFilterGetLocations();
+                    mode = GET_LOC;
+                    break;
+                case OBSERVATION:
+                    localOmFilter.initFilterObservation(rmode, rmodel, hints);
+                    mode = GET_OBS;
+                    break;
+                default: throw new ConstellationStoreException("unsuported objectType parameter " + objectType + " for getCount()");
+            }
+            handleQuery(q, localOmFilter, mode, hints);
+            return localOmFilter.getCount();
 
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
