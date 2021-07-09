@@ -19,7 +19,7 @@ package org.constellation.sos.io.lucene;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -37,7 +37,6 @@ import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import org.constellation.sos.io.filesystem.FileObservationReader;
 import org.constellation.sos.io.filesystem.FileObservationWriter;
 import org.geotoolkit.data.om.xml.XmlObservationUtils;
-import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.observation.AbstractObservationStore;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
@@ -109,7 +108,7 @@ public class SOSLuceneObservationStore extends AbstractObservationStore {
         final ObservationFilterReader currentFilter = getFilter();
         currentFilter.setProcedure(sensorIDs);
 
-        final Set<String> observationIDS = filter.filterObservation();
+        final Set<String> observationIDS = filter.filterObservation(new HashMap<>());
         for (String oid : observationIDS) {
             final AbstractObservation o = (AbstractObservation) reader.getObservation(oid, OBSERVATION_QNAME, ResponseModeType.INLINE, "2.0.0");
             final Process proc          =  o.getProcedure();

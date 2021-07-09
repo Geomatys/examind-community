@@ -104,7 +104,7 @@ import org.geotoolkit.ows.xml.RequestBase;
 import org.geotoolkit.ows.xml.Sections;
 import org.geotoolkit.sml.xml.AbstractSensorML;
 import org.geotoolkit.sml.xml.SensorMLUtilities;
-import org.geotoolkit.sml.xml.SmlFactory;
+import org.geotoolkit.sml.xml.SmlXMLFactory;
 import org.geotoolkit.sml.xml.v100.SensorML;
 import org.geotoolkit.sos.xml.Capabilities;
 import org.geotoolkit.sos.xml.Contents;
@@ -690,7 +690,7 @@ public class SOSworker extends SensorWorker {
         }
         if (result instanceof SensorML &&
             (out.equalsIgnoreCase(SENSORML_101_FORMAT_V100) || out.equalsIgnoreCase(SENSORML_101_FORMAT_V200))) {
-            result = SmlFactory.convertTo101((SensorML)result);
+            result = SmlXMLFactory.convertTo101((SensorML)result);
         } else if (result == null) {
             throw new CstlServiceException("this sensor has no metadata SOS", INVALID_PARAMETER_VALUE, PROCEDURE);
         }

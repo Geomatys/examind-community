@@ -379,7 +379,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
      * {@inheritDoc}
      */
     @Override
-    public List<ObservationResult> filterResult() throws DataStoreException {
+    public List<ObservationResult> filterResult(Map<String, String> hints) throws DataStoreException {
         try {
             final SpatialQuery query = new SpatialQuery(luceneRequest.toString());
             final SortField sf       = new SortField("sampling_time_begin_sort", SortField.Type.STRING, false);
@@ -394,7 +394,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
      * {@inheritDoc}
      */
     @Override
-    public Set<String> filterObservation() throws DataStoreException {
+    public Set<String> filterObservation(Map<String, String> hints) throws DataStoreException {
         try {
             Set<String> results = searcher.doSearch(new SpatialQuery(luceneRequest.toString()));
             // order results
@@ -407,7 +407,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
     }
 
     @Override
-    public Set<String> filterFeatureOfInterest() throws DataStoreException {
+    public Set<String> filterFeatureOfInterest(Map<String, String> hints) throws DataStoreException {
         try {
             return searcher.doSearch(new SpatialQuery(luceneRequest.toString()));
         } catch(SearchingException ex) {
@@ -416,7 +416,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
     }
 
     @Override
-    public Set<String> filterProcedure() throws DataStoreException {
+    public Set<String> filterProcedure(Map<String, String> hints) throws DataStoreException {
         try {
             return searcher.doSearch(new SpatialQuery(luceneRequest.toString()));
         } catch(SearchingException ex) {
@@ -425,7 +425,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
     }
 
     @Override
-    public Set<String> filterOffering() throws DataStoreException {
+    public Set<String> filterOffering(Map<String, String> hints) throws DataStoreException {
         try {
             return searcher.doSearch(new SpatialQuery(luceneRequest.toString()));
         } catch(SearchingException ex) {
@@ -434,7 +434,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
     }
 
     @Override
-    public Set<String> filterPhenomenon() throws DataStoreException {
+    public Set<String> filterPhenomenon(Map<String, String> hints) throws DataStoreException {
         try {
             return searcher.doSearch(new SpatialQuery(luceneRequest.toString()));
         } catch(SearchingException ex) {
@@ -516,15 +516,16 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
         if (objectType == null) {
             throw new DataStoreException("initialisation of the filter missing.");
         }
+        Map<String, String> hints = Collections.EMPTY_MAP;
         // TODO optimize
         switch (objectType) {
-            case FEATURE_OF_INTEREST: return filterFeatureOfInterest().size();
-            case OBSERVED_PROPERTY:   return filterPhenomenon().size();
-            case PROCEDURE:           return filterProcedure().size();
+            case FEATURE_OF_INTEREST: return filterFeatureOfInterest(hints).size();
+            case OBSERVED_PROPERTY:   return filterPhenomenon(hints).size();
+            case PROCEDURE:           return filterProcedure(hints).size();
             case LOCATION:            throw new DataStoreException("not implemented yet.");
-            case OFFERING:            return filterOffering().size();
-            case OBSERVATION:         return filterObservation().size();
-            case RESULT:              return filterResult().size();
+            case OFFERING:            return filterOffering(hints).size();
+            case OBSERVATION:         return filterObservation(hints).size();
+            case RESULT:              return filterResult(hints).size();
         }
         throw new DataStoreException("initialisation of the filter missing.");
     }

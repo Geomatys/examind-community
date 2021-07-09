@@ -18,12 +18,11 @@ package org.constellation.sos.io.generic;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.logging.Level;
 import org.apache.sis.metadata.ModifiableMetadata;
 import org.apache.sis.metadata.iso.DefaultIdentifier;
 import org.apache.sis.metadata.iso.DefaultMetadata;
@@ -36,7 +35,6 @@ import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.exception.ConstellationMetadataException;
 import org.geotoolkit.data.om.xml.XmlObservationUtils;
-import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.observation.AbstractObservationStore;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
@@ -109,7 +107,7 @@ public class SOSGenericObservationStore extends AbstractObservationStore {
         final ObservationFilterReader currentFilter = getFilter();
         currentFilter.setProcedure(sensorIDs);
 
-        final Set<String> observationIDS = currentFilter.filterObservation();
+        final Set<String> observationIDS = currentFilter.filterObservation(new HashMap<>());
         for (String oid : observationIDS) {
             final AbstractObservation o = (AbstractObservation) reader.getObservation(oid, OBSERVATION_QNAME, ResponseModeType.INLINE, "2.0.0");
             final Process proc          =  o.getProcedure();

@@ -301,7 +301,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
             localOmFilter.initFilterGetPhenomenon();
             handleQuery(q, localOmFilter, GET_PHEN, hints);
-            return localOmFilter.filterPhenomenon();
+            return localOmFilter.filterPhenomenon(hints);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
@@ -326,7 +326,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
             localOmFilter.initFilterGetSensor();
             handleQuery(q, localOmFilter, GET_PROC, hints);
-            return localOmFilter.filterProcedure();
+            return localOmFilter.filterProcedure(hints);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
@@ -338,7 +338,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
             localOmFilter.initFilterGetFeatureOfInterest();
             handleQuery(q, localOmFilter, GET_FEA, hints);
-            return localOmFilter.filterFeatureOfInterest();
+            return localOmFilter.filterFeatureOfInterest(hints);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
@@ -410,7 +410,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
             localOmFilter.initFilterOffering();
             handleQuery(q, localOmFilter, GET_OFF, hints);
-            return localOmFilter.filterOffering();
+            return localOmFilter.filterOffering(hints);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
@@ -429,7 +429,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             localOmFilter.initFilterObservation(mode, resultModel, hints);
             handleQuery(q, localOmFilter, GET_OBS, hints);
 
-            return localOmFilter.filterObservation();
+            return localOmFilter.filterObservation(hints);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }

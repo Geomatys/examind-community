@@ -73,7 +73,7 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
     public List<Observation> getObservationTemplates(Map<String, String> hints) throws DataStoreException {
         final String version                 = getVersionFromHints(hints);
         final List<Observation> observations = new ArrayList<>();
-        final Set<String> oid = filterObservation();
+        final Set<String> oid = filterObservation(hints);
         for (String foid : oid) {
             final Observation obs = reader.getObservation(foid, resultModel, requestMode, version);
             observations.add(obs);
@@ -85,7 +85,7 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
     public List<Observation> getObservations(Map<String, String> hints) throws DataStoreException {
         final String version                 = getVersionFromHints(hints);
         final List<Observation> observations = new ArrayList<>();
-        final Set<String> oid = filterObservation();
+        final Set<String> oid = filterObservation(hints);
         for (String foid : oid) {
             final Observation obs = reader.getObservation(foid, resultModel, requestMode, version);
 
@@ -120,7 +120,7 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
     public List<SamplingFeature> getFeatureOfInterests(Map<String, String> hints) throws DataStoreException {
         final String version                 = getVersionFromHints(hints);
         final List<SamplingFeature> features = new ArrayList<>();
-        final Set<String> fid = filterFeatureOfInterest();
+        final Set<String> fid = filterFeatureOfInterest(hints);
         for (String foid : fid) {
             final SamplingFeature feature = reader.getFeatureOfInterest(foid, version);
             features.add(feature);
@@ -132,7 +132,7 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
     public List<Phenomenon> getPhenomenons(Map<String, String> hints) throws DataStoreException {
         final String version               = getVersionFromHints(hints);
         final List<Phenomenon> phenomenons = new ArrayList<>();
-        final Set<String> fid = filterPhenomenon();
+        final Set<String> fid = filterPhenomenon(hints);
         for (String foid : fid) {
             final Phenomenon phen = reader.getPhenomenon(foid, version);
             phenomenons.add(phen);
@@ -144,7 +144,7 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
     public List<Process> getProcesses(Map<String, String> hints) throws DataStoreException {
         final String version          = getVersionFromHints(hints);
         final List<Process> processes = new ArrayList<>();
-        final Set<String> pids = filterProcedure();
+        final Set<String> pids = filterProcedure(hints);
         for (String pid : pids) {
             final Process pr = reader.getProcess(pid, version);
             processes.add(pr);
@@ -154,7 +154,7 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
 
     @Override
     public String getResults(Map<String, String> hints) throws DataStoreException {
-        final List<ObservationResult> results = filterResult();
+        final List<ObservationResult> results = filterResult(hints);
         final StringBuilder datablock         = new StringBuilder();
 
         for (ObservationResult result: results) {

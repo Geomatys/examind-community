@@ -46,7 +46,8 @@ import static org.constellation.api.CommonConstants.LOCATION;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.RESPONSE_MODE;
 import static org.constellation.store.observation.db.OM2BaseReader.defaultCRS;
-import static org.constellation.store.observation.db.OM2Utils.*;
+import static org.constellation.store.observation.db.OM2Utils.reOrderFields;
+import static org.geotoolkit.observation.Utils.*;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.geometry.jts.SRIDGenerator;
 import org.geotoolkit.gml.JTStoGeometry;
@@ -826,7 +827,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
     @Override
     public Object getResults(final Map<String,String> hints) throws DataStoreException {
-        Integer decimationSize         = getIntegerHint(hints, "decimSize");
+        Integer decimationSize         = getIntegerHint(hints, "decimSize", null);
         boolean includeTimeForProfile  = getBooleanHint(hints, "includeTimeForProfile", false);
 
         if (decimationSize != null && !"count".equals(responseFormat)) {
@@ -1506,7 +1507,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
     @Override
     public Map<String, Map<Date, Geometry>> getSensorLocations(final Map<String,String> hints) throws DataStoreException {
-        Integer decimSize = getIntegerHint(hints, "decimSize");
+        Integer decimSize = getIntegerHint(hints, "decimSize", null);
         if (decimSize != null) {
             return getDecimatedSensorLocationsV2(hints, decimSize);
         }
@@ -2068,27 +2069,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             throw new DataStoreException("the service has throw a SQL Exception.", ex);
         }
         return times;
-    }
-
-    private FilterSQLRequest appendPaginationToRequest(FilterSQLRequest request, Map<String, String> hints) {
-        Long limit     = getLongHint(hints, "limit");
-        Long offset    = getLongHint(hints, "offset");
-        if (isPostgres) {
-            if (limit != null) {
-                request.append(" LIMIT ").append(Long.toString(limit));
-            }
-            if (offset != null) {
-                request.append(" OFFSET ").append(Long.toString(offset));
-            }
-        } else {
-            if (offset != null) {
-                request.append(" OFFSET ").append(Long.toString(offset)).append(" ROWS ");
-            }
-            if (limit != null) {
-                request.append(" fetch next ").append(Long.toString(limit)).append(" rows only");
-            }
-        }
-        return request;
     }
 
     @Override

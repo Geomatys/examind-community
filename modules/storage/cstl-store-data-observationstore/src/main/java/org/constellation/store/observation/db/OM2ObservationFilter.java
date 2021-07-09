@@ -40,6 +40,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -58,7 +59,7 @@ import static org.constellation.api.CommonConstants.OBSERVED_PROPERTY;
 import static org.constellation.api.CommonConstants.OFFERING;
 import static org.constellation.api.CommonConstants.PROCEDURE;
 import static org.constellation.api.CommonConstants.RESULT;
-import static org.constellation.store.observation.db.OM2Utils.*;
+import static org.geotoolkit.observation.Utils.*;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildCompositePhenomenon;
@@ -683,8 +684,9 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      * {@inheritDoc}
      */
     @Override
-    public List<ObservationResult> filterResult() throws DataStoreException {
+    public List<ObservationResult> filterResult(Map<String, String> hints) throws DataStoreException {
         LOGGER.log(Level.FINER, "request:{0}", sqlRequest.toString());
+        sqlRequest = appendPaginationToRequest(sqlRequest, hints);
         try (final Connection c                   = source.getConnection();
             final PreparedStatement pstmt         = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
             final ResultSet result                = pstmt.executeQuery()) {
@@ -706,10 +708,11 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      * {@inheritDoc}
      */
     @Override
-    public Set<String> filterObservation() throws DataStoreException {
+    public Set<String> filterObservation(Map<String, String> hints) throws DataStoreException {
         if (firstFilter) {
             sqlRequest = sqlRequest.replaceFirst("WHERE", "");
         }
+        sqlRequest = appendPaginationToRequest(sqlRequest, hints);
         LOGGER.log(Level.FINER, "request:{0}", sqlRequest.toString());
         try(final Connection c               = source.getConnection();
             final PreparedStatement pstmt    = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
@@ -804,7 +807,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         }
     }
 
-    private String getFeatureOfInterestRequest() {
+    private String getFeatureOfInterestRequest(Map<String, String> hints) {
+        sqlRequest = appendPaginationToRequest(sqlRequest, hints);
         String request = sqlRequest.toString();
         if (obsJoin) {
             final String obsJoin = "\"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"foi\" = sf.\"id\" ";
@@ -822,8 +826,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      * {@inheritDoc}
      */
     @Override
-    public Set<String> filterFeatureOfInterest() throws DataStoreException {
-        final String request = getFeatureOfInterestRequest();
+    public Set<String> filterFeatureOfInterest(Map<String, String> hints) throws DataStoreException {
+        final String request = getFeatureOfInterestRequest(hints);
         LOGGER.log(Level.FINER, "request:{0}", request);
         try(final Connection c               = source.getConnection();
             final Statement currentStatement = c.createStatement();
@@ -839,7 +843,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         }
     }
 
-    private String getPhenomenonRequest() {
+    private String getPhenomenonRequest(Map<String, String> hints) {
+        sqlRequest = appendPaginationToRequest(sqlRequest, hints);
         String request = sqlRequest.toString();
         if (obsJoin) {
             final String obsJoin = ", \"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"observed_property\" = op.\"id\" ";
@@ -860,8 +865,9 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      * {@inheritDoc}
      */
     @Override
-    public Set<String> filterPhenomenon() throws DataStoreException {
-        String request = getPhenomenonRequest();
+    public Set<String> filterPhenomenon(Map<String, String> hints) throws DataStoreException {
+        sqlRequest = appendPaginationToRequest(sqlRequest, hints);
+        String request = getPhenomenonRequest(hints);
         LOGGER.log(Level.FINER, "request:{0}", request);
         try(final Connection c               = source.getConnection();
             final Statement currentStatement = c.createStatement();
@@ -877,7 +883,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         }
     }
 
-    private String getProcedureRequest() {
+    private String getProcedureRequest(Map<String, String> hints) {
+        sqlRequest = appendPaginationToRequest(sqlRequest, hints);
         String request = sqlRequest.toString();
         if (obsJoin) {
             final String obsJoin = ", \"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"procedure\" = pr.\"id\" ";
@@ -898,8 +905,9 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      * {@inheritDoc}
      */
     @Override
-    public Set<String> filterProcedure() throws DataStoreException {
-        String request = getProcedureRequest();
+    public Set<String> filterProcedure(Map<String, String> hints) throws DataStoreException {
+        sqlRequest = appendPaginationToRequest(sqlRequest, hints);
+        String request = sqlRequest.toString();
         LOGGER.log(Level.FINER, "request:{0}", request);
         try(final Connection c               = source.getConnection();
             final Statement currentStatement = c.createStatement();
@@ -915,7 +923,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         }
     }
 
-    private String getOfferingRequest() {
+    private String getOfferingRequest(Map<String, String> hints) {
+        sqlRequest = appendPaginationToRequest(sqlRequest, hints);
         String request = sqlRequest.toString();
         if (obsJoin && procJoin) {
             final String obsJoin = ", \"" + schemaPrefix + "om\".\"observations\" o, \"" + schemaPrefix + "om\".\"procedures\" pr WHERE o.\"procedure\" = off.\"procedure\" AND pr.\"id\" = off.\"procedure\"";
@@ -947,8 +956,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     }
 
     @Override
-    public Set<String> filterOffering() throws DataStoreException {
-        String request = getOfferingRequest();
+    public Set<String> filterOffering(Map<String, String> hints) throws DataStoreException {
+        String request = getOfferingRequest(hints);
         LOGGER.log(Level.FINER, "request:{0}", request);
         try(final Connection c               = source.getConnection();
             final Statement currentStatement = c.createStatement();
@@ -969,15 +978,16 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         if (objectType == null) {
             throw new DataStoreException("initialisation of the filter missing.");
         }
+        Map<String, String> hints = Collections.EMPTY_MAP;
         String request;
         switch (objectType) {
-            case FEATURE_OF_INTEREST: request = getFeatureOfInterestRequest(); break;
-            case OBSERVED_PROPERTY:   request = getPhenomenonRequest(); break;
-            case PROCEDURE:           request = getProcedureRequest(); break;
+            case FEATURE_OF_INTEREST: request = getFeatureOfInterestRequest(hints); break;
+            case OBSERVED_PROPERTY:   request = getPhenomenonRequest(hints); break;
+            case PROCEDURE:           request = getProcedureRequest(hints); break;
             case LOCATION:            throw new DataStoreException("not implemented yet.");
-            case OFFERING:            request = getOfferingRequest(); break;
-            case OBSERVATION:         return filterObservation().size();
-            case RESULT:              return filterResult().size();
+            case OFFERING:            request = getOfferingRequest(hints); break;
+            case OBSERVATION:         return filterObservation(hints).size();
+            case RESULT:              return filterResult(hints).size();
             default: throw new DataStoreException("unexpected object type:" + objectType);
         }
 
@@ -1066,6 +1076,27 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     @Override
     public void destroy() {
         //do nothing
+    }
+
+    protected FilterSQLRequest appendPaginationToRequest(FilterSQLRequest request, Map<String, String> hints) {
+        Long limit     = getLongHint(hints, "limit");
+        Long offset    = getLongHint(hints, "offset");
+        if (isPostgres) {
+            if (limit != null) {
+                request.append(" LIMIT ").append(Long.toString(limit));
+            }
+            if (offset != null) {
+                request.append(" OFFSET ").append(Long.toString(offset));
+            }
+        } else {
+            if (offset != null) {
+                request.append(" OFFSET ").append(Long.toString(offset)).append(" ROWS ");
+            }
+            if (limit != null) {
+                request.append(" fetch next ").append(Long.toString(limit)).append(" rows only");
+            }
+        }
+        return request;
     }
 
     protected Field getMainField(final String procedure) throws DataStoreException {

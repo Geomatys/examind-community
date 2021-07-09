@@ -39,6 +39,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -382,7 +383,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      * {@inheritDoc}
      */
     @Override
-    public List<ObservationResult> filterResult() throws DataStoreException {
+    public List<ObservationResult> filterResult(Map<String, String> hints) throws DataStoreException {
         final String request = currentQuery.buildSQLQuery();
         LOGGER.log(Level.INFO, "request:{0}", request);
         try {
@@ -409,7 +410,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      * {@inheritDoc}
      */
     @Override
-    public Set<String> filterObservation() throws DataStoreException {
+    public Set<String> filterObservation(Map<String, String> hints) throws DataStoreException {
         return extractIdQuery();
     }
 
@@ -417,7 +418,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      * {@inheritDoc}
      */
     @Override
-    public Set<String> filterPhenomenon() throws DataStoreException {
+    public Set<String> filterPhenomenon(Map<String, String> hints) throws DataStoreException {
         return extractIdQuery();
     }
 
@@ -425,7 +426,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      * {@inheritDoc}
      */
     @Override
-    public Set<String> filterProcedure() throws DataStoreException {
+    public Set<String> filterProcedure(Map<String, String> hints) throws DataStoreException {
         return extractIdQuery();
     }
 
@@ -473,7 +474,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     }
 
     @Override
-    public Set<String> filterFeatureOfInterest() throws DataStoreException {
+    public Set<String> filterFeatureOfInterest(Map<String, String> hints) throws DataStoreException {
         throw new DataStoreException("filterFeatureOfInterest is not supported by this ObservationFilter implementation.");
     }
 
@@ -488,7 +489,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     }
 
     @Override
-    public Set<String> filterOffering() throws DataStoreException {
+    public Set<String> filterOffering(Map<String, String> hints) throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -503,7 +504,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     public List<Observation> getObservationTemplates(Map<String, String> hints) throws DataStoreException {
         final String version                 = getVersionFromHints(hints);
         final List<Observation> observations = new ArrayList<>();
-        final Set<String> oid = filterObservation();
+        final Set<String> oid = filterObservation(hints);
         for (String foid : oid) {
             final Observation obs = reader.getObservation(foid, resultModel, requestMode, version);
             observations.add(obs);
@@ -515,7 +516,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     public List<Observation> getObservations(Map<String, String> hints) throws DataStoreException {
         final String version                 = getVersionFromHints(hints);
         final List<Observation> observations = new ArrayList<>();
-        final Set<String> oid = filterObservation();
+        final Set<String> oid = filterObservation(hints);
         for (String foid : oid) {
             final Observation obs = reader.getObservation(foid, resultModel, requestMode, version);
             // parse result values to eliminate wrong results
@@ -549,7 +550,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     public List<SamplingFeature> getFeatureOfInterests(Map<String, String> hints) throws DataStoreException {
         final String version                 = getVersionFromHints(hints);
         final List<SamplingFeature> features = new ArrayList<>();
-        final Set<String> fid = filterFeatureOfInterest();
+        final Set<String> fid = filterFeatureOfInterest(hints);
         for (String foid : fid) {
             final SamplingFeature feature = reader.getFeatureOfInterest(foid, version);
             features.add(feature);
@@ -561,7 +562,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     public List<Phenomenon> getPhenomenons(Map<String, String> hints) throws DataStoreException {
         final String version               = getVersionFromHints(hints);
         final List<Phenomenon> phenomenons = new ArrayList<>();
-        final Set<String> fid = filterPhenomenon();
+        final Set<String> fid = filterPhenomenon(hints);
         for (String foid : fid) {
             final Phenomenon phen = reader.getPhenomenon(foid, version);
             phenomenons.add(phen);
@@ -573,7 +574,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     public List<Process> getProcesses(Map<String, String> hints) throws DataStoreException {
         final String version          = getVersionFromHints(hints);
         final List<Process> processes = new ArrayList<>();
-        final Set<String> pids = filterProcedure();
+        final Set<String> pids = filterProcedure(hints);
         for (String pid : pids) {
             final Process pr = reader.getProcess(pid, version);
             processes.add(pr);
@@ -586,15 +587,16 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         if (objectType == null) {
             throw new DataStoreException("initialisation of the filter missing.");
         }
+        Map<String, String> hints = Collections.EMPTY_MAP;
         // TODO optimize
         switch (objectType) {
-            case FEATURE_OF_INTEREST: return filterFeatureOfInterest().size();
-            case OBSERVED_PROPERTY:   return filterPhenomenon().size();
-            case PROCEDURE:           return filterProcedure().size();
+            case FEATURE_OF_INTEREST: return filterFeatureOfInterest(hints).size();
+            case OBSERVED_PROPERTY:   return filterPhenomenon(hints).size();
+            case PROCEDURE:           return filterProcedure(hints).size();
             case LOCATION:            throw new DataStoreException("not implemented yet.");
-            case OFFERING:            return filterOffering().size();
-            case OBSERVATION:         return filterObservation().size();
-            case RESULT:              return filterResult().size();
+            case OFFERING:            return filterOffering(hints).size();
+            case OBSERVATION:         return filterObservation(hints).size();
+            case RESULT:              return filterResult(hints).size();
         }
         throw new DataStoreException("initialisation of the filter missing.");
     }
