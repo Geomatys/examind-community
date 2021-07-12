@@ -1707,7 +1707,8 @@ public class SOSworker extends SensorWorker {
             }
             //and we write it in the sensorML Database
             final String smlType = SensorMLUtilities.getSensorMLType(process);
-            Integer sid = sensorBusiness.create(sensorId.getHref(), smlType, null, null, process, System.currentTimeMillis(), smlProviderID);
+            final String omType  = null;// TODO available soon on geotk SensorMLUtilities.getOMType(process);
+            Integer sid = sensorBusiness.create(sensorId.getHref(), smlType, omType, null, process, System.currentTimeMillis(), smlProviderID);
             sensorBusiness.addSensorToService(getServiceId(), sid);
 
             // and we record the position of the piezometer

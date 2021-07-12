@@ -170,7 +170,9 @@ public class SensorStoreProvider extends AbstractDataProvider implements SensorP
         boolean result = false;
         try {
             result = store.deleteSensor(key.toString());
-            reload();
+            if (result) {
+                reload();
+            }
         } catch (DataStoreException ex) {
             LOGGER.log(Level.INFO, "Unable to remove " + key.toString() + " from provider.", ex);
         }
@@ -234,7 +236,9 @@ public class SensorStoreProvider extends AbstractDataProvider implements SensorP
         boolean result = false;
         try {
             result = store.writeSensor(id, sensor);
-            reload();
+            if (result) {
+                reload();
+            }
         } catch (DataStoreException ex) {
             LOGGER.log(Level.INFO, "Unable to insert a new sensor in provider:" + id, ex);
         }

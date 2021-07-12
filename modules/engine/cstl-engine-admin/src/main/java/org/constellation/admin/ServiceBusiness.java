@@ -299,7 +299,7 @@ public class ServiceBusiness implements IServiceBusiness {
             datasetRepository.removeAllDatasetFromCSW(id);
             serviceRepository.removelinkedMetadataProvider(id);
         } else if (service.getType().equalsIgnoreCase("sos") || service.getType().equalsIgnoreCase("sts")) {
-            List<Integer> linkedProviders = serviceRepository.getLinkedSensorProviders(id);
+            List<Integer> linkedProviders = serviceRepository.getLinkedSensorProviders(id, null);
             serviceRepository.removelinkedSensorProviders(id);
             serviceRepository.removelinkedSensors(id);
             for (Integer linkedProviderID : linkedProviders) {
@@ -674,7 +674,7 @@ public class ServiceBusiness implements IServiceBusiness {
      */
     @Override
     public List<Integer> getLinkedProviders(Integer serviceID) {
-        return serviceRepository.getLinkedSensorProviders(serviceID);
+        return serviceRepository.getLinkedSensorProviders(serviceID, null);
     }
 
     /**

@@ -184,12 +184,12 @@ public class ServicesRepositoryTest extends AbstractRepositoryTest {
         /**
          * sensor provider link.
          */
-        Assert.assertTrue(serviceRepository.getLinkedSensorProviders(sid2).contains(pid3));
+        Assert.assertTrue(serviceRepository.getLinkedSensorProviders(sid2, null).contains(pid3));
         Assert.assertTrue(serviceRepository.getLinkedSOSServices(pid3).contains(s2));
 
         serviceRepository.removelinkedSensorProviders(sid2);
 
-        Assert.assertFalse(serviceRepository.getLinkedSensorProviders(sid2).contains(pid3));
+        Assert.assertFalse(serviceRepository.getLinkedSensorProviders(sid2, null).contains(pid3));
         Assert.assertFalse(serviceRepository.getLinkedSOSServices(pid3).contains(s2));
 
         /**

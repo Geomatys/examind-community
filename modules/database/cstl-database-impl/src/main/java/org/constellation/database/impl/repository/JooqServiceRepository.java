@@ -21,6 +21,8 @@ package org.constellation.database.impl.repository;
 import org.constellation.database.api.jooq.Tables;
 import org.constellation.dto.service.Service;
 import org.constellation.database.api.jooq.tables.pojos.ServiceExtraConfig;
+import org.constellation.database.api.jooq.tables.pojos.ProviderXSos;
+import org.constellation.database.api.jooq.tables.pojos.ProviderXCsw;
 import org.constellation.database.api.jooq.tables.records.ServiceDetailsRecord;
 import org.constellation.database.api.jooq.tables.records.ServiceExtraConfigRecord;
 import org.constellation.database.api.jooq.tables.records.ServiceRecord;
@@ -42,6 +44,7 @@ import static org.constellation.database.api.jooq.Tables.METADATA;
 import static org.constellation.database.api.jooq.Tables.PROVIDER_X_SOS;
 import static org.constellation.database.api.jooq.Tables.PROVIDER_X_CSW;
 import static org.constellation.database.api.jooq.Tables.METADATA_X_CSW;
+import static org.constellation.database.api.jooq.Tables.PROVIDER;
 import static org.constellation.database.api.jooq.Tables.SENSOR_X_SOS;
 import static org.constellation.database.api.jooq.Tables.SENSORED_DATA;
 import static org.constellation.database.api.jooq.Tables.SERVICE;
@@ -310,9 +313,34 @@ public class JooqServiceRepository extends AbstractJooqRespository<ServiceRecord
     }
 
     @Override
-    public List<Integer> getLinkedSensorProviders(Integer serviceId) {
-        return dsl.select(PROVIDER_X_SOS.PROVIDER_ID).from(Arrays.asList(PROVIDER_X_SOS))
-                .where(PROVIDER_X_SOS.SOS_ID.eq(serviceId)).fetchInto(Integer.class);
+    public List<Integer> getLinkedSensorProviders(Integer serviceId, String type) {
+        if (type != null) {
+            return dsl.select(PROVIDER_X_SOS.PROVIDER_ID).from(Arrays.asList(PROVIDER_X_SOS, PROVIDER))
+                      .where(PROVIDER_X_SOS.SOS_ID.eq(serviceId))
+                      .and(PROVIDER.ID.eq(PROVIDER_X_SOS.PROVIDER_ID))
+                      .and(PROVIDER.TYPE.eq(type))
+                      .fetchInto(Integer.class);
+        } else {
+            return dsl.select(PROVIDER_X_SOS.PROVIDER_ID).from(Arrays.asList(PROVIDER_X_SOS))
+                      .where(PROVIDER_X_SOS.SOS_ID.eq(serviceId)).fetchInto(Integer.class);
+        }
+    }
+
+    @Override
+    public boolean isAllLinked(int serviceId, int providerId) {
+        ProviderXCsw pxc = dsl.select(PROVIDER_X_CSW.ALL_METADATA).from(PROVIDER_X_CSW)
+           .where(PROVIDER_X_CSW.PROVIDER_ID.eq(providerId))
+           .and(PROVIDER_X_CSW.CSW_ID.eq(serviceId)).fetchOneInto(ProviderXCsw.class);
+        if (pxc != null) {
+            return pxc.getAllMetadata();
+        }
+        ProviderXSos pxs = dsl.select(PROVIDER_X_SOS.ALL_SENSOR).from(PROVIDER_X_SOS)
+           .where(PROVIDER_X_SOS.PROVIDER_ID.eq(providerId))
+           .and(PROVIDER_X_SOS.SOS_ID.eq(serviceId)).fetchOneInto(ProviderXSos.class);
+        if (pxs != null) {
+            return pxs.getAllSensor();
+        }
+        return false;
     }
 
     @Override
@@ -334,10 +362,21 @@ public class JooqServiceRepository extends AbstractJooqRespository<ServiceRecord
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public void linkSensorProvider(int serviceId, int providerID, boolean allSensor) {
-        dsl.insertInto(PROVIDER_X_SOS).set(PROVIDER_X_SOS.SOS_ID, serviceId)
-                                      .set(PROVIDER_X_SOS.PROVIDER_ID, providerID)
-                                      .set(PROVIDER_X_SOS.ALL_SENSOR, allSensor)
-                                      .execute();
+        boolean exist = dsl.selectCount()
+                           .from(PROVIDER_X_SOS)
+                           .where(PROVIDER_X_SOS.PROVIDER_ID.eq(providerID))
+                           .and(PROVIDER_X_SOS.SOS_ID.eq(serviceId))
+                           .fetchOneInto(Integer.class) > 0;
+        if (exist) {
+            dsl.update(PROVIDER_X_SOS).set(PROVIDER_X_SOS.ALL_SENSOR, allSensor)
+                                      .where(PROVIDER_X_SOS.PROVIDER_ID.eq(providerID))
+                                      .and(PROVIDER_X_SOS.SOS_ID.eq(serviceId)).execute();
+        } else {
+            dsl.insertInto(PROVIDER_X_SOS).set(PROVIDER_X_SOS.SOS_ID, serviceId)
+                                          .set(PROVIDER_X_SOS.PROVIDER_ID, providerID)
+                                          .set(PROVIDER_X_SOS.ALL_SENSOR, allSensor)
+                                          .execute();
+        }
     }
 
     @Override

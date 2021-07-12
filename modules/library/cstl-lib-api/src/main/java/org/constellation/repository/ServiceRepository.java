@@ -64,7 +64,7 @@ public interface ServiceRepository extends AbstractRepository {
 
     List<ServiceReference> fetchByDataId(int dataId);
 
-    List<Integer> getLinkedSensorProviders(Integer serviceId);
+    List<Integer> getLinkedSensorProviders(Integer serviceId, String type);
 
     List<Service> getLinkedSOSServices(Integer providerId);
 
@@ -87,5 +87,7 @@ public interface ServiceRepository extends AbstractRepository {
     boolean isLinkedMetadataProviderAndService(int serviceId, int providerID);
 
     public String getImplementation(Integer serviceId);
+
+    boolean isAllLinked(int serviceId, int providerId);
 
 }

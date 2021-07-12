@@ -57,7 +57,7 @@ public interface SensorRepository extends AbstractRepository {
 
     void unlinkDataToSensor(Integer dataId, Integer sensorId);
     
-     boolean isLinkedDataToSensor(Integer dataId, Integer sensorId);
+    boolean isLinkedDataToSensor(Integer dataId, Integer sensorId);
 
     Integer create(Sensor sensor);
 

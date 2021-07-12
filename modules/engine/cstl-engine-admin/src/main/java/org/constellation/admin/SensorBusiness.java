@@ -316,7 +316,15 @@ public class SensorBusiness implements ISensorBusiness {
 
     @Override
     public List<Sensor> getByServiceId(Integer serviceID) {
-        return sensorRepository.findByServiceId(serviceID);
+        List<Sensor> results = new ArrayList<>();
+        List<Integer> pids = serviceRepository.getLinkedSensorProviders(serviceID, "SENSOR");
+        for (Integer pid : pids) {
+            if (serviceRepository.isAllLinked(serviceID, pid)) {
+                results.addAll(sensorRepository.findByProviderId(pid));
+            }
+        }
+        results.addAll(sensorRepository.findByServiceId(serviceID));
+        return results;
     }
 
     @Override
@@ -481,7 +489,7 @@ public class SensorBusiness implements ISensorBusiness {
     public Map<String, List<String>> getAcceptedSensorMLFormats(Integer serviceID) throws ConfigurationException {
         final Map<String, List<String>> results = new HashMap<>();
         if (serviceID != null) {
-            final List<Integer> providers = serviceRepository.getLinkedSensorProviders(serviceID);
+            final List<Integer> providers = serviceRepository.getLinkedSensorProviders(serviceID, null);
             for (Integer providerID : providers) {
                 final DataProvider provider = DataProviders.getProvider(providerID);
                 if (provider instanceof SensorProvider) {
@@ -537,17 +545,36 @@ public class SensorBusiness implements ISensorBusiness {
     @Transactional
     public void removeSensorFromService(Integer serviceID, Integer sensorID) throws ConfigurationException {
         if (serviceID != null && sensorID != null) {
-            if (sensorRepository.existsById(sensorID)) {
-                sensorRepository.unlinkSensorFromService(sensorID, serviceID);
-                List<Sensor> children = getChildren(sensorID);
-                for (Sensor child : children) {
-                    sensorRepository.unlinkSensorFromService(child.getId(), serviceID);
-                }
+            Sensor s = sensorRepository.findById(sensorID);
+            if (s != null) {
+                removeSensorFromService(serviceID, s);
             } else {
                 throw new ConfigurationException("Unexisting sensor  :" + sensorID);
             }
         }
     }
+
+    private void removeSensorFromService(Integer serviceID, Sensor s) throws ConfigurationException {
+         // if all the sensor provider is linked we must link individually all the other sensors
+        if (serviceRepository.isAllLinked(serviceID, s.getProviderId())) {
+            serviceRepository.linkSensorProvider(serviceID, s.getProviderId(), false);
+            List<Sensor> sensors = sensorRepository.findByProviderId(s.getProviderId());
+            for (Sensor ss : sensors) {
+                if (!ss.getId().equals(s.getId())) {
+                    sensorRepository.linkSensorToService(ss.getId(), serviceID);
+                }
+            }
+        } else {
+            sensorRepository.unlinkSensorFromService(s.getId(), serviceID);
+        }
+
+        // unlink sensor children
+        List<Sensor> children = getChildren(s.getId());
+        for (Sensor child : children) {
+            removeSensorFromService(serviceID, child);
+        }
+    }
+
 
     /**
      * {@inheritDoc}
