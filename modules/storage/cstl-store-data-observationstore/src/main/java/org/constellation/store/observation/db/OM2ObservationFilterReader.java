@@ -53,6 +53,7 @@ import org.geotoolkit.geometry.jts.SRIDGenerator;
 import org.geotoolkit.gml.JTStoGeometry;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.FeatureProperty;
+import org.geotoolkit.observation.OMEntity;
 import org.geotoolkit.observation.ObservationStoreException;
 import org.geotoolkit.observation.xml.AbstractObservation;
 import org.geotoolkit.observation.xml.OMXmlFactory;
@@ -113,7 +114,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         // we get the property name (not used for now)
         // String propertyName = tFilter.getExpression1()
         Object time = tFilter.getExpressions().get(1);
-        boolean getLoc = LOCATION.equals(objectType);
+        boolean getLoc = OMEntity.LOCATION.equals(objectType);
         TemporalOperatorName type = tFilter.getOperatorType();
         if (type == TemporalOperatorName.EQUALS) {
 
@@ -146,13 +147,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         sqlRequest.append("AND ( ");
                     }
                     sqlRequest.append(" \"time\"=").appendValue(position).append(") ");
+                    firstFilter = false;
                 } else {
                     if (!"profile".equals(currentOMType)) {
                         sqlMeasureRequest.append(" AND ( \"$time\"=").appendValue(position).append(") ");
                     }
                     obsJoin = true;
                 }
-                firstFilter = false;
             } else {
                 throw new ObservationStoreException("TM_Equals operation require timeInstant or TimePeriod!",
                         INVALID_PARAMETER_VALUE, EVENT_TIME);
@@ -1287,7 +1288,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
      */
     private Map<Object, long[]> getMainFieldStep(FilterSQLRequest request, final Field mainField, final Connection c, final int width) throws SQLException {
         boolean profile = "profile".equals(currentOMType);
-        boolean getLoc = LOCATION.equals(objectType);
+        boolean getLoc = OMEntity.LOCATION.equals(objectType);
         if (getLoc) {
             request.replaceFirst("SELECT hl.\"procedure\", hl.\"time\", st_asBinary(\"location\") as \"location\", hl.\"crs\" ",
                                  "SELECT MIN(\"" + mainField.fieldName + "\"), MAX(\"" + mainField.fieldName + "\"), hl.\"procedure\" ");

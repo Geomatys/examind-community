@@ -77,6 +77,7 @@ import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVA
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_TEMPLATE_ID_BASE_NAME;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.PHENOMENON_ID_BASE_NAME;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.SENSOR_ID_BASE_NAME;
+import org.geotoolkit.observation.OMEntity;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildDirectPosition;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildFeatureProperty;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildLineString;
@@ -116,7 +117,26 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
      * {@inheritDoc}
      */
     @Override
-    public List<String> getOfferingNames(final String version) throws DataStoreException {
+    public Collection<String> getEntityNames(final Map<String, Object> hints) throws DataStoreException {
+        OMEntity entityType = (OMEntity) hints.get(ENTITY_TYPE);
+        if (entityType == null) {
+            throw new DataStoreException("Missing entity type parameter");
+        }
+        String sensorType   = (String) hints.get(SENSOR_TYPE);
+        String version      = (String) hints.get(SOS_VERSION);
+        switch (entityType) {
+            case FEATURE_OF_INTEREST: return getFeatureOfInterestNames();
+            case OBSERVED_PROPERTY:   return getPhenomenonNames();
+            case PROCEDURE:           return getProcedureNames(sensorType);
+            case LOCATION:            throw new DataStoreException("not implemented yet.");
+            case OFFERING:            return getOfferingNames(version, sensorType);
+            case OBSERVATION:         throw new DataStoreException("not implemented yet.");
+            case RESULT:              throw new DataStoreException("not implemented yet.");
+            default: throw new DataStoreException("unexpected entity type:" + entityType);
+        }
+    }
+
+    private List<String> getOfferingNames(final String version, String sensorType) throws DataStoreException {
         try {
             if (version.equals("1.0.0")) {
                 final Values values = loadData("var01");
@@ -141,11 +161,7 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<String> getProcedureNames() throws DataStoreException {
+    private List<String> getProcedureNames(String sensorType) throws DataStoreException {
         try {
             final Values values = loadData(Arrays.asList("var02"));
             return values.getVariables("var02");
@@ -154,11 +170,7 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<String> getPhenomenonNames() throws DataStoreException {
+    private List<String> getPhenomenonNames() throws DataStoreException {
         try {
             final Values values = loadData(Arrays.asList("var03", "var83"));
             final List<String> results = values.getVariables("var03");
@@ -169,34 +181,54 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public Collection<org.opengis.observation.Phenomenon> getPhenomenons(String version) throws DataStoreException {
+    public boolean existEntity(final Map<String, Object> hints) throws DataStoreException {
+        OMEntity entityType = (OMEntity) hints.get(ENTITY_TYPE);
+        if (entityType == null) {
+            throw new DataStoreException("Missing entity type parameter");
+        }
+        String identifier   = (String) hints.get(IDENTIFIER);
+        String sensorType   = (String) hints.get(SENSOR_TYPE);
+        String version      = (String) hints.get(SOS_VERSION);
+        switch (entityType) {
+            case FEATURE_OF_INTEREST: return getFeatureOfInterestNames().contains(identifier);
+            case OBSERVED_PROPERTY:   return getPhenomenonNames().contains(identifier);
+            case PROCEDURE:           return existProcedure(identifier);
+            case LOCATION:            throw new DataStoreException("not implemented yet.");
+            case OFFERING:            return getOfferingNames(version, sensorType).contains(identifier);
+            case OBSERVATION:         throw new DataStoreException("not implemented yet.");
+            case RESULT:              throw new DataStoreException("not implemented yet.");
+            default: throw new DataStoreException("unexpected entity type:" + entityType);
+        }
+    }
+
+    @Override
+    public Collection<org.opengis.observation.Phenomenon> getPhenomenons(final Map<String, Object> hints) throws DataStoreException {
         List<org.opengis.observation.Phenomenon> results = new ArrayList<>();
-        List<String> names = getPhenomenonNames();
-        for (String name : names) {
+        String version      = (String) hints.get(SOS_VERSION);
+        Object identifierVal = hints.get(IDENTIFIER);
+        List<String> identifiers = new ArrayList<>();
+        if (identifierVal instanceof Collection) {
+            identifiers.addAll((Collection<? extends String>) identifierVal);
+        } else if (identifierVal instanceof String) {
+            identifiers.add((String) identifierVal);
+        } else if (identifierVal == null) {
+            identifiers.addAll(getPhenomenonNames());
+        }
+        for (String name : identifiers) {
+            Phenomenon phen = getPhenomenon(name);
+            if (phen != null) {
+                results.add(phen);
+            }
             results.add(getPhenomenon(name));
         }
         return results;
     }
 
-    @Override
-    public org.opengis.observation.Phenomenon getPhenomenon(String identifier, String version) throws DataStoreException {
-        return getPhenomenon(identifier);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean existPhenomenon(String phenomenonName) throws DataStoreException {
-        return getPhenomenonNames().contains(phenomenonName);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<String> getFeatureOfInterestNames() throws DataStoreException {
+    private List<String> getFeatureOfInterestNames() throws DataStoreException {
         try {
             final Values values = loadData(Arrays.asList("var04", "var67"));
             final List<String> result = values.getVariables("var04");
@@ -258,19 +290,29 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
      * {@inheritDoc}
      */
     @Override
-    public List<ObservationOffering> getObservationOfferings(final List<String> offeringNames, final String version) throws DataStoreException {
+    public List<ObservationOffering> getObservationOfferings(final Map<String, Object> hints) throws DataStoreException {
+        String sensorType   = (String) hints.get(SENSOR_TYPE);
+        String version      = (String) hints.get(SOS_VERSION);
+        Object identifierVal = hints.get(IDENTIFIER);
+        List<String> identifiers = new ArrayList<>();
+        if (identifierVal instanceof Collection) {
+            identifiers.addAll((Collection<? extends String>) identifierVal);
+        } else if (identifierVal instanceof String) {
+            identifiers.add((String) identifierVal);
+        } else if (identifierVal == null) {
+            identifiers.addAll(getOfferingNames(version, sensorType));
+        }
         final List<ObservationOffering> offerings = new ArrayList<>();
-        for (String offeringName : offeringNames) {
-            offerings.add(getObservationOffering(offeringName, version));
+        for (String offeringName : identifiers) {
+            ObservationOffering off = getObservationOffering(offeringName, version);
+            if (off != null) {
+                offerings.add(off);
+            }
         }
         return offerings;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ObservationOffering getObservationOffering(final String offeringName, final String version) throws DataStoreException {
+    private ObservationOffering getObservationOffering(final String offeringName, final String version) throws DataStoreException {
         try {
             final Values values = loadData(Arrays.asList("var07", "var08", "var09", "var10", "var11", "var12", "var18", "var46"), offeringName);
 
@@ -368,19 +410,6 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
         } catch (ConstellationMetadataException ex) {
             throw new DataStoreException(ex);
         }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<ObservationOffering> getObservationOfferings(final String version) throws DataStoreException {
-        final List<ObservationOffering> offerings = new ArrayList<>();
-        final List<String> offeringNames = getOfferingNames(version);
-        for (String offeringName : offeringNames) {
-            offerings.add(getObservationOffering(offeringName, version));
-        }
-        return offerings;
     }
 
     private PhenomenonType getPhenomenon(String phenomenonName) throws DataStoreException {
@@ -757,8 +786,7 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
     /**
      * {@inheritDoc}
      */
-    @Override
-    public boolean existProcedure(final String href) throws DataStoreException {
+    private boolean existProcedure(final String href) throws DataStoreException {
         try {
             final Values values = loadData(Arrays.asList("var02"));
             final List<String>  procedureNames = values.getVariables("var02");
@@ -807,22 +835,6 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
      * {@inheritDoc}
      */
     @Override
-    public Collection<String> getProceduresForPhenomenon(String observedProperty) throws DataStoreException {
-        throw new UnsupportedOperationException("Not supported yet in this implementation.");
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Collection<String> getPhenomenonsForProcedure(String sensorID) throws DataStoreException {
-        throw new UnsupportedOperationException("Not supported yet in this implementation.");
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public AbstractGeometry getSensorLocation(String sensorID, String version) throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet in this implementation.");
     }
@@ -846,25 +858,5 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
     @Override
     public Observation getTemplateForProcedure(String procedure, String version) throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet in this implementation.");
-    }
-
-    @Override
-    public Collection<String> getOfferingNames(String version, String sensorType) throws DataStoreException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public List<ObservationOffering> getObservationOfferings(String version, String sensorType) throws DataStoreException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public Collection<String> getProcedureNames(String sensorType) throws DataStoreException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public Collection<SamplingFeature> getFeatureOfInterestForProcedure(String sensorID, String version) throws DataStoreException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

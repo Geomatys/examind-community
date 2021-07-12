@@ -88,6 +88,10 @@ import static org.geotoolkit.sos.xml.SOSXmlFactory.getGMLVersion;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
 import org.geotoolkit.gml.xml.GMLXmlFactory;
+import org.geotoolkit.observation.OMEntity;
+import static org.geotoolkit.observation.ObservationReader.ENTITY_TYPE;
+import static org.geotoolkit.observation.ObservationReader.SENSOR_TYPE;
+import static org.geotoolkit.observation.ObservationReader.SOS_VERSION;
 import org.opengis.observation.Process;
 
 
@@ -138,23 +142,26 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
      * {@inheritDoc}
      */
     @Override
-    public List<String> getOfferingNames(final String version) throws DataStoreException {
-        try(final Connection c         = source.getConnection();
-            final Statement stmt       = c.createStatement()) {
-            final List<String> results = new ArrayList<>();
-            try(final ResultSet rs     = stmt.executeQuery("SELECT \"identifier\" FROM \"" + schemaPrefix + "om\".\"offerings\"")) {//NOSONAR
-                while (rs.next()) {
-                    results.add(rs.getString(1));
-                }
-            }
-            return results;
-        } catch (SQLException ex) {
-            throw new DataStoreException("Error while retrieving offering names.", ex);
+    public Collection<String> getEntityNames(final Map<String, Object> hints) throws DataStoreException {
+        OMEntity entityType = (OMEntity) hints.get(ENTITY_TYPE);
+        if (entityType == null) {
+            throw new DataStoreException("Missing entity type parameter");
+        }
+        String sensorType   = (String) hints.get(SENSOR_TYPE);
+        String version      = (String) hints.get(SOS_VERSION);
+        switch (entityType) {
+            case FEATURE_OF_INTEREST: return getFeatureOfInterestNames();
+            case OBSERVED_PROPERTY:   return getPhenomenonNames();
+            case PROCEDURE:           return getProcedureNames(sensorType);
+            case LOCATION:            throw new DataStoreException("not implemented yet.");
+            case OFFERING:            return getOfferingNames(version, sensorType);
+            case OBSERVATION:         throw new DataStoreException("not implemented yet.");
+            case RESULT:              throw new DataStoreException("not implemented yet.");
+            default: throw new DataStoreException("unexpected entity type:" + entityType);
         }
     }
 
-    @Override
-    public List<String> getOfferingNames(final String version, final String sensorType) throws DataStoreException {
+    private List<String> getOfferingNames(final String version, final String sensorType) throws DataStoreException {
         try(final Connection c         = source.getConnection();
             final Statement stmt       = c.createStatement()) {
             final List<String> results = new ArrayList<>();
@@ -180,19 +187,53 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
      * {@inheritDoc}
      */
     @Override
-    public List<ObservationOffering> getObservationOfferings(final List<String> offeringNames, final String version) throws DataStoreException {
-        final List<ObservationOffering> offerings = new ArrayList<>();
-        for (String offeringName : offeringNames) {
-            offerings.add(getObservationOffering(offeringName, version));
+    public boolean existEntity(final Map<String, Object> hints) throws DataStoreException {
+        OMEntity entityType = (OMEntity) hints.get(ENTITY_TYPE);
+        if (entityType == null) {
+            throw new DataStoreException("Missing entity type parameter");
         }
-        return offerings;
+        String identifier   = (String) hints.get(IDENTIFIER);
+        String sensorType   = (String) hints.get(SENSOR_TYPE);
+        String version      = (String) hints.get(SOS_VERSION);
+        switch (entityType) {
+            case FEATURE_OF_INTEREST: return getFeatureOfInterestNames().contains(identifier);
+            case OBSERVED_PROPERTY:   return existPhenomenon(identifier);
+            case PROCEDURE:           return existProcedure(identifier);
+            case LOCATION:            throw new DataStoreException("not implemented yet.");
+            case OFFERING:            return getOfferingNames(version, sensorType).contains(identifier);
+            case OBSERVATION:         throw new DataStoreException("not implemented yet.");
+            case RESULT:              throw new DataStoreException("not implemented yet.");
+            default: throw new DataStoreException("unexpected entity type:" + entityType);
+        }
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public ObservationOffering getObservationOffering(final String offeringName, final String version) throws DataStoreException {
+    public List<ObservationOffering> getObservationOfferings(final Map<String, Object> hints) throws DataStoreException {
+        String sensorType   = (String) hints.get(SENSOR_TYPE);
+        String version      = (String) hints.get(SOS_VERSION);
+        Object identifierVal = hints.get(IDENTIFIER);
+        List<String> identifiers = new ArrayList<>();
+        if (identifierVal instanceof Collection) {
+            identifiers.addAll((Collection<? extends String>) identifierVal);
+        } else if (identifierVal instanceof String) {
+            identifiers.add((String) identifierVal);
+        } else if (identifierVal == null) {
+            identifiers.addAll(getOfferingNames(version, sensorType));
+        }
+        final List<ObservationOffering> offerings = new ArrayList<>();
+        for (String offeringName : identifiers) {
+            ObservationOffering off = getObservationOffering(offeringName, version);
+            if (off != null) {
+                offerings.add(off);
+            }
+        }
+        return offerings;
+    }
+
+    private ObservationOffering getObservationOffering(final String offeringName, final String version) throws DataStoreException {
         final String id;
         final String name;
         final String description;
@@ -268,57 +309,11 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                                  procedureDescription);
 
         } catch (SQLException e) {
-            throw new DataStoreException("Error while retrieving offering names.", e);
+            throw new DataStoreException("Error while retrieving offering: " + offeringName, e);
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<ObservationOffering> getObservationOfferings(final String version) throws DataStoreException {
-        final List<String> offeringNames    = getOfferingNames(version);
-        final List<ObservationOffering> loo = new ArrayList<>();
-        for (String offeringName : offeringNames) {
-            loo.add(getObservationOffering(offeringName, version));
-        }
-        return loo;
-    }
-
-    @Override
-    public List<ObservationOffering> getObservationOfferings(final String version, final String sensorType) throws DataStoreException {
-        final List<String> offeringNames    = getOfferingNames(version, sensorType);
-        final List<ObservationOffering> loo = new ArrayList<>();
-        for (String offeringName : offeringNames) {
-            loo.add(getObservationOffering(offeringName, version));
-        }
-        return loo;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<String> getProcedureNames() throws DataStoreException {
-        try(final Connection c   = source.getConnection();
-            final Statement stmt = c.createStatement();
-            final ResultSet rs   = stmt.executeQuery("SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"procedures\"")) {//NOSONAR
-
-            final List<String> results = new ArrayList<>();
-            while (rs.next()) {
-                results.add(rs.getString(1));
-            }
-            return results;
-        } catch (SQLException ex) {
-            throw new DataStoreException("Error while retrieving procedure names.", ex);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<String> getProcedureNames(final String sensorType) throws DataStoreException {
+    private List<String> getProcedureNames(final String sensorType) throws DataStoreException {
         String filter = "";
         if (sensorType != null) {
             filter = " WHERE \"type\"='" + sensorType + "'";
@@ -337,11 +332,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<String> getPhenomenonNames() throws DataStoreException {
+    private List<String> getPhenomenonNames() throws DataStoreException {
         try(final Connection c         = source.getConnection();
             final Statement stmt       = c.createStatement();
             final ResultSet rs         = stmt.executeQuery("SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"observed_properties\"")) {//NOSONAR
@@ -356,10 +347,22 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
     }
 
     @Override
-    public Collection<Phenomenon> getPhenomenons(final String version) throws DataStoreException {
+    public Collection<Phenomenon> getPhenomenons(final Map<String, Object> hints) throws DataStoreException {
+        String version      = (String) hints.get(SOS_VERSION);
+        Object identifierVal = hints.get(IDENTIFIER);
+        String where = "";
+        if (identifierVal instanceof Collection && !((Collection)identifierVal).isEmpty()) {
+            where = "WHERE \"id\" IN (";
+            for (String id : (Collection<? extends String>) identifierVal) {
+                where = where + "'" + id + "',";
+            }
+            where = where.substring(0, where.length() - 1) + ")";
+        } else if (identifierVal instanceof String) {
+            where = "WHERE \"id\" = '" + identifierVal + "'";
+        }
         try(final Connection c         = source.getConnection();
             final Statement stmt       = c.createStatement();
-            final ResultSet rs         = stmt.executeQuery("SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"observed_properties\"")) {//NOSONAR
+            final ResultSet rs         = stmt.executeQuery("SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"observed_properties\" " + where)) {//NOSONAR
             final List<Phenomenon> results = new ArrayList<>();
             while (rs.next()) {
                 results.add(getPhenomenon(version, rs.getString(1), c));
@@ -367,18 +370,6 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
             return results;
         } catch (SQLException ex) {
             throw new DataStoreException("Error while retrieving phenomenon names.", ex);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Phenomenon getPhenomenon(String identifier, String version) throws DataStoreException {
-        try (final Connection c = source.getConnection()) {
-            return getPhenomenon(version, identifier, c);
-        } catch (SQLException ex) {
-            throw new DataStoreException("Error while retrieving phenomenon.", ex);
         }
     }
 
@@ -394,94 +385,11 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Collection<String> getProceduresForPhenomenon(final String observedProperty) throws DataStoreException {
-        final String query = "SELECT DISTINCT \"procedure\" "
-                           + "FROM \"" + schemaPrefix + "om\".\"offerings\", \"" + schemaPrefix + "om\".\"offering_observed_properties\""
-                           + "WHERE \"identifier\"=\"id_offering\""
-                           + "AND \"phenomenon\"=?";
-        try(final Connection c           = source.getConnection();
-            final PreparedStatement stmt = c.prepareStatement(query)) {//NOSONAR
-            final List<String> results   = new ArrayList<>();
-            stmt.setString(1, observedProperty);
-            try(final ResultSet rs =  stmt.executeQuery()) {
-                while (rs.next()) {
-                    results.add(rs.getString(1));
-                }
-            }
-            return results;
-        } catch (SQLException ex) {
-            throw new DataStoreException("Error while retrieving procedure names.", ex);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Collection<String> getPhenomenonsForProcedure(final String sensorID) throws DataStoreException {
-        final String query = "SELECT \"phenomenon\" "
-                           + "FROM \"" + schemaPrefix + "om\".\"offerings\", \"" + schemaPrefix + "om\".\"offering_observed_properties\""
-                           + "WHERE \"identifier\"=\"id_offering\""
-                           + "AND \"procedure\"=?";
-        try (final Connection c           = source.getConnection();
-             final PreparedStatement stmt = c.prepareStatement(query)) {//NOSONAR
-             final Set<String> results    = new HashSet<>();
-            stmt.setString(1, sensorID);
-            try(final ResultSet rs =  stmt.executeQuery()) {
-                while (rs.next()) {
-                    results.add(rs.getString(1));
-                }
-            }
-
-            final String cQuery = "SELECT \"component\" "
-                                + "FROM \"" + schemaPrefix + "om\".\"components\" "
-                                + "WHERE \"phenomenon\"=? "
-                                + "ORDER BY \"order\" ASC";
-            //look for composite phenomenons
-            try(final PreparedStatement stmtC = c.prepareStatement(cQuery)) {//NOSONAR
-                final Set<String> toAdd    = new HashSet<>();
-                final Set<String> toRemove = new HashSet<>();
-                for (Iterator<String> it = results.iterator(); it.hasNext();) {
-                    String pheno = it.next();
-                    stmtC.setString(1, pheno);
-                    try(final ResultSet rsC = stmtC.executeQuery()) {
-                        boolean composite = false;
-                        while (rsC.next()) {
-                            composite = true;
-                            toAdd.add(rsC.getString(1));
-                        }
-                        if (composite) {
-                            toRemove.add(pheno);
-                        }
-                    }
-                }
-                results.removeAll(toRemove);
-                results.addAll(toAdd);
-            }
-
-            return results;
-        } catch (SQLException ex) {
-            throw new DataStoreException("Error while retrieving procedure names.", ex);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean existPhenomenon(final String phenomenonName) throws DataStoreException {
+    private boolean existPhenomenon(final String phenomenonName) throws DataStoreException {
         return phenomenonName.equals(phenomenonIdBase + "ALL") || getPhenomenonNames().contains(phenomenonName);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<String> getFeatureOfInterestNames() throws DataStoreException {
+    private List<String> getFeatureOfInterestNames() throws DataStoreException {
         try(final Connection c         = source.getConnection();
             final Statement stmt       = c.createStatement();
             final ResultSet rs         = stmt.executeQuery("SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"sampling_features\"")) {//NOSONAR
@@ -493,25 +401,6 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
         } catch (SQLException ex) {
             throw new DataStoreException("Error while retrieving phenomenon names.", ex);
         }
-    }
-
-    @Override
-    public Collection<SamplingFeature> getFeatureOfInterestForProcedure(String sensorID, String version) throws DataStoreException {
-        final List<SamplingFeature> results = new ArrayList<>();
-        final String query = "SELECT sf.\"id\" FROM \"" + schemaPrefix + "om\".\"sampling_features\" sf, \"" + schemaPrefix + "om\".\"observations\" ob "
-                           + "WHERE sf.\"id\"=ob.\"foi\" AND ob.\"procedure\"=?";
-        try(final Connection c           = source.getConnection();
-            final PreparedStatement stmt = c.prepareStatement(query)) {//NOSONAR
-            stmt.setString(1, sensorID);
-            try (final ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    results.add(getFeatureOfInterest(rs.getString(1), version, c));
-                }
-            }
-        } catch (SQLException ex) {
-            throw new DataStoreException("Error while retrieving existingFeature for procedure.", ex);
-        }
-        return results;
     }
 
     /**
@@ -839,11 +728,14 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
     }
 
     /**
-     * {@inheritDoc}
+     * TODO optimize
+     * 
+     * @param href
+     * @return
+     * @throws DataStoreException
      */
-    @Override
-    public boolean existProcedure(final String href) throws DataStoreException {
-        return getProcedureNames().contains(href);
+    private boolean existProcedure(final String href) throws DataStoreException {
+        return getProcedureNames(null).contains(href);
     }
 
     /**

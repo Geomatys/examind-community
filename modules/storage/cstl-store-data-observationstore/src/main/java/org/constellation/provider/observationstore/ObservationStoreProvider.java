@@ -43,16 +43,10 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.Query;
 import org.apache.sis.storage.Resource;
-import static org.constellation.api.CommonConstants.FEATURE_OF_INTEREST;
-import static org.constellation.api.CommonConstants.LOCATION;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBJECT_TYPE;
-import static org.constellation.api.CommonConstants.OBSERVATION;
 import static org.constellation.api.CommonConstants.OBSERVATION_MODEL;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
-import static org.constellation.api.CommonConstants.OBSERVED_PROPERTY;
-import static org.constellation.api.CommonConstants.OFFERING;
-import static org.constellation.api.CommonConstants.PROCEDURE;
 import static org.constellation.api.CommonConstants.RESPONSE_MODE;
 import static org.constellation.api.CommonConstants.RESULT_MODEL;
 import org.constellation.dto.service.config.sos.Offering;
@@ -111,6 +105,10 @@ import org.opengis.filter.LogicalOperatorName;
 import org.opengis.filter.ResourceId;
 import org.opengis.filter.SpatialOperatorName;
 import org.opengis.util.CodeList;
+import org.geotoolkit.observation.OMEntity;
+import static org.geotoolkit.observation.ObservationReader.ENTITY_TYPE;
+import static org.geotoolkit.observation.ObservationReader.IDENTIFIER;
+import static org.geotoolkit.observation.ObservationReader.SOS_VERSION;
 
 /**
  *
@@ -487,9 +485,12 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     @Override
     public Offering getOffering(String name, String version) throws ConstellationStoreException {
         try {
-            ObservationOffering off = ((ObservationStore)getMainStore()).getReader().getObservationOffering(name, version);
-            if (off != null) {
-                return buildOfferingDto(off);
+            Map<String, Object> filters = new HashMap<>();
+            filters.put(SOS_VERSION, version);
+            filters.put(IDENTIFIER,  name);
+            List<ObservationOffering> off = ((ObservationStore)getMainStore()).getReader().getObservationOfferings(filters);
+            if (!off.isEmpty()) {
+                return buildOfferingDto(off.get(0));
             }
             return null;
         } catch (DataStoreException ex) {
@@ -503,10 +504,10 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
         List<Offering> results = new ArrayList<>();
         try {
             // query is ignored for now
-
-            List<ObservationOffering> offerings = ((ObservationStore)getMainStore()).getReader().getObservationOfferings(version);
+            Map<String, Object> filters = new HashMap<>();
+            filters.put(SOS_VERSION, version);
+            List<ObservationOffering> offerings = ((ObservationStore)getMainStore()).getReader().getObservationOfferings(filters);
             for (ObservationOffering off : offerings) {
-
                 if (off != null) {
                     results.add(buildOfferingDto(off));
                 }
@@ -614,7 +615,10 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     @Override
     public boolean existPhenomenon(String phenomenonName) throws ConstellationStoreException {
         try {
-            return ((ObservationStore)getMainStore()).getReader().existPhenomenon(phenomenonName);
+            Map<String, Object> filters = new HashMap<>();
+            filters.put(ENTITY_TYPE, OMEntity.OBSERVED_PROPERTY);
+            filters.put(IDENTIFIER,  phenomenonName);
+            return ((ObservationStore)getMainStore()).getReader().existEntity(filters);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
@@ -623,7 +627,10 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     @Override
     public boolean existProcedure(String procedureName) throws ConstellationStoreException {
         try {
-            return ((ObservationStore)getMainStore()).getReader().existProcedure(procedureName);
+            Map<String, Object> filters = new HashMap<>();
+            filters.put(ENTITY_TYPE, OMEntity.PROCEDURE);
+            filters.put(IDENTIFIER,  procedureName);
+            return ((ObservationStore)getMainStore()).getReader().existEntity(filters);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
@@ -632,7 +639,10 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     @Override
     public boolean existFeatureOfInterest(String foiName) throws ConstellationStoreException {
         try {
-            return ((ObservationStore)getMainStore()).getReader().getFeatureOfInterestNames().contains(foiName);
+            Map<String, Object> filters = new HashMap<>();
+            filters.put(ENTITY_TYPE, OMEntity.FEATURE_OF_INTEREST);
+            filters.put(IDENTIFIER,  foiName);
+            return ((ObservationStore)getMainStore()).getReader().existEntity(filters);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
@@ -641,7 +651,11 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     @Override
     public boolean existOffering(String offeringName, String version) throws ConstellationStoreException {
         try {
-            return ((ObservationStore)getMainStore()).getReader().getOfferingNames(version).contains(offeringName);
+            Map<String, Object> filters = new HashMap<>();
+            filters.put(ENTITY_TYPE, OMEntity.OFFERING);
+            filters.put(SOS_VERSION, version);
+            filters.put(IDENTIFIER,  offeringName);
+            return ((ObservationStore)getMainStore()).getReader().existEntity(filters);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
@@ -863,9 +877,16 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     public long getCount(Query q, Map<String, String> hints) throws ConstellationStoreException {
         try {
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
-            final String objectType = hints.get(OBJECT_TYPE);
-            if (objectType == null) {
+            final String objectTypeStr = hints.get(OBJECT_TYPE);
+            OMEntity objectType;
+            if (objectTypeStr == null) {
                 throw new ConstellationStoreException("Missing objectType parameter for getCount()");
+            } else {
+                try {
+                    objectType = OMEntity.fromName(objectTypeStr);
+                } catch (IllegalArgumentException ex) {
+                    throw new ConstellationStoreException(ex);
+                }
             }
             final String responseMode = hints.get(RESPONSE_MODE);
             ResponseModeType rmode;

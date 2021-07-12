@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,6 +32,8 @@ import static org.constellation.sos.ws.DatablockParser.getResultValues;
 import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
+import static org.geotoolkit.observation.ObservationReader.IDENTIFIER;
+import static org.geotoolkit.observation.ObservationReader.SOS_VERSION;
 import org.geotoolkit.observation.ObservationResult;
 import org.geotoolkit.swe.xml.DataArray;
 import org.geotoolkit.swe.xml.DataArrayProperty;
@@ -130,14 +133,12 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
 
     @Override
     public List<Phenomenon> getPhenomenons(Map<String, String> hints) throws DataStoreException {
-        final String version               = getVersionFromHints(hints);
-        final List<Phenomenon> phenomenons = new ArrayList<>();
+        final String version  = getVersionFromHints(hints);
         final Set<String> fid = filterPhenomenon(hints);
-        for (String foid : fid) {
-            final Phenomenon phen = reader.getPhenomenon(foid, version);
-            phenomenons.add(phen);
-        }
-        return phenomenons;
+        Map<String, Object> filters = new HashMap<>();
+        filters.put(SOS_VERSION, version);
+        filters.put(IDENTIFIER,  fid);
+        return new ArrayList<>(reader.getPhenomenons(filters));
     }
 
     @Override

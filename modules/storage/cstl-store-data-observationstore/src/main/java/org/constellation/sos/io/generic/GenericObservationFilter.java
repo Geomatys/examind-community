@@ -41,6 +41,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -48,17 +49,14 @@ import java.util.Set;
 import java.util.logging.Level;
 
 import static org.constellation.api.CommonConstants.EVENT_TIME;
-import static org.constellation.api.CommonConstants.FEATURE_OF_INTEREST;
-import static org.constellation.api.CommonConstants.LOCATION;
-import static org.constellation.api.CommonConstants.OBSERVATION;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
-import static org.constellation.api.CommonConstants.OBSERVED_PROPERTY;
-import static org.constellation.api.CommonConstants.OFFERING;
 import static org.constellation.api.CommonConstants.PROCEDURE;
-import static org.constellation.api.CommonConstants.RESULT;
 import org.constellation.sos.ws.DatablockParser;
 import static org.constellation.sos.ws.DatablockParser.getResultValues;
+import org.geotoolkit.observation.OMEntity;
 import org.geotoolkit.observation.ObservationReader;
+import static org.geotoolkit.observation.ObservationReader.IDENTIFIER;
+import static org.geotoolkit.observation.ObservationReader.SOS_VERSION;
 import static org.geotoolkit.observation.Utils.getTimeValue;
 import org.geotoolkit.ogc.xml.v200.TimeAfterType;
 import org.geotoolkit.ogc.xml.v200.TimeBeforeType;
@@ -95,7 +93,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
 
     protected final List<Filter> eventTimes = new ArrayList<>();
 
-    protected String objectType = null;
+    protected OMEntity objectType = null;
     
     /**
      * Clone a  Generic Observation Filter for CSTL O&amp;M datasource.
@@ -150,7 +148,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         currentQuery.addFrom(from);
         currentQuery.addWhere(where);
         eventTimes.clear();
-        objectType = OBSERVATION;
+        objectType = OMEntity.OBSERVATION;
     }
 
     /**
@@ -168,7 +166,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         currentQuery.addFrom(from);
         currentQuery.addWhere(where);
         eventTimes.clear();
-        this.objectType = RESULT;
+        this.objectType = OMEntity.RESULT;
     }
 
     /**
@@ -183,7 +181,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         currentQuery.addSelect(select);
         currentQuery.addFrom(from);
         eventTimes.clear();
-        this.objectType = OBSERVED_PROPERTY;
+        this.objectType = OMEntity.OBSERVED_PROPERTY;
     }
 
     /**
@@ -198,7 +196,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         currentQuery.addSelect(select);
         currentQuery.addFrom(from);
         eventTimes.clear();
-        this.objectType = PROCEDURE;
+        this.objectType = OMEntity.PROCEDURE;
     }
 
     /**
@@ -207,18 +205,18 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     @Override
     public void initFilterGetFeatureOfInterest() throws DataStoreException {
         // do nothing no implemented
-        this.objectType = FEATURE_OF_INTEREST;
+        this.objectType = OMEntity.FEATURE_OF_INTEREST;
     }
 
     @Override
     public void initFilterOffering() throws DataStoreException {
-        this.objectType = OFFERING;
+        this.objectType = OMEntity.OFFERING;
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public void initFilterGetLocations() throws DataStoreException {
-        this.objectType = LOCATION;
+        this.objectType = OMEntity.LOCATION;
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -561,13 +559,11 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     @Override
     public List<Phenomenon> getPhenomenons(Map<String, String> hints) throws DataStoreException {
         final String version               = getVersionFromHints(hints);
-        final List<Phenomenon> phenomenons = new ArrayList<>();
         final Set<String> fid = filterPhenomenon(hints);
-        for (String foid : fid) {
-            final Phenomenon phen = reader.getPhenomenon(foid, version);
-            phenomenons.add(phen);
-        }
-        return phenomenons;
+        Map<String, Object> filters = new HashMap<>();
+        filters.put(SOS_VERSION, version);
+        filters.put(IDENTIFIER,  fid);
+        return new ArrayList<>(reader.getPhenomenons(filters));
     }
 
     @Override

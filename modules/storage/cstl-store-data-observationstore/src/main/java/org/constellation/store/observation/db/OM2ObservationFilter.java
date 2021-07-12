@@ -51,14 +51,9 @@ import java.util.logging.Level;
 import org.apache.sis.geometry.GeneralEnvelope;
 
 import static org.constellation.api.CommonConstants.EVENT_TIME;
-import static org.constellation.api.CommonConstants.FEATURE_OF_INTEREST;
 import static org.constellation.api.CommonConstants.LOCATION;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
-import static org.constellation.api.CommonConstants.OBSERVATION;
-import static org.constellation.api.CommonConstants.OBSERVED_PROPERTY;
-import static org.constellation.api.CommonConstants.OFFERING;
-import static org.constellation.api.CommonConstants.PROCEDURE;
-import static org.constellation.api.CommonConstants.RESULT;
+import org.geotoolkit.observation.OMEntity;
 import static org.geotoolkit.observation.Utils.*;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
@@ -95,7 +90,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     protected boolean includeFoiInTemplate = true;
     protected boolean singleObservedPropertyInTemplate = false;
 
-     protected String objectType = null;
+    protected OMEntity objectType = null;
 
     protected String currentProcedure = null;
     protected String currentOMType = null;
@@ -157,7 +152,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             sqlRequest.append(schemaPrefix).append("om\".\"observations\" o WHERE \"identifier\" NOT LIKE ").appendValue(observationTemplateIdBase + '%').append(" ");
             firstFilter = false;
         }
-        this.objectType = OBSERVATION;
+        this.objectType = OMEntity.OBSERVATION;
         this.resultModel = resultModel;
     }
 
@@ -180,7 +175,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         } catch (SQLException ex) {
             LOGGER.log(Level.WARNING, "Error while initailizing getResultFilter", ex);
         }
-        this.objectType = RESULT;
+        this.objectType = OMEntity.RESULT;
     }
 
     /**
@@ -198,7 +193,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         sqlRequest = new FilterSQLRequest("SELECT distinct sf.\"id\", sf.\"name\", sf.\"description\", sf.\"sampledfeature\", sf.\"crs\", ").append(geomColum).append(" FROM \"")
                     .append(schemaPrefix).append("om\".\"sampling_features\" sf WHERE ");
         obsJoin = false;
-        this.objectType = FEATURE_OF_INTEREST;
+        this.objectType = OMEntity.FEATURE_OF_INTEREST;
     }
 
     /**
@@ -208,7 +203,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     public void initFilterGetPhenomenon() {
         sqlRequest = new FilterSQLRequest("SELECT op.\"id\" FROM \"" + schemaPrefix + "om\".\"observed_properties\" op WHERE ");
         firstFilter = true;
-        this.objectType = OBSERVED_PROPERTY;
+        this.objectType = OMEntity.OBSERVED_PROPERTY;
     }
 
     /**
@@ -218,14 +213,14 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     public void initFilterGetSensor() {
         sqlRequest = new FilterSQLRequest("SELECT distinct(pr.\"id\") FROM \"" + schemaPrefix + "om\".\"procedures\" pr WHERE ");
         firstFilter = true;
-        this.objectType = PROCEDURE;
+        this.objectType = OMEntity.PROCEDURE;
     }
 
     @Override
     public void initFilterOffering() throws DataStoreException {
         sqlRequest = new FilterSQLRequest("SELECT off.\"identifier\" FROM \"" + schemaPrefix + "om\".\"offerings\" off WHERE ");
         firstFilter = true;
-        this.objectType = OFFERING;
+        this.objectType = OMEntity.OFFERING;
     }
 
     @Override
@@ -240,7 +235,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 .append(geomColum).append(", hl.\"crs\" FROM \"")
                 .append(schemaPrefix).append("om\".\"historical_locations\" hl WHERE ");
         firstFilter = true;
-        this.objectType = LOCATION;
+        this.objectType = OMEntity.LOCATION;
     }
 
     @Override
@@ -296,8 +291,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         if (phenomenon != null && !phenomenon.isEmpty() && !allPhenonenon(phenomenon)) {
             final FilterSQLRequest sb;
             final Set<String> fields    = new HashSet<>();
-            boolean getPhen = OBSERVED_PROPERTY.equals(objectType);
-            boolean getFOI = FEATURE_OF_INTEREST.equals(objectType);
+            boolean getPhen = OMEntity.OBSERVED_PROPERTY.equals(objectType);
+            boolean getFOI  = OMEntity.FEATURE_OF_INTEREST.equals(objectType);
             if (getPhen) {
                 final FilterSQLRequest sbPheno = new FilterSQLRequest();
                 for (String p : phenomenon) {
@@ -866,7 +861,6 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      */
     @Override
     public Set<String> filterPhenomenon(Map<String, String> hints) throws DataStoreException {
-        sqlRequest = appendPaginationToRequest(sqlRequest, hints);
         String request = getPhenomenonRequest(hints);
         LOGGER.log(Level.FINER, "request:{0}", request);
         try(final Connection c               = source.getConnection();
@@ -906,8 +900,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      */
     @Override
     public Set<String> filterProcedure(Map<String, String> hints) throws DataStoreException {
-        sqlRequest = appendPaginationToRequest(sqlRequest, hints);
-        String request = sqlRequest.toString();
+        String request = getProcedureRequest(hints);
         LOGGER.log(Level.FINER, "request:{0}", request);
         try(final Connection c               = source.getConnection();
             final Statement currentStatement = c.createStatement();
@@ -1053,7 +1046,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 sqlRequest.append("AND ( ");
             }
             String block = " off.\"identifier\"=";
-            if (OBSERVED_PROPERTY.equals(objectType) || FEATURE_OF_INTEREST.equals(objectType)) {
+            if (OMEntity.OBSERVED_PROPERTY.equals(objectType) || OMEntity.FEATURE_OF_INTEREST.equals(objectType)) {
                 block = " off.\"id_offering\"=";
             }
             for (String s : offerings) {
