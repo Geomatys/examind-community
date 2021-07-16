@@ -19,6 +19,8 @@
 
 package org.constellation.json.binding;
 
+import org.geotoolkit.style.StyleUtilities;
+
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import static org.constellation.json.util.StyleFactories.SF;
 import static org.constellation.json.util.StyleUtilities.literal;
@@ -40,7 +42,7 @@ public final class Mark implements StyleElement<org.opengis.style.GraphicalSymbo
 
     public Mark(final org.opengis.style.Mark mark) {
         ensureNonNull("mark", mark);
-        geometry = mark.getWellKnownName().toString();
+        StyleUtilities.extractWellKnownName(mark).ifPresent(wkn -> geometry = wkn);
         fill     = new Fill(mark.getFill());
         stroke   = new Stroke(mark.getStroke());
     }
