@@ -26,9 +26,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.cql.CQLException;
+import org.apache.sis.util.ObjectConverters;
 import org.apache.sis.util.Static;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.json.binding.ChannelSelection;
@@ -64,6 +66,18 @@ public final class StyleUtilities extends Static {
 
     private static final Logger LOGGER = Logging.getLogger("org.constellation.json.util");
 
+    public static final Function<String, Color> COLOR_CONVERTER;
+    static {
+        Function<String, Color> tmp;
+        try {
+            tmp = (Function<String, Color>) ObjectConverters.find(String.class, Color.class);
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Cannot find a converter from text to AWT color. Fallback on opaque color interpretation", e);
+            tmp = Color::decode;
+        }
+
+        COLOR_CONVERTER = tmp;
+    }
     private static Expression nil() {
         return FF.literal(null);
     }

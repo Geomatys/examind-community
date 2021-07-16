@@ -81,6 +81,6 @@ public final class InterpolationPoint implements StyleElement<org.geotoolkit.sty
 
     @Override
     public org.geotoolkit.style.function.InterpolationPoint toType() {
-        return SF.interpolationPoint(data, literal(color));
+        return SF.interpolationPoint(data, literal(StyleUtilities.COLOR_CONVERTER.apply(color)));
     }
 }

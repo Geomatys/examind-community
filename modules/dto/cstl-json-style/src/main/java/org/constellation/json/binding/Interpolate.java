@@ -19,6 +19,9 @@
 
 package org.constellation.json.binding;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.sis.util.logging.Logging;
 import org.constellation.json.util.StyleUtilities;
 import org.geotoolkit.style.StyleConstants;
 import org.geotoolkit.style.function.Method;
@@ -33,8 +36,8 @@ import static org.constellation.json.util.StyleFactories.FF;
 import static org.constellation.json.util.StyleFactories.SF;
 import static org.constellation.json.util.StyleUtilities.listType;
 import org.opengis.filter.Expression;
+import org.opengis.filter.InvalidFilterValueException;
 import org.opengis.filter.ValueReference;
-import org.opengis.filter.Literal;
 
 /**
  * @author Fabien Bernard (Geomatys).
@@ -42,6 +45,8 @@ import org.opengis.filter.Literal;
  * @since 0.9
  */
 public final class Interpolate implements Function {
+
+    private static final Logger LOGGER = Logging.getLogger("org.constellation.json.binding");
 
     private static final long serialVersionUID = 1L;
 
@@ -64,9 +69,12 @@ public final class Interpolate implements Function {
                 if (nanColor == null &&
                         point.getData() instanceof Double &&
                         Double.isNaN((double) point.getData())) {
-                    if (point.getValue() instanceof Literal) {
-                        final Object colorHex = ((Literal) point.getValue()).getValue();
-                        nanColor = StyleUtilities.toHex(((Color) colorHex));
+                    final Expression<?, Color> pointExpr = point.getValue().toValueType(Color.class);
+                    try {
+                        Color color = pointExpr.apply(null);
+                        nanColor = StyleUtilities.toHex(color);
+                    } catch (NullPointerException | InvalidFilterValueException e) {
+                        LOGGER.log(Level.FINE, "Cannot evaluate point value without input", e);
                     }
                 }
             }
@@ -98,11 +106,12 @@ public final class Interpolate implements Function {
             }
         }
         points.removeAll(nullPoints);
-        final org.geotoolkit.style.function.Interpolate inter =  SF.interpolateFunction(StyleConstants.DEFAULT_CATEGORIZE_LOOKUP,
+        final Expression<Object, Color> inter =  SF.interpolateFunction(StyleConstants.DEFAULT_CATEGORIZE_LOOKUP,
                 listType(points),
                 Method.COLOR,
                 Mode.LINEAR,
-                StyleConstants.DEFAULT_FALLBACK);
+                StyleConstants.DEFAULT_FALLBACK)
+                .toValueType(Color.class);
         Double min = null, max= null;
         // Iteration to find min and max values
         for (final InterpolationPoint ip : points) {
@@ -126,7 +135,7 @@ public final class Interpolate implements Function {
             // Loop to create points with new point evaluation
             for (int i = 0; i < nbPoints; i++) {
                 final double val = min + (coefficient * i);
-                final Color color = (Color) inter.apply(val);
+                final Color color = inter.apply(val);
                 final InterpolationPoint point = new InterpolationPoint();
                 point.setColor(StyleUtilities.toHex(color));
                 point.setData(val);
