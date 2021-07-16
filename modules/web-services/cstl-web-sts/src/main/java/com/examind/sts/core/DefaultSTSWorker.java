@@ -59,9 +59,11 @@ import org.constellation.exception.ConstellationStoreException;
 import org.constellation.security.SecurityManagerHolder;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.UnauthorizedException;
+import org.geotoolkit.geometry.GeometricUtilities;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.gml.GeometrytoJTS;
 import org.geotoolkit.gml.xml.AbstractGeometry;
+import org.geotoolkit.gml.xml.BoundingShape;
 import org.geotoolkit.gml.xml.v321.MeasureType;
 import org.geotoolkit.internal.geojson.binding.GeoJSONFeature;
 import org.geotoolkit.internal.geojson.binding.GeoJSONGeometry;
@@ -895,7 +897,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         Datastream datastream = new Datastream();
         if (exp.observedProperties && !fn.observedProperties) {
             if (obs.getPropertyObservedProperty()!= null && obs.getPropertyObservedProperty().getHref()!= null) {
-                org.geotoolkit.swe.xml.Phenomenon fullPhen = (org.geotoolkit.swe.xml.Phenomenon) getPhenomenon(obs.getPropertyObservedProperty().getHref(), "1.0.0");
+                org.geotoolkit.swe.xml.Phenomenon fullPhen = obs.getPropertyObservedProperty().getPhenomenon();
+                if (fullPhen == null) {
+                    fullPhen = (org.geotoolkit.swe.xml.Phenomenon) getPhenomenon(obs.getPropertyObservedProperty().getHref(), "1.0.0");
+                }
                 ObservedProperty phen = buildPhenomenon(exp, fullPhen, new NavigationPath(fn));
                 datastream = datastream.observedProperty(phen);
             }
@@ -937,7 +942,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             datastream = datastream.phenomenonTime(time);
         }
 
-        if (sensorID != null) {
+        if (obs.getBoundedBy() != null && obs.getBoundedBy().getEnvelope() != null) {
+            GeoJSONGeometry geom = getObservedAreaForSensor(obs.getBoundedBy());
+            datastream = datastream.observedArea(geom);
+        } else if (sensorID != null) {
             GeoJSONGeometry geom = getObservedAreaForSensor(sensorID, sensorArea);
             datastream = datastream.observedArea(geom);
         }
@@ -1144,7 +1152,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 }
             }
         }
-        if (sensorID != null) {
+        if (obs.getBoundedBy() != null && obs.getBoundedBy().getEnvelope() != null) {
+            GeoJSONGeometry geom = getObservedAreaForSensor(obs.getBoundedBy());
+            datastream.setObservedArea(geom);
+        } else if (sensorID != null) {
             GeoJSONGeometry geom = getObservedAreaForSensor(sensorID, sensorArea);
             datastream.setObservedArea(geom);
         }
@@ -1391,6 +1402,16 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             return cached.get(sensorId);
         }
     }
+
+    private GeoJSONGeometry getObservedAreaForSensor(BoundingShape bound) throws ConstellationStoreException {
+        CoordinateReferenceSystem crs = bound.getEnvelope().getCoordinateReferenceSystem();
+        final Geometry geom = GeometricUtilities.toJTSGeometry(bound.getEnvelope(), GeometricUtilities.WrapResolution.NONE);
+        if (crs != null) {
+            JTS.setCRS(geom, crs);
+        }
+        return GeoJSONGeometry.toGeoJSONGeometry(geom);
+    }
+
 
     private org.locationtech.jts.geom.Geometry getJTSGeometryFromFeatureOfInterest(SamplingFeature sf) {
         if (sf instanceof org.geotoolkit.sampling.xml.SamplingFeature) {

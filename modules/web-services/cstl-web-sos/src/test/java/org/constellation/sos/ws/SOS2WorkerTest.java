@@ -649,6 +649,7 @@ public abstract class SOS2WorkerTest {
 
         assertEquals(expResult.getResult(), obsResult.getResult());
         assertEquals(expResult.getSamplingTime(), obsResult.getSamplingTime());
+        assertEquals(expResult.getBoundedBy(), obsResult.getBoundedBy());
         assertEquals(expResult, obsResult);
 
         /**

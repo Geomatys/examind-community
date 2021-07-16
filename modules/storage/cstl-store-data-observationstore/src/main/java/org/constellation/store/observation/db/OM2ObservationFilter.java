@@ -50,9 +50,11 @@ import java.util.Set;
 import java.util.logging.Level;
 import org.apache.sis.geometry.GeneralEnvelope;
 
+import org.geotoolkit.observation.Field;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
 import static org.constellation.api.CommonConstants.LOCATION;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
+import org.geotoolkit.observation.FieldPhenomenon;
 import org.geotoolkit.observation.OMEntity;
 import static org.geotoolkit.observation.Utils.*;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
@@ -731,10 +733,10 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                             fields.remove(mainField);
                         }
 
-                        List<FieldPhenom> fieldPhen = getPhenomenonFields(phen, fields, c, procedure);
+                        List<FieldPhenomenon> fieldPhen = getPhenomenonFields(phen, fields, c, procedure);
                         for (int i = 0; i < fieldPhen.size(); i++) {
-                            FieldPhenom field = fieldPhen.get(i);
-                            results.add(observationTemplateIdBase + procedureID + '-' + field.i);
+                            FieldPhenomenon field = fieldPhen.get(i);
+                            results.add(observationTemplateIdBase + procedureID + '-' + field.getIndex());
                         }
 
                     } else {
@@ -764,7 +766,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
                     if (MEASUREMENT_QNAME.equals(resultModel)) {
                         final Phenomenon phen = getPhenomenon("1.0.0", observedProperty, c);
-                        List<FieldPhenom> fieldPhen = getPhenomenonFields(phen, fields, c, procedure);
+                        List<FieldPhenomenon> fieldPhen = getPhenomenonFields(phen, fields, c, procedure);
                         try (final PreparedStatement stmt = c.prepareStatement(sqlRequest)) {
                             stmt.setInt(1, oid);
                             try (final ResultSet rs2 = stmt.executeQuery()) {
@@ -772,8 +774,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                                     final Integer rid = rs2.getInt("id");
                                     if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
                                         for (int i = 0; i < fieldPhen.size(); i++) {
-                                            FieldPhenom field = fieldPhen.get(i);
-                                            results.add(name + '-' + field.i + '-' + rid);
+                                            FieldPhenomenon field = fieldPhen.get(i);
+                                            results.add(name + '-' + field. getIndex() + '-' + rid);
                                         }
                                     }
                                 }
@@ -1123,8 +1125,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         return false;
     }
 
-    protected List<FieldPhenom> getPhenomenonFields(final Phenomenon phen, List<Field> fields, Connection c, String procedure) throws DataStoreException {
-        List<FieldPhenom> fieldPhen = new ArrayList<>();
+    protected List<FieldPhenomenon> getPhenomenonFields(final Phenomenon phen, List<Field> fields, Connection c, String procedure) throws DataStoreException {
+        List<FieldPhenomenon> fieldPhen = new ArrayList<>();
         if (fields.size() > 1) {
             if (phen instanceof CompositePhenomenon) {
                 CompositePhenomenon composite = (CompositePhenomenon) phen;
@@ -1133,7 +1135,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                         org.geotoolkit.swe.xml.Phenomenon component = (org.geotoolkit.swe.xml.Phenomenon) composite.getComponent().get(i);
                         if ((currentFields.isEmpty() || currentFields.contains(component.getId())) &&
                             (fieldFilters.isEmpty() || fieldFilters.contains(i))) {
-                            fieldPhen.add(new FieldPhenom(i, component, fields.get(i)));
+                            fieldPhen.add(new FieldPhenomenon(i, component, fields.get(i)));
                         }
                     }
                 } else {
@@ -1148,7 +1150,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                                     if ((currentFields.isEmpty() || currentFields.contains(component.getId())) &&
                                         (fieldFilters.isEmpty()  || fieldFilters.contains(i)) &&
                                         hasComponent(component, composite)) {
-                                        fieldPhen.add(new FieldPhenom(i, component, fields.get(i)));
+                                        fieldPhen.add(new FieldPhenomenon(i, component, fields.get(i)));
                                     }
                                 }
                             } else {
@@ -1172,7 +1174,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                             if ((currentFields.isEmpty() || currentFields.contains(component.getId())) &&
                                 (fieldFilters.isEmpty()  || fieldFilters.contains(i)) &&
                                 component.getId().equals(getId(phen))) {
-                                fieldPhen.add(new FieldPhenom(i, component, fields.get(i)));
+                                fieldPhen.add(new FieldPhenomenon(i, component, fields.get(i)));
                             }
                         }
                     } else {
@@ -1186,7 +1188,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             if (phen instanceof CompositePhenomenon) {
                 throw new DataStoreException("incoherence between single fields and composite phenomenon");
             }
-            fieldPhen.add(new FieldPhenom(0, phen, fields.get(0)));
+            fieldPhen.add(new FieldPhenomenon(0, phen, fields.get(0)));
         }
         return fieldPhen;
     }
@@ -1308,16 +1310,5 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             LOGGER.log(Level.WARNING, "Error while looking for template time.", ex);
         }
         return null;
-    }
-
-    protected static class FieldPhenom {
-        public int i;
-        public Phenomenon phenomenon;
-        public Field field;
-        public FieldPhenom(int i, Phenomenon phenomenon, Field field) {
-            this.i = i;
-            this.field = field;
-            this.phenomenon = phenomenon;
-        }
     }
 }

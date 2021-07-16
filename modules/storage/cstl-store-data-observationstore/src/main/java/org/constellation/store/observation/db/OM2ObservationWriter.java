@@ -69,6 +69,7 @@ import java.util.Map.Entry;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
 import org.constellation.dto.service.config.sos.OM2ResultEventDTO;
+import org.geotoolkit.observation.Field;
 import org.constellation.util.Util;
 import org.geotoolkit.geometry.jts.transform.AbstractGeometryTransformer;
 import org.geotoolkit.geometry.jts.transform.GeometryCSTransformer;

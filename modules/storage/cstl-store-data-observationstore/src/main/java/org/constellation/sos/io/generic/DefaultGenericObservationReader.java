@@ -662,7 +662,8 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
                                                          observedProperty,
                                                          procedure,
                                                          result,
-                                                         samplingTime);
+                                                         samplingTime,
+                                                         null);
                 } else if (resultModel.equals(MEASUREMENT_QNAME)) {
                     return OMXmlFactory.buildMeasurement(version,
                                                          obsID,
@@ -672,7 +673,8 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
                                                          observedProperty,
                                                          procedure,
                                                          (Measure)result,
-                                                         (org.geotoolkit.gml.xml.v311.TimePeriodType)samplingTime);
+                                                         (org.geotoolkit.gml.xml.v311.TimePeriodType)samplingTime,
+                                                         null);
                 } else {
                     throw new IllegalArgumentException("unexpected resultModel:" + resultModel);
                 }
@@ -685,7 +687,8 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
                                                      observedProperty,
                                                      procedure,
                                                      result,
-                                                     samplingTime);
+                                                     samplingTime,
+                                                     null);
             } else {
                 throw new IllegalArgumentException("Unexpected version:" + version);
             }

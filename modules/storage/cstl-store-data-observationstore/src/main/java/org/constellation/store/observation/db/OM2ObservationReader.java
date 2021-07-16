@@ -62,11 +62,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVATION_MODEL;
@@ -87,6 +84,7 @@ import static org.geotoolkit.sos.xml.SOSXmlFactory.getDefaultTextEncoding;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.getGMLVersion;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
+import org.geotoolkit.observation.Field;
 import org.geotoolkit.gml.xml.GMLXmlFactory;
 import org.geotoolkit.observation.OMEntity;
 import static org.geotoolkit.observation.ObservationReader.ENTITY_TYPE;
@@ -596,10 +594,10 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
             final Process proc = getProcess(version, procedure, c);
             if (resultModel.equals(MEASUREMENT_QNAME)) {
                 final Object result = getResult(identifier, resultModel, version);
-                return OMXmlFactory.buildMeasurement(version, obsID, name, null, prop, phen, proc, result, time);
+                return OMXmlFactory.buildMeasurement(version, obsID, name, null, prop, phen, proc, result, time, null);
             } else {
                 final Object result = getResult(identifier, resultModel, version);
-                return OMXmlFactory.buildObservation(version, obsID, name, null, prop, phen, proc, result, time);
+                return OMXmlFactory.buildObservation(version, obsID, name, null, prop, phen, proc, result, time, null);
             }
 
         } catch (SQLException ex) {

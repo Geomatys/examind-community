@@ -131,6 +131,9 @@ public abstract class SensorWorker extends AbstractWorker {
         if (sps.isEmpty()) {
             return null;
         } else {
+            if (sps.size() > 0) {
+                LOGGER.warning("Multiple phenomenon found for one identifier");
+            }
             return sps.iterator().next();
         }
     }

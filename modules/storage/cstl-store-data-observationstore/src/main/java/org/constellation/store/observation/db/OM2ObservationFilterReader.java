@@ -27,7 +27,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -42,9 +41,11 @@ import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStoreException;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
-import static org.constellation.api.CommonConstants.LOCATION;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.RESPONSE_MODE;
+import org.geotoolkit.observation.Field;
+import org.geotoolkit.observation.ResultBuilder;
+import org.geotoolkit.observation.ResultMode;
 import static org.constellation.store.observation.db.OM2BaseReader.defaultCRS;
 import static org.constellation.store.observation.db.OM2Utils.reOrderFields;
 import static org.geotoolkit.observation.Utils.*;
@@ -53,6 +54,7 @@ import org.geotoolkit.geometry.jts.SRIDGenerator;
 import org.geotoolkit.gml.JTStoGeometry;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.FeatureProperty;
+import org.geotoolkit.observation.FieldPhenomenon;
 import org.geotoolkit.observation.OMEntity;
 import org.geotoolkit.observation.ObservationStoreException;
 import org.geotoolkit.observation.xml.AbstractObservation;
@@ -332,7 +334,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     processMap.put(procedure, proc);
                 }
                 final Object result = buildComplexResult(version, scal, 0, encoding, null, observations.size());
-                Observation observation = OMXmlFactory.buildObservation(version, obsID, name, null, foi, phen, proc, result, tempTime);
+                Observation observation = OMXmlFactory.buildObservation(version, obsID, name, null, foi, phen, proc, result, tempTime, null);
                 observations.add(observation);
             }
 
@@ -402,14 +404,14 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     processMap.put(procedure, proc);
                 }
 
-                List<FieldPhenom> phenFields = getPhenomenonFields(phen, fields, c, procedure);
-                for (FieldPhenom phenField : phenFields) {
+                List<FieldPhenomenon> phenFields = getPhenomenonFields(phen, fields, c, procedure);
+                for (FieldPhenomenon phenField : phenFields) {
                     TemporalGeometricPrimitive tempTime = null;
                     if (includeTimeInTemplate) {
-                        tempTime = getTimeForTemplate(c, procedure, getId(phenField.phenomenon), featureID, version);
+                        tempTime = getTimeForTemplate(c, procedure, getId(phenField.getPhenomenon()), featureID, version);
                     }
-                    final Object result = buildMeasure(version, "measure-001", phenField.field.fieldUom, 0d);
-                    observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + phenField.i, name + '-' + phenField.i, null, foi, phenField.phenomenon, proc, result, tempTime));
+                    final Object result = buildMeasure(version, "measure-001", phenField.getField().fieldUom, 0d);
+                    observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + phenField.getIndex(), name + '-' + phenField.getIndex(), null, foi, phenField.getPhenomenon(), proc, result, tempTime, null));
                 }
             }
         } catch (SQLException ex) {
@@ -611,7 +613,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         proc = getProcess(version, procedure, c);
                         processMap.put(procedure, proc);
                     }
-                    observation = OMXmlFactory.buildObservation(version, obsID, name, null, prop, phen, proc, result, time);
+                    observation = OMXmlFactory.buildObservation(version, obsID, name, null, prop, phen, proc, result, time, null);
                     observations.put(procedure + '-' + featureID, observation);
                 } else {
                     Date lastTime = null;
@@ -755,7 +757,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     }
                 }
 
-                List<FieldPhenom> fieldPhen = getPhenomenonFields(phen, fields, c, procedure);
+                List<FieldPhenomenon> fieldPhen = getPhenomenonFields(phen, fields, c, procedure);
 
                 if (isTimeField) {
                     sqlMeasureRequest.replaceAll("$time", mainField.fieldName);
@@ -766,14 +768,14 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     int cpos = measureFilter.indexOf("}", opos + 9);
                     String block = measureFilter.substring(opos, cpos + 1);
                     StringBuilder sb = new StringBuilder();
-                    for (FieldPhenom field : fieldPhen) {
-                        sb.append(" AND (").append(block.replace("${allphen", "\"" + field.field.fieldName + "\"").replace('}', ' ')).append(") ");
+                    for (FieldPhenomenon field : fieldPhen) {
+                        sb.append(" AND (").append(block.replace("${allphen", "\"" + field.getField().fieldName + "\"").replace('}', ' ')).append(") ");
                     }
                     sqlMeasureRequest.replaceFirst(block, sb.toString());
                 }
 
-                for (FieldPhenom field : fieldPhen) {
-                    sqlMeasureRequest.replaceAll("$phen" + field.i, "\"" + field.field.fieldName + "\"");
+                for (FieldPhenomenon field : fieldPhen) {
+                    sqlMeasureRequest.replaceAll("$phen" + field.getIndex(), "\"" + field.getField().fieldName + "\"");
                 }
 
                 final FilterSQLRequest measureRequest = new FilterSQLRequest("SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m WHERE \"id_observation\" = ");
@@ -798,9 +800,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                             }
 
                             for (int i = 0; i < fieldPhen.size(); i++) {
-                                FieldPhenom field = fieldPhen.get(i);
+                                FieldPhenomenon field = fieldPhen.get(i);
                                 Double dValue = null;
-                                final String value = rs2.getString(field.field.fieldName);
+                                final String value = rs2.getString(field.getField().fieldName);
                                 if (value != null) {
                                     try {
                                         dValue = Double.parseDouble(value);
@@ -808,8 +810,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                         throw new DataStoreException("Unable ta parse the result value as a double (value=" + value + ")");
                                     }
                                     final FeatureProperty foi = buildFeatureProperty(version, feature); // do not share the same object
-                                    final Object result = buildMeasure(version, "measure-00" + rid, field.field.fieldUom, dValue);
-                                    observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + field.i + '-' + rid, name + '-' + field.i + '-' + rid, null, foi, field.phenomenon, proc, result, measureTime));
+                                    final Object result = buildMeasure(version, "measure-00" + rid, field.getField().fieldUom, dValue);
+                                    observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + field.getIndex() + '-' + rid, name + '-' + field.getIndex() + '-' + rid, null, foi, field.getPhenomenon(), proc, result, measureTime, null));
                                 }
                             }
                         }
@@ -2090,154 +2092,5 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     @Override
     public org.geotoolkit.gml.xml.Envelope getCollectionBoundingShape() {
         throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    private static enum ResultMode {
-        DATA_ARRAY,
-        CSV,
-        COUNT
-    }
-
-    private class ResultBuilder {
-
-        private final ResultMode mode;
-        private final boolean csvHack;
-        private boolean emptyLine;
-
-        private StringBuilder values;
-        private StringBuilder currentLine;
-        private final TextBlock encoding;
-
-        private List<Object> dataArray;
-        private List<Object> currentArrayLine;
-
-        private int count = 0;
-
-
-        public ResultBuilder(ResultMode mode, final TextBlock encoding, boolean csvHack) {
-            this.mode = mode;
-            this.csvHack = csvHack;
-            this.encoding = encoding;
-            switch (mode) {
-                case DATA_ARRAY: dataArray = new ArrayList<>(); break;
-                case CSV:     values = new StringBuilder(); break;
-            }
-        }
-
-        public void newBlock() {
-            switch (getMode()) {
-                case DATA_ARRAY: currentArrayLine = new ArrayList<>(); break;
-                case CSV:     currentLine = new StringBuilder(); break;
-            }
-            this.emptyLine = true;
-        }
-
-        public void appendTime(Date t) {
-            switch (getMode()) {
-                case DATA_ARRAY: currentArrayLine.add(t); break;
-                case CSV:
-                    DateFormat df;
-                    if (csvHack) {
-                        df = format;
-                    } else {
-                        df = format2;
-                    }
-                    synchronized(df) {
-                        currentLine.append(df.format(t)).append(encoding.getTokenSeparator());
-                    }
-                    break;
-            }
-        }
-
-        public void appendDouble(Double d) {
-            if (!d.isNaN()) emptyLine = false;
-            switch (getMode()) {
-                case DATA_ARRAY: currentArrayLine.add(d); break;
-                case CSV:
-                    if (!d.isNaN()) {
-                        currentLine.append(Double.toString(d));
-                    }
-                    currentLine.append(encoding.getTokenSeparator());
-                    break;
-            }
-        }
-
-        public void appendString(String value) {
-            if (value != null && !value.isEmpty()) emptyLine = false;
-            switch (getMode()) {
-                case DATA_ARRAY: currentArrayLine.add(value); break;
-                case CSV:
-                    if (value != null && !value.isEmpty()) {
-                        currentLine.append(value);
-                    }
-                    currentLine.append(encoding.getTokenSeparator());
-                    break;
-            }
-        }
-
-        public void appendLong(Long value) {
-            if (value != null) emptyLine = false;
-            switch (getMode()) {
-                case DATA_ARRAY: currentArrayLine.add(value); break;
-                case CSV:
-                    if (value != null) {
-                        currentLine.append(value);
-                    }
-                    currentLine.append(encoding.getTokenSeparator());
-                    break;
-            }
-        }
-
-
-        public int endBlock() {
-            if (!emptyLine) {
-                switch (getMode()) {
-                    case DATA_ARRAY: dataArray.add(currentArrayLine); break;
-                    case CSV:
-                            values.append(currentLine);
-                            // remove last token separator
-                            values.deleteCharAt(values.length() - 1);
-                            values.append(encoding.getBlockSeparator());
-                            break;
-                    case COUNT: count++; break;
-                }
-                return 1;
-            }
-            return 0;
-        }
-
-        public String getStringValues() {
-            if (values != null) {
-                return values.toString();
-            }
-            return null;
-        }
-
-        public List<Object> getDataArray() {
-            return dataArray;
-        }
-
-        public int getCount() {
-            return count;
-        }
-
-        private void appendHeaders(List<Field> fields) {
-            switch (getMode()) {
-                case CSV:
-                    for (Field pheno : fields) {
-                        // hack for the current graph in cstl you only work when the main field is named "time"
-                        if (csvHack && "Time".equals(pheno.fieldType)) {
-                            values.append("time").append(encoding.getTokenSeparator());
-                        } else {
-                            values.append(pheno.fieldDesc).append(encoding.getTokenSeparator());
-                        }
-                    }
-                    values.setCharAt(values.length() - 1, '\n');
-            }
-        }
-
-        public ResultMode getMode() {
-            return mode;
-        }
     }
 }

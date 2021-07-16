@@ -20,6 +20,7 @@ package org.constellation.store.observation.db;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.geotoolkit.observation.Field;
 
 /**
  *
@@ -27,9 +28,9 @@ import java.util.List;
  */
 public class OM2Utils {
 
-    public static List<OM2BaseReader.Field> reOrderFields(List<OM2BaseReader.Field> procedureFields, List<OM2BaseReader.Field> subset) {
-        List<OM2BaseReader.Field> result = new ArrayList();
-        for (OM2BaseReader.Field pField : procedureFields) {
+    public static List<Field> reOrderFields(List<Field> procedureFields, List<Field> subset) {
+        List<Field> result = new ArrayList();
+        for (Field pField : procedureFields) {
             if (subset.contains(pField)) {
                 result.add(pField);
             }

@@ -19,7 +19,6 @@
 
 package org.constellation.store.observation.db;
 
-import com.google.common.base.Objects;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.Point;
@@ -42,6 +41,7 @@ import java.util.logging.Logger;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.logging.Logging;
+import org.geotoolkit.observation.Field;
 import org.constellation.util.Util;
 import org.geotoolkit.geometry.jts.SRIDGenerator;
 import org.geotoolkit.gml.JTStoGeometry;
@@ -54,14 +54,6 @@ import static org.geotoolkit.observation.AbstractObservationStoreFactory.SENSOR_
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 
 import static org.geotoolkit.sos.xml.SOSXmlFactory.*;
-import org.geotoolkit.swe.xml.AbstractBoolean;
-import org.geotoolkit.swe.xml.AbstractDataComponent;
-import org.geotoolkit.swe.xml.AbstractText;
-import org.geotoolkit.swe.xml.AbstractTime;
-
-import org.geotoolkit.swe.xml.AnyScalar;
-import org.geotoolkit.swe.xml.Quantity;
-import org.geotoolkit.swe.xml.UomProperty;
 import org.opengis.metadata.Identifier;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.sampling.SamplingFeature;
@@ -506,118 +498,6 @@ public class OM2BaseReader {
                 }
                 return parent;
             }
-        }
-    }
-
-    protected static class Field {
-
-        public String fieldType;
-        public String fieldName;
-        public String fieldDesc;
-        public String fieldUom;
-
-        public Field(final String fieldType, final String fieldName, final String fieldDesc, final String fieldUom) {
-            this.fieldDesc = fieldDesc;
-            this.fieldName = fieldName;
-            this.fieldType = fieldType;
-            this.fieldUom  = fieldUom;
-        }
-
-        public Field(final String fieldName, final AbstractDataComponent value) throws SQLException {
-            this.fieldName = fieldName;
-            if (value instanceof Quantity) {
-                final Quantity q = (Quantity) value;
-                if (q.getUom() != null) {
-                    this.fieldUom = q.getUom().getCode();
-                }
-                this.fieldDesc = q.getDefinition();
-                this.fieldType = "Quantity";
-            } else if (value instanceof AbstractText) {
-                final AbstractText q = (AbstractText) value;
-                this.fieldDesc = q.getDefinition();
-                this.fieldType = "Text";
-            } else if (value instanceof AbstractBoolean) {
-                final AbstractBoolean q = (AbstractBoolean) value;
-                this.fieldDesc =  q.getDefinition();
-                this.fieldType = "Boolean";
-            } else if (value instanceof AbstractTime) {
-                final AbstractTime q = (AbstractTime) value;
-                this.fieldDesc =  q.getDefinition();
-                this.fieldType = "Time";
-            } else {
-                throw new SQLException("Only Quantity, Text AND Time is supported for now");
-            }
-
-        }
-
-
-        public AnyScalar getScalar(final String version) {
-            final AbstractDataComponent compo;
-            if ("Quantity".equals(fieldType)) {
-                final UomProperty uomCode = buildUomProperty(version, fieldUom, null);
-                compo = buildQuantity(version, fieldDesc, uomCode, null);
-            } else if ("Text".equals(fieldType)) {
-                compo = buildText(version, fieldDesc, null);
-            } else if ("Time".equals(fieldType)) {
-                compo = buildTime(version, fieldDesc, null);
-            } else {
-                throw new IllegalArgumentException("Unexpected field Type:" + fieldType);
-            }
-            return buildAnyScalar(version, null, fieldName, compo);
-        }
-
-        public String getSQLType(boolean isPostgres, boolean timescaledbMain) throws SQLException {
-            if (fieldType.equals("Quantity")) {
-                if (timescaledbMain) {
-                    return "integer";
-                } else if (!isPostgres) {
-                    return "double";
-                } else {
-                    return "double precision";
-                }
-            } else if (fieldType.equals("Text")) {
-                return "character varying(1000)";
-            } else if (fieldType.equals("Boolean")) {
-                if (isPostgres) {
-                    return "boolean";
-                } else {
-                    return "integer";
-                }
-            } else if (fieldType.equals("Time")) {
-                return "timestamp";
-            } else {
-                throw new SQLException("Only Quantity, Text AND Time is supported for now");
-            }
-        }
-
-        @Override
-        public int hashCode() {
-            int hash = 5;
-            hash = 89 * hash + java.util.Objects.hashCode(this.fieldType);
-            hash = 89 * hash + java.util.Objects.hashCode(this.fieldName);
-            hash = 89 * hash + java.util.Objects.hashCode(this.fieldDesc);
-            hash = 89 * hash + java.util.Objects.hashCode(this.fieldUom);
-            return hash;
-        }
-
-        @Override
-        public boolean equals(final Object obj) {
-            if (obj == this) {
-                return true;
-            }
-            if (obj instanceof Field) {
-                final Field that = (Field) obj;
-                return Objects.equal(this.fieldDesc, that.fieldDesc) &&
-                       Objects.equal(this.fieldName, that.fieldName) &&
-                       Objects.equal(this.fieldType, that.fieldType) &&
-                       Objects.equal(this.fieldUom,  that.fieldUom);
-            }
-            return false;
-        }
-
-        @Override
-        public String toString() {
-            return fieldName + ": " + fieldType;
         }
     }
 }
