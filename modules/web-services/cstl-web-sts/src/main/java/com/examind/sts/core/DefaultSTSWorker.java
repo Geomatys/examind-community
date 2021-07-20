@@ -38,7 +38,7 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 import javax.inject.Named;
 import javax.xml.namespace.QName;
-import org.apache.sis.internal.storage.query.SimpleQuery;
+import org.apache.sis.internal.storage.query.FeatureQuery;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.util.Utilities;
 import org.apache.sis.xml.MarshallerPool;
@@ -1655,8 +1655,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             if (req.getCount()) {
                 // could be optimized
                 final SimpleQuery subquery = buildExtraFilterQuery(req, false, filters);
-                hints.put(OBJECT_TYPE, HISTORICAL_LOCATION);
-                count = new BigDecimal(omProvider.getCount(subquery, hints));
+                Map<String, List<Date>> times = omProvider.getHistoricalTimes(subquery, new HashMap<>());
+                final AtomicInteger c = new AtomicInteger();
+                times.forEach((procedure, dates) -> c.addAndGet(dates.size()));
+                count = new BigDecimal(c.get());
             }
             final SimpleQuery subquery = buildExtraFilterQuery(req, true, filters);
             if (subquery.getLimit() != 0) {

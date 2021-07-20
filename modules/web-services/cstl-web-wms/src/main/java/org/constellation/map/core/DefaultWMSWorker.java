@@ -39,7 +39,7 @@ import javax.xml.bind.JAXBException;
 import org.apache.sis.cql.CQLException;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
-import org.apache.sis.internal.storage.query.SimpleQuery;
+import org.apache.sis.internal.storage.query.FeatureQuery;
 import org.apache.sis.internal.util.UnmodifiableArrayList;
 import org.apache.sis.measure.Range;
 import org.apache.sis.measure.Units;
@@ -54,7 +54,6 @@ import org.apache.sis.referencing.cs.DefaultCoordinateSystemAxis;
 import org.apache.sis.referencing.datum.DefaultEngineeringDatum;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
-import org.apache.sis.storage.Query;
 import org.apache.sis.storage.Resource;
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import org.apache.sis.xml.MarshallerPool;
@@ -1583,8 +1582,8 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                     } catch (FactoryException e) {
                         LOGGER.log(Level.INFO, e.getLocalizedMessage(), e);
                     }
-                    final SimpleQuery query = new SimpleQuery();
-                    query.setFilter(filterGt);
+                    final FeatureQuery query = new FeatureQuery();
+                    query.setSelection(filterGt);
                     fml.setQuery(query);
                 }
 
@@ -1666,10 +1665,10 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         Query query = layer.getQuery();
         if (query == null) {
             fs = fs.subset(query);
-        } else if (query instanceof SimpleQuery) {
-            SimpleQuery q = (SimpleQuery) query;
-            SimpleQuery cp = q.clone();
-            cp.setFilter(ff.and(cp.getFilter(), filter));
+        } else if (query instanceof FeatureQuery) {
+            FeatureQuery q = (FeatureQuery) query;
+            FeatureQuery cp = q.clone();
+            cp.setSelection(ff.and(cp.getSelection(), filter));
             layer.setQuery(cp);
         } else {
             LOGGER.log(Level.WARNING, "Can not combine dimension filter with query " + query);
@@ -1686,13 +1685,13 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         ListingPropertyVisitor.VISITOR.visit(lower, properties);
         ListingPropertyVisitor.VISITOR.visit(upper, properties);
 
-        final SimpleQuery qb = new SimpleQuery();
-        final List<SimpleQuery.Column> columns = new ArrayList<>();
+        final FeatureQuery qb = new FeatureQuery();
+        final List<FeatureQuery.NamedExpression> columns = new ArrayList<>();
         final FilterFactory ff = FilterUtilities.FF;
         for (String property : properties) {
-            columns.add(new SimpleQuery.Column(ff.property(property)));
+            columns.add(new FeatureQuery.NamedExpression(ff.property(property)));
         }
-        qb.setColumns(columns.toArray(new SimpleQuery.Column[0]));
+        qb.setProjection(columns.toArray(new FeatureQuery.NamedExpression[0]));
         final FeatureSet col = fs.subset(qb);
 
         try (Stream<Feature> stream = col.features(false)) {

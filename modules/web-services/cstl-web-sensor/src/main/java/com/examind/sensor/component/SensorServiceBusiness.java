@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXBException;
-import org.apache.sis.internal.storage.query.SimpleQuery;
+import org.apache.sis.internal.storage.query.FeatureQuery;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IServiceBusiness;
@@ -240,9 +240,9 @@ public class SensorServiceBusiness {
     public Collection<String> getSensorIdsForObservedProperty(final Integer id, final String observedProperty) throws ConfigurationException {
         final ObservationProvider pr = getOMProvider(id);
         try {
-            SimpleQuery query = new SimpleQuery();
+            FeatureQuery query = new FeatureQuery();
             final FilterFactory ff = FilterUtilities.FF;
-            query.setFilter(ff.equal(ff.property("observedProperty"), ff.literal(observedProperty)));
+            query.setSelection(ff.equal(ff.property("observedProperty"), ff.literal(observedProperty)));
             List<Process> processes = pr.getProcedures(query, Collections.emptyMap());
             List<String> results = new ArrayList<>();
             processes.forEach(p -> results.add(((org.geotoolkit.observation.xml.Process)p).getHref()));
@@ -382,8 +382,8 @@ public class SensorServiceBusiness {
     public Object getResultsCsv(final Integer id, final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end, final Integer width, final String resultFormat) throws ConfigurationException {
         try {
             final ObservationProvider pr = getOMProvider(id);
-            SimpleQuery query = new SimpleQuery();
-            query.setFilter(buildFilter(start, end, observedProperties, foi));
+            FeatureQuery query = new FeatureQuery();
+            query.setSelection(buildFilter(start, end, observedProperties, foi));
             Map<String, Object> hints = new HashMap<>();
             if (width != null) {
                 hints.put("decimSize", Integer.toString(width));

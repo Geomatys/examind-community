@@ -36,7 +36,7 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.xml.bind.JAXBException;
 import org.apache.sis.filter.DefaultFilterFactory;
-import org.apache.sis.internal.storage.query.SimpleQuery;
+import org.apache.sis.internal.storage.query.FeatureQuery;
 import org.apache.sis.internal.system.DefaultFactories;
 
 import org.apache.sis.util.iso.DefaultInternationalString;
@@ -263,8 +263,8 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
 
                 final ValueReference property = FF.property(attribute);
 
-                final SimpleQuery query = new SimpleQuery();
-                query.setColumns(new SimpleQuery.Column(FF.property(attribute)));
+                final FeatureQuery query = new FeatureQuery();
+                query.setProjection(new FeatureQuery.NamedExpression(FF.property(attribute)));
 
                 try (final Stream<Feature> featureSet = fs.subset(query).features(false)) {
                     Iterator<Feature> it = featureSet.iterator();
@@ -491,8 +491,8 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                 final ValueReference property = FF.property(attribute);
                 final List<Object> differentValues = new ArrayList<>();
 
-                final SimpleQuery query = new SimpleQuery();
-                query.setColumns(new SimpleQuery.Column(FF.property(attribute)));
+                final FeatureQuery query = new FeatureQuery();
+                query.setProjection(new FeatureQuery.NamedExpression(FF.property(attribute)));
 
                 try (final Stream<Feature> featureSet = fs.subset(query).features(false)) {
                     Iterator<Feature> it = featureSet.iterator();
@@ -597,8 +597,8 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                 final DefaultFilterFactory FF = FilterUtilities.FF;
                 final ValueReference property = FF.property(attribute);
 
-                final SimpleQuery query = new SimpleQuery();
-                query.setColumns(new SimpleQuery.Column(FF.property(attribute)));
+                final FeatureQuery query = new FeatureQuery();
+                query.setProjection(new FeatureQuery.NamedExpression(FF.property(attribute)));
                 fs = fs.subset(query);
 
                 //check if property is numeric
@@ -645,7 +645,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                         for (int i = 1; i < interValues.length; i++) {
                             double start = interValues[i - 1];
                             double end = interValues[i];
-                            SimpleQuery qb = new SimpleQuery();
+                            FeatureQuery qb = new FeatureQuery();
                             final Filter above = FF.greaterOrEqual(property, FF.literal(start));
                             final Filter under;
                             if (i == interValues.length - 1) {
@@ -654,7 +654,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                                 under = FF.less(property, FF.literal(end));
                             }
                             final Filter interval = FF.and(above, under);
-                            qb.setFilter(interval);
+                            qb.setSelection(interval);
                             try (final Stream<Feature> subCol = fs.subset(qb).features(false)) {
                                 mapping.put((long) start + " - " + (long) end, subCol.count());
                             }

@@ -35,7 +35,7 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 import org.apache.sis.internal.storage.ResourceOnFileSystem;
-import org.apache.sis.internal.storage.query.SimpleQuery;
+import org.apache.sis.internal.storage.query.FeatureQuery;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
@@ -359,7 +359,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider implements
         if (offname != null) {
             stations.addAll(getFeaturesOfInterestForOffering(offname, version));
         } else {
-            stations.addAll(getFeatureOfInterest(new SimpleQuery(), Collections.singletonMap(VERSION, version)));
+            stations.addAll(getFeatureOfInterest(new FeatureQuery(), Collections.singletonMap(VERSION, version)));
         }
         for (SamplingFeature offStation : stations) {
             // TODO for SOS 2.0 use observed area
@@ -394,10 +394,10 @@ public class ObservationStoreProvider extends IndexedNameDataProvider implements
     }
 
     private List<SamplingFeature> getFeaturesOfInterestForOffering(String offname, String version) throws ConstellationStoreException {
-        final SimpleQuery subquery = new SimpleQuery();
+        final FeatureQuery subquery = new FeatureQuery();
         FilterFactory ff = FilterUtilities.FF;
         final Filter filter = ff.equal(ff.property("offering"), ff.literal(offname));
-        subquery.setFilter(filter);
+        subquery.setSelection(filter);
         return getFeatureOfInterest(subquery, Collections.singletonMap(VERSION, version));
     }
 
@@ -1068,10 +1068,10 @@ public class ObservationStoreProvider extends IndexedNameDataProvider implements
         List<String> procedures         = new ArrayList<>();
         List<String> fois               = new ArrayList<>();
 
-        if (q instanceof SimpleQuery) {
-                SimpleQuery query = (SimpleQuery) q;
-                handleFilter(mode, query.getFilter(), localOmFilter, observedProperties, procedures, fois);
-                if (query.getLimit() != SimpleQuery.UNLIMITED) {
+        if (q instanceof FeatureQuery) {
+                FeatureQuery query = (FeatureQuery) q;
+                handleFilter(mode, query.getSelection(), localOmFilter, observedProperties, procedures, fois);
+                if (query.getLimit() != FeatureQuery.UNLIMITED) {
                     hints.put(PAGE_LIMIT, Long.toString(query.getLimit()));
                 }
                 if (query.getOffset()!= 0) {
@@ -1079,7 +1079,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider implements
                 }
 
         } else if (q != null) {
-            throw new ConstellationStoreException("Only SimpleQuery are supported for now");
+            throw new ConstellationStoreException("Only FeatureQuery are supported for now");
         }
 
         // TODO Spatial BBOX
@@ -1089,7 +1089,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider implements
     }
 
     private void handleFilter(int mode, Filter filter, final ObservationFilterReader localOmFilter, List<String> observedProperties, List<String> procedures, List<String> fois) throws ConstellationStoreException, DataStoreException {
-        if (Filter.include().equals(filter)) {
+        if (Filter.include().equals(filter) || filter == null) {
             return;
         }
 

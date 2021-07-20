@@ -53,7 +53,7 @@ import com.examind.sensor.component.SensorServiceBusiness;
 import com.google.common.base.Objects;
 import java.net.URI;
 import java.util.Collections;
-import org.apache.sis.internal.storage.query.SimpleQuery;
+import org.apache.sis.internal.storage.query.FeatureQuery;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.SensorReference;
@@ -94,9 +94,9 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
     @Autowired
     private SensorServiceBusiness sensorServBusiness;
-    
+
     private double progress;
-    
+
     public SosHarvesterProcess(final ProcessDescriptor desc, final ParameterValueGroup input) {
         super(desc,input);
     }
@@ -106,7 +106,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         LOGGER.info("executing sos insertion process");
 
         this.progress = 0.0;
-        
+
         /*
         0- Paramètres fixés
         =================*/
@@ -148,7 +148,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final String foiColumn = inputParameters.getValue(FOI_COLUMN);
         final String observationType = inputParameters.getValue(OBS_TYPE);
         final String zColumn    = inputParameters.getValue(Z_COLUMN);
-        
+
         // csv-flat special
         final String typeColumn = inputParameters.getValue(TYPE_COLUMN);
         final String valueColumn = inputParameters.getValue(RESULT_COLUMN);
@@ -178,7 +178,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                 obsPropFilterColumns.add(((ParameterValue)param).stringValue());
             }
         }
-        
+
         if (observationType == null && !storeId.equals("observationCsvFlatFile")) {
             throw new ProcessException("The observation type can't be null except for csvFlat store with type column", this);
         }
@@ -370,7 +370,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                     int currentNbObs = importSensor(services, dataId, byData);
                     nbObsInserted = nbObsInserted + currentNbObs;
             }
-            
+
             // reload service at the end
             for (ServiceProcessReference serv : services) {
                 serviceBusiness.restart(serv.getId());
@@ -383,7 +383,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         outputParameters.getOrCreate(SosHarvesterProcessDescriptor.OBSERVATION_INSERTED).setValue(nbObsInserted);
         outputParameters.getOrCreate(SosHarvesterProcessDescriptor.FILE_INSERTED).setValue(nbFileInserted);
     }
-    
+
     private List<Integer> integratingDataFile(DataSourceSelectedPath p, Integer dsid, ProviderConfiguration provConfig, Integer datasetId) throws ConstellationException {
         List<Integer> dataToIntegrate = new ArrayList<>();
         int userId = 1;
@@ -414,7 +414,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         }
         return ids;
     }
-    
+
     private int importSensor(final List<ServiceProcessReference> sosRefs, final int dataId, final double byData) throws ConfigurationException, ConstellationStoreException {
         Integer providerId = dataBusiness.getDataProvider(dataId);
         final DataProvider provider = DataProviders.getProvider(providerId);
@@ -430,7 +430,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
         for (ServiceProcessReference sosRef : sosRefs) {
             final ObservationProvider omServiceProvider = getOMProvider(sosRef.getId());
-            final Set<Phenomenon> existingPhenomenons   = new HashSet<>(omServiceProvider.getPhenomenon(new SimpleQuery(), Collections.singletonMap("version", "1.0.0")));
+            final Set<Phenomenon> existingPhenomenons   = new HashSet<>(omServiceProvider.getPhenomenon(new FeatureQuery(), Collections.singletonMap("version", "1.0.0")));
             final Set<SamplingFeature> existingFois     = new HashSet<>(getFeatureOfInterest(omServiceProvider));
 
             boolean alreadyInserted = false;
@@ -475,11 +475,11 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         }
         return nbObsTotal;
     }
-    
+
     private List<SamplingFeature> getFeatureOfInterest(ObservationProvider provider) throws ConstellationStoreException {
-        return provider.getFeatureOfInterest(new SimpleQuery(), Collections.singletonMap("version", "2.0.0"));
+        return provider.getFeatureOfInterest(new FeatureQuery(), Collections.singletonMap("version", "2.0.0"));
     }
-    
+
     protected ObservationProvider getOMProvider(final Integer serviceID) throws ConfigurationException {
         final List<Integer> providers = serviceBusiness.getLinkedProviders(serviceID);
         for (Integer providerID : providers) {
@@ -498,7 +498,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
     private boolean sameObservationProvider(ObservationProvider op1, ObservationProvider op2) {
         return Objects.equal(op1.getDatasourceKey(), op2.getDatasourceKey());
     }
-    
+
     private void fireAndLog(final String msg, double progress) {
         LOGGER.info(msg);
         this.progress = this.progress + progress;

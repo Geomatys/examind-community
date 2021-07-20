@@ -40,7 +40,7 @@ import java.util.logging.Level;
 import javax.inject.Named;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
-import org.apache.sis.internal.storage.query.SimpleQuery;
+import org.apache.sis.internal.storage.query.FeatureQuery;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.ServiceDef;
 import org.constellation.exception.ConstellationException;
@@ -484,11 +484,11 @@ public class SOSworker extends SensorWorker {
                 foiNames.addAll(omProvider.getFeatureOfInterestNames(null, Collections.EMPTY_MAP));
                 phenNames.addAll(omProvider.getPhenomenonNames(null, Collections.EMPTY_MAP));
 
-                SimpleQuery stQuery = null;
+                FeatureQuery stQuery = null;
                 if (sensorTypeFilter != null) {
-                    stQuery = new SimpleQuery();
+                    stQuery = new FeatureQuery();
                     BinaryComparisonOperator filter = ff.equal(ff.property("sensorType") , ff.literal("component"));
-                    stQuery.setFilter(filter);
+                    stQuery.setSelection(filter);
                 }
 
                 final Collection<String>  procNames  = omProvider.getProcedureNames(stQuery, hints);
@@ -575,7 +575,7 @@ public class SOSworker extends SensorWorker {
                 cont = loadedCapabilities.getContents();
             } else {
                 // we add the list of observation offerings
-                final List<ObservationOffering> offerings = buildOfferings(omProvider.getOfferings(new SimpleQuery(), hints), currentVersion);
+                final List<ObservationOffering> offerings = buildOfferings(omProvider.getOfferings(new FeatureQuery(), hints), currentVersion);
                 cont = buildContents(currentVersion, offerings);
             }
 
@@ -754,14 +754,14 @@ public class SOSworker extends SensorWorker {
                 }
                 oids.add(ff.resourceId(oid));
             }
-            final SimpleQuery subquery = new SimpleQuery();
+            final FeatureQuery subquery = new FeatureQuery();
             Filter filter;
             switch (oids.size()) {
                 case 0:  filter = Filter.exclude(); break;
                 case 1:  filter = oids.iterator().next(); break;
                 default: filter = ff.or(oids); break;
             }
-            subquery.setFilter(filter);
+            subquery.setSelection(filter);
             observation = omProvider.getObservations(subquery, request.getResultModel(), "inline", request.getResponseFormat(), Collections.singletonMap("version", currentVersion));
 
         } catch (ConstellationStoreException ex) {
@@ -1063,8 +1063,8 @@ public class SOSworker extends SensorWorker {
                 }
             }
 
-            SimpleQuery query = new SimpleQuery();
-            query.setFilter(buildFilter(times, observedProperties, procedures, featureOfInterest, bboxFilter, resultFilter));
+            FeatureQuery query = new FeatureQuery();
+            query.setSelection(buildFilter(times, observedProperties, procedures, featureOfInterest, bboxFilter, resultFilter));
 
             if (!outOfBand) {
 
@@ -1256,8 +1256,8 @@ public class SOSworker extends SensorWorker {
                 }
             }
 
-            SimpleQuery query = new SimpleQuery();
-            query.setFilter(buildFilter(times, observedProperties, null, fois, bboxFilter, null));
+            FeatureQuery query = new FeatureQuery();
+            query.setSelection(buildFilter(times, observedProperties, null, fois, bboxFilter, null));
 
             //we prepare the response document
             values = (String) omProvider.getResults(procedure, resultModel, INLINE.value(), query, null, Collections.emptyMap());
@@ -1386,8 +1386,8 @@ public class SOSworker extends SensorWorker {
 
             if (ofilter) {
 
-                SimpleQuery query = new SimpleQuery();
-                query.setFilter(buildFilter(request.getTemporalFilters(), request.getObservedProperty(), request.getProcedure(), null, null, null));
+                FeatureQuery query = new FeatureQuery();
+                query.setSelection(buildFilter(request.getTemporalFilters(), request.getObservedProperty(), request.getProcedure(), null, null, null));
                 final List<SamplingFeature> features = omProvider.getFeatureOfInterest(query, Collections.singletonMap("version", currentVersion));
                 return buildFeatureCollection(currentVersion, "feature-collection-1", features);
 
@@ -1395,7 +1395,7 @@ public class SOSworker extends SensorWorker {
              * - Request for all foi
              */
             } else {
-                final List<SamplingFeature> features = omProvider.getFeatureOfInterest(new SimpleQuery(), Collections.singletonMap("version", currentVersion));
+                final List<SamplingFeature> features = omProvider.getFeatureOfInterest(new FeatureQuery(), Collections.singletonMap("version", currentVersion));
                 return buildFeatureCollection(currentVersion, "feature-collection-1", features);
             }
 
@@ -1560,11 +1560,11 @@ public class SOSworker extends SensorWorker {
             filters.add(ff.equal(ff.property("observedProperty"), ff.literal(request.getObservedProperty())));
 
             // we clone the filter for this request
-            final SimpleQuery query = new SimpleQuery();
+            final FeatureQuery query = new FeatureQuery();
             if (filters.size() == 1) {
-                query.setFilter(filters.get(0));
+                query.setSelection(filters.get(0));
             } else if (filters.size() > 1) {
-                query.setFilter(ff.and(filters));
+                query.setSelection(ff.and(filters));
             }
             final List<Observation> matchingResult = omProvider.getObservations(query, OBSERVATION_QNAME, RESULT_TEMPLATE.value(), request.getResponseFormat(), Collections.singletonMap("version", currentVersion));
             if (matchingResult.isEmpty()) {

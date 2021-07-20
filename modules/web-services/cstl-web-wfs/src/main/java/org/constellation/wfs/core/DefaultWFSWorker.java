@@ -51,7 +51,7 @@ import javax.xml.stream.XMLStreamException;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.internal.feature.AttributeConvention;
 import org.apache.sis.internal.storage.ConcatenatedFeatureSet;
-import org.apache.sis.internal.storage.query.SimpleQuery;
+import org.apache.sis.internal.storage.query.FeatureQuery;
 import org.apache.sis.internal.xml.XmlUtilities;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
@@ -1043,22 +1043,22 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 }
 
                 final FeatureSet origin = data.getOrigin();
-                final SimpleQuery subquery = new SimpleQuery();
+                final FeatureQuery subquery = new FeatureQuery();
                 if (!sortBys.isEmpty()) {
                     subquery.setSortBy(sortBys.toArray(new SortProperty[sortBys.size()]));
                 }
                 final Filter cleanFilter = processFilter(ft, filter, aliases);
-                subquery.setFilter(cleanFilter);
+                subquery.setSelection(cleanFilter);
 
                 // we ensure that the property names are contained in the feature type and add the mandatory attribute to the list
                 final FilterFactory ff = FilterUtilities.FF;
                 String[] properties = verifyPropertyNames(typeName, ft, requestPropNames);
                 if (properties != null) {
-                    List<SimpleQuery.Column> columns = Arrays.asList(properties)
+                    List<FeatureQuery.NamedExpression> columns = Arrays.asList(properties)
                             .stream()
-                            .map((String t) -> new SimpleQuery.Column(ff.property(t)))
+                            .map((String t) -> new FeatureQuery.NamedExpression(ff.property(t)))
                             .collect(Collectors.toList());
-                    subquery.setColumns(columns.toArray(new SimpleQuery.Column[0]));
+                    subquery.setProjection(columns.toArray(new FeatureQuery.NamedExpression[0]));
                 }
 
                 // look for matching count before pagination
@@ -1080,7 +1080,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 try {
                     collection = origin.subset(subquery);
                     if (queryCRS != null) {
-                        final SimpleQuery reproject = QueryBuilder.reproject(collection.getType(), queryCRS);
+                        final FeatureQuery reproject = QueryBuilder.reproject(collection.getType(), queryCRS);
                         collection = collection.subset(reproject);
                     }
                 } catch (DataStoreException ex) {
@@ -1107,7 +1107,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                             final CoordinateReferenceSystem rcrs = CRS.forCode(defaultCRS);
                             final CoordinateReferenceSystem dataCrs = FeatureExt.getCRS(ft);
                             if (!Utilities.equalsIgnoreMetadata(rcrs, dataCrs)) {
-                                final SimpleQuery reproject = QueryBuilder.reproject(collection.getType(), CRS.forCode(defaultCRS));
+                                final FeatureQuery reproject = QueryBuilder.reproject(collection.getType(), CRS.forCode(defaultCRS));
                                 collection = collection.subset(reproject);
                             }
                         } catch (FactoryException|PropertyNotFoundException|IllegalStateException|DataStoreException ex) {
@@ -1262,8 +1262,8 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 }
                 final Filter cleanFilter = processFilter(ft, filter, aliases);
 
-                final SimpleQuery subquery = new SimpleQuery();
-                subquery.setFilter(cleanFilter);
+                final FeatureQuery subquery = new FeatureQuery();
+                subquery.setSelection(cleanFilter);
 
                 if (!sortBys.isEmpty()) {
                     subquery.setSortBy(sortBys.toArray(new SortProperty[sortBys.size()]));
@@ -1276,11 +1276,11 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 final FilterFactory ff = FilterUtilities.FF;
                 String[] properties = verifyPropertyNames(typeName, ft, requestPropNames);
                 if (properties != null) {
-                    List<SimpleQuery.Column> columns = Arrays.asList(properties)
+                    List<FeatureQuery.NamedExpression> columns = Arrays.asList(properties)
                             .stream()
-                            .map((String t) -> new SimpleQuery.Column(ff.property(t)))
+                            .map((String t) -> new FeatureQuery.NamedExpression(ff.property(t)))
                             .collect(Collectors.toList());
-                    subquery.setColumns(columns.toArray(new SimpleQuery.Column[0]));
+                    subquery.setProjection(columns.toArray(new FeatureQuery.NamedExpression[0]));
                 }
 
                 // we verify that all the properties contained in the filter are known by the feature type.
@@ -1487,7 +1487,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                         final CoordinateReferenceSystem trueCrs = FeatureExt.getCRS(type);
                         if (trueCrs != null && !Utilities.equalsIgnoreMetadata(trueCrs, FeatureExt.getCRS(ft))) {
                             final FeatureSet collection = new InMemoryFeatureSet(type, featureCollection);
-                            final SimpleQuery reproject = QueryBuilder.reproject(collection.getType(), trueCrs);
+                            final FeatureQuery reproject = QueryBuilder.reproject(collection.getType(), trueCrs);
                             featureCollection = collection.subset(reproject).features(false).collect(Collectors.toList());
                         }
 
@@ -1564,8 +1564,8 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     verifyFilterProperty(NameOverride.wrap(ft, layer.getName()), cleanFilter, null);
 
                     // we extract the number of feature deleted
-                    final SimpleQuery query = new SimpleQuery();
-                    query.setFilter(cleanFilter);
+                    final FeatureQuery query = new FeatureQuery();
+                    query.setSelection(cleanFilter);
 
                     totalDeleted = totalDeleted + (int) FeatureStoreUtilities.getCount(fs.subset(query)).intValue();
 
@@ -1679,8 +1679,8 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     verifyFilterProperty(NameOverride.wrap(ft, layer.getName()), cleanFilter, null);
 
                     // we extract the number of feature update
-                    final SimpleQuery query = new SimpleQuery();
-                    query.setFilter(cleanFilter);
+                    final FeatureQuery query = new FeatureQuery();
+                    query.setSelection(cleanFilter);
                     totalUpdated = totalUpdated + (int) FeatureStoreUtilities.getCount(fs.subset(query)).intValue();
 
                     final FeatureSet origin = data.getOrigin();
@@ -1797,8 +1797,8 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     final String layerName  = data.getName().toString();
 
                     // we extract the number of feature to replace
-                    final SimpleQuery query = new SimpleQuery();
-                    query.setFilter(processFilter(ft, filter, null));
+                    final FeatureQuery query = new FeatureQuery();
+                    query.setSelection(processFilter(ft, filter, null));
                     totalReplaced = totalReplaced + (int) FeatureStoreUtilities.getCount(fs.subset(query)).intValue();
 
                     // first remove the feature to replace
@@ -1807,7 +1807,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     // then add the new one
                     final CoordinateReferenceSystem trueCrs = FeatureExt.getCRS(ft);
                     if (trueCrs != null && !Utilities.equalsIgnoreMetadata(trueCrs, FeatureExt.getCRS(featureCollection.getType()))) {
-                        final SimpleQuery reproject = QueryBuilder.reproject(featureCollection.getType(), trueCrs);
+                        final FeatureQuery reproject = QueryBuilder.reproject(featureCollection.getType(), trueCrs);
                         featureCollection = featureCollection.subset(reproject);
                     }
 

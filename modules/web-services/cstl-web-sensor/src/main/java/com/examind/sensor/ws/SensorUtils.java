@@ -62,7 +62,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.logging.Logger;
-import org.apache.sis.internal.storage.query.SimpleQuery;
+import org.apache.sis.internal.storage.query.FeatureQuery;
 import org.geotoolkit.gml.xml.FeatureProperty;
 import org.geotoolkit.observation.xml.AbstractObservation;
 
@@ -343,8 +343,8 @@ public final class SensorUtils {
         final FilterFactory ff = FilterUtilities.FF;
         final Set<String> phenomenons = new HashSet<>();
 
-        SimpleQuery query = new SimpleQuery();
-        query.setFilter(ff.equal(ff.property("procedure"), ff.literal(sensorID)));
+        FeatureQuery query = new FeatureQuery();
+        query.setSelection(ff.equal(ff.property("procedure"), ff.literal(sensorID)));
         Collection<Phenomenon> phenos = provider.getPhenomenon(query, Collections.emptyMap());
         phenos.forEach(p -> {
             org.geotoolkit.swe.xml.Phenomenon phen = (org.geotoolkit.swe.xml.Phenomenon)p;

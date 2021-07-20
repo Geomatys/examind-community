@@ -25,7 +25,7 @@ import java.util.Optional;
 import java.util.logging.Level;
 import org.apache.sis.cql.CQLException;
 import org.apache.sis.filter.DefaultFilterFactory;
-import org.apache.sis.internal.storage.query.SimpleQuery;
+import org.apache.sis.internal.storage.query.FeatureQuery;
 import org.apache.sis.portrayal.MapItem;
 import org.apache.sis.storage.Query;
 import org.apache.sis.storage.Resource;
@@ -98,19 +98,19 @@ public abstract class DefaultGeoData<T extends Resource> extends AbstractData<T>
     protected Optional<Query> resolveQuery(final Map portrayParameters) throws ConstellationStoreException {
         try {
             if (portrayParameters == null) return Optional.empty();
-            final Object rawValues = portrayParameters.get(KEY_EXTRA_PARAMETERS);
-            if (rawValues == null) return Optional.empty();
-            if (!(rawValues instanceof Map)) throw new IllegalArgumentException(KEY_EXTRA_PARAMETERS+" parameter must be a Map");
-            final Map<?, ?> extras = (Map) rawValues;
-            return extras.entrySet().stream()
-                    .map(this::toFilter)
-                    .filter(Objects::nonNull)
-                    .reduce(FilterUtilities.FF::and)
-                    .map(filter-> {
-                        final SimpleQuery query = new SimpleQuery();
-                        query.setFilter((Filter) filter);
-                        return query;
-                    });
+        final Object rawValues = portrayParameters.get(KEY_EXTRA_PARAMETERS);
+        if (rawValues == null) return Optional.empty();
+        if (!(rawValues instanceof Map)) throw new IllegalArgumentException(KEY_EXTRA_PARAMETERS+" parameter must be a Map");
+        final Map<?, ?> extras = (Map) rawValues;
+        return extras.entrySet().stream()
+                .map(this::toFilter)
+                .filter(Objects::nonNull)
+                .reduce(FilterUtilities.FF::and)
+                .map(filter-> {
+                    final FeatureQuery query = new FeatureQuery();
+                    query.setSelection((Filter) filter);
+                    return query;
+                });
         } catch (BackingStoreException ex) {
             throw new ConstellationStoreException(ex);
         }

@@ -21,7 +21,7 @@ package com.examind.sensor.ws;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import org.apache.sis.internal.storage.query.SimpleQuery;
+import org.apache.sis.internal.storage.query.FeatureQuery;
 import org.constellation.api.ServiceDef;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
@@ -124,9 +124,9 @@ public abstract class SensorWorker extends AbstractWorker {
     }
 
     protected Phenomenon getPhenomenon(String phenName, String version) throws ConstellationStoreException {
-        final SimpleQuery subquery = new SimpleQuery();
+        final FeatureQuery subquery = new FeatureQuery();
         final ResourceId filter = ff.resourceId(phenName);
-        subquery.setFilter(filter);
+        subquery.setSelection(filter);
         Collection<Phenomenon> sps = omProvider.getPhenomenon(subquery, Collections.singletonMap("version", version));
         if (sps.isEmpty()) {
             return null;
@@ -139,9 +139,9 @@ public abstract class SensorWorker extends AbstractWorker {
     }
 
     protected SamplingFeature getFeatureOfInterest(String featureName, String version) throws ConstellationStoreException {
-        final SimpleQuery subquery = new SimpleQuery();
+        final FeatureQuery subquery = new FeatureQuery();
         final ResourceId filter = ff.resourceId(featureName);
-        subquery.setFilter(filter);
+        subquery.setSelection(filter);
         List<SamplingFeature> sps = omProvider.getFeatureOfInterest(subquery, Collections.singletonMap("version", version));
         if (sps.isEmpty()) {
             return null;
@@ -151,9 +151,9 @@ public abstract class SensorWorker extends AbstractWorker {
     }
 
     protected Process getProcess(String procName, String version) throws ConstellationStoreException {
-        final SimpleQuery subquery = new SimpleQuery();
+        final FeatureQuery subquery = new FeatureQuery();
         final ResourceId filter = ff.resourceId(procName);
-        subquery.setFilter(filter);
+        subquery.setSelection(filter);
         Collection<Process> sps = omProvider.getProcedures(subquery, Collections.singletonMap("version", version));
         if (sps.isEmpty()) {
             return null;
@@ -167,9 +167,9 @@ public abstract class SensorWorker extends AbstractWorker {
     }
 
     protected List<Process> getProcedureForOffering(String offname, String version) throws ConstellationStoreException {
-        final SimpleQuery subquery = new SimpleQuery();
+        final FeatureQuery subquery = new FeatureQuery();
         final BinaryComparisonOperator filter = ff.equal(ff.property("offering"), ff.literal(offname));
-        subquery.setFilter(filter);
+        subquery.setSelection(filter);
         return omProvider.getProcedures(subquery, Collections.singletonMap("version", version));
     }
 }
