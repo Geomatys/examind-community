@@ -120,7 +120,7 @@ public class SensorServiceBusiness {
                     if (sensor instanceof AbstractSensorML) {
                         final String sensorID = getSmlID((AbstractSensorML)sensor);
                         final String smlType  = SensorMLUtilities.getSensorMLType((AbstractSensorML)sensor);
-                        final String omType   = null; // TODO available soon on geotk SensorMLUtilities.getOMType((AbstractSensorML)sensor);
+                        final String omType   = SensorMLUtilities.getOMType((AbstractSensorML)sensor);
                         sensorBusiness.create(sensorID, smlType, omType, null, sensor, System.currentTimeMillis(), getSensorProviderId(serviceID));
                     } else {
                         throw new ConfigurationException("Only handle SensorML for now");

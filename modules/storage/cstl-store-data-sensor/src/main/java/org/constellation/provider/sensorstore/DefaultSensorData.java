@@ -68,7 +68,7 @@ public class DefaultSensorData extends AbstractData implements SensorData {
 
     @Override
     public String getOMType() {
-        String omType = null; // TODO available soon on geotk SensorMLUtilities.getOMType(metadata);
+        String omType =  SensorMLUtilities.getOMType(metadata);
         if (omType == null) {
             omType = "timeseries";
         }

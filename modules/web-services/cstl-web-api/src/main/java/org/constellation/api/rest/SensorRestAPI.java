@@ -396,7 +396,7 @@ public class SensorRestAPI extends AbstractRestAPI {
                         if (objsml instanceof AbstractSensorML) {
                             final AbstractSensorML sml = (AbstractSensorML) objsml;
                             final String type = SensorMLUtilities.getSensorMLType(sml);
-                            final String omType = null; // TODO available soon on geotk SensorMLUtilities.getOMType(sml);
+                            final String omType = SensorMLUtilities.getOMType(sml);
                             final String sensorID = SensorMLUtilities.getSmlID(sml);
                             final List<String> children = SensorMLUtilities.getChildrenIdentifiers(sml);
 
@@ -426,7 +426,7 @@ public class SensorRestAPI extends AbstractRestAPI {
             if (objsml instanceof AbstractSensorML) {
                 final AbstractSensorML sml = (AbstractSensorML) objsml;
                 final String type          = SensorMLUtilities.getSensorMLType(sml);
-                final String omType        = null; // TODO available soon on geotk SensorMLUtilities.getOMType(sml);
+                final String omType        = SensorMLUtilities.getOMType(sml);
                 final String sensorID      = SensorMLUtilities.getSmlID(sml);
                 final Integer sid          = sensorBusiness.create(sensorID, type, omType, null, sml, System.currentTimeMillis(), providerID);
                 sensorsImported.add(sensorBusiness.getSensor(sid));
