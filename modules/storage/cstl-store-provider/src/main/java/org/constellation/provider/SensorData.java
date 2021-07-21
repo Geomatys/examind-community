@@ -25,4 +25,6 @@ public interface SensorData extends Data {
     Object getSensorMetadata();
 
     String getSensorMLType();
+
+    String getOMType();
 }

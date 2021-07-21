@@ -45,7 +45,7 @@ public interface SensorRepository extends AbstractRepository {
 
     List<Sensor> findByProviderId(int providerId);
 
-    List<Sensor> findByServiceId(Integer id);
+    List<Sensor> findByServiceId(Integer id, String sensorType);
 
     void delete(String identifier);
 
@@ -75,6 +75,6 @@ public interface SensorRepository extends AbstractRepository {
     
     int getLinkedSensorCount(int serviceId);
 
-    List<String> getLinkedSensorIdentifiers(int serviceId, String sensorType);
+    List<String> findIdentifierByServiceId(int serviceId, String sensorType);
 
 }

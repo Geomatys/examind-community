@@ -12,11 +12,11 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-
 import static org.constellation.database.api.jooq.Tables.DATA;
 import static org.constellation.database.api.jooq.Tables.SENSOR;
 import static org.constellation.database.api.jooq.Tables.SENSORED_DATA;
 import static org.constellation.database.api.jooq.Tables.SENSOR_X_SOS;
+import static org.constellation.database.api.jooq.Tables.PROVIDER_X_SOS;
 import org.jooq.Condition;
 import org.jooq.SelectConditionStep;
 import org.springframework.context.annotation.DependsOn;
@@ -91,11 +91,39 @@ public class JooqSensorRepository extends AbstractJooqRespository<SensorRecord, 
     }
 
     @Override
-    public List<Sensor> findByServiceId(Integer id) {
-        return convertIntoSensorDto(dsl.select().from(SENSOR)
-                .join(SENSOR_X_SOS).on(SENSOR_X_SOS.SENSOR_ID.eq(SENSOR.ID))
-                .where(SENSOR_X_SOS.SOS_ID.eq(id))
-                .fetchInto(org.constellation.database.api.jooq.tables.pojos.Sensor.class));
+    public List<Sensor> findByServiceId(Integer serviceId, String sensorType) {
+        List<Sensor> results = new ArrayList<>();
+        Condition typeFilter = null;
+        if (sensorType != null) {
+            typeFilter = SENSOR.TYPE.eq(sensorType);
+        }
+
+        // look for fully linked sensor providers.
+        List<Integer> pids =
+        dsl.select(PROVIDER_X_SOS.PROVIDER_ID)
+           .from(PROVIDER_X_SOS)
+           .where(PROVIDER_X_SOS.SOS_ID.eq(serviceId))
+           .and(PROVIDER_X_SOS.ALL_SENSOR.eq(Boolean.TRUE))
+           .fetchInto(Integer.class);
+
+        if (!pids.isEmpty()) {
+            SelectConditionStep step = dsl.select().from(SENSOR).where(SENSOR.PROVIDER_ID.in(pids));
+            if (typeFilter != null) {
+                step = step.and(SENSOR.TYPE.eq(sensorType));
+            }
+            results.addAll(convertIntoSensorDto(step.fetchInto(org.constellation.database.api.jooq.tables.pojos.Sensor.class)));
+        }
+
+        // look for individually linked sensors.
+        SelectConditionStep step = dsl.select().from(SENSOR_X_SOS, SENSOR)
+                .where(SENSOR_X_SOS.SOS_ID.eq(serviceId)).and(SENSOR_X_SOS.SENSOR_ID.eq(SENSOR.ID));
+
+        if (typeFilter != null) {
+            step = step.and(SENSOR.TYPE.eq(sensorType));
+        }
+        results.addAll(convertIntoSensorDto(step.fetchInto(org.constellation.database.api.jooq.tables.pojos.Sensor.class)));
+
+        return results;
     }
 
     @Override
@@ -203,10 +231,24 @@ public class JooqSensorRepository extends AbstractJooqRespository<SensorRecord, 
 
     @Override
     public boolean isLinkedSensorToService(int sensorID, int servID) {
-        return dsl.selectCount().from(SENSOR_X_SOS)
+         // look for sensor individually linked to the service.
+        boolean linked = dsl.selectCount().from(SENSOR_X_SOS)
                 .where(SENSOR_X_SOS.SENSOR_ID.eq(sensorID))
                 .and(SENSOR_X_SOS.SOS_ID.eq(servID))
                 .fetchOne(0, Integer.class) > 0;
+
+        if (linked) {
+            return true;
+        }
+
+        // look for sensor in a fully linked sensor provider.
+        return dsl.selectCount()
+                     .from(SENSOR, PROVIDER_X_SOS)
+                     .where(SENSOR.ID.eq(sensorID))
+                     .and(SENSOR.PROVIDER_ID.eq(PROVIDER_X_SOS.PROVIDER_ID))
+                     .and(PROVIDER_X_SOS.SOS_ID.eq(servID))
+                     .and(PROVIDER_X_SOS.ALL_SENSOR.eq(true))
+                    .fetchOneInto(Integer.class) > 0;
     }
     
     @Override
@@ -218,24 +260,62 @@ public class JooqSensorRepository extends AbstractJooqRespository<SensorRecord, 
 
     @Override
     public int getLinkedSensorCount(int serviceId) {
-        return dsl.selectCount().from(SENSOR_X_SOS)
-                .where(SENSOR_X_SOS.SOS_ID.eq(serviceId))
-                .fetchOne(0, Integer.class);
+        int count = 0;
+        // look for fully linked sensor providers.
+        List<Integer> pids =
+        dsl.select(PROVIDER_X_SOS.PROVIDER_ID)
+           .from(PROVIDER_X_SOS)
+           .where(PROVIDER_X_SOS.SOS_ID.eq(serviceId))
+           .and(PROVIDER_X_SOS.ALL_SENSOR.eq(Boolean.TRUE))
+           .fetchInto(Integer.class);
+
+        if (!pids.isEmpty()) {
+            count = count + dsl.selectCount().from(SENSOR).where(SENSOR.PROVIDER_ID.in(pids)).fetchOneInto(Integer.class);
+        }
+
+        // look for individually linked sensors.
+        count = count + dsl.selectCount()
+                           .from(SENSOR_X_SOS, SENSOR)
+                           .where(SENSOR_X_SOS.SOS_ID.eq(serviceId))
+                           .and(SENSOR_X_SOS.SENSOR_ID.eq(SENSOR.ID))
+                           .fetchOneInto(Integer.class);
+        return count;
     }
 
     @Override
-    public List<String> getLinkedSensorIdentifiers(int serviceId, String sensorType) {
+    public List<String> findIdentifierByServiceId(int serviceId, String sensorType) {
+        List<String> results = new ArrayList<>();
         Condition typeFilter = null;
         if (sensorType != null) {
             typeFilter = SENSOR.TYPE.eq(sensorType);
         }
+
+        // look for fully linked sensor providers.
+        List<Integer> pids =
+        dsl.select(PROVIDER_X_SOS.PROVIDER_ID)
+           .from(PROVIDER_X_SOS)
+           .where(PROVIDER_X_SOS.SOS_ID.eq(serviceId))
+           .and(PROVIDER_X_SOS.ALL_SENSOR.eq(Boolean.TRUE))
+           .fetchInto(Integer.class);
+
+        if (!pids.isEmpty()) {
+            SelectConditionStep step = dsl.select(SENSOR.IDENTIFIER).from(SENSOR).where(SENSOR.PROVIDER_ID.in(pids));
+            if (typeFilter != null) {
+                step = step.and(SENSOR.TYPE.eq(sensorType));
+            }
+            results.addAll(step.fetchInto(String.class));
+        }
+
+        // look for individually linked sensors.
         SelectConditionStep step = dsl.select(SENSOR.IDENTIFIER).from(SENSOR_X_SOS, SENSOR)
                 .where(SENSOR_X_SOS.SOS_ID.eq(serviceId)).and(SENSOR_X_SOS.SENSOR_ID.eq(SENSOR.ID));
 
         if (typeFilter != null) {
             step = step.and(SENSOR.TYPE.eq(sensorType));
         }
-        return step.fetchInto(String.class);
+        results.addAll(step.fetchInto(String.class));
+
+        return results;
     }
 
     private List<Sensor> convertIntoSensorDto(final List<org.constellation.database.api.jooq.tables.pojos.Sensor> sensors) {

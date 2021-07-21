@@ -316,15 +316,7 @@ public class SensorBusiness implements ISensorBusiness {
 
     @Override
     public List<Sensor> getByServiceId(Integer serviceID) {
-        List<Sensor> results = new ArrayList<>();
-        List<Integer> pids = serviceRepository.getLinkedSensorProviders(serviceID, "SENSOR");
-        for (Integer pid : pids) {
-            if (serviceRepository.isAllLinked(serviceID, pid)) {
-                results.addAll(sensorRepository.findByProviderId(pid));
-            }
-        }
-        results.addAll(sensorRepository.findByServiceId(serviceID));
-        return results;
+        return sensorRepository.findByServiceId(serviceID, null);
     }
 
     @Override
@@ -470,7 +462,7 @@ public class SensorBusiness implements ISensorBusiness {
      */
     @Override
     public List<String> getLinkedSensorIdentifiers(Integer serviceID, String sensorType) throws ConfigurationException {
-        return sensorRepository.getLinkedSensorIdentifiers(serviceID, sensorType);
+        return sensorRepository.findIdentifierByServiceId(serviceID, sensorType);
     }
 
     /**

@@ -19,8 +19,6 @@ package org.constellation.provider.sensorstore;
 import org.opengis.geometry.Envelope;
 import org.opengis.util.GenericName;
 
-import org.apache.sis.storage.DataStore;
-
 import org.geotoolkit.sensor.AbstractSensorStore;
 import org.geotoolkit.sml.xml.AbstractSensorML;
 import org.geotoolkit.sml.xml.SensorMLUtilities;
@@ -66,6 +64,15 @@ public class DefaultSensorData extends AbstractData implements SensorData {
     @Override
     public String getResourceCRSName() throws ConstellationStoreException {
         return null; // TODO extract from SML metadata
+    }
+
+    @Override
+    public String getOMType() {
+        String omType = null; // TODO available soon on geotk SensorMLUtilities.getOMType(metadata);
+        if (omType == null) {
+            omType = "timeseries";
+        }
+        return omType;
     }
 
 }
