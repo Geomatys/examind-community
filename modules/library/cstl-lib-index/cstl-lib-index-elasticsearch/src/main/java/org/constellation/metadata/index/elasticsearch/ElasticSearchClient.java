@@ -234,7 +234,7 @@ public class ElasticSearchClient {
     }
 
    public SearchHit[] search(final String index, final String queryJson, final QueryBuilder query, 
-           final QueryBuilder filter, final int start, final int limit, final String type, final Sort sort,
+           final QueryBuilder filter, final int start, final int limit, final Sort sort,
            final boolean fetchSource, final List<String> fields) throws IOException {
 
         SearchSourceBuilder builder = new SearchSourceBuilder();
@@ -250,9 +250,6 @@ public class ElasticSearchClient {
         }
         if (start != -1) {
             builder = builder.from(start);
-        }
-        if (type != null) {
-           // builder = builder.setTypes(type); type will be removed from ES
         }
         if (sort != null) {
             builder = builder.sort(sort.getField(), SortOrder.valueOf(sort.getOrder()));
@@ -298,12 +295,12 @@ public class ElasticSearchClient {
         }
     }
 
-    public SearchHit[] search(final String index, final String queryJson, final QueryBuilder query, final QueryBuilder filter, final int start, final int limit, final String type, final Sort sort) throws IOException {
-        return search(index, queryJson, query, filter, start, limit, type, sort, true, null);
+    public SearchHit[] search(final String index, final String queryJson, final QueryBuilder query, final QueryBuilder filter, final int start, final int limit, final Sort sort) throws IOException {
+        return search(index, queryJson, query, filter, start, limit, sort, true, null);
     }
 
     public SearchHit[] StringSearch(final String index, final String term, final String value, final int limit) throws IOException {
-        return search(index, null, QueryBuilders.termQuery(term, value), null, -1, limit, null, null);
+        return search(index, null, QueryBuilders.termQuery(term, value), null, -1, limit, null);
     }
 
     public SearchHit[] search(final String index, final String query, final XContentBuilder filter, final Sort sort, final int limit) throws IOException {
@@ -315,11 +312,11 @@ public class ElasticSearchClient {
         if (filter != null) {
             queryBuilder = QueryBuilders.wrapperQuery(Strings.toString(filter));
         }
-        return search(index, null, queryBuilder, filterBuilder, -1, limit, null, sort);
+        return search(index, null, queryBuilder, filterBuilder, -1, limit, sort);
     }
 
     public SearchHit[] searchAll(final String index, final int limit) throws IOException {
-        return search(index, null, QueryBuilders.matchAllQuery(), null, -1, limit, null, null);
+        return search(index, null, QueryBuilders.matchAllQuery(), null, -1, limit,  null);
     }
 
     public long count(final String index, final String queryJson, QueryBuilder query, final QueryBuilder filter) throws IOException {
