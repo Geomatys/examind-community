@@ -832,7 +832,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     public Object getResults(final Map<String,String> hints) throws DataStoreException {
         Integer decimationSize         = getIntegerHint(hints, "decimSize", null);
         boolean includeTimeForProfile  = getBooleanHint(hints, "includeTimeForProfile", false);
-
+        final boolean profile          = "profile".equals(currentOMType);
+        final boolean profileWithTime  = profile && includeTimeForProfile;
         if (decimationSize != null && !"count".equals(responseFormat)) {
             if (timescaleDB) {
                 return getDecimatedResultsTimeScale(decimationSize, includeTimeForProfile);
@@ -892,6 +893,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 }
                 while (rs.next()) {
                     values.newBlock();
+                    if (profileWithTime) {
+                        Date t = dateFromTS(rs.getTimestamp("time_begin"));
+                        values.appendTime(t);
+                    }
                     for (int i = 0; i < fields.size(); i++) {
                         Field field = fields.get(i);
                         String value;
