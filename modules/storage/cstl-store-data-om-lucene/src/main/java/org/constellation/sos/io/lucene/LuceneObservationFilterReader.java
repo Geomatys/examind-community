@@ -219,7 +219,12 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
     }
 
     @Override
-    public Map<String, Map<Date, Geometry>> getSensorLocations(Map<String, String> hints) throws DataStoreException {
+    public Map<String, Geometry> getSensorLocations(Map<String, String> hints) throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    @Override
+    public Map<String, Map<Date, Geometry>> getSensorHistoricalLocations(Map<String, String> hints) throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

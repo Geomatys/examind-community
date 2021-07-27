@@ -162,6 +162,12 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    @Override
+    public void initFilterGetHistoricalLocations() throws DataStoreException {
+        this.objectType = OMEntity.HISTORICAL_LOCATION;
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
     /**
      * {@inheritDoc}
      */

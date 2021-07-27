@@ -268,6 +268,18 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     public Map<String, Map<Date, Geometry>> getHistoricalLocation(Query q, final Map<String,String> hints) throws ConstellationStoreException {
         try {
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
+            localOmFilter.initFilterGetHistoricalLocations();
+            handleQuery(q, localOmFilter, GET_LOC, hints);
+            return localOmFilter.getSensorHistoricalLocations(hints);
+        } catch (DataStoreException ex) {
+            throw new ConstellationStoreException(ex);
+        }
+    }
+
+    @Override
+    public Map<String, Geometry> getLocation(Query q, final Map<String,String> hints) throws ConstellationStoreException {
+        try {
+            final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
             localOmFilter.initFilterGetLocations();
             handleQuery(q, localOmFilter, GET_LOC, hints);
             return localOmFilter.getSensorLocations(hints);
@@ -280,7 +292,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     public Map<String, List<Date>> getHistoricalTimes(Query q, final Map<String,String> hints) throws ConstellationStoreException {
         try {
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
-            localOmFilter.initFilterGetLocations();
+            localOmFilter.initFilterGetHistoricalLocations();
             handleQuery(q, localOmFilter, GET_LOC, hints);
             return localOmFilter.getSensorTimes(hints);
         } catch (DataStoreException ex) {
@@ -922,6 +934,10 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
                     break;
                 case LOCATION:
                     localOmFilter.initFilterGetLocations();
+                    mode = GET_LOC;
+                    break;
+                case HISTORICAL_LOCATION:
+                    localOmFilter.initFilterGetHistoricalLocations();
                     mode = GET_LOC;
                     break;
                 case OBSERVATION:

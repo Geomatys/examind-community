@@ -52,10 +52,11 @@ import org.apache.sis.geometry.GeneralEnvelope;
 
 import org.geotoolkit.observation.Field;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
-import static org.constellation.api.CommonConstants.LOCATION;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import org.geotoolkit.observation.FieldPhenomenon;
 import org.geotoolkit.observation.OMEntity;
+import static org.geotoolkit.observation.OMEntity.HISTORICAL_LOCATION;
+import static org.geotoolkit.observation.OMEntity.LOCATION;
 import static org.geotoolkit.observation.Utils.*;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
@@ -229,6 +230,21 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     public void initFilterGetLocations() throws DataStoreException {
         String geomColum;
         if (isPostgres) {
+            geomColum = "st_asBinary(\"shape\") as \"location\"";
+        } else {
+            geomColum = "\"shape\"";
+        }
+        sqlRequest = new FilterSQLRequest("SELECT pr.\"id\", ")
+                .append(geomColum).append(", pr.\"crs\" FROM \"")
+                .append(schemaPrefix).append("om\".\"procedures\" pr WHERE ");
+        firstFilter = true;
+        this.objectType = OMEntity.LOCATION;
+    }
+
+    @Override
+    public void initFilterGetHistoricalLocations() throws DataStoreException {
+        String geomColum;
+        if (isPostgres) {
             geomColum = "st_asBinary(\"location\") as \"location\"";
         } else {
             geomColum = "\"location\"";
@@ -237,7 +253,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 .append(geomColum).append(", hl.\"crs\" FROM \"")
                 .append(schemaPrefix).append("om\".\"historical_locations\" hl WHERE ");
         firstFilter = true;
-        this.objectType = OMEntity.LOCATION;
+        this.objectType = OMEntity.HISTORICAL_LOCATION;
     }
 
     @Override
@@ -1024,7 +1040,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      */
     @Override
     public void setBoundingBox(final Envelope e) throws DataStoreException {
-        if (LOCATION.equals(objectType)) {
+        if (LOCATION.equals(objectType) || HISTORICAL_LOCATION.equals(objectType)) {
             envelopeFilter = new GeneralEnvelope(e);
         } else {
             throw new DataStoreException("SetBoundingBox is not supported by this ObservationFilter implementation.");

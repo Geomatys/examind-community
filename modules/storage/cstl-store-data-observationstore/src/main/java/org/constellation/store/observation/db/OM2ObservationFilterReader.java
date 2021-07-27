@@ -116,7 +116,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         // we get the property name (not used for now)
         // String propertyName = tFilter.getExpression1()
         Object time = tFilter.getExpressions().get(1);
-        boolean getLoc = OMEntity.LOCATION.equals(objectType);
+        boolean getLoc = OMEntity.HISTORICAL_LOCATION.equals(objectType);
         TemporalOperatorName type = tFilter.getOperatorType();
         if (type == TemporalOperatorName.EQUALS) {
 
@@ -1295,7 +1295,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
      */
     private Map<Object, long[]> getMainFieldStep(FilterSQLRequest request, final Field mainField, final Connection c, final int width) throws SQLException {
         boolean profile = "profile".equals(currentOMType);
-        boolean getLoc = OMEntity.LOCATION.equals(objectType);
+        boolean getLoc = OMEntity.HISTORICAL_LOCATION.equals(objectType);
         if (getLoc) {
             request.replaceFirst("SELECT hl.\"procedure\", hl.\"time\", st_asBinary(\"location\") as \"location\", hl.\"crs\" ",
                                  "SELECT MIN(\"" + mainField.fieldName + "\"), MAX(\"" + mainField.fieldName + "\"), hl.\"procedure\" ");
@@ -1514,7 +1514,75 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     }
 
     @Override
-    public Map<String, Map<Date, Geometry>> getSensorLocations(final Map<String,String> hints) throws DataStoreException {
+    public Map<String, Geometry> getSensorLocations(Map<String, String> hints) throws DataStoreException {
+        final String version = getVersionFromHints(hints);
+        final String gmlVersion = getGMLVersion(version);
+        if (obsJoin) {
+            final String obsJoin = ", \"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"procedure\" = pr.\"id\" ";
+            if (firstFilter) {
+                sqlRequest.replaceFirst("WHERE", obsJoin);
+            } else {
+                sqlRequest.replaceFirst("WHERE", obsJoin + "AND ");
+            }
+        } else {
+            if (firstFilter) {
+                sqlRequest.replaceFirst("WHERE", "");
+            }
+        }
+        sqlRequest.append(" ORDER BY \"id\"");
+        sqlRequest = appendPaginationToRequest(sqlRequest, hints);
+
+         // will be removed when postgis filter will be set in request
+        Polygon spaFilter = null;
+        if (envelopeFilter != null) {
+            spaFilter = JTS.toGeometry(envelopeFilter);
+        }
+        Map<String, Geometry> locations = new LinkedHashMap<>();
+        try(final Connection c            = source.getConnection();
+            final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
+            final ResultSet rs            = pstmt.executeQuery()) {
+            while (rs.next()) {
+                try {
+                    final String procedure = rs.getString("id");
+                    final byte[] b = rs.getBytes(2);
+                    final int srid = rs.getInt(3);
+                    final CoordinateReferenceSystem crs;
+                    if (srid != 0) {
+                        crs = CRS.forCode("urn:ogc:def:crs:EPSG::" + srid);
+                    } else {
+                        crs = defaultCRS;
+                    }
+                    final org.locationtech.jts.geom.Geometry geom;
+                    if (b != null) {
+                        WKBReader reader = new WKBReader();
+                        geom             = reader.read(b);
+                    } else {
+                        continue;
+                    }
+                    // exclude from spatial filter (will be removed when postgis filter will be set in request)
+                    if (spaFilter != null && !spaFilter.intersects(geom)) {
+                        continue;
+                    }
+                    final AbstractGeometry gmlGeom = JTStoGeometry.toGML(gmlVersion, geom, crs);
+                    if (gmlGeom instanceof Geometry) {
+                        locations.put(procedure, (Geometry) gmlGeom);
+                    } else {
+                        throw new DataStoreException("GML geometry cannot be casted as an Opengis one");
+                    }
+                    
+                } catch (FactoryException | ParseException ex) {
+                    throw new DataStoreException(ex);
+                }
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
+            throw new DataStoreException("the service has throw a SQL Exception.", ex);
+        }
+        return locations;
+    }
+
+    @Override
+    public Map<String, Map<Date, Geometry>> getSensorHistoricalLocations(final Map<String,String> hints) throws DataStoreException {
         Integer decimSize = getIntegerHint(hints, "decimSize", null);
         if (decimSize != null) {
             return getDecimatedSensorLocationsV2(hints, decimSize);

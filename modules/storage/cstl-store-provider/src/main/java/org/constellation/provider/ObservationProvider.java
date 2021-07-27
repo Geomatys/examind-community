@@ -114,6 +114,8 @@ public interface ObservationProvider extends DataProvider {
 
     Map<String, Map<Date, Geometry>> getHistoricalLocation(Query q, final Map<String,String> hints) throws ConstellationStoreException;
 
+    Map<String, Geometry> getLocation(Query q, final Map<String,String> hints) throws ConstellationStoreException;
+
     Map<String, List<Date>> getHistoricalTimes(Query q, final Map<String,String> hints) throws ConstellationStoreException;
 
     ExtractionResult extractResults() throws ConstellationStoreException;

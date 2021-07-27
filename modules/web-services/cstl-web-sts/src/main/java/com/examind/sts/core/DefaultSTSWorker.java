@@ -1470,15 +1470,15 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 if (req.getCount()) {
                     count = new BigDecimal(omProvider.getCount(subquery, new HashMap(Collections.singletonMap(OBJECT_TYPE, PROCEDURE))));
                 }
-                List<Process> procs = omProvider.getProcedures(subquery, new HashMap<>());
+                Map<String, org.opengis.geometry.Geometry> locs = omProvider.getLocation(subquery, new HashMap<>());
                 List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), null);
-                for (Process proc : procs) {
-                    String sensorId = ((org.geotoolkit.observation.xml.Process)proc).getHref();
+                for (Entry<String, org.opengis.geometry.Geometry> entry : locs.entrySet()) {
+                    String sensorId = entry.getKey();
                     org.constellation.dto.Sensor s = null;
                     if (sensorIds.contains(sensorId)) {
                         s = sensorBusiness.getSensor(sensorId);
                     }
-                    Location location = buildLocation(exp, sensorId, s, null, null, new NavigationPath());
+                    Location location = buildLocation(exp, sensorId, s, null, (AbstractGeometry) entry.getValue(), new NavigationPath());
                     locations.add(location);
                 }
             }

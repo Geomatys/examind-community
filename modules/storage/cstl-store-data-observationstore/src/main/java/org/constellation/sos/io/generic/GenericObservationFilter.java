@@ -221,6 +221,12 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     }
 
     @Override
+    public void initFilterGetHistoricalLocations() throws DataStoreException {
+        this.objectType = OMEntity.HISTORICAL_LOCATION;
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
     public void initFilterGetProcedureTimes() throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
@@ -633,7 +639,12 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     }
 
     @Override
-    public Map<String, Map<Date, Geometry>> getSensorLocations(Map<String, String> hints) throws DataStoreException {
+    public Map<String, Geometry> getSensorLocations(Map<String, String> hints) throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Map<String, Map<Date, Geometry>> getSensorHistoricalLocations(Map<String, String> hints) throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

@@ -129,6 +129,7 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
             case OBSERVED_PROPERTY:   return getPhenomenonNames();
             case PROCEDURE:           return getProcedureNames(sensorType);
             case LOCATION:            throw new DataStoreException("not implemented yet.");
+            case HISTORICAL_LOCATION: throw new DataStoreException("not implemented yet.");
             case OFFERING:            return getOfferingNames(version, sensorType);
             case OBSERVATION:         throw new DataStoreException("not implemented yet.");
             case RESULT:              throw new DataStoreException("not implemented yet.");
@@ -198,6 +199,7 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
             case OBSERVED_PROPERTY:   return getPhenomenonNames().contains(identifier);
             case PROCEDURE:           return existProcedure(identifier);
             case LOCATION:            throw new DataStoreException("not implemented yet.");
+            case HISTORICAL_LOCATION: throw new DataStoreException("not implemented yet.");
             case OFFERING:            return getOfferingNames(version, sensorType).contains(identifier);
             case OBSERVATION:         throw new DataStoreException("not implemented yet.");
             case RESULT:              throw new DataStoreException("not implemented yet.");
