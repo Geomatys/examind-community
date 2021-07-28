@@ -38,6 +38,7 @@ import org.constellation.sos.io.filesystem.FileObservationReader;
 import org.constellation.sos.io.filesystem.FileObservationWriter;
 import org.geotoolkit.data.om.xml.XmlObservationUtils;
 import org.geotoolkit.observation.AbstractObservationStore;
+import org.geotoolkit.observation.OMEntity;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationWriter;
@@ -106,9 +107,13 @@ public class SOSLuceneObservationStore extends AbstractObservationStore {
         result.spatialBound.initBoundary();
 
         final ObservationFilterReader currentFilter = getFilter();
+        final Map<String, Object> hints = new HashMap<>();
+        hints.put("responseMode", ResponseModeType.INLINE);
+        hints.put("resultModel", OBSERVATION_QNAME);
+        currentFilter.init(OMEntity.OBSERVATION, hints);
         currentFilter.setProcedure(sensorIDs);
 
-        final Set<String> observationIDS = filter.filterObservation(new HashMap<>());
+        final Set<String> observationIDS = filter.getIdentifiers(new HashMap<>());
         for (String oid : observationIDS) {
             final AbstractObservation o = (AbstractObservation) reader.getObservation(oid, OBSERVATION_QNAME, ResponseModeType.INLINE, "2.0.0");
             final Process proc          =  o.getProcedure();

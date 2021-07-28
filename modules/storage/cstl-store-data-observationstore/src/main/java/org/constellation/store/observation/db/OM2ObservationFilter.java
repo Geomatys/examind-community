@@ -95,6 +95,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
     protected OMEntity objectType = null;
 
+    protected ResponseModeType responseMode;
     protected String currentProcedure = null;
     protected String currentOMType = null;
 
@@ -136,10 +137,27 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      * {@inheritDoc}
      */
     @Override
-    public void initFilterObservation(final ResponseModeType requestMode, final QName resultModel, final Map<String,String> hints) {
+    public void init(OMEntity objectType, Map<String, Object> hints) throws DataStoreException {
+        this.objectType = objectType;
+        switch (objectType) {
+            case FEATURE_OF_INTEREST: initFilterGetFeatureOfInterest(); break;
+            case OBSERVED_PROPERTY:   initFilterGetPhenomenon(); break;
+            case PROCEDURE:           initFilterGetSensor(); break;
+            case OFFERING:            initFilterOffering(); break;
+            case LOCATION:            initFilterGetLocations(); break;
+            case HISTORICAL_LOCATION: initFilterGetHistoricalLocations(); break;
+            case OBSERVATION:         initFilterObservation(hints); break;
+            case RESULT:              initFilterGetResult(hints); break;
+            default: throw new DataStoreException("unexpected object type:" + objectType);
+        }
+    }
+
+    private void initFilterObservation(final Map<String, Object> hints) {
+        this.responseMode    = (ResponseModeType) hints.get("responseMode");
+        this.resultModel     = (QName) hints.get("resultModel");
         includeFoiInTemplate = getBooleanHint(hints, "includeFoiInTemplate", true);
         singleObservedPropertyInTemplate = getBooleanHint(hints, "singleObservedPropertyInTemplate", false);
-        if (ResponseModeType.RESULT_TEMPLATE.equals(requestMode)) {
+        if (ResponseModeType.RESULT_TEMPLATE.equals(responseMode)) {
             sqlRequest = new FilterSQLRequest("SELECT distinct  \"procedure\"");
             if (!singleObservedPropertyInTemplate) {
                 sqlRequest.append(", \"observed_property\"");
@@ -155,37 +173,27 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             sqlRequest.append(schemaPrefix).append("om\".\"observations\" o WHERE \"identifier\" NOT LIKE ").appendValue(observationTemplateIdBase + '%').append(" ");
             firstFilter = false;
         }
-        this.objectType = OMEntity.OBSERVATION;
-        this.resultModel = resultModel;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void initFilterGetResult(final String procedure, final QName resultModel, final Map<String,String> hints) {
+    private void initFilterGetResult(final Map<String, Object> hints) {
         firstFilter = false;
-        currentProcedure = procedure;
+        this.responseMode = (ResponseModeType) hints.get("responseMode");
+        currentProcedure  = (String) hints.get("procedure");
         try(final Connection c = source.getConnection()) {
-            final int pid = getPIDFromProcedure(procedure, c);
-            currentOMType = getProcedureOMType(procedure, c);
+            final int pid = getPIDFromProcedure(currentProcedure, c);
+            currentOMType = getProcedureOMType(currentProcedure, c);
             sqlRequest = new FilterSQLRequest("SELECT m.* "
                                             + "FROM \"" + schemaPrefix + "om\".\"observations\" o, \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m "
                                             + "WHERE o.\"id\" = m.\"id_observation\"");
 
             //we add to the request the property of the template
-            sqlRequest.append(" AND \"procedure\"=").appendValue(procedure).append(" ");
+            sqlRequest.append(" AND \"procedure\"=").appendValue(currentProcedure).append(" ");
         } catch (SQLException ex) {
             LOGGER.log(Level.WARNING, "Error while initailizing getResultFilter", ex);
         }
-        this.objectType = OMEntity.RESULT;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void initFilterGetFeatureOfInterest() {
+    private void initFilterGetFeatureOfInterest() {
         firstFilter = true;
         String geomColum;
         if (isPostgres) {
@@ -196,38 +204,24 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         sqlRequest = new FilterSQLRequest("SELECT distinct sf.\"id\", sf.\"name\", sf.\"description\", sf.\"sampledfeature\", sf.\"crs\", ").append(geomColum).append(" FROM \"")
                     .append(schemaPrefix).append("om\".\"sampling_features\" sf WHERE ");
         obsJoin = false;
-        this.objectType = OMEntity.FEATURE_OF_INTEREST;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void initFilterGetPhenomenon() {
+    private void initFilterGetPhenomenon() {
         sqlRequest = new FilterSQLRequest("SELECT op.\"id\" FROM \"" + schemaPrefix + "om\".\"observed_properties\" op WHERE ");
         firstFilter = true;
-        this.objectType = OMEntity.OBSERVED_PROPERTY;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void initFilterGetSensor() {
+    private void initFilterGetSensor() {
         sqlRequest = new FilterSQLRequest("SELECT distinct(pr.\"id\") FROM \"" + schemaPrefix + "om\".\"procedures\" pr WHERE ");
         firstFilter = true;
-        this.objectType = OMEntity.PROCEDURE;
     }
 
-    @Override
-    public void initFilterOffering() throws DataStoreException {
+    private void initFilterOffering() throws DataStoreException {
         sqlRequest = new FilterSQLRequest("SELECT off.\"identifier\" FROM \"" + schemaPrefix + "om\".\"offerings\" off WHERE ");
         firstFilter = true;
-        this.objectType = OMEntity.OFFERING;
     }
 
-    @Override
-    public void initFilterGetLocations() throws DataStoreException {
+    private void initFilterGetLocations() throws DataStoreException {
         String geomColum;
         if (isPostgres) {
             geomColum = "st_asBinary(\"shape\") as \"location\"";
@@ -238,11 +232,9 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 .append(geomColum).append(", pr.\"crs\" FROM \"")
                 .append(schemaPrefix).append("om\".\"procedures\" pr WHERE ");
         firstFilter = true;
-        this.objectType = OMEntity.LOCATION;
     }
 
-    @Override
-    public void initFilterGetHistoricalLocations() throws DataStoreException {
+    private void initFilterGetHistoricalLocations() throws DataStoreException {
         String geomColum;
         if (isPostgres) {
             geomColum = "st_asBinary(\"location\") as \"location\"";
@@ -253,11 +245,9 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 .append(geomColum).append(", hl.\"crs\" FROM \"")
                 .append(schemaPrefix).append("om\".\"historical_locations\" hl WHERE ");
         firstFilter = true;
-        this.objectType = OMEntity.HISTORICAL_LOCATION;
     }
 
-    @Override
-    public void initFilterGetProcedureTimes() throws DataStoreException {
+    private void initFilterGetProcedureTimes() throws DataStoreException {
         sqlRequest = new FilterSQLRequest("SELECT hl.\"procedure\", hl.\"time\" FROM \"" + schemaPrefix + "om\".\"historical_locations\" hl WHERE ");
         firstFilter = true;
     }
@@ -697,7 +687,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      * {@inheritDoc}
      */
     @Override
-    public List<ObservationResult> filterResult(Map<String, String> hints) throws DataStoreException {
+    public List<ObservationResult> filterResult(Map<String, Object> hints) throws DataStoreException {
         LOGGER.log(Level.FINER, "request:{0}", sqlRequest.toString());
         sqlRequest = appendPaginationToRequest(sqlRequest, hints);
         try (final Connection c                   = source.getConnection();
@@ -717,11 +707,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Set<String> filterObservation(Map<String, String> hints) throws DataStoreException {
+    private Set<String> filterObservation(Map<String, Object> hints) throws DataStoreException {
         if (firstFilter) {
             sqlRequest = sqlRequest.replaceFirst("WHERE", "");
         }
@@ -820,7 +806,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         }
     }
 
-    private String getFeatureOfInterestRequest(Map<String, String> hints) {
+    private String getFeatureOfInterestRequest(Map<String, Object> hints) {
         sqlRequest = appendPaginationToRequest(sqlRequest, hints);
         String request = sqlRequest.toString();
         if (obsJoin) {
@@ -835,28 +821,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         return request;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Set<String> filterFeatureOfInterest(Map<String, String> hints) throws DataStoreException {
-        final String request = getFeatureOfInterestRequest(hints);
-        LOGGER.log(Level.FINER, "request:{0}", request);
-        try(final Connection c               = source.getConnection();
-            final Statement currentStatement = c.createStatement();
-            final ResultSet result           = currentStatement.executeQuery(request)) {
-            final Set<String> results        = new LinkedHashSet<>();
-            while (result.next()) {
-                results.add(result.getString("id"));
-            }
-            return results;
-        } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
-            throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage());
-        }
-    }
-
-    private String getPhenomenonRequest(Map<String, String> hints) {
+    private String getPhenomenonRequest(Map<String, Object> hints) {
         sqlRequest = appendPaginationToRequest(sqlRequest, hints);
         String request = sqlRequest.toString();
         if (obsJoin) {
@@ -874,28 +839,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         return request;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Set<String> filterPhenomenon(Map<String, String> hints) throws DataStoreException {
-        String request = getPhenomenonRequest(hints);
-        LOGGER.log(Level.FINER, "request:{0}", request);
-        try(final Connection c               = source.getConnection();
-            final Statement currentStatement = c.createStatement();
-            final ResultSet result           = currentStatement.executeQuery(request)) {
-            final Set<String> results        = new LinkedHashSet<>();
-            while (result.next()) {
-                results.add(result.getString("id"));
-            }
-            return results;
-        } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
-            throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage());
-        }
-    }
-
-    private String getProcedureRequest(Map<String, String> hints) {
+    private String getProcedureRequest(Map<String, Object> hints) {
         sqlRequest = appendPaginationToRequest(sqlRequest, hints);
         String request = sqlRequest.toString();
         if (obsJoin) {
@@ -913,28 +857,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         return request;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Set<String> filterProcedure(Map<String, String> hints) throws DataStoreException {
-        String request = getProcedureRequest(hints);
-        LOGGER.log(Level.FINER, "request:{0}", request);
-        try(final Connection c               = source.getConnection();
-            final Statement currentStatement = c.createStatement();
-            final ResultSet result           = currentStatement.executeQuery(request)) {
-            final Set<String> results        = new LinkedHashSet<>();
-            while (result.next()) {
-                results.add(result.getString("id"));
-            }
-            return results;
-        } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
-            throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage());
-        }
-    }
-
-    private String getOfferingRequest(Map<String, String> hints) {
+    private String getOfferingRequest(Map<String, Object> hints) {
         sqlRequest = appendPaginationToRequest(sqlRequest, hints);
         String request = sqlRequest.toString();
         if (obsJoin && procJoin) {
@@ -967,15 +890,31 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     }
 
     @Override
-    public Set<String> filterOffering(Map<String, String> hints) throws DataStoreException {
-        String request = getOfferingRequest(hints);
+    public Set<String> getIdentifiers(Map<String, Object> hints) throws DataStoreException {
+        if (objectType == null) {
+            throw new DataStoreException("initialisation of the filter missing.");
+        }
+        String request;
+        switch (objectType) {
+            case FEATURE_OF_INTEREST: request = getFeatureOfInterestRequest(hints); break;
+            case OBSERVED_PROPERTY:   request = getPhenomenonRequest(hints); break;
+            case PROCEDURE:           request = getProcedureRequest(hints); break;
+            case OFFERING:            request = getOfferingRequest(hints); break;
+            case OBSERVATION:         return filterObservation(hints);
+            case LOCATION:
+            case HISTORICAL_LOCATION: 
+            case RESULT:              throw new DataStoreException("not implemented yet.");
+            default: throw new DataStoreException("unexpected object type:" + objectType);
+        }
+
+        final Set<String> results = new LinkedHashSet<>();
+
         LOGGER.log(Level.FINER, "request:{0}", request);
         try(final Connection c               = source.getConnection();
             final Statement currentStatement = c.createStatement();
             final ResultSet result           = currentStatement.executeQuery(request)) {
-            final Set<String> results        = new LinkedHashSet<>();
             while (result.next()) {
-                results.add(result.getString("identifier"));
+                results.add(result.getString(1));
             }
             return results;
         } catch (SQLException ex) {
@@ -984,21 +923,23 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         }
     }
 
+
     @Override
     public long getCount() throws DataStoreException {
         if (objectType == null) {
             throw new DataStoreException("initialisation of the filter missing.");
         }
-        Map<String, String> hints = Collections.EMPTY_MAP;
+        Map<String, Object> hints = Collections.EMPTY_MAP;
         String request;
         switch (objectType) {
             case FEATURE_OF_INTEREST: request = getFeatureOfInterestRequest(hints); break;
             case OBSERVED_PROPERTY:   request = getPhenomenonRequest(hints); break;
             case PROCEDURE:           request = getProcedureRequest(hints); break;
-            case LOCATION:            throw new DataStoreException("not implemented yet.");
             case OFFERING:            request = getOfferingRequest(hints); break;
             case OBSERVATION:         return filterObservation(hints).size();
             case RESULT:              return filterResult(hints).size();
+            case HISTORICAL_LOCATION:
+            case LOCATION:            throw new DataStoreException("not implemented yet.");
             default: throw new DataStoreException("unexpected object type:" + objectType);
         }
 
@@ -1089,7 +1030,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         //do nothing
     }
 
-    protected FilterSQLRequest appendPaginationToRequest(FilterSQLRequest request, Map<String, String> hints) {
+    protected FilterSQLRequest appendPaginationToRequest(FilterSQLRequest request, Map<String, Object> hints) {
         Long limit     = getLongHint(hints, "limit");
         Long offset    = getLongHint(hints, "offset");
         if (isPostgres) {

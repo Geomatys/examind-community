@@ -39,15 +39,9 @@ import org.apache.sis.internal.storage.query.SimpleQuery;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
-import org.constellation.api.CommonConstants;
-import static org.constellation.api.CommonConstants.FEATURE_OF_INTEREST;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBJECT_TYPE;
-import static org.constellation.api.CommonConstants.OBSERVATION;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
-import static org.constellation.api.CommonConstants.OBSERVED_PROPERTY;
-import static org.constellation.api.CommonConstants.OFFERING;
-import static org.constellation.api.CommonConstants.PROCEDURE;
 import static org.constellation.api.CommonConstants.RESPONSE_MODE;
 import static org.constellation.api.CommonConstants.RESULT_MODEL;
 import org.constellation.business.IProviderBusiness;
@@ -63,6 +57,8 @@ import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
+import org.geotoolkit.observation.OMEntity;
+import org.geotoolkit.sos.xml.ResponseModeType;
 import org.geotoolkit.storage.DataStores;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -208,7 +204,7 @@ public class ObservationStoreProviderTest {
     public void getFeatureOfInterestNamesTest() throws Exception {
         assertNotNull(omPr);
 
-        Collection<String> resultIds = omPr.getFeatureOfInterestNames(null, Collections.EMPTY_MAP);
+        Collection<String> resultIds = omPr.getFeatureOfInterestNames(null, new HashMap<>());
         assertEquals(6, resultIds.size());
 
         Set<String> expectedIds = new LinkedHashSet<>();
@@ -220,7 +216,7 @@ public class ObservationStoreProviderTest {
         expectedIds.add("station-006");
         Assert.assertEquals(expectedIds, resultIds);
 
-        long result = omPr.getCount(null, Collections.singletonMap(OBJECT_TYPE, FEATURE_OF_INTEREST));
+        long result = omPr.getCount(null, Collections.singletonMap(OBJECT_TYPE, OMEntity.FEATURE_OF_INTEREST));
         assertEquals(result, 6L);
     }
 
@@ -228,7 +224,7 @@ public class ObservationStoreProviderTest {
     public void getFeatureOfInterestTest() throws Exception {
         assertNotNull(omPr);
 
-        List<SamplingFeature> results = omPr.getFeatureOfInterest(null, Collections.EMPTY_MAP);
+        List<SamplingFeature> results = omPr.getFeatureOfInterest(null, new HashMap<>());
         assertEquals(6, results.size());
 
         for (SamplingFeature p : results) {
@@ -257,7 +253,7 @@ public class ObservationStoreProviderTest {
     public void getPhenomenonNamesTest() throws Exception {
         assertNotNull(omPr);
 
-        Collection<String> resultIds = omPr.getPhenomenonNames(null, Collections.EMPTY_MAP);
+        Collection<String> resultIds = omPr.getPhenomenonNames(null, new HashMap<>());
         assertEquals(5, resultIds.size());
 
         Set<String> expectedIds = new HashSet<>();
@@ -268,7 +264,7 @@ public class ObservationStoreProviderTest {
         expectedIds.add("salinity");
         Assert.assertEquals(expectedIds, resultIds);
 
-        long result = omPr.getCount(null, Collections.singletonMap(OBJECT_TYPE, OBSERVED_PROPERTY));
+        long result = omPr.getCount(null, Collections.singletonMap(OBJECT_TYPE, OMEntity.OBSERVED_PROPERTY));
         assertEquals(result, 5L);
     }
 
@@ -276,7 +272,7 @@ public class ObservationStoreProviderTest {
     public void getPhenomenonTest() throws Exception {
         assertNotNull(omPr);
 
-        List<Phenomenon> results = omPr.getPhenomenon(null, Collections.EMPTY_MAP);
+        List<Phenomenon> results = omPr.getPhenomenon(null, new HashMap<>());
         assertEquals(5, results.size());
 
         assertTrue(results.get(0) instanceof org.geotoolkit.observation.xml.v200.OMObservationType.InternalCompositePhenomenon);
@@ -311,7 +307,7 @@ public class ObservationStoreProviderTest {
     public void getProcedureNamesTest() throws Exception {
         assertNotNull(omPr);
 
-        Collection<String> resultIds = omPr.getProcedureNames(null, Collections.EMPTY_MAP);
+        Collection<String> resultIds = omPr.getProcedureNames(null, new HashMap<>());
         assertEquals(13, resultIds.size());
 
         Set<String> expectedIds = new LinkedHashSet<>();
@@ -330,23 +326,23 @@ public class ObservationStoreProviderTest {
         expectedIds.add("urn:ogc:object:sensor:GEOM:test-id");
         Assert.assertEquals(expectedIds, resultIds);
 
-        long result = omPr.getCount(null, Collections.singletonMap(OBJECT_TYPE, PROCEDURE));
+        long result = omPr.getCount(null, Collections.singletonMap(OBJECT_TYPE, OMEntity.PROCEDURE));
         assertEquals(result, 13L);
 
         SimpleQuery query = new SimpleQuery();
         BinaryComparisonOperator filter = ff.equal(ff.property("sensorType") , ff.literal("component"));
         query.setFilter(filter);
-        resultIds = omPr.getProcedureNames(query, Collections.EMPTY_MAP);
+        resultIds = omPr.getProcedureNames(query, new HashMap<>());
         assertEquals(1, resultIds.size());
 
-        result = omPr.getCount(query, Collections.singletonMap(OBJECT_TYPE, PROCEDURE));
+        result = omPr.getCount(query, Collections.singletonMap(OBJECT_TYPE, OMEntity.PROCEDURE));
         assertEquals(result, 1L);
 
         filter = ff.equal(ff.property("sensorType") , ff.literal("system"));
         query.setFilter(filter);
-        resultIds = omPr.getProcedureNames(query, Collections.EMPTY_MAP);
+        resultIds = omPr.getProcedureNames(query, new HashMap<>());
         assertEquals(12, resultIds.size());
-        result = omPr.getCount(query, Collections.singletonMap(OBJECT_TYPE, PROCEDURE));
+        result = omPr.getCount(query, Collections.singletonMap(OBJECT_TYPE, OMEntity.PROCEDURE));
         assertEquals(result, 12L);
     }
 
@@ -354,7 +350,7 @@ public class ObservationStoreProviderTest {
     public void getProcedureTest() throws Exception {
         assertNotNull(omPr);
 
-        List<Process> results = omPr.getProcedures(null, Collections.EMPTY_MAP);
+        List<Process> results = omPr.getProcedures(null, new HashMap<>());
         assertEquals(13, results.size());
 
         for (Process p : results) {
@@ -383,7 +379,7 @@ public class ObservationStoreProviderTest {
     public void getOfferingNamesTest() throws Exception {
         assertNotNull(omPr);
 
-        Collection<String> resultIds = omPr.getOfferingNames(null, Collections.EMPTY_MAP);
+        Collection<String> resultIds = omPr.getOfferingNames(null, new HashMap<>());
         assertEquals(13, resultIds.size());
 
         Set<String> expectedIds = new LinkedHashSet<>();
@@ -402,24 +398,24 @@ public class ObservationStoreProviderTest {
         expectedIds.add("offering-9");
         Assert.assertEquals(expectedIds, resultIds);
 
-        long result = omPr.getCount(null, Collections.singletonMap(OBJECT_TYPE, OFFERING));
+        long result = omPr.getCount(null, Collections.singletonMap(OBJECT_TYPE, OMEntity.OFFERING));
         assertEquals(result, 13L);
 
         SimpleQuery query = new SimpleQuery();
         BinaryComparisonOperator filter = ff.equal(ff.property("sensorType") , ff.literal("component"));
         query.setFilter(filter);
-        resultIds = omPr.getOfferingNames(query, Collections.EMPTY_MAP);
+        resultIds = omPr.getOfferingNames(query, new HashMap<>());
         assertEquals(1, resultIds.size());
         
-        result = omPr.getCount(query, Collections.singletonMap(OBJECT_TYPE, OFFERING));
+        result = omPr.getCount(query, Collections.singletonMap(OBJECT_TYPE, OMEntity.OFFERING));
         assertEquals(result, 1L);
 
         filter = ff.equal(ff.property("sensorType") , ff.literal("system"));
         query.setFilter(filter);
-        resultIds = omPr.getOfferingNames(query, Collections.EMPTY_MAP);
+        resultIds = omPr.getOfferingNames(query, new HashMap<>());
         assertEquals(12, resultIds.size());
 
-        result = omPr.getCount(query, Collections.singletonMap(OBJECT_TYPE, OFFERING));
+        result = omPr.getCount(query, Collections.singletonMap(OBJECT_TYPE, OMEntity.OFFERING));
         assertEquals(result, 12L);
     }
 
@@ -427,7 +423,7 @@ public class ObservationStoreProviderTest {
     public void getObservationTemplateNamesTest() throws Exception {
         assertNotNull(omPr);
 
-        Collection<String> resultIds = omPr.getObservationNames(null, MEASUREMENT_QNAME, "resultTemplate", Collections.EMPTY_MAP);
+        Collection<String> resultIds = omPr.getObservationNames(null, MEASUREMENT_QNAME, "resultTemplate", new HashMap<>());
         assertEquals(18, resultIds.size());
 
         Set<String> expectedIds = new LinkedHashSet<>();
@@ -451,14 +447,14 @@ public class ObservationStoreProviderTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:13-2");
         Assert.assertEquals(expectedIds, resultIds);
 
-        Map<String, String> hints = new HashMap<>();
-        hints.put(OBJECT_TYPE, OBSERVATION);
-        hints.put(RESPONSE_MODE, "resultTemplate");
-        hints.put(RESULT_MODEL, MEASUREMENT_QNAME.toString());
+        Map<String, Object> hints = new HashMap<>();
+        hints.put(OBJECT_TYPE, OMEntity.OBSERVATION);
+        hints.put(RESPONSE_MODE, ResponseModeType.RESULT_TEMPLATE);
+        hints.put(RESULT_MODEL, MEASUREMENT_QNAME);
         long result = omPr.getCount(null, hints);
         assertEquals(result, 18L);
 
-        resultIds = omPr.getObservationNames(null, OBSERVATION_QNAME, "resultTemplate", Collections.EMPTY_MAP);
+        resultIds = omPr.getObservationNames(null, OBSERVATION_QNAME, "resultTemplate", new HashMap<>());
         assertEquals(11, resultIds.size());
 
         expectedIds = new LinkedHashSet<>();
@@ -476,9 +472,9 @@ public class ObservationStoreProviderTest {
         Assert.assertEquals(expectedIds, resultIds);
 
         hints = new HashMap<>();
-        hints.put(OBJECT_TYPE, OBSERVATION);
-        hints.put(RESPONSE_MODE, "resultTemplate");
-        hints.put(RESULT_MODEL, OBSERVATION_QNAME.toString());
+        hints.put(OBJECT_TYPE, OMEntity.OBSERVATION);
+        hints.put(RESPONSE_MODE, ResponseModeType.RESULT_TEMPLATE);
+        hints.put(RESULT_MODEL, OBSERVATION_QNAME);
         result = omPr.getCount(null, hints);
         assertEquals(result, 11L);
     }
@@ -527,14 +523,16 @@ public class ObservationStoreProviderTest {
     public void getObservationTemplateTest() throws Exception {
         assertNotNull(omPr);
 
-        List<Observation> results = omPr.getObservations(null, OBSERVATION_QNAME, "resultTemplate", null, Collections.EMPTY_MAP);
+        Map<String, Object> hints = new HashMap<>();
+        List<Observation> results = omPr.getObservations(null, OBSERVATION_QNAME, "resultTemplate", null, hints);
         assertEquals(15, results.size());
 
         for (Observation p : results) {
             assertTrue(p instanceof org.geotoolkit.observation.xml.v200.OMObservationType);
         }
 
-        results = omPr.getObservations(null,  OBSERVATION_QNAME, "resultTemplate", null, Collections.singletonMap("version", "1.0.0"));
+        hints.put("version", "1.0.0");
+        results = omPr.getObservations(null,  OBSERVATION_QNAME, "resultTemplate", null, hints);
         assertEquals(15, results.size());
 
         for (Observation p : results) {
@@ -545,7 +543,7 @@ public class ObservationStoreProviderTest {
         SimpleQuery query = new SimpleQuery();
         BinaryComparisonOperator filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:10"));
         query.setFilter(filter);
-        results = omPr.getObservations(query,  OBSERVATION_QNAME, "resultTemplate", null, Collections.singletonMap("version", "1.0.0"));
+        results = omPr.getObservations(query,  OBSERVATION_QNAME, "resultTemplate", null, hints);
         assertEquals(2, results.size());
 
         Set<String> resultIds = results.stream().map(result -> getFOIId(result)).collect(Collectors.toSet());
@@ -553,9 +551,7 @@ public class ObservationStoreProviderTest {
         assertTrue(resultIds.contains("station-002"));
 
         // by ommiting FOI in template, it returns only one template
-        Map<String, String> hints = new HashMap<>();
-        hints.put("version", "1.0.0");
-        hints.put("includeFoiInTemplate", "false");
+        hints.put("includeFoiInTemplate", false);
         results = omPr.getObservations(query,  OBSERVATION_QNAME, "resultTemplate", null, hints);
         assertEquals(1, results.size());
         assertTrue(results.get(0) instanceof org.geotoolkit.observation.xml.v100.ObservationType);
@@ -565,7 +561,7 @@ public class ObservationStoreProviderTest {
         assertNull(template1.getSamplingTime());
 
 
-        hints.put("includeTimeInTemplate", "true");
+        hints.put("includeTimeInTemplate", true);
         results = omPr.getObservations(query,  OBSERVATION_QNAME, "resultTemplate", null, hints);
         assertEquals(1, results.size());
         assertTrue(results.get(0) instanceof org.geotoolkit.observation.xml.v100.ObservationType);
@@ -579,7 +575,9 @@ public class ObservationStoreProviderTest {
         query = new SimpleQuery();
         filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:13"));
         query.setFilter(filter);
-        results = omPr.getObservations(query,  OBSERVATION_QNAME, "resultTemplate", null, Collections.singletonMap("version", "1.0.0"));
+        hints = new HashMap<>();
+        hints.put("version", "1.0.0");
+        results = omPr.getObservations(query,  OBSERVATION_QNAME, "resultTemplate", null, hints);
         assertEquals(4, results.size());
 
         resultIds = results.stream().map(result -> getPhenomenonId(result)).collect(Collectors.toSet());
@@ -622,30 +620,30 @@ public class ObservationStoreProviderTest {
     public void getObservationNamesTest() throws Exception {
         assertNotNull(omPr);
 
-        Collection<String> resultIds = omPr.getObservationNames(null, MEASUREMENT_QNAME, "inline", Collections.EMPTY_MAP);
+        Collection<String> resultIds = omPr.getObservationNames(null, MEASUREMENT_QNAME, "inline", new HashMap<>());
         assertEquals(111, resultIds.size());
 
-        Map<String, String> hints = new HashMap<>();
-        hints.put(OBJECT_TYPE, OBSERVATION);
-        hints.put(RESPONSE_MODE, "inline");
-        hints.put(RESULT_MODEL, MEASUREMENT_QNAME.toString());
+        Map<String, Object> hints = new HashMap<>();
+        hints.put(OBJECT_TYPE, OMEntity.OBSERVATION);
+        hints.put(RESPONSE_MODE, ResponseModeType.INLINE);
+        hints.put(RESULT_MODEL, MEASUREMENT_QNAME);
         long result = omPr.getCount(null, hints);
         assertEquals(result, 111L);
 
-        resultIds = omPr.getObservationNames(null, OBSERVATION_QNAME, "inline", Collections.EMPTY_MAP);
+        resultIds = omPr.getObservationNames(null, OBSERVATION_QNAME, "inline", new HashMap<>());
         assertEquals(74, resultIds.size());
 
         hints = new HashMap<>();
-        hints.put(OBJECT_TYPE, OBSERVATION);
-        hints.put(RESPONSE_MODE, "inline");
-        hints.put(RESULT_MODEL, OBSERVATION_QNAME.toString());
+        hints.put(OBJECT_TYPE, OMEntity.OBSERVATION);
+        hints.put(RESPONSE_MODE, ResponseModeType.INLINE);
+        hints.put(RESULT_MODEL, OBSERVATION_QNAME);
         result = omPr.getCount(null, hints);
         assertEquals(result, 74L);
 
         SimpleQuery query = new SimpleQuery();
         BinaryComparisonOperator filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:test-1"));
         query.setFilter(filter);
-        resultIds = omPr.getObservationNames(query, MEASUREMENT_QNAME, "inline", Collections.EMPTY_MAP);
+        resultIds = omPr.getObservationNames(query, MEASUREMENT_QNAME, "inline", new HashMap<>());
 
         assertEquals(10, resultIds.size());
 
@@ -663,13 +661,13 @@ public class ObservationStoreProviderTest {
         Assert.assertEquals(expectedIds, resultIds);
 
         hints = new HashMap<>();
-        hints.put(OBJECT_TYPE, OBSERVATION);
-        hints.put(RESPONSE_MODE, "inline");
-        hints.put(RESULT_MODEL, MEASUREMENT_QNAME.toString());
+        hints.put(OBJECT_TYPE, OMEntity.OBSERVATION);
+        hints.put(RESPONSE_MODE, ResponseModeType.INLINE);
+        hints.put(RESULT_MODEL, MEASUREMENT_QNAME);
         result = omPr.getCount(query, hints);
         assertEquals(result, 10L);
 
-        resultIds = omPr.getObservationNames(query, OBSERVATION_QNAME, "inline", Collections.EMPTY_MAP);
+        resultIds = omPr.getObservationNames(query, OBSERVATION_QNAME, "inline", new HashMap<>());
         assertEquals(5, resultIds.size());
 
         expectedIds = new LinkedHashSet<>();
@@ -681,15 +679,15 @@ public class ObservationStoreProviderTest {
         Assert.assertEquals(expectedIds, resultIds);
 
         hints = new HashMap<>();
-        hints.put(OBJECT_TYPE, OBSERVATION);
-        hints.put(RESPONSE_MODE, "inline");
-        hints.put(RESULT_MODEL, OBSERVATION_QNAME.toString());
+        hints.put(OBJECT_TYPE, OMEntity.OBSERVATION);
+        hints.put(RESPONSE_MODE, ResponseModeType.INLINE);
+        hints.put(RESULT_MODEL, OBSERVATION_QNAME);
         result = omPr.getCount(query, hints);
         assertEquals(result, 5L);
 
         filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:13"));
         query.setFilter(filter);
-        resultIds = omPr.getObservationNames(query, MEASUREMENT_QNAME, "inline", Collections.EMPTY_MAP);
+        resultIds = omPr.getObservationNames(query, MEASUREMENT_QNAME, "inline", new HashMap<>());
 
         assertEquals(23, resultIds.size());
 
@@ -724,13 +722,13 @@ public class ObservationStoreProviderTest {
         Assert.assertEquals(expectedIds, resultIds);
 
         hints = new HashMap<>();
-        hints.put(OBJECT_TYPE, OBSERVATION);
-        hints.put(RESPONSE_MODE, "inline");
-        hints.put(RESULT_MODEL, MEASUREMENT_QNAME.toString());
+        hints.put(OBJECT_TYPE, OMEntity.OBSERVATION);
+        hints.put(RESPONSE_MODE, ResponseModeType.INLINE);
+        hints.put(RESULT_MODEL, MEASUREMENT_QNAME);
         result = omPr.getCount(query, hints);
         assertEquals(result, 23L);
 
-        resultIds = omPr.getObservationNames(query, OBSERVATION_QNAME, "inline", Collections.EMPTY_MAP);
+        resultIds = omPr.getObservationNames(query, OBSERVATION_QNAME, "inline", new HashMap<>());
         assertEquals(13, resultIds.size());
 
         expectedIds = new LinkedHashSet<>();
@@ -750,9 +748,9 @@ public class ObservationStoreProviderTest {
         Assert.assertEquals(expectedIds, resultIds);
 
         hints = new HashMap<>();
-        hints.put(OBJECT_TYPE, OBSERVATION);
-        hints.put(RESPONSE_MODE, "inline");
-        hints.put(RESULT_MODEL, OBSERVATION_QNAME.toString());
+        hints.put(OBJECT_TYPE, OMEntity.OBSERVATION);
+        hints.put(RESPONSE_MODE,ResponseModeType.INLINE);
+        hints.put(RESULT_MODEL, OBSERVATION_QNAME);
         result = omPr.getCount(query, hints);
         assertEquals(result, 13L);
     }
@@ -761,14 +759,16 @@ public class ObservationStoreProviderTest {
     public void getObservationsTest() throws Exception {
         assertNotNull(omPr);
 
-        List<Observation> results = omPr.getObservations(null, OBSERVATION_QNAME, "inline", null, Collections.EMPTY_MAP);
+        List<Observation> results = omPr.getObservations(null, OBSERVATION_QNAME, "inline", null, new HashMap<>());
         assertEquals(12, results.size()); // why only 11?
 
         for (Observation p : results) {
             assertTrue(p instanceof org.geotoolkit.observation.xml.v200.OMObservationType);
         }
 
-        results = omPr.getObservations(null,  OBSERVATION_QNAME, "inline", null, Collections.singletonMap("version", "1.0.0"));
+        Map<String, Object> hints = new HashMap<>();
+        hints.put("version", "1.0.0");
+        results = omPr.getObservations(null,  OBSERVATION_QNAME, "inline", null, hints);
         assertEquals(12, results.size());// why only 11?
 
         for (Observation p : results) {

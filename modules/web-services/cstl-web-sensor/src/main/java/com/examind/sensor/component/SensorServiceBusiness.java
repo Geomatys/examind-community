@@ -391,11 +391,11 @@ public class SensorServiceBusiness {
             final ObservationProvider pr = getOMProvider(id);
             SimpleQuery query = new SimpleQuery();
             query.setFilter(buildFilter(start, end, observedProperties, foi));
-            Map<String, String> hints = new HashMap<>();
+            Map<String, Object> hints = new HashMap<>();
             if (width != null) {
                 hints.put("decimSize", Integer.toString(width));
             }
-            return pr.getResults(sensorID, CommonConstants.OBSERVATION_QNAME, query, resultFormat, hints);
+            return pr.getResults(sensorID, CommonConstants.OBSERVATION_QNAME, "inline", query, resultFormat, hints);
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }

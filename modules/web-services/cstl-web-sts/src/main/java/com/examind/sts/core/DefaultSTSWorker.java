@@ -69,6 +69,7 @@ import org.geotoolkit.internal.geojson.binding.GeoJSONFeature;
 import org.geotoolkit.internal.geojson.binding.GeoJSONGeometry;
 import org.geotoolkit.observation.xml.AbstractObservation;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
+import org.geotoolkit.sos.xml.ResponseModeType;
 import org.geotoolkit.sts.AbstractSTSRequest;
 import org.geotoolkit.sts.ExpandOptions;
 import org.geotoolkit.sts.GetCapabilities;
@@ -152,7 +153,7 @@ import org.springframework.context.annotation.Scope;
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
-    private final Map<String, String> defaultHints = new HashMap<>();
+    private final Map<String, Object> defaultHints = new HashMap<>();
 
     private static final GeometryFactory JTS_GEOM_FACTORY = new GeometryFactory();
 
@@ -344,11 +345,11 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             final SimpleQuery subquery = buildExtraFilterQuery(req, false);
             QName model;
             boolean forMds = req.getExtraFlag().containsKey("forMDS") && req.getExtraFlag().get("forMDS").equals("true");
-            Map<String,String> hints = new HashMap<>(defaultHints);
-            hints.put("includeTimeForProfile", "true");
+            Map<String, Object> hints = new HashMap<>(defaultHints);
+            hints.put("includeTimeForProfile", true);
             if (forMds) {
-                hints.put("includeIDInDataBlock", "true");
-                hints.put("directResultArray", "true");
+                hints.put("includeIDInDataBlock", true);
+                hints.put("directResultArray", true);
                 model = OBSERVATION_QNAME;
             } else {
                 model = MEASUREMENT_QNAME;
@@ -363,10 +364,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 Map<String, List> resultArrays = new HashMap<>();
                 BigDecimal count = req.getCount() ? new BigDecimal(0) : null;
                 for (String sensorId : sensorIds) {
-                    List<Object> resultArray = (List<Object>) omProvider.getResults(sensorId, model, subquery, "resultArray", hints);
+                    List<Object> resultArray = (List<Object>) omProvider.getResults(sensorId, model, "inline", subquery, "resultArray", hints);
                     resultArrays.put(sensorId, resultArray);
                     if (req.getCount()) {
-                        count = count.add(new BigDecimal((Integer)omProvider.getResults(sensorId, model, subquery, "count", hints)));
+                        count = count.add(new BigDecimal((Integer)omProvider.getResults(sensorId, model, "inline", subquery, "count", hints)));
                     }
                 }
 
@@ -456,10 +457,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                     final SimpleQuery subquery = new SimpleQuery();
                     BinaryComparisonOperator pe = ff.equal(ff.property("procedure"), ff.literal(aob.getProcedure().getHref()));
                     subquery.setFilter(pe);
-                    Map<String,String> hints = new HashMap<>(defaultHints);
-                    hints.put("includeFoiInTemplate", "false");
-                    hints.put("includeTimeInTemplate", "true");
-                    hints.put("singleObservedPropertyInTemplate", "true");
+                    Map<String, Object> hints = new HashMap<>(defaultHints);
+                    hints.put("includeFoiInTemplate", false);
+                    hints.put("includeTimeInTemplate", true);
+                    hints.put("singleObservedPropertyInTemplate", true);
                     List<org.opengis.observation.Observation> templates = omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", null, hints);
                     if (templates.size() == 1) {
                         template = (AbstractObservation) templates.get(0);
@@ -536,10 +537,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                     final SimpleQuery subquery = new SimpleQuery();
                     BinaryComparisonOperator pe = ff.equal(ff.property("procedure"), ff.literal(obs.getProcedure().getHref()));
                     subquery.setFilter(pe);
-                    Map<String,String> hints = new HashMap<>(defaultHints);
-                    hints.put("includeFoiInTemplate", "false");
-                    hints.put("includeTimeInTemplate", "true");
-                    hints.put("singleObservedPropertyInTemplate", "true");
+                    Map<String, Object> hints = new HashMap<>(defaultHints);
+                    hints.put("includeFoiInTemplate", false);
+                    hints.put("includeTimeInTemplate", true);
+                    hints.put("singleObservedPropertyInTemplate", true);
                     List<org.opengis.observation.Observation> templates = omProvider.getObservations(subquery, MEASUREMENT_QNAME, "resultTemplate", null, hints);
                     if (templates.size() == 1) {
                         observation.setDatastream(buildDatastream(exp, (AbstractObservation) templates.get(0), sensorArea, new NavigationPath(fn)));
@@ -556,10 +557,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                     final SimpleQuery subquery = new SimpleQuery();
                     BinaryComparisonOperator pe = ff.equal(ff.property("procedure"), ff.literal(obs.getProcedure().getHref()));
                     subquery.setFilter(pe);
-                    Map<String,String> hints = new HashMap<>(defaultHints);
-                    hints.put("includeFoiInTemplate", "false");
-                    hints.put("includeTimeInTemplate", "true");
-                    hints.put("singleObservedPropertyInTemplate", "true");
+                    Map<String, Object> hints = new HashMap<>(defaultHints);
+                    hints.put("includeFoiInTemplate", false);
+                    hints.put("includeTimeInTemplate", true);
+                    hints.put("singleObservedPropertyInTemplate", true);
                     List<org.opengis.observation.Observation> templates = omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", null, hints);
                     if (templates.size() == 1) {
                         observation.setMultiDatastream(buildMultiDatastream(exp, (AbstractObservation) templates.get(0), sensorArea, new NavigationPath(fn)));
@@ -617,10 +618,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 final SimpleQuery subquery = new SimpleQuery();
                 BinaryComparisonOperator pe = ff.equal(ff.property("procedure"), ff.literal(obs.getProcedure().getHref()));
                 subquery.setFilter(pe);
-                Map<String,String> hints = new HashMap<>(defaultHints);
-                hints.put("includeFoiInTemplate", "false");
-                hints.put("includeTimeInTemplate", "true");
-                hints.put("singleObservedPropertyInTemplate", "true");
+                Map<String, Object> hints = new HashMap<>(defaultHints);
+                hints.put("includeFoiInTemplate", false);
+                hints.put("includeTimeInTemplate", true);
+                hints.put("singleObservedPropertyInTemplate", true);
                 List<org.opengis.observation.Observation> templates = omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", null, hints);
                 if (templates.size() == 1) {
                     mds = buildMultiDatastream(exp, (AbstractObservation) templates.get(0), sensorArea, new NavigationPath(fn));
@@ -835,10 +836,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         try {
             final ExpandOptions exp = new ExpandOptions(req);
             final SimpleQuery subquery = buildExtraFilterQuery(req, false);
-            Map<String,String> hints = new HashMap<>(defaultHints);
-            hints.put("includeFoiInTemplate", "false");
-            hints.put("includeTimeInTemplate", "true");
-            hints.put("singleObservedPropertyInTemplate", "true");
+            Map<String, Object> hints = new HashMap<>(defaultHints);
+            hints.put("includeFoiInTemplate", false);
+            hints.put("includeTimeInTemplate", true);
+            hints.put("singleObservedPropertyInTemplate", true);
             List<org.opengis.observation.Observation> templates = omProvider.getObservations(subquery, MEASUREMENT_QNAME, "resultTemplate", null, hints);
             Map<String, GeoJSONGeometry> sensorArea = new HashMap<>();
             for (org.opengis.observation.Observation template : templates) {
@@ -864,10 +865,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             final SimpleQuery subquery = new SimpleQuery();
             ResourceId filter = ff.resourceId(req.getId());
             subquery.setFilter(filter);
-            Map<String,String> hints = new HashMap<>(defaultHints);
-            hints.put("includeFoiInTemplate", "false");
-            hints.put("includeTimeInTemplate", "true");
-            hints.put("singleObservedPropertyInTemplate", "true");
+            Map<String, Object> hints = new HashMap<>(defaultHints);
+            hints.put("includeFoiInTemplate", false);
+            hints.put("includeTimeInTemplate", true);
+            hints.put("singleObservedPropertyInTemplate", true);
             List<org.opengis.observation.Observation> obs = omProvider.getObservations(subquery, MEASUREMENT_QNAME, "resultTemplate", null, hints);
             if (obs.isEmpty()) {
                 return null;
@@ -982,14 +983,14 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         try {
             final ExpandOptions exp = new ExpandOptions(req);
             final SimpleQuery subquery = buildExtraFilterQuery(req, true);
-            Map<String,String> hints = new HashMap<>(defaultHints);
-            hints.put("includeFoiInTemplate", "false");
-            hints.put("includeTimeInTemplate", "true");
-            hints.put("singleObservedPropertyInTemplate", "true");
+            Map<String, Object> hints = new HashMap<>(defaultHints);
+            hints.put("includeFoiInTemplate", false);
+            hints.put("includeTimeInTemplate", true);
+            hints.put("singleObservedPropertyInTemplate", true);
             if (req.getCount()) {
                 hints.put(OBJECT_TYPE, OBSERVATION);
-                hints.put(RESPONSE_MODE, "resultTemplate");
-                hints.put(RESULT_MODEL, OBSERVATION_QNAME.toString());
+                hints.put(RESPONSE_MODE, ResponseModeType.RESULT_TEMPLATE);
+                hints.put(RESULT_MODEL, OBSERVATION_QNAME);
                 count = new BigDecimal(omProvider.getCount(subquery, hints));
             }
             List<org.opengis.observation.Observation> templates = omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", null, hints);
@@ -1013,10 +1014,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             final SimpleQuery subquery = new SimpleQuery();
             ResourceId filter = ff.resourceId(req.getId());
             subquery.setFilter(filter);
-            Map<String,String> hints = new HashMap<>(defaultHints);
-            hints.put("includeFoiInTemplate", "false");
-            hints.put("includeTimeInTemplate", "true");
-            hints.put("singleObservedPropertyInTemplate", "true");
+            Map<String, Object> hints = new HashMap<>(defaultHints);
+            hints.put("includeFoiInTemplate", false);
+            hints.put("includeTimeInTemplate", true);
+            hints.put("singleObservedPropertyInTemplate", true);
             List<org.opengis.observation.Observation> obs = omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", null, hints);
             if (obs.isEmpty()) {
                 return null;
@@ -1184,10 +1185,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             final SimpleQuery subquery = new SimpleQuery();
             BinaryComparisonOperator pe = ff.equal(ff.property("procedure"), ff.literal(((org.geotoolkit.observation.xml.Process) template.getProcedure()).getHref()));
             subquery.setFilter(pe);
-            Map<String,String> hints = new HashMap<>(defaultHints);
-            hints.put("includeIDInDataBlock", "true");
-            hints.put("includeTimeForProfile", "true");
-             hints.put("directResultArray", "true");
+            Map<String, Object> hints = new HashMap<>(defaultHints);
+            hints.put("includeIDInDataBlock", true);
+            hints.put("includeTimeForProfile", true);
+             hints.put("directResultArray", true);
             return omProvider.getObservations(subquery, OBSERVATION_QNAME, "inline", null, hints);
         }
         return new ArrayList<>();
@@ -1325,10 +1326,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         final SimpleQuery subquery = new SimpleQuery();
         BinaryComparisonOperator pe = ff.equal(ff.property("observedProperty"), ff.literal(phenomenon));
         subquery.setFilter(pe);
-        Map<String,String> hints = new HashMap<>(defaultHints);
-        hints.put("includeFoiInTemplate", "false");
-        hints.put("includeTimeInTemplate", "true");
-        hints.put("singleObservedPropertyInTemplate", "true");
+        Map<String, Object> hints = new HashMap<>(defaultHints);
+        hints.put("includeFoiInTemplate", false);
+        hints.put("includeTimeInTemplate", true);
+        hints.put("singleObservedPropertyInTemplate", true);
         return omProvider.getObservations(subquery, MEASUREMENT_QNAME, "resultTemplate", null, hints);
     }
 
@@ -1336,10 +1337,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         final SimpleQuery subquery = new SimpleQuery();
         BinaryComparisonOperator pe = ff.equal(ff.property("observedProperty"), ff.literal(phenomenon));
         subquery.setFilter(pe);
-        Map<String,String> hints = new HashMap<>(defaultHints);
-        hints.put("includeFoiInTemplate", "false");
-        hints.put("includeTimeInTemplate", "true");
-        hints.put("singleObservedPropertyInTemplate", "true");
+        Map<String, Object> hints = new HashMap<>(defaultHints);
+        hints.put("includeFoiInTemplate", false);
+        hints.put("includeTimeInTemplate", true);
+        hints.put("singleObservedPropertyInTemplate", true);
         return omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", null, hints);
     }
 
@@ -1348,10 +1349,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         final SimpleQuery subquery = new SimpleQuery();
         BinaryComparisonOperator pe = ff.equal(ff.property("procedure"), ff.literal(sensorId));
         subquery.setFilter(pe);
-        Map<String,String> hints = new HashMap<>(defaultHints);
-        hints.put("includeFoiInTemplate", "false");
-        hints.put("includeTimeInTemplate", "true");
-        hints.put("singleObservedPropertyInTemplate", "true");
+        Map<String, Object> hints = new HashMap<>(defaultHints);
+        hints.put("includeFoiInTemplate", false);
+        hints.put("includeTimeInTemplate", true);
+        hints.put("singleObservedPropertyInTemplate", true);
         return omProvider.getObservations(subquery, MEASUREMENT_QNAME, "resultTemplate", null, hints);
     }
 
@@ -1359,10 +1360,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         final SimpleQuery subquery = new SimpleQuery();
         BinaryComparisonOperator pe = ff.equal(ff.property("procedure"), ff.literal(sensorId));
         subquery.setFilter(pe);
-        Map<String,String> hints = new HashMap<>(defaultHints);
-        hints.put("includeFoiInTemplate", "false");
-        hints.put("includeTimeInTemplate", "true");
-        hints.put("singleObservedPropertyInTemplate", "true");
+        Map<String, Object> hints = new HashMap<>(defaultHints);
+        hints.put("includeFoiInTemplate", false);
+        hints.put("includeTimeInTemplate", true);
+        hints.put("singleObservedPropertyInTemplate", true);
         return omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", null, hints);
     }
 
@@ -1382,7 +1383,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             final SimpleQuery subquery = new SimpleQuery();
             BinaryComparisonOperator pe = ff.equal(ff.property("procedure"), ff.literal(sensorId));
             subquery.setFilter(pe);
-            Map<String,String> hints = new HashMap<>(defaultHints);
+            Map<String, Object> hints = new HashMap<>(defaultHints);
             List<SamplingFeature> features = omProvider.getFeatureOfInterest(subquery, hints);
             List<Geometry> geometries = features.stream().map(f -> getJTSGeometryFromFeatureOfInterest(f)).filter(Objects::nonNull).collect(Collectors.toList());
             if (geometries.isEmpty()) {
@@ -1694,7 +1695,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     @Override
     public HistoricalLocationsResponse getHistoricalLocations(GetHistoricalLocations req) throws CstlServiceException {
         final List<HistoricalLocation> locations = new ArrayList<>();
-        final Map<String,String> hints           = new HashMap<>(defaultHints);
+        final Map<String, Object> hints          = new HashMap<>(defaultHints);
         BigDecimal count                         = null;
         String iotNextLink                       = null;
         try {

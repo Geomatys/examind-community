@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.sis.storage.DataStoreException;
+import static org.constellation.api.CommonConstants.RESPONSE_MODE;
 import org.constellation.sos.ws.DatablockParser.Values;
 import static org.constellation.sos.ws.DatablockParser.getResultValues;
 import org.geotoolkit.gml.xml.Envelope;
@@ -35,6 +36,11 @@ import org.geotoolkit.observation.ObservationReader;
 import static org.geotoolkit.observation.ObservationReader.IDENTIFIER;
 import static org.geotoolkit.observation.ObservationReader.SOS_VERSION;
 import org.geotoolkit.observation.ObservationResult;
+import org.geotoolkit.observation.ObservationStoreException;
+import static org.geotoolkit.observation.Utils.getVersionFromHints;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
+import org.geotoolkit.sos.xml.ResponseModeType;
+import static org.geotoolkit.sos.xml.ResponseModeType.RESULT_TEMPLATE;
 import org.geotoolkit.swe.xml.DataArray;
 import org.geotoolkit.swe.xml.DataArrayProperty;
 import org.opengis.geometry.Geometry;
@@ -65,53 +71,36 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
         this.reader = reader;
     }
 
-    /**
-     * TODO Not sure if it is working.
-     *
-     * @param hints
-     * @return
-     * @throws DataStoreException
-     */
     @Override
-    public List<Observation> getObservationTemplates(Map<String, String> hints) throws DataStoreException {
+    public List<Observation> getObservations(Map<String, Object> hints) throws DataStoreException {
         final String version                 = getVersionFromHints(hints);
         final List<Observation> observations = new ArrayList<>();
-        final Set<String> oid = filterObservation(hints);
+        final Set<String> oid                = getIdentifiers(hints);
         for (String foid : oid) {
-            final Observation obs = reader.getObservation(foid, resultModel, requestMode, version);
-            observations.add(obs);
-        }
-        return observations;
-    }
+            final Observation obs = reader.getObservation(foid, resultModel, responseMode, version);
 
-    @Override
-    public List<Observation> getObservations(Map<String, String> hints) throws DataStoreException {
-        final String version                 = getVersionFromHints(hints);
-        final List<Observation> observations = new ArrayList<>();
-        final Set<String> oid = filterObservation(hints);
-        for (String foid : oid) {
-            final Observation obs = reader.getObservation(foid, resultModel, requestMode, version);
-
-            // parse result values to eliminate wrong results
-            if (obs.getSamplingTime() instanceof Period) {
-                final Timestamp tbegin;
-                final Timestamp tend;
-                final Period p = (Period)obs.getSamplingTime();
-                if (p.getBeginning() != null && p.getBeginning().getDate() != null) {
-                    tbegin = new Timestamp(p.getBeginning().getDate().getTime());
-                } else {
-                    tbegin = null;
-                }
-                if (p.getEnding() != null && p.getEnding().getDate() != null) {
-                    tend = new Timestamp(p.getEnding().getDate().getTime());
-                } else {
-                    tend = null;
-                }
-                if (obs.getResult() instanceof DataArrayProperty) {
-                    final DataArray array = ((DataArrayProperty)obs.getResult()).getDataArray();
-                    final Values result   = getResultValues(tbegin, tend, array, eventTimes);
-                    array.setValues(result.values.toString());
-                    array.setElementCount(result.nbBlock);
+            if (!RESULT_TEMPLATE.equals(responseMode)) {
+                // parse result values to eliminate wrong results
+                if (obs.getSamplingTime() instanceof Period) {
+                    final Timestamp tbegin;
+                    final Timestamp tend;
+                    final Period p = (Period)obs.getSamplingTime();
+                    if (p.getBeginning() != null && p.getBeginning().getDate() != null) {
+                        tbegin = new Timestamp(p.getBeginning().getDate().getTime());
+                    } else {
+                        tbegin = null;
+                    }
+                    if (p.getEnding() != null && p.getEnding().getDate() != null) {
+                        tend = new Timestamp(p.getEnding().getDate().getTime());
+                    } else {
+                        tend = null;
+                    }
+                    if (obs.getResult() instanceof DataArrayProperty) {
+                        final DataArray array = ((DataArrayProperty)obs.getResult()).getDataArray();
+                        final Values result   = getResultValues(tbegin, tend, array, eventTimes);
+                        array.setValues(result.values.toString());
+                        array.setElementCount(result.nbBlock);
+                    }
                 }
             }
             observations.add(obs);
@@ -120,10 +109,10 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
     }
 
     @Override
-    public List<SamplingFeature> getFeatureOfInterests(Map<String, String> hints) throws DataStoreException {
+    public List<SamplingFeature> getFeatureOfInterests(Map<String, Object> hints) throws DataStoreException {
         final String version                 = getVersionFromHints(hints);
         final List<SamplingFeature> features = new ArrayList<>();
-        final Set<String> fid = filterFeatureOfInterest(hints);
+        final Set<String> fid                = getIdentifiers(hints);
         for (String foid : fid) {
             final SamplingFeature feature = reader.getFeatureOfInterest(foid, version);
             features.add(feature);
@@ -132,9 +121,9 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
     }
 
     @Override
-    public List<Phenomenon> getPhenomenons(Map<String, String> hints) throws DataStoreException {
+    public List<Phenomenon> getPhenomenons(Map<String, Object> hints) throws DataStoreException {
         final String version  = getVersionFromHints(hints);
-        final Set<String> fid = filterPhenomenon(hints);
+        final Set<String> fid = getIdentifiers(hints);
         Map<String, Object> filters = new HashMap<>();
         filters.put(SOS_VERSION, version);
         filters.put(IDENTIFIER,  fid);
@@ -142,10 +131,10 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
     }
 
     @Override
-    public List<Process> getProcesses(Map<String, String> hints) throws DataStoreException {
+    public List<Process> getProcesses(Map<String, Object> hints) throws DataStoreException {
         final String version          = getVersionFromHints(hints);
         final List<Process> processes = new ArrayList<>();
-        final Set<String> pids = filterProcedure(hints);
+        final Set<String> pids        = getIdentifiers(hints);
         for (String pid : pids) {
             final Process pr = reader.getProcess(pid, version);
             processes.add(pr);
@@ -154,7 +143,10 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
     }
 
     @Override
-    public String getResults(Map<String, String> hints) throws DataStoreException {
+    public String getResults(Map<String, Object> hints) throws DataStoreException {
+        if (ResponseModeType.OUT_OF_BAND.equals(responseMode)) {
+            throw new ObservationStoreException("Out of band response mode has not been implemented yet", NO_APPLICABLE_CODE, RESPONSE_MODE);
+        }
         final List<ObservationResult> results = filterResult(hints);
         final StringBuilder datablock         = new StringBuilder();
 
@@ -189,11 +181,6 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
     }
 
     @Override
-    public Object getOutOfBandResults() throws DataStoreException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
     public void setResponseFormat(String responseFormat) {
         this.responseFormat = responseFormat;
     }
@@ -208,33 +195,18 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
         throw new UnsupportedOperationException("Not supported.");
     }
 
-    private String getVersionFromHints(Map<String, String> hints) {
-        String version = "2.0.0";
-        if (hints != null) {
-            if (hints.containsKey("version")) {
-                version = hints.get("version");
-            }
-        }
-        return version;
-    }
-
     @Override
-    public Map<String, Geometry> getSensorLocations(Map<String, String> hints) throws DataStoreException {
+    public Map<String, Geometry> getSensorLocations(Map<String, Object> hints) throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
     @Override
-    public Map<String, Map<Date, Geometry>> getSensorHistoricalLocations(Map<String, String> hints) throws DataStoreException {
+    public Map<String, Map<Date, Geometry>> getSensorHistoricalLocations(Map<String, Object> hints) throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void initFilterGetProcedureTimes() throws DataStoreException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public Map<String, List<Date>> getSensorTimes(Map<String, String> hints) throws DataStoreException {
+    public Map<String, List<Date>> getSensorTimes(Map<String, Object> hints) throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

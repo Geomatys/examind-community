@@ -470,7 +470,7 @@ public class SOSworker extends SensorWorker {
         //we update the URL
         om.updateURL(getServiceUrl());
 
-        final Map<String, String> hints = Collections.singletonMap("version", currentVersion);
+        final Map<String, Object> hints = Collections.singletonMap("version", currentVersion);
         final Capabilities c;
         try {
             if (!keepCapabilities) {
@@ -1072,13 +1072,8 @@ public class SOSworker extends SensorWorker {
                 /*
                  * - The filterReader execute a request and return directly the observations
                  */
-                final List<Observation> matchingResult;
+                final List<Observation> matchingResult = omProvider.getObservations(query, resultModel, responseMode.value(), responseFormat, Collections.singletonMap("version", currentVersion));
                 final Envelope computedBounds;
-                if (template) {
-                    matchingResult = omProvider.getObservations(query, resultModel, RESULT_TEMPLATE.value(), responseFormat, Collections.singletonMap("version", currentVersion));
-                } else {
-                    matchingResult = omProvider.getObservations(query, resultModel, INLINE.value(), responseFormat, Collections.singletonMap("version", currentVersion));
-                }
                 if (pc.computeCollectionBound) {
                     computedBounds = null; //localOmFilter.getCollectionBoundingShape(); for now no implementation perform this
                 } else {
@@ -1130,7 +1125,7 @@ public class SOSworker extends SensorWorker {
                 response   = ocResponse;
             } else {
                 try {
-                    response = omProvider.getOutOfBandObservations(query, resultModel, responseFormat, Collections.singletonMap("version", currentVersion));
+                    response = omProvider.getResults(null, resultModel, OUT_OF_BAND.value(), query, responseFormat, Collections.singletonMap("version", currentVersion));
                 } catch(UnsupportedOperationException ex) {
                     throw new CstlServiceException("Out of band response mode has been yet implemented for this data source", NO_APPLICABLE_CODE, RESPONSE_MODE);
                 }
@@ -1270,7 +1265,7 @@ public class SOSworker extends SensorWorker {
             query.setFilter(buildFilter(times, observedProperties, null, fois, bboxFilter, null));
 
             //we prepare the response document
-            values = (String) omProvider.getResults(procedure, resultModel, query, null, Collections.emptyMap());
+            values = (String) omProvider.getResults(procedure, resultModel, INLINE.value(), query, null, Collections.emptyMap());
 
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);

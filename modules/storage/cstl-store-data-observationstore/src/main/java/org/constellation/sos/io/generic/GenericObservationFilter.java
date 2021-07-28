@@ -58,6 +58,7 @@ import org.geotoolkit.observation.ObservationReader;
 import static org.geotoolkit.observation.ObservationReader.IDENTIFIER;
 import static org.geotoolkit.observation.ObservationReader.SOS_VERSION;
 import static org.geotoolkit.observation.Utils.getTimeValue;
+import static org.geotoolkit.observation.Utils.getVersionFromHints;
 import org.geotoolkit.ogc.xml.v200.TimeAfterType;
 import org.geotoolkit.ogc.xml.v200.TimeBeforeType;
 import org.geotoolkit.ogc.xml.v200.TimeDuringType;
@@ -128,7 +129,24 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      * {@inheritDoc}
      */
     @Override
-    public void initFilterObservation(final ResponseModeType requestMode, final QName resultModel, Map<String, String> hints) {
+    public void init(OMEntity objectType, Map<String, Object> hints) throws DataStoreException {
+        this.objectType = objectType;
+        switch (objectType) {
+            case FEATURE_OF_INTEREST: return; // do nothing not implemented
+            case OBSERVED_PROPERTY:   initFilterGetPhenomenon(); break;
+            case PROCEDURE:           initFilterGetSensor(); break;
+            case OBSERVATION:         initFilterObservation(hints);
+            case RESULT:              initFilterGetResult(hints);
+            case OFFERING:            
+            case LOCATION:
+            case HISTORICAL_LOCATION: throw new UnsupportedOperationException("Not supported yet.");
+            default: throw new DataStoreException("unexpected object type:" + objectType);
+        }
+    }
+
+    private void initFilterObservation(Map<String, Object> hints) {
+        this.requestMode = (ResponseModeType) hints.get("responseMode");
+        this.resultModel = (QName) hints.get("resultModel");
         currentQuery              = new Query();
         final Select select       = new Select(configurationQuery.getSelect("filterObservation"));
         final From from;
@@ -148,14 +166,11 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         currentQuery.addFrom(from);
         currentQuery.addWhere(where);
         eventTimes.clear();
-        objectType = OMEntity.OBSERVATION;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void initFilterGetResult(final String procedure, final QName resultModel, Map<String, String> hints) {
+    private void initFilterGetResult(Map<String, Object> hints) {
+        String procedure = (String) hints.get("procedure");
+        this.resultModel = (QName) hints.get("resultModel");
         currentQuery              = new Query();
         final Select select       = new Select(configurationQuery.getSelect("filterResult"));
         final From from           = new From(configurationQuery.getFrom("observations"));
@@ -166,14 +181,9 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         currentQuery.addFrom(from);
         currentQuery.addWhere(where);
         eventTimes.clear();
-        this.objectType = OMEntity.RESULT;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void initFilterGetPhenomenon() throws DataStoreException {
+    private void initFilterGetPhenomenon() throws DataStoreException {
         currentQuery              = new Query();
         final Select select       = new Select(configurationQuery.getSelect("filterPhenomenon"));
         final From from           = new From(configurationQuery.getFrom("observed_properties"));
@@ -181,14 +191,9 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         currentQuery.addSelect(select);
         currentQuery.addFrom(from);
         eventTimes.clear();
-        this.objectType = OMEntity.OBSERVED_PROPERTY;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void initFilterGetSensor() throws DataStoreException {
+    private void initFilterGetSensor() throws DataStoreException {
         currentQuery              = new Query();
         final Select select       = new Select(configurationQuery.getSelect("filterSensor"));
         final From from           = new From(configurationQuery.getFrom("sensor"));
@@ -196,39 +201,6 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         currentQuery.addSelect(select);
         currentQuery.addFrom(from);
         eventTimes.clear();
-        this.objectType = OMEntity.PROCEDURE;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void initFilterGetFeatureOfInterest() throws DataStoreException {
-        // do nothing no implemented
-        this.objectType = OMEntity.FEATURE_OF_INTEREST;
-    }
-
-    @Override
-    public void initFilterOffering() throws DataStoreException {
-        this.objectType = OMEntity.OFFERING;
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public void initFilterGetLocations() throws DataStoreException {
-        this.objectType = OMEntity.LOCATION;
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public void initFilterGetHistoricalLocations() throws DataStoreException {
-        this.objectType = OMEntity.HISTORICAL_LOCATION;
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public void initFilterGetProcedureTimes() throws DataStoreException {
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     /**
@@ -387,7 +359,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      * {@inheritDoc}
      */
     @Override
-    public List<ObservationResult> filterResult(Map<String, String> hints) throws DataStoreException {
+    public List<ObservationResult> filterResult(Map<String, Object> hints) throws DataStoreException {
         final String request = currentQuery.buildSQLQuery();
         LOGGER.log(Level.INFO, "request:{0}", request);
         try {
@@ -414,27 +386,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      * {@inheritDoc}
      */
     @Override
-    public Set<String> filterObservation(Map<String, String> hints) throws DataStoreException {
-        return extractIdQuery();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Set<String> filterPhenomenon(Map<String, String> hints) throws DataStoreException {
-        return extractIdQuery();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Set<String> filterProcedure(Map<String, String> hints) throws DataStoreException {
-        return extractIdQuery();
-    }
-
-    private Set<String> extractIdQuery() throws DataStoreException {
+    public Set<String> getIdentifiers(Map<String, Object> hints) throws DataStoreException {
         final String request = currentQuery.buildSQLQuery();
         LOGGER.log(Level.INFO, "request:{0}", request);
         try {
@@ -478,11 +430,6 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     }
 
     @Override
-    public Set<String> filterFeatureOfInterest(Map<String, String> hints) throws DataStoreException {
-        throw new DataStoreException("filterFeatureOfInterest is not supported by this ObservationFilter implementation.");
-    }
-
-    @Override
     public void destroy() {
         // do nothing
     }
@@ -493,56 +440,35 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     }
 
     @Override
-    public Set<String> filterOffering(Map<String, String> hints) throws DataStoreException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    /**
-     * TODO Not sure if it is working.
-     *
-     * @param hints
-     * @return
-     * @throws DataStoreException
-     */
-    @Override
-    public List<Observation> getObservationTemplates(Map<String, String> hints) throws DataStoreException {
+    public List<Observation> getObservations(Map<String, Object> hints) throws DataStoreException {
         final String version                 = getVersionFromHints(hints);
         final List<Observation> observations = new ArrayList<>();
-        final Set<String> oid = filterObservation(hints);
+        final Set<String> oid                = getIdentifiers(hints);
         for (String foid : oid) {
             final Observation obs = reader.getObservation(foid, resultModel, requestMode, version);
-            observations.add(obs);
-        }
-        return observations;
-    }
 
-    @Override
-    public List<Observation> getObservations(Map<String, String> hints) throws DataStoreException {
-        final String version                 = getVersionFromHints(hints);
-        final List<Observation> observations = new ArrayList<>();
-        final Set<String> oid = filterObservation(hints);
-        for (String foid : oid) {
-            final Observation obs = reader.getObservation(foid, resultModel, requestMode, version);
-            // parse result values to eliminate wrong results
-            if (obs.getSamplingTime() instanceof Period) {
-                final Timestamp tbegin;
-                final Timestamp tend;
-                final Period p = (Period)obs.getSamplingTime();
-                if (p.getBeginning() != null && p.getBeginning().getDate() != null) {
-                    tbegin = new Timestamp(p.getBeginning().getDate().getTime());
-                } else {
-                    tbegin = null;
-                }
-                if (p.getEnding() != null && p.getEnding().getDate() != null) {
-                    tend = new Timestamp(p.getEnding().getDate().getTime());
-                } else {
-                    tend = null;
-                }
-                if (obs.getResult() instanceof DataArrayProperty) {
-                    final DataArray array = ((DataArrayProperty)obs.getResult()).getDataArray();
-                    final DatablockParser.Values result   = getResultValues(tbegin, tend, array, eventTimes);
-                    array.setValues(result.values.toString());
-                    array.setElementCount(result.nbBlock);
+            if (!RESULT_TEMPLATE.equals(requestMode)) {
+                // parse result values to eliminate wrong results
+                if (obs.getSamplingTime() instanceof Period) {
+                    final Timestamp tbegin;
+                    final Timestamp tend;
+                    final Period p = (Period)obs.getSamplingTime();
+                    if (p.getBeginning() != null && p.getBeginning().getDate() != null) {
+                        tbegin = new Timestamp(p.getBeginning().getDate().getTime());
+                    } else {
+                        tbegin = null;
+                    }
+                    if (p.getEnding() != null && p.getEnding().getDate() != null) {
+                        tend = new Timestamp(p.getEnding().getDate().getTime());
+                    } else {
+                        tend = null;
+                    }
+                    if (obs.getResult() instanceof DataArrayProperty) {
+                        final DataArray array = ((DataArrayProperty)obs.getResult()).getDataArray();
+                        final DatablockParser.Values result   = getResultValues(tbegin, tend, array, eventTimes);
+                        array.setValues(result.values.toString());
+                        array.setElementCount(result.nbBlock);
+                    }
                 }
             }
             observations.add(obs);
@@ -551,10 +477,10 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     }
 
     @Override
-    public List<SamplingFeature> getFeatureOfInterests(Map<String, String> hints) throws DataStoreException {
+    public List<SamplingFeature> getFeatureOfInterests(Map<String, Object> hints) throws DataStoreException {
         final String version                 = getVersionFromHints(hints);
         final List<SamplingFeature> features = new ArrayList<>();
-        final Set<String> fid = filterFeatureOfInterest(hints);
+        final Set<String> fid                = getIdentifiers(hints);
         for (String foid : fid) {
             final SamplingFeature feature = reader.getFeatureOfInterest(foid, version);
             features.add(feature);
@@ -563,9 +489,9 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     }
 
     @Override
-    public List<Phenomenon> getPhenomenons(Map<String, String> hints) throws DataStoreException {
+    public List<Phenomenon> getPhenomenons(Map<String, Object> hints) throws DataStoreException {
         final String version               = getVersionFromHints(hints);
-        final Set<String> fid = filterPhenomenon(hints);
+        final Set<String> fid              = getIdentifiers(hints);
         Map<String, Object> filters = new HashMap<>();
         filters.put(SOS_VERSION, version);
         filters.put(IDENTIFIER,  fid);
@@ -573,10 +499,10 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     }
 
     @Override
-    public List<Process> getProcesses(Map<String, String> hints) throws DataStoreException {
+    public List<Process> getProcesses(Map<String, Object> hints) throws DataStoreException {
         final String version          = getVersionFromHints(hints);
         final List<Process> processes = new ArrayList<>();
-        final Set<String> pids = filterProcedure(hints);
+        final Set<String> pids        = getIdentifiers(hints);
         for (String pid : pids) {
             final Process pr = reader.getProcess(pid, version);
             processes.add(pr);
@@ -589,27 +515,24 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         if (objectType == null) {
             throw new DataStoreException("initialisation of the filter missing.");
         }
-        Map<String, String> hints = Collections.EMPTY_MAP;
+        Map<String, Object> hints = Collections.EMPTY_MAP;
         // TODO optimize
         switch (objectType) {
-            case FEATURE_OF_INTEREST: return filterFeatureOfInterest(hints).size();
-            case OBSERVED_PROPERTY:   return filterPhenomenon(hints).size();
-            case PROCEDURE:           return filterProcedure(hints).size();
-            case LOCATION:            throw new DataStoreException("not implemented yet.");
-            case OFFERING:            return filterOffering(hints).size();
-            case OBSERVATION:         return filterObservation(hints).size();
+            case FEATURE_OF_INTEREST: 
+            case OBSERVED_PROPERTY:
+            case OFFERING:
+            case OBSERVATION:         
+            case PROCEDURE:           return getIdentifiers(hints).size();
             case RESULT:              return filterResult(hints).size();
+            case HISTORICAL_LOCATION:
+            case LOCATION:            throw new DataStoreException("not implemented yet.");
+            
         }
         throw new DataStoreException("initialisation of the filter missing.");
     }
 
     @Override
-    public String getResults(Map<String, String> hints) throws DataStoreException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public Object getOutOfBandResults() throws DataStoreException {
+    public String getResults(Map<String, Object> hints) throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -628,28 +551,18 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    private String getVersionFromHints(Map<String, String> hints) {
-        String version = "2.0.0";
-        if (hints != null) {
-            if (hints.containsKey("version")) {
-                version = hints.get("version");
-            }
-        }
-        return version;
-    }
-
     @Override
-    public Map<String, Geometry> getSensorLocations(Map<String, String> hints) throws DataStoreException {
+    public Map<String, Geometry> getSensorLocations(Map<String, Object> hints) throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public Map<String, Map<Date, Geometry>> getSensorHistoricalLocations(Map<String, String> hints) throws DataStoreException {
+    public Map<String, Map<Date, Geometry>> getSensorHistoricalLocations(Map<String, Object> hints) throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public Map<String, List<Date>> getSensorTimes(Map<String, String> hints) throws DataStoreException {
+    public Map<String, List<Date>> getSensorTimes(Map<String, Object> hints) throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

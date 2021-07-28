@@ -71,7 +71,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
 
     protected QName resultModel;
 
-    protected ResponseModeType requestMode;
+    protected ResponseModeType responseMode;
 
     protected final String phenomenonIdBase;
 
@@ -92,33 +92,45 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public void initFilterObservation(final ResponseModeType requestMode, final QName resultModel, final Map<String, String> hints) {
+    public void init(OMEntity objectType, Map<String, Object> hints) throws DataStoreException {
+        this.objectType = objectType;
+        this.eventTimes.clear();
+         
+        switch (objectType) {
+            case FEATURE_OF_INTEREST: luceneRequest = new StringBuilder("type:foi"); break;
+            case OBSERVED_PROPERTY:   luceneRequest = new StringBuilder("type:phenomenon"); break;
+            case PROCEDURE:           luceneRequest = new StringBuilder("type:procedure"); break;
+            case OFFERING:            luceneRequest = new StringBuilder("type:offering"); break;
+            case OBSERVATION:         initFilterObservation(hints);break;
+            case RESULT:              initFilterGetResult(hints);break;
+            case LOCATION:
+            case HISTORICAL_LOCATION: throw new UnsupportedOperationException("Not supported yet.");
+            default: throw new DataStoreException("unexpected object type:" + objectType);
+        }
+    }
+    
+    private void initFilterObservation(final Map<String, Object> hints) {
+        this.responseMode = (ResponseModeType) hints.get("responseMode");
+        this.resultModel = (QName) hints.get("resultModel");
         if (resultModel.equals(MEASUREMENT_QNAME)) {
             luceneRequest = new StringBuilder("type:measurement ");
         } else {
             luceneRequest = new StringBuilder("type:observation ");
         }
 
-        if (ResponseModeType.RESULT_TEMPLATE.equals(requestMode)) {
+        if (ResponseModeType.RESULT_TEMPLATE.equals(responseMode)) {
             luceneRequest.append("template:TRUE ");
         } else {
             luceneRequest.append("template:FALSE ");
         }
-        this.resultModel = resultModel;
-        this.requestMode = requestMode;
         this.objectType = OMEntity.OBSERVATION;
-        eventTimes.clear();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void initFilterGetResult(final String procedure, final QName resultModel, final Map<String, String> hints) {
+    private void initFilterGetResult(final Map<String, Object> hints) {
+        String procedure = (String) hints.get("procedure");
+        this.resultModel = (QName) hints.get("resultModel");
+        this.responseMode = (ResponseModeType) hints.get("responseMode");
         if (resultModel.equals(MEASUREMENT_QNAME)) {
             luceneRequest = new StringBuilder("type:measurement AND template:FALSE AND procedure:\"" + procedure + "\" ");
         } else {
@@ -126,55 +138,6 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
         }
         this.resultModel = resultModel;
         this.objectType = OMEntity.RESULT;
-        eventTimes.clear();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void initFilterGetPhenomenon() throws DataStoreException {
-        luceneRequest = new StringBuilder("type:phenomenon");
-        this.objectType = OMEntity.OBSERVED_PROPERTY;
-        eventTimes.clear();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void initFilterGetSensor() throws DataStoreException {
-        luceneRequest = new StringBuilder("type:procedure");
-        this.objectType = OMEntity.PROCEDURE;
-        eventTimes.clear();
-    }
-
-    @Override
-    public void initFilterOffering() throws DataStoreException {
-        luceneRequest = new StringBuilder("type:offering");
-        this.objectType = OMEntity.OFFERING;
-        eventTimes.clear();
-    }
-
-    @Override
-    public void initFilterGetLocations() throws DataStoreException {
-        this.objectType = OMEntity.LOCATION;
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public void initFilterGetHistoricalLocations() throws DataStoreException {
-        this.objectType = OMEntity.HISTORICAL_LOCATION;
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void initFilterGetFeatureOfInterest() throws DataStoreException {
-        luceneRequest = new StringBuilder("type:foi");
-        this.objectType = OMEntity.FEATURE_OF_INTEREST;
     }
 
     /**
@@ -379,7 +342,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
      * {@inheritDoc}
      */
     @Override
-    public List<ObservationResult> filterResult(Map<String, String> hints) throws DataStoreException {
+    public List<ObservationResult> filterResult(Map<String, Object> hints) throws DataStoreException {
         try {
             final SpatialQuery query = new SpatialQuery(luceneRequest.toString());
             final SortField sf       = new SortField("sampling_time_begin_sort", SortField.Type.STRING, false);
@@ -394,7 +357,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
      * {@inheritDoc}
      */
     @Override
-    public Set<String> filterObservation(Map<String, String> hints) throws DataStoreException {
+    public Set<String> getIdentifiers(Map<String, Object> hints) throws DataStoreException {
         try {
             Set<String> results = searcher.doSearch(new SpatialQuery(luceneRequest.toString()));
             // order results
@@ -407,39 +370,23 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
     }
 
     @Override
-    public Set<String> filterFeatureOfInterest(Map<String, String> hints) throws DataStoreException {
-        try {
-            return searcher.doSearch(new SpatialQuery(luceneRequest.toString()));
-        } catch(SearchingException ex) {
-            throw new DataStoreException("Search exception while filtering the featureOfinterest", ex);
+    public long getCount() throws DataStoreException {
+        if (objectType == null) {
+            throw new DataStoreException("initialisation of the filter missing.");
         }
-    }
-
-    @Override
-    public Set<String> filterProcedure(Map<String, String> hints) throws DataStoreException {
-        try {
-            return searcher.doSearch(new SpatialQuery(luceneRequest.toString()));
-        } catch(SearchingException ex) {
-            throw new DataStoreException("Search exception while filtering the procedures", ex);
+        Map<String, Object> hints = Collections.EMPTY_MAP;
+        // TODO optimize
+        switch (objectType) {
+            case FEATURE_OF_INTEREST:
+            case OBSERVED_PROPERTY:
+            case PROCEDURE:
+            case OFFERING:            
+            case OBSERVATION:         return getIdentifiers(hints).size();
+            case RESULT:              return filterResult(hints).size();
+            case HISTORICAL_LOCATION:
+            case LOCATION:            throw new DataStoreException("not implemented yet.");
         }
-    }
-
-    @Override
-    public Set<String> filterOffering(Map<String, String> hints) throws DataStoreException {
-        try {
-            return searcher.doSearch(new SpatialQuery(luceneRequest.toString()));
-        } catch(SearchingException ex) {
-            throw new DataStoreException("Search exception while filtering the procedures", ex);
-        }
-    }
-
-    @Override
-    public Set<String> filterPhenomenon(Map<String, String> hints) throws DataStoreException {
-        try {
-            return searcher.doSearch(new SpatialQuery(luceneRequest.toString()));
-        } catch(SearchingException ex) {
-            throw new DataStoreException("Search exception while filtering the procedures", ex);
-        }
+        throw new DataStoreException("initialisation of the filter missing.");
     }
 
     /**
@@ -509,24 +456,5 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
     @Override
     public void setProcedureType(String type) throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public long getCount() throws DataStoreException {
-        if (objectType == null) {
-            throw new DataStoreException("initialisation of the filter missing.");
-        }
-        Map<String, String> hints = Collections.EMPTY_MAP;
-        // TODO optimize
-        switch (objectType) {
-            case FEATURE_OF_INTEREST: return filterFeatureOfInterest(hints).size();
-            case OBSERVED_PROPERTY:   return filterPhenomenon(hints).size();
-            case PROCEDURE:           return filterProcedure(hints).size();
-            case LOCATION:            throw new DataStoreException("not implemented yet.");
-            case OFFERING:            return filterOffering(hints).size();
-            case OBSERVATION:         return filterObservation(hints).size();
-            case RESULT:              return filterResult(hints).size();
-        }
-        throw new DataStoreException("initialisation of the filter missing.");
     }
 }

@@ -44,31 +44,29 @@ import org.opengis.temporal.TemporalGeometricPrimitive;
  */
 public interface ObservationProvider extends DataProvider {
 
-    Collection<String> getOfferingNames(Query query, final Map<String,String> hints) throws ConstellationStoreException;
+    Collection<String> getOfferingNames(Query query, final Map<String, Object> hints) throws ConstellationStoreException;
 
-    Collection<String> getProcedureNames(Query query, final Map<String,String> hints) throws ConstellationStoreException;
+    Collection<String> getProcedureNames(Query query, final Map<String, Object> hints) throws ConstellationStoreException;
 
-    Collection<String> getPhenomenonNames(Query query, final Map<String,String> hints) throws ConstellationStoreException;
+    Collection<String> getPhenomenonNames(Query query, final Map<String, Object> hints) throws ConstellationStoreException;
 
-    Collection<String> getFeatureOfInterestNames(Query query, final Map<String,String> hints) throws ConstellationStoreException;
+    Collection<String> getFeatureOfInterestNames(Query query, final Map<String, Object> hints) throws ConstellationStoreException;
     
-    Collection<String> getObservationNames(Query query, QName resultModel, String responseMode, final Map<String,String> hints) throws ConstellationStoreException;
+    Collection<String> getObservationNames(Query query, QName resultModel, String responseMode, final Map<String, Object> hints) throws ConstellationStoreException;
 
-    List<ProcedureTree> getProcedureTrees(Query query, final Map<String,String> hints) throws ConstellationStoreException;
+    List<ProcedureTree> getProcedureTrees(Query query, final Map<String, Object> hints) throws ConstellationStoreException;
 
-    List<Phenomenon> getPhenomenon(Query query, final Map<String,String> hints) throws ConstellationStoreException;
+    List<Phenomenon> getPhenomenon(Query query, final Map<String, Object> hints) throws ConstellationStoreException;
 
-    List<SamplingFeature> getFeatureOfInterest(Query query, final Map<String,String> hints) throws ConstellationStoreException;
+    List<SamplingFeature> getFeatureOfInterest(Query query, final Map<String, Object> hints) throws ConstellationStoreException;
 
-    List<Observation> getObservations(Query query, QName resultModel, String responseMode, String responseFormat, final Map<String,String> hints) throws ConstellationStoreException;
+    List<Observation> getObservations(Query query, QName resultModel, String responseMode, String responseFormat, final Map<String, Object> hints) throws ConstellationStoreException;
 
-    Object getOutOfBandObservations(Query query, QName resultModel, String responseFormat, final Map<String,String> hints) throws ConstellationStoreException;
+    List<Process> getProcedures(Query query, final Map<String, Object> hints) throws ConstellationStoreException;
 
-    List<Process> getProcedures(Query query, final Map<String,String> hints) throws ConstellationStoreException;
+    List<Offering> getOfferings(Query query, final Map<String, Object> hints) throws ConstellationStoreException;
 
-    List<Offering> getOfferings(Query query, final Map<String,String> hints) throws ConstellationStoreException;
-
-    Object getResults(final String sensorID, QName resultModel, Query q, String responseFormat, Map<String, String> hints) throws ConstellationStoreException;
+    Object getResults(final String sensorID, QName resultModel, String responseMode, Query q, String responseFormat, Map<String, Object> hints) throws ConstellationStoreException;
 
     SOSProviderCapabilities getCapabilities()  throws ConstellationStoreException;
 
@@ -112,11 +110,11 @@ public interface ObservationProvider extends DataProvider {
 
     void writeLocation(String procedureId, Geometry geom) throws ConstellationStoreException;
 
-    Map<String, Map<Date, Geometry>> getHistoricalLocation(Query q, final Map<String,String> hints) throws ConstellationStoreException;
+    Map<String, Map<Date, Geometry>> getHistoricalLocation(Query q, final Map<String, Object> hints) throws ConstellationStoreException;
 
-    Map<String, Geometry> getLocation(Query q, final Map<String,String> hints) throws ConstellationStoreException;
+    Map<String, Geometry> getLocation(Query q, final Map<String, Object> hints) throws ConstellationStoreException;
 
-    Map<String, List<Date>> getHistoricalTimes(Query q, final Map<String,String> hints) throws ConstellationStoreException;
+    Map<String, List<Date>> getHistoricalTimes(Query q, final Map<String, Object> hints) throws ConstellationStoreException;
 
     ExtractionResult extractResults() throws ConstellationStoreException;
     ExtractionResult extractResults(final String affectedSensorID, final List<String> sensorIds) throws ConstellationStoreException;
@@ -137,5 +135,5 @@ public interface ObservationProvider extends DataProvider {
      */
     String getDatasourceKey();
 
-    long getCount(Query q, final Map<String,String> hints) throws ConstellationStoreException;
+    long getCount(Query q, final Map<String, Object> hints) throws ConstellationStoreException;
 }

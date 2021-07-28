@@ -24,6 +24,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -58,6 +59,7 @@ import org.apache.sis.storage.event.StoreEvent;
 import org.apache.sis.storage.event.StoreListener;
 import org.apache.sis.storage.event.StoreListeners;
 import org.constellation.api.CommonConstants;
+import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import org.constellation.util.Util;
 import org.geotoolkit.storage.event.FeatureStoreContentEvent;
 import org.geotoolkit.data.om.OMFeatureTypes;
@@ -69,6 +71,7 @@ import org.geotoolkit.storage.feature.GenericNameIndex;
 import org.geotoolkit.jdbc.DBCPDataSource;
 import org.geotoolkit.jdbc.ManageableDataSource;
 import org.geotoolkit.observation.AbstractObservationStore;
+import org.geotoolkit.observation.OMEntity;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationWriter;
@@ -270,7 +273,10 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
 
         // TODO optimize we don't need to call the filter here
         final ObservationFilterReader currentFilter = (ObservationFilterReader) getFilter();
-        currentFilter.initFilterObservation(ResponseModeType.INLINE, CommonConstants.OBSERVATION_QNAME, Collections.emptyMap());
+        final Map<String, Object> hints = new HashMap<>();
+        hints.put("responseMode", ResponseModeType.INLINE);
+        hints.put("resultModel", OBSERVATION_QNAME);
+        currentFilter.init(OMEntity.OBSERVATION, hints);
         final List<Observation> observations = currentFilter.getObservations(Collections.emptyMap());
         for (Observation obs : observations) {
             final AbstractObservation o = (AbstractObservation)obs;

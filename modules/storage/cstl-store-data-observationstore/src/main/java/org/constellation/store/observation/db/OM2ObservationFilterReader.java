@@ -61,6 +61,9 @@ import org.geotoolkit.observation.xml.AbstractObservation;
 import org.geotoolkit.observation.xml.OMXmlFactory;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
+import org.geotoolkit.sos.xml.ResponseModeType;
+import static org.geotoolkit.sos.xml.ResponseModeType.INLINE;
+import static org.geotoolkit.sos.xml.ResponseModeType.RESULT_TEMPLATE;
 
 import static org.geotoolkit.sos.xml.SOSXmlFactory.*;
 import org.geotoolkit.swe.xml.AbstractDataRecord;
@@ -265,7 +268,21 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     }
 
     @Override
-    public List<Observation> getObservationTemplates(final Map<String,String> hints) throws DataStoreException {
+    public List<Observation> getObservations(Map<String, Object> hints) throws DataStoreException {
+        if (RESULT_TEMPLATE.equals(responseMode)) {
+            return getObservationTemplates(hints);
+        } else if (INLINE.equals(responseMode)) {
+            if (MEASUREMENT_QNAME.equals(resultModel)) {
+                return getMesurements(hints);
+            } else {
+                return getComplexObservations(hints);
+            }
+        } else {
+            throw new DataStoreException("Unsupported response mode:" + responseMode);
+        }
+    }
+
+    private List<Observation> getObservationTemplates(final Map<String, Object> hints) throws DataStoreException {
         final String version = getVersionFromHints(hints);
         if (MEASUREMENT_QNAME.equals(resultModel)) {
             return getMesurementTemplates(version, hints);
@@ -348,7 +365,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         return observations;
     }
 
-    private List<Observation> getMesurementTemplates(final String version, Map<String, String> hints) throws DataStoreException {
+    private List<Observation> getMesurementTemplates(final String version, Map<String, Object> hints) throws DataStoreException {
         if (firstFilter) {
             sqlRequest.replaceFirst("WHERE", "");
         }
@@ -423,8 +440,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         return observations;
     }
 
-    @Override
-    public List<Observation> getObservations(final Map<String,String> hints) throws DataStoreException {
+    private List<Observation> getComplexObservations(final Map<String,Object> hints) throws DataStoreException {
         String version                = getVersionFromHints(hints);
         boolean includeIDInDataBlock  = getBooleanHint(hints, "includeIDInDataBlock",  false);
         boolean includeTimeForProfile = getBooleanHint(hints, "includeTimeForProfile", false);
@@ -434,9 +450,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             resultMode = ResultMode.DATA_ARRAY;
         } else {
             resultMode = ResultMode.CSV;
-        }
-        if (MEASUREMENT_QNAME.equals(resultModel)) {
-            return getMesurements(version);
         }
         if (firstFilter) {
             sqlRequest.replaceFirst("WHERE", "");
@@ -691,7 +704,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         return buildDataArrayProperty(version, arrayID, nbValue, arrayID, record, encoding, stringValues, dataValues);
     }
 
-    public List<Observation> getMesurements(final String version) throws DataStoreException {
+    private List<Observation> getMesurements(final Map<String, Object> hints) throws DataStoreException {
+        final String version = getVersionFromHints(hints);
         // add orderby to the query
         sqlRequest.append(" ORDER BY o.\"id\"");
         if (firstFilter) {
@@ -829,7 +843,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     }
 
     @Override
-    public Object getResults(final Map<String,String> hints) throws DataStoreException {
+    public Object getResults(final Map<String, Object> hints) throws DataStoreException {
+        if (ResponseModeType.OUT_OF_BAND.equals(responseMode)) {
+            throw new ObservationStoreException("Out of band response mode has not been implemented yet", NO_APPLICABLE_CODE, RESPONSE_MODE);
+        }
         Integer decimationSize         = getIntegerHint(hints, "decimSize", null);
         boolean includeTimeForProfile  = getBooleanHint(hints, "includeTimeForProfile", false);
         final boolean profile          = "profile".equals(currentOMType);
@@ -1361,7 +1378,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     }
 
     @Override
-    public List<SamplingFeature> getFeatureOfInterests(final Map<String,String> hints) throws DataStoreException {
+    public List<SamplingFeature> getFeatureOfInterests(final Map<String, Object> hints) throws DataStoreException {
         final String version = getVersionFromHints(hints);
         if (obsJoin) {
             final String obsJoin = ", \"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"foi\" = sf.\"id\" ";
@@ -1425,7 +1442,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     }
 
     @Override
-    public List<Phenomenon> getPhenomenons(final Map<String,String> hints) throws DataStoreException {
+    public List<Phenomenon> getPhenomenons(final Map<String, Object> hints) throws DataStoreException {
         final String version = getVersionFromHints(hints);
         if (obsJoin) {
             final String obsJoin = ", \"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"observed_property\" = op.\"id\" ";
@@ -1477,7 +1494,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     }
 
     @Override
-    public List<Process> getProcesses(final Map<String,String> hints) throws DataStoreException {
+    public List<Process> getProcesses(final Map<String, Object> hints) throws DataStoreException {
         final String version = getVersionFromHints(hints);
         if (obsJoin) {
             final String obsJoin = ", \"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"procedure\" = pr.\"id\" ";
@@ -1514,7 +1531,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     }
 
     @Override
-    public Map<String, Geometry> getSensorLocations(Map<String, String> hints) throws DataStoreException {
+    public Map<String, Geometry> getSensorLocations(Map<String, Object> hints) throws DataStoreException {
         final String version = getVersionFromHints(hints);
         final String gmlVersion = getGMLVersion(version);
         if (obsJoin) {
@@ -1582,7 +1599,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     }
 
     @Override
-    public Map<String, Map<Date, Geometry>> getSensorHistoricalLocations(final Map<String,String> hints) throws DataStoreException {
+    public Map<String, Map<Date, Geometry>> getSensorHistoricalLocations(final Map<String, Object> hints) throws DataStoreException {
         Integer decimSize = getIntegerHint(hints, "decimSize", null);
         if (decimSize != null) {
             return getDecimatedSensorLocationsV2(hints, decimSize);
@@ -1672,7 +1689,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
      * @return
      * @throws DataStoreException
      */
-    private Map<String, Map<Date, Geometry>> getDecimatedSensorLocations(final Map<String,String> hints, int decimSize) throws DataStoreException {
+    private Map<String, Map<Date, Geometry>> getDecimatedSensorLocations(final Map<String, Object> hints, int decimSize) throws DataStoreException {
         final String version = getVersionFromHints(hints);
         final String gmlVersion = getGMLVersion(version);
         FilterSQLRequest stepRequest = sqlRequest.clone();
@@ -1978,7 +1995,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
      * @return
      * @throws DataStoreException
      */
-    private Map<String, Map<Date, Geometry>> getDecimatedSensorLocationsV2(final Map<String,String> hints, int decimSize) throws DataStoreException {
+    private Map<String, Map<Date, Geometry>> getDecimatedSensorLocationsV2(final Map<String, Object> hints, int decimSize) throws DataStoreException {
         final String version = getVersionFromHints(hints);
         final String gmlVersion = getGMLVersion(version);
         FilterSQLRequest stepRequest = sqlRequest.clone();
@@ -2116,7 +2133,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     }
 
     @Override
-    public Map<String, List<Date>> getSensorTimes(final Map<String,String> hints) throws DataStoreException {
+    public Map<String, List<Date>> getSensorTimes(final Map<String, Object> hints) throws DataStoreException {
         if (firstFilter) {
             sqlRequest.replaceFirst("WHERE", "");
         }
@@ -2145,11 +2162,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             throw new DataStoreException("the service has throw a SQL Exception.", ex);
         }
         return times;
-    }
-
-    @Override
-    public String getOutOfBandResults() throws DataStoreException {
-        throw new ObservationStoreException("Out of band response mode has not been implemented yet", NO_APPLICABLE_CODE, RESPONSE_MODE);
     }
 
     @Override
