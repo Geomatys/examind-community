@@ -69,6 +69,8 @@ import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.Scroll;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.opengis.geometry.Envelope;
@@ -233,13 +235,13 @@ public class ElasticSearchClient {
         return map;
     }
 
-   public SearchHit[] search(final String index, final String queryJson, final QueryBuilder query, 
+   public SearchHit[] search(final String index, final String queryJson, final QueryBuilder query,
            final QueryBuilder filter, final int start, final int limit, final Sort sort,
            final boolean fetchSource, final List<String> fields) throws IOException {
 
         SearchSourceBuilder builder = new SearchSourceBuilder();
         builder = builder.fetchSource(fetchSource);
-        
+
         if (queryJson != null) {
             builder = builder.query(QueryBuilders.wrapperQuery(queryJson));
         } else if (query != null) {
@@ -336,6 +338,32 @@ public class ElasticSearchClient {
         sRequest.query(builder.query());
         final CountResponse response = client.count(sRequest, RequestOptions.DEFAULT);
         return response.getCount();
+    }
+
+    public List<String> getFieldValues(final String index, final String queryJson, QueryBuilder query, final QueryBuilder filter, String field) throws IOException {
+        SearchSourceBuilder builder = new SearchSourceBuilder();
+        builder.aggregation(AggregationBuilders.terms("agg1").field(field).size(10000));
+        builder.fetchSource(false);
+        builder.size(0);
+
+        if (queryJson != null) {
+            builder = builder.query(QueryBuilders.wrapperQuery(queryJson));
+        } else if (query != null) {
+            builder = builder.query(query);
+        }
+        if (filter != null) {
+            builder = builder.postFilter(filter);
+        }
+
+        SearchRequest sRequest = new SearchRequest(index);
+        sRequest.source(builder);
+        final SearchResponse response = client.search(sRequest, RequestOptions.DEFAULT);
+        Terms agg1 = response.getAggregations().get("agg1");
+        List<String> results = new ArrayList<>();
+        for (Terms.Bucket b : agg1.getBuckets()) {
+            results.add(b.getKeyAsString());
+        }
+        return results;
     }
 
 
