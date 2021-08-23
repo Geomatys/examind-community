@@ -685,11 +685,13 @@ public class DataBusiness implements IDataBusiness {
                     LOGGER.log(Level.WARNING, "Error retrieving dates values for the data: {" + data.getNamespace() + "} " + data.getName(), ex);
                 }
                 if (dates != null && !(dates.isEmpty())) {
-                    final PeriodUtilities periodFormatter = new PeriodUtilities(ISO8601_FORMAT);
-                    final String defaut = ISO8601_FORMAT.format(dates.last());
-                    dim = new Dimension("time", "ISO8601", defaut, null);
-                    dim.setValue(periodFormatter.getDatesRespresentation(dates));
-                    dimensions.add(dim);
+                    synchronized(ISO8601_FORMAT) {
+                        final PeriodUtilities periodFormatter = new PeriodUtilities(ISO8601_FORMAT);
+                        final String defaut = ISO8601_FORMAT.format(dates.last());
+                        dim = new Dimension("time", "ISO8601", defaut, null);
+                        dim.setValue(periodFormatter.getDatesRespresentation(dates));
+                        dimensions.add(dim);
+                    }
                 }
 
                 // what about elevations?
