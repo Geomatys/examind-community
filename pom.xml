@@ -1109,7 +1109,7 @@
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <!-- Sync with the version used by UCAR NetCDF -->
-                <version>28.0-jre</version>
+                <version>29.0-jre</version>
             </dependency>
             <dependency>
                 <groupId>org.modelmapper</groupId>
