@@ -19,7 +19,6 @@
 
 package org.constellation.provider;
 
-import java.util.Collection;
 import java.util.logging.Logger;
 
 import org.opengis.parameter.ParameterValueGroup;
@@ -118,42 +117,6 @@ public abstract class AbstractDataProvider implements DataProvider{
             }
         }
         return false;
-    }
-
-    /**
-     * Fill namespace on name is not present.
-     */
-    protected GenericName fullyQualified(final GenericName key){
-        for(GenericName n : getKeys()){
-            if(NamesExt.match(n, key)){
-                return n;
-            }
-        }
-        return key;
-    }
-
-    public static GenericName containsOnlyLocalPart(final Collection<GenericName> index, final GenericName layerName) {
-        if (layerName != null) {
-            if (NamesExt.getNamespace(layerName) == null) {
-                for (GenericName name : index) {
-                    if (name.tip().toString().equals(layerName.tip().toString())) {
-                        return name;
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    public static GenericName containsWithNamespaceError(final Collection<GenericName> index, final GenericName layerName) {
-        if (layerName != null) {
-            for (GenericName name : index) {
-                if (name.tip().toString().equals(layerName.tip().toString())) {
-                    return name;
-                }
-            }
-        }
-        return null;
     }
 
     @Override

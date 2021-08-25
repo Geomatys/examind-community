@@ -20,10 +20,12 @@
 package org.constellation.dto.service.config.sos;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import javax.xml.bind.annotation.*;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import org.constellation.util.NamedId;
 
@@ -31,8 +33,7 @@ import org.constellation.util.NamedId;
  *
  * @author Guilhem Legal
  */
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class SensorMLTree {
 
     private String type;
@@ -43,10 +44,10 @@ public class SensorMLTree {
 
     private String owner;
 
-    private List<SensorMLTree> children;
+    private Object sml;
 
-    @XmlTransient
-    @JsonIgnore
+    private final Map<String, SensorMLTree> children = new HashMap<>();
+
     private SensorMLTree parent;
 
     private Date createDate;
@@ -55,12 +56,13 @@ public class SensorMLTree {
 
     }
 
-    public SensorMLTree(final Integer id, final String identifier, final String type, final String owner, final Date time) {
+    public SensorMLTree(final Integer id, final String identifier, final String type, final String owner, final Date time, Object sml) {
         this.id   = id;
         this.type = type;
         this.owner = owner;
         this.identifier = identifier;
         this.createDate = time;
+        this.sml = sml;
     }
 
     /**
@@ -130,60 +132,59 @@ public class SensorMLTree {
     /**
      * @return the parent
      */
+    @JsonIgnore
     public SensorMLTree getParent() {
         return parent;
+    }
+
+    /**
+     * @return the sml
+     */
+    @JsonIgnore
+    public Object getSml() {
+        return sml;
+    }
+
+    /**
+     * @param sml the sml to set
+     */
+    public void setSml(Object sml) {
+        this.sml = sml;
     }
 
     /**
      * @return the children
      */
     public List<SensorMLTree> getChildren() {
-        if (children == null) {
-            children = new ArrayList<>();
-        }
-        return children;
+        return new ArrayList<>(children.values());
     }
 
     public void addChildren(final SensorMLTree child) {
         child.parent = this;
-        if (children == null) {
-            children = new ArrayList<>();
-        }
-        children.add(child);
+        children.put(child.getIdentifier(), child);
     }
 
     /**
      * @param children the children to set
      */
     public void setChildren(List<SensorMLTree> children) {
-        this.children = children;
+        children.clear();
+        for (SensorMLTree child : children) {
+            addChildren(child);
+        }
     }
 
     public void replaceChildren(final SensorMLTree newChild) {
-        if (children == null) {
-            children = new ArrayList<>();
-        }
-        for (SensorMLTree child : children) {
-            if (newChild.getIdentifier().equals(child.getIdentifier())) {
-                children.remove(child);
-                children.add(newChild);
-                newChild.parent = this;
-                return;
-            }
+        if (children.containsKey(newChild.getIdentifier())) {
+            children.put(newChild.getIdentifier(), newChild);
+            newChild.parent = this;
+            return;
         }
         throw new IllegalArgumentException("No child to replace:" + newChild.getId());
     }
 
     public boolean hasChild(final String identifier) {
-        if (children == null) {
-            children = new ArrayList<>();
-        }
-        for (SensorMLTree child : children) {
-            if (identifier.equals(child.getIdentifier())) {
-                return true;
-            }
-        }
-        return false;
+        return children.containsKey(identifier);
     }
 
     public SensorMLTree find(final String identifier) {
@@ -199,6 +200,7 @@ public class SensorMLTree {
         return null;
     }
 
+    @JsonIgnore
     public List<String> getAllChildrenIds() {
         final List<String> results = new ArrayList<>();
         results.add(identifier);
@@ -210,6 +212,7 @@ public class SensorMLTree {
         return results;
     }
 
+    @JsonIgnore
     public List<NamedId> getAllChildrenNamedIds() {
         final List<NamedId> results = new ArrayList<>();
         results.add(new NamedId(id, identifier));
@@ -221,15 +224,34 @@ public class SensorMLTree {
         return results;
     }
 
-    public static SensorMLTree buildTree(final List<SensorMLTree> nodeList) {
-        final SensorMLTree root = new SensorMLTree(null, "root", "System", null, null);
+    /**
+     * Build a Tree of sensor from a flat sensor list.
+     * Add a root node at the top.
+     *
+     * The "alreadyComputedFamilly" flag allow to rebuild a full hierachy from a list
+     * where the parent of the nodes are not set.
+     * 
+     * @param nodeList a flat sensor list.
+     * @param alreadyComputedFamilly indicate if the parent/children are already set on the elements.
+     * @return
+     */
+    public static SensorMLTree buildTree(final List<SensorMLTree> nodeList, boolean alreadyComputedFamilly) {
+        final SensorMLTree root = new SensorMLTree(null, "root", "System", null, null, null);
 
         for (SensorMLTree node : nodeList) {
-            final SensorMLTree parent = getParent(node, nodeList);
-            if (parent == null) {
-                root.addChildren(node);
+            // only link the top sensors to the root
+            if (alreadyComputedFamilly) {
+                if (node.getParent() == null) {
+                    root.addChildren(node);
+                }
+            // build the full tree
             } else {
-                parent.replaceChildren(node);
+                final SensorMLTree parent = getParent(node, nodeList);
+                if (parent == null) {
+                    root.addChildren(node);
+                } else {
+                    parent.replaceChildren(node);
+                }
             }
         }
         return root;
@@ -285,9 +307,12 @@ public class SensorMLTree {
         if (parent != null) {
             sb.append("parent=").append(parent.id).append("\n");
         }
+        if (sml != null) {
+            sb.append("sml=").append(parent.id).append("\n");
+        }
         if (children != null) {
             sb.append("children:");
-            for (SensorMLTree child : children) {
+            for (SensorMLTree child : children.values()) {
                 sb.append(child.id).append("\n");
             }
         }

@@ -19,12 +19,9 @@
 package org.constellation.provider.sensorstore;
 
 import java.nio.file.Path;
-import java.util.Collections;
 import java.util.Date;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 
 import org.opengis.parameter.GeneralParameterValue;
@@ -42,7 +39,7 @@ import org.geotoolkit.util.NamesExt;
 
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
-import org.constellation.provider.AbstractDataProvider;
+import org.constellation.provider.IndexedNameDataProvider;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.SensorProvider;
@@ -51,16 +48,13 @@ import org.constellation.provider.SensorProvider;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class SensorStoreProvider extends AbstractDataProvider implements SensorProvider {
+public class SensorStoreProvider extends IndexedNameDataProvider implements SensorProvider {
 
-
-    private final Set<GenericName> index = new LinkedHashSet<>();
     private AbstractSensorStore store;
 
 
     public SensorStoreProvider(String providerId, DataProviderFactory service, ParameterValueGroup param) throws DataStoreException{
         super(providerId,service,param);
-        visit();
     }
 
     /**
@@ -78,25 +72,9 @@ public class SensorStoreProvider extends AbstractDataProvider implements SensorP
      * {@inheritDoc }
      */
     @Override
-    public synchronized Set<GenericName> getKeys() {
-        return Collections.unmodifiableSet(index);
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public Data get(final GenericName key) {
-        return get(key, null);
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
     public Data get(GenericName key, Date version) {
         key = fullyQualified(key);
-        if(!contains(key)){
+        if (key == null) {
             return null;
         }
 
@@ -111,6 +89,7 @@ public class SensorStoreProvider extends AbstractDataProvider implements SensorP
         return null;
     }
 
+    @Override
     protected synchronized void visit() {
         store = createBaseStore();
 
@@ -177,15 +156,6 @@ public class SensorStoreProvider extends AbstractDataProvider implements SensorP
             LOGGER.log(Level.INFO, "Unable to remove " + key.toString() + " from provider.", ex);
         }
         return result;
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public synchronized void reload() {
-        dispose();
-        visit();
     }
 
     /**

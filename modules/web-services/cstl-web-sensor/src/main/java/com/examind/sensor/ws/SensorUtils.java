@@ -71,6 +71,8 @@ import static org.geotoolkit.sml.xml.SensorMLUtilities.getSmlID;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.ObservationProvider;
 import org.geotoolkit.filter.FilterUtilities;
+import org.geotoolkit.sml.xml.SensorMLUtilities;
+import static org.geotoolkit.sml.xml.SensorMLUtilities.getOMType;
 import org.opengis.filter.FilterFactory;
 import org.opengis.observation.CompositePhenomenon;
 import org.opengis.observation.Phenomenon;
@@ -261,7 +263,7 @@ public final class SensorUtils {
         return new ArrayList<>();
     }
 
-    public static List<SensorMLTree> getChildren(final AbstractProcess process) {
+    private static List<SensorMLTree> getChildren(final AbstractProcess process) {
         final List<SensorMLTree> results = new ArrayList<>();
         if (process instanceof System) {
             final System s = (System) process;
@@ -269,9 +271,10 @@ public final class SensorUtils {
             if (compos != null && compos.getComponentList() != null) {
                 for (ComponentProperty cp : compos.getComponentList().getComponent()){
                     if (cp.getHref() != null) {
-                        results.add(new SensorMLTree(null, cp.getHref(), "unknown", null, null));
+                        results.add(new SensorMLTree(null, cp.getHref(), "unknown", null, null, null));
                     } else if (cp.getAbstractProcess()!= null) {
-                        results.add(new SensorMLTree(null, getSmlID(cp.getAbstractProcess()), getSensorMLType(cp.getAbstractProcess()), null, null));
+                        AbstractProcess ap = cp.getAbstractProcess();
+                        results.add(new SensorMLTree(null, getSmlID(ap), getSensorMLType(ap), getOMType(ap), null, ap));
                     } else {
                         LOGGER.warning("SML system component has no href or embedded object");
                     }
@@ -283,9 +286,10 @@ public final class SensorUtils {
             if (compos != null && compos.getComponentList() != null) {
                 for (ComponentProperty cp : compos.getComponentList().getComponent()){
                     if (cp.getHref() != null) {
-                        results.add(new SensorMLTree(null, cp.getHref(), "unknown", null, null));
+                        results.add(new SensorMLTree(null, cp.getHref(), "unknown", null, null, null));
                     } else if (cp.getAbstractProcess()!= null) {
-                        results.add(new SensorMLTree(null, getSmlID(cp.getAbstractProcess()), getSensorMLType(cp.getAbstractProcess()),null, null));
+                        AbstractProcess ap = cp.getAbstractProcess();
+                        results.add(new SensorMLTree(null, getSmlID(ap), getSensorMLType(ap), getOMType(ap), null, ap));
                     } else {
                         LOGGER.warning("SML system component has no href or embedded object");
                     }

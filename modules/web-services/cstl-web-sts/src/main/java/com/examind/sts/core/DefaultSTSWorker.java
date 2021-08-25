@@ -1448,10 +1448,12 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                     LOGGER.warning("Unable to parse timestamp value of the historical location");
                 }
             }
-            final SimpleQuery subquery = buildExtraFilterQuery(req, true);
 
             // for a historical location
             if (d != null) {
+                final List<Filter> filters = new ArrayList<>();
+                filters.add(ff.tequals(ff.property("time"), ff.literal(OdataFilterParser.buildTemporalObj(d))));
+                final SimpleQuery subquery = buildExtraFilterQuery(req, true, filters);
                 Map<String,Map<Date, org.opengis.geometry.Geometry>> sensorHLocations = omProvider.getHistoricalLocation(subquery, new HashMap<>());
                 List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), null);
                 for (Entry<String,Map<Date, org.opengis.geometry.Geometry>> entry : sensorHLocations.entrySet()) {
@@ -1468,6 +1470,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
             // latest sensor locations
             } else {
+                final SimpleQuery subquery = buildExtraFilterQuery(req, true);
                 if (req.getCount()) {
                     count = new BigDecimal(omProvider.getCount(subquery, new HashMap(Collections.singletonMap(OBJECT_TYPE, PROCEDURE))));
                 }

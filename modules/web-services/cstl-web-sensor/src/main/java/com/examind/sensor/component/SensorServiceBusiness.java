@@ -56,8 +56,6 @@ import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.geotoolkit.nio.ZipUtilities;
 import org.geotoolkit.sml.xml.AbstractSensorML;
 import org.geotoolkit.sml.xml.SensorMLUtilities;
-import static org.geotoolkit.sml.xml.SensorMLUtilities.getSensorMLType;
-import static org.geotoolkit.sml.xml.SensorMLUtilities.getSmlID;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryCollection;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -114,14 +112,20 @@ public class SensorServiceBusiness {
         }
 
         try {
+            int smlProviderId = getSensorProviderId(serviceID);
             for (Path importedFile: files) {
                 if (importedFile != null) {
                     final Object sensor = sensorBusiness.unmarshallSensor(importedFile);
                     if (sensor instanceof AbstractSensorML) {
-                        final String sensorID = getSmlID((AbstractSensorML)sensor);
-                        final String smlType  = SensorMLUtilities.getSensorMLType((AbstractSensorML)sensor);
-                        final String omType   = SensorMLUtilities.getOMType((AbstractSensorML)sensor);
-                        sensorBusiness.create(sensorID, smlType, omType, null, sensor, System.currentTimeMillis(), getSensorProviderId(serviceID));
+                        final AbstractSensorML sml        = (AbstractSensorML) sensor;
+                        final String sensorID             = SensorMLUtilities.getSmlID(sml);
+                        final String smlType              = SensorMLUtilities.getSensorMLType(sml);
+                        final String omType               = SensorMLUtilities.getOMType(sml);
+                        final List<SensorMLTree> children = SensorUtils.getChildren(sml);
+                        sensorBusiness.create(sensorID, smlType, omType, null, sensor, System.currentTimeMillis(), smlProviderId);
+                        for (SensorMLTree child : children) {
+                            importSensorChild(child, sensorID, smlProviderId);
+                        }
                     } else {
                         throw new ConfigurationException("Only handle SensorML for now");
                     }
@@ -138,11 +142,17 @@ public class SensorServiceBusiness {
         return false;
     }
 
+    private void importSensorChild(SensorMLTree sensor, String parentId, int providerId) throws ConfigurationException {
+        sensorBusiness.create(sensor.getIdentifier(), sensor.getType(), null, parentId, sensor.getSml(), System.currentTimeMillis(), providerId);
+        for (SensorMLTree child : sensor.getChildren()) {
+            importSensorChild(child, sensor.getIdentifier(), providerId);
+        }
+    }
+
     public boolean removeSensor(final Integer id, final String sensorID) throws ConfigurationException {
         final ObservationProvider pr = getOMProvider(id);
         try {
-            final SensorMLTree root = getSensorTree(id);
-            final SensorMLTree tree = root.find(sensorID);
+            final SensorMLTree tree = sensorBusiness.getSensorMLTree(sensorID);
 
             // for a System sensor, we delete also his components
             final List<NamedId> toRemove = new ArrayList<>();
@@ -203,27 +213,6 @@ public class SensorServiceBusiness {
         }
     }
 
-    public SensorMLTree getSensorTree(Integer id) throws ConfigurationException {
-        final Collection<Sensor> sensors = sensorBusiness.getByServiceId(id);
-        final List<SensorMLTree> values = new ArrayList<>();
-        for (Sensor sensor : sensors) {
-            final AbstractSensorML sml = (AbstractSensorML) sensorBusiness.getSensorMetadata(sensor.getIdentifier());
-            final SensorMLTree t;
-            if (sml != null) {
-                final String smlType  = getSensorMLType(sml);
-                final String smlID    = getSmlID(sml);
-                t                     = new SensorMLTree(sensor.getId(), smlID, smlType, null, null);
-                final List<SensorMLTree> children = SensorUtils.getChildren(sml);
-                t.setChildren(children);
-            } else {
-                LOGGER.log(Level.WARNING, "Unable to retrieve Sensor Metadata for:{0}", sensor.getIdentifier());
-                t = new SensorMLTree(sensor.getId(), sensor.getIdentifier(), null, null, null);
-            }
-            values.add(t);
-        }
-        return SensorMLTree.buildTree(values);
-    }
-
     public Collection<String> getSensorIds(final Integer id) throws ConfigurationException {
         final ObservationProvider pr = getOMProvider(id);
         try {
@@ -260,8 +249,7 @@ public class SensorServiceBusiness {
     public Collection<String> getObservedPropertiesForSensorId(final Integer serviceId, final String sensorID, final boolean decompose) throws ConfigurationException {
         final ObservationProvider pr = getOMProvider(serviceId);
         try {
-            final SensorMLTree root          = getSensorTree(serviceId);
-            final SensorMLTree current       = root.find(sensorID);
+            final SensorMLTree current = sensorBusiness.getSensorMLTree(sensorID);
             if (current != null) {
                 return SensorUtils.getPhenomenonFromSensor(current, pr, decompose);
             } else {
@@ -366,8 +354,7 @@ public class SensorServiceBusiness {
     public String getWKTSensorLocation(final Integer id, final String sensorID) throws ConfigurationException {
         final ObservationProvider provider = getOMProvider(id);
         try {
-            final SensorMLTree root          = getSensorTree(id);
-            final SensorMLTree current       = root.find(sensorID);
+            final SensorMLTree current = sensorBusiness.getSensorMLTree(sensorID);
             if (current != null) {
                 final List<Geometry> jtsGeometries = SensorUtils.getJTSGeometryFromSensor(current, provider);
                 if (jtsGeometries.size() == 1) {

@@ -70,7 +70,9 @@ import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.Scroll;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.BucketOrder;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
+import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.opengis.geometry.Envelope;
@@ -340,9 +342,14 @@ public class ElasticSearchClient {
         return response.getCount();
     }
 
-    public List<String> getFieldValues(final String index, final String queryJson, QueryBuilder query, final QueryBuilder filter, String field) throws IOException {
+    public List<String> getFieldValues(final String index, final String queryJson, QueryBuilder query, final QueryBuilder filter, String field, SortOrder keySorted) throws IOException {
         SearchSourceBuilder builder = new SearchSourceBuilder();
-        builder.aggregation(AggregationBuilders.terms("agg1").field(field).size(10000));
+        TermsAggregationBuilder aggBuilder = AggregationBuilders.terms("agg1").field(field).size(Integer.MAX_VALUE);
+        if (keySorted != null) {
+            boolean asc = keySorted.ASC.equals(keySorted);
+            aggBuilder = aggBuilder.order(BucketOrder.key(asc));
+        }
+        builder.aggregation(aggBuilder);
         builder.fetchSource(false);
         builder.size(0);
 

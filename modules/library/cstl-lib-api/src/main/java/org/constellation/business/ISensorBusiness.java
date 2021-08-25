@@ -65,7 +65,7 @@ public interface ISensorBusiness {
     @Deprecated
     void delete(String sensorid, String providerId) throws ConfigurationException;
 
-    void deleteFromProvider(String providerId);
+    void deleteFromProvider(Integer providerId) throws ConfigurationException;
 
     Sensor getSensor(String sensorid);
 
@@ -136,7 +136,28 @@ public interface ISensorBusiness {
      */
     void removeSensorFromService(Integer serviceID, Integer sensorID) throws ConfigurationException;
 
+    /**
+     * return a full tree of all the sensors in the datasource.
+     * 
+     * @return
+     */
     SensorMLTree getFullSensorMLTree();
+
+    /**
+     * return a tree including the children of the specified sensor.
+     *
+     * @param sensorId sensor Identifier.
+     * @return
+     */
+    SensorMLTree getSensorMLTree(String sensorId) throws ConfigurationException;
+
+    /**
+     * return a tree of all the sensors in the specified service.
+     *
+     * @param serviceId The sensor service identifier.
+     * @return
+     */
+    SensorMLTree getServiceSensorMLTree(Integer serviceId);
 
     /**
      * Generate or update sensor(s) for the specified process.

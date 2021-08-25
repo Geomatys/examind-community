@@ -44,6 +44,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -181,6 +183,7 @@ public class SensorBusiness implements ISensorBusiness {
                 rmFromDb = provider.remove(NamesExt.create(sensor.getIdentifier()));
             }
             if (rmFromDb) {
+                sensorRepository.unlinkSensorFromAllServices(sensor.getId());
                 sensorRepository.delete(sensor.getIdentifier());
                 return true;
             }
@@ -205,10 +208,10 @@ public class SensorBusiness implements ISensorBusiness {
 
     @Override
     @Transactional
-    public void deleteFromProvider(String providerId) {
-        Integer provider = providerBusiness.getIDFromIdentifier(providerId);
-        if (provider != null) {
-            sensorRepository.deleteFromProvider(provider);
+    public void deleteFromProvider(Integer providerId) throws ConfigurationException {
+        List<Sensor> sensors = sensorRepository.findByProviderId(providerId);
+        for (Sensor sensor : sensors) {
+            delete(sensor.getIdentifier());
         }
     }
 
@@ -573,29 +576,66 @@ public class SensorBusiness implements ISensorBusiness {
      */
     @Override
     public SensorMLTree getFullSensorMLTree() {
+        return getSensorMLTree(sensorRepository.findAll());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public SensorMLTree getServiceSensorMLTree(Integer id) {
+        final Collection<Sensor> sensors = getByServiceId(id);
+        return getSensorMLTree(sensors);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public SensorMLTree getSensorMLTree(String sensorId) throws TargetNotFoundException {
+        Sensor s = sensorRepository.findByIdentifier(sensorId);
+        if (s != null) {
+            return getSensorTreeFromSensor(s);
+        }
+        throw new TargetNotFoundException("Unable to find a sensor:" + sensorId);
+    }
+
+    /**
+     * Build a Tree of sensor from a flat sensor list.
+     * Add a root node at the top.
+     *
+     *
+     * @param sensors a flat sensor list.
+     * @return
+     */
+    private SensorMLTree getSensorMLTree(final Collection<Sensor> sensors) {
         final List<SensorMLTree> values = new ArrayList<>();
-        final List<Sensor> sensors = sensorRepository.findAll();
         for (final Sensor sensor : sensors) {
-            final Optional<CstlUser> optUser = userBusiness.findById(sensor.getOwner());
-            String owner = null;
-            if(optUser.isPresent()){
-                owner = optUser.get().getLogin();
-            }
-            final SensorMLTree t = new SensorMLTree(sensor.getId(), sensor.getIdentifier(), sensor.getType(), owner, sensor.getDate());
-            final List<SensorMLTree> children = new ArrayList<>();
-            final List<Sensor> records = sensorRepository.getChildren(sensor.getIdentifier());
-            for (final Sensor record : records) {
-                final Optional<CstlUser> optUserChild = userBusiness.findById(sensor.getOwner());
-                String ownerChild = null;
-                if(optUserChild.isPresent()){
-                    ownerChild = optUserChild.get().getLogin();
-                }
-                children.add(new SensorMLTree(record.getId(), record.getIdentifier(), record.getType(), ownerChild, record.getDate()));
-            }
-            t.setChildren(children);
+            final SensorMLTree t = getSensorTreeFromSensor(sensor);
             values.add(t);
         }
-        return SensorMLTree.buildTree(values);
+        return SensorMLTree.buildTree(values, true);
+    }
+
+    private SensorMLTree getSensorTreeFromSensor(Sensor sensor) {
+        final Optional<CstlUser> optUser = userBusiness.findById(sensor.getOwner());
+        String owner = null;
+        if(optUser.isPresent()){
+            owner = optUser.get().getLogin();
+        }
+        final SensorMLTree t = new SensorMLTree(sensor.getId(), sensor.getIdentifier(), sensor.getType(), owner, sensor.getDate(), null);
+        final List<SensorMLTree> children = new ArrayList<>();
+        final List<Sensor> records = sensorRepository.getChildren(sensor.getIdentifier());
+        for (final Sensor record : records) {
+            final Optional<CstlUser> optUserChild = userBusiness.findById(record.getOwner());
+            String ownerChild = null;
+            if(optUserChild.isPresent()){
+                ownerChild = optUserChild.get().getLogin();
+            }
+            children.add(new SensorMLTree(record.getId(), record.getIdentifier(), record.getType(), ownerChild, record.getDate(), null));
+        }
+        t.setChildren(children);
+        return t;
     }
 
     private String getTemplateFromType(String type) {

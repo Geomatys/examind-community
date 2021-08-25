@@ -20,8 +20,6 @@
 package org.constellation.sos.ws;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -36,7 +34,6 @@ import org.constellation.exception.ConstellationRuntimeException;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
-import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -51,23 +48,12 @@ import org.junit.runner.RunWith;
 public class OM2SOSConfigurerTest extends SOSConfigurerTest {
 
     private static final String CONFIG_DIR_NAME = "OM2SOSConfigurerTest" + UUID.randomUUID().toString();
-    private static Path sensorDirectory;
 
     private static boolean initialized = false;
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-
-        final Path configDir = ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
-        Path SOSDirectory    = configDir.resolve("SOS");
-        Path instDirectory   = SOSDirectory.resolve("default");
-        sensorDirectory      = instDirectory.resolve("sensors");
-        Files.createDirectories(sensorDirectory);
-
-        writeResourceDataFile(sensorDirectory, "org/constellation/xml/sml/system.xml",     "urn:ogc:object:sensor:GEOM:1.xml");
-        writeResourceDataFile(sensorDirectory, "org/constellation/xml/sml/component.xml",  "urn:ogc:object:sensor:GEOM:2.xml");
-        writeResourceDataFile(sensorDirectory, "org/constellation/xml/sml/system3.xml",    "urn:ogc:object:sensor:GEOM:test-1.xml");
-        writeResourceDataFile(sensorDirectory, "org/constellation/xml/sml/system4.xml",    "urn:ogc:object:sensor:GEOM:8.xml");
+      ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
     }
 
     @PostConstruct
@@ -82,7 +68,7 @@ public class OM2SOSConfigurerTest extends SOSConfigurerTest {
                 final TestResources testResource = initDataDirectory();
 
                 Integer omPrId  = testResource.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
-                Integer senPrId = testResource.createProviderWithPath(TestResource.SENSOR_FILE, sensorDirectory, providerBusiness, null).id;
+                Integer senPrId = testResource.createProvider(TestResource.SENSOR_FILE, providerBusiness, null).id;
                 providerBusiness.createOrUpdateData(senPrId, null, false);
 
                 //we write the configuration file

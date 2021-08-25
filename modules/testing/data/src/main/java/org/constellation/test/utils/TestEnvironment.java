@@ -183,7 +183,7 @@ public class TestEnvironment {
         public static final TestResource OM_LUCENE = new TestResource(null,  TestEnvironment::createOMLuceneProvider, null);
 
         // Sensor Providers
-        public static final TestResource SENSOR_FILE = new TestResource(null, TestEnvironment::createSensorFileProvider, null);
+        public static final TestResource SENSOR_FILE = new TestResource("org/constellation/xml/sml", TestEnvironment::createSensorFileProvider, null);
         public static final TestResource SENSOR_INTERNAL = new TestResource(null, TestEnvironment::createSensorInternalProvider, null);
 
         // metadata providers

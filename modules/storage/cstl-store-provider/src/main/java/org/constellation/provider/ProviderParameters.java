@@ -54,6 +54,9 @@ public final class ProviderParameters {
     public static final ParameterDescriptor<Boolean> SOURCE_CREATEDATASET_DESCRIPTOR =
             BUILDER.addName("create_dataset").setRemarks("optional internal parameters").setRequired(false).create(Boolean.class, null);
 
+    public static final ParameterDescriptor<Boolean> SOURCE_NO_NAMESPACE_IN_KEY_DESCRIPTOR =
+            BUILDER.addName("no_namespace_in_key").setRemarks("optional internal parameters").setRequired(false).create(Boolean.class, false);
+
     private ProviderParameters(){}
 
     /**
@@ -65,7 +68,7 @@ public final class ProviderParameters {
     public static ParameterDescriptorGroup createDescriptor(final GeneralParameterDescriptor sourceConfigDescriptor){
         return BUILDER.addName(SOURCE_DESCRIPTOR_NAME).setRequired(true).createGroup(1, Integer.MAX_VALUE,
                 SOURCE_ID_DESCRIPTOR,SOURCE_TYPE_DESCRIPTOR,
-                SOURCE_CREATEDATASET_DESCRIPTOR, sourceConfigDescriptor);
+                SOURCE_CREATEDATASET_DESCRIPTOR, SOURCE_NO_NAMESPACE_IN_KEY_DESCRIPTOR, sourceConfigDescriptor);
     }
 
     public static ParameterValueGroup getSourceConfiguration(

@@ -151,16 +151,16 @@ public class OM2STSWorkerTest {
 
                 pid = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness, null).id;
 
-                Object sml = unmarshallSensorResource("org/constellation/xml/sml/system.xml", sensorBusiness);
+                Object sml = unmarshallSensorResource("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ1.xml", sensorBusiness);
                 sensorBusiness.create("urn:ogc:object:sensor:GEOM:1", "system", "timeseries", null, sml, Long.MIN_VALUE, pid);
 
-                sml = unmarshallSensorResource("org/constellation/xml/sml/component.xml", sensorBusiness);
+                sml = unmarshallSensorResource("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ2.xml", sensorBusiness);
                 sensorBusiness.create("urn:ogc:object:sensor:GEOM:2", "component", "profile", null, sml, Long.MIN_VALUE, pid);
 
-                sml = unmarshallSensorResource("org/constellation/xml/sml/system3.xml", sensorBusiness);
+                sml = unmarshallSensorResource("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµtest-1.xml", sensorBusiness);
                 sensorBusiness.create("urn:ogc:object:sensor:GEOM:test-1", "system", "timeseries", null, sml, Long.MIN_VALUE, pid);
 
-                sml = unmarshallSensorResource("org/constellation/xml/sml/system4.xml", sensorBusiness);
+                sml = unmarshallSensorResource("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ8.xml", sensorBusiness);
                 sensorBusiness.create("urn:ogc:object:sensor:GEOM:8", "system", "timeseries", null, sml, Long.MIN_VALUE, pid);
 
                 serviceBusiness.linkServiceAndProvider(sid, pid);

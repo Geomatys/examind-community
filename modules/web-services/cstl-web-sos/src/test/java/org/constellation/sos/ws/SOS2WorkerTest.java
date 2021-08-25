@@ -385,7 +385,7 @@ public abstract class SOS2WorkerTest {
         DescribeSensorType request  = new DescribeSensorType("2.0.0", "SOS", "urn:ogc:object:sensor:GEOM:1", "http://www.opengis.net/sensorml/1.0.0");
         AbstractSensorML absResult = (AbstractSensorML) worker.describeSensor(request);
 
-        AbstractSensorML absExpResult = (AbstractSensorML) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/sml/system.xml"));
+        AbstractSensorML absExpResult = (AbstractSensorML) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ1.xml"));
 
         assertTrue(absResult instanceof SensorML);
         assertTrue(absExpResult instanceof SensorML);
@@ -400,7 +400,7 @@ public abstract class SOS2WorkerTest {
         request  = new DescribeSensorType("2.0.0", "SOS", "urn:ogc:object:sensor:GEOM:2", "http://www.opengis.net/sensorml/1.0.0");
         absResult = (AbstractSensorML) worker.describeSensor(request);
 
-        absExpResult = (AbstractSensorML) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/sml/component.xml"));
+        absExpResult = (AbstractSensorML) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ2.xml"));
 
         assertTrue(absResult instanceof SensorML);
         assertTrue(absExpResult instanceof SensorML);
@@ -1258,7 +1258,7 @@ public abstract class SOS2WorkerTest {
         /**
          * Test 1 we register a system sensor with no decription format
          */
-        AbstractSensorML sensorDescription = (AbstractSensorML) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sml/system.xml");
+        AbstractSensorML sensorDescription = (AbstractSensorML) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ1.xml");
         InsertSensorType request = new InsertSensorType("2.0.0", sensorDescription,  null);
         boolean exLaunched = false;
         try {
@@ -1300,7 +1300,7 @@ public abstract class SOS2WorkerTest {
         /**
          * Test 1 we register a system sensor
          */
-        AbstractSensorML sensorDescription = (AbstractSensorML) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sml/system.xml");
+        AbstractSensorML sensorDescription = (AbstractSensorML) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ1.xml");
 
         sensorDescription.getMember().get(0).getRealProcess().setId("urn:ogc:object:sensor:GEOM:66");
 

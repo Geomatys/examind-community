@@ -85,15 +85,15 @@ public class UtilsTest {
     @Test
     public void getPhysicalIDTest() throws Exception {
         Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
-        AbstractSensorML sensor = (AbstractSensorML) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/sml/system.xml"));
+        AbstractSensorML sensor = (AbstractSensorML) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ1.xml"));
         String phyID = Utils.getPhysicalID(sensor);
         assertEquals("00ARGLELES", phyID);
 
-        sensor = (AbstractSensorML) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/sml/component.xml"));
+        sensor = (AbstractSensorML) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ2.xml"));
         phyID  = Utils.getPhysicalID(sensor);
         assertEquals("00ARGLELES_2000", phyID);
 
-        sensor = (AbstractSensorML) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/sml/component2.xml"));
+        sensor = (AbstractSensorML) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ3.xml"));
         phyID  = Utils.getPhysicalID(sensor);
         assertEquals(null, phyID);
 
@@ -107,14 +107,14 @@ public class UtilsTest {
     @Test
     public void getSensorPositionTest() throws Exception {
         Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
-        AbstractSensorML sensor = (AbstractSensorML) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/sml/system.xml"));
+        AbstractSensorML sensor = (AbstractSensorML) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ1.xml"));
         AbstractGeometry result = SensorMLUtilities.getSensorPosition(sensor);
         DirectPositionType posExpResult = new DirectPositionType("urn:ogc:crs:EPSG:27582", 2, Arrays.asList(65400.0,1731368.0));
         PointType expResult = new PointType(posExpResult);
 
         assertEquals(expResult, result);
 
-        sensor    = (AbstractSensorML) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/sml/component.xml"));
+        sensor    = (AbstractSensorML) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ2.xml"));
         result    = SensorMLUtilities.getSensorPosition(sensor);
         expResult = null;
 

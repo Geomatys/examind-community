@@ -230,6 +230,12 @@ public class JooqSensorRepository extends AbstractJooqRespository<SensorRecord, 
     }
 
     @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void unlinkSensorFromAllServices(int sensorID) {
+        dsl.delete(SENSOR_X_SOS).where(SENSOR_X_SOS.SENSOR_ID.eq(sensorID)).execute();
+    }
+
+    @Override
     public boolean isLinkedSensorToService(int sensorID, int servID) {
          // look for sensor individually linked to the service.
         boolean linked = dsl.selectCount().from(SENSOR_X_SOS)

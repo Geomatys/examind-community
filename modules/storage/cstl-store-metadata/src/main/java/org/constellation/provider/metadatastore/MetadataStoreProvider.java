@@ -21,9 +21,7 @@ package org.constellation.provider.metadatastore;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -50,7 +48,7 @@ import org.geotoolkit.util.collection.CloseableIterator;
 import org.constellation.dto.service.config.csw.MetadataProviderCapabilities;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
-import org.constellation.provider.AbstractDataProvider;
+import org.constellation.provider.IndexedNameDataProvider;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.MetadataProvider;
@@ -60,15 +58,13 @@ import org.w3c.dom.Node;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class MetadataStoreProvider extends AbstractDataProvider implements MetadataProvider {
+public class MetadataStoreProvider extends IndexedNameDataProvider implements MetadataProvider {
 
-    private final Set<GenericName> index = new LinkedHashSet<>();
     private MetadataStore store;
     private MetadataProviderCapabilities capabilities = null;
 
     public MetadataStoreProvider(String providerId, DataProviderFactory service, ParameterValueGroup param) throws DataStoreException{
         super(providerId,service,param);
-        visit();
     }
 
     /**
@@ -106,28 +102,11 @@ public class MetadataStoreProvider extends AbstractDataProvider implements Metad
      * {@inheritDoc }
      */
     @Override
-    public synchronized Set<GenericName> getKeys() {
-        return Collections.unmodifiableSet(new HashSet(index));
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public Data get(final GenericName key) {
-        return get(key, null);
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
     public Data get(GenericName key, Date version) {
         key = fullyQualified(key);
-        if(!contains(key)){
+        if (key == null) {
             return null;
         }
-
         final MetadataStore store = getMainStore();
         try {
             final RecordInfo metadata = store.getMetadata(key.toString(), MetadataType.NATIVE);
@@ -139,6 +118,7 @@ public class MetadataStoreProvider extends AbstractDataProvider implements Metad
         return null;
     }
 
+    @Override
     protected synchronized void visit() {
         store = createBaseStore();
 
@@ -206,15 +186,6 @@ public class MetadataStoreProvider extends AbstractDataProvider implements Metad
             LOGGER.log(Level.INFO, "Unable to remove " + key.toString() + " from provider.", ex);
         }
         return result;
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public synchronized void reload() {
-        dispose();
-        visit();
     }
 
     /**

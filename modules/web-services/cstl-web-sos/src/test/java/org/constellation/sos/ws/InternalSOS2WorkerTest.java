@@ -70,13 +70,13 @@ public class InternalSOS2WorkerTest extends SOS2WorkerTest {
 
                 Integer provider = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness, null).id;
 
-                Object sml = unmarshallSensorResource("org/constellation/xml/sml/system.xml", sensorBusiness);
+                Object sml = unmarshallSensorResource("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ1.xml", sensorBusiness);
                 sensorBusiness.create("urn:ogc:object:sensor:GEOM:1", "system", null, null, sml, Long.MIN_VALUE, provider);
 
-                sml = unmarshallSensorResource("org/constellation/xml/sml/component.xml", sensorBusiness);
+                sml = unmarshallSensorResource("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ2.xml", sensorBusiness);
                 sensorBusiness.create("urn:ogc:object:sensor:GEOM:2", "component", null, null, sml, Long.MIN_VALUE, provider);
 
-                sml = unmarshallSensorResource("org/constellation/xml/sml/component2.xml", sensorBusiness);
+                sml = unmarshallSensorResource("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ3.xml", sensorBusiness);
                 sensorBusiness.create("urn:ogc:object:sensor:GEOM:3", "component", null, null, sml, Long.MIN_VALUE, provider);
 
                 SOSConfiguration configuration = new SOSConfiguration();

@@ -55,7 +55,7 @@ import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
-import org.constellation.provider.AbstractDataProvider;
+import org.constellation.provider.IndexedNameDataProvider;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.ObservationProvider;
@@ -117,9 +117,8 @@ import static org.geotoolkit.observation.Utils.getVersionFromHints;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class ObservationStoreProvider extends AbstractDataProvider implements ObservationProvider {
+public class ObservationStoreProvider extends IndexedNameDataProvider implements ObservationProvider {
 
-    private final Set<GenericName> index = new LinkedHashSet<>();
     private ObservationStore store;
 
     private SOSProviderCapabilities capabilities = null;
@@ -134,17 +133,6 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
 
     public ObservationStoreProvider(String providerId, DataProviderFactory service, ParameterValueGroup param) throws DataStoreException{
         super(providerId,service,param);
-        visit();
-    }
-
-    @Override
-    public Set<GenericName> getKeys() {
-        return Collections.unmodifiableSet(index);
-    }
-
-    @Override
-    public Data get(GenericName key) {
-        return get(key, null);
     }
 
     @Override
@@ -157,11 +145,10 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
 
     @Override
     public Data get(GenericName key, Date version) {
-         key = fullyQualified(key);
-        if(!contains(key)){
+        key = fullyQualified(key);
+        if (key == null) {
             return null;
         }
-
         return new DefaultObservationData(key, store);
     }
 
@@ -190,6 +177,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
         return null;
     }
 
+    @Override
     protected synchronized void visit() {
         try {
             store = createBaseStore();
@@ -1205,12 +1193,6 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
         } else {
             throw new ConstellationStoreException("Unknow filter operation.\nAnother possibility is that the content of your time filter is empty or unrecognized.");
         }
-    }
-
-    @Override
-    public synchronized void reload() {
-        dispose();
-        visit();
     }
 
     @Override

@@ -1,0 +1,1 @@
+CREATE INDEX sensor_parent_idx ON "admin"."sensor" USING btree ("parent");

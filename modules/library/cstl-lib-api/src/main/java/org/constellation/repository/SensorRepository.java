@@ -71,6 +71,8 @@ public interface SensorRepository extends AbstractRepository {
 
     void unlinkSensorFromService(int sensorID, int servID);
 
+    void unlinkSensorFromAllServices(int sensorID);
+
     boolean isLinkedSensorToService(int sensorID, int sosID);
     
     int getLinkedSensorCount(int serviceId);

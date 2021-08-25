@@ -131,7 +131,7 @@ public class SensorServiceRestAPI {
 
     @RequestMapping(value="/SensorService/{id}/sensors", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getSensorTree(final @PathVariable("id") Integer serviceId) throws Exception {
-        return new ResponseEntity(sensorServiceBusiness.getSensorTree(serviceId), OK);
+        return new ResponseEntity(sensorBusiness.getServiceSensorMLTree(serviceId), OK);
     }
 
     @RequestMapping(value="/SensorService/{id}/sensors/identifiers", method = GET, produces = APPLICATION_JSON_VALUE)

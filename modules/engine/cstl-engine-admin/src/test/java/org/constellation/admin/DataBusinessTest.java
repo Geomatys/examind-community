@@ -182,7 +182,9 @@ public class DataBusinessTest {
 
         // Create a copy / modify it / update data related metadata
         final MetadataCopier mdCopier = new MetadataCopier(null);
-        final Metadata mdCopy = mdCopier.copy(Metadata.class, (Metadata) metadataBusiness.getIsoMetadatasForData(testData.getId()).get(0));
+        final Metadata orig = (Metadata) metadataBusiness.getIsoMetadatasForData(testData.getId()).get(0);
+        Assert.assertNotNull(orig);
+        final Metadata mdCopy = mdCopier.copy(Metadata.class, (Metadata) orig);
         final DefaultResponsibility geomatys = new DefaultResponsibility(Role.AUTHOR, null, new DefaultOrganisation(GEOMATYS, null, null, null));
         ((Collection)mdCopy.getContacts()).add(geomatys);
         metadataBusiness.updateMetadata(mdCopy.getFileIdentifier(), mdCopy, testData.getId(), null, null, null, null, null);

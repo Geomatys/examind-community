@@ -51,7 +51,7 @@ public class TestResourceUtils {
     }
 
     public static void writeResourceDataFile(Path dataDirectory, String resourceName, String identifier) throws IOException {
-        writeResourceDataFile(dataDirectory, resourceName, identifier, '-');
+        writeResourceDataFile(dataDirectory, resourceName, identifier, 'µ');
     }
 
     public static void writeResourceDataFile(Path dataDirectory, String resourceName, String identifier, char replacement) throws IOException {

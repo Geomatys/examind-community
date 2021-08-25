@@ -19,12 +19,13 @@
 
 package org.constellation.sos.ws;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import javax.annotation.PostConstruct;
+import org.constellation.admin.SpringHelper;
+import org.constellation.business.ISensorBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.Sensor;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
@@ -36,7 +37,6 @@ import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
-import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -49,21 +49,15 @@ import org.junit.runner.RunWith;
 @RunWith(SpringTestRunner.class)
 public class FileSystemSOSWorkerTest extends SOSWorkerTest {
 
-    private static Path sensorDirectory;
-
-    private static String CONFIG_DIR_NAME = "FSSOSWorkerTest" + UUID.randomUUID().toString();
+    private static final String CONFIG_DIR_NAME = "FSSOSWorkerTest" + UUID.randomUUID().toString();
 
     private static boolean initialized = false;
 
+    private static Integer pid = null;
+
     @BeforeClass
     public static void setUpClass() throws Exception {
-        final Path configDir = ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
-        Path SOSDirectory    = configDir.resolve("SOS");
-        Path instDirectory   = SOSDirectory.resolve("default");
-        sensorDirectory = instDirectory.resolve("sensors");
-        Files.createDirectories(sensorDirectory);
-        writeResourceDataFile(sensorDirectory, "org/constellation/xml/sml/system.xml",    "urn:ogc:object:sensor:GEOM:1.xml", 'µ');
-        writeResourceDataFile(sensorDirectory, "org/constellation/xml/sml/component.xml", "urn:ogc:object:sensor:GEOM:2.xml", 'µ');
+        ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
     }
 
     @PostConstruct
@@ -78,16 +72,16 @@ public class FileSystemSOSWorkerTest extends SOSWorkerTest {
 
                 final TestResources testResource = initDataDirectory();
 
-                Integer pr = testResource.createProviderWithPath(TestResource.SENSOR_FILE, sensorDirectory, providerBusiness, null).id;
+                pid = testResource.createProvider(TestResource.SENSOR_FILE, providerBusiness, null).id;
 
                 final SOSConfiguration configuration = new SOSConfiguration();
                 configuration.setProfile("transactional");
                 configuration.getParameters().put("transactionSecurized", "false");
 
                 int sid = serviceBusiness.create("sos", "default", configuration, null, null);
-                serviceBusiness.linkServiceAndProvider(sid, pr);
+                serviceBusiness.linkServiceAndProvider(sid, pid);
 
-                List<Sensor> sensors = sensorBusiness.getByProviderId(pr);
+                List<Sensor> sensors = sensorBusiness.getByProviderId(pid);
                 sensors.stream().forEach((sensor) -> {
                     try {
                         sensorBusiness.addSensorToService(sid, sensor.getId());
@@ -118,6 +112,8 @@ public class FileSystemSOSWorkerTest extends SOSWorkerTest {
             if (worker != null) {
                 worker.destroy();
             }
+            ISensorBusiness sensorBusiness = SpringHelper.getBean(ISensorBusiness.class);
+            sensorBusiness.deleteFromProvider(pid);
             ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);

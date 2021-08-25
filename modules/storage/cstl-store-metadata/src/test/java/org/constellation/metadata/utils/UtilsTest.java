@@ -1044,16 +1044,16 @@ public class UtilsTest {
         /*
          * SensorML 1.0.0
          */
-        Node n = getOriginalMetadata("org/constellation/xml/sml/system.xml");
+        Node n = getOriginalMetadata("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ1.xml");
 
         String expResult = "urn:ogc:object:sensor:GEOM:1";
         String result = Utils.findIdentifier(n);
 
         assertEquals(expResult, result);
 
-        n = getOriginalMetadata("org/constellation/xml/sml/component2.xml");
+        n = getOriginalMetadata("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ3.xml");
 
-        expResult = "component2";
+        expResult = "urn:ogc:object:sensor:GEOM:3";
         result = Utils.findIdentifier(n);
 
         assertEquals(expResult, result);
