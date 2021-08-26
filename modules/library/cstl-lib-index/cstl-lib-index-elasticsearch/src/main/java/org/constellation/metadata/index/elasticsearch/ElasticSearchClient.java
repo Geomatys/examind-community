@@ -27,8 +27,10 @@ import org.elasticsearch.common.xcontent.XContentFactory;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -71,9 +73,17 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.Scroll;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.BucketOrder;
+import org.elasticsearch.search.aggregations.bucket.composite.CompositeAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.composite.CompositeValuesSourceBuilder;
+import org.elasticsearch.search.aggregations.bucket.composite.ParsedComposite;
+import org.elasticsearch.search.aggregations.bucket.composite.TermsValuesSourceBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
+import org.elasticsearch.search.aggregations.metrics.ParsedMax;
+import org.elasticsearch.search.aggregations.metrics.ParsedMin;
+import org.elasticsearch.search.aggregations.pipeline.BucketSortPipelineAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.opengis.geometry.Envelope;
 
@@ -88,6 +98,8 @@ public class ElasticSearchClient {
     private RestHighLevelClient client;
 
     private final String id;
+
+    private static final int socketTimeout = 180000;
 
     // Constructors ----------------------------------------------------------------
     private ElasticSearchClient(final String id) {
@@ -136,7 +148,9 @@ public class ElasticSearchClient {
                     return httpClientBuilder
                             .setDefaultCredentialsProvider(credentialsProvider);
                 }
-            });
+            })
+                    .setRequestConfigCallback(requestConfigBuilder -> requestConfigBuilder.setConnectTimeout(socketTimeout)
+                                                                                          .setSocketTimeout(socketTimeout));
         }
         this.client = new RestHighLevelClient(builder);
     }
@@ -343,34 +357,246 @@ public class ElasticSearchClient {
     }
 
     public List<String> getFieldValues(final String index, final String queryJson, QueryBuilder query, final QueryBuilder filter, String field, SortOrder keySorted) throws IOException {
+        return getFieldValues(index, queryJson, query, filter, field, keySorted, null, null);
+    }
+
+    public List<String> getFieldValues(final String index, final String queryJson, QueryBuilder query, final QueryBuilder filter,  String field, SortOrder keySorted, Integer from, Integer size) throws IOException {
         SearchSourceBuilder builder = new SearchSourceBuilder();
         TermsAggregationBuilder aggBuilder = AggregationBuilders.terms("agg1").field(field).size(Integer.MAX_VALUE);
         if (keySorted != null) {
             boolean asc = keySorted.ASC.equals(keySorted);
             aggBuilder = aggBuilder.order(BucketOrder.key(asc));
         }
+
+        if (from != null && size != null) {
+            BucketSortPipelineAggregationBuilder pipeAggBuilder = new BucketSortPipelineAggregationBuilder("pipe", Arrays.asList(new FieldSortBuilder("_key").order(SortOrder.ASC)));
+            pipeAggBuilder.from(from);
+            pipeAggBuilder.size(size);
+            aggBuilder.subAggregation(pipeAggBuilder);
+        }
+
         builder.aggregation(aggBuilder);
         builder.fetchSource(false);
         builder.size(0);
 
-        if (queryJson != null) {
-            builder = builder.query(QueryBuilders.wrapperQuery(queryJson));
-        } else if (query != null) {
+        if (query != null) {
             builder = builder.query(query);
-        }
-        if (filter != null) {
-            builder = builder.postFilter(filter);
         }
 
         SearchRequest sRequest = new SearchRequest(index);
         sRequest.source(builder);
         final SearchResponse response = client.search(sRequest, RequestOptions.DEFAULT);
+        for (SearchHit hit : response.getHits().getHits()) {
+               hit.toString();
+            }
+
         Terms agg1 = response.getAggregations().get("agg1");
         List<String> results = new ArrayList<>();
         for (Terms.Bucket b : agg1.getBuckets()) {
             results.add(b.getKeyAsString());
         }
         return results;
+    }
+
+    public Map<String, Map<String, List<Object>>> getAggFieldValues(final String index, String field, List<String> subfields, List<String> subMaxfields, List<String> subMinfields, QueryBuilder query, SortOrder keySorted, Integer from, Integer size) throws IOException {
+        SearchSourceBuilder builder = new SearchSourceBuilder();
+        TermsAggregationBuilder aggBuilder = AggregationBuilders.terms("agg1").field(field).size(Integer.MAX_VALUE);
+
+        for (String subField : subfields) {
+            aggBuilder = aggBuilder.subAggregation(AggregationBuilders.terms("agg" + subField).field(subField).size(Integer.MAX_VALUE));
+        }
+        for (String subMaxField : subMaxfields) {
+            aggBuilder = aggBuilder.subAggregation(AggregationBuilders.max("aggMax" + subMaxField).field(subMaxField));
+        }
+        for (String subMinfield : subMinfields) {
+            aggBuilder = aggBuilder.subAggregation(AggregationBuilders.min("aggMin" + subMinfield).field(subMinfield));
+        }
+        if (keySorted != null) {
+            boolean asc = keySorted.ASC.equals(keySorted);
+            aggBuilder = aggBuilder.order(BucketOrder.key(asc));
+        }
+
+        // try paging
+        if (from != null && size != null) {
+            BucketSortPipelineAggregationBuilder pipeAggBuilder = new BucketSortPipelineAggregationBuilder("pipe", Arrays.asList(new FieldSortBuilder("_key").order(SortOrder.ASC)));
+            pipeAggBuilder.from(from);
+            pipeAggBuilder.size(size);
+            aggBuilder = aggBuilder.subAggregation(pipeAggBuilder);
+        }
+
+        builder.aggregation(aggBuilder);
+        builder.fetchSource(false);
+        builder.size(0);
+
+        if (query != null) {
+            builder = builder.query(query);
+        }
+
+        SearchRequest sRequest = new SearchRequest(index);
+        sRequest.source(builder);
+        final SearchResponse response = client.search(sRequest, RequestOptions.DEFAULT);
+
+        Map<String, Map<String, List<Object>>> results = new LinkedHashMap<>();
+
+        Terms agg1 = response.getAggregations().get("agg1");
+
+        for (Terms.Bucket b : agg1.getBuckets()) {
+            Map<String, List<Object>> subResults = new LinkedHashMap<>();
+            for (String subField : subfields) {
+                List<Object> values = new ArrayList<>();
+                Terms agg2 = b.getAggregations().get("agg" + subField);
+                for (Terms.Bucket b2 : agg2.getBuckets()) {
+                    values.add(b2.getKeyAsString());
+                }
+                subResults.put(subField, values);
+            }
+            for (String subMaxField : subMaxfields) {
+                ParsedMax agg2 = b.getAggregations().get("aggMax" + subMaxField);
+                subResults.put("MAX-" + subMaxField, Arrays.asList(agg2.getValue()));
+            }
+            for (String subMinfield : subMinfields) {
+                ParsedMin agg2 = b.getAggregations().get("aggMin" + subMinfield);
+                subResults.put("MIN-" + subMinfield, Arrays.asList(agg2.getValue()));
+            }
+            results.put(b.getKeyAsString(),subResults);
+        }
+        return results;
+    }
+
+    public Map<String, Map<String, Object>> compositeAggregation(final String index, QueryBuilder query, final List<String> compositeFields, List<String> subfields, List<String> subMaxfields, List<String> subMinfields, SortOrder keySorted, Integer size) throws IOException {
+        if (keySorted == null) {
+            keySorted = SortOrder.ASC;
+        }
+        List<CompositeValuesSourceBuilder<?>> sourceBuilderList = new ArrayList<>();
+        for (String compositeField : compositeFields) {
+            sourceBuilderList.add(new TermsValuesSourceBuilder(compositeField).field(compositeField));
+        }
+        CompositeAggregationBuilder compositeAggregationBuilder = new CompositeAggregationBuilder("compositeAgg",sourceBuilderList);
+
+        for (String subField : subfields) {
+            compositeAggregationBuilder = compositeAggregationBuilder.subAggregation(AggregationBuilders.terms("agg" + subField).field(subField).size(Integer.MAX_VALUE));
+        }
+        for (String subMaxField : subMaxfields) {
+            compositeAggregationBuilder = compositeAggregationBuilder.subAggregation(AggregationBuilders.max("aggMax" + subMaxField).field(subMaxField));
+        }
+        for (String subMinfield : subMinfields) {
+            compositeAggregationBuilder = compositeAggregationBuilder.subAggregation(AggregationBuilders.min("aggMin" + subMinfield).field(subMinfield));
+        }
+
+        SearchSourceBuilder builder = new SearchSourceBuilder();
+        builder = builder.fetchSource(false);
+        builder = builder.size(0);
+        builder = builder.query(query);
+        builder.aggregation(compositeAggregationBuilder);
+
+        SearchRequest sRequest = new SearchRequest(index);
+        sRequest.source(builder);
+
+        int limit = Integer.MAX_VALUE -17; // ES limit, why? i don't know
+        if (size != null && limit <= Integer.MAX_VALUE -17) {
+           limit = size;
+        }
+
+        Map<String, Map<String, Object>> results = new LinkedHashMap<>();
+        if (limit < 10000) {
+            compositeAggregationBuilder.size(limit);
+
+            final SearchResponse response = client.search(sRequest, RequestOptions.DEFAULT);
+            ParsedComposite agg = response.getAggregations().get("compositeAgg");
+            parseComposite(results, agg, subfields, subMaxfields, subMinfields);
+
+        } else {
+            compositeAggregationBuilder.size(10000);
+
+            SearchResponse response = client.search(sRequest, RequestOptions.DEFAULT);
+            ParsedComposite agg = response.getAggregations().get("compositeAgg");
+            Map<String, Object> afterKey = agg.afterKey();
+            parseComposite(results, agg, subfields, subMaxfields, subMinfields);
+
+            while (afterKey != null) {
+                compositeAggregationBuilder.aggregateAfter(afterKey);
+                response = client.search(sRequest, RequestOptions.DEFAULT);
+                ParsedComposite agg2 = response.getAggregations().get("compositeAgg");
+                afterKey = agg2.afterKey();
+                parseComposite(results, agg2, subfields, subMaxfields, subMinfields);
+            }
+        }
+        return results;
+    }
+
+    public Map<String, Map<String, Object>> compositeAggregationPaged(final String index, QueryBuilder query, final List<String> compositeFields, List<String> subfields, List<String> subMaxfields, List<String> subMinfields, int from, SortOrder keySorted, int size) throws IOException {
+        if (keySorted == null) {
+            keySorted = SortOrder.ASC;
+        }
+        int limit = size + from;
+        if (limit < 0 || limit > Integer.MAX_VALUE -17) {
+            limit = Integer.MAX_VALUE -17;
+        }
+
+        List<CompositeValuesSourceBuilder<?>> sourceBuilderList = new ArrayList<>();
+        for (String compositeField : compositeFields) {
+            sourceBuilderList.add(new TermsValuesSourceBuilder(compositeField).field(compositeField));
+        }
+        CompositeAggregationBuilder compositeAggregationBuilder = new CompositeAggregationBuilder("compositeAgg",sourceBuilderList);
+        compositeAggregationBuilder.size(limit);
+
+        for (String subField : subfields) {
+            compositeAggregationBuilder = compositeAggregationBuilder.subAggregation(AggregationBuilders.terms("agg" + subField).field(subField).size(Integer.MAX_VALUE));
+        }
+        for (String subMaxField : subMaxfields) {
+            compositeAggregationBuilder = compositeAggregationBuilder.subAggregation(AggregationBuilders.max("aggMax" + subMaxField).field(subMaxField));
+        }
+        for (String subMinfield : subMinfields) {
+            compositeAggregationBuilder = compositeAggregationBuilder.subAggregation(AggregationBuilders.min("aggMin" + subMinfield).field(subMinfield));
+        }
+
+        BucketSortPipelineAggregationBuilder pipeAggBuilder = new BucketSortPipelineAggregationBuilder("pipe", Arrays.asList(new FieldSortBuilder("_key").order(keySorted)));
+        pipeAggBuilder.from(from);
+        pipeAggBuilder.size(size);
+        compositeAggregationBuilder.subAggregation(pipeAggBuilder);
+
+        SearchSourceBuilder builder = new SearchSourceBuilder();
+        builder = builder.fetchSource(false);
+        builder = builder.size(0);
+        builder = builder.query(query);
+        builder.aggregation(compositeAggregationBuilder);
+
+        SearchRequest sRequest = new SearchRequest(index);
+        sRequest.source(builder);
+
+        Map<String, Map<String, Object>> results = new LinkedHashMap<>();
+
+        final SearchResponse response = client.search(sRequest, RequestOptions.DEFAULT);
+        ParsedComposite agg = response.getAggregations().get("compositeAgg");
+        parseComposite(results, agg, subfields, subMaxfields, subMinfields);
+
+        
+        return results;
+    }
+
+    private static void parseComposite(Map<String, Map<String, Object>> results, ParsedComposite agg, List<String> subfields, List<String> subMaxfields, List<String> subMinfields) {
+        for (ParsedComposite.ParsedBucket b : agg.getBuckets()) {
+            Map<String, Object> subResults = new LinkedHashMap<>();
+            subResults.put("_key", b.getKey());
+
+            for (String subField : subfields) {
+                List<Object> values = new ArrayList<>();
+                Terms agg2 = b.getAggregations().get("agg" + subField);
+                for (Terms.Bucket b2 : agg2.getBuckets()) {
+                    values.add(b2.getKeyAsString());
+                }
+                subResults.put(subField, values);
+            }
+            for (String subMaxField : subMaxfields) {
+                ParsedMax agg2 = b.getAggregations().get("aggMax" + subMaxField);
+                subResults.put("MAX-" + subMaxField, agg2.getValue());
+            }
+            for (String subMinfield : subMinfields) {
+                ParsedMin agg2 = b.getAggregations().get("aggMin" + subMinfield);
+                subResults.put("MIN-" + subMinfield, agg2.getValue());
+            }
+            results.put(b.getKeyAsString(), subResults);
+        }
     }
 
 
