@@ -25,6 +25,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -71,6 +72,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.FilterFactory;
+import org.opengis.filter.ResourceId;
+import org.opengis.geometry.Geometry;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.Process;
@@ -272,27 +275,176 @@ public class ObservationStoreProviderTest {
     public void getPhenomenonTest() throws Exception {
         assertNotNull(omPr);
 
-        List<Phenomenon> results = omPr.getPhenomenon(null, new HashMap<>());
+        Map<String, Object> hints =  new HashMap<>();
+        List<Phenomenon> results = omPr.getPhenomenon(null, hints);
         assertEquals(5, results.size());
-
         assertTrue(results.get(0) instanceof org.geotoolkit.observation.xml.v200.OMObservationType.InternalCompositePhenomenon);
+        assertEquals("aggregatePhenomenon", getPhenomenonId(results.get(0)));
         assertTrue(results.get(1) instanceof org.geotoolkit.observation.xml.v200.OMObservationType.InternalCompositePhenomenon);
+        assertEquals("aggregatePhenomenon-2", getPhenomenonId(results.get(1)));
         assertTrue(results.get(2) instanceof org.geotoolkit.observation.xml.v200.OMObservationType.InternalPhenomenon);
+        assertEquals("depth", getPhenomenonId(results.get(2)));
         assertTrue(results.get(3) instanceof org.geotoolkit.observation.xml.v200.OMObservationType.InternalPhenomenon);
+        assertEquals("salinity", getPhenomenonId(results.get(3)));
         assertTrue(results.get(4) instanceof org.geotoolkit.observation.xml.v200.OMObservationType.InternalPhenomenon);
+        assertEquals("temperature", getPhenomenonId(results.get(4)));
 
-
-        results = omPr.getPhenomenon(null, Collections.singletonMap("version", "1.0.0"));
+        hints.put("version", "1.0.0");
+        results = omPr.getPhenomenon(null, hints);
         assertEquals(5, results.size());
-
         assertTrue(results.get(0) instanceof org.geotoolkit.swe.xml.v101.CompositePhenomenonType);
+        assertEquals("aggregatePhenomenon", getPhenomenonId(results.get(0)));
         assertTrue(results.get(1) instanceof org.geotoolkit.swe.xml.v101.CompositePhenomenonType);
+        assertEquals("aggregatePhenomenon-2", getPhenomenonId(results.get(1)));
         assertTrue(results.get(2) instanceof org.geotoolkit.swe.xml.v101.PhenomenonType);
+        assertEquals("depth", getPhenomenonId(results.get(2)));
         assertTrue(results.get(3) instanceof org.geotoolkit.swe.xml.v101.PhenomenonType);
+        assertEquals("salinity", getPhenomenonId(results.get(3)));
         assertTrue(results.get(4) instanceof org.geotoolkit.swe.xml.v101.PhenomenonType);
+        assertEquals("temperature", getPhenomenonId(results.get(4)));
 
+        hints.put("version", "1.0.0");
+        hints.put("noCompositePhenomenon", true);
+        results = omPr.getPhenomenon(null, hints);
+        assertEquals(3, results.size());
+        assertTrue(results.get(0) instanceof org.geotoolkit.swe.xml.v101.PhenomenonType);
+        assertEquals("depth", getPhenomenonId(results.get(0)));
+        assertTrue(results.get(1) instanceof org.geotoolkit.swe.xml.v101.PhenomenonType);
+        assertEquals("salinity", getPhenomenonId(results.get(1)));
+        assertTrue(results.get(2) instanceof org.geotoolkit.swe.xml.v101.PhenomenonType);
+        assertEquals("temperature", getPhenomenonId(results.get(2)));
+
+        /**
+         * filter on measurment template "urn:ogc:object:observation:template:GEOM:test-1-2"
+         */
+        hints.put("noCompositePhenomenon", false);
+        SimpleQuery query = new SimpleQuery();
+        BinaryComparisonOperator filter = ff.equal(ff.property("observationId") , ff.literal("urn:ogc:object:observation:template:GEOM:test-1-2"));
+        query.setFilter(filter);
+        results = omPr.getPhenomenon(query, hints);
+        assertEquals(1, results.size());
+        assertTrue(results.get(0) instanceof org.geotoolkit.swe.xml.v101.PhenomenonType);
+
+        Phenomenon result = results.get(0);
+        assertEquals(getPhenomenonId(result), "depth");
+
+        /**
+         * filter on observation template "urn:ogc:object:observation:template:GEOM:test-1
+         */
+        hints.put("noCompositePhenomenon", false);
+        query = new SimpleQuery();
+        filter = ff.equal(ff.property("observationId") , ff.literal("urn:ogc:object:observation:template:GEOM:test-1"));
+        query.setFilter(filter);
+        results = omPr.getPhenomenon(query, hints);
+        assertEquals(1, results.size());
+        assertTrue(results.get(0) instanceof org.geotoolkit.swe.xml.v101.CompositePhenomenonType);
+        assertEquals("aggregatePhenomenon", getPhenomenonId(results.get(0)));
+
+        /**
+         * filter on observation template "urn:ogc:object:observation:template:GEOM:test-1
+         */
+        hints.put("noCompositePhenomenon", true);
+        query = new SimpleQuery();
+        filter = ff.equal(ff.property("observationId") , ff.literal("urn:ogc:object:observation:template:GEOM:test-1"));
+        query.setFilter(filter);
+        results = omPr.getPhenomenon(query, hints);
+        assertEquals(2, results.size());
+        assertTrue(results.get(0) instanceof org.geotoolkit.swe.xml.v101.PhenomenonType);
+        assertEquals("depth", getPhenomenonId(results.get(0)));
+        assertTrue(results.get(1) instanceof org.geotoolkit.swe.xml.v101.PhenomenonType);
+        assertEquals("temperature", getPhenomenonId(results.get(1)));
+
+        /**
+         * filter on observation template "urn:ogc:object:observation:template:GEOM:13
+         */
+        hints.put("noCompositePhenomenon", false);
+        query = new SimpleQuery();
+        filter = ff.equal(ff.property("observationId") , ff.literal("urn:ogc:object:observation:template:GEOM:13"));
+        query.setFilter(filter);
+        results = omPr.getPhenomenon(query, hints);
+        assertEquals(1, results.size());
+        assertTrue(results.get(0) instanceof org.geotoolkit.swe.xml.v101.CompositePhenomenonType);
+        assertEquals("aggregatePhenomenon-2", getPhenomenonId(results.get(0)));
+
+        /**
+         * filter on observation template "urn:ogc:object:observation:template:GEOM:13
+         */
+        hints.put("noCompositePhenomenon", true);
+        query = new SimpleQuery();
+        filter = ff.equal(ff.property("observationId") , ff.literal("urn:ogc:object:observation:template:GEOM:13"));
+        query.setFilter(filter);
+        results = omPr.getPhenomenon(query, hints);
+        assertEquals(3, results.size());
+        assertTrue(results.get(0) instanceof org.geotoolkit.swe.xml.v101.PhenomenonType);
+        assertEquals("depth", getPhenomenonId(results.get(0)));
+        assertTrue(results.get(1) instanceof org.geotoolkit.swe.xml.v101.PhenomenonType);
+        assertEquals("salinity", getPhenomenonId(results.get(1)));
+        assertTrue(results.get(2) instanceof org.geotoolkit.swe.xml.v101.PhenomenonType);
+        assertEquals("temperature", getPhenomenonId(results.get(2)));
+
+
+       /* 
+        * paging
+        */
+        hints = new HashMap<>();
+        hints.put("noCompositePhenomenon", false);
+        hints.put("limit", 3L);
+        hints.put("offset", 0L);
+        results = omPr.getPhenomenon(null, hints);
+        assertEquals(3, results.size());
+        assertTrue(results.get(0) instanceof org.geotoolkit.observation.xml.v200.OMObservationType.InternalCompositePhenomenon);
+        assertEquals("aggregatePhenomenon", getPhenomenonId(results.get(0)));
+        assertTrue(results.get(1) instanceof org.geotoolkit.observation.xml.v200.OMObservationType.InternalCompositePhenomenon);
+        assertEquals("aggregatePhenomenon-2", getPhenomenonId(results.get(1)));
+        assertTrue(results.get(2) instanceof org.geotoolkit.observation.xml.v200.OMObservationType.InternalPhenomenon);
+        assertEquals("depth", getPhenomenonId(results.get(2)));
+       
+        
+        hints = new HashMap<>();
+        hints.put("noCompositePhenomenon", false);
+        hints.put("limit", 3L);
+        hints.put("offset", 3L);
+        results = omPr.getPhenomenon(null, hints);
+        assertEquals(2, results.size());
+        assertTrue(results.get(0) instanceof org.geotoolkit.observation.xml.v200.OMObservationType.InternalPhenomenon);
+        assertEquals("salinity", getPhenomenonId(results.get(0)));
+        assertTrue(results.get(1) instanceof org.geotoolkit.observation.xml.v200.OMObservationType.InternalPhenomenon);
+        assertEquals("temperature", getPhenomenonId(results.get(1)));
+
+        hints = new HashMap<>();
+        hints.put("noCompositePhenomenon", true);
+        hints.put("limit", 2L);
+        hints.put("offset", 0L);
+        results = omPr.getPhenomenon(null, hints);
+        assertEquals(2, results.size());
+        assertTrue(results.get(0) instanceof org.geotoolkit.observation.xml.v200.OMObservationType.InternalPhenomenon);
+        assertEquals("depth", getPhenomenonId(results.get(0)));
+        assertTrue(results.get(1) instanceof org.geotoolkit.observation.xml.v200.OMObservationType.InternalPhenomenon);
+        assertEquals("salinity", getPhenomenonId(results.get(1)));
+
+
+        hints = new HashMap<>();
+        hints.put("noCompositePhenomenon", true);
+        hints.put("limit", 2L);
+        hints.put("offset", 2L);
+        results = omPr.getPhenomenon(null, hints);
+        assertEquals(1, results.size());
+        assertTrue(results.get(0) instanceof org.geotoolkit.observation.xml.v200.OMObservationType.InternalPhenomenon);
+        assertEquals("temperature", getPhenomenonId(results.get(0)));
     }
 
+    @Test
+    public void getHistoricalLocationTest() throws Exception {
+        assertNotNull(omPr);
+
+        SimpleQuery query = new SimpleQuery();
+        BinaryComparisonOperator filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:2"));
+        query.setFilter(filter);
+        Map<String, Map<Date, Geometry>> results = omPr.getHistoricalLocation(query, Collections.singletonMap("version", "1.0.0"));
+
+        assertTrue(results.containsKey("urn:ogc:object:sensor:GEOM:2"));
+        assertEquals(3, results.get("urn:ogc:object:sensor:GEOM:2").size());
+    }
     @Test
     public void existProcedureTest() throws Exception {
         assertNotNull(omPr);
@@ -423,51 +575,111 @@ public class ObservationStoreProviderTest {
     public void getObservationTemplateNamesTest() throws Exception {
         assertNotNull(omPr);
 
+       /*
+        * MEASUREMENT
+        */
+        Map<String, Object> hints = new HashMap<>();
+        hints.put("includeFoiInTemplate", false);
         Collection<String> resultIds = omPr.getObservationNames(null, MEASUREMENT_QNAME, "resultTemplate", new HashMap<>());
         assertEquals(18, resultIds.size());
 
         Set<String> expectedIds = new LinkedHashSet<>();
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:10-0");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-0");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-1");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:10-2");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:12-2");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:9-0");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:8-0");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:8-1");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:4-0");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:3-0");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:7-0");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1-0");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1-1");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:2-0");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:2-1");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-id-0");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:13-0");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:13-1");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-4");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:13-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:13-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:13-4");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:2-1");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:2-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:3-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:4-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:7-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:8-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:8-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:9-1");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-id-2");
         Assert.assertEquals(expectedIds, resultIds);
 
-        Map<String, Object> hints = new HashMap<>();
+        // Count
+        hints = new HashMap<>();
+        hints.put("includeFoiInTemplate", false);
         hints.put(OBJECT_TYPE, OMEntity.OBSERVATION);
         hints.put(RESPONSE_MODE, ResponseModeType.RESULT_TEMPLATE);
         hints.put(RESULT_MODEL, MEASUREMENT_QNAME);
         long result = omPr.getCount(null, hints);
         assertEquals(result, 18L);
 
-        resultIds = omPr.getObservationNames(null, OBSERVATION_QNAME, "resultTemplate", new HashMap<>());
+        // Paging
+        hints = new HashMap<>();
+        hints.put("includeFoiInTemplate", false);
+        hints.put("limit", 8L);
+        hints.put("offset", 0L);
+        resultIds = omPr.getObservationNames(null, MEASUREMENT_QNAME, "resultTemplate", hints);
+        assertEquals(8, resultIds.size());
+
+        expectedIds = new LinkedHashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:10-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-4");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:13-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:13-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:13-4");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:2-1");
+        Assert.assertEquals(expectedIds, resultIds);
+
+        hints = new HashMap<>();
+         hints.put("includeFoiInTemplate", false);
+        hints.put("limit", 8L);
+        hints.put("offset", 8L);
+        resultIds = omPr.getObservationNames(null, MEASUREMENT_QNAME, "resultTemplate", hints);
+        assertEquals(8, resultIds.size());
+        expectedIds = new LinkedHashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:2-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:3-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:4-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:7-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:8-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:8-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:9-1");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1-2");
+        assertEquals(expectedIds, resultIds);
+
+        hints = new HashMap<>();
+        hints.put("includeFoiInTemplate", false);
+        hints.put("limit", 8L);
+        hints.put("offset", 16L);
+        resultIds = omPr.getObservationNames(null, MEASUREMENT_QNAME, "resultTemplate", hints);
+        assertEquals(2, resultIds.size());
+        expectedIds = new LinkedHashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-id-2");
+        assertEquals(expectedIds, resultIds);
+
+
+        /*
+        * COMPLEX OBSERVATION
+        */
+        hints = new HashMap<>();
+        hints.put("includeFoiInTemplate", false);
+        resultIds = omPr.getObservationNames(null, OBSERVATION_QNAME, "resultTemplate", hints);
         assertEquals(11, resultIds.size());
 
         expectedIds = new LinkedHashSet<>();
         expectedIds.add("urn:ogc:object:observation:template:GEOM:10");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:12");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:13");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:9");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:8");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:4");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:3");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:7");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:4");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:7");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:8");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:9");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:test-id");
         Assert.assertEquals(expectedIds, resultIds);
 
@@ -475,8 +687,52 @@ public class ObservationStoreProviderTest {
         hints.put(OBJECT_TYPE, OMEntity.OBSERVATION);
         hints.put(RESPONSE_MODE, ResponseModeType.RESULT_TEMPLATE);
         hints.put(RESULT_MODEL, OBSERVATION_QNAME);
+        hints.put("includeFoiInTemplate", false);
         result = omPr.getCount(null, hints);
         assertEquals(result, 11L);
+
+         // Paging
+        hints = new HashMap<>();
+        hints.put("includeFoiInTemplate", false);
+        hints.put("limit", 5L);
+        hints.put("offset", 0L);
+        resultIds = omPr.getObservationNames(null, OBSERVATION_QNAME, "resultTemplate", hints);
+        assertEquals(5, resultIds.size());
+
+        expectedIds = new LinkedHashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:10");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:13");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:3");
+        assertEquals(expectedIds, resultIds);
+
+        hints = new HashMap<>();
+        hints.put("includeFoiInTemplate", false);
+        hints.put("limit", 5L);
+        hints.put("offset", 5L);
+        resultIds = omPr.getObservationNames(null, OBSERVATION_QNAME, "resultTemplate", hints);
+        assertEquals(5, resultIds.size());
+
+        expectedIds = new LinkedHashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:4");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:7");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:8");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:9");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1");
+        assertEquals(expectedIds, resultIds);
+
+        hints = new HashMap<>();
+        hints.put("includeFoiInTemplate", false);
+        hints.put("limit", 5L);
+        hints.put("offset", 10L);
+        resultIds = omPr.getObservationNames(null, OBSERVATION_QNAME, "resultTemplate", hints);
+        assertEquals(1, resultIds.size());
+
+        expectedIds = new LinkedHashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-id");
+        assertEquals(expectedIds, resultIds);
+
     }
 
     @Test
@@ -524,8 +780,9 @@ public class ObservationStoreProviderTest {
         assertNotNull(omPr);
 
         Map<String, Object> hints = new HashMap<>();
+        hints.put("includeFoiInTemplate", true);
         List<Observation> results = omPr.getObservations(null, OBSERVATION_QNAME, "resultTemplate", null, hints);
-        assertEquals(15, results.size());
+        assertEquals(12, results.size());
 
         for (Observation p : results) {
             assertTrue(p instanceof org.geotoolkit.observation.xml.v200.OMObservationType);
@@ -533,12 +790,13 @@ public class ObservationStoreProviderTest {
 
         hints.put("version", "1.0.0");
         results = omPr.getObservations(null,  OBSERVATION_QNAME, "resultTemplate", null, hints);
-        assertEquals(15, results.size());
+        assertEquals(12, results.size());
 
         for (Observation p : results) {
             assertTrue(p instanceof org.geotoolkit.observation.xml.v100.ObservationType);
         }
 
+        // The sensor '10' got observations with different feature of interest
         // Because of the 2 Feature of interest, it returns 2 templates
         SimpleQuery query = new SimpleQuery();
         BinaryComparisonOperator filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:10"));
@@ -550,6 +808,7 @@ public class ObservationStoreProviderTest {
         assertTrue(resultIds.contains("station-001"));
         assertTrue(resultIds.contains("station-002"));
 
+
         // by ommiting FOI in template, it returns only one template
         hints.put("includeFoiInTemplate", false);
         results = omPr.getObservations(query,  OBSERVATION_QNAME, "resultTemplate", null, hints);
@@ -559,7 +818,6 @@ public class ObservationStoreProviderTest {
 
         // template time is not included by default
         assertNull(template1.getSamplingTime());
-
 
         hints.put("includeTimeInTemplate", true);
         results = omPr.getObservations(query,  OBSERVATION_QNAME, "resultTemplate", null, hints);
@@ -571,32 +829,281 @@ public class ObservationStoreProviderTest {
         assertNotNull(template1.getSamplingTime());
         assertPeriodEquals("2009-05-01T13:47:00.0Z", "2009-05-01T14:04:00.0Z", template1.getSamplingTime());
 
-        // Because of the multiple observed properties, it returns 4 templates
+
+        // The sensor '13'  got observations with different observed properties
+        // we return a template with the most complete phenomenon or if not a computed phenomenon
         query = new SimpleQuery();
         filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:13"));
         query.setFilter(filter);
+
         hints = new HashMap<>();
         hints.put("version", "1.0.0");
-        results = omPr.getObservations(query,  OBSERVATION_QNAME, "resultTemplate", null, hints);
-        assertEquals(4, results.size());
-
-        resultIds = results.stream().map(result -> getPhenomenonId(result)).collect(Collectors.toSet());
-        assertTrue(resultIds.contains("aggregatePhenomenon"));
-        assertTrue(resultIds.contains("depth"));
-        assertTrue(resultIds.contains("aggregatePhenomenon-2"));
-        assertTrue(resultIds.contains("temperature"));
-
-        // by asking single observed property in template, it returns only one template with a computed composite phenomenon
-        hints = new HashMap<>();
-        hints.put("version", "1.0.0");
-        hints.put("includeFoiInTemplate", "false");
-        hints.put("singleObservedPropertyInTemplate", "true");
+        hints.put("includeFoiInTemplate", false);
         results = omPr.getObservations(query,  OBSERVATION_QNAME, "resultTemplate", null, hints);
         assertEquals(1, results.size());
-        assertEquals("computed-phen-urn:ogc:object:sensor:GEOM:13", getPhenomenonId(results.get(0)));
+        assertEquals("aggregatePhenomenon-2", getPhenomenonId(results.get(0)));
 
+        /**
+         * now we work without the foi to enable paging
+         */
 
+        // Count
+        hints.clear();
+        hints.put("includeFoiInTemplate", false);
+        hints.put("includeTimeInTemplate", true);
+        results = omPr.getObservations(null, OBSERVATION_QNAME, "resultTemplate", null, hints);
+        assertEquals(11, results.size());
+
+        for (Observation p : results) {
+            assertTrue(p instanceof org.geotoolkit.observation.xml.v200.OMObservationType);
+        }
+
+        hints.put("version", "1.0.0");
+        results = omPr.getObservations(null,  OBSERVATION_QNAME, "resultTemplate", null, hints);
+        assertEquals(11, results.size());
+
+        for (Observation p : results) {
+            assertTrue(p instanceof org.geotoolkit.observation.xml.v100.ObservationType);
+        }
+
+        // Paging
+        hints.put("includeFoiInTemplate", false);
+        hints.put("limit", 5L);
+        hints.put("offset", 0L);
+        results = omPr.getObservations(null, OBSERVATION_QNAME, "resultTemplate", null, hints);
+        assertEquals(5, results.size());
+
+        resultIds = new LinkedHashSet<>();
+        for (Observation p : results) {
+            resultIds.add(p.getName().getCode());
+        }
+
+        Set<String> expectedIds = new LinkedHashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:10");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:13");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:3");
+
+        assertEquals(expectedIds, resultIds);
+
+        hints = new HashMap<>();
+        hints.put("includeFoiInTemplate", false);
+        hints.put("limit", 5L);
+        hints.put("offset", 5L);
+        results = omPr.getObservations(null, OBSERVATION_QNAME, "resultTemplate", null, hints);
+        assertEquals(5, results.size());
+
+        resultIds = new LinkedHashSet<>();
+        for (Observation p : results) {
+            resultIds.add(p.getName().getCode());
+        }
+
+        expectedIds = new LinkedHashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:4");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:7");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:8");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:9");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1");
+
+        assertEquals(expectedIds, resultIds);
+
+        hints = new HashMap<>();
+        hints.put("includeFoiInTemplate", false);
+        hints.put("limit", 5L);
+        hints.put("offset", 10L);
+        results = omPr.getObservations(null, OBSERVATION_QNAME, "resultTemplate", null, hints);
+        assertEquals(1, results.size());
+
+        resultIds = new LinkedHashSet<>();
+        for (Observation p : results) {
+            resultIds.add(p.getName().getCode());
+        }
+
+        expectedIds = new LinkedHashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-id");
+
+        assertEquals(expectedIds, resultIds);
     }
+
+    @Test
+    public void getMeasurementTemplateTest() throws Exception {
+        assertNotNull(omPr);
+
+        Map<String, Object> hints = new HashMap<>();
+        hints.put("includeFoiInTemplate", true);
+        List<Observation> results = omPr.getObservations(null, MEASUREMENT_QNAME, "resultTemplate", null, hints);
+        assertEquals(19, results.size());
+
+        for (Observation p : results) {
+            assertTrue(p instanceof org.geotoolkit.observation.xml.v200.OMObservationType);
+        }
+
+        hints.put("version", "1.0.0");
+        results = omPr.getObservations(null,  MEASUREMENT_QNAME, "resultTemplate", null, hints);
+        assertEquals(19, results.size());
+
+        for (Observation p : results) {
+            assertTrue(p instanceof org.geotoolkit.observation.xml.v100.ObservationType);
+        }
+
+        // The sensor '10' got observations with different feature of interest
+        // Because of the 2 Feature of interest, it returns 2 templates
+        SimpleQuery query = new SimpleQuery();
+        BinaryComparisonOperator filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:10"));
+        query.setFilter(filter);
+        results = omPr.getObservations(query,  MEASUREMENT_QNAME, "resultTemplate", null, hints);
+        assertEquals(2, results.size());
+
+        Set<String> resultIds = results.stream().map(result -> getFOIId(result)).collect(Collectors.toSet());
+        assertTrue(resultIds.contains("station-001"));
+        assertTrue(resultIds.contains("station-002"));
+
+
+        // by ommiting FOI in template, it returns only one template
+        hints.put("includeFoiInTemplate", false);
+        results = omPr.getObservations(query,  MEASUREMENT_QNAME, "resultTemplate", null, hints);
+        assertEquals(1, results.size());
+        assertTrue(results.get(0) instanceof org.geotoolkit.observation.xml.v100.ObservationType);
+        org.geotoolkit.observation.xml.v100.ObservationType template1 = (org.geotoolkit.observation.xml.v100.ObservationType) results.get(0);
+
+        // template time is not included by default
+        assertNull(template1.getSamplingTime());
+
+        hints.put("includeTimeInTemplate", true);
+        results = omPr.getObservations(query,  MEASUREMENT_QNAME, "resultTemplate", null, hints);
+        assertEquals(1, results.size());
+        assertTrue(results.get(0) instanceof org.geotoolkit.observation.xml.v100.ObservationType);
+        template1 = (org.geotoolkit.observation.xml.v100.ObservationType) results.get(0);
+
+        // template time is now included by adding the hints
+        assertNotNull(template1.getSamplingTime());
+        assertPeriodEquals("2009-05-01T13:47:00.0Z", "2009-05-01T14:04:00.0Z", template1.getSamplingTime());
+
+        // The sensor '13'  got observations with different observed properties
+        // we verify that we got the 3 single component
+        query = new SimpleQuery();
+        filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:13"));
+        query.setFilter(filter);
+
+        hints = new HashMap<>();
+        hints.put("version", "1.0.0");
+        hints.put("includeFoiInTemplate", false);
+        results = omPr.getObservations(query,  MEASUREMENT_QNAME, "resultTemplate", null, hints);
+        assertEquals(3, results.size());
+
+        /**
+         * now we work without the foi to enable paging
+         */
+
+        // Count
+        hints.clear();
+        hints.put("includeFoiInTemplate", false);
+        hints.put("includeTimeInTemplate", true);
+        results = omPr.getObservations(null, MEASUREMENT_QNAME, "resultTemplate", null, hints);
+        assertEquals(18, results.size());
+
+        for (Observation p : results) {
+            assertTrue(p instanceof org.geotoolkit.observation.xml.v200.OMObservationType);
+        }
+
+        hints.put("version", "1.0.0");
+        results = omPr.getObservations(null,  MEASUREMENT_QNAME, "resultTemplate", null, hints);
+        assertEquals(18, results.size());
+
+        for (Observation p : results) {
+            assertTrue(p instanceof org.geotoolkit.observation.xml.v100.ObservationType);
+        }
+
+        // Paging
+        hints.put("includeFoiInTemplate", false);
+        hints.put("limit", 8L);
+        hints.put("offset", 0L);
+        results = omPr.getObservations(null, MEASUREMENT_QNAME, "resultTemplate", null, hints);
+        assertEquals(8, results.size());
+
+        resultIds = new LinkedHashSet<>();
+        for (Observation p : results) {
+            resultIds.add(p.getName().getCode());
+        }
+
+        Set<String> expectedIds = new LinkedHashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:10-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-4");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:13-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:13-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:13-4");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:2-1");
+
+        assertEquals(expectedIds, resultIds);
+
+        hints = new HashMap<>();
+        hints.put("includeFoiInTemplate", false);
+        hints.put("limit", 8L);
+        hints.put("offset", 8L);
+        results = omPr.getObservations(null, MEASUREMENT_QNAME, "resultTemplate", null, hints);
+        assertEquals(8, results.size());
+
+        resultIds = new LinkedHashSet<>();
+        for (Observation p : results) {
+            resultIds.add(p.getName().getCode());
+        }
+
+        expectedIds = new LinkedHashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:2-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:3-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:4-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:7-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:8-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:8-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:9-1");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1-2");
+
+        assertEquals(expectedIds, resultIds);
+
+        hints = new HashMap<>();
+        hints.put("includeFoiInTemplate", false);
+        hints.put("limit", 8L);
+        hints.put("offset", 16L);
+        results = omPr.getObservations(null, MEASUREMENT_QNAME, "resultTemplate", null, hints);
+        assertEquals(2, results.size());
+
+        resultIds = new LinkedHashSet<>();
+        for (Observation p : results) {
+            resultIds.add(p.getName().getCode());
+        }
+
+        expectedIds = new LinkedHashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-id-2");
+
+        assertEquals(expectedIds, resultIds);
+
+        /*
+        * filter on Observed property
+        */
+        hints = new HashMap<>();
+        hints.put("includeFoiInTemplate", false);
+        query = new SimpleQuery();
+        filter = ff.equal(ff.property("observedProperty") , ff.literal("temperature"));
+        query.setFilter(filter);
+        results = omPr.getObservations(query, MEASUREMENT_QNAME, "resultTemplate", null, hints);
+        assertEquals(6, results.size());
+
+        /*
+        * filter on template id
+        */
+        hints = new HashMap<>();
+        hints.put("includeFoiInTemplate", false);
+        query = new SimpleQuery();
+        ResourceId idFilter = ff.resourceId("urn:ogc:object:observation:template:GEOM:test-1-2");
+        query.setFilter(idFilter);
+        results = omPr.getObservations(query, MEASUREMENT_QNAME, "resultTemplate", null, hints);
+        assertEquals(1, results.size());
+    }
+
 
     private static String getPhenomenonId(Observation o) {
         assertTrue(o instanceof org.geotoolkit.observation.xml.v100.ObservationType);
@@ -607,6 +1114,10 @@ public class ObservationStoreProviderTest {
         return template.getPropertyObservedProperty().getPhenomenon().getId();
     }
 
+    private static String getPhenomenonId(Phenomenon phen) {
+        assertTrue(phen instanceof org.geotoolkit.swe.xml.Phenomenon);
+        return ((org.geotoolkit.swe.xml.Phenomenon)phen).getId();
+    }
     private static String getFOIId(Observation o) {
         assertTrue(o instanceof org.geotoolkit.observation.xml.v100.ObservationType);
         org.geotoolkit.observation.xml.v100.ObservationType template = (org.geotoolkit.observation.xml.v100.ObservationType) o;
@@ -621,14 +1132,14 @@ public class ObservationStoreProviderTest {
         assertNotNull(omPr);
 
         Collection<String> resultIds = omPr.getObservationNames(null, MEASUREMENT_QNAME, "inline", new HashMap<>());
-        assertEquals(111, resultIds.size());
+        assertEquals(106, resultIds.size());
 
         Map<String, Object> hints = new HashMap<>();
         hints.put(OBJECT_TYPE, OMEntity.OBSERVATION);
         hints.put(RESPONSE_MODE, ResponseModeType.INLINE);
         hints.put(RESULT_MODEL, MEASUREMENT_QNAME);
         long result = omPr.getCount(null, hints);
-        assertEquals(result, 111L);
+        assertEquals(result, 106L);
 
         resultIds = omPr.getObservationNames(null, OBSERVATION_QNAME, "inline", new HashMap<>());
         assertEquals(74, resultIds.size());
@@ -643,21 +1154,18 @@ public class ObservationStoreProviderTest {
         SimpleQuery query = new SimpleQuery();
         BinaryComparisonOperator filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:test-1"));
         query.setFilter(filter);
-        resultIds = omPr.getObservationNames(query, MEASUREMENT_QNAME, "inline", new HashMap<>());
+        hints = new HashMap<>();
+        hints.put("includeFoiInTemplate", false);
+        resultIds = omPr.getObservationNames(query, MEASUREMENT_QNAME, "inline", hints);
 
-        assertEquals(10, resultIds.size());
+        assertEquals(5, resultIds.size());
 
         Set<String> expectedIds = new LinkedHashSet<>();
-        expectedIds.add("urn:ogc:object:observation:GEOM:507-0-1");
-        expectedIds.add("urn:ogc:object:observation:GEOM:507-1-1");
-        expectedIds.add("urn:ogc:object:observation:GEOM:507-0-2");
-        expectedIds.add("urn:ogc:object:observation:GEOM:507-1-2");
-        expectedIds.add("urn:ogc:object:observation:GEOM:507-0-3");
-        expectedIds.add("urn:ogc:object:observation:GEOM:507-1-3");
-        expectedIds.add("urn:ogc:object:observation:GEOM:507-0-4");
-        expectedIds.add("urn:ogc:object:observation:GEOM:507-1-4");
-        expectedIds.add("urn:ogc:object:observation:GEOM:507-0-5");
-        expectedIds.add("urn:ogc:object:observation:GEOM:507-1-5");
+        expectedIds.add("urn:ogc:object:observation:GEOM:507-2-1");
+        expectedIds.add("urn:ogc:object:observation:GEOM:507-2-2");
+        expectedIds.add("urn:ogc:object:observation:GEOM:507-2-3");
+        expectedIds.add("urn:ogc:object:observation:GEOM:507-2-4");
+        expectedIds.add("urn:ogc:object:observation:GEOM:507-2-5");
         Assert.assertEquals(expectedIds, resultIds);
 
         hints = new HashMap<>();
@@ -665,7 +1173,7 @@ public class ObservationStoreProviderTest {
         hints.put(RESPONSE_MODE, ResponseModeType.INLINE);
         hints.put(RESULT_MODEL, MEASUREMENT_QNAME);
         result = omPr.getCount(query, hints);
-        assertEquals(result, 10L);
+        assertEquals(result, 5L);
 
         resultIds = omPr.getObservationNames(query, OBSERVATION_QNAME, "inline", new HashMap<>());
         assertEquals(5, resultIds.size());
@@ -692,32 +1200,32 @@ public class ObservationStoreProviderTest {
         assertEquals(23, resultIds.size());
 
         expectedIds = new LinkedHashSet<>();
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-0-1");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-0-2");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-0-3");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-0-4");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-1-1");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-1-2");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-1-3");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-1-4");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4000-2-1");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4000-2-2");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4000-2-3");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4000-2-4");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4000-3-1");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4000-3-2");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4000-3-3");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4000-3-4");
 
-        expectedIds.add("urn:ogc:object:observation:GEOM:4001-0-1");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4001-0-2");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4001-0-3");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4001-2-1");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4001-2-2");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4001-2-3");
 
-        expectedIds.add("urn:ogc:object:observation:GEOM:4002-0-1");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4002-0-2");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4002-0-3");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4002-1-1");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4002-1-2");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4002-1-3");
         expectedIds.add("urn:ogc:object:observation:GEOM:4002-2-1");
         expectedIds.add("urn:ogc:object:observation:GEOM:4002-2-2");
         expectedIds.add("urn:ogc:object:observation:GEOM:4002-2-3");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4002-3-1");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4002-3-2");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4002-3-3");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4002-4-1");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4002-4-2");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4002-4-3");
 
-        expectedIds.add("urn:ogc:object:observation:GEOM:4003-1-1");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4003-1-2");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4003-1-3");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4003-3-1");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4003-3-2");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4003-3-3");
 
         Assert.assertEquals(expectedIds, resultIds);
 
@@ -759,21 +1267,86 @@ public class ObservationStoreProviderTest {
     public void getObservationsTest() throws Exception {
         assertNotNull(omPr);
 
-        List<Observation> results = omPr.getObservations(null, OBSERVATION_QNAME, "inline", null, new HashMap<>());
-        assertEquals(12, results.size()); // why only 11?
+       /*
+        * we got 12 observations because some of them are regrouped if they have all their properties in common:
+        * - observed property
+        * - foi
+        */
 
+        List<Observation> results = omPr.getObservations(null, OBSERVATION_QNAME, "inline", null, new HashMap<>());
+        assertEquals(12, results.size());
+
+        Set<String> resultIds = new LinkedHashSet<>();
         for (Observation p : results) {
             assertTrue(p instanceof org.geotoolkit.observation.xml.v200.OMObservationType);
+            resultIds.add(p.getName().getCode());
         }
+
+        Set<String> expectedIds = new LinkedHashSet<>();
+        expectedIds.add("urn:ogc:object:observation:GEOM:201");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4000");
+        expectedIds.add("urn:ogc:object:observation:GEOM:3000");
+        expectedIds.add("urn:ogc:object:observation:GEOM:2000");
+        expectedIds.add("urn:ogc:object:observation:GEOM:801");
+        expectedIds.add("urn:ogc:object:observation:GEOM:1001");
+        expectedIds.add("urn:ogc:object:observation:GEOM:901");
+        expectedIds.add("urn:ogc:object:observation:GEOM:406");
+        expectedIds.add("urn:ogc:object:observation:GEOM:304");
+        expectedIds.add("urn:ogc:object:observation:GEOM:507");
+        expectedIds.add("urn:ogc:object:observation:GEOM:702");
+        expectedIds.add("urn:ogc:object:observation:GEOM:1002");
+
+        assertEquals(expectedIds, resultIds);
 
         Map<String, Object> hints = new HashMap<>();
         hints.put("version", "1.0.0");
         results = omPr.getObservations(null,  OBSERVATION_QNAME, "inline", null, hints);
-        assertEquals(12, results.size());// why only 11?
+        assertEquals(12, results.size());
 
+        resultIds = new LinkedHashSet<>();
         for (Observation p : results) {
             assertTrue(p instanceof org.geotoolkit.observation.xml.v100.ObservationType);
+            resultIds.add(p.getName().getCode());
         }
+        assertEquals(expectedIds, resultIds);
+
+        /**
+         * the observation from sensor '3' is a merge of 3 observations
+         */
+        hints = new HashMap<>();
+        hints.put("version", "1.0.0");
+        SimpleQuery query = new SimpleQuery();
+        BinaryComparisonOperator filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:3"));
+        query.setFilter(filter);
+        results = omPr.getObservations(query,  OBSERVATION_QNAME, "inline", null, hints);
+        assertEquals(1, results.size());
+
+        Observation result = results.get(0);
+        assertTrue(result instanceof org.geotoolkit.observation.xml.v100.ObservationType);
+        assertEquals("urn:ogc:object:observation:GEOM:304", result.getName().getCode());
+        
+        assertNotNull(result.getObservedProperty());
+        assertEquals("depth", getPhenomenonId(result));
+
+        /**
+         * the observation from sensor '2' is a single observations with an aggregate phenomenon
+         */
+        hints = new HashMap<>();
+        hints.put("version", "1.0.0");
+        query = new SimpleQuery();
+        filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:2"));
+        query.setFilter(filter);
+        results = omPr.getObservations(query,  OBSERVATION_QNAME, "inline", null, hints);
+        assertEquals(1, results.size());
+
+        result = results.get(0);
+        assertTrue(result instanceof org.geotoolkit.observation.xml.v100.ObservationType);
+        assertEquals("urn:ogc:object:observation:GEOM:201", result.getName().getCode());
+
+        assertNotNull(result.getObservedProperty());
+        assertEquals("aggregatePhenomenon", getPhenomenonId(result));
+
+
     }
 
     /**

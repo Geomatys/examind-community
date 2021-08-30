@@ -1516,7 +1516,7 @@ public abstract class SOSWorkerTest {
 
         TimePeriodType period = new TimePeriodType(new TimePositionType("1900-01-01T00:00:00"));
         expResult.setSamplingTime(period);
-        expResult.setName(new DefaultIdentifier("urn:ogc:object:observation:template:GEOM:7-0-0"));
+        expResult.setName(new DefaultIdentifier("urn:ogc:object:observation:template:GEOM:7-2-0"));
 
         assertEquals(expResult.getName(), measResult.getName());
 
@@ -1552,7 +1552,7 @@ public abstract class SOSWorkerTest {
 
         for (Observation obs : result.getMember()) {
             assertTrue(obs instanceof MeasurementType);
-            if ("urn:ogc:object:observation:GEOM:901-0-1".equals(obs.getName().getCode())) {
+            if ("urn:ogc:object:observation:GEOM:901-1-1".equals(obs.getName().getCode())) {
                 measResult = (MeasurementType) obs;
             }
         }
@@ -1859,7 +1859,7 @@ public abstract class SOSWorkerTest {
         assertEquals(expResult.getSamplingTime(), result.getSamplingTime());
         assertEquals(expResult, result);
 
-        request = new GetObservationById("1.0.0", "urn:ogc:object:observation:GEOM:901-0-1", "text/xml; subtype=\"om/1.0.0\"", MEASUREMENT_QNAME, ResponseModeType.INLINE, "EPSG:4326");
+        request = new GetObservationById("1.0.0", "urn:ogc:object:observation:GEOM:901-1-1", "text/xml; subtype=\"om/1.0.0\"", MEASUREMENT_QNAME, ResponseModeType.INLINE, "EPSG:4326");
 
         response = (ObservationCollectionType) worker.getObservationById(request);
 

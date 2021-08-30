@@ -328,12 +328,22 @@ public class OM2BaseReader {
     }
 
     protected List<Field> readFields(final String procedureID, final Connection c) throws SQLException {
+        return readFields(procedureID, false, c);
+    }
+    
+    protected List<Field> readFields(final String procedureID, final boolean removeMainTimeField, final Connection c) throws SQLException {
         final List<Field> results = new ArrayList<>();
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? ORDER BY \"order\"")) {//NOSONAR
+        String query = "SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=?";
+        if (removeMainTimeField) {
+            query = query + " AND NOT(\"order\"= 1 AND \"field_type\"= 'Time')";
+        }
+        query = query + "ORDER BY \"order\"";
+        try(final PreparedStatement stmt = c.prepareStatement(query)) {//NOSONAR
             stmt.setString(1, procedureID);
             try(final ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    results.add(new Field(rs.getString("field_type"),
+                    results.add(new Field(rs.getInt("order"),
+                            rs.getString("field_type"),
                             rs.getString("field_name"),
                             rs.getString("field_definition"),
                             rs.getString("uom")));
@@ -348,12 +358,22 @@ public class OM2BaseReader {
             stmt.setString(1, procedureID);
             try (final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return new Field(rs.getString("field_type"),
+                    return new Field(rs.getInt("order"),
+                            rs.getString("field_type"),
                             rs.getString("field_name"),
                             rs.getString("field_definition"),
                             rs.getString("uom"));
                 }
                 return null;
+            }
+        }
+    }
+
+    protected boolean isMainTimeField(final String procedureID, final Connection c) throws SQLException {
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"field_type\" FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"field_type\"='Time' AND \"order\"=1")) {//NOSONAR
+            stmt.setString(1, procedureID);
+            try (final ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
             }
         }
     }
@@ -372,7 +392,8 @@ public class OM2BaseReader {
             stmt.setString(1, procedureID);
             try (final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return new Field(rs.getString("field_type"),
+                    return new Field(rs.getInt("order"),
+                            rs.getString("field_type"),
                             rs.getString("field_name"),
                             rs.getString("field_definition"),
                             rs.getString("uom"));
@@ -398,6 +419,7 @@ public class OM2BaseReader {
             try (final ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     results.add(new Field(
+                            rs.getInt("order"),
                             rs.getString("field_type"),
                             rs.getString("field_name"),
                             rs.getString("field_definition"),
@@ -414,7 +436,8 @@ public class OM2BaseReader {
             stmt.setString(2, phenomenon);
             try(final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return new Field(rs.getString("field_type"),
+                    return new Field(rs.getInt("order"),
+                            rs.getString("field_type"),
                             rs.getString("field_name"),
                             rs.getString("field_definition"),
                             rs.getString("uom"));

@@ -129,20 +129,20 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
         writeDataFileEPSG(observationsDirectory, "org/constellation/sos/v100/observation4.xml", "urn:ogc:object:observation:GEOM:307.xml", EPSG_VERSION);
         writeDataFileEPSG(observationsDirectory, "org/constellation/sos/v100/observation5.xml", "urn:ogc:object:observation:GEOM:507.xml", EPSG_VERSION);
         writeDataFileEPSG(observationsDirectory, "org/constellation/sos/v100/observation6.xml", "urn:ogc:object:observation:GEOM:801.xml", EPSG_VERSION);
-        writeDataFileEPSG(observationsDirectory, "org/constellation/sos/v100/measure1.xml",     "urn:ogc:object:observation:GEOM:901-0-1.xml", EPSG_VERSION);
-        writeDataFileEPSG(observationsDirectory, "org/constellation/sos/v100/measure2.xml",     "urn:ogc:object:observation:GEOM:901-0-2.xml", EPSG_VERSION);
-        writeDataFileEPSG(observationsDirectory, "org/constellation/sos/v100/measure3.xml",     "urn:ogc:object:observation:GEOM:901-0-3.xml", EPSG_VERSION);
-        writeDataFileEPSG(observationsDirectory, "org/constellation/sos/v100/measure4.xml",     "urn:ogc:object:observation:GEOM:901-0-4.xml", EPSG_VERSION);
-        writeDataFileEPSG(observationsDirectory, "org/constellation/sos/v100/measure5.xml",     "urn:ogc:object:observation:GEOM:901-0-5.xml", EPSG_VERSION);
-        writeDataFileEPSG(observationsDirectory, "org/constellation/sos/v100/measure6.xml",     "urn:ogc:object:observation:GEOM:901-0-6.xml", EPSG_VERSION);
-        writeDataFileEPSG(observationsDirectory, "org/constellation/sos/v100/measure7.xml",     "urn:ogc:object:observation:GEOM:901-0-7.xml", EPSG_VERSION);
+        writeDataFileEPSG(observationsDirectory, "org/constellation/sos/v100/measure1.xml",     "urn:ogc:object:observation:GEOM:901-1-1.xml", EPSG_VERSION);
+        writeDataFileEPSG(observationsDirectory, "org/constellation/sos/v100/measure2.xml",     "urn:ogc:object:observation:GEOM:901-1-2.xml", EPSG_VERSION);
+        writeDataFileEPSG(observationsDirectory, "org/constellation/sos/v100/measure3.xml",     "urn:ogc:object:observation:GEOM:901-1-3.xml", EPSG_VERSION);
+        writeDataFileEPSG(observationsDirectory, "org/constellation/sos/v100/measure4.xml",     "urn:ogc:object:observation:GEOM:901-1-4.xml", EPSG_VERSION);
+        writeDataFileEPSG(observationsDirectory, "org/constellation/sos/v100/measure5.xml",     "urn:ogc:object:observation:GEOM:901-1-5.xml", EPSG_VERSION);
+        writeDataFileEPSG(observationsDirectory, "org/constellation/sos/v100/measure6.xml",     "urn:ogc:object:observation:GEOM:901-1-6.xml", EPSG_VERSION);
+        writeDataFileEPSG(observationsDirectory, "org/constellation/sos/v100/measure7.xml",     "urn:ogc:object:observation:GEOM:901-1-7.xml", EPSG_VERSION);
 
         Path observationTemplatesDirectory = instDirectory.resolve("observationTemplates");
         Files.createDirectories(observationTemplatesDirectory);
         writeDataFileEPSG(observationTemplatesDirectory, "org/constellation/sos/v100/observationTemplate-3.xml", "urn:ogc:object:observation:template:GEOM:3.xml", EPSG_VERSION);
         writeDataFileEPSG(observationTemplatesDirectory, "org/constellation/sos/v100/observationTemplate-4.xml", "urn:ogc:object:observation:template:GEOM:4.xml", EPSG_VERSION);
         writeDataFileEPSG(observationTemplatesDirectory, "org/constellation/sos/observationTemplate-5.xml", "urn:ogc:object:observation:template:GEOM:test-1.xml", EPSG_VERSION);
-        writeDataFileEPSG(observationTemplatesDirectory, "org/constellation/sos/observationTemplate-7.xml", "urn:ogc:object:observation:template:GEOM:7-0.xml", EPSG_VERSION);
+        writeDataFileEPSG(observationTemplatesDirectory, "org/constellation/sos/observationTemplate-7.xml", "urn:ogc:object:observation:template:GEOM:7-2.xml", EPSG_VERSION);
         writeDataFileEPSG(observationTemplatesDirectory, "org/constellation/sos/observationTemplate-8.xml", "urn:ogc:object:observation:template:GEOM:8.xml", EPSG_VERSION);
 
         Path sensorDirectory = instDirectory.resolve("sensors");

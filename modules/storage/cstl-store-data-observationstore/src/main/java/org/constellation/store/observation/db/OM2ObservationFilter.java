@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.sis.geometry.GeneralEnvelope;
 
 import org.geotoolkit.observation.Field;
@@ -87,11 +88,14 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
     protected QName resultModel;
 
-    protected boolean offJoin  = false;
-    protected boolean obsJoin  = false;
-    protected boolean procJoin = false;
+    protected boolean offJoin      = false;
+    protected boolean obsJoin      = false;
+    protected boolean procJoin     = false;
+    protected boolean procDescJoin = false;
+
     protected boolean includeFoiInTemplate = true;
     protected boolean singleObservedPropertyInTemplate = false;
+    protected boolean noCompositePhenomenon = false;
 
     protected OMEntity objectType = null;
 
@@ -141,7 +145,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         this.objectType = objectType;
         switch (objectType) {
             case FEATURE_OF_INTEREST: initFilterGetFeatureOfInterest(); break;
-            case OBSERVED_PROPERTY:   initFilterGetPhenomenon(); break;
+            case OBSERVED_PROPERTY:   initFilterGetPhenomenon(hints); break;
             case PROCEDURE:           initFilterGetSensor(); break;
             case OFFERING:            initFilterOffering(); break;
             case LOCATION:            initFilterGetLocations(); break;
@@ -156,18 +160,28 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         this.responseMode    = (ResponseModeType) hints.get("responseMode");
         this.resultModel     = (QName) hints.get("resultModel");
         includeFoiInTemplate = getBooleanHint(hints, "includeFoiInTemplate", true);
-        singleObservedPropertyInTemplate = getBooleanHint(hints, "singleObservedPropertyInTemplate", false);
+        singleObservedPropertyInTemplate = MEASUREMENT_QNAME.equals(resultModel) && ResponseModeType.RESULT_TEMPLATE.equals(responseMode);
         if (ResponseModeType.RESULT_TEMPLATE.equals(responseMode)) {
-            sqlRequest = new FilterSQLRequest("SELECT distinct  \"procedure\"");
-            if (!singleObservedPropertyInTemplate) {
-                sqlRequest.append(", \"observed_property\"");
-            }
+            sqlRequest = new FilterSQLRequest("SELECT distinct  o.\"procedure\"");
+            if (singleObservedPropertyInTemplate) {
+                sqlRequest.append(", (CASE WHEN \"component\" IS NULL THEN o.\"observed_property\" ELSE \"component\" END) AS \"obsprop\", pd.\"order\", pd.\"uom\"");
+            } 
             if (includeFoiInTemplate) {
                 sqlRequest.append(", \"foi\"");
             }
-            sqlRequest.append(" FROM \"").append(schemaPrefix).append("om\".\"observations\" o WHERE");
+            if (singleObservedPropertyInTemplate) {
+                sqlRequest.append(" FROM \"").append(schemaPrefix).append("om\".\"observations\" o");
+                sqlRequest.append(" LEFT JOIN \"").append(schemaPrefix).append("om\".\"components\" c ON o.\"observed_property\" = c.\"phenomenon\" , \"").append(schemaPrefix).append("om\".\"procedure_descriptions\" pd");
+                sqlRequest.append(" WHERE (CASE WHEN c.\"component\" IS NULL THEN o.\"observed_property\" ELSE \"component\" END) = pd.\"field_name\" ");
+                sqlRequest.append(" AND pd.\"procedure\" = o.\"procedure\"");
+                firstFilter = false;
+            } else {
+                sqlRequest.append(" FROM \"").append(schemaPrefix).append("om\".\"observations\" o");
+                sqlRequest.append(" WHERE ");
+                firstFilter = true;
+            }
+
             template = true;
-            firstFilter = true;
         } else {
             sqlRequest = new FilterSQLRequest("SELECT o.\"id\", o.\"identifier\", \"observed_property\", \"procedure\", \"foi\", \"time_begin\", \"time_end\" FROM \"");
             sqlRequest.append(schemaPrefix).append("om\".\"observations\" o WHERE \"identifier\" NOT LIKE ").appendValue(observationTemplateIdBase + '%').append(" ");
@@ -206,9 +220,16 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         obsJoin = false;
     }
 
-    private void initFilterGetPhenomenon() {
-        sqlRequest = new FilterSQLRequest("SELECT op.\"id\" FROM \"" + schemaPrefix + "om\".\"observed_properties\" op WHERE ");
-        firstFilter = true;
+    private void initFilterGetPhenomenon(final Map<String, Object> hints) {
+        sqlRequest = new FilterSQLRequest("SELECT op.\"id\" FROM \"" + schemaPrefix + "om\".\"observed_properties\" op ");
+        noCompositePhenomenon = getBooleanHint(hints, "noCompositePhenomenon", false);
+        if (noCompositePhenomenon) {
+            sqlRequest.append(" WHERE op.\"id\" NOT IN (SELECT \"phenomenon\" FROM \"").append(schemaPrefix).append("om\".\"components\") ");
+            firstFilter = false;
+        } else {
+            sqlRequest.append(" WHERE ");
+            firstFilter = true;
+        }
     }
 
     private void initFilterGetSensor() {
@@ -258,6 +279,12 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     @Override
     public void setProcedure(final List<String> procedures) {
         if (procedures != null && !procedures.isEmpty()) {
+            final String tableName;
+            if (HISTORICAL_LOCATION.equals(objectType)) {
+                tableName = "hl";
+            } else {
+                tableName = "o";
+            }
             if (firstFilter) {
                 sqlRequest.append(" ( ");
             } else {
@@ -265,7 +292,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             }
             for (String s : procedures) {
                 if (s != null) {
-                    sqlRequest.append(" \"procedure\"=").appendValue(s).append(" OR ");
+                    sqlRequest.append(" ").append(tableName).append(".\"procedure\"=").appendValue(s).append(" OR ");
                 }
             }
             sqlRequest.delete(sqlRequest.length() - 3, sqlRequest.length());
@@ -314,18 +341,29 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 sbPheno.delete(sbPheno.length() - 3, sbPheno.length());
                 sb = sbPheno;
             } else {
-                final FilterSQLRequest sbPheno = new FilterSQLRequest();
-                final FilterSQLRequest sbCompo = new FilterSQLRequest(" OR \"observed_property\" IN (SELECT \"phenomenon\" FROM \"" + schemaPrefix + "om\".\"components\" WHERE ");
-                for (String p : phenomenon) {
-                    sbPheno.append(" \"observed_property\"=").appendValue(p).append(" OR ");
-                    sbCompo.append(" \"component\"=").appendValue(p).append(" OR ");
-                    fields.addAll(getFieldsForPhenomenon(p));
+                if (singleObservedPropertyInTemplate) {
+                    final FilterSQLRequest sbPheno = new FilterSQLRequest();
+                    for (String p : phenomenon) {
+                        sbPheno.append(" (CASE WHEN \"component\" IS NULL THEN o.\"observed_property\" ELSE \"component\" END) = ").appendValue(p).append(" OR ");
+                        fields.addAll(getFieldsForPhenomenon(p));
+                    }
+                    sbPheno.delete(sbPheno.length() - 3, sbPheno.length());
+                    sb = sbPheno;
+                } else {
+                    final FilterSQLRequest sbPheno = new FilterSQLRequest();
+                    final FilterSQLRequest sbCompo = new FilterSQLRequest(" OR \"observed_property\" IN (SELECT \"phenomenon\" FROM \"" + schemaPrefix + "om\".\"components\" WHERE ");
+                    for (String p : phenomenon) {
+                        sbPheno.append(" \"observed_property\"=").appendValue(p).append(" OR ");
+                        sbCompo.append(" \"component\"=").appendValue(p).append(" OR ");
+                        fields.addAll(getFieldsForPhenomenon(p));
+                    }
+                    sbPheno.delete(sbPheno.length() - 3, sbPheno.length());
+                    sbCompo.delete(sbCompo.length() - 3, sbCompo.length());
+                    sbCompo.append(")");
+                    sb = sbPheno.append(sbCompo);
+                    obsJoin = true;
                 }
-                sbPheno.delete(sbPheno.length() - 3, sbPheno.length());
-                sbCompo.delete(sbCompo.length() - 3, sbCompo.length());
-                sbCompo.append(")");
-                sb = sbPheno.append(sbCompo);
-                obsJoin = true;
+               
             }
             if (!getFOI) {
                 for (String field : fields) {
@@ -384,110 +422,220 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     @Override
     public void setObservationIds(List<String> ids) {
         if (!ids.isEmpty()) {
-            final FilterSQLRequest sb = new FilterSQLRequest();
-           /*
-            * in template mode 2 possibility :
-            *   1) look for for a template by id:
-            *       - <template base> - <proc id>
-            *       - <template base> - <proc id> - <field id>
-            *   2) look for a template for an observation id:
-            *       - <observation id>
-            *       - <observation id> - <field id>
-            *       - <observation id> - <field id> - <measure id>
-            */
-            if (template) {
+            boolean getPhen = OMEntity.OBSERVED_PROPERTY.equals(objectType);
+            if (getPhen) {
+                final FilterSQLRequest procSb  = new FilterSQLRequest();
+                final FilterSQLRequest fieldSb = new FilterSQLRequest();
+               /*
+                * in phenomenon mode 2 possibility :
+                *   1) look for for observation for a template:
+                *       - <template base> - <proc id>
+                *       - <template base> - <proc id> - <field id>
+                *   2) look for observation by id:
+                *       - <observation id>
+                *       - <observation id> - <measure id>
+                *       - <observation id> - <field id> - <measure id>
+                */
                 for (String oid : ids) {
-                    if (oid.startsWith(observationTemplateIdBase)) {
+                    if (oid.contains(observationTemplateIdBase)) {
                         String procedureID = oid.substring(observationTemplateIdBase.length());
                         // look for a field separator
+                        boolean hasFieldId = false;
                         int pos = procedureID.lastIndexOf("-");
                         if (pos != -1) {
                             try {
                                 int fieldIdentifier = Integer.parseInt(procedureID.substring(pos + 1));
                                 String tmpProcedureID = procedureID.substring(0, pos);
-                                if (existProcedure(sensorIdBase + tmpProcedureID) ||
-                                    existProcedure(tmpProcedureID)) {
+                                if (existProcedure(sensorIdBase + tmpProcedureID) || existProcedure(tmpProcedureID)) {
                                     procedureID = tmpProcedureID;
-                                    fieldFilters.add(fieldIdentifier);
+                                    fieldSb.append("(pd.\"order\"=").appendValue(fieldIdentifier).append(") OR");
+                                    if (existProcedure(sensorIdBase + procedureID)) {
+                                        procedureID = sensorIdBase + procedureID;
+                                    }
+                                    procSb.append("(pd.\"procedure\"=").appendValue(procedureID).append(") OR");
+                                    procDescJoin = true;
+                                    hasFieldId = true;
                                 }
                             } catch (NumberFormatException ex) {}
                         }
-                        if (existProcedure(sensorIdBase + procedureID)) {
-                            sb.append("(o.\"procedure\"=").appendValue(sensorIdBase + procedureID).append(") OR");
-                        } else {
-                            sb.append("(o.\"procedure\"=").appendValue(procedureID).append(") OR");
+                        if (!hasFieldId) {
+                             if (existProcedure(sensorIdBase + procedureID)) {
+                                procedureID = sensorIdBase + procedureID;
+                            }
+                            if (!noCompositePhenomenon) {
+                                Phenomenon phen;
+                                try {
+                                    phen = getGlobalCompositePhenomenon("2.0.0", procedureID);
+                                    if (phen == null) {
+                                        LOGGER.warning("Global phenomenon not found for procedure :" + procedureID);
+                                    } else {
+                                        fieldSb.append(" (op.\"id\" = '").append(getId(phen)).append("') OR");
+                                    }
+                                } catch (DataStoreException ex) {
+                                    LOGGER.log(Level.SEVERE, "Error while getting global phenomenon for procedure:" + procedureID, ex);
+                                }
+                            } else {
+                                procSb.append("(pd.\"procedure\"=").appendValue(procedureID).append(") OR");
+                                procDescJoin = true;
+                            }
                         }
+                        
+
+                    // we need to join with the proc!
                     } else if (oid.startsWith(observationIdBase)) {
                         String[] component = oid.split("-");
                         if (component.length == 3) {
                             oid = component[0];
                             fieldFilters.add(Integer.parseInt(component[1]));
-                            measureIdFilters.add(Integer.parseInt(component[2]));
+                            int fieldId = Integer.parseInt(component[2]);
+                            fieldSb.append("(pd.\"order\"=").appendValue(fieldId).append(") OR");
                         } else if (component.length == 2) {
                             oid = component[0];
-                            fieldFilters.add(Integer.parseInt(component[1]));
+                            int fieldId = Integer.parseInt(component[2]);
+                            fieldSb.append("(pd.\"order\"=").appendValue(fieldId).append(") OR");
                         }
-                        sb.append("(o.\"identifier\"=").appendValue(oid).append(") OR");
+                        // ?? what to do with oid ?
                     } else {
-                        sb.append("(o.\"identifier\"=").appendValue(oid).append(") OR");
+                        // ?? what to do with oid ?
                     }
                 }
-           /*
-            * in observations mode 2 possibility :
-            *   1) look for for observation for a template:
-            *       - <template base> - <proc id>
-            *       - <template base> - <proc id> - <field id>
-            *   2) look for observation by id:
-            *       - <observation id>
-            *       - <observation id> - <measure id>
-            *       - <observation id> - <field id> - <measure id>
-            */
+                if (procSb.length() > 0) {
+                    procSb.delete(procSb.length() - 3, procSb.length());
+                    if (!firstFilter) {
+                        sqlRequest.append(" AND( ").append(procSb).append(") ");
+                    } else {
+                        sqlRequest.append(procSb);
+                        firstFilter = false;
+                    }
+                }
+                if (fieldSb.length() > 0) {
+                    fieldSb.delete(fieldSb.length() - 3, fieldSb.length());
+                    if (!firstFilter) {
+                        sqlRequest.append(" AND( ").append(fieldSb).append(") ");
+                    } else {
+                        sqlRequest.append(fieldSb);
+                        firstFilter = false;
+                    }
+                }
+
             } else {
-                for (String oid : ids) {
-                     if (oid.contains(observationTemplateIdBase)) {
-                        String procedureID = oid.substring(observationTemplateIdBase.length());
-                        // look for a field separator
-                        int pos = procedureID.lastIndexOf("-");
-                        if (pos != -1) {
-                            try {
-                                int fieldIdentifier = Integer.parseInt(procedureID.substring(pos + 1));
-                                String tmpProcedureID = procedureID.substring(0, pos);
-                                if (existProcedure(sensorIdBase + tmpProcedureID) ||
-                                    existProcedure(tmpProcedureID)) {
-                                    procedureID = tmpProcedureID;
-                                    fieldFilters.add(fieldIdentifier);
-                                }
-                            } catch (NumberFormatException ex) {}
-                        }
-                        if (existProcedure(sensorIdBase + procedureID)) {
-                            sb.append("(o.\"procedure\"=").appendValue(sensorIdBase + procedureID).append(") OR");
+                final FilterSQLRequest procSb  = new FilterSQLRequest();
+                final FilterSQLRequest fieldSb = new FilterSQLRequest();
+               /*
+                * in template mode 2 possibility :
+                *   1) look for for a template by id:
+                *       - <template base> - <proc id>
+                *       - <template base> - <proc id> - <field id>
+                *   2) look for a template for an observation id:
+                *       - <observation id>
+                *       - <observation id> - <field id>
+                *       - <observation id> - <field id> - <measure id>
+                */
+                if (template) {
+                    for (String oid : ids) {
+                        if (oid.startsWith(observationTemplateIdBase)) {
+                            String procedureID = oid.substring(observationTemplateIdBase.length());
+                            // look for a field separator
+                            int pos = procedureID.lastIndexOf("-");
+                            if (pos != -1) {
+                                try {
+                                    int fieldIdentifier = Integer.parseInt(procedureID.substring(pos + 1));
+                                    String tmpProcedureID = procedureID.substring(0, pos);
+                                    if (existProcedure(sensorIdBase + tmpProcedureID) ||
+                                        existProcedure(tmpProcedureID)) {
+                                        procedureID = tmpProcedureID;
+                                        fieldFilters.add(fieldIdentifier);
+                                        fieldSb.append("(pd.\"order\"=").appendValue(fieldIdentifier).append(") OR");
+                                    }
+                                } catch (NumberFormatException ex) {}
+                            }
+                            if (existProcedure(sensorIdBase + procedureID)) {
+                                procSb.append("(o.\"procedure\"=").appendValue(sensorIdBase + procedureID).append(") OR");
+                            } else {
+                                procSb.append("(o.\"procedure\"=").appendValue(procedureID).append(") OR");
+                            }
+                        } else if (oid.startsWith(observationIdBase)) {
+                            String[] component = oid.split("-");
+                            if (component.length == 3) {
+                                oid = component[0];
+                                int fieldId = Integer.parseInt(component[1]);
+                                fieldFilters.add(fieldId);
+                                fieldSb.append("(pd.\"order\"=").appendValue(fieldId).append(") OR");
+                                measureIdFilters.add(Integer.parseInt(component[2]));
+                            } else if (component.length == 2) {
+                                oid = component[0];
+                                int fieldId = Integer.parseInt(component[1]);
+                                fieldFilters.add(fieldId);
+                                fieldSb.append("(pd.\"order\"=").appendValue(fieldId).append(") OR");
+                            }
+                            procSb.append("(o.\"identifier\"=").appendValue(oid).append(") OR");
                         } else {
-                            sb.append("(o.\"procedure\"=").appendValue(procedureID).append(") OR");
+                            procSb.append("(o.\"identifier\"=").appendValue(oid).append(") OR");
                         }
-                    } else if (oid.startsWith(observationIdBase)) {
-                        String[] component = oid.split("-");
-                        if (component.length == 3) {
-                            oid = component[0];
-                            fieldFilters.add(Integer.parseInt(component[1]));
-                            measureIdFilters.add(Integer.parseInt(component[2]));
-                        } else if (component.length == 2) {
-                            oid = component[0];
-                            measureIdFilters.add(Integer.parseInt(component[1]));
+                    }
+               /*
+                * in observations mode 2 possibility :
+                *   1) look for for observation for a template:
+                *       - <template base> - <proc id>
+                *       - <template base> - <proc id> - <field id>
+                *   2) look for observation by id:
+                *       - <observation id>
+                *       - <observation id> - <measure id>
+                *       - <observation id> - <field id> - <measure id>
+                */
+                } else {
+                    for (String oid : ids) {
+                         if (oid.contains(observationTemplateIdBase)) {
+                            String procedureID = oid.substring(observationTemplateIdBase.length());
+                            // look for a field separator
+                            int pos = procedureID.lastIndexOf("-");
+                            if (pos != -1) {
+                                try {
+                                    int fieldIdentifier = Integer.parseInt(procedureID.substring(pos + 1));
+                                    String tmpProcedureID = procedureID.substring(0, pos);
+                                    if (existProcedure(sensorIdBase + tmpProcedureID) ||
+                                        existProcedure(tmpProcedureID)) {
+                                        procedureID = tmpProcedureID;
+                                        fieldFilters.add(fieldIdentifier);
+                                    }
+                                } catch (NumberFormatException ex) {}
+                            }
+                            if (existProcedure(sensorIdBase + procedureID)) {
+                                procSb.append("(o.\"procedure\"=").appendValue(sensorIdBase + procedureID).append(") OR");
+                            } else {
+                                procSb.append("(o.\"procedure\"=").appendValue(procedureID).append(") OR");
+                            }
+                        } else if (oid.startsWith(observationIdBase)) {
+                            String[] component = oid.split("-");
+                            if (component.length == 3) {
+                                oid = component[0];
+                                fieldFilters.add(Integer.parseInt(component[1]));
+                                measureIdFilters.add(Integer.parseInt(component[2]));
+                            } else if (component.length == 2) {
+                                oid = component[0];
+                                measureIdFilters.add(Integer.parseInt(component[1]));
+                            }
+                            procSb.append("(o.\"identifier\"=").appendValue(oid).append(") OR");
+                        } else {
+                            procSb.append("(o.\"identifier\"=").appendValue(oid).append(") OR");
                         }
-                        sb.append("(o.\"identifier\"=").appendValue(oid).append(") OR");
-                    } else {
-                        sb.append("(o.\"identifier\"=").appendValue(oid).append(") OR");
                     }
                 }
+                procSb.delete(procSb.length() - 3, procSb.length());
+                if (fieldSb.length() > 0) {
+                    fieldSb.delete(fieldSb.length() - 3, fieldSb.length());
+                }
+                if (!firstFilter) {
+                    sqlRequest.append(" AND( ").append(procSb).append(") ");
+                } else {
+                    sqlRequest.append(procSb);
+                    firstFilter = false;
+                }
+                if (fieldSb.length() > 0) {
+                    sqlRequest.append(" AND( ").append(fieldSb).append(") ");
+                }
+                obsJoin = true;
             }
-            sb.delete(sb.length() - 3, sb.length());
-            if (!firstFilter) {
-                sqlRequest.append(" AND( ").append(sb).append(") ");
-            } else {
-                sqlRequest.append(sb);
-                firstFilter = false;
-            }
-            obsJoin = true;
         }
     }
 
@@ -707,40 +855,23 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
     }
 
-    private Set<String> filterObservation(Map<String, Object> hints) throws DataStoreException {
+    private List<String> filterObservation(Map<String, Object> hints) throws DataStoreException {
+        sqlRequest.append(" ORDER BY \"procedure\"");
         if (firstFilter) {
             sqlRequest = sqlRequest.replaceFirst("WHERE", "");
         }
-        sqlRequest = appendPaginationToRequest(sqlRequest, hints);
         LOGGER.log(Level.FINER, "request:{0}", sqlRequest.toString());
         try(final Connection c               = source.getConnection();
             final PreparedStatement pstmt    = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
             final ResultSet rs               = pstmt.executeQuery()) {
-            final Set<String> results        = new LinkedHashSet<>();
+            final List<String> results       = new ArrayList<>();
             while (rs.next()) {
                 final String procedure        = rs.getString("procedure");
                 final String procedureID      = procedure.substring(sensorIdBase.length());
                 if (template) {
                     if (MEASUREMENT_QNAME.equals(resultModel)) {
-                        final Phenomenon phen;
-                        if (singleObservedPropertyInTemplate) {
-                            phen = getVirtualCompositePhenomenon("1.0.0", c, procedure);
-                        } else {
-                            String observedProperty = rs.getString("observed_property");
-                            phen = getPhenomenon("1.0.0", observedProperty, c);
-                        }
-                        final List<Field> fields      = readFields(procedure, c);
-                        final Field mainField         = getMainField(procedure);
-                        if (mainField != null && "Time".equals(mainField.fieldType)) {
-                            fields.remove(mainField);
-                        }
-
-                        List<FieldPhenomenon> fieldPhen = getPhenomenonFields(phen, fields, c, procedure);
-                        for (int i = 0; i < fieldPhen.size(); i++) {
-                            FieldPhenomenon field = fieldPhen.get(i);
-                            results.add(observationTemplateIdBase + procedureID + '-' + field.getIndex());
-                        }
-
+                        final String index = rs.getString("order");
+                        results.add(observationTemplateIdBase + procedureID + '-' + index);
                     } else {
                         final String name = observationTemplateIdBase + procedureID;
                         results.add(name);
@@ -750,25 +881,31 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     final String name             = rs.getString("identifier");
                     final String observedProperty = rs.getString("observed_property");
                     final int pid                 = getPIDFromProcedure(procedure, c);
-                    final List<Field> fields      = readFields(procedure, c);
+                    final List<Field> fields      = readFields(procedure, true, c);
                     final Field mainField         = getMainField(procedure);
                     boolean isTimeField           = false;
                     if (mainField != null) {
                         isTimeField = "Time".equals(mainField.fieldType);
                     }
+
+                    final String select;
+                    if (MEASUREMENT_QNAME.equals(resultModel)) {
+                        select = "m.*";
+                    } else {
+                        select = "\"id\"";
+                    }
                     final String sqlRequest;
                     if (isTimeField) {
-                        sqlRequest = "SELECT \"id\" FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m "
+                        sqlRequest = "SELECT " + select + " FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m "
                                 + "WHERE \"id_observation\" = ? " + sqlMeasureRequest.replaceAll("$time", mainField.fieldName)
                                 + "ORDER BY m.\"id\"";
-                        fields.remove(mainField);
                     } else {
-                        sqlRequest = "SELECT \"id\" FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m WHERE \"id_observation\" = ? ORDER BY m.\"id\"";
+                        sqlRequest = "SELECT " + select + " FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m WHERE \"id_observation\" = ? ORDER BY m.\"id\"";
                     }
 
                     if (MEASUREMENT_QNAME.equals(resultModel)) {
                         final Phenomenon phen = getPhenomenon("1.0.0", observedProperty, c);
-                        List<FieldPhenomenon> fieldPhen = getPhenomenonFields(phen, fields, c, procedure);
+                        List<FieldPhenomenon> fieldPhen = getPhenomenonFields(phen, fields, c);
                         try (final PreparedStatement stmt = c.prepareStatement(sqlRequest)) {
                             stmt.setInt(1, oid);
                             try (final ResultSet rs2 = stmt.executeQuery()) {
@@ -777,7 +914,10 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                                     if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
                                         for (int i = 0; i < fieldPhen.size(); i++) {
                                             FieldPhenomenon field = fieldPhen.get(i);
-                                            results.add(name + '-' + field. getIndex() + '-' + rid);
+                                            final String value = rs2.getString(field.getField().fieldName);
+                                            if (value != null) {
+                                                results.add(name + '-' + field.getField().fieldIndex + '-' + rid);
+                                            }
                                         }
                                     }
                                 }
@@ -799,7 +939,10 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     }
                 }
             }
-            return results;
+            // TODO make a real pagination
+            Long limit     = getLongHint(hints, "limit");
+            Long offset    = getLongHint(hints, "offset");
+            return  applyPostPagination(offset, limit, results);
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString() + '\n' + ex.getMessage());
             throw new DataStoreException("the service has throw a SQL Exception.");
@@ -900,7 +1043,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             case OBSERVED_PROPERTY:   request = getPhenomenonRequest(hints); break;
             case PROCEDURE:           request = getProcedureRequest(hints); break;
             case OFFERING:            request = getOfferingRequest(hints); break;
-            case OBSERVATION:         return filterObservation(hints);
+            case OBSERVATION:         return new LinkedHashSet(filterObservation(hints));
             case LOCATION:
             case HISTORICAL_LOCATION: 
             case RESULT:              throw new DataStoreException("not implemented yet.");
@@ -1082,72 +1225,29 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         return false;
     }
 
-    protected List<FieldPhenomenon> getPhenomenonFields(final Phenomenon phen, List<Field> fields, Connection c, String procedure) throws DataStoreException {
-        List<FieldPhenomenon> fieldPhen = new ArrayList<>();
-        if (fields.size() > 1) {
-            if (phen instanceof CompositePhenomenon) {
-                CompositePhenomenon composite = (CompositePhenomenon) phen;
-                if (composite.getComponent().size() == fields.size()) {
-                    for (int i = 0; i < fields.size(); i++) {
-                        org.geotoolkit.swe.xml.Phenomenon component = (org.geotoolkit.swe.xml.Phenomenon) composite.getComponent().get(i);
-                        if ((currentFields.isEmpty() || currentFields.contains(component.getId())) &&
-                            (fieldFilters.isEmpty() || fieldFilters.contains(i))) {
-                            fieldPhen.add(new FieldPhenomenon(i, component, fields.get(i)));
-                        }
-                    }
-                } else {
-                    // particular case where an observation has been registered with a composite phenomenon which is a subset of the procedure full composite
-                    Phenomenon global =  getVirtualCompositePhenomenon("1.0.0", c, procedure);
-                    if (global instanceof CompositePhenomenon) {
-                        CompositePhenomenon fullComposite = (CompositePhenomenon) global;
-                        if (isACompositeSubSet(composite, fullComposite)) {
-                            if (fullComposite.getComponent().size() == fields.size()) {
-                                for (int i = 0; i < fields.size(); i++) {
-                                    org.geotoolkit.swe.xml.Phenomenon component = (org.geotoolkit.swe.xml.Phenomenon) fullComposite.getComponent().get(i);
-                                    if ((currentFields.isEmpty() || currentFields.contains(component.getId())) &&
-                                        (fieldFilters.isEmpty()  || fieldFilters.contains(i)) &&
-                                        hasComponent(component, composite)) {
-                                        fieldPhen.add(new FieldPhenomenon(i, component, fields.get(i)));
-                                    }
-                                }
-                            } else {
-                                throw new DataStoreException("incoherence between procedure fields size and global composite phenomenon components size");
-                            }
-                        } else {
-                             throw new DataStoreException("incoherence between requested composite phenomenon and global composite phenomenon.");
-                        }
-                    } else {
-                         throw new DataStoreException("incoherence between requested composite phenomenon and global phenomenon (which is not a composite).");
-                    }
-                }
-            } else {
-                // particular case where an observation has been registered with a single phenomenon, but the procedure got a composite
-                Phenomenon global =  getVirtualCompositePhenomenon("1.0.0", c, procedure);
-                if (global instanceof CompositePhenomenon) {
-                    CompositePhenomenon composite = (CompositePhenomenon) global;
-                    if (composite.getComponent().size() == fields.size()) {
-                        for (int i = 0; i < fields.size(); i++) {
-                            org.geotoolkit.swe.xml.Phenomenon component = (org.geotoolkit.swe.xml.Phenomenon) composite.getComponent().get(i);
-                            if ((currentFields.isEmpty() || currentFields.contains(component.getId())) &&
-                                (fieldFilters.isEmpty()  || fieldFilters.contains(i)) &&
-                                component.getId().equals(getId(phen))) {
-                                fieldPhen.add(new FieldPhenomenon(i, component, fields.get(i)));
-                            }
-                        }
-                    } else {
-                        throw new DataStoreException("incoherence between procedure fields size and global composite phenomenon components size");
-                    }
-                } else {
-                    throw new DataStoreException("incoherence between requested single phenomenon and global phenomenon (which is not a composite).");
-                }
+    protected List<FieldPhenomenon> getPhenomenonFields(final Phenomenon fullPhen, List<Field> fields, Connection c) throws DataStoreException {
+        final List<FieldPhenomenon> results = new ArrayList<>();
+        for (Field f : fields) {
+            if (isIncludedField(f.fieldName, f.fieldDesc, f.fieldIndex) && isFieldInPhenomenon(f.fieldName, fullPhen)) {
+                Phenomenon phen = getPhenomenon("1.0.0", f.fieldName, c);
+                results.add(new FieldPhenomenon(phen, f));
             }
-        } else {
-            if (phen instanceof CompositePhenomenon) {
-                throw new DataStoreException("incoherence between single fields and composite phenomenon");
-            }
-            fieldPhen.add(new FieldPhenomenon(0, phen, fields.get(0)));
         }
-        return fieldPhen;
+        return results;
+    }
+
+    private boolean isFieldInPhenomenon(String phenId, Phenomenon phen) {
+        if (phen instanceof CompositePhenomenon) {
+                CompositePhenomenon composite = (CompositePhenomenon) phen;
+            return hasComponent(phenId, composite);
+        } else {
+            return phenId.equals(getId(phen));
+        }
+    }
+
+    protected boolean isIncludedField(String id, String desc, int index) {
+        return (currentFields.isEmpty() || currentFields.contains(id) || (desc != null && currentFields.contains(desc))) &&
+               (fieldFilters.isEmpty()  || fieldFilters.contains(index));
     }
 
     /**
@@ -1157,7 +1257,23 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      * some other are registered with composite that are a subset of the global procedure phenomenon.
      *
      * @return
+     */
+    protected Phenomenon getGlobalCompositePhenomenon(String version, String procedure) throws DataStoreException {
+        try(final Connection c   = source.getConnection()) {
+            return getGlobalCompositePhenomenon(version, c, procedure);
+        } catch (SQLException ex) {
+            throw new DataStoreException(ex);
+        }
+    }
 
+    /**
+     * Return the global phenomenon for a procedure.
+     * We need this method because some procedure got multiple observation with only a phenomon component,
+     * and not the full composite.
+     * some other are registered with composite that are a subset of the global procedure phenomenon.
+     *
+     * @return
+     */
     protected Phenomenon getGlobalCompositePhenomenon(String version, Connection c, String procedure) throws DataStoreException {
        String request = "SELECT DISTINCT(\"observed_property\") FROM \"" + schemaPrefix + "om\".\"observations\" o, \"" + schemaPrefix + "om\".\"components\" c "
                       + "WHERE \"procedure\"=? ";
@@ -1182,7 +1298,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                         return singles.get(0);
                     } else  {
                         // multiple phenomenons are present, but no composite... TODO
-                         throw new DataStoreException("Error while looking for global phenomenon, multiple single, but no composite.");
+                        return getVirtualCompositePhenomenon(version, c, procedure);
                     }
                 } else if (composites.size() == 1) {
                     return composites.get(0);
@@ -1195,7 +1311,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             LOGGER.log(Level.WARNING, "Error while looking for global phenomenon.", ex);
             throw new DataStoreException("Error while looking for global phenomenon.");
        }
-    }*/
+    }
 
     protected Phenomenon getVirtualCompositePhenomenon(String version, Connection c, String procedure) throws DataStoreException {
        String request = "SELECT \"field_name\" FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" "
@@ -1267,5 +1383,24 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             LOGGER.log(Level.WARNING, "Error while looking for template time.", ex);
         }
         return null;
+    }
+
+    protected List applyPostPagination(Long offset, Long size, List full) {
+        int from = 0;
+        if (offset != null) {
+            from = offset.intValue();
+        }
+        int to = full.size();
+        if (size != null) {
+            to = from + size.intValue();
+            if (to >= full.size()) {
+                to = full.size();
+            }
+        }
+        if (from > to) {
+            full.clear();
+            return full;
+        }
+        return full.subList(from, to);
     }
 }

@@ -81,7 +81,6 @@ import org.opengis.filter.Literal;
 import org.opengis.filter.TemporalOperator;
 import org.opengis.filter.TemporalOperatorName;
 import org.opengis.geometry.Geometry;
-import org.opengis.observation.CompositePhenomenon;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.sampling.SamplingFeature;
@@ -270,7 +269,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     @Override
     public List<Observation> getObservations(Map<String, Object> hints) throws DataStoreException {
         if (RESULT_TEMPLATE.equals(responseMode)) {
-            return getObservationTemplates(hints);
+            if (MEASUREMENT_QNAME.equals(resultModel)) {
+                return getMesurementTemplates(hints);
+            } else {
+                return getObservationTemplates(hints);
+            }
         } else if (INLINE.equals(responseMode)) {
             if (MEASUREMENT_QNAME.equals(resultModel)) {
                 return getMesurements(hints);
@@ -284,9 +287,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
     private List<Observation> getObservationTemplates(final Map<String, Object> hints) throws DataStoreException {
         final String version = getVersionFromHints(hints);
-        if (MEASUREMENT_QNAME.equals(resultModel)) {
-            return getMesurementTemplates(version, hints);
-        }
         if (firstFilter) {
             sqlRequest.replaceFirst("WHERE", "");
         }
@@ -312,18 +312,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 }
                 final String obsID = "obs-" + procedureID;
                 final String name = observationTemplateIdBase + procedureID;
-                final String observedProperty;
-                final Phenomenon phen;
-                if (singleObservedPropertyInTemplate) {
-                    observedProperty = null;
-                    // problem here, we will return an unexisting phenomenon (meaning not stored in database)
-                    // but this flag is mostly used in STS where we don't want to see the composite, but the components.
-                    // so will keep this here until we experience issues.
-                    phen = getVirtualCompositePhenomenon(version, c, procedure);
-                } else {
-                    observedProperty = rs.getString("observed_property");
-                    phen = getPhenomenon(version, observedProperty, c);
-                }
+                final Phenomenon phen = getGlobalCompositePhenomenon(version, c, procedure);
                 String featureID = null;
                 FeatureProperty foi = null;
                 if (includeFoiInTemplate) {
@@ -333,7 +322,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 }
                 TemporalGeometricPrimitive tempTime = null;
                 if (includeTimeInTemplate) {
-                    tempTime = getTimeForTemplate(c, procedure, observedProperty, featureID, version);
+                    tempTime = getTimeForTemplate(c, procedure, null, featureID, version);
                 }
                 List<Field> fields = readFields(procedure, c);
                 /*
@@ -365,11 +354,12 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         return observations;
     }
 
-    private List<Observation> getMesurementTemplates(final String version, Map<String, Object> hints) throws DataStoreException {
+    private List<Observation> getMesurementTemplates(Map<String, Object> hints) throws DataStoreException {
+        final String version = getVersionFromHints(hints);
         if (firstFilter) {
             sqlRequest.replaceFirst("WHERE", "");
         }
-        sqlRequest.append(" ORDER BY \"procedure\" ");
+        sqlRequest.append(" ORDER BY \"procedure\", pd.\"order\" ");
         sqlRequest = appendPaginationToRequest(sqlRequest, hints);
 
         boolean includeTimeInTemplate = getBooleanHint(hints, "includeTimeInTemplate", false);
@@ -390,13 +380,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 }
                 final String obsID = "obs-" + procedureID;
                 final String name = observationTemplateIdBase + procedureID;
-                final Phenomenon phen;
-                if (singleObservedPropertyInTemplate) {
-                    phen = getVirtualCompositePhenomenon(version, c, procedure);
-                } else {
-                    String observedProperty = rs.getString("observed_property");
-                    phen = getPhenomenon(version, observedProperty, c);
-                }
+                final String observedProperty = rs.getString("obsprop");
+                final Phenomenon phen = getPhenomenon(version, observedProperty, c);
+                final int phenIndex = rs.getInt("order");
+                final String phenUom = rs.getString("uom");
+                
                 String featureID = null;
                 FeatureProperty foi = null;
                 if (includeFoiInTemplate) {
@@ -408,11 +396,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 /*
                  *  BUILD RESULT
                  */
-                final List<Field> fields = readFields(procedure, c);
-                final Field mainField = getMainField(procedure);
-                if (mainField != null && "Time".equals(mainField.fieldType)) {
-                    fields.remove(mainField);
-                }
                 final Process proc;
                 if (processMap.containsKey(procedure)) {
                     proc = processMap.get(procedure);
@@ -420,16 +403,14 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     proc = getProcess(version, procedure, c);
                     processMap.put(procedure, proc);
                 }
-
-                List<FieldPhenomenon> phenFields = getPhenomenonFields(phen, fields, c, procedure);
-                for (FieldPhenomenon phenField : phenFields) {
-                    TemporalGeometricPrimitive tempTime = null;
-                    if (includeTimeInTemplate) {
-                        tempTime = getTimeForTemplate(c, procedure, getId(phenField.getPhenomenon()), featureID, version);
-                    }
-                    final Object result = buildMeasure(version, "measure-001", phenField.getField().fieldUom, 0d);
-                    observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + phenField.getIndex(), name + '-' + phenField.getIndex(), null, foi, phenField.getPhenomenon(), proc, result, tempTime, null));
+                
+                TemporalGeometricPrimitive tempTime = null;
+                if (includeTimeInTemplate) {
+                    tempTime = getTimeForTemplate(c, procedure, observedProperty, featureID, version);
                 }
+                final Object result = buildMeasure(version, "measure-001", phenUom, 0d);
+                observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + phenIndex, name + '-' + phenIndex, null, foi, phen, proc, result, tempTime, null));
+                
             }
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
@@ -445,6 +426,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         boolean includeIDInDataBlock  = getBooleanHint(hints, "includeIDInDataBlock",  false);
         boolean includeTimeForProfile = getBooleanHint(hints, "includeTimeForProfile", false);
         boolean directResultArray     = getBooleanHint(hints, "directResultArray",     false);
+        boolean separatedObs          = getBooleanHint(hints, "separatedObservation",  false);
         ResultMode resultMode;
         if (directResultArray) {
             resultMode = ResultMode.DATA_ARRAY;
@@ -454,8 +436,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         if (firstFilter) {
             sqlRequest.replaceFirst("WHERE", "");
         }
-        final Map<String, Observation> observations = new HashMap<>();
-        final Map<String, Process> processMap = new HashMap<>();
+        final Map<String, Observation> observations = new LinkedHashMap<>();
+        final Map<String, Process> processMap = new LinkedHashMap<>();
 
         try(final Connection c              = source.getConnection();
             final PreparedStatement pstmt   = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
@@ -555,10 +537,14 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 if (observation == null) {
                     final String obsID = "obs-" + oid;
                     final String timeID = "time-" + oid;
-                    final String observedProperty = rs.getString("observed_property");
                     final SamplingFeature feature = getFeatureOfInterest(featureID, version, c);
                     final FeatureProperty prop = buildFeatureProperty(version, feature);
-                    final Phenomenon phen = getPhenomenon(version, observedProperty, c);
+
+                    //final String observedProperty = rs.getString("observed_property");
+                    //final Phenomenon phen = getPhenomenon(version, observedProperty, c);
+                    final Phenomenon phen = getGlobalCompositePhenomenon(version, c, procedure);
+
+
                     firstTime = dateFromTS(rs.getTimestamp("time_begin"));
                     Date lastTime = dateFromTS(rs.getTimestamp("time_end"));
                     boolean first = true;
@@ -594,7 +580,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                         if (first) {
                                             firstTime = t;
                                             first = false;
-                                        }   lastTime = t;
+                                        }
+                                        lastTime = t;
                                         break;
                                     case "Quantity":
                                         String value = rs2.getString(field.fieldName); // we need to kown if the value is null (rs.getDouble return 0 if so).
@@ -614,21 +601,51 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                 }
                             }
                             nbValue = nbValue + values.endBlock();
+
+                            /**
+                             * In "separated observation" mode we create an observation for each measure and don't merge it into a single obervation by procedure/foi.
+                             */
+                            if (separatedObs) {
+                                final TemporalGeometricPrimitive time = buildTimeInstant(version, timeID, lastTime);
+                                final Object result = buildComplexResult(version, scal, nbValue, encoding, values, observations.size());
+                                final Process proc;
+                                if (processMap.containsKey(procedure)) {
+                                    proc = processMap.get(procedure);
+                                } else {
+                                    proc = getProcess(version, procedure, c);
+                                    processMap.put(procedure, proc);
+                                }
+                                String measureID         = rs2.getString("id");
+                                final String singleObsID = "obs-" + oid + '-' + measureID;
+                                final String singleName  = name + '-' + measureID;
+                                observation = OMXmlFactory.buildObservation(version, singleObsID, singleName, null, prop, phen, proc, result, time, null);
+                                observations.put(procedure + '-' + name + '-' + measureID, observation);
+                                values = new ResultBuilder(resultMode, encoding, false);
+                                nbValue = 0;
+                            }
                         }
                     }
 
-                    final TemporalGeometricPrimitive time = buildTimePeriod(version, timeID, firstTime, lastTime);
-                    final Object result = buildComplexResult(version, scal, nbValue, encoding, values, observations.size());
-                    final Process proc;
-                    if (processMap.containsKey(procedure)) {
-                        proc = processMap.get(procedure);
-                    } else {
-                        proc = getProcess(version, procedure, c);
-                        processMap.put(procedure, proc);
+                   /**
+                    * we create an observation with all the measures and keep it so we can extend it if another observation for the same procedure/foi appears.
+                    */
+                    if (!separatedObs) {
+                        final TemporalGeometricPrimitive time = buildTimePeriod(version, timeID, firstTime, lastTime);
+                        final Object result = buildComplexResult(version, scal, nbValue, encoding, values, observations.size());
+                        final Process proc;
+                        if (processMap.containsKey(procedure)) {
+                            proc = processMap.get(procedure);
+                        } else {
+                            proc = getProcess(version, procedure, c);
+                            processMap.put(procedure, proc);
+                        }
+                        observation = OMXmlFactory.buildObservation(version, obsID, name, null, prop, phen, proc, result, time, null);
+                        observations.put(procedure + '-' + featureID, observation);
                     }
-                    observation = OMXmlFactory.buildObservation(version, obsID, name, null, prop, phen, proc, result, time, null);
-                    observations.put(procedure + '-' + featureID, observation);
                 } else {
+                    /**
+                     * complete the previous observation with new measures.
+                     */
                     Date lastTime = null;
                     measureRequest.setParamValue(0, oid);
                     try(final PreparedStatement stmt = measureRequest.fillParams(c.prepareStatement(measureRequest.getRequest()));
@@ -669,7 +686,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         }
                     }
 
-                    // UPDATE RESULTS
+                    // update observation result and sampling time
                     final DataArrayProperty result = (DataArrayProperty) (observation).getResult();
                     final DataArray array = result.getDataArray();
                     array.setElementCount(array.getElementCount().getCount().getValue() + nbValue);
@@ -687,7 +704,12 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         } catch (DataStoreException ex) {
             throw new DataStoreException("the service has throw a Datastore Exception:" + ex.getMessage(), ex);
         }
-        return new ArrayList<>(observations.values());
+        List<Observation> results = new ArrayList<>(observations.values());
+        
+        // TODO make a real pagination
+        Long limit     = getLongHint(hints, "limit");
+        Long offset    = getLongHint(hints, "offset");
+        return  applyPostPagination(offset, limit, results);
     }
 
     private DataArrayProperty buildComplexResult(final String version, final Collection<AnyScalar> fields, final int nbValue,
@@ -730,7 +752,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 final SamplingFeature feature = getFeatureOfInterest(featureID, version, c);
                 final Phenomenon phen = getPhenomenon(version, observedProperty, c);
                 final int pid = getPIDFromProcedure(procedure, c);
-                final List<Field> fields = readFields(procedure, c);
+                final List<Field> fields = readFields(procedure, true, c);
 
                 final Process proc;
                 if (processMap.containsKey(procedure)) {
@@ -763,16 +785,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                  *  BUILD RESULT
                  */
                 final Field mainField = getMainField(procedure);
-                boolean isTimeField = false;
-                if (mainField != null) {
-                    isTimeField = "Time".equals(mainField.fieldType);
-                    if (isTimeField) {
-                        fields.remove(mainField);
-                    }
-                }
+                boolean isTimeField   = "Time".equals(mainField.fieldType);
 
-                List<FieldPhenomenon> fieldPhen = getPhenomenonFields(phen, fields, c, procedure);
-
+                List<FieldPhenomenon> fieldPhen = getPhenomenonFields(phen, fields, c);
                 if (isTimeField) {
                     sqlMeasureRequest.replaceAll("$time", mainField.fieldName);
                 }
@@ -789,7 +804,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 }
 
                 for (FieldPhenomenon field : fieldPhen) {
-                    sqlMeasureRequest.replaceAll("$phen" + field.getIndex(), "\"" + field.getField().fieldName + "\"");
+                    sqlMeasureRequest.replaceAll("$phen" + field.getField().fieldIndex, "\"" + field.getField().fieldName + "\"");
                 }
 
                 final FilterSQLRequest measureRequest = new FilterSQLRequest("SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m WHERE \"id_observation\" = ");
@@ -825,7 +840,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                     }
                                     final FeatureProperty foi = buildFeatureProperty(version, feature); // do not share the same object
                                     final Object result = buildMeasure(version, "measure-00" + rid, field.getField().fieldUom, dValue);
-                                    observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + field.getIndex() + '-' + rid, name + '-' + field.getIndex() + '-' + rid, null, foi, field.getPhenomenon(), proc, result, measureTime, null));
+                                    observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + field.getField().fieldIndex + '-' + rid, name + '-' + field.getField().fieldIndex + '-' + rid, null, foi, field.getPhenomenon(), proc, result, measureTime, null));
                                 }
                             }
                         }
@@ -839,7 +854,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         } catch (DataStoreException ex) {
             throw new DataStoreException("the service has throw a Datastore Exception:" + ex.getMessage(), ex);
         }
-        return observations;
+        // TODO make a real pagination
+        Long limit     = getLongHint(hints, "limit");
+        Long offset    = getLongHint(hints, "offset");
+        return  applyPostPagination(offset, limit, observations);
     }
 
     @Override
@@ -958,11 +976,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             final List<Field> fields = new ArrayList<>();
             final List<Field> allfields = readFields(currentProcedure, c);
             fields.add(allfields.get(0));
-            int offset = profile ? 0 : 1; // for profile, the first phenomenon field is the main field
             for (int i = 1; i < allfields.size(); i++) {
                 Field f = allfields.get(i);
-                 if ((currentFields.isEmpty() || currentFields.contains(f.fieldName) || currentFields.contains(f.fieldDesc)) &&
-                     (fieldFilters.isEmpty() || fieldFilters.contains(i - offset))) {
+                 if (isIncludedField(f.fieldName, f.fieldDesc, f.fieldIndex)) {
                      fields.add(f);
                  }
             }
@@ -983,6 +999,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 }
                 sqlMeasureRequest.replaceFirst(block, sb.toString());
             }
+            int offset = profile ? 0 : 1; // for profile, the first phenomenon field is the main field
             for (int i = offset; i < allfields.size(); i++) {
                 Field f = allfields.get(i);
                 sqlMeasureRequest.replaceAll("$phen" + (i - offset), "\"" + f.fieldName + "\"");
@@ -1062,7 +1079,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         } else if (fields.get(0).fieldType.equals("Quantity")) {
                             // special case for profile + datastream on another phenomenon that the main field.
                             // we do not include the main field in the result
-                            boolean skipMain = profile && !fieldFilters.isEmpty() && !fieldFilters.contains(0);
+                            boolean skipMain = profile && !fieldFilters.isEmpty() && !fieldFilters.contains(1);
                             if (!skipMain) {
                                 values.appendLong(start);
                             }
@@ -1092,7 +1109,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         } else if (fields.get(0).fieldType.equals("Quantity")) {
                             // special case for profile + datastream on another phenomenon that the main field.
                             // we do not include the main field in the result
-                            boolean skipMain = profile && !fieldFilters.isEmpty() && !fieldFilters.contains(0);
+                            boolean skipMain = profile && !fieldFilters.isEmpty() && !fieldFilters.contains(1);
                             if (!skipMain) {
                                 values.appendLong(start + step);
                             }
@@ -1136,11 +1153,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             final List<Field> fields = new ArrayList<>();
             final List<Field> allfields = readFields(currentProcedure, c);
             fields.add(allfields.get(0));
-            int offset = profile ? 0 : 1; // for profile, the first phenomenon field is the main field
             for (int i = 1; i < allfields.size(); i++) {
                 Field f = allfields.get(i);
-                 if ((currentFields.isEmpty() || currentFields.contains(f.fieldName) || currentFields.contains(f.fieldDesc)) &&
-                     (fieldFilters.isEmpty() || fieldFilters.contains(i - offset))) {
+                 if (isIncludedField(f.fieldName, f.fieldDesc, f.fieldIndex)) {
                      fields.add(f);
                  }
             }
@@ -1161,7 +1176,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 }
                 sqlMeasureRequest.replaceFirst(block, sb.toString());
             }
-            for (int i = offset; i < allfields.size(); i++) {
+            int offset = profile ? 0 : 1; // for profile, the first phenomenon field is the main field
+            for (int i = 0; i < allfields.size(); i++) {
                 Field f = allfields.get(i);
                 sqlMeasureRequest.replaceAll("$phen" + (i - offset), "\"" + f.fieldName + "\"");
             }
@@ -1229,7 +1245,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
                             // special case for profile + datastream on another phenomenon that the main field.
                             // we do not include the main field in the result
-                            if (profile && !fieldFilters.isEmpty() && !fieldFilters.contains(0)) {
+                            if (profile && !fieldFilters.isEmpty() && !fieldFilters.contains(1)) {
                                 continue;
                             }
                         }
@@ -1451,6 +1467,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             } else {
                 sqlRequest.replaceFirst("WHERE", obsJoin + "AND ");
             }
+        } else if (procDescJoin) {
+            final String procDescJoin = ", \"" + schemaPrefix + "om\".\"procedure_descriptions\" pd WHERE pd.\"field_name\" = op.\"id\" ";
+            if (firstFilter) {
+                sqlRequest.replaceFirst("WHERE", procDescJoin);
+            } else {
+                sqlRequest.replaceFirst("WHERE", procDescJoin + "AND ");
+            }
         } else if (offJoin) {
             final String offJoin = ", \"" + schemaPrefix + "om\".\"offering_observed_properties\" off WHERE off.\"phenomenon\" = op.\"id\" ";
             if (firstFilter) {
@@ -1463,6 +1486,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 sqlRequest.replaceFirst("WHERE", "");
             }
         }
+        sqlRequest.append(" ORDER BY \"id\"");
         sqlRequest = appendPaginationToRequest(sqlRequest, hints);
         final List<Phenomenon> phenomenons = new ArrayList<>();
 
@@ -1471,20 +1495,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             final ResultSet rs            = pstmt.executeQuery()) {
             while (rs.next()) {
                 Phenomenon phen = getPhenomenon(version, rs.getString(1), c);
-                if (phen instanceof CompositePhenomenon && !fieldFilters.isEmpty()) {
-                    CompositePhenomenon compos = (CompositePhenomenon) phen;
-                    for (int i = 0; i< compos.getComponent().size(); i++) {
-                        if (fieldFilters.contains(i)) {
-                            if (!phenomenons.contains(phen)) {
-                                phenomenons.add(compos.getComponent().get(i));
-                            }
-                        }
-                    }
-                } else {
-                    if (!phenomenons.contains(phen)) {
-                        phenomenons.add(phen);
-                    }
-                }
+                phenomenons.add(phen);
             }
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());

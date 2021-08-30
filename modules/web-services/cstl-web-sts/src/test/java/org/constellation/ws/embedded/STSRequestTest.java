@@ -252,25 +252,25 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     public void getObservationByIdTest() throws Exception {
         initPool();
         // Creates a valid GetFoi url.
-        URL getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:304-0-1)");
+        URL getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:304-2-1)");
 
         String result = getStringResponse(getFoiUrl) + "\n";
         String expResult = getStringFromFile("com/examind/sts/embedded/obs.json");
         compareJSON(expResult, result);
 
-        getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:304-0-1)?$expand=FeaturesOfInterest,Datastreams");
+        getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:304-2-1)?$expand=FeaturesOfInterest,Datastreams");
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/obs-exp.json");
         compareJSON(expResult, result);
 
-        getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:304-0-1)/FeaturesOfInterest");
+        getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:304-2-1)/FeaturesOfInterest");
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/obs-foi.json");
         compareJSON(expResult, result);
 
-        getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:304-0-1)/Datastreams");
+        getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:304-2-1)/Datastreams");
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/obs-ds.json");
@@ -349,13 +349,13 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     public void getDataArrayForDatastreams() throws Exception {
         initPool();
 
-        URL getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-0)/Observations?$resultFormat=dataArray");
+        URL getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-2)/Observations?$resultFormat=dataArray");
 
         String result = getStringResponse(getFoiUrl) + "\n";
         String expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array.json");
         compareJSON(expResult, result);
         
-        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:8-1)/Observations?$resultFormat=dataArray");
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:8-3)/Observations?$resultFormat=dataArray");
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-2.json");
@@ -445,13 +445,13 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     public void getDatastreamByIdTest() throws Exception {
         initPool();
 
-        URL getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:8-1)");
+        URL getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:8-3)");
 
         String result = getStringResponse(getFoiUrl) + "\n";
         String expResult = getStringFromFile("com/examind/sts/embedded/ds.json");
         compareJSON(expResult, result);
 
-        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:8-1)?$expand=Sensors,ObservedProperties,Observations");
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:8-3)?$expand=Sensors,ObservedProperties,Observations");
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/ds-exp.json");
@@ -1110,14 +1110,14 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         * Time filter
         */
         String filter = "(time ge 2007-05-01T10:59:00Z and time le 2007-05-01T13:59:00Z)".replace(" ", "%20");
-        URL getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:8-0)/Observations?$resultFormat=dataArray&$decimation=10&$filter=" + filter);
+        URL getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:8-2)/Observations?$resultFormat=dataArray&$decimation=10&$filter=" + filter);
 
         String result = getStringResponse(getFoiUrl) + "\n";
         String expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-decim.json");
         compareJSON(expResult, result);
         
         // same but with count
-        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:8-0)/Observations?$resultFormat=dataArray&$count=true&$decimation=10&$filter=" + filter);
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:8-2)/Observations?$resultFormat=dataArray&$count=true&$decimation=10&$filter=" + filter);
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-decim-count.json");
@@ -1127,7 +1127,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         * result filter on all fields
         */
         filter = "(time ge 2007-05-01T10:59:00Z and time le 2007-05-01T13:59:00Z)".replace(" ", "%20");
-        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:8-1)/Observations?$resultFormat=dataArray&$decimation=10&$filter=" + filter);
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:8-3)/Observations?$resultFormat=dataArray&$decimation=10&$filter=" + filter);
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-decim-2.json");
@@ -1137,7 +1137,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         * result filter on all fields
         */
         filter = "(result le 14.0)".replace(" ", "%20");
-        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:8-1)/Observations?$resultFormat=dataArray&$decimation=10&$filter=" + filter);
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:8-3)/Observations?$resultFormat=dataArray&$decimation=10&$filter=" + filter);
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-decim-3.json");
@@ -1146,7 +1146,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         /*
         * decimation on profile - main
         */
-        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:2-0)/Observations?$resultFormat=dataArray&$decimation=10");
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:2-1)/Observations?$resultFormat=dataArray&$decimation=10");
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-decim-4.json");
@@ -1155,7 +1155,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         /*
         * decimation on profile - phen 1
         */
-        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:2-1)/Observations?$resultFormat=dataArray&$decimation=10");
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:2-2)/Observations?$resultFormat=dataArray&$decimation=10");
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-decim-5.json");
