@@ -37,7 +37,7 @@ import static org.geotoolkit.observation.ObservationReader.IDENTIFIER;
 import static org.geotoolkit.observation.ObservationReader.SOS_VERSION;
 import org.geotoolkit.observation.ObservationResult;
 import org.geotoolkit.observation.ObservationStoreException;
-import static org.geotoolkit.observation.Utils.getVersionFromHints;
+import static org.geotoolkit.observation.OMUtils.getVersionFromHints;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import org.geotoolkit.sos.xml.ResponseModeType;
 import static org.geotoolkit.sos.xml.ResponseModeType.RESULT_TEMPLATE;

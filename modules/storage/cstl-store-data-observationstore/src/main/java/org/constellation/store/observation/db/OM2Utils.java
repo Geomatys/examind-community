@@ -20,7 +20,7 @@ package org.constellation.store.observation.db;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.geotoolkit.observation.Field;
+import org.geotoolkit.observation.model.Field;
 
 /**
  *

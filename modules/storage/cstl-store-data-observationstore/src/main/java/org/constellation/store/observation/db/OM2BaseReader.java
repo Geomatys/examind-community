@@ -41,7 +41,7 @@ import java.util.logging.Logger;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.logging.Logging;
-import org.geotoolkit.observation.Field;
+import org.geotoolkit.observation.model.Field;
 import org.constellation.util.Util;
 import org.geotoolkit.geometry.jts.SRIDGenerator;
 import org.geotoolkit.gml.JTStoGeometry;
@@ -51,6 +51,7 @@ import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVA
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_TEMPLATE_ID_BASE_NAME;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.PHENOMENON_ID_BASE_NAME;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.SENSOR_ID_BASE_NAME;
+import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 
 import static org.geotoolkit.sos.xml.SOSXmlFactory.*;
@@ -105,6 +106,8 @@ public class OM2BaseReader {
 
     protected final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
     protected final SimpleDateFormat format2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S");
+
+    protected Field DEFAULT_TIME_FIELD = new Field(-1, FieldType.TIME, "time", null, "http://www.opengis.net/def/property/OGC/0/SamplingTime", null);
 
     public OM2BaseReader(final Map<String, Object> properties, final String schemaPrefix, final boolean cacheEnabled, final boolean isPostgres, final boolean timescaleDB) throws DataStoreException {
         this.isPostgres = isPostgres;
@@ -343,8 +346,9 @@ public class OM2BaseReader {
             try(final ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     results.add(new Field(rs.getInt("order"),
-                            rs.getString("field_type"),
+                            FieldType.fromLabel(rs.getString("field_type")),
                             rs.getString("field_name"),
+                            null,
                             rs.getString("field_definition"),
                             rs.getString("uom")));
                 }
@@ -359,8 +363,9 @@ public class OM2BaseReader {
             try (final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return new Field(rs.getInt("order"),
-                            rs.getString("field_type"),
+                            FieldType.fromLabel(rs.getString("field_type")),
                             rs.getString("field_name"),
+                            null,
                             rs.getString("field_definition"),
                             rs.getString("uom"));
                 }
@@ -393,8 +398,9 @@ public class OM2BaseReader {
             try (final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return new Field(rs.getInt("order"),
-                            rs.getString("field_type"),
+                            FieldType.fromLabel(rs.getString("field_type")),
                             rs.getString("field_name"),
+                            null,
                             rs.getString("field_definition"),
                             rs.getString("uom"));
                 }
@@ -420,8 +426,9 @@ public class OM2BaseReader {
                 while (rs.next()) {
                     results.add(new Field(
                             rs.getInt("order"),
-                            rs.getString("field_type"),
+                            FieldType.fromLabel(rs.getString("field_type")),
                             rs.getString("field_name"),
+                            null,
                             rs.getString("field_definition"),
                             rs.getString("uom")));
                 }
@@ -437,8 +444,9 @@ public class OM2BaseReader {
             try(final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return new Field(rs.getInt("order"),
-                            rs.getString("field_type"),
+                            FieldType.fromLabel(rs.getString("field_type")),
                             rs.getString("field_name"),
+                            null,
                             rs.getString("field_definition"),
                             rs.getString("uom"));
                 }

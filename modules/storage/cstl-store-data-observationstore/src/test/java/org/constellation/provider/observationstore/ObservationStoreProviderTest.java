@@ -58,7 +58,8 @@ import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
-import org.geotoolkit.observation.OMEntity;
+import static org.geotoolkit.observation.ObservationFilterFlags.*;
+import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.sos.xml.ResponseModeType;
 import org.geotoolkit.storage.DataStores;
 import org.junit.AfterClass;
@@ -234,7 +235,7 @@ public class ObservationStoreProviderTest {
             assertTrue(p instanceof org.geotoolkit.samplingspatial.xml.v200.SFSpatialSamplingFeatureType);
         }
 
-        results = omPr.getFeatureOfInterest(null, Collections.singletonMap("version", "1.0.0"));
+        results = omPr.getFeatureOfInterest(null, Collections.singletonMap(VERSION, "1.0.0"));
         assertEquals(6, results.size());
 
         for (SamplingFeature p : results) {
@@ -289,7 +290,7 @@ public class ObservationStoreProviderTest {
         assertTrue(results.get(4) instanceof org.geotoolkit.observation.xml.v200.OMObservationType.InternalPhenomenon);
         assertEquals("temperature", getPhenomenonId(results.get(4)));
 
-        hints.put("version", "1.0.0");
+        hints.put(VERSION, "1.0.0");
         results = omPr.getPhenomenon(null, hints);
         assertEquals(5, results.size());
         assertTrue(results.get(0) instanceof org.geotoolkit.swe.xml.v101.CompositePhenomenonType);
@@ -303,8 +304,8 @@ public class ObservationStoreProviderTest {
         assertTrue(results.get(4) instanceof org.geotoolkit.swe.xml.v101.PhenomenonType);
         assertEquals("temperature", getPhenomenonId(results.get(4)));
 
-        hints.put("version", "1.0.0");
-        hints.put("noCompositePhenomenon", true);
+        hints.put(VERSION, "1.0.0");
+        hints.put(NO_COMPOSITE_PHENOMENON, true);
         results = omPr.getPhenomenon(null, hints);
         assertEquals(3, results.size());
         assertTrue(results.get(0) instanceof org.geotoolkit.swe.xml.v101.PhenomenonType);
@@ -317,7 +318,7 @@ public class ObservationStoreProviderTest {
         /**
          * filter on measurment template "urn:ogc:object:observation:template:GEOM:test-1-2"
          */
-        hints.put("noCompositePhenomenon", false);
+        hints.put(NO_COMPOSITE_PHENOMENON, false);
         SimpleQuery query = new SimpleQuery();
         BinaryComparisonOperator filter = ff.equal(ff.property("observationId") , ff.literal("urn:ogc:object:observation:template:GEOM:test-1-2"));
         query.setFilter(filter);
@@ -331,7 +332,7 @@ public class ObservationStoreProviderTest {
         /**
          * filter on observation template "urn:ogc:object:observation:template:GEOM:test-1
          */
-        hints.put("noCompositePhenomenon", false);
+        hints.put(NO_COMPOSITE_PHENOMENON, false);
         query = new SimpleQuery();
         filter = ff.equal(ff.property("observationId") , ff.literal("urn:ogc:object:observation:template:GEOM:test-1"));
         query.setFilter(filter);
@@ -343,7 +344,7 @@ public class ObservationStoreProviderTest {
         /**
          * filter on observation template "urn:ogc:object:observation:template:GEOM:test-1
          */
-        hints.put("noCompositePhenomenon", true);
+        hints.put(NO_COMPOSITE_PHENOMENON, true);
         query = new SimpleQuery();
         filter = ff.equal(ff.property("observationId") , ff.literal("urn:ogc:object:observation:template:GEOM:test-1"));
         query.setFilter(filter);
@@ -357,7 +358,7 @@ public class ObservationStoreProviderTest {
         /**
          * filter on observation template "urn:ogc:object:observation:template:GEOM:13
          */
-        hints.put("noCompositePhenomenon", false);
+        hints.put(NO_COMPOSITE_PHENOMENON, false);
         query = new SimpleQuery();
         filter = ff.equal(ff.property("observationId") , ff.literal("urn:ogc:object:observation:template:GEOM:13"));
         query.setFilter(filter);
@@ -369,7 +370,7 @@ public class ObservationStoreProviderTest {
         /**
          * filter on observation template "urn:ogc:object:observation:template:GEOM:13
          */
-        hints.put("noCompositePhenomenon", true);
+        hints.put(NO_COMPOSITE_PHENOMENON, true);
         query = new SimpleQuery();
         filter = ff.equal(ff.property("observationId") , ff.literal("urn:ogc:object:observation:template:GEOM:13"));
         query.setFilter(filter);
@@ -387,9 +388,9 @@ public class ObservationStoreProviderTest {
         * paging
         */
         hints = new HashMap<>();
-        hints.put("noCompositePhenomenon", false);
-        hints.put("limit", 3L);
-        hints.put("offset", 0L);
+        hints.put(NO_COMPOSITE_PHENOMENON, false);
+        hints.put(PAGE_LIMIT, 3L);
+        hints.put(PAGE_OFFSET, 0L);
         results = omPr.getPhenomenon(null, hints);
         assertEquals(3, results.size());
         assertTrue(results.get(0) instanceof org.geotoolkit.observation.xml.v200.OMObservationType.InternalCompositePhenomenon);
@@ -401,9 +402,9 @@ public class ObservationStoreProviderTest {
        
         
         hints = new HashMap<>();
-        hints.put("noCompositePhenomenon", false);
-        hints.put("limit", 3L);
-        hints.put("offset", 3L);
+        hints.put(NO_COMPOSITE_PHENOMENON, false);
+        hints.put(PAGE_LIMIT, 3L);
+        hints.put(PAGE_OFFSET, 3L);
         results = omPr.getPhenomenon(null, hints);
         assertEquals(2, results.size());
         assertTrue(results.get(0) instanceof org.geotoolkit.observation.xml.v200.OMObservationType.InternalPhenomenon);
@@ -412,9 +413,9 @@ public class ObservationStoreProviderTest {
         assertEquals("temperature", getPhenomenonId(results.get(1)));
 
         hints = new HashMap<>();
-        hints.put("noCompositePhenomenon", true);
-        hints.put("limit", 2L);
-        hints.put("offset", 0L);
+        hints.put(NO_COMPOSITE_PHENOMENON, true);
+        hints.put(PAGE_LIMIT, 2L);
+        hints.put(PAGE_OFFSET, 0L);
         results = omPr.getPhenomenon(null, hints);
         assertEquals(2, results.size());
         assertTrue(results.get(0) instanceof org.geotoolkit.observation.xml.v200.OMObservationType.InternalPhenomenon);
@@ -424,9 +425,9 @@ public class ObservationStoreProviderTest {
 
 
         hints = new HashMap<>();
-        hints.put("noCompositePhenomenon", true);
-        hints.put("limit", 2L);
-        hints.put("offset", 2L);
+        hints.put(NO_COMPOSITE_PHENOMENON, true);
+        hints.put(PAGE_LIMIT, 2L);
+        hints.put(PAGE_OFFSET, 2L);
         results = omPr.getPhenomenon(null, hints);
         assertEquals(1, results.size());
         assertTrue(results.get(0) instanceof org.geotoolkit.observation.xml.v200.OMObservationType.InternalPhenomenon);
@@ -440,7 +441,7 @@ public class ObservationStoreProviderTest {
         SimpleQuery query = new SimpleQuery();
         BinaryComparisonOperator filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:2"));
         query.setFilter(filter);
-        Map<String, Map<Date, Geometry>> results = omPr.getHistoricalLocation(query, Collections.singletonMap("version", "1.0.0"));
+        Map<String, Map<Date, Geometry>> results = omPr.getHistoricalLocation(query, Collections.singletonMap(VERSION, "1.0.0"));
 
         assertTrue(results.containsKey("urn:ogc:object:sensor:GEOM:2"));
         assertEquals(3, results.get("urn:ogc:object:sensor:GEOM:2").size());
@@ -509,7 +510,7 @@ public class ObservationStoreProviderTest {
             assertTrue(p instanceof org.geotoolkit.observation.xml.v200.OMProcessPropertyType);
         }
 
-        results = omPr.getProcedures(null, Collections.singletonMap("version", "1.0.0"));
+        results = omPr.getProcedures(null, Collections.singletonMap(VERSION, "1.0.0"));
         assertEquals(13, results.size());
 
         for (Process p : results) {
@@ -579,7 +580,7 @@ public class ObservationStoreProviderTest {
         * MEASUREMENT
         */
         Map<String, Object> hints = new HashMap<>();
-        hints.put("includeFoiInTemplate", false);
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
         Collection<String> resultIds = omPr.getObservationNames(null, MEASUREMENT_QNAME, "resultTemplate", new HashMap<>());
         assertEquals(18, resultIds.size());
 
@@ -606,7 +607,7 @@ public class ObservationStoreProviderTest {
 
         // Count
         hints = new HashMap<>();
-        hints.put("includeFoiInTemplate", false);
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
         hints.put(OBJECT_TYPE, OMEntity.OBSERVATION);
         hints.put(RESPONSE_MODE, ResponseModeType.RESULT_TEMPLATE);
         hints.put(RESULT_MODEL, MEASUREMENT_QNAME);
@@ -615,9 +616,9 @@ public class ObservationStoreProviderTest {
 
         // Paging
         hints = new HashMap<>();
-        hints.put("includeFoiInTemplate", false);
-        hints.put("limit", 8L);
-        hints.put("offset", 0L);
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
+        hints.put(PAGE_LIMIT, 8L);
+        hints.put(PAGE_OFFSET, 0L);
         resultIds = omPr.getObservationNames(null, MEASUREMENT_QNAME, "resultTemplate", hints);
         assertEquals(8, resultIds.size());
 
@@ -633,9 +634,9 @@ public class ObservationStoreProviderTest {
         Assert.assertEquals(expectedIds, resultIds);
 
         hints = new HashMap<>();
-         hints.put("includeFoiInTemplate", false);
-        hints.put("limit", 8L);
-        hints.put("offset", 8L);
+         hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
+        hints.put(PAGE_LIMIT, 8L);
+        hints.put(PAGE_OFFSET, 8L);
         resultIds = omPr.getObservationNames(null, MEASUREMENT_QNAME, "resultTemplate", hints);
         assertEquals(8, resultIds.size());
         expectedIds = new LinkedHashSet<>();
@@ -650,9 +651,9 @@ public class ObservationStoreProviderTest {
         assertEquals(expectedIds, resultIds);
 
         hints = new HashMap<>();
-        hints.put("includeFoiInTemplate", false);
-        hints.put("limit", 8L);
-        hints.put("offset", 16L);
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
+        hints.put(PAGE_LIMIT, 8L);
+        hints.put(PAGE_OFFSET, 16L);
         resultIds = omPr.getObservationNames(null, MEASUREMENT_QNAME, "resultTemplate", hints);
         assertEquals(2, resultIds.size());
         expectedIds = new LinkedHashSet<>();
@@ -665,7 +666,7 @@ public class ObservationStoreProviderTest {
         * COMPLEX OBSERVATION
         */
         hints = new HashMap<>();
-        hints.put("includeFoiInTemplate", false);
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
         resultIds = omPr.getObservationNames(null, OBSERVATION_QNAME, "resultTemplate", hints);
         assertEquals(11, resultIds.size());
 
@@ -687,15 +688,15 @@ public class ObservationStoreProviderTest {
         hints.put(OBJECT_TYPE, OMEntity.OBSERVATION);
         hints.put(RESPONSE_MODE, ResponseModeType.RESULT_TEMPLATE);
         hints.put(RESULT_MODEL, OBSERVATION_QNAME);
-        hints.put("includeFoiInTemplate", false);
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
         result = omPr.getCount(null, hints);
         assertEquals(result, 11L);
 
          // Paging
         hints = new HashMap<>();
-        hints.put("includeFoiInTemplate", false);
-        hints.put("limit", 5L);
-        hints.put("offset", 0L);
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
+        hints.put(PAGE_LIMIT, 5L);
+        hints.put(PAGE_OFFSET, 0L);
         resultIds = omPr.getObservationNames(null, OBSERVATION_QNAME, "resultTemplate", hints);
         assertEquals(5, resultIds.size());
 
@@ -708,9 +709,9 @@ public class ObservationStoreProviderTest {
         assertEquals(expectedIds, resultIds);
 
         hints = new HashMap<>();
-        hints.put("includeFoiInTemplate", false);
-        hints.put("limit", 5L);
-        hints.put("offset", 5L);
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
+        hints.put(PAGE_LIMIT, 5L);
+        hints.put(PAGE_OFFSET, 5L);
         resultIds = omPr.getObservationNames(null, OBSERVATION_QNAME, "resultTemplate", hints);
         assertEquals(5, resultIds.size());
 
@@ -723,9 +724,9 @@ public class ObservationStoreProviderTest {
         assertEquals(expectedIds, resultIds);
 
         hints = new HashMap<>();
-        hints.put("includeFoiInTemplate", false);
-        hints.put("limit", 5L);
-        hints.put("offset", 10L);
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
+        hints.put(PAGE_LIMIT, 5L);
+        hints.put(PAGE_OFFSET, 10L);
         resultIds = omPr.getObservationNames(null, OBSERVATION_QNAME, "resultTemplate", hints);
         assertEquals(1, resultIds.size());
 
@@ -780,7 +781,7 @@ public class ObservationStoreProviderTest {
         assertNotNull(omPr);
 
         Map<String, Object> hints = new HashMap<>();
-        hints.put("includeFoiInTemplate", true);
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, true);
         List<Observation> results = omPr.getObservations(null, OBSERVATION_QNAME, "resultTemplate", null, hints);
         assertEquals(12, results.size());
 
@@ -788,7 +789,7 @@ public class ObservationStoreProviderTest {
             assertTrue(p instanceof org.geotoolkit.observation.xml.v200.OMObservationType);
         }
 
-        hints.put("version", "1.0.0");
+        hints.put(VERSION, "1.0.0");
         results = omPr.getObservations(null,  OBSERVATION_QNAME, "resultTemplate", null, hints);
         assertEquals(12, results.size());
 
@@ -810,7 +811,7 @@ public class ObservationStoreProviderTest {
 
 
         // by ommiting FOI in template, it returns only one template
-        hints.put("includeFoiInTemplate", false);
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
         results = omPr.getObservations(query,  OBSERVATION_QNAME, "resultTemplate", null, hints);
         assertEquals(1, results.size());
         assertTrue(results.get(0) instanceof org.geotoolkit.observation.xml.v100.ObservationType);
@@ -819,7 +820,7 @@ public class ObservationStoreProviderTest {
         // template time is not included by default
         assertNull(template1.getSamplingTime());
 
-        hints.put("includeTimeInTemplate", true);
+        hints.put(INCLUDE_TIME_IN_TEMPLATE, true);
         results = omPr.getObservations(query,  OBSERVATION_QNAME, "resultTemplate", null, hints);
         assertEquals(1, results.size());
         assertTrue(results.get(0) instanceof org.geotoolkit.observation.xml.v100.ObservationType);
@@ -837,8 +838,8 @@ public class ObservationStoreProviderTest {
         query.setFilter(filter);
 
         hints = new HashMap<>();
-        hints.put("version", "1.0.0");
-        hints.put("includeFoiInTemplate", false);
+        hints.put(VERSION, "1.0.0");
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
         results = omPr.getObservations(query,  OBSERVATION_QNAME, "resultTemplate", null, hints);
         assertEquals(1, results.size());
         assertEquals("aggregatePhenomenon-2", getPhenomenonId(results.get(0)));
@@ -849,8 +850,8 @@ public class ObservationStoreProviderTest {
 
         // Count
         hints.clear();
-        hints.put("includeFoiInTemplate", false);
-        hints.put("includeTimeInTemplate", true);
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
+        hints.put(INCLUDE_TIME_IN_TEMPLATE, true);
         results = omPr.getObservations(null, OBSERVATION_QNAME, "resultTemplate", null, hints);
         assertEquals(11, results.size());
 
@@ -858,7 +859,7 @@ public class ObservationStoreProviderTest {
             assertTrue(p instanceof org.geotoolkit.observation.xml.v200.OMObservationType);
         }
 
-        hints.put("version", "1.0.0");
+        hints.put(VERSION, "1.0.0");
         results = omPr.getObservations(null,  OBSERVATION_QNAME, "resultTemplate", null, hints);
         assertEquals(11, results.size());
 
@@ -867,9 +868,9 @@ public class ObservationStoreProviderTest {
         }
 
         // Paging
-        hints.put("includeFoiInTemplate", false);
-        hints.put("limit", 5L);
-        hints.put("offset", 0L);
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
+        hints.put(PAGE_LIMIT, 5L);
+        hints.put(PAGE_OFFSET, 0L);
         results = omPr.getObservations(null, OBSERVATION_QNAME, "resultTemplate", null, hints);
         assertEquals(5, results.size());
 
@@ -888,9 +889,9 @@ public class ObservationStoreProviderTest {
         assertEquals(expectedIds, resultIds);
 
         hints = new HashMap<>();
-        hints.put("includeFoiInTemplate", false);
-        hints.put("limit", 5L);
-        hints.put("offset", 5L);
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
+        hints.put(PAGE_LIMIT, 5L);
+        hints.put(PAGE_OFFSET, 5L);
         results = omPr.getObservations(null, OBSERVATION_QNAME, "resultTemplate", null, hints);
         assertEquals(5, results.size());
 
@@ -909,9 +910,9 @@ public class ObservationStoreProviderTest {
         assertEquals(expectedIds, resultIds);
 
         hints = new HashMap<>();
-        hints.put("includeFoiInTemplate", false);
-        hints.put("limit", 5L);
-        hints.put("offset", 10L);
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
+        hints.put(PAGE_LIMIT, 5L);
+        hints.put(PAGE_OFFSET, 10L);
         results = omPr.getObservations(null, OBSERVATION_QNAME, "resultTemplate", null, hints);
         assertEquals(1, results.size());
 
@@ -931,7 +932,7 @@ public class ObservationStoreProviderTest {
         assertNotNull(omPr);
 
         Map<String, Object> hints = new HashMap<>();
-        hints.put("includeFoiInTemplate", true);
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, true);
         List<Observation> results = omPr.getObservations(null, MEASUREMENT_QNAME, "resultTemplate", null, hints);
         assertEquals(19, results.size());
 
@@ -939,7 +940,7 @@ public class ObservationStoreProviderTest {
             assertTrue(p instanceof org.geotoolkit.observation.xml.v200.OMObservationType);
         }
 
-        hints.put("version", "1.0.0");
+        hints.put(VERSION, "1.0.0");
         results = omPr.getObservations(null,  MEASUREMENT_QNAME, "resultTemplate", null, hints);
         assertEquals(19, results.size());
 
@@ -961,7 +962,7 @@ public class ObservationStoreProviderTest {
 
 
         // by ommiting FOI in template, it returns only one template
-        hints.put("includeFoiInTemplate", false);
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
         results = omPr.getObservations(query,  MEASUREMENT_QNAME, "resultTemplate", null, hints);
         assertEquals(1, results.size());
         assertTrue(results.get(0) instanceof org.geotoolkit.observation.xml.v100.ObservationType);
@@ -970,7 +971,7 @@ public class ObservationStoreProviderTest {
         // template time is not included by default
         assertNull(template1.getSamplingTime());
 
-        hints.put("includeTimeInTemplate", true);
+        hints.put(INCLUDE_TIME_IN_TEMPLATE, true);
         results = omPr.getObservations(query,  MEASUREMENT_QNAME, "resultTemplate", null, hints);
         assertEquals(1, results.size());
         assertTrue(results.get(0) instanceof org.geotoolkit.observation.xml.v100.ObservationType);
@@ -987,8 +988,8 @@ public class ObservationStoreProviderTest {
         query.setFilter(filter);
 
         hints = new HashMap<>();
-        hints.put("version", "1.0.0");
-        hints.put("includeFoiInTemplate", false);
+        hints.put(VERSION, "1.0.0");
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
         results = omPr.getObservations(query,  MEASUREMENT_QNAME, "resultTemplate", null, hints);
         assertEquals(3, results.size());
 
@@ -998,8 +999,8 @@ public class ObservationStoreProviderTest {
 
         // Count
         hints.clear();
-        hints.put("includeFoiInTemplate", false);
-        hints.put("includeTimeInTemplate", true);
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
+        hints.put(INCLUDE_TIME_IN_TEMPLATE, true);
         results = omPr.getObservations(null, MEASUREMENT_QNAME, "resultTemplate", null, hints);
         assertEquals(18, results.size());
 
@@ -1007,7 +1008,7 @@ public class ObservationStoreProviderTest {
             assertTrue(p instanceof org.geotoolkit.observation.xml.v200.OMObservationType);
         }
 
-        hints.put("version", "1.0.0");
+        hints.put(VERSION, "1.0.0");
         results = omPr.getObservations(null,  MEASUREMENT_QNAME, "resultTemplate", null, hints);
         assertEquals(18, results.size());
 
@@ -1016,9 +1017,9 @@ public class ObservationStoreProviderTest {
         }
 
         // Paging
-        hints.put("includeFoiInTemplate", false);
-        hints.put("limit", 8L);
-        hints.put("offset", 0L);
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
+        hints.put(PAGE_LIMIT, 8L);
+        hints.put(PAGE_OFFSET, 0L);
         results = omPr.getObservations(null, MEASUREMENT_QNAME, "resultTemplate", null, hints);
         assertEquals(8, results.size());
 
@@ -1040,9 +1041,9 @@ public class ObservationStoreProviderTest {
         assertEquals(expectedIds, resultIds);
 
         hints = new HashMap<>();
-        hints.put("includeFoiInTemplate", false);
-        hints.put("limit", 8L);
-        hints.put("offset", 8L);
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
+        hints.put(PAGE_LIMIT, 8L);
+        hints.put(PAGE_OFFSET, 8L);
         results = omPr.getObservations(null, MEASUREMENT_QNAME, "resultTemplate", null, hints);
         assertEquals(8, results.size());
 
@@ -1064,9 +1065,9 @@ public class ObservationStoreProviderTest {
         assertEquals(expectedIds, resultIds);
 
         hints = new HashMap<>();
-        hints.put("includeFoiInTemplate", false);
-        hints.put("limit", 8L);
-        hints.put("offset", 16L);
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
+        hints.put(PAGE_LIMIT, 8L);
+        hints.put(PAGE_OFFSET, 16L);
         results = omPr.getObservations(null, MEASUREMENT_QNAME, "resultTemplate", null, hints);
         assertEquals(2, results.size());
 
@@ -1085,7 +1086,7 @@ public class ObservationStoreProviderTest {
         * filter on Observed property
         */
         hints = new HashMap<>();
-        hints.put("includeFoiInTemplate", false);
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
         query = new SimpleQuery();
         filter = ff.equal(ff.property("observedProperty") , ff.literal("temperature"));
         query.setFilter(filter);
@@ -1096,7 +1097,7 @@ public class ObservationStoreProviderTest {
         * filter on template id
         */
         hints = new HashMap<>();
-        hints.put("includeFoiInTemplate", false);
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
         query = new SimpleQuery();
         ResourceId idFilter = ff.resourceId("urn:ogc:object:observation:template:GEOM:test-1-2");
         query.setFilter(idFilter);
@@ -1155,7 +1156,7 @@ public class ObservationStoreProviderTest {
         BinaryComparisonOperator filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:test-1"));
         query.setFilter(filter);
         hints = new HashMap<>();
-        hints.put("includeFoiInTemplate", false);
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
         resultIds = omPr.getObservationNames(query, MEASUREMENT_QNAME, "inline", hints);
 
         assertEquals(5, resultIds.size());
@@ -1299,7 +1300,7 @@ public class ObservationStoreProviderTest {
         assertEquals(expectedIds, resultIds);
 
         Map<String, Object> hints = new HashMap<>();
-        hints.put("version", "1.0.0");
+        hints.put(VERSION, "1.0.0");
         results = omPr.getObservations(null,  OBSERVATION_QNAME, "inline", null, hints);
         assertEquals(12, results.size());
 
@@ -1314,7 +1315,7 @@ public class ObservationStoreProviderTest {
          * the observation from sensor '3' is a merge of 3 observations
          */
         hints = new HashMap<>();
-        hints.put("version", "1.0.0");
+        hints.put(VERSION, "1.0.0");
         SimpleQuery query = new SimpleQuery();
         BinaryComparisonOperator filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:3"));
         query.setFilter(filter);
@@ -1332,7 +1333,7 @@ public class ObservationStoreProviderTest {
          * the observation from sensor '2' is a single observations with an aggregate phenomenon
          */
         hints = new HashMap<>();
-        hints.put("version", "1.0.0");
+        hints.put(VERSION, "1.0.0");
         query = new SimpleQuery();
         filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:2"));
         query.setFilter(filter);

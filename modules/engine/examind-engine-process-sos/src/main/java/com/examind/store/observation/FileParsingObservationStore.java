@@ -44,12 +44,13 @@ import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.observation.ObservationWriter;
+import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.sampling.xml.SamplingFeature;
 import org.geotoolkit.sos.MeasureStringBuilder;
-import org.geotoolkit.sos.netcdf.ExtractionResult;
-import org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree;
-import org.geotoolkit.sos.netcdf.Field;
-import org.geotoolkit.sos.netcdf.OMUtils;
+import org.geotoolkit.observation.model.ExtractionResult;
+import org.geotoolkit.observation.model.ExtractionResult.ProcedureTree;
+import org.geotoolkit.observation.OMUtils;
+import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 import org.geotoolkit.swe.xml.AbstractDataRecord;
 import org.geotoolkit.swe.xml.Phenomenon;
@@ -253,6 +254,7 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
         }
 
         final List<Field> fields = new ArrayList<>();
+        int i = 1;
         for (final Entry<String, String>  field : filteredMeasure.entrySet()) {
             String key = field.getKey();
             String name;
@@ -266,7 +268,8 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
                 name = key;
                 uom  = null;
             }
-            fields.add(new Field(name, field.getValue(), null, 1, "", null, uom));
+            fields.add(new Field(i, FieldType.QUANTITY, name, field.getValue(), null, uom));
+            i++;
         }
 
         // Get existing or create a new Phenomenon

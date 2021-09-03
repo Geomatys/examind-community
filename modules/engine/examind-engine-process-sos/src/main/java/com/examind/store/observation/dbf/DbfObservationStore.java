@@ -57,11 +57,12 @@ import org.geotoolkit.observation.ObservationWriter;
 import org.geotoolkit.observation.xml.Process;
 import org.geotoolkit.sampling.xml.SamplingFeature;
 import org.geotoolkit.sos.MeasureStringBuilder;
-import org.geotoolkit.sos.netcdf.ExtractionResult;
-import org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree;
-import org.geotoolkit.sos.netcdf.Field;
-import org.geotoolkit.sos.netcdf.GeoSpatialBound;
-import org.geotoolkit.sos.netcdf.OMUtils;
+import org.geotoolkit.observation.model.ExtractionResult;
+import org.geotoolkit.observation.model.ExtractionResult.ProcedureTree;
+import org.geotoolkit.observation.model.Field;
+import org.geotoolkit.observation.model.GeoSpatialBound;
+import org.geotoolkit.observation.OMUtils;
+import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.swe.xml.AbstractDataRecord;
@@ -236,8 +237,10 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                 2- set ordinary fields
                 =====================*/
                 final List<Field> fields = new ArrayList<>();
+                int j = 1;
                 for (final String field : measureFields) {
-                    fields.add(new Field(field, field, 1, "", null));
+                    fields.add(new Field(j, FieldType.QUANTITY, field, field, null, null));
+                    j++;
                 }
 
                 final ExtractionResult result = new ExtractionResult();

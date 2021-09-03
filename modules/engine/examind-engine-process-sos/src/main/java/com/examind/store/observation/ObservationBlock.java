@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.geotoolkit.sos.MeasureStringBuilder;
-import org.geotoolkit.sos.netcdf.GeoSpatialBound;
+import org.geotoolkit.observation.model.GeoSpatialBound;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 import org.opengis.geometry.DirectPosition;
 import org.opengis.temporal.TemporalGeometricPrimitive;

@@ -57,7 +57,7 @@ import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_ID_BASE_NAME;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.PHENOMENON_ID_BASE_NAME;
-import org.geotoolkit.observation.OMEntity;
+import org.geotoolkit.observation.model.OMEntity;
 import static org.geotoolkit.observation.ObservationReader.ENTITY_TYPE;
 import static org.geotoolkit.observation.ObservationReader.SENSOR_TYPE;
 import static org.geotoolkit.observation.ObservationReader.SOS_VERSION;

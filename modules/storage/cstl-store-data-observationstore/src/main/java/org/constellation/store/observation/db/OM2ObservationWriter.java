@@ -69,11 +69,12 @@ import java.util.Map.Entry;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
 import org.constellation.dto.service.config.sos.OM2ResultEventDTO;
-import org.geotoolkit.observation.Field;
+import org.geotoolkit.observation.model.Field;
 import org.constellation.util.Util;
 import org.geotoolkit.geometry.jts.transform.AbstractGeometryTransformer;
 import org.geotoolkit.geometry.jts.transform.GeometryCSTransformer;
-import org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree;
+import org.geotoolkit.observation.model.ExtractionResult.ProcedureTree;
+import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.swe.xml.AbstractDataComponent;
 import org.geotoolkit.swe.xml.AbstractDataRecord;
 import org.opengis.metadata.Identifier;
@@ -577,7 +578,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
     private void writeResult(final int oid, final int pid, final String procedureID, final Object result, final TemporalObject samplingTime, final Connection c) throws SQLException, DataStoreException {
         if (result instanceof Measure || result instanceof org.apache.sis.internal.jaxb.gml.Measure) {
-            Field singleField = new Field("Quantity", "value", null, null);
+            Field singleField = new Field(1, FieldType.QUANTITY, "value", null, null, null);
             buildMeasureTable(procedureID, pid, Arrays.asList(singleField), c);
             try(final PreparedStatement stmt = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" VALUES(?,?,?)")) {//NOSONAR
                 double value;
@@ -1142,10 +1143,10 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             boolean firstField = true;
             Field mainField = null;
             for (Field field : fields) {
-                if (Util.containsForbiddenCharacter(field.fieldName)) {
+                if (Util.containsForbiddenCharacter(field.name)) {
                     throw new DataStoreException("Invalid field name");
                 }
-                sb.append('"').append(field.fieldName).append("\" ").append(field.getSQLType(isPostgres, firstField && timescaleDB));
+                sb.append('"').append(field.name).append("\" ").append(field.getSQLType(isPostgres, firstField && timescaleDB));
                 // main field should not be null (timescaledb compatibility)
                 if (firstField) {
                     mainField = field;
@@ -1164,12 +1165,12 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             try(final Statement stmt = c.createStatement()) {
                 stmt.executeUpdate(sb.toString());
                 // main field should not be in the primary key (timescaledb compatibility)
-                stmt.executeUpdate("ALTER TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" ADD CONSTRAINT " + tableName + "_pk PRIMARY KEY (\"id_observation\", \"id\", \"" + mainField.fieldName + "\")");//NOSONAR
+                stmt.executeUpdate("ALTER TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" ADD CONSTRAINT " + tableName + "_pk PRIMARY KEY (\"id_observation\", \"id\", \"" + mainField.name + "\")");//NOSONAR
                 stmt.executeUpdate("ALTER TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" ADD CONSTRAINT " + tableName + "_obs_fk FOREIGN KEY (\"id_observation\") REFERENCES \"" + schemaPrefix + "om\".\"observations\"(\"id\")");//NOSONAR
                 
                 //only for timeseries for now
-                if (timescaleDB && "Time".equals(mainField.fieldType)) {
-                    stmt.execute("SELECT create_hypertable('" + schemaPrefix + "mesures." + tableName + "', '" + mainField.fieldName + "')");//NOSONAR
+                if (timescaleDB && FieldType.TIME.equals(mainField.type)) {
+                    stmt.execute("SELECT create_hypertable('" + schemaPrefix + "mesures." + tableName + "', '" + mainField.name + "')");//NOSONAR
                 }
             }
 
@@ -1187,7 +1188,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             // Update measure table
             try (Statement addColumnStmt = c.createStatement()) {
                 for (Field newField : newfields) {
-                    StringBuilder sb = new StringBuilder("ALTER TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" ADD \"" + newField.fieldName + "\" ");
+                    StringBuilder sb = new StringBuilder("ALTER TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" ADD \"" + newField.name + "\" ");
                     sb.append(newField.getSQLType(isPostgres, false));
                     addColumnStmt.execute(sb.toString());
                 }
@@ -1204,15 +1205,15 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             for (Field field : fields) {
                 insertFieldStmt.setString(1, procedureID);
                 insertFieldStmt.setInt(2, offset);
-                insertFieldStmt.setString(3, field.fieldName);
-                insertFieldStmt.setString(4, field.fieldType);
-                if (field.fieldDesc != null) {
-                    insertFieldStmt.setString(5, field.fieldDesc);
+                insertFieldStmt.setString(3, field.name);
+                insertFieldStmt.setString(4, field.type.label);
+                if (field.description != null) {
+                    insertFieldStmt.setString(5, field.description);
                 } else {
                     insertFieldStmt.setNull(5, java.sql.Types.VARCHAR);
                 }
-                if (field.fieldUom != null) {
-                    insertFieldStmt.setString(6, field.fieldUom);
+                if (field.uom != null) {
+                    insertFieldStmt.setString(6, field.uom);
                 } else {
                     insertFieldStmt.setNull(6, java.sql.Types.VARCHAR);
                 }
@@ -1235,6 +1236,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             throw new IllegalArgumentException("Unexpected record type: " + abstractRecord);
         }
 
+        int i = 1;
         for (Object field : recordField) {
             String name;
             AbstractDataComponent value;
@@ -1247,7 +1249,8 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             } else {
                 throw new SQLException("Unexpected field type:" + field.getClass());
             }
-            fields.add(new Field(name, value));
+            fields.add(new Field(i, name, null, value));
+            i++;
         }
         return fields;
     }
@@ -1260,10 +1263,10 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         try(final Statement stmtSQL = c.createStatement()) {
             StringBuilder sql = new StringBuilder("INSERT INTO \"" + schemaPrefix + "mesures\".\"" + tableName + "\" (\"id_observation\", \"id\", ");
             for (Field field : fields) {
-                if (Util.containsForbiddenCharacter(field.fieldName)) {
+                if (Util.containsForbiddenCharacter(field.name)) {
                     throw new DataStoreException("Invalid field name");
                 }
-                sql.append('"').append(field.fieldName).append("\",");
+                sql.append('"').append(field.name).append("\",");
             }
             sql.setCharAt(sql.length() - 1, ' ');
             sql.append(") VALUES ");
@@ -1291,7 +1294,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     }
 
                     //format time
-                    if (field.fieldType.equals("Time") && value != null && !value.isEmpty()) {
+                    if (FieldType.TIME.equals(field.type) && value != null && !value.isEmpty()) {
                         try {
                             value = value.trim();
                             final long millis = new ISODateParser().parseToMillis(value);
@@ -1299,7 +1302,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         } catch (IllegalArgumentException ex) {
                             throw new SQLException("Bad format of timestamp for:" + value);
                         }
-                    } else if (field.fieldType.equals("Text")) {
+                    } else if (FieldType.TEXT.equals(field.type)) {
                         if (Util.containsForbiddenCharacter(value)) {
                             throw new DataStoreException("Invalid value inserted");
                         }
@@ -1328,10 +1331,10 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     sqlCpt = 0;
                     sql = new StringBuilder("INSERT INTO \"" + schemaPrefix + "mesures\".\"" + tableName + "\" (\"id_observation\", \"id\", ");
                     for (Field field : fields) {
-                        if (Util.containsForbiddenCharacter(field.fieldName)) {
+                        if (Util.containsForbiddenCharacter(field.name)) {
                             throw new DataStoreException("Invalid field name");
                         }
-                        sql.append('"').append(field.fieldName).append("\",");
+                        sql.append('"').append(field.name).append("\",");
                     }
                     sql.setCharAt(sql.length() - 1, ' ');
                     sql.append(") VALUES ");

@@ -233,7 +233,7 @@ public class DataRestAPI extends AbstractRestAPI{
             }
 
 
-            final String uploadType = RestApiUtil.findDataType(dataFile, fileExtension, dataType);
+            final String uploadType = dataType;
 
             // 5. determine the provider type
             String subType;

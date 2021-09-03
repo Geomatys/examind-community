@@ -385,7 +385,7 @@ public class InternalDataRestAPI extends AbstractRestAPI {
 
             String dataFile = importedDataReport.getDataFile();
             final String metadataPath = importedDataReport.getMetadataFile();
-            final String uploadType = RestApiUtil.findDataType(dataFile,fileExtension,dataType);
+            final String uploadType  = dataType;
             importedDataReport.setDataType(uploadType);
             final String providerIdentifier = dataName;
 

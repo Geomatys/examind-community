@@ -68,6 +68,8 @@ import org.geotoolkit.gml.xml.BoundingShape;
 import org.geotoolkit.gml.xml.v321.MeasureType;
 import org.geotoolkit.internal.geojson.binding.GeoJSONFeature;
 import org.geotoolkit.internal.geojson.binding.GeoJSONGeometry;
+import static org.geotoolkit.observation.ObservationFilterFlags.*;
+import org.geotoolkit.observation.model.ResultMode;
 import org.geotoolkit.observation.xml.AbstractObservation;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.geotoolkit.sos.xml.ResponseModeType;
@@ -331,9 +333,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             Map<String, Object> hints = new HashMap<>(defaultHints);
             hints.put("includeTimeForProfile", true);
             if (forMds) {
-                hints.put("includeIDInDataBlock", true);
-                hints.put("directResultArray", true);
-                hints.put("separatedObservation", true);
+                hints.put(INCLUDE_ID_IN_DATABLOCK, true);
+                hints.put(RESULT_MODE, ResultMode.DATA_ARRAY);
+                hints.put(SEPARATED_OBSERVATION, true);
                 model = OBSERVATION_QNAME;
             } else {
                 model = MEASUREMENT_QNAME;
@@ -341,7 +343,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             boolean decimation = false;
             if (req.getExtraFlag().containsKey("decimation")) {
                 decimation = true;
-                hints.put("decimSize", req.getExtraFlag().get("decimation"));
+                hints.put(DECIMATION_SIZE, req.getExtraFlag().get("decimation"));
             }
             if (decimation) {
                 Collection<String> sensorIds = omProvider.getProcedureNames(subquery, defaultHints);
@@ -434,8 +436,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                     BinaryComparisonOperator pe = ff.equal(ff.property("procedure"), ff.literal(aob.getProcedure().getHref()));
                     subquery.setFilter(pe);
                     Map<String, Object> hints = new HashMap<>(defaultHints);
-                    hints.put("includeFoiInTemplate", false);
-                    hints.put("includeTimeInTemplate", true);
+                    hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
+                    hints.put(INCLUDE_TIME_IN_TEMPLATE, true);
                     List<org.opengis.observation.Observation> templates = omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", null, hints);
                     if (templates.size() == 1) {
                         template = (AbstractObservation) templates.get(0);
@@ -513,8 +515,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                     BinaryComparisonOperator pe = ff.equal(ff.property("procedure"), ff.literal(obs.getProcedure().getHref()));
                     subquery.setFilter(pe);
                     Map<String, Object> hints = new HashMap<>(defaultHints);
-                    hints.put("includeFoiInTemplate", false);
-                    hints.put("includeTimeInTemplate", true);
+                    hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
+                    hints.put(INCLUDE_TIME_IN_TEMPLATE, true);
                     List<org.opengis.observation.Observation> templates = omProvider.getObservations(subquery, MEASUREMENT_QNAME, "resultTemplate", null, hints);
                     if (templates.size() == 1) {
                         observation.setDatastream(buildDatastream(exp, (AbstractObservation) templates.get(0), sensorArea, new NavigationPath(fn)));
@@ -532,8 +534,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                     BinaryComparisonOperator pe = ff.equal(ff.property("procedure"), ff.literal(obs.getProcedure().getHref()));
                     subquery.setFilter(pe);
                     Map<String, Object> hints = new HashMap<>(defaultHints);
-                    hints.put("includeFoiInTemplate", false);
-                    hints.put("includeTimeInTemplate", true);
+                    hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
+                    hints.put(INCLUDE_TIME_IN_TEMPLATE, true);
                     List<org.opengis.observation.Observation> templates = omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", null, hints);
                     if (templates.size() == 1) {
                         observation.setMultiDatastream(buildMultiDatastream(exp, (AbstractObservation) templates.get(0), sensorArea, new NavigationPath(fn)));
@@ -739,8 +741,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             final ExpandOptions exp = new ExpandOptions(req);
             final SimpleQuery subquery = buildExtraFilterQuery(req, true);
             Map<String, Object> hints = new HashMap<>(defaultHints);
-            hints.put("includeFoiInTemplate", false);
-            hints.put("includeTimeInTemplate", true);
+            hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
+            hints.put(INCLUDE_TIME_IN_TEMPLATE, true);
             List<org.opengis.observation.Observation> templates = omProvider.getObservations(subquery, MEASUREMENT_QNAME, "resultTemplate", null, hints);
             Map<String, GeoJSONGeometry> sensorArea = new HashMap<>();
             for (org.opengis.observation.Observation template : templates) {
@@ -769,8 +771,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             ResourceId filter = ff.resourceId(req.getId());
             subquery.setFilter(filter);
             Map<String, Object> hints = new HashMap<>(defaultHints);
-            hints.put("includeFoiInTemplate", false);
-            hints.put("includeTimeInTemplate", true);
+            hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
+            hints.put(INCLUDE_TIME_IN_TEMPLATE, true);
             List<org.opengis.observation.Observation> obs = omProvider.getObservations(subquery, MEASUREMENT_QNAME, "resultTemplate", null, hints);
             if (obs.isEmpty()) {
                 return null;
@@ -886,8 +888,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             final ExpandOptions exp = new ExpandOptions(req);
             final SimpleQuery subquery = buildExtraFilterQuery(req, true);
             Map<String, Object> hints = new HashMap<>(defaultHints);
-            hints.put("includeFoiInTemplate", false);
-            hints.put("includeTimeInTemplate", true);
+            hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
+            hints.put(INCLUDE_TIME_IN_TEMPLATE, true);
             if (req.getCount()) {
                 hints.put(OBJECT_TYPE, OBSERVATION);
                 hints.put(RESPONSE_MODE, ResponseModeType.RESULT_TEMPLATE);
@@ -916,8 +918,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             ResourceId filter = ff.resourceId(req.getId());
             subquery.setFilter(filter);
             Map<String, Object> hints = new HashMap<>(defaultHints);
-            hints.put("includeFoiInTemplate", false);
-            hints.put("includeTimeInTemplate", true);
+            hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
+            hints.put(INCLUDE_TIME_IN_TEMPLATE, true);
             List<org.opengis.observation.Observation> obs = omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", null, hints);
             if (obs.isEmpty()) {
                 return null;
@@ -1086,10 +1088,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             BinaryComparisonOperator pe = ff.equal(ff.property("procedure"), ff.literal(((org.geotoolkit.observation.xml.Process) template.getProcedure()).getHref()));
             subquery.setFilter(pe);
             Map<String, Object> hints = new HashMap<>(defaultHints);
-            hints.put("includeIDInDataBlock", true);
+            hints.put(INCLUDE_ID_IN_DATABLOCK, true);
             hints.put("includeTimeForProfile", true);
-            hints.put("directResultArray", true);
-            hints.put("separatedObservation", true);
+            hints.put(RESULT_MODE, ResultMode.DATA_ARRAY);
+            hints.put(SEPARATED_OBSERVATION, true);
             return omProvider.getObservations(subquery, OBSERVATION_QNAME, "inline", null, hints);
         }
         return new ArrayList<>();
@@ -1120,7 +1122,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             final SimpleQuery subquery = buildExtraFilterQuery(req, true);
             Map<String, Object> hints = new HashMap<>();
             hints.put("version", "1.0.0");
-            hints.put("noCompositePhenomenon", true);
+            hints.put(NO_COMPOSITE_PHENOMENON, true);
             hints.put(OBJECT_TYPE, OBSERVED_PROPERTY);
             Collection<org.opengis.observation.Phenomenon> sps = omProvider.getPhenomenon(subquery, hints);
             for (org.opengis.observation.Phenomenon sp : sps) {
@@ -1209,8 +1211,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         BinaryComparisonOperator pe = ff.equal(ff.property("observedProperty"), ff.literal(phenomenon));
         subquery.setFilter(pe);
         Map<String, Object> hints = new HashMap<>(defaultHints);
-        hints.put("includeFoiInTemplate", false);
-        hints.put("includeTimeInTemplate", true);
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
+        hints.put(INCLUDE_TIME_IN_TEMPLATE, true);
         return omProvider.getObservations(subquery, MEASUREMENT_QNAME, "resultTemplate", null, hints);
     }
 
@@ -1219,8 +1221,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         BinaryComparisonOperator pe = ff.equal(ff.property("observedProperty"), ff.literal(phenomenon));
         subquery.setFilter(pe);
         Map<String, Object> hints = new HashMap<>(defaultHints);
-        hints.put("includeFoiInTemplate", false);
-        hints.put("includeTimeInTemplate", true);
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
+        hints.put(INCLUDE_TIME_IN_TEMPLATE, true);
         return omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", null, hints);
     }
 
@@ -1230,8 +1232,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         BinaryComparisonOperator pe = ff.equal(ff.property("procedure"), ff.literal(sensorId));
         subquery.setFilter(pe);
         Map<String, Object> hints = new HashMap<>(defaultHints);
-        hints.put("includeFoiInTemplate", false);
-        hints.put("includeTimeInTemplate", true);
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
+        hints.put(INCLUDE_TIME_IN_TEMPLATE, true);
         return omProvider.getObservations(subquery, MEASUREMENT_QNAME, "resultTemplate", null, hints);
     }
 
@@ -1240,8 +1242,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         BinaryComparisonOperator pe = ff.equal(ff.property("procedure"), ff.literal(sensorId));
         subquery.setFilter(pe);
         Map<String, Object> hints = new HashMap<>(defaultHints);
-        hints.put("includeFoiInTemplate", false);
-        hints.put("includeTimeInTemplate", true);
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
+        hints.put(INCLUDE_TIME_IN_TEMPLATE, true);
         return omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", null, hints);
     }
 
@@ -1595,7 +1597,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 }
             }
             if (req.getExtraFlag().containsKey("decimation")) {
-                hints.put("decimSize", req.getExtraFlag().get("decimation"));
+                hints.put(DECIMATION_SIZE, req.getExtraFlag().get("decimation"));
             }
             final ExpandOptions exp = new ExpandOptions(req);
             final List<Filter> filters = new ArrayList<>();

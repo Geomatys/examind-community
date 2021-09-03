@@ -53,7 +53,7 @@ import org.geotoolkit.nio.IOUtilities;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_ID_BASE_NAME;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_TEMPLATE_ID_BASE_NAME;
 import org.geotoolkit.observation.xml.AbstractObservation;
-import org.geotoolkit.sos.netcdf.ExtractionResult;
+import org.geotoolkit.observation.model.ExtractionResult;
 import org.opengis.metadata.Identifier;
 
 

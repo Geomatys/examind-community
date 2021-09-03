@@ -29,7 +29,7 @@ import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.Resource;
 
 import org.geotoolkit.observation.ObservationStore;
-import org.geotoolkit.sos.netcdf.ExtractionResult;
+import org.geotoolkit.observation.model.ExtractionResult;
 import org.geotoolkit.storage.feature.FeatureStoreUtilities;
 
 import org.constellation.api.DataType;

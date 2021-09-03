@@ -35,7 +35,7 @@ import org.geotoolkit.sml.xml.AbstractSensorML;
 import org.geotoolkit.sml.xml.SensorMLMarshallerPool;
 import org.geotoolkit.swe.xml.v101.PhenomenonType;
 import org.geotoolkit.temporal.object.TemporalUtilities;
-import org.geotoolkit.observation.Utils;
+import org.geotoolkit.observation.OMUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.opengis.observation.Observation;
@@ -86,15 +86,15 @@ public class UtilsTest {
     public void getPhysicalIDTest() throws Exception {
         Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
         AbstractSensorML sensor = (AbstractSensorML) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ1.xml"));
-        String phyID = Utils.getPhysicalID(sensor);
+        String phyID = OMUtils.getPhysicalID(sensor);
         assertEquals("00ARGLELES", phyID);
 
         sensor = (AbstractSensorML) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ2.xml"));
-        phyID  = Utils.getPhysicalID(sensor);
+        phyID  = OMUtils.getPhysicalID(sensor);
         assertEquals("00ARGLELES_2000", phyID);
 
         sensor = (AbstractSensorML) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ3.xml"));
-        phyID  = Utils.getPhysicalID(sensor);
+        phyID  = OMUtils.getPhysicalID(sensor);
         assertEquals(null, phyID);
 
         marshallerPool.recycle(unmarshaller);
@@ -131,7 +131,7 @@ public class UtilsTest {
     public void getTimeValueTest() throws Exception {
 
         TimePositionType position = new TimePositionType("2007-05-01T07:59:00.0");
-        String result             = Utils.getTimeValue(position.getDate());
+        String result             = OMUtils.getTimeValue(position.getDate());
         String expResult          = "2007-05-01 07:59:00.0";
 
         assertEquals(expResult, result);
@@ -140,7 +140,7 @@ public class UtilsTest {
 
         boolean exLaunched = false;
         try {
-            Utils.getTimeValue(position.getDate());
+            OMUtils.getTimeValue(position.getDate());
         } catch (ObservationStoreException ex) {
             exLaunched = true;
             assertEquals(ex.getExceptionCode(), INVALID_PARAMETER_VALUE);
@@ -154,7 +154,7 @@ public class UtilsTest {
 
         exLaunched = false;
         try {
-            Utils.getTimeValue(position.getDate());
+            OMUtils.getTimeValue(position.getDate());
         } catch (ObservationStoreException ex) {
             exLaunched = true;
             assertEquals(ex.getExceptionCode(), MISSING_PARAMETER_VALUE);
@@ -165,7 +165,7 @@ public class UtilsTest {
 
         exLaunched = false;
         try {
-            Utils.getTimeValue(null);
+            OMUtils.getTimeValue(null);
         } catch (ObservationStoreException ex) {
             exLaunched = true;
             assertEquals(ex.getExceptionCode(), MISSING_PARAMETER_VALUE);

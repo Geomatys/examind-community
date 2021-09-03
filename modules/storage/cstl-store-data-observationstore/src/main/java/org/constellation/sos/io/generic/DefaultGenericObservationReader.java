@@ -77,7 +77,7 @@ import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVA
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_TEMPLATE_ID_BASE_NAME;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.PHENOMENON_ID_BASE_NAME;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.SENSOR_ID_BASE_NAME;
-import org.geotoolkit.observation.OMEntity;
+import org.geotoolkit.observation.model.OMEntity;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildDirectPosition;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildFeatureProperty;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildLineString;

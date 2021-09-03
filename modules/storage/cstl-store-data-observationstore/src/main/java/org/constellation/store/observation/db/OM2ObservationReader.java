@@ -84,12 +84,13 @@ import static org.geotoolkit.sos.xml.SOSXmlFactory.getDefaultTextEncoding;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.getGMLVersion;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
-import org.geotoolkit.observation.Field;
+import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.gml.xml.GMLXmlFactory;
-import org.geotoolkit.observation.OMEntity;
+import org.geotoolkit.observation.model.OMEntity;
 import static org.geotoolkit.observation.ObservationReader.ENTITY_TYPE;
 import static org.geotoolkit.observation.ObservationReader.SENSOR_TYPE;
 import static org.geotoolkit.observation.ObservationReader.SOS_VERSION;
+import org.geotoolkit.observation.model.FieldType;
 import org.opengis.observation.Process;
 
 
@@ -653,7 +654,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                     for (int i = 0; i < fields.size(); i++) {
                         Field field = fields.get(i);
                         String value;
-                        if (field.fieldType.equals("Time")) {
+                        if (FieldType.TIME.equals(field.type)) {
                             Timestamp t = rs.getTimestamp(i + 3);
                             synchronized(format2) {
                                 value = format2.format(t);
@@ -679,7 +680,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
         final int pid              = getPIDFromObservation(identifier, c);
         final String procedure     = getProcedureFromObservation(identifier, c);
         final List<Field> fields   = readFields(procedure, c);
-        final String uom           = fields.get(0).fieldUom;
+        final String uom           = fields.get(0).uom;
         final double value;
         final String name;
         final String query = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m, \"" + schemaPrefix + "om\".\"observations\" o "

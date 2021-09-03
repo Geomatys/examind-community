@@ -26,7 +26,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -68,7 +67,7 @@ import org.geotoolkit.observation.model.ObservationTemplate;
 import org.constellation.dto.service.config.sos.ExtractionResult;
 import org.geotoolkit.gml.GMLUtilities;
 import org.geotoolkit.gml.xml.AbstractFeature;
-import org.geotoolkit.sos.netcdf.GeoSpatialBound;
+import org.geotoolkit.observation.model.GeoSpatialBound;
 import org.geotoolkit.sos.xml.ObservationOffering;
 import org.geotoolkit.sos.xml.ResponseModeType;
 import static org.geotoolkit.sos.xml.ResponseModeType.INLINE;
@@ -106,12 +105,10 @@ import org.opengis.filter.LogicalOperatorName;
 import org.opengis.filter.ResourceId;
 import org.opengis.filter.SpatialOperatorName;
 import org.opengis.util.CodeList;
-import org.geotoolkit.observation.OMEntity;
-import static org.geotoolkit.observation.ObservationReader.ENTITY_TYPE;
-import static org.geotoolkit.observation.ObservationReader.IDENTIFIER;
-import static org.geotoolkit.observation.ObservationReader.SOS_VERSION;
-import org.geotoolkit.observation.Utils;
-import static org.geotoolkit.observation.Utils.getVersionFromHints;
+import org.geotoolkit.observation.model.OMEntity;
+import static org.geotoolkit.observation.ObservationReader.*;
+import static org.geotoolkit.observation.OMUtils.*;
+import static org.geotoolkit.observation.ObservationFilterFlags.*;
 
 /**
  *
@@ -240,7 +237,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider implements
             if (getCapabilities().hasFilter) {
                 Collection<String> matchs = getProcedureNames(q, hints);
                 // TODO optimize
-                for (org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree pt : ((ObservationStore)getMainStore()).getProcedures()) {
+                for (org.geotoolkit.observation.model.ExtractionResult.ProcedureTree pt : ((ObservationStore)getMainStore()).getProcedures()) {
                     if (matchs.contains(pt.id)) {
                         results.add(toDto(pt));
                     }
@@ -362,7 +359,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider implements
         if (offname != null) {
             stations.addAll(getFeaturesOfInterestForOffering(offname, version));
         } else {
-            stations.addAll(getFeatureOfInterest(new SimpleQuery(), Collections.singletonMap("version", version)));
+            stations.addAll(getFeatureOfInterest(new SimpleQuery(), Collections.singletonMap(VERSION, version)));
         }
         for (SamplingFeature offStation : stations) {
             // TODO for SOS 2.0 use observed area
@@ -401,7 +398,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider implements
         FilterFactory ff = FilterUtilities.FF;
         final Filter filter = ff.equal(ff.property("offering"), ff.literal(offname));
         subquery.setFilter(filter);
-        return getFeatureOfInterest(subquery, Collections.singletonMap("version", version));
+        return getFeatureOfInterest(subquery, Collections.singletonMap(VERSION, version));
     }
 
 
@@ -876,7 +873,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider implements
         hints = new HashMap<>(hints);
         try {
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
-            final OMEntity objectType = Utils.getObjectTypeHint(hints, OBJECT_TYPE);
+            final OMEntity objectType = getObjectTypeHint(hints, OBJECT_TYPE);
             if (objectType == null) {
                 throw new ConstellationStoreException("Missing objectType parameter for getCount()");
             }
@@ -957,9 +954,9 @@ public class ObservationStoreProvider extends IndexedNameDataProvider implements
         }
     }
 
-    private ExtractionResult toDto(org.geotoolkit.sos.netcdf.ExtractionResult ext) {
+    private ExtractionResult toDto(org.geotoolkit.observation.model.ExtractionResult ext) {
         final List<ProcedureTree> procedures = new ArrayList<>();
-        for (org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree pt: ext.procedures) {
+        for (org.geotoolkit.observation.model.ExtractionResult.ProcedureTree pt: ext.procedures) {
             procedures.add(toDto(pt));
         }
         return new ExtractionResult(ext.observations, ext.phenomenons, ext.featureOfInterest, procedures);
@@ -980,7 +977,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider implements
         return results;
     }
 
-    private ProcedureTree toDto(org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree pt) {
+    private ProcedureTree toDto(org.geotoolkit.observation.model.ExtractionResult.ProcedureTree pt) {
         GeoSpatialBound bound = pt.spatialBound;
         final AbstractGeometry gmlGeom = bound.getLastGeometry("2.0.0");
         Geometry geom = null;
@@ -1005,16 +1002,16 @@ public class ObservationStoreProvider extends IndexedNameDataProvider implements
 
         final Map<Date, Geometry> historicalLocations = castHL(pt.spatialBound.getHistoricalLocations());
         result.setHistoricalLocations(historicalLocations);
-        for (org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree child: pt.children) {
+        for (org.geotoolkit.observation.model.ExtractionResult.ProcedureTree child: pt.children) {
             result.getChildren().add(toDto(child));
         }
         return result;
     }
 
-    private org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree toGeotk(ProcedureTree pt) {
+    private org.geotoolkit.observation.model.ExtractionResult.ProcedureTree toGeotk(ProcedureTree pt) {
         if (pt != null) {
-            org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree result =
-                    new org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree(pt.getId(), pt.getName(), pt.getDescription(), pt.getType(), pt.getOmType(), pt.getFields());
+            org.geotoolkit.observation.model.ExtractionResult.ProcedureTree result =
+                    new org.geotoolkit.observation.model.ExtractionResult.ProcedureTree(pt.getId(), pt.getName(), pt.getDescription(), pt.getType(), pt.getOmType(), pt.getFields());
             result.spatialBound.addDate(pt.getDateStart());
             result.spatialBound.addDate(pt.getDateEnd());
             AbstractGeometry hgeom = null;
@@ -1050,10 +1047,10 @@ public class ObservationStoreProvider extends IndexedNameDataProvider implements
                 SimpleQuery query = (SimpleQuery) q;
                 handleFilter(mode, query.getFilter(), localOmFilter, observedProperties, procedures, fois);
                 if (query.getLimit() != SimpleQuery.UNLIMITED) {
-                    hints.put("limit", Long.toString(query.getLimit()));
+                    hints.put(PAGE_LIMIT, Long.toString(query.getLimit()));
                 }
                 if (query.getOffset()!= 0) {
-                    hints.put("offset", Long.toString(query.getOffset()));
+                    hints.put(PAGE_OFFSET, Long.toString(query.getOffset()));
                 }
 
         } else if (q != null) {

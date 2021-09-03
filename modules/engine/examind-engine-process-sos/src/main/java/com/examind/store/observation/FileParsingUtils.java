@@ -25,10 +25,10 @@ import java.util.Locale;
 import java.util.Set;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.GMLXmlFactory;
+import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.sampling.xml.SamplingFeature;
-import org.geotoolkit.sos.netcdf.Field;
-import org.geotoolkit.sos.netcdf.OMUtils;
-import static org.geotoolkit.sos.netcdf.OMUtils.TIME_FIELD;
+import org.geotoolkit.observation.OMUtils;
+import static org.geotoolkit.observation.OMUtils.TIME_FIELD;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 import org.geotoolkit.swe.xml.AbstractDataRecord;
 import org.geotoolkit.swe.xml.AnyScalar;
@@ -136,9 +136,9 @@ public class FileParsingUtils {
     public static AbstractDataRecord getDataRecordProfile(final String version, final List<Field> phenomenons) {
         final List<AnyScalar> fields = new ArrayList<>();
         for (Field phenomenon : phenomenons) {
-            final UomProperty uom = SOSXmlFactory.buildUomProperty(version, phenomenon.unit, null);
-            final Quantity cat = SOSXmlFactory.buildQuantity(version, phenomenon.id, uom, null);
-            fields.add(SOSXmlFactory.buildAnyScalar(version, null, phenomenon.id, cat));
+            final UomProperty uom = SOSXmlFactory.buildUomProperty(version, phenomenon.uom, null);
+            final Quantity cat = SOSXmlFactory.buildQuantity(version, phenomenon.name, uom, null);
+            fields.add(SOSXmlFactory.buildAnyScalar(version, null, phenomenon.name, cat));
         }
         return SOSXmlFactory.buildSimpleDatarecord(version, null, null, null, true, fields);
     }
@@ -147,9 +147,9 @@ public class FileParsingUtils {
         final List<AnyScalar> fields = new ArrayList<>();
         fields.add(TIME_FIELD.get(version));
         for (Field phenomenon : phenomenons) {
-            final UomProperty uom = SOSXmlFactory.buildUomProperty(version, phenomenon.unit, null);
-            final Quantity cat = SOSXmlFactory.buildQuantity(version, phenomenon.id, uom, null);
-            fields.add(SOSXmlFactory.buildAnyScalar(version, null, phenomenon.id, cat));
+            final UomProperty uom = SOSXmlFactory.buildUomProperty(version, phenomenon.uom, null);
+            final Quantity cat = SOSXmlFactory.buildQuantity(version, phenomenon.name, uom, null);
+            fields.add(SOSXmlFactory.buildAnyScalar(version, null, phenomenon.name, cat));
         }
         return SOSXmlFactory.buildSimpleDatarecord(version, null, null, null, true, fields);
     }
