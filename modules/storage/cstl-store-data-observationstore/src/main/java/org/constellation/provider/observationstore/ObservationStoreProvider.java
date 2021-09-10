@@ -1106,6 +1106,9 @@ public class ObservationStoreProvider extends IndexedNameDataProvider implements
                 case GET_OFF:
                     localOmFilter.setOfferings(ids);
                     break;
+                case GET_LOC:
+                    localOmFilter.setProcedure(ids);
+                    break;
                 default:
                     break;
             }
