@@ -30,10 +30,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -54,6 +56,7 @@ import org.elasticsearch.action.admin.cluster.settings.ClusterUpdateSettingsRequ
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.search.ClearScrollRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchScrollRequest;
 import org.elasticsearch.action.support.WriteRequest;
@@ -70,6 +73,7 @@ import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.script.Script;
 import org.elasticsearch.search.Scroll;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.BucketOrder;
@@ -294,13 +298,15 @@ public class ElasticSearchClient {
             sRequest.source(builder);
 
             SearchResponse response = client.search(sRequest, RequestOptions.DEFAULT);
-
+            Set<String> scrollIds = new HashSet<>();
             boolean more;
             do {
                 for (SearchHit hit : response.getHits().getHits()) {
                     results.add(hit);
                 }
-                SearchScrollRequest request = new SearchScrollRequest(response.getScrollId());
+                String scrollId = response.getScrollId();
+                scrollIds.add(scrollId);
+                SearchScrollRequest request = new SearchScrollRequest(scrollId);
                 request.scroll(new Scroll(new TimeValue(60000)));
 
                 response = client.scroll(request, RequestOptions.DEFAULT);
@@ -308,6 +314,11 @@ public class ElasticSearchClient {
                 more = response.getHits().getHits().length != 0;
 
             } while (more);
+
+            // close scroll
+            ClearScrollRequest cRequest = new ClearScrollRequest();
+            cRequest.setScrollIds(new ArrayList<>(scrollIds));
+            client.clearScroll(cRequest, RequestOptions.DEFAULT);
 
             return results.toArray(new SearchHit[results.size()]);
         }
@@ -361,8 +372,22 @@ public class ElasticSearchClient {
     }
 
     public List<String> getFieldValues(final String index, final String queryJson, QueryBuilder query, final QueryBuilder filter,  String field, SortOrder keySorted, Integer from, Integer size) throws IOException {
+        return getFieldValues(index, queryJson, query, filter, field, null, keySorted, from, size);
+    }
+
+    public List<String> getFieldValues(final String index, final String queryJson, QueryBuilder query, final QueryBuilder filter,  String field, Entry<String, String> scriptField, SortOrder keySorted, Integer from, Integer size) throws IOException {
+        if (field != null && scriptField != null) {
+            throw new IllegalArgumentException("Either field or scriptField must be null");
+        } else if (field == null && scriptField == null) {
+            throw new IllegalArgumentException("field or scriptField must be not null");
+        }
         SearchSourceBuilder builder = new SearchSourceBuilder();
-        TermsAggregationBuilder aggBuilder = AggregationBuilders.terms("agg1").field(field).size(Integer.MAX_VALUE);
+        TermsAggregationBuilder aggBuilder = AggregationBuilders.terms("agg1");
+        if (field != null) {
+            aggBuilder = aggBuilder.field(field).size(Integer.MAX_VALUE);
+        } else {
+            aggBuilder = aggBuilder.field(scriptField.getKey()).script(new Script(scriptField.getValue())).size(Integer.MAX_VALUE);
+        }
         if (keySorted != null) {
             boolean asc = keySorted.ASC.equals(keySorted);
             aggBuilder = aggBuilder.order(BucketOrder.key(asc));
@@ -397,6 +422,7 @@ public class ElasticSearchClient {
         }
         return results;
     }
+
 
     public Map<String, Map<String, List<Object>>> getAggFieldValues(final String index, String field, List<String> subfields, List<String> subMaxfields, List<String> subMinfields, QueryBuilder query, SortOrder keySorted, Integer from, Integer size) throws IOException {
         SearchSourceBuilder builder = new SearchSourceBuilder();
@@ -524,7 +550,7 @@ public class ElasticSearchClient {
         return results;
     }
 
-    public Map<String, Map<String, Object>> compositeAggregationPaged(final String index, QueryBuilder query, final List<String> compositeFields, List<String> subfields, List<String> subMaxfields, List<String> subMinfields, int from, SortOrder keySorted, int size) throws IOException {
+    public Map<String, Map<String, Object>> compositeAggregationPaged(final String index, QueryBuilder query, final List<String> compositeFields, Map<String, String> compositeScriptFields, List<String> subfields, List<String> subMaxfields, List<String> subMinfields, int from, SortOrder keySorted, int size) throws IOException {
         if (keySorted == null) {
             keySorted = SortOrder.ASC;
         }
@@ -536,6 +562,11 @@ public class ElasticSearchClient {
         List<CompositeValuesSourceBuilder<?>> sourceBuilderList = new ArrayList<>();
         for (String compositeField : compositeFields) {
             sourceBuilderList.add(new TermsValuesSourceBuilder(compositeField).field(compositeField));
+        }
+        if (compositeScriptFields != null) {
+            for (Entry<String,String> compositeScriptField : compositeScriptFields.entrySet()) {
+                sourceBuilderList.add(new TermsValuesSourceBuilder(compositeScriptField.getKey()).script(new Script(compositeScriptField.getValue())).order(keySorted));
+            }
         }
         CompositeAggregationBuilder compositeAggregationBuilder = new CompositeAggregationBuilder("compositeAgg",sourceBuilderList);
         compositeAggregationBuilder.size(limit);
