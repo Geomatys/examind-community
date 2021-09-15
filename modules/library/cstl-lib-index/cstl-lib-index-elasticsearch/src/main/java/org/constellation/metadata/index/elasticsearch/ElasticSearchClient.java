@@ -99,14 +99,14 @@ public class ElasticSearchClient {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.metadata.index.elasticsearch");
 
-    private RestHighLevelClient client;
+    protected RestHighLevelClient client;
 
     private final String id;
 
     private static final int socketTimeout = 180000;
 
     // Constructors ----------------------------------------------------------------
-    private ElasticSearchClient(final String id) {
+    protected ElasticSearchClient(final String id) {
         this.id = id;
     }
 
@@ -718,8 +718,8 @@ public class ElasticSearchClient {
         return builder;
     }
 
-    private static final Map<String, ElasticSearchClient> CLIENT_INSTANCE = new HashMap<>();
-    private static final Map<String, AtomicInteger> CLIENT_COUNTER = new HashMap<>();
+    protected static final Map<String, ElasticSearchClient> CLIENT_INSTANCE = new HashMap<>();
+    protected static final Map<String, AtomicInteger> CLIENT_COUNTER = new HashMap<>();
 
     private void close() {
         LOGGER.info("--- CLOSING ES CLIENT " + id + " ---");
