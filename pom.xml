@@ -898,11 +898,6 @@
                 <version>${geotoolkit.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>org.codehaus.groovy</groupId>
-                <artifactId>groovy-all</artifactId>
-                <version>2.2.2</version>
-            </dependency>
             <!-- Spring framework -->
             <dependency>
                 <groupId>org.springframework</groupId>
