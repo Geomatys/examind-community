@@ -75,4 +75,14 @@ public class DefaultSensorData extends AbstractData implements SensorData {
         return omType;
     }
 
+    @Override
+    public String getSensorName() {
+        return name.toString(); // TODO extract from SML metadata
+    }
+
+    @Override
+    public String getDescription() {
+        return null; // TODO extract from SML metadata
+    }
+
 }

@@ -1,6 +1,6 @@
 {
-  "description" : "urn:ogc:object:sensor:GEOM:2",
-  "name" : "urn:ogc:object:sensor:GEOM:2",
+  "description" : "GEOM 2",
+  "name" : "GEOM 2",
   "encodingType" : "http://www.opengis.net/doc/IS/SensorML/2.0",
   "@iot.id" : "urn:ogc:object:sensor:GEOM:2",
   "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Sensors(urn:ogc:object:sensor:GEOM:2)",

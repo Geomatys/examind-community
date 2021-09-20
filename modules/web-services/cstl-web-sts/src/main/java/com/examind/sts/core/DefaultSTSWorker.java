@@ -1438,6 +1438,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Sensors("+ sensorID+ ")";
 
         String metadataLink = null;
+        String description = null;
+        String name = sensorID;
         if (s != null) {
             metadataLink = Application.getProperty(AppProperty.CSTL_URL);
             if (metadataLink != null) {
@@ -1446,11 +1448,13 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 }
                 metadataLink = metadataLink + "/API/sensors/" + s.getId() + "/metadata/download";
             }
+            description = s.getDescription();
+            name = s.getName();
         }
 
         Sensor sensor = new Sensor();
-        sensor = sensor.description(sensorID)  // TODO extract from metadata and record in database
-                .name(sensorID)
+        sensor = sensor.description(description)
+                .name(name)
                 .encodingType("http://www.opengis.net/doc/IS/SensorML/2.0") // TODO extract metadata type and record in database
                 .iotId(sensorID)
                 .iotSelfLink(selfLink)

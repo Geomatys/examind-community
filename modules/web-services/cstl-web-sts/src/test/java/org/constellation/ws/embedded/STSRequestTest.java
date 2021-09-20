@@ -110,13 +110,13 @@ public class STSRequestTest extends AbstractGrizzlyServer {
                 Integer providerSENT = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness, null).id;
 
                 Object sml = unmarshallSensorResource("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ1.xml", sensorBusiness);
-                Integer senId1 = sensorBusiness.create("urn:ogc:object:sensor:GEOM:1", "system", "timeseries", null, sml, Long.MIN_VALUE, providerSEN);
+                Integer senId1 = sensorBusiness.create("urn:ogc:object:sensor:GEOM:1", "GEOM 1", "GEOM 1","system", "timeseries", null, sml, Long.MIN_VALUE, providerSEN);
 
                 sml = unmarshallSensorResource("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ2.xml", sensorBusiness);
-                Integer senId2 = sensorBusiness.create("urn:ogc:object:sensor:GEOM:2", "component", "profile", null, sml, Long.MIN_VALUE, providerSEN);
+                Integer senId2 = sensorBusiness.create("urn:ogc:object:sensor:GEOM:2", "GEOM 2", "GEOM 2","component", "profile", null, sml, Long.MIN_VALUE, providerSEN);
 
                 sml = unmarshallSensorResource("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµtest-1.xml", sensorBusiness);
-                Integer senId3 = sensorBusiness.create("urn:ogc:object:sensor:GEOM:test-1", "system", "timeseries", null, sml, Long.MIN_VALUE, providerSEN);
+                Integer senId3 = sensorBusiness.create("urn:ogc:object:sensor:GEOM:test-1", "test 1", "test 1","system", "timeseries", null, sml, Long.MIN_VALUE, providerSEN);
 
                 Integer providerOMD = testResource.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
                 Integer providerOMT = testResource.createProvider(TestResource.OM2_DB, providerBusiness, null).id;

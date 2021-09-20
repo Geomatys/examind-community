@@ -22,6 +22,10 @@ package org.constellation.provider;
  */
 public interface SensorData extends Data {
 
+    String getSensorName();
+
+    String getDescription();
+    
     Object getSensorMetadata();
 
     String getSensorMLType();

@@ -152,16 +152,16 @@ public class OM2STSWorkerTest {
                 pid = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness, null).id;
 
                 Object sml = unmarshallSensorResource("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ1.xml", sensorBusiness);
-                sensorBusiness.create("urn:ogc:object:sensor:GEOM:1", "system", "timeseries", null, sml, Long.MIN_VALUE, pid);
+                sensorBusiness.create("urn:ogc:object:sensor:GEOM:1", "GEOM 1", "GEOM 1", "system", "timeseries", null, sml, Long.MIN_VALUE, pid);
 
                 sml = unmarshallSensorResource("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ2.xml", sensorBusiness);
-                sensorBusiness.create("urn:ogc:object:sensor:GEOM:2", "component", "profile", null, sml, Long.MIN_VALUE, pid);
+                sensorBusiness.create("urn:ogc:object:sensor:GEOM:2", "GEOM 2", "GEOM 2", "component", "profile", null, sml, Long.MIN_VALUE, pid);
 
                 sml = unmarshallSensorResource("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµtest-1.xml", sensorBusiness);
-                sensorBusiness.create("urn:ogc:object:sensor:GEOM:test-1", "system", "timeseries", null, sml, Long.MIN_VALUE, pid);
+                sensorBusiness.create("urn:ogc:object:sensor:GEOM:test-1", "test 1", "test 1", "system", "timeseries", null, sml, Long.MIN_VALUE, pid);
 
                 sml = unmarshallSensorResource("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ8.xml", sensorBusiness);
-                sensorBusiness.create("urn:ogc:object:sensor:GEOM:8", "system", "timeseries", null, sml, Long.MIN_VALUE, pid);
+                sensorBusiness.create("urn:ogc:object:sensor:GEOM:8", "GEOM 8", "GEOM 8", "system", "timeseries", null, sml, Long.MIN_VALUE, pid);
 
                 serviceBusiness.linkServiceAndProvider(sid, pid);
 
@@ -1069,8 +1069,8 @@ public class OM2STSWorkerTest {
         expResult.setObservedPropertyIotNavigationLink(null);
 
         org.geotoolkit.sts.json.Sensor sensor = new org.geotoolkit.sts.json.Sensor()
-                .description("urn:ogc:object:sensor:GEOM:test-1")
-                .name("urn:ogc:object:sensor:GEOM:test-1")
+                .description("test 1")
+                .name("test 1")
                 .iotId("urn:ogc:object:sensor:GEOM:test-1")
                 .encodingType("http://www.opengis.net/doc/IS/SensorML/2.0")
                 .iotSelfLink("http://test.geomatys.com/sts/default/Sensors(urn:ogc:object:sensor:GEOM:test-1)")
@@ -1233,7 +1233,6 @@ public class OM2STSWorkerTest {
         expResult.setObservedPropertyIotNavigationLink(null);
 
         org.geotoolkit.sts.json.Sensor sensor = new org.geotoolkit.sts.json.Sensor()
-                .description("urn:ogc:object:sensor:GEOM:10")
                 .name("urn:ogc:object:sensor:GEOM:10")
                 .iotId("urn:ogc:object:sensor:GEOM:10")
                 .encodingType("http://www.opengis.net/doc/IS/SensorML/2.0")
@@ -1355,7 +1354,6 @@ public class OM2STSWorkerTest {
         expResult.setObservedPropertyIotNavigationLink(null);
 
         org.geotoolkit.sts.json.Sensor sensor = new org.geotoolkit.sts.json.Sensor()
-                .description("urn:ogc:object:sensor:GEOM:test-id")
                 .name("urn:ogc:object:sensor:GEOM:test-id")
                 .iotId("urn:ogc:object:sensor:GEOM:test-id")
                 .encodingType("http://www.opengis.net/doc/IS/SensorML/2.0")
@@ -1534,8 +1532,8 @@ public class OM2STSWorkerTest {
         expResult.setObservedPropertyIotNavigationLink(null);
 
         org.geotoolkit.sts.json.Sensor sensor = new org.geotoolkit.sts.json.Sensor()
-                .description("urn:ogc:object:sensor:GEOM:8")
-                .name("urn:ogc:object:sensor:GEOM:8")
+                .description("GEOM 8")
+                .name("GEOM 8")
                 .iotId("urn:ogc:object:sensor:GEOM:8")
                 .encodingType("http://www.opengis.net/doc/IS/SensorML/2.0")
                 .iotSelfLink("http://test.geomatys.com/sts/default/Sensors(urn:ogc:object:sensor:GEOM:8)")
@@ -1704,7 +1702,6 @@ public class OM2STSWorkerTest {
         expResult.setObservedPropertyIotNavigationLink(null);
 
         org.geotoolkit.sts.json.Sensor sensor = new org.geotoolkit.sts.json.Sensor()
-                .description("urn:ogc:object:sensor:GEOM:10")
                 .name("urn:ogc:object:sensor:GEOM:10")
                 .iotId("urn:ogc:object:sensor:GEOM:10")
                 .encodingType("http://www.opengis.net/doc/IS/SensorML/2.0")
@@ -1839,7 +1836,6 @@ public class OM2STSWorkerTest {
         expResult.setObservedPropertyIotNavigationLink(null);
 
         org.geotoolkit.sts.json.Sensor sensor = new org.geotoolkit.sts.json.Sensor()
-                .description("urn:ogc:object:sensor:GEOM:test-id")
                 .name("urn:ogc:object:sensor:GEOM:test-id")
                 .iotId("urn:ogc:object:sensor:GEOM:test-id")
                 .encodingType("http://www.opengis.net/doc/IS/SensorML/2.0")
@@ -1949,8 +1945,8 @@ public class OM2STSWorkerTest {
         org.geotoolkit.sts.json.Sensor result = worker.getSensorById(request);
 
         org.geotoolkit.sts.json.Sensor expResult = new org.geotoolkit.sts.json.Sensor()
-                .description("urn:ogc:object:sensor:GEOM:2")
-                .name("urn:ogc:object:sensor:GEOM:2")
+                .description("GEOM 2")
+                .name("GEOM 2")
                 .iotId("urn:ogc:object:sensor:GEOM:2")
                 .encodingType("http://www.opengis.net/doc/IS/SensorML/2.0")
                 .iotSelfLink("http://test.geomatys.com/sts/default/Sensors(urn:ogc:object:sensor:GEOM:2)")

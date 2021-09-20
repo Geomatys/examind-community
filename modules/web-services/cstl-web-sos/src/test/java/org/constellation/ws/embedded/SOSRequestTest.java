@@ -114,13 +114,13 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
                 Integer providerSENT = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness, null).id;
 
                 Object sml = unmarshallSensorResource("org/constellation/embedded/test/urn-ogc-object-sensor-SunSpot-0014.4F01.0000.261A.xml", sensorBusiness);
-                int senId1 = sensorBusiness.create("urn:ogc:object:sensor:SunSpot:0014.4F01.0000.261A", "system", null, null, sml, Long.MIN_VALUE, providerSEN);
+                int senId1 = sensorBusiness.create("urn:ogc:object:sensor:SunSpot:0014.4F01.0000.261A", "SunSpot 261A", "SunSpot 261A", "system", null, null, sml, Long.MIN_VALUE, providerSEN);
 
                 sml = unmarshallSensorResource("org/constellation/embedded/test/urn-ogc-object-sensor-SunSpot-0014.4F01.0000.2626.xml", sensorBusiness);
-                int senId2 = sensorBusiness.create("urn:ogc:object:sensor:SunSpot:0014.4F01.0000.2626", "system", null, null, sml, Long.MIN_VALUE, providerSEN);
+                int senId2 = sensorBusiness.create("urn:ogc:object:sensor:SunSpot:0014.4F01.0000.2626", "SunSpot 2626", "SunSpot 2626", "system", null, null, sml, Long.MIN_VALUE, providerSEN);
 
                 sml = unmarshallSensorResource("org/constellation/embedded/test/urn-ogc-object-sensor-SunSpot-2.xml", sensorBusiness);
-                int senId3 = sensorBusiness.create("urn:ogc:object:sensor:SunSpot:2", "system", null, null, sml, Long.MIN_VALUE, providerSEN);
+                int senId3 = sensorBusiness.create("urn:ogc:object:sensor:SunSpot:2", "system", "SunSpot 2", "SunSpot 2", null, null, sml, Long.MIN_VALUE, providerSEN);
 
                 Integer providerOMD = testResource.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
                 Integer providerOMT = testResource.createProvider(TestResource.OM2_DB, providerBusiness, null).id;

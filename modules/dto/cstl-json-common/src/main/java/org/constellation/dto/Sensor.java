@@ -21,16 +21,16 @@ package org.constellation.dto;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
-import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-@XmlRootElement
 public class Sensor extends Identifiable implements Serializable {
 
     private String  identifier;
+    private String  name;
+    private String  description;
     private String  type;
     private String  parent;
     private Integer owner;
@@ -155,11 +155,41 @@ public class Sensor extends Identifiable implements Serializable {
         this.omType = omType;
     }
 
+    /**
+     * @return the name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * @param name the name to set
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    /**
+     * @return the description
+     */
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * @param description the description to set
+     */
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("[Sensor]\n");
         sb.append("id").append(id).append('\n');
         sb.append("identifier").append(identifier).append('\n');
+        sb.append("name").append(name).append('\n');
+        sb.append("description").append(description).append('\n');
         sb.append("type").append(type).append('\n');
         sb.append("parent").append(parent).append('\n');
         sb.append("owner").append(owner).append('\n');
@@ -175,6 +205,8 @@ public class Sensor extends Identifiable implements Serializable {
         int hash = 5;
         hash = 97 * hash + Objects.hashCode(this.id);
         hash = 97 * hash + Objects.hashCode(this.identifier);
+        hash = 97 * hash + Objects.hashCode(this.name);
+        hash = 97 * hash + Objects.hashCode(this.description);
         hash = 97 * hash + Objects.hashCode(this.type);
         hash = 97 * hash + Objects.hashCode(this.parent);
         hash = 97 * hash + Objects.hashCode(this.owner);
@@ -195,6 +227,8 @@ public class Sensor extends Identifiable implements Serializable {
             return Objects.equals(this.date, that.date) &&
                    Objects.equals(this.id, that.id) &&
                    Objects.equals(this.identifier, that.identifier) &&
+                   Objects.equals(this.name, that.name) &&
+                   Objects.equals(this.description, that.description) &&
                    Objects.equals(this.type, that.type) &&
                    Objects.equals(this.parent, that.parent) &&
                    Objects.equals(this.owner, that.owner) &&

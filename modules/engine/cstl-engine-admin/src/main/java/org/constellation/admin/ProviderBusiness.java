@@ -588,10 +588,12 @@ public class ProviderBusiness implements IProviderBusiness {
                         SensorData sData = (SensorData) sensorProvider.get(key);
                         Object sml = sData.getSensorMetadata();
                         if (sml != null) {
+                            final String name = sData.getSensorName();
+                            final String description = sData.getDescription();
                             final String type = sData.getSensorMLType();
                             final String omType = sData.getOMType();
                             final String parentIdentifier = null; // TODO
-                            sensorBusiness.create(key.toString(), type, omType, parentIdentifier, sml, System.currentTimeMillis(), pr.getId());
+                            sensorBusiness.create(key.toString(), name, description, type, omType, parentIdentifier, sml, System.currentTimeMillis(), pr.getId());
                         }
                     }
                 }

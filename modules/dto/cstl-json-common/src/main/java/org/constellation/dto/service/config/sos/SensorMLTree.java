@@ -42,6 +42,10 @@ public class SensorMLTree {
 
     private String identifier;
 
+    private String name;
+
+    private String description;
+
     private String owner;
 
     private Object sml;
@@ -56,13 +60,16 @@ public class SensorMLTree {
 
     }
 
-    public SensorMLTree(final Integer id, final String identifier, final String type, final String owner, final Date time, Object sml) {
+    public SensorMLTree(final Integer id, final String identifier, final String name,
+            final String description, final String type, final String owner, final Date time, Object sml) {
         this.id   = id;
         this.type = type;
         this.owner = owner;
         this.identifier = identifier;
         this.createDate = time;
         this.sml = sml;
+        this.name = name;
+        this.description = description;
     }
 
     /**
@@ -105,6 +112,34 @@ public class SensorMLTree {
      */
     public void setIdentifier(String identifier) {
         this.identifier = identifier;
+    }
+
+    /**
+     * @return the name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * @param name the name to set
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    /**
+     * @return the description
+     */
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * @param description the description to set
+     */
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     /**
@@ -236,7 +271,7 @@ public class SensorMLTree {
      * @return
      */
     public static SensorMLTree buildTree(final List<SensorMLTree> nodeList, boolean alreadyComputedFamilly) {
-        final SensorMLTree root = new SensorMLTree(null, "root", "System", null, null, null);
+        final SensorMLTree root = new SensorMLTree(null, "root", "root", null, "System", null, null, null);
 
         for (SensorMLTree node : nodeList) {
             // only link the top sensors to the root
@@ -297,6 +332,12 @@ public class SensorMLTree {
         sb.append("id=").append(id).append('\n');
         if (identifier != null) {
             sb.append("identifier=").append(identifier).append("\n");
+        }
+        if (name != null) {
+            sb.append("name=").append(name).append("\n");
+        }
+        if (description != null) {
+            sb.append("description=").append(description).append("\n");
         }
         if (type != null) {
             sb.append("type=").append(type).append("\n");

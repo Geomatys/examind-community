@@ -16,7 +16,7 @@ package org.constellation.database.api.jooq.tables;
 @java.lang.SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Sensor extends org.jooq.impl.TableImpl<org.constellation.database.api.jooq.tables.records.SensorRecord> {
 
-	private static final long serialVersionUID = 117294458;
+	private static final long serialVersionUID = 1748557067;
 
 	/**
 	 * The reference instance of <code>admin.sensor</code>
@@ -75,6 +75,16 @@ public class Sensor extends org.jooq.impl.TableImpl<org.constellation.database.a
 	 * The column <code>admin.sensor.om_type</code>.
 	 */
 	public final org.jooq.TableField<org.constellation.database.api.jooq.tables.records.SensorRecord, java.lang.String> OM_TYPE = createField("om_type", org.jooq.impl.SQLDataType.VARCHAR.length(100), this, "");
+
+	/**
+	 * The column <code>admin.sensor.name</code>.
+	 */
+	public final org.jooq.TableField<org.constellation.database.api.jooq.tables.records.SensorRecord, java.lang.String> NAME = createField("name", org.jooq.impl.SQLDataType.VARCHAR.length(1000), this, "");
+
+	/**
+	 * The column <code>admin.sensor.description</code>.
+	 */
+	public final org.jooq.TableField<org.constellation.database.api.jooq.tables.records.SensorRecord, java.lang.String> DESCRIPTION = createField("description", org.jooq.impl.SQLDataType.VARCHAR.length(5000), this, "");
 
 	/**
 	 * Create a <code>admin.sensor</code> table reference

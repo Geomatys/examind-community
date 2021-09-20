@@ -48,6 +48,7 @@ import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
+import org.constellation.dto.Sensor;
 import org.constellation.dto.process.ServiceProcessReference;
 import org.constellation.dto.service.ServiceComplete;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
@@ -649,7 +650,11 @@ public class SosHarvesterProcessTest {
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
 
         // verify that the sensor has been created
-        Assert.assertNotNull(sensorBusiness.getSensor(sensorId));
+        Sensor sensor = sensorBusiness.getSensor(sensorId);
+        Assert.assertNotNull(sensor);
+        Assert.assertEquals(sensorId, sensor.getIdentifier());
+        Assert.assertEquals(sensorId, sensor.getName());
+        Assert.assertEquals("some description", sensor.getDescription());
 
         Thing t = getThing(stsWorker, sensorId);
         Assert.assertNotNull(t);
@@ -2117,7 +2122,11 @@ public class SosHarvesterProcessTest {
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
 
         // verify that the sensor has been created
-        Assert.assertNotNull(sensorBusiness.getSensor("urn:surval:25049001"));
+        Sensor sensor = sensorBusiness.getSensor("urn:surval:25049001");
+        Assert.assertNotNull(sensor);
+        Assert.assertEquals("urn:surval:25049001", sensor.getIdentifier());
+        Assert.assertEquals("055-P-001 - Men er Roue", sensor.getName());
+        Assert.assertEquals("description de la platf", sensor.getDescription());
 
         Thing t = getThing(stsWorker, "urn:surval:25049001");
         Assert.assertNotNull(t);
@@ -2519,7 +2528,11 @@ public class SosHarvesterProcessTest {
         // verify that the sensor has been created
         Assert.assertNotNull(sensorBusiness.getSensor("urn:sensor:surval:60007755"));
 
-        Assert.assertNotNull(sensorBusiness.getSensor("urn:sensor:surval:25049001"));
+        Sensor sensor = sensorBusiness.getSensor("urn:sensor:surval:25049001");
+        Assert.assertNotNull(sensor);
+        Assert.assertEquals("urn:sensor:surval:25049001", sensor.getIdentifier());
+        Assert.assertEquals("055-P-001 - Men er Roue", sensor.getName());
+        Assert.assertEquals("description de la platf", sensor.getDescription());
 
         Thing t = getThing(stsWorker, "urn:sensor:surval:25049001");
         Assert.assertNotNull(t);

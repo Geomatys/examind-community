@@ -16,7 +16,7 @@ package org.constellation.database.api.jooq.tables.pojos;
 @java.lang.SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Sensor implements java.io.Serializable {
 
-	private static final long serialVersionUID = -1312765142;
+	private static final long serialVersionUID = 1225774884;
 
 	private java.lang.Integer id;
 	private java.lang.String  identifier;
@@ -27,6 +27,8 @@ public class Sensor implements java.io.Serializable {
 	private java.lang.Integer providerId;
 	private java.lang.String  profile;
 	private java.lang.String  omType;
+	private java.lang.String  name;
+	private java.lang.String  description;
 
 	public Sensor() {}
 
@@ -39,7 +41,9 @@ public class Sensor implements java.io.Serializable {
 		java.lang.Long    date,
 		java.lang.Integer providerId,
 		java.lang.String  profile,
-		java.lang.String  omType
+		java.lang.String  omType,
+		java.lang.String  name,
+		java.lang.String  description
 	) {
 		this.id = id;
 		this.identifier = identifier;
@@ -50,6 +54,8 @@ public class Sensor implements java.io.Serializable {
 		this.providerId = providerId;
 		this.profile = profile;
 		this.omType = omType;
+		this.name = name;
+		this.description = description;
 	}
 
 	@javax.validation.constraints.NotNull
@@ -138,6 +144,26 @@ public class Sensor implements java.io.Serializable {
 
 	public Sensor setOmType(java.lang.String omType) {
 		this.omType = omType;
+		return this;
+	}
+
+	@javax.validation.constraints.Size(max = 1000)
+	public java.lang.String getName() {
+		return this.name;
+	}
+
+	public Sensor setName(java.lang.String name) {
+		this.name = name;
+		return this;
+	}
+
+	@javax.validation.constraints.Size(max = 5000)
+	public java.lang.String getDescription() {
+		return this.description;
+	}
+
+	public Sensor setDescription(java.lang.String description) {
+		this.description = description;
 		return this;
 	}
 }

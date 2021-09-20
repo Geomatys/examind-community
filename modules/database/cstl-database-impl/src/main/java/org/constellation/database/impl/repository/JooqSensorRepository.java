@@ -191,6 +191,8 @@ public class JooqSensorRepository extends AbstractJooqRespository<SensorRecord, 
                 .set(SENSOR.PROVIDER_ID, sensor.getProviderId())
                 .set(SENSOR.PROFILE, sensor.getProfile())
                 .set(SENSOR.OM_TYPE, sensor.getOmType())
+                .set(SENSOR.NAME, sensor.getName())
+                .set(SENSOR.DESCRIPTION, sensor.getDescription())
                 .where(SENSOR.ID.eq(sensor.getId()))
                 .execute();
     }
@@ -344,6 +346,8 @@ public class JooqSensorRepository extends AbstractJooqRespository<SensorRecord, 
             sensorDTO.setProviderId(sensor.getProviderId());
             sensorDTO.setParent(sensor.getParent());
             sensorDTO.setProfile(sensor.getProfile());
+            sensorDTO.setName(sensor.getName());
+            sensorDTO.setDescription(sensor.getDescription());
             return sensorDTO;
         }
         return null;

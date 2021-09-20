@@ -80,7 +80,7 @@ public class SensorBusinessTest {
         SystemType system = new SystemType();
         system.setId("sensor-1");
         s1Meta.setMember(Arrays.asList(new Member(system)));
-        Integer sid1 = sensorBusiness.create("sensor-1", "System", null, null, s1Meta, System.currentTimeMillis(), null);
+        Integer sid1 = sensorBusiness.create("sensor-1", "sensor 1", "1er sensor", "System", null, null, s1Meta, System.currentTimeMillis(), null);
         Assert.assertNotNull(sid1);
 
         Sensor s1 = sensorBusiness.getSensor(sid1);
@@ -93,7 +93,7 @@ public class SensorBusinessTest {
         ComponentType compo = new ComponentType();
         compo.setId("sensor-2");
         s2Meta.setMember(Arrays.asList(new Member(compo)));
-        Integer sid2 = sensorBusiness.create("sensor-2", "Component", null, "sensor-1", s2Meta, System.currentTimeMillis(), pid);
+        Integer sid2 = sensorBusiness.create("sensor-2", "sensor 2", "2d sensor", "Component", null, "sensor-1", s2Meta, System.currentTimeMillis(), pid);
         Assert.assertNotNull(sid2);
     }
 
