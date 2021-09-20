@@ -81,8 +81,8 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
      */
     public CsvObservationStore(final Path observationFile, final char separator, final char quotechar, final FeatureType featureType,
             final String mainColumn, final String dateColumn, final String dateTimeformat, final String longitudeColumn, final String latitudeColumn,
-            final Set<String> measureColumns, String observationType, String foiColumn, final String procedureId, final String procedureColumn, final String procedureNameColumn, final String zColumn, final boolean extractUom) throws DataStoreException, MalformedURLException {
-        super(observationFile, separator, quotechar, featureType, mainColumn, dateColumn, dateTimeformat, longitudeColumn, latitudeColumn, measureColumns, observationType, foiColumn, procedureId, procedureColumn, procedureNameColumn, zColumn, extractUom);
+            final Set<String> measureColumns, String observationType, String foiColumn, final String procedureId, final String procedureColumn, final String procedureNameColumn, final String procedureDescColumn, final String zColumn, final boolean extractUom) throws DataStoreException, MalformedURLException {
+        super(observationFile, separator, quotechar, featureType, mainColumn, dateColumn, dateTimeformat, longitudeColumn, latitudeColumn, measureColumns, observationType, foiColumn, procedureId, procedureColumn, procedureNameColumn, procedureDescColumn, zColumn, extractUom);
     }
 
     @Override
@@ -154,6 +154,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 int foiIndex = -1;
                 int procIndex = -1;
                 int procNameIndex = -1;
+                int procDescIndex = -1;
 
                 // read headers
                 final String[] headers = it.next();
@@ -189,6 +190,9 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                     }
                     if (header.equals(procedureNameColumn)) {
                         procNameIndex = i;
+                    }
+                    if (header.equals(procedureDescColumn)) {
+                        procDescIndex = i;
                     }
                 }
 
@@ -230,10 +234,16 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                         currentProc = procedureId;
                     }
 
-                    // look for current procedure description
+                    // look for current procedure name
                     String currentProcName = currentProc;
                     if (procNameIndex != -1) {
                         currentProcName = line[procNameIndex];
+                    }
+
+                    // look for current procedure description
+                    String currentProcDesc = null;
+                    if (procDescIndex != -1) {
+                        currentProcDesc = line[procDescIndex];
                     }
 
                     // look for current foi (for observation separation)
@@ -251,7 +261,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                         }
                     }
 
-                    ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentProcName, currentFoi, currentTime, measureFields, mainColumn, observationType);
+                    ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentProcName, currentProcDesc, currentFoi, currentTime, measureFields, mainColumn, observationType);
 
                     /*
                     a- build spatio-temporal information

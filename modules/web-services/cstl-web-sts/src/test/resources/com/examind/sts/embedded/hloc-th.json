@@ -1,7 +1,6 @@
 {
   "value" : [ {
     "name" : "Sensor 2",
-    "description" : "urn:ogc:object:sensor:GEOM:2",
     "properties" : {
       "type" : "profile"
     },

@@ -106,13 +106,14 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
     protected final String procedureId;
     protected final String procedureColumn;
     protected final String procedureNameColumn;
+    protected final String procedureDescColumn;
 
     protected final boolean extractUom;
 
     public FileParsingObservationStore(final Path f, final char separator, final char quotechar, FeatureType ft, 
             final String mainColumn, final String dateColumn, final String dateTimeformat, final String longitudeColumn,
             final String latitudeColumn, final Set<String> measureColumns, String observationType, String foiColumn,
-            final String procedureId, final String procedureColumn, final String procedureNameColumn, final String zColumn, final boolean extractUom) throws MalformedURLException, DataStoreException{
+            final String procedureId, final String procedureColumn, final String procedureNameColumn, final String procedureDescColumn, final String zColumn, final boolean extractUom) throws MalformedURLException, DataStoreException{
         super(f, separator, ft);
         this.dataFile = f;
         this.delimiter = separator;
@@ -127,6 +128,7 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
         this.foiColumn = foiColumn;
         this.procedureColumn = procedureColumn;
         this.procedureNameColumn = procedureNameColumn;
+        this.procedureDescColumn = procedureDescColumn;
         this.zColumn = zColumn;
         this.extractUom = extractUom;
 
@@ -200,13 +202,13 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
         // do nothing
     }
 
-    protected ProcedureTree getOrCreateProcedureTree(final ExtractionResult result, final String procedureId, final String procedureName, final String type, final String omType) {
+    protected ProcedureTree getOrCreateProcedureTree(final ExtractionResult result, final String procedureId, final String procedureName, final String procedureDesc, final String type, final String omType) {
         for (ProcedureTree tree : result.procedures) {
             if (tree.id.equals(procedureId)) {
                 return tree;
             }
         }
-        ProcedureTree tree = new ProcedureTree(procedureId, procedureName, null, type, omType);
+        ProcedureTree tree = new ProcedureTree(procedureId, procedureName, procedureDesc, type, omType);
         result.procedures.add(tree);
         return tree;
     }
@@ -229,13 +231,13 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
 
     protected final Map<String, ObservationBlock> observationBlock = new HashMap<>();
 
-    protected ObservationBlock getOrCreateObservationBlock(String procedureId, String procedureName, String foiID, Long time, List<String> measureColumns, String mainColumn, String observationType) {
+    protected ObservationBlock getOrCreateObservationBlock(String procedureId, String procedureName, String procedureDesc, String foiID, Long time, List<String> measureColumns, String mainColumn, String observationType) {
         String key = procedureId + '-' + foiID + '-' + time;
         if (observationBlock.containsKey(key)) {
             return observationBlock.get(key);
         } else {
             MeasureBuilder cmb = new MeasureBuilder(observationType.equals("Profile"), measureColumns, mainColumn);
-            ObservationBlock ob = new ObservationBlock(procedureId, procedureName, foiID, cmb, observationType);
+            ObservationBlock ob = new ObservationBlock(procedureId, procedureName, procedureDesc, foiID, cmb, observationType);
             observationBlock.put(key, ob);
             return ob;
         }
@@ -299,7 +301,7 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
         MeasureStringBuilder msb = ob.getResults();
         final int currentCount   = ob.getResultsCount();
 
-        final Process proc = SOSXmlFactory.buildProcess("2.0.0", ob.procedureId, ob.procedureName, null);
+        final Process proc = SOSXmlFactory.buildProcess("2.0.0", ob.procedureId, ob.procedureName, ob.procedureDesc);
 
         result.observations.add(OMUtils.buildObservation(oid,                                      // id
                                                          sp,                                       // foi
@@ -324,7 +326,7 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
         }
 
         // build procedure tree
-        final ProcedureTree procedure = getOrCreateProcedureTree(result, ob.procedureId, ob.procedureName, PROCEDURE_TREE_TYPE, ob.observationType.toLowerCase());
+        final ProcedureTree procedure = getOrCreateProcedureTree(result, ob.procedureId, ob.procedureName, ob.procedureDesc, PROCEDURE_TREE_TYPE, ob.observationType.toLowerCase());
         for (Map.Entry<Long, List<DirectPosition>> entry : ob.getHistoricalPositions()) {
             procedure.spatialBound.addLocation(new Date(entry.getKey()), buildGeom(entry.getValue()));
         }

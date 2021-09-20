@@ -1488,7 +1488,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             properties.put("type", s.getOmType());
             thing.setProperties(properties);
         }
-        String description = sensorID;
+        String description = null;
         String name = sensorID;
         if (p != null && p.getDescription() != null) {
             description = p.getDescription();

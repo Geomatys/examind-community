@@ -92,27 +92,35 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(true)
             .create(String.class, null);
 
-    public static final String PROCEDURE_ID_NAME = "procedure_id";
-    public static final String PROCEDURE_ID_DESC = "Assigned procedure identifier or template if combinated with procedure.colmun";
-    public static final ParameterDescriptor<String> PROCEDURE_ID = PARAM_BUILDER
-            .addName(PROCEDURE_ID_NAME)
-            .setRemarks(PROCEDURE_ID_DESC)
+    public static final String THING_ID_NAME = "thing_id";
+    public static final String THING_ID_DESC = "Assigned thing identifier or template if combinated with thing_column";
+    public static final ParameterDescriptor<String> THING_ID = PARAM_BUILDER
+            .addName(THING_ID_NAME)
+            .setRemarks(THING_ID_DESC)
             .setRequired(false)
             .create(String.class, null);
 
-    public static final String PROCEDURE_COLUMN_NAME = "procedure_column";
-    public static final String PROCEDURE_COLUMN_DESC = "Extracted procedure column";
-    public static final ParameterDescriptor<String> PROCEDURE_COLUMN  = PARAM_BUILDER
-            .addName(PROCEDURE_COLUMN_NAME)
-            .setRemarks(PROCEDURE_COLUMN_DESC)
+    public static final String THING_COLUMN_NAME = "thing_column";
+    public static final String THING_COLUMN_DESC = "Extracted thing column";
+    public static final ParameterDescriptor<String> THING_COLUMN  = PARAM_BUILDER
+            .addName(THING_COLUMN_NAME)
+            .setRemarks(THING_COLUMN_DESC)
             .setRequired(false)
             .create(String.class, null);
 
-    public static final String PROCEDURE_NAME_COLUMN_NAME = "procedure_name_column";
-    public static final String PROCEDURE_NAME_COLUMN_DESC = "Extracted procedure name column";
-    public static final ParameterDescriptor<String> PROCEDURE_NAME_COLUMN  = PARAM_BUILDER
-            .addName(PROCEDURE_NAME_COLUMN_NAME)
-            .setRemarks(PROCEDURE_NAME_COLUMN_DESC)
+    public static final String THING_NAME_COLUMN_NAME = "thing_name_column";
+    public static final String THING_NAME_COLUMN_DESC = "Extracted thing name column";
+    public static final ParameterDescriptor<String> THING_NAME_COLUMN  = PARAM_BUILDER
+            .addName(THING_NAME_COLUMN_NAME)
+            .setRemarks(THING_NAME_COLUMN_DESC)
+            .setRequired(false)
+            .create(String.class, null);
+
+    public static final String THING_DESC_COLUMN_NAME = "thing_desc_column";
+    public static final String THING_DESC_COLUMN_DESC = "Extracted thing description column";
+    public static final ParameterDescriptor<String> THING_DESC_COLUMN  = PARAM_BUILDER
+            .addName(THING_DESC_COLUMN_NAME)
+            .setRemarks(THING_DESC_COLUMN_DESC)
             .setRequired(false)
             .create(String.class, null);
 
@@ -275,7 +283,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .create(String.class, null);
 
     public static final ParameterDescriptorGroup INPUT_DESC =
-            PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, REMOTE_READ, SERVICE_ID, DATASET_IDENTIFIER, PROCEDURE_ID, PROCEDURE_COLUMN, PROCEDURE_NAME_COLUMN, OBS_TYPE,
+            PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, REMOTE_READ, SERVICE_ID, DATASET_IDENTIFIER, THING_ID, THING_COLUMN, THING_NAME_COLUMN, THING_DESC_COLUMN, OBS_TYPE,
                     SEPARATOR, CHARQUOTE, MAIN_COLUMN, Z_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, REMOVE_PREVIOUS, EXTRACT_UOM,
                     STORE_ID, FORMAT, RESULT_COLUMN, OBS_PROP_COLUMN, OBS_PROP_NAME_COLUMN, OBS_PROP_COLUMNS_FILTER, TYPE_COLUMN);
 

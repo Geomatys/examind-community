@@ -132,9 +132,10 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         }
 
         final String datasetIdentifier = inputParameters.getValue(DATASET_IDENTIFIER);
-        final String procedureId = inputParameters.getValue(PROCEDURE_ID);
-        final String procedureColumn = inputParameters.getValue(PROCEDURE_COLUMN);
-        final String procedureNameColumn = inputParameters.getValue(PROCEDURE_NAME_COLUMN);
+        final String procedureId = inputParameters.getValue(THING_ID);
+        final String procedureColumn = inputParameters.getValue(THING_COLUMN);
+        final String procedureNameColumn = inputParameters.getValue(THING_NAME_COLUMN);
+        final String procedureDescColumn = inputParameters.getValue(THING_DESC_COLUMN);
         final boolean removePrevious = inputParameters.getValue(REMOVE_PREVIOUS);
 
         final String separator = inputParameters.getValue(SEPARATOR);
@@ -305,6 +306,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             provConfig.getParameters().put(FileParsingObservationStoreFactory.EXTRACT_UOM.getName().toString(), Boolean.toString(extractUom));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_COLUMN.getName().toString(), procedureColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_NAME_COLUMN.getName().toString(), procedureNameColumn);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_DESC_COLUMN.getName().toString(), procedureDescColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.RESULT_COLUMN.getName().toString(), valueColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(ObsPropColumns));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_NAME_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(ObsPropNameColumns));

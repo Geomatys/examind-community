@@ -228,7 +228,8 @@ public class HarvesterPreProcessTest {
 
         Assert.assertEquals("DATE (yyyy-mm-ddThh:mi:ssZ)", mainParamExt.getDefaultValue());
 
-        Assert.assertEquals(16, mainParamExt.getValidValues().size());
+        // column count
+        Assert.assertEquals(17, mainParamExt.getValidValues().size());
 
     }
 

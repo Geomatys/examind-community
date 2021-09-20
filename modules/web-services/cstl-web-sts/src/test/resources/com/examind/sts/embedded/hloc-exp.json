@@ -19,7 +19,6 @@
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:2-975625200000)",
     "Things" : [ {
       "name" : "Sensor 2",
-      "description" : "urn:ogc:object:sensor:GEOM:2",
       "properties" : {
         "type" : "profile"
       },
@@ -33,7 +32,6 @@
   } ],
   "Thing" : {
     "name" : "Sensor 2",
-    "description" : "urn:ogc:object:sensor:GEOM:2",
     "properties" : {
       "type" : "profile"
     },

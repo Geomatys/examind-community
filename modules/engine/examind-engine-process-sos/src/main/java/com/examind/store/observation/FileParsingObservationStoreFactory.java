@@ -125,6 +125,11 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
             .setRequired(false)
             .create(String.class, null);
 
+    public static final ParameterDescriptor<String> PROCEDURE_DESC_COLUMN = PARAM_BUILDER
+            .addName("procedure_desc_column")
+            .setRequired(false)
+            .create(String.class, null);
+
     public static final ParameterDescriptor<String> Z_COLUMN = PARAM_BUILDER
             .addName("z_column")
             .setRequired(false)

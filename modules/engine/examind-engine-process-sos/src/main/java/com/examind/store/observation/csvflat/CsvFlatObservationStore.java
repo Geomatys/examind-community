@@ -86,9 +86,9 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
      */
     public CsvFlatObservationStore(final Path observationFile, final char separator, final char quotechar, final FeatureType featureType,
                                        final String mainColumn, final String dateColumn, final String dateTimeformat, final String longitudeColumn, final String latitudeColumn,
-                                       final Set<String> obsPropFilterColumns, String observationType, String foiColumn, final String procedureId, final String procedureColumn, final String procedureNameColumn, final String zColumn,
+                                       final Set<String> obsPropFilterColumns, String observationType, String foiColumn, final String procedureId, final String procedureColumn, final String procedureNameColumn, final String procedureDescColumn, final String zColumn,
                                        final boolean extractUom, final String valueColumn, final Set<String> obsPropColumns, final Set<String> obsPropNameColumns, final String typeColumn) throws DataStoreException, MalformedURLException {
-        super(observationFile, separator, quotechar, featureType, mainColumn, dateColumn, dateTimeformat, longitudeColumn, latitudeColumn, obsPropFilterColumns, observationType, foiColumn, procedureId, procedureColumn, procedureNameColumn, zColumn, extractUom);
+        super(observationFile, separator, quotechar, featureType, mainColumn, dateColumn, dateTimeformat, longitudeColumn, latitudeColumn, obsPropFilterColumns, observationType, foiColumn, procedureId, procedureColumn, procedureNameColumn, procedureDescColumn, zColumn, extractUom);
         this.valueColumn = valueColumn;
         this.obsPropColumns = obsPropColumns;
         this.obsPropNameColumns = obsPropNameColumns;
@@ -185,6 +185,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 int zIndex = -1;
                 int procIndex = -1;
                 int procNameIndex = -1;
+                int procDescIndex = -1;
                 int valueColumnIndex = -1;
                 List<Integer> obsPropColumnIndexes = new ArrayList<>();
                 List<Integer> obsPropNameColumnIndexes = new ArrayList<>();
@@ -231,6 +232,9 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     }
                     if (header.equals(procedureNameColumn)) {
                         procNameIndex = i;
+                    }
+                    if (header.equals(procedureDescColumn)) {
+                        procDescIndex = i;
                     }
                     if (header.equals(zColumn)) {
                         zIndex = i;
@@ -306,10 +310,16 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                         currentProc = procedureId;
                     }
 
-                    // look for current procedure description
+                    // look for current procedure name
                     String currentProcName = currentProc;
                     if (procNameIndex != -1) {
                         currentProcName = line[procNameIndex];
+                    }
+
+                    // look for current procedure description
+                    String currentProcDesc = null;
+                    if (procDescIndex != -1) {
+                        currentProcDesc = line[procDescIndex];
                     }
                     
                     // look for current foi (for observation separation)
@@ -345,7 +355,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                         continue;
                     }
 
-                    ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentProcName, currentFoi, currentTime, sortedMeasureColumns, currentMainColumn, currentObstType);
+                    ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentProcName, currentProcDesc, currentFoi, currentTime, sortedMeasureColumns, currentMainColumn, currentObstType);
 
                     // Concatenate observedProperty name
                     String observedPropertyName = "";

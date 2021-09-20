@@ -273,6 +273,10 @@ public class SosHarvesterProcessTest {
 
         sensorServBusiness.removeAllSensors(sc.getId());
 
+        ServiceComplete sc2 = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
+        Assert.assertNotNull(sc2);
+        sensorServBusiness.removeAllSensors(sc2.getId());
+
         SOSworker worker = (SOSworker) wsEngine.buildWorker("sos", "default");
         worker.setServiceUrl("http://localhost/examind/");
 
@@ -309,9 +313,15 @@ public class SosHarvesterProcessTest {
         in.values().add(val2);
 
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Profile");
-        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_ID_NAME).setValue(sensorId);
+        in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue(sensorId);
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(false);
-        in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
+        
+        ParameterValue scval1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
+        scval1.setValue(new ServiceProcessReference(sc));
+        in.values().add(scval1);
+        ParameterValue scval2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
+        scval2.setValue(new ServiceProcessReference(sc2));
+        in.values().add(scval2);
 
         org.geotoolkit.process.Process proc = desc.createProcess(in);
         proc.call();
@@ -321,6 +331,11 @@ public class SosHarvesterProcessTest {
 
         // verify that the sensor has been created
         Assert.assertNotNull(sensorBusiness.getSensor(sensorId));
+
+        Thing t = getThing(stsWorker, sensorId);
+        Assert.assertNotNull(t);
+        Assert.assertEquals(sensorId, t.getName());
+        Assert.assertNull(t.getDescription());
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
@@ -493,7 +508,7 @@ public class SosHarvesterProcessTest {
         in.parameter(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).setValue("PSAL LEVEL1 (psu)");
 
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Trajectory");
-        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_ID_NAME).setValue(sensorId);
+        in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue(sensorId);
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(false);
         in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sos));
 
@@ -617,7 +632,8 @@ public class SosHarvesterProcessTest {
 
 
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
-        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_ID_NAME).setValue(sensorId);
+        in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue(sensorId);
+        in.parameter(SosHarvesterProcessDescriptor.THING_DESC_COLUMN_NAME).setValue("PLATFORM_DESC");
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(false);
         ParameterValue serv1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
         serv1.setValue(new ServiceProcessReference(sos));
@@ -634,6 +650,11 @@ public class SosHarvesterProcessTest {
 
         // verify that the sensor has been created
         Assert.assertNotNull(sensorBusiness.getSensor(sensorId));
+
+        Thing t = getThing(stsWorker, sensorId);
+        Assert.assertNotNull(t);
+        Assert.assertEquals(sensorId, t.getName());
+        Assert.assertEquals("some description", t.getDescription());
 
         ObservationOffering offp = getOffering(worker, sensorId);
         Assert.assertNotNull(offp);
@@ -719,7 +740,7 @@ public class SosHarvesterProcessTest {
 
 
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
-        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_ID_NAME).setValue(sensorId);
+        in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue(sensorId);
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(true);
         in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
 
@@ -829,7 +850,7 @@ public class SosHarvesterProcessTest {
         in.parameter(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).setValue("height");
 
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
-        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_ID_NAME).setValue(sensorId);
+        in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue(sensorId);
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(false);
         ParameterValue serv1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
         serv1.setValue(new ServiceProcessReference(sos));
@@ -931,7 +952,7 @@ public class SosHarvesterProcessTest {
         in.values().add(val2);
 
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
-        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_ID_NAME).setValue(sensorId);
+        in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue(sensorId);
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(false);
         in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
 
@@ -1025,7 +1046,7 @@ public class SosHarvesterProcessTest {
 
 
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
-        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_COLUMN_NAME).setValue("PLATFORM");
+        in.parameter(SosHarvesterProcessDescriptor.THING_COLUMN_NAME).setValue("PLATFORM");
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(false);
         in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
 
@@ -1225,7 +1246,7 @@ public class SosHarvesterProcessTest {
         in.parameter(SosHarvesterProcessDescriptor.TYPE_COLUMN_NAME).setValue("file_type");
 
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Profile");
-        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_ID_NAME).setValue(sensorId);
+        in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue(sensorId);
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(true);
         in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
 
@@ -1350,8 +1371,8 @@ public class SosHarvesterProcessTest {
         in.parameter(SosHarvesterProcessDescriptor.TYPE_COLUMN_NAME).setValue("file_type");
 
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Profile");
-        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_ID_NAME).setValue("urn:template:");
-        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_COLUMN_NAME).setValue("platform_code");
+        in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue("urn:template:");
+        in.parameter(SosHarvesterProcessDescriptor.THING_COLUMN_NAME).setValue("platform_code");
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(true);
         ParameterValue serv1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
         serv1.setValue(new ServiceProcessReference(sos));
@@ -1516,8 +1537,8 @@ public class SosHarvesterProcessTest {
         in.parameter(SosHarvesterProcessDescriptor.TYPE_COLUMN_NAME).setValue("file_type");
 
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
-        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_COLUMN_NAME).setValue("platform_code");
-        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_ID_NAME).setValue("urn:template:");
+        in.parameter(SosHarvesterProcessDescriptor.THING_COLUMN_NAME).setValue("platform_code");
+        in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue("urn:template:");
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(true);
         in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
 
@@ -1694,13 +1715,13 @@ public class SosHarvesterProcessTest {
     @Order(order = 7)
     public void harvesterCSVCoriolisMultiTypeTest() throws Exception {
 
-        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
+        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
         Assert.assertNotNull(sc);
         sensorServBusiness.removeAllSensors(sc.getId());
 
-        sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
-        Assert.assertNotNull(sc);
-        sensorServBusiness.removeAllSensors(sc.getId());
+        ServiceComplete sc2 = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
+        Assert.assertNotNull(sc2);
+        sensorServBusiness.removeAllSensors(sc2.getId());
 
         SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
         sosWorker.setServiceUrl("http://localhost/examind/");
@@ -1741,10 +1762,17 @@ public class SosHarvesterProcessTest {
         in.parameter(SosHarvesterProcessDescriptor.TYPE_COLUMN_NAME).setValue("file_type");
 
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue(null);
-        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_COLUMN_NAME).setValue("platform_code");
-        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_ID_NAME).setValue(null);
+        in.parameter(SosHarvesterProcessDescriptor.THING_COLUMN_NAME).setValue("platform_code");
+        in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue(null);
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(true);
-        in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
+
+        ParameterValue scval1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
+        scval1.setValue(new ServiceProcessReference(sc));
+        in.values().add(scval1);
+        ParameterValue scval2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
+        scval2.setValue(new ServiceProcessReference(sc2));
+        in.values().add(scval2);
+
 
         org.geotoolkit.process.Process proc = desc.createProcess(in);
         proc.call();
@@ -1766,6 +1794,12 @@ public class SosHarvesterProcessTest {
         /*
         * first extracted procedure (TIMESERIE)
         */
+
+        Thing t = getThing(stsWorker, "1501563");
+        Assert.assertNotNull(t);
+        Assert.assertEquals("1501563", t.getName());
+        Assert.assertNull(t.getDescription());
+
 
         ObservationOffering offp = getOffering(sosWorker, "1501563");
         Assert.assertNotNull(offp);
@@ -2062,9 +2096,10 @@ public class SosHarvesterProcessTest {
         in.values().add(od2);
 
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
-        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_COLUMN_NAME).setValue("PLATFORM_ID");
-        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_NAME_COLUMN_NAME).setValue("PLATFORM_NAME");
-        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_ID_NAME).setValue("urn:surval:");
+        in.parameter(SosHarvesterProcessDescriptor.THING_COLUMN_NAME).setValue("PLATFORM_ID");
+        in.parameter(SosHarvesterProcessDescriptor.THING_NAME_COLUMN_NAME).setValue("PLATFORM_NAME");
+        in.parameter(SosHarvesterProcessDescriptor.THING_DESC_COLUMN_NAME).setValue("PLATFORM_DESC");
+        in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue("urn:surval:");
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(true);
         in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
 
@@ -2087,6 +2122,7 @@ public class SosHarvesterProcessTest {
         Thing t = getThing(stsWorker, "urn:surval:25049001");
         Assert.assertNotNull(t);
         Assert.assertEquals("055-P-001 - Men er Roue", t.getName());
+        Assert.assertEquals("description de la platf", t.getDescription());
 
 
         Assert.assertEquals(1, getNbOffering(sosWorker, prev));
@@ -2185,8 +2221,8 @@ public class SosHarvesterProcessTest {
                 "      identifier: default",
                 "      type: sos",
                 "dataset_identifier: "+datasetId,
-                "procedure_id: "+sensorId,
-                "#procedure_column: test string",
+                "thing_id: "+sensorId,
+                "#thing_column: test string",
                 "observation_type: Profile",
                 "separator: ','",
                 "main_column: z_value",
@@ -2313,8 +2349,8 @@ public class SosHarvesterProcessTest {
                 "      identifier: default",
                 "      type: sos",
                 "dataset_identifier: "+datasetId,
-                "procedure_id: "+sensorId,
-                "#procedure_column: test string",
+                "thing_id: "+sensorId,
+                "#thing_column: test string",
                 "observation_type: Profile",
                 "separator: ','",
                 "main_column: z_value",
@@ -2437,10 +2473,14 @@ public class SosHarvesterProcessTest {
                 "   service:",
                 "      identifier: default",
                 "      type: sos",
+                "   service2:",
+                "      identifier: default",
+                "      type: sts",
                 "dataset_identifier: "+datasetId,
-                "procedure_id: 'urn:sensor:surval:'",
-                "procedure_column: PLATFORM_ID",
-                "procedure_name_column: PLATFORM_NAME",
+                "thing_id: 'urn:sensor:surval:'",
+                "thing_column: PLATFORM_ID",
+                "thing_name_column: PLATFORM_NAME",
+                "thing_desc_column: PLATFORM_DESC",
                 "observation_type: Timeserie",
                 "separator: ';'",
                 "main_column: ANALYSE_DATE",
@@ -2480,6 +2520,11 @@ public class SosHarvesterProcessTest {
         Assert.assertNotNull(sensorBusiness.getSensor("urn:sensor:surval:60007755"));
 
         Assert.assertNotNull(sensorBusiness.getSensor("urn:sensor:surval:25049001"));
+
+        Thing t = getThing(stsWorker, "urn:sensor:surval:25049001");
+        Assert.assertNotNull(t);
+        Assert.assertEquals("055-P-001 - Men er Roue", t.getName());
+        Assert.assertEquals("description de la platf", t.getDescription());
 
         ObservationOffering offp = getOffering(worker, "urn:sensor:surval:60007755");
         Assert.assertNotNull(offp);
