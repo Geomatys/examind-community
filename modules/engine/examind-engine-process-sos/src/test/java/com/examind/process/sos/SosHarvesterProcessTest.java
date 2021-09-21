@@ -88,6 +88,7 @@ import org.geotoolkit.sos.xml.v200.GetResultType;
 import org.geotoolkit.sts.GetHistoricalLocations;
 import org.geotoolkit.sts.GetObservations;
 import org.geotoolkit.sts.GetObservedProperties;
+import org.geotoolkit.sts.GetObservedPropertyById;
 import org.geotoolkit.sts.GetThingById;
 import org.geotoolkit.sts.json.DataArrayResponse;
 import org.geotoolkit.sts.json.HistoricalLocation;
@@ -391,7 +392,18 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(8, offp.getFeatureOfInterestIds().size());
         Assert.assertEquals(1, offp.getObservedProperties().size());
 
-        String composite = offp.getObservedProperties().get(0);
+        ObservedProperty obsProp1 = getObservedPropertyById(stsWorker, "PSAL (psu)");
+        Assert.assertNotNull(obsProp1);
+        Assert.assertEquals("PSAL (psu)", obsProp1.getIotId());
+        Assert.assertEquals("PSAL (psu)", obsProp1.getName());
+        Assert.assertNull(obsProp1.getDescription());
+
+        ObservedProperty obsProp2 = getObservedPropertyById(stsWorker, "TEMP (degree_Celsius)");
+        Assert.assertNotNull(obsProp2);
+        Assert.assertEquals("TEMP (degree_Celsius)", obsProp2.getIotId());
+        Assert.assertEquals("TEMP (degree_Celsius)", obsProp2.getName());
+        Assert.assertNull(obsProp2.getDescription());
+
         String observedProperty = "PSAL (psu)";
         String foi = "251";
 
@@ -422,11 +434,12 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(3209, nbMeasure);
 
         /*
-         * remove the new file and reinsert with REMOVE PREVIOUS
+         * remove the new file and reinsert with REMOVE PREVIOUS and extracting uom
          */
         Path p = argoDirectory.resolve("argo-profiles-2902402-2.csv");
         Files.delete(p);
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(true);
+        in.parameter(SosHarvesterProcessDescriptor.EXTRACT_UOM_NAME).setValue(true);
 
         proc = desc.createProcess(in);
         proc.call();
@@ -464,6 +477,18 @@ public class SosHarvesterProcessTest {
         verifySamplingFeature(fois,  "252",  -6.581, 44.01);
         verifySamplingFeature(fois,  "253",  -6.256, 43.959);
         verifySamplingFeature(fois,  "254",  -6.035, 44.031);
+
+        obsProp1 = getObservedPropertyById(stsWorker, "PSAL");
+        Assert.assertNotNull(obsProp1);
+        Assert.assertEquals("PSAL", obsProp1.getIotId());
+        Assert.assertEquals("PSAL", obsProp1.getName());
+        Assert.assertNull(obsProp1.getDescription());
+
+        obsProp2 = getObservedPropertyById(stsWorker, "TEMP");
+        Assert.assertNotNull(obsProp2);
+        Assert.assertEquals("TEMP", obsProp2.getIotId());
+        Assert.assertEquals("TEMP", obsProp2.getName());
+        Assert.assertNull(obsProp2.getDescription());
     }
 
     @Test
@@ -2649,6 +2674,12 @@ public class SosHarvesterProcessTest {
             results.add(op);
         }
         return results;
+    }
+
+    private static ObservedProperty getObservedPropertyById(STSWorker stsWorker, String obsId) throws CstlServiceException {
+        GetObservedPropertyById request = new GetObservedPropertyById();
+        request.setId(obsId);
+        return stsWorker.getObservedPropertyById(request);
     }
 
     private static void verifyAllObservedProperties(STSWorker stsWorker, String sensorId, List<String> expectedObsProp) throws CstlServiceException {

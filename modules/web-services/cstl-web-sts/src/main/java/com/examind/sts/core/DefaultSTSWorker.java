@@ -1174,7 +1174,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         if (s.getName().getDescription() != null) {
             phenName = s.getName().getDescription().toString();
         }
-        String description = phenId;
+        String description = null;
         if (s.getDescription() != null) {
             description = s.getDescription();
         }

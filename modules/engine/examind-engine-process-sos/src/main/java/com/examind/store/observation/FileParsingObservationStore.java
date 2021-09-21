@@ -258,19 +258,19 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
         final List<Field> fields = new ArrayList<>();
         int i = 1;
         for (final Entry<String, String>  field : filteredMeasure.entrySet()) {
-            String key = field.getKey();
-            String name;
-            String uom;
-            int b = key.indexOf('(');
-            int o = key.indexOf(')');
+            String name  = field.getKey();
+            String label = field.getValue();
+            String uom   = null;
+            int b = name.indexOf('(');
+            int o = name.indexOf(')');
+
+            // if extract uom is set, we are in csv mode, so there is no observed properties name column
             if (extractUom && b != -1 && o != -1 && b < o) {
-                name = key.substring(0, b).trim();
-                uom  = key.substring(b + 1, o);
-            } else {
-                name = key;
-                uom  = null;
+                name  = field.getKey().substring(0, b).trim();
+                uom   = field.getKey().substring(b + 1, o);
+                label = name;
             }
-            fields.add(new Field(i, FieldType.QUANTITY, name, field.getValue(), null, uom));
+            fields.add(new Field(i, FieldType.QUANTITY, name, label, null, uom));
             i++;
         }
 
