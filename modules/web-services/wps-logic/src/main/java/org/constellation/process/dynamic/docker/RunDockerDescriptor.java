@@ -21,7 +21,7 @@ package org.constellation.process.dynamic.docker;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.sis.parameter.ParameterBuilder;
-import org.apache.sis.util.iso.SimpleInternationalString;
+import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.process.dynamic.AbstractDynamicDescriptor;
 import org.opengis.parameter.GeneralParameterDescriptor;

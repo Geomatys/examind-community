@@ -36,10 +36,10 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.xml.bind.JAXBException;
 import org.apache.sis.filter.DefaultFilterFactory;
-import org.apache.sis.internal.storage.query.FeatureQuery;
+import org.apache.sis.storage.FeatureQuery;
 import org.apache.sis.internal.system.DefaultFactories;
 
-import org.apache.sis.util.iso.DefaultInternationalString;
+import org.apache.sis.util.DefaultInternationalString;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IStyleBusiness;
 import org.constellation.exception.TargetNotFoundException;

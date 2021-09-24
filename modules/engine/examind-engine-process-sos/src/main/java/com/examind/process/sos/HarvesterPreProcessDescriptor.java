@@ -21,7 +21,7 @@ import org.geotoolkit.data.csv.CSVProvider;
 import org.geotoolkit.processing.AbstractProcessDescriptor;
 import org.geotoolkit.process.Process;
 import org.geotoolkit.process.ProcessDescriptor;
-import org.apache.sis.util.iso.SimpleInternationalString;
+import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.process.ExamindProcessFactory;
 import org.geotoolkit.utility.parameter.ExtendedParameterDescriptor;
 

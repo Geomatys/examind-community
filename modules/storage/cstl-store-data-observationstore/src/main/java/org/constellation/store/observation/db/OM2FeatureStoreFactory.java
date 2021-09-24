@@ -29,7 +29,7 @@ import org.locationtech.jts.geom.Polygon;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.util.iso.ResourceInternationalString;
+import org.apache.sis.util.ResourceInternationalString;
 import org.geotoolkit.jdbc.DBCPDataSource;
 import org.geotoolkit.jdbc.ManageableDataSource;
 import org.opengis.parameter.ParameterDescriptor;

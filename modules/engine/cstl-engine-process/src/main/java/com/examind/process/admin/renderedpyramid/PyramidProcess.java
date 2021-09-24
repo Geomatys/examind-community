@@ -9,7 +9,7 @@ import org.apache.sis.portrayal.MapLayers;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Resource;
-import org.apache.sis.util.iso.ResourceInternationalString;
+import org.apache.sis.util.ResourceInternationalString;
 import org.geotoolkit.map.MapBuilder;
 import org.geotoolkit.storage.multires.MultiResolutionResource;
 import org.geotoolkit.storage.multires.TileGenerator;

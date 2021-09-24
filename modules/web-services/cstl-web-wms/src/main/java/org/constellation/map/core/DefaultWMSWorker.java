@@ -39,7 +39,7 @@ import javax.xml.bind.JAXBException;
 import org.apache.sis.cql.CQLException;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
-import org.apache.sis.internal.storage.query.FeatureQuery;
+import org.apache.sis.storage.FeatureQuery;
 import org.apache.sis.internal.util.UnmodifiableArrayList;
 import org.apache.sis.measure.Range;
 import org.apache.sis.measure.Units;

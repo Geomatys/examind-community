@@ -51,7 +51,7 @@ import javax.xml.stream.XMLStreamException;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.internal.feature.AttributeConvention;
 import org.apache.sis.internal.storage.ConcatenatedFeatureSet;
-import org.apache.sis.internal.storage.query.FeatureQuery;
+import org.apache.sis.storage.FeatureQuery;
 import org.apache.sis.internal.xml.XmlUtilities;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
@@ -1054,11 +1054,12 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 final FilterFactory ff = FilterUtilities.FF;
                 String[] properties = verifyPropertyNames(typeName, ft, requestPropNames);
                 if (properties != null) {
-                    List<FeatureQuery.NamedExpression> columns = Arrays.asList(properties)
-                            .stream()
-                            .map((String t) -> new FeatureQuery.NamedExpression(ff.property(t)))
-                            .collect(Collectors.toList());
-                    subquery.setProjection(columns.toArray(new FeatureQuery.NamedExpression[0]));
+                    FeatureQuery.NamedExpression[] columns = new FeatureQuery.NamedExpression[properties.length];
+                    for (int i=0; i<properties.length; i++) {
+                        final String t = properties[i];
+                        columns[i] = new FeatureQuery.NamedExpression(ff.property(t));
+                    }
+                    subquery.setProjection(columns);
                 }
 
                 // look for matching count before pagination
@@ -1276,10 +1277,11 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 final FilterFactory ff = FilterUtilities.FF;
                 String[] properties = verifyPropertyNames(typeName, ft, requestPropNames);
                 if (properties != null) {
-                    List<FeatureQuery.NamedExpression> columns = Arrays.asList(properties)
-                            .stream()
-                            .map((String t) -> new FeatureQuery.NamedExpression(ff.property(t)))
-                            .collect(Collectors.toList());
+                    FeatureQuery.NamedExpression[] columns = new FeatureQuery.NamedExpression[properties.length];
+                    for (int i=0; i<properties.length; i++) {
+                        final String t = properties[i];
+                        columns[i] = new FeatureQuery.NamedExpression(ff.property(t));
+                    }
                     subquery.setProjection(columns.toArray(new FeatureQuery.NamedExpression[0]));
                 }
 

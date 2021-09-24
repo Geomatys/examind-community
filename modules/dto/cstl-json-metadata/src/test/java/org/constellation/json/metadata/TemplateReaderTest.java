@@ -43,7 +43,7 @@ import org.apache.sis.metadata.iso.maintenance.DefaultScope;
 import org.apache.sis.metadata.iso.quality.DefaultConformanceResult;
 import org.apache.sis.metadata.iso.quality.DefaultDataQuality;
 import org.apache.sis.metadata.iso.quality.DefaultDomainConsistency;
-import org.apache.sis.util.iso.SimpleInternationalString;
+import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.dto.metadata.RootObj;
 import org.constellation.test.utils.MetadataUtilities;
 import org.geotoolkit.gml.xml.v311.TimePeriodType;

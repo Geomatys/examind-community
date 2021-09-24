@@ -35,7 +35,7 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 import org.apache.sis.internal.storage.ResourceOnFileSystem;
-import org.apache.sis.internal.storage.query.FeatureQuery;
+import org.apache.sis.storage.FeatureQuery;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
@@ -1071,8 +1071,8 @@ public class ObservationStoreProvider extends IndexedNameDataProvider implements
         if (q instanceof FeatureQuery) {
                 FeatureQuery query = (FeatureQuery) q;
                 handleFilter(mode, query.getSelection(), localOmFilter, observedProperties, procedures, fois);
-                if (query.getLimit() != FeatureQuery.UNLIMITED) {
-                    hints.put(PAGE_LIMIT, Long.toString(query.getLimit()));
+                if (query.getLimit().isPresent()) {
+                    hints.put(PAGE_LIMIT, Long.toString(query.getLimit().getAsLong()));
                 }
                 if (query.getOffset()!= 0) {
                     hints.put(PAGE_OFFSET, Long.toString(query.getOffset()));

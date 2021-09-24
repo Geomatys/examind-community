@@ -38,7 +38,7 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 import javax.inject.Named;
 import javax.xml.namespace.QName;
-import org.apache.sis.internal.storage.query.FeatureQuery;
+import org.apache.sis.storage.FeatureQuery;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.util.Utilities;
 import org.apache.sis.xml.MarshallerPool;

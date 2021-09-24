@@ -53,7 +53,7 @@ import com.examind.sensor.component.SensorServiceBusiness;
 import com.google.common.base.Objects;
 import java.net.URI;
 import java.util.Collections;
-import org.apache.sis.internal.storage.query.FeatureQuery;
+import org.apache.sis.storage.FeatureQuery;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.SensorReference;

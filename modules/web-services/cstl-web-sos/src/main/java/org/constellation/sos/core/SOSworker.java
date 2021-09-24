@@ -40,7 +40,7 @@ import java.util.logging.Level;
 import javax.inject.Named;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
-import org.apache.sis.internal.storage.query.FeatureQuery;
+import org.apache.sis.storage.FeatureQuery;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.ServiceDef;
 import org.constellation.exception.ConstellationException;

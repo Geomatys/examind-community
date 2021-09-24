@@ -38,7 +38,7 @@ import org.apache.sis.metadata.iso.citation.DefaultOnlineResource;
 import org.apache.sis.metadata.iso.distribution.DefaultDigitalTransferOptions;
 import org.apache.sis.metadata.iso.distribution.DefaultDistribution;
 import org.apache.sis.util.ArgumentChecks;
-import org.apache.sis.util.iso.SimpleInternationalString;
+import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.dto.metadata.MetadataBbox;
 import org.opengis.metadata.extent.Extent;
 import org.opengis.metadata.extent.GeographicBoundingBox;

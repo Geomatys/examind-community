@@ -44,7 +44,7 @@ import org.apache.sis.metadata.iso.quality.DefaultDataQuality;
 import org.apache.sis.metadata.iso.quality.DefaultDomainConsistency;
 import org.apache.sis.metadata.iso.quality.DefaultFormatConsistency;
 import org.apache.sis.metadata.iso.quality.DefaultQuantitativeResult;
-import org.apache.sis.util.iso.SimpleInternationalString;
+import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.dto.metadata.RootObj;
 import org.constellation.test.utils.MetadataUtilities;
 import org.junit.Test;

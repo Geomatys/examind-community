@@ -25,7 +25,7 @@ import java.util.Optional;
 import java.util.logging.Level;
 import org.apache.sis.cql.CQLException;
 import org.apache.sis.filter.DefaultFilterFactory;
-import org.apache.sis.internal.storage.query.FeatureQuery;
+import org.apache.sis.storage.FeatureQuery;
 import org.apache.sis.portrayal.MapItem;
 import org.apache.sis.storage.Query;
 import org.apache.sis.storage.Resource;

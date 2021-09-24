@@ -41,7 +41,7 @@ import org.apache.sis.metadata.ModifiableMetadata;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.metadata.iso.ISOMetadata;
 import org.apache.sis.util.Classes;
-import org.apache.sis.util.iso.SimpleInternationalString;
+import org.apache.sis.util.SimpleInternationalString;
 import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.IdentifierSpace;
 

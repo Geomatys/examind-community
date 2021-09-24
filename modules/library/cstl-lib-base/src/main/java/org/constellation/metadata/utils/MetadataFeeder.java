@@ -101,9 +101,9 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.util.collection.BackingStoreException;
-import org.apache.sis.util.iso.DefaultInternationalString;
+import org.apache.sis.util.DefaultInternationalString;
 import org.apache.sis.util.iso.DefaultNameFactory;
-import org.apache.sis.util.iso.SimpleInternationalString;
+import org.apache.sis.util.SimpleInternationalString;
 import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.IdentifierSpace;
 

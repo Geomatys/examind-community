@@ -23,7 +23,7 @@ import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.metadata.iso.identification.DefaultDataIdentification;
 import org.apache.sis.util.ComparisonMode;
 import org.apache.sis.util.Utilities;
-import org.apache.sis.util.iso.DefaultInternationalString;
+import org.apache.sis.util.DefaultInternationalString;
 import org.apache.sis.xml.IdentifierSpace;
 import org.geotoolkit.csw.xml.v202.GetRecordsType;
 import org.geotoolkit.csw.xml.v202.QueryType;

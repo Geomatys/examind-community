@@ -2,7 +2,7 @@ package com.examind.process.admin.yamlReader;
 
 import com.examind.process.admin.AdminProcessDescriptor;
 import org.apache.sis.parameter.ParameterBuilder;
-import org.apache.sis.util.iso.SimpleInternationalString;
+import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.process.ExamindProcessFactory;
 import org.geotoolkit.process.Process;
 import org.geotoolkit.processing.AbstractProcessDescriptor;

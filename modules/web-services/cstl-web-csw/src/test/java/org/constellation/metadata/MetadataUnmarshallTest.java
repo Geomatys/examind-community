@@ -54,7 +54,7 @@ import org.apache.sis.referencing.cs.DefaultCoordinateSystemAxis;
 import org.apache.sis.referencing.cs.DefaultVerticalCS;
 import org.apache.sis.referencing.datum.DefaultVerticalDatum;
 import org.apache.sis.test.xml.DocumentComparator;
-import org.apache.sis.util.iso.SimpleInternationalString;
+import org.apache.sis.util.SimpleInternationalString;
 import org.apache.sis.xml.MarshallerPool;
 import org.apache.sis.xml.XML;
 import org.constellation.util.Util;

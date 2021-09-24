@@ -49,7 +49,7 @@ import org.apache.sis.referencing.ImmutableIdentifier;
 import org.apache.sis.util.Classes;
 import org.apache.sis.util.Locales;
 import org.apache.sis.util.iso.Names;
-import org.apache.sis.util.iso.SimpleInternationalString;
+import org.apache.sis.util.SimpleInternationalString;
 import org.apache.sis.util.iso.Types;
 import org.apache.sis.xml.NilReason;
 import org.constellation.dto.metadata.JsonMetadataConstants;

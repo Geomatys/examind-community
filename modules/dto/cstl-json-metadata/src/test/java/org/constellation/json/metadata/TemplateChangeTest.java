@@ -12,7 +12,7 @@ import org.apache.sis.metadata.MetadataStandard;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.metadata.iso.identification.DefaultKeywords;
 import org.apache.sis.metadata.iso.identification.DefaultServiceIdentification;
-import org.apache.sis.util.iso.SimpleInternationalString;
+import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.dto.metadata.RootObj;
 import org.geotoolkit.nio.IOUtilities;
 import static org.junit.Assert.assertEquals;

@@ -62,7 +62,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.logging.Logger;
-import org.apache.sis.internal.storage.query.FeatureQuery;
+import org.apache.sis.storage.FeatureQuery;
 import org.geotoolkit.gml.xml.FeatureProperty;
 import org.geotoolkit.observation.xml.AbstractObservation;
 

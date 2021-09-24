@@ -21,7 +21,7 @@ package org.constellation.json.metadata.bean;
 import java.util.UUID;
 import org.apache.sis.metadata.MetadataStandard;
 import org.apache.sis.metadata.iso.citation.DefaultResponsibleParty;
-import org.apache.sis.util.iso.SimpleInternationalString;
+import org.apache.sis.util.SimpleInternationalString;
 import org.apache.sis.xml.IdentifierSpace;
 import org.constellation.json.metadata.Template;
 import org.opengis.metadata.citation.ResponsibleParty;

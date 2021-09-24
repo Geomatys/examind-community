@@ -23,7 +23,7 @@ package org.constellation.store.metadata;
 
 import org.apache.sis.metadata.iso.citation.DefaultCitationDate;
 import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
-import org.apache.sis.util.iso.SimpleInternationalString;
+import org.apache.sis.util.SimpleInternationalString;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.generic.Values;
 import org.geotoolkit.ows.xml.v100.BoundingBoxType;

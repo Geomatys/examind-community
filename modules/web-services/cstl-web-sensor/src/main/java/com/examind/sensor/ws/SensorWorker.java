@@ -21,7 +21,7 @@ package com.examind.sensor.ws;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import org.apache.sis.internal.storage.query.FeatureQuery;
+import org.apache.sis.storage.FeatureQuery;
 import org.constellation.api.ServiceDef;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.dto.service.config.sos.SOSConfiguration;

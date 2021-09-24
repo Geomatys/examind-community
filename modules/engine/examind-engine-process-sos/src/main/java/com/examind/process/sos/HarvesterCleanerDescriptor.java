@@ -19,7 +19,7 @@
 package com.examind.process.sos;
 
 import org.apache.sis.parameter.ParameterBuilder;
-import org.apache.sis.util.iso.SimpleInternationalString;
+import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.process.ExamindProcessFactory;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.Process;
