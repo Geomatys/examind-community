@@ -1282,7 +1282,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                         final String t = properties[i];
                         columns[i] = new FeatureQuery.NamedExpression(ff.property(t));
                     }
-                    subquery.setProjection(columns.toArray(new FeatureQuery.NamedExpression[0]));
+                    subquery.setProjection(columns);
                 }
 
                 // we verify that all the properties contained in the filter are known by the feature type.

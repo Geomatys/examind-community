@@ -37,7 +37,6 @@ import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.GenericName;
 
-import static org.apache.sis.storage.sql.SQLStoreProvider.createTableName;
 
 public class SQLProvider extends DataStoreProvider {
 
@@ -273,20 +272,16 @@ public class SQLProvider extends DataStoreProvider {
                 tableNames = null;
             }
 
-            if (tableNames == null) {
-                sisStore = null;
-            } else {
-                sisStore = createForTables(datasource, tableNames);
-                tmpDatasets.addAll(org.geotoolkit.storage.DataStores.flatten(sisStore, false, FeatureSet.class));
+            final Parameters sisParams = Parameters.castOrWrap(sisProvider.getOpenParameters().createValue());
+            sisParams.parameter(DataStoreProvider.LOCATION).setValue(datasource);
+            if (tableNames != null) {
+                sisParams.getOrCreate(SQLStoreProvider.TABLES_PARAM).setValue(tableNames);
             }
             if (queryProvided) {
-                try (Connection conn = datasource.getConnection()) {
-                    //tmpDatasets.add(new QueryFeatureSet(query, datasource, conn));
-                } catch (SQLException e) {
-                    throw new DataStoreException(e);
-                }
+                sisParams.getOrCreate(SQLStoreProvider.QUERIES_PARAM).setValue(Collections.singletonMap("Query", query));
             }
-
+            sisStore = sisProvider.open(sisParams);
+            tmpDatasets.addAll(org.geotoolkit.storage.DataStores.flatten(sisStore, false, FeatureSet.class));
             datasets = Collections.unmodifiableList(tmpDatasets);
         }
 
@@ -313,13 +308,6 @@ public class SQLProvider extends DataStoreProvider {
         }
     }
 
-    private DataStore createForTables(final DataSource datasource, final GenericName[] tableNames) throws DataStoreException {
-        final ParameterValueGroup sisParams = sisProvider.getOpenParameters().createValue();
-        sisParams.parameter(DataStoreProvider.LOCATION).setValue(datasource);
-        sisParams.parameter("tables").setValue(tableNames);
-        return sisProvider.open(sisParams);
-    }
-
     private static GenericName[] searchForGeometricTables(Connection c) throws SQLException {
         final List<GenericName> names = new ArrayList<>();
         try (Statement s = c.createStatement(); ResultSet r = s.executeQuery(DEFAULT_TABLE_SEARCH)) {
@@ -327,8 +315,7 @@ public class SQLProvider extends DataStoreProvider {
                 String catalog = r.getString(1);
                 String schema = r.getString(2);
                 String table = r.getString(3);
-
-                names.add(createTableName(catalog, schema, table));
+                names.add(SQLStoreProvider.createTableName(catalog, schema, table));
             }
         }
         return names.toArray(new GenericName[names.size()]);
