@@ -1,7 +1,7 @@
 {
   "value" : [ {
     "name" : "urn:ogc:object:sensor:GEOM:1",
-    "description" : "urn:ogc:object:sensor:GEOM:1",
+    "description" : "",
     "encodingType" : "application/vnd.geo+json",
     "location" : {
       "type" : "Feature",
@@ -18,7 +18,7 @@
     "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:1)/HistoricalLocations"
   }, {
     "name" : "urn:ogc:object:sensor:GEOM:10",
-    "description" : "urn:ogc:object:sensor:GEOM:10",
+    "description" : "",
     "encodingType" : "application/vnd.geo+json",
     "location" : {
       "type" : "Feature",
@@ -35,7 +35,7 @@
     "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:10)/HistoricalLocations"
   }, {
     "name" : "urn:ogc:object:sensor:GEOM:12",
-    "description" : "urn:ogc:object:sensor:GEOM:12",
+    "description" : "",
     "encodingType" : "application/vnd.geo+json",
     "location" : {
       "type" : "Feature",
@@ -52,7 +52,7 @@
     "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:12)/HistoricalLocations"
   }, {
     "name" : "urn:ogc:object:sensor:GEOM:13",
-    "description" : "urn:ogc:object:sensor:GEOM:13",
+    "description" : "",
     "encodingType" : "application/vnd.geo+json",
     "location" : {
       "type" : "Feature",
@@ -69,7 +69,7 @@
     "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:13)/HistoricalLocations"
   }, {
     "name" : "urn:ogc:object:sensor:GEOM:2",
-    "description" : "urn:ogc:object:sensor:GEOM:2",
+    "description" : "",
     "encodingType" : "application/vnd.geo+json",
     "location" : {
       "type" : "Feature",
@@ -86,7 +86,7 @@
     "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:2)/HistoricalLocations"
   }, {
     "name" : "urn:ogc:object:sensor:GEOM:3",
-    "description" : "urn:ogc:object:sensor:GEOM:3",
+    "description" : "",
     "encodingType" : "application/vnd.geo+json",
     "location" : {
       "type" : "Feature",
@@ -103,7 +103,7 @@
     "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:3)/HistoricalLocations"
   }, {
     "name" : "urn:ogc:object:sensor:GEOM:4",
-    "description" : "urn:ogc:object:sensor:GEOM:4",
+    "description" : "",
     "encodingType" : "application/vnd.geo+json",
     "location" : {
       "type" : "Feature",
@@ -120,7 +120,7 @@
     "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:4)/HistoricalLocations"
   }, {
     "name" : "urn:ogc:object:sensor:GEOM:6",
-    "description" : "urn:ogc:object:sensor:GEOM:6",
+    "description" : "",
     "encodingType" : "application/vnd.geo+json",
     "location" : {
       "type" : "Feature",
@@ -137,7 +137,7 @@
     "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:6)/HistoricalLocations"
   }, {
     "name" : "urn:ogc:object:sensor:GEOM:7",
-    "description" : "urn:ogc:object:sensor:GEOM:7",
+    "description" : "",
     "encodingType" : "application/vnd.geo+json",
     "location" : {
       "type" : "Feature",
@@ -154,7 +154,7 @@
     "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:7)/HistoricalLocations"
   }, {
     "name" : "urn:ogc:object:sensor:GEOM:8",
-    "description" : "urn:ogc:object:sensor:GEOM:8",
+    "description" : "",
     "encodingType" : "application/vnd.geo+json",
     "location" : {
       "type" : "Feature",
@@ -171,7 +171,7 @@
     "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:8)/HistoricalLocations"
   }, {
     "name" : "urn:ogc:object:sensor:GEOM:9",
-    "description" : "urn:ogc:object:sensor:GEOM:9",
+    "description" : "",
     "encodingType" : "application/vnd.geo+json",
     "location" : {
       "type" : "Feature",
@@ -188,7 +188,7 @@
     "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:9)/HistoricalLocations"
   }, {
     "name" : "urn:ogc:object:sensor:GEOM:test-1",
-    "description" : "urn:ogc:object:sensor:GEOM:test-1",
+    "description" : "",
     "encodingType" : "application/vnd.geo+json",
     "location" : {
       "type" : "Feature",
@@ -205,7 +205,7 @@
     "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:test-1)/HistoricalLocations"
   }, {
     "name" : "urn:ogc:object:sensor:GEOM:test-id",
-    "description" : "urn:ogc:object:sensor:GEOM:test-id",
+    "description" : "",
     "encodingType" : "application/vnd.geo+json",
     "location" : {
       "type" : "Feature",

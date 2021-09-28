@@ -1,5 +1,6 @@
 {
   "value" : [ {
+    "description" : "",
     "name" : "Sensor 2",
     "properties" : {
       "type" : "profile"

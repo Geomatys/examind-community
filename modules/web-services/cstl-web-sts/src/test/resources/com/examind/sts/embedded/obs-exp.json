@@ -5,7 +5,7 @@
   "@iot.id" : "urn:ogc:object:observation:GEOM:304-2-1",
   "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Observations(urn:ogc:object:observation:GEOM:304-2-1)",
   "Datastream" : {
-    "description" : "urn:ogc:object:observation:template:GEOM:3-2",
+    "description" : "",
     "unitOfMeasurement" : {
       "name" : "m",
       "symbol" : "m",

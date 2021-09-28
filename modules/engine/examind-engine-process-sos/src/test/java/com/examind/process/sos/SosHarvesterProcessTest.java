@@ -337,7 +337,7 @@ public class SosHarvesterProcessTest {
         Thing t = getThing(stsWorker, sensorId);
         Assert.assertNotNull(t);
         Assert.assertEquals(sensorId, t.getName());
-        Assert.assertNull(t.getDescription());
+        Assert.assertEquals("", t.getDescription());
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
@@ -396,13 +396,13 @@ public class SosHarvesterProcessTest {
         Assert.assertNotNull(obsProp1);
         Assert.assertEquals("PSAL (psu)", obsProp1.getIotId());
         Assert.assertEquals("PSAL (psu)", obsProp1.getName());
-        Assert.assertNull(obsProp1.getDescription());
+        Assert.assertEquals("", obsProp1.getDescription());
 
         ObservedProperty obsProp2 = getObservedPropertyById(stsWorker, "TEMP (degree_Celsius)");
         Assert.assertNotNull(obsProp2);
         Assert.assertEquals("TEMP (degree_Celsius)", obsProp2.getIotId());
         Assert.assertEquals("TEMP (degree_Celsius)", obsProp2.getName());
-        Assert.assertNull(obsProp2.getDescription());
+        Assert.assertEquals("", obsProp2.getDescription());
 
         String observedProperty = "PSAL (psu)";
         String foi = "251";
@@ -482,13 +482,13 @@ public class SosHarvesterProcessTest {
         Assert.assertNotNull(obsProp1);
         Assert.assertEquals("PSAL", obsProp1.getIotId());
         Assert.assertEquals("PSAL", obsProp1.getName());
-        Assert.assertNull(obsProp1.getDescription());
+        Assert.assertEquals("", obsProp1.getDescription());
 
         obsProp2 = getObservedPropertyById(stsWorker, "TEMP");
         Assert.assertNotNull(obsProp2);
         Assert.assertEquals("TEMP", obsProp2.getIotId());
         Assert.assertEquals("TEMP", obsProp2.getName());
-        Assert.assertNull(obsProp2.getDescription());
+        Assert.assertEquals("", obsProp2.getDescription());
     }
 
     @Test
@@ -1828,7 +1828,7 @@ public class SosHarvesterProcessTest {
         Thing t = getThing(stsWorker, "1501563");
         Assert.assertNotNull(t);
         Assert.assertEquals("1501563", t.getName());
-        Assert.assertNull(t.getDescription());
+        Assert.assertEquals("", t.getDescription());
 
 
         ObservationOffering offp = getOffering(sosWorker, "1501563");

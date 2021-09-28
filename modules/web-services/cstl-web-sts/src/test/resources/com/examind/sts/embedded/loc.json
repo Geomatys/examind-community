@@ -1,6 +1,6 @@
 {
   "name" : "urn:ogc:object:sensor:GEOM:2",
-  "description" : "urn:ogc:object:sensor:GEOM:2",
+  "description" : "",
   "encodingType" : "application/vnd.geo+json",
   "location" : {
     "type" : "Feature",

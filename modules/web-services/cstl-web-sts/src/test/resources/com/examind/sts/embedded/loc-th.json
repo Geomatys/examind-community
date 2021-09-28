@@ -1,6 +1,6 @@
 {
   "name" : "urn:ogc:object:sensor:GEOM:2",
-  "description" : "urn:ogc:object:sensor:GEOM:2",
+  "description" : "",
   "encodingType" : "application/vnd.geo+json",
   "location" : {
     "type" : "Feature",
@@ -14,6 +14,7 @@
   "@iot.id" : "urn:ogc:object:sensor:GEOM:2",
   "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:2)",
   "Things" : [ {
+    "description" : "",
     "name" : "Sensor 2",
     "properties" : {
       "type" : "profile"

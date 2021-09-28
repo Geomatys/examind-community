@@ -873,8 +873,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         datastream.setUnitOfMeasurement(uom);
 
         final String id = obs.getName().getCode();
+        final String description = ""; // mandatory
         datastream = datastream.iotId(id)
-                               .description(id)
+                               .description(description)
                                .iotSelfLink(selfLink);
         return datastream;
     }
@@ -1174,7 +1175,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         if (s.getName().getDescription() != null) {
             phenName = s.getName().getDescription().toString();
         }
-        String description = null;
+        String description = "";
         if (s.getDescription() != null) {
             description = s.getDescription();
         }
@@ -1438,7 +1439,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Sensors("+ sensorID+ ")";
 
         String metadataLink = null;
-        String description = null;
+        String description = "";
         String name = sensorID;
         if (s != null) {
             metadataLink = Application.getProperty(AppProperty.CSTL_URL);
@@ -1492,7 +1493,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             properties.put("type", s.getOmType());
             thing.setProperties(properties);
         }
-        String description = null;
+        String description = "";
         String name = sensorID;
         if (p != null && p.getDescription() != null) {
             description = p.getDescription();
@@ -1729,6 +1730,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         exp = exp.subLevel("Locations");
         String selfLink = getServiceUrl();
         final String locID;
+        final String description = "";
         if (d != null) {
             locID = sensorID + '-' + d.getTime();
         } else {
@@ -1737,7 +1739,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Locations(" + locID + ")";
         Location result = new Location();
         result.setIotId(locID);
-        result.setDescription(locID);
+        result.setDescription(description);
         result.setEncodingType("application/vnd.geo+json");
         result.setName(locID);
 

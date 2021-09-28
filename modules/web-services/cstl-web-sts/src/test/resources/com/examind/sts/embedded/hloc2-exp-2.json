@@ -4,7 +4,7 @@
   "time" : "2000-12-21T23:00:00Z",
   "Locations" : [ {
     "name" : "urn:ogc:object:sensor:GEOM:2-977439600000",
-    "description" : "urn:ogc:object:sensor:GEOM:2-977439600000",
+    "description" : "",
     "encodingType" : "application/vnd.geo+json",
     "location" : {
       "type" : "Feature",
@@ -22,6 +22,7 @@
   } ],
   "Thing" : {
     "name" : "Sensor 2",
+    "description" : "",
     "properties" : {
       "type" : "profile"
     },

@@ -1,5 +1,6 @@
 {
   "value" : [ {
+    "description" : "",
     "name" : "Sensor 12",
     "@iot.id" : "urn:ogc:object:sensor:GEOM:12",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Things(urn:ogc:object:sensor:GEOM:12)",
@@ -7,6 +8,7 @@
     "Datastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Things(urn:ogc:object:sensor:GEOM:12)/Datastreams",
     "MultiDatastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Things(urn:ogc:object:sensor:GEOM:12)/MultiDatastreams"
   }, {
+    "description" : "",
     "name" : "Sensor 13",
     "@iot.id" : "urn:ogc:object:sensor:GEOM:13",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Things(urn:ogc:object:sensor:GEOM:13)",

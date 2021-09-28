@@ -1,5 +1,6 @@
 {
   "value" : [ {
+    "description" : "",
     "name" : "Sensor 1",
     "properties" : {
       "type" : "timeseries"
@@ -10,6 +11,7 @@
     "Datastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Things(urn:ogc:object:sensor:GEOM:1)/Datastreams",
     "MultiDatastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Things(urn:ogc:object:sensor:GEOM:1)/MultiDatastreams"
   }, {
+    "description" : "",
     "name" : "Sensor 10",
     "@iot.id" : "urn:ogc:object:sensor:GEOM:10",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Things(urn:ogc:object:sensor:GEOM:10)",

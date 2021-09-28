@@ -1,6 +1,6 @@
 {
   "value" : [ {
-    "description" : "urn:ogc:object:observation:template:GEOM:10-2",
+    "description" : "",
     "unitOfMeasurement" : {
       "name" : "m",
       "symbol" : "m",
@@ -20,7 +20,7 @@
     "ObservedProperty@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:10-2)/ObservedProperties",
     "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:10-2)/Observations"
   }, {
-    "description" : "urn:ogc:object:observation:template:GEOM:12-2",
+    "description" : "",
     "unitOfMeasurement" : {
       "name" : "m",
       "symbol" : "m",

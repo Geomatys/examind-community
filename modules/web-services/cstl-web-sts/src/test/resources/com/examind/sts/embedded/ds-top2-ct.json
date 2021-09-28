@@ -1,7 +1,7 @@
 {
   "@iot.count" : 18,
   "value" : [ {
-    "description" : "urn:ogc:object:observation:template:GEOM:12-3",
+    "description" : "",
     "unitOfMeasurement" : {
       "name" : "°C",
       "symbol" : "°C",
@@ -21,7 +21,7 @@
     "ObservedProperty@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:12-3)/ObservedProperties",
     "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:12-3)/Observations"
   }, {
-    "description" : "urn:ogc:object:observation:template:GEOM:12-4",
+    "description" : "",
     "unitOfMeasurement" : {
       "name" : "msu",
       "symbol" : "msu",

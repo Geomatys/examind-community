@@ -1,6 +1,6 @@
 {
   "value" : [ {
-    "description" : "urn:ogc:object:observation:template:GEOM:12-3",
+    "description" : "",
     "unitOfMeasurement" : {
       "name" : "°C",
       "symbol" : "°C",
@@ -20,7 +20,7 @@
     "ObservedProperty@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:12-3)/ObservedProperties",
     "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:12-3)/Observations"
   }, {
-    "description" : "urn:ogc:object:observation:template:GEOM:13-3",
+    "description" : "",
     "unitOfMeasurement" : {
       "name" : "°C",
       "symbol" : "°C",
@@ -40,7 +40,7 @@
     "ObservedProperty@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:13-3)/ObservedProperties",
     "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:13-3)/Observations"
   }, {
-    "description" : "urn:ogc:object:observation:template:GEOM:2-2",
+    "description" : "",
     "unitOfMeasurement" : {
       "name" : "°C",
       "symbol" : "°C",
@@ -60,7 +60,7 @@
     "ObservedProperty@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-2)/ObservedProperties",
     "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-2)/Observations"
   }, {
-    "description" : "urn:ogc:object:observation:template:GEOM:7-2",
+    "description" : "",
     "unitOfMeasurement" : {
       "name" : "°C",
       "symbol" : "°C",
@@ -78,7 +78,7 @@
     "ObservedProperty@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:7-2)/ObservedProperties",
     "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:7-2)/Observations"
   }, {
-    "description" : "urn:ogc:object:observation:template:GEOM:8-3",
+    "description" : "",
     "unitOfMeasurement" : {
       "name" : "°C",
       "symbol" : "°C",
@@ -98,7 +98,7 @@
     "ObservedProperty@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:8-3)/ObservedProperties",
     "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:8-3)/Observations"
   }, {
-    "description" : "urn:ogc:object:observation:template:GEOM:test-1-3",
+    "description" : "",
     "unitOfMeasurement" : {
       "name" : "°C",
       "symbol" : "°C",

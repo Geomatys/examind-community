@@ -5,7 +5,7 @@
     "time" : "2000-11-30T23:00:00Z",
     "Locations" : [ {
       "name" : "urn:ogc:object:sensor:GEOM:2-975625200000",
-      "description" : "urn:ogc:object:sensor:GEOM:2-975625200000",
+      "description" : "",
       "encodingType" : "application/vnd.geo+json",
       "location" : {
         "type" : "Feature",
@@ -28,7 +28,7 @@
     "time" : "2000-12-10T23:00:00Z",
     "Locations" : [ {
       "name" : "urn:ogc:object:sensor:GEOM:2-976489200000",
-      "description" : "urn:ogc:object:sensor:GEOM:2-976489200000",
+      "description" : "",
       "encodingType" : "application/vnd.geo+json",
       "location" : {
         "type" : "Feature",
@@ -51,7 +51,7 @@
     "time" : "2000-12-21T23:00:00Z",
     "Locations" : [ {
       "name" : "urn:ogc:object:sensor:GEOM:2-977439600000",
-      "description" : "urn:ogc:object:sensor:GEOM:2-977439600000",
+      "description" : "",
       "encodingType" : "application/vnd.geo+json",
       "location" : {
         "type" : "Feature",

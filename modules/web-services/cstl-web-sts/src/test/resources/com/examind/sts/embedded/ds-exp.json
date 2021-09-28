@@ -1,5 +1,5 @@
 {
-  "description" : "urn:ogc:object:observation:template:GEOM:8-3",
+  "description" : "",
   "unitOfMeasurement" : {
     "name" : "°C",
     "symbol" : "°C",
@@ -15,6 +15,7 @@
   "@iot.id" : "urn:ogc:object:observation:template:GEOM:8-3",
   "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:8-3)",
   "Sensor" : {
+    "description" : "",
     "name" : "urn:ogc:object:sensor:GEOM:8",
     "encodingType" : "http://www.opengis.net/doc/IS/SensorML/2.0",
     "@iot.id" : "urn:ogc:object:sensor:GEOM:8",
