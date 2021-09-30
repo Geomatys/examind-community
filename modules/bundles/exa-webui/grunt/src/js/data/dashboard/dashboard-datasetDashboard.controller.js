@@ -70,7 +70,7 @@ function DatasetDashboardController($rootScope, $scope, $q, $modal, $location, C
     // Select/unselect a dataset/data.
     // TODO change me by two function setDataset and setData
     self.toggleSelect = function (dataset, data) {
-        // The given dataset is good and is selected
+         // The given dataset is good and is selected
         if (!data && self.isSelected(dataset)) {
             self.selection.data = [];
             self.selection.dataset = null;
@@ -80,7 +80,11 @@ function DatasetDashboardController($rootScope, $scope, $q, $modal, $location, C
         }
 
         // Update data preview.
-        self.selection.style = null;
+        var style = null;
+        if (data && data.targetStyle.length) {
+            style = data.targetStyle[0];
+        }
+        self.selection.style = style;
         self.updatePreview();
     };
 
@@ -130,7 +134,8 @@ function DatasetDashboardController($rootScope, $scope, $q, $modal, $location, C
             var extent = ol.extent.createEmpty();
             var layers = [];
 
-            self.selection.data.forEach(function (data) {
+            if (self.selection.data.length === 1) {
+                var data = self.selection.data[0];
                 // Generate layer name.
                 var layerName = data.name;
                 if (data.namespace) {
@@ -144,9 +149,9 @@ function DatasetDashboardController($rootScope, $scope, $q, $modal, $location, C
                 }
 
                 var layer;
-
-                if (data.targetStyle.length) {
-                    var style = data.targetStyle[0]; // get or set the style selection
+                var style;
+                if (self.selection.style) {
+                    style = self.selection.style; // get or set the style selection
                     layer = DataDashboardViewer.createLayerWithStyle(
                         window.localStorage.getItem('cstlUrl'),
                         data.id,
@@ -156,12 +161,24 @@ function DatasetDashboardController($rootScope, $scope, $q, $modal, $location, C
                         null,
                         data.type !== 'VECTOR');
                 } else {
-                    layer = DataDashboardViewer.createLayer(
-                        window.localStorage.getItem('cstlUrl'),
-                        data.id,
-                        layerName,
-                        null,
-                        data.type !== 'VECTOR');
+                    if (data.targetStyle.length) {
+                        style = data.targetStyle[0]; // get or set the style selection
+                        layer = DataDashboardViewer.createLayerWithStyle(
+                            window.localStorage.getItem('cstlUrl'),
+                            data.id,
+                            layerName,
+                            style.name,
+                            null,
+                            null,
+                            data.type !== 'VECTOR');
+                    } else {
+                        layer = DataDashboardViewer.createLayer(
+                            window.localStorage.getItem('cstlUrl'),
+                            data.id,
+                            layerName,
+                            null,
+                            data.type !== 'VECTOR');
+                    }
                 }
 
                 layer.get('params').ts = new Date().getTime();
@@ -171,7 +188,50 @@ function DatasetDashboardController($rootScope, $scope, $q, $modal, $location, C
                 }
 
                 layers.push(layer);
-            });
+            } else {
+                self.selection.data.forEach(function (data) {
+                    // Generate layer name.
+                    var layerName = data.name;
+                    if (data.namespace) {
+                        layerName = '{' + data.namespace + '}' + layerName;
+                    }
+
+                    // Use the pyramid provider identifier for better performances (if expected).
+                    var providerId = data.provider;
+                    if (CstlConfig['data.overview.use_pyramid'] === true && data.pyramidConformProviderId) {
+                        providerId = data.pyramidConformProviderId;
+                    }
+
+                    var layer;
+
+                    if (data.targetStyle.length) {
+                        var style = data.targetStyle[0]; // get or set the style selection
+                        layer = DataDashboardViewer.createLayerWithStyle(
+                            window.localStorage.getItem('cstlUrl'),
+                            data.id,
+                            layerName,
+                            style.name,
+                            null,
+                            null,
+                            data.type !== 'VECTOR');
+                    } else {
+                        layer = DataDashboardViewer.createLayer(
+                            window.localStorage.getItem('cstlUrl'),
+                            data.id,
+                            layerName,
+                            null,
+                            data.type !== 'VECTOR');
+                    }
+
+                    layer.get('params').ts = new Date().getTime();
+
+                    if (data.dataDescription.boundingBox) {
+                        ol.extent.extend(extent, data.dataDescription.boundingBox);
+                    }
+
+                    layers.push(layer);
+                });
+            }
 
             // Display the layer and zoom on its extent.
             self.preview.extent = extent;
@@ -480,7 +540,7 @@ function DatasetDashboardController($rootScope, $scope, $q, $modal, $location, C
         }
     });
 
-    $scope.$on("examind:data:delete", updateMap);
-    $scope.$on("examind:dataset:delete", updateMap);
-    $scope.$on("examind:dashboard:data:refresh:map", updateMap);
+    $scope.$on('examind:data:delete', updateMap);
+    $scope.$on('examind:dataset:delete', updateMap);
+    $scope.$on('examind:dashboard:data:refresh:map', updateMap);
 }
