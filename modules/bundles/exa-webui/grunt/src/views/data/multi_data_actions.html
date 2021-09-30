@@ -1,20 +1,19 @@
 <div class="row">
-    <div class="col-sm-2">
-        <span class="tooltipicon">
-            <button type="button" class="btn btn-danger2" tooltip-placement="bottom"
-                    tooltip-html-unsafe="{{'layer.listing.selected.delete.button' | translate }}"
-                    ng-click="lc.deleteMultiData()">
-                <i class="glyphicon glyphicon-trash"></i>
-            </button>
-        </span>
-    </div>
-
     <div class="col-sm-2" ng-if="lc.canStyleMultiData()">
         <span class="tooltipicon">
             <button type="button" class="btn btn-default" tooltip-placement="bottom"
                     tooltip-html-unsafe="{{'label.new.style' | translate }}"
                     ng-click="lc.associateStyle()">
                 <i class="fa fa-paint-brush"></i>
+            </button>
+        </span>
+    </div>
+    <div class="col-sm-2">
+        <span class="tooltipicon">
+            <button type="button" class="btn btn-danger2" tooltip-placement="bottom"
+                    tooltip-html-unsafe="{{'layer.listing.selected.delete.button' | translate }}"
+                    ng-click="lc.deleteMultiData()">
+                <i class="glyphicon glyphicon-trash"></i>
             </button>
         </span>
     </div>

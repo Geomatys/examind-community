@@ -158,6 +158,24 @@
                                         </button>
                                     </div>
                                 </div>
+                                <div ng-if="canStyleMultiData()"
+                                     class="row dash-inner" style="padding: 8px;"
+                                     ng-class="{'border-bottom':layers.toAdd.length > 0}">
+                                    <div class="col-xs-6 col-sm-6 col-md-6" ng-if="wrap.selectAllDataToAddFlag">
+                                        <button type="button"
+                                                class="btn btn-default form-control"
+                                                ng-click="goToAddStyleToContext()">
+                                            <span translate="dataset.editor.existing.label.associate.style">Associate style</span>
+                                        </button>
+                                    </div>
+
+                                    <div class="pull-right"
+                                         style="padding-right:10px;padding-left: 0;margin-top: 5px;">
+                                        <input type="checkbox"
+                                               ng-model="wrap.selectAllDataToAddFlag">
+                                        <span translate="label.select.all" style="color: #ddd;">Select all</span>
+                                    </div>
+                                </div>
                                 <div ng-if="layers.toAdd && layers.toAdd.length > 0">
                                     <div class="dash-inner row dashboard">
                                         <div data-role="list">
@@ -180,7 +198,7 @@
                                                         <div class="col-xs-8 col-sm-7 col-md-8 no-padding"
                                                              ng-click="selectItem(layerToAdd)">
                                                             <div class="item layer compo style-small"
-                                                                 ng-class="{'selected':layerToAdd===selection.item,'mapcontext':layerToAdd.layer.externalLayer,'coverage':layerToAdd.layer.type.toLowerCase()==='coverage','vector':layerToAdd.layer.type.toLowerCase()==='observation-store' || layerToAdd.layer.type.toLowerCase()==='vector'|| layerToAdd.layer.type.toLowerCase()==='sensor'}">
+                                                                 ng-class="{'selected':isSelectedItem(layerToAdd),'mapcontext':layerToAdd.layer.externalLayer,'coverage':layerToAdd.layer.type.toLowerCase()==='coverage','vector':layerToAdd.layer.type.toLowerCase()==='observation-store' || layerToAdd.layer.type.toLowerCase()==='vector'|| layerToAdd.layer.type.toLowerCase()==='sensor'}">
                                                                 <div class="top edit-mapcontext-modale">
                                                                     <span class="item-title"
                                                                           title="{{(layerToAdd.layer.name) ? layerToAdd.layer.name : layerToAdd.layer.externalLayer}}">{{(layerToAdd.layer.name) ? truncate(layerToAdd.layer.name,30) : truncate(layerToAdd.layer.externalLayer,30)}}</span>
@@ -189,23 +207,23 @@
                                                                     <span class="pull-right text-right item-list-style"
                                                                           style="margin-right: 7px;">{{layerToAdd.layer.type ? layerToAdd.layer.type : ''}} {{layerToAdd.isWms ? 'WMS':''}}</span>
                                                                             <img ng-if="layerToAdd.layer.type=='VECTOR'  && (layerToAdd.layer.subtype=='Point' || layerToAdd.layer.subtype=='MultiPoint')"
-                                                                                 ng-src="{{layerToAdd!=selection.item ? 'img/vector-multipoint-mapcontext.svg':'img/vector-multipoint-mapcontext-selected.svg'}}"
+                                                                                 ng-src="{{!isSelectedItem(layerToAdd) ? 'img/vector-multipoint-mapcontext.svg':'img/vector-multipoint-mapcontext-selected.svg'}}"
                                                                                  class="pull-right vector-symbol"
                                                                                  style="margin-top:4px; margin-right:10px;" />
                                                                             <img ng-if="layerToAdd.layer.subtype=='Geometry'"
-                                                                                 ng-src="{{layerToAdd!=selection.item ? 'img/vector-multigeometry-mapcontext.svg':'img/vector-multigeometry-mapcontext-selected.svg'}}"
+                                                                                 ng-src="{{!isSelectedItem(layerToAdd) ? 'img/vector-multigeometry-mapcontext.svg':'img/vector-multigeometry-mapcontext-selected.svg'}}"
                                                                                  class="pull-right vector-symbol"
                                                                                  style="margin-top:4px; margin-right:10px; width:22px" />
                                                                             <img ng-if="layerToAdd.layer.type=='VECTOR'  && (layerToAdd.layer.subtype=='Polygon' || layerToAdd.layer.subtype=='MultiPolygon')"
-                                                                                 ng-src="{{layerToAdd!=selection.item ? 'img/vector-poly-mapcontext.svg':'img/vector-poly-mapcontext-selected.svg'}}"
+                                                                                 ng-src="{{!isSelectedItem(layerToAdd) ? 'img/vector-poly-mapcontext.svg':'img/vector-poly-mapcontext-selected.svg'}}"
                                                                                  class="pull-right vector-symbol"
                                                                                  style="margin-top:4px; margin-right:10px;" />
                                                                             <img ng-if="layerToAdd.layer.type=='VECTOR'  && (layerToAdd.layer.subtype=='LineString' || layerToAdd.layer.subtype=='MultiLineString')"
-                                                                                 ng-src="{{layerToAdd!=selection.item ? 'img/vector-polyline-mapcontext.svg':'img/vector-polyline-mapcontext-selected.svg'}}"
+                                                                                 ng-src="{{!isSelectedItem(layerToAdd) ? 'img/vector-polyline-mapcontext.svg':'img/vector-polyline-mapcontext-selected.svg'}}"
                                                                                  class="pull-right vector-symbol"
                                                                                  style="margin-top:4px; margin-right:10px;" />
                                                                             <img ng-if="layerToAdd.layer.externalLayer"
-                                                                                 ng-src="{{layerToAdd!==selection.item ? 'img/layer-external.svg':'img/layer-external-selected.svg'}}"
+                                                                                 ng-src="{{!isSelectedItem(layerToAdd) ? 'img/layer-external.svg':'img/layer-external-selected.svg'}}"
                                                                                  class="pull-right vector-symbol"
                                                                                  style="margin-top:4px; margin-right:10px;" />
                                                                     <div class="hidden-xs hidden-md hidden-lg">
@@ -261,7 +279,7 @@
                                                             </a>
                                                         </div>
                                                     </div>
-                                                    <div ng-if="selection.item === layerToAdd"
+                                                    <div ng-if="isSelectedItem(layerToAdd)"
                                                          class="row col-xs-10 child mapcontext-layer-opacity">
                                                         <div class="col-xs-3 no-padding">
                                                             <span translate="sldeditor.edition.opacity">Opacity</span>

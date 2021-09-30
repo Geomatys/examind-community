@@ -73,6 +73,10 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
             selected: null
         };
 
+        $scope.wrap = {
+            selectAllDataToAddFlag: false
+        };
+
         $scope.dismiss = function () {
             $modalInstance.dismiss('close');
         };
@@ -104,12 +108,18 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
             }
         };
 
-        $scope.selectItem = function(item) {
-            if ($scope.selection.item === item) {
-                $scope.selection.item = null;
-            } else {
-                $scope.selection.item = item;
+        $scope.selectItem = function (item) {
+            if (!$scope.wrap.selectAllDataToAddFlag) {
+                if ($scope.selection.item === item) {
+                    $scope.selection.item = null;
+                } else {
+                    $scope.selection.item = item;
+                }
             }
+        };
+
+        $scope.isSelectedItem = function (layerToAdd) {
+            return layerToAdd === $scope.selection.item || $scope.wrap.selectAllDataToAddFlag;
         };
 
         $scope.selectExtLayer = function(extLayer) {
@@ -123,17 +133,39 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
             }
         };
 
-        $scope.selectStyle = function(item) {
+        $scope.selectStyle = function (item) {
             if (item && $scope.styles.selected && $scope.styles.selected.name === item.name) {
                 $scope.styles.selected = null;
             } else {
                 $scope.styles.selected = item;
             }
             fillLayersToSend(null);
+            if ($scope.wrap.selectAllDataToAddFlag) {
+                setTimeout(function () {
+                    $scope.viewMap(false, null);
+                }, 200);
+            }
         };
 
-        $scope.showMapWithStyle = function(styleObj) {
-            $scope.viewMap(false,{"layer":$scope.layers.toStyle,"style":styleObj});
+        $scope.showMapWithStyle = function (styleObj) {
+            if (!$scope.wrap.selectAllDataToAddFlag) {
+                $scope.viewMap(false, {'layer': $scope.layers.toStyle, 'style': styleObj});
+            }
+        };
+
+        $scope.canStyleMultiData = function () {
+            if (!$scope.layers.toAdd || $scope.layers.toAdd.length < 2) {
+                return false;
+            } else {
+                var res = true;
+                for (var i = 1; i < $scope.layers.toAdd.length; i++) {
+                    if ($scope.layers.toAdd[i].layer.type !== $scope.layers.toAdd[0].layer.type) {
+                        res = false;
+                        break;
+                    }
+                }
+                return res;
+            }
         };
 
         $scope.addTag = function() {
@@ -272,38 +304,53 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
                 },200);
 
             } else if ($scope.mode.display==='addChooseStyle') {
-                $scope.layers.toStyle.styleObj=$scope.styles.selected;
-                if ($scope.layers.toStyle.layer.externalServiceUrl && $scope.layers.toStyle.layer.externalStyle) {
-                    // It's an external WMS style, put the one chosen in first, as the default one
-                    var possibleStyles = $scope.layers.toStyle.layer.externalStyle.split(',');
-                    if (possibleStyles[0] !== $scope.styles.selected.name) {
-                        var indexForStyle;
-                        for (var k=0; k<possibleStyles.length; k++) {
-                            var s = possibleStyles[k];
-                            if (s === $scope.styles.selected.name) {
-                                indexForStyle = k;
+                if (!$scope.wrap.selectAllDataToAddFlag) {
+                    $scope.layers.toStyle.styleObj = $scope.styles.selected;
+                    if ($scope.layers.toStyle.layer.externalServiceUrl && $scope.layers.toStyle.layer.externalStyle) {
+                        // It's an external WMS style, put the one chosen in first, as the default one
+                        var possibleStyles = $scope.layers.toStyle.layer.externalStyle.split(',');
+                        if (possibleStyles[0] !== $scope.styles.selected.name) {
+                            var indexForStyle;
+                            for (var k = 0; k < possibleStyles.length; k++) {
+                                var s = possibleStyles[k];
+                                if (s === $scope.styles.selected.name) {
+                                    indexForStyle = k;
+                                }
                             }
-                        }
-                        if (indexForStyle) {
-                            // Remove it from its old place
-                            possibleStyles.splice(indexForStyle, 1);
-                            // Put it in first
-                            possibleStyles.splice(0, 0, $scope.styles.selected.name);
-                        }
-                        var finalStyles = '';
-                        for (var l=0; l<possibleStyles.length; l++) {
-                            if (l > 0) {
-                                finalStyles += ',';
+                            if (indexForStyle) {
+                                // Remove it from its old place
+                                possibleStyles.splice(indexForStyle, 1);
+                                // Put it in first
+                                possibleStyles.splice(0, 0, $scope.styles.selected.name);
                             }
-                            finalStyles += possibleStyles[l];
+                            var finalStyles = '';
+                            for (var l = 0; l < possibleStyles.length; l++) {
+                                if (l > 0) {
+                                    finalStyles += ',';
+                                }
+                                finalStyles += possibleStyles[l];
+                            }
+                            $scope.layers.toStyle.layer.externalStyle = finalStyles;
                         }
-                        $scope.layers.toStyle.layer.externalStyle = finalStyles;
                     }
+                } else {
+                    for (var p = 0; p < $scope.layers.toAdd.length; p++) {
+                        var layer = $scope.layers.toAdd[p];
+                        layer.styleObj = $scope.styles.selected;
+                        /*jshint loopfunc:true */
+                        var find =  layer.layer.targetStyle.find(function (elt) {
+                            return elt.id === $scope.styles.selected.id;
+                        });
+                        if(!find){
+                            layer.layer.targetStyle.unshift($scope.styles.selected);
+                        }
+                    }
+                    $scope.wrap.selectAllDataToAddFlag = false;
                 }
                 $scope.mode.display = 'general';
-                setTimeout(function(){
-                    $scope.viewMap(false,null);
-                },200);
+                setTimeout(function () {
+                    $scope.viewMap(false, null);
+                }, 200);
             }
         };
 
@@ -328,12 +375,19 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
                 if(layObj.layer.externalServiceUrl){
                     externalStyle = (layObj.styleObj) ? layObj.styleObj.name : (layObj.layer.externalStyle)?layObj.layer.externalStyle:null;
                 }
-                $scope.layers.toSend.push({
+                var styleId = null;
+                if (layObj.styleObj && layObj.styleObj.id) {
+                    styleId = layObj.styleObj.id;
+                } else if (layObj.layer.styleId) {
+                    styleId = layObj.layer.styleId;
+                }
+               
+                var toSend = {
                     mapcontextId: (ctxt) ? ctxt.id : null,
                     layerId: (layObj.isWms)? (layObj.layer.layerId) ? layObj.layer.layerId : null : null,
                     dataId: layObj.layer.dataId ? layObj.layer.dataId : null,
                     iswms: layObj.isWms,
-                    styleId: (layObj.styleObj && layObj.styleObj.id) ? layObj.styleObj.id : null,
+                    styleId: styleId,
                     order: i,
                     opacity: layObj.opacity,
                     visible: layObj.visible,
@@ -342,13 +396,30 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
                     externalLayer: layObj.layer.externalLayer,
                     externalLayerExtent: layObj.layer.externalLayerExtent,
                     externalStyle: externalStyle
-                });
+                };
+                $scope.layers.toSend.push(toSend);
             }
         }
 
         $scope.goToAddLayerToContext = function() {
             $scope.mode.display = 'addChooseSource';
             $scope.selection = {};
+        };
+
+        $scope.goToAddStyleToContext = function () {
+            $scope.styles.selected = null;
+            $scope.styles.existing = [];
+            // for Internal data layer and for internal wms layer
+            Examind.styles.getStyles().then(
+                function (response) {
+                    for (var i = 0; i < response.data.length; i++) {
+                        $scope.styles.existing.push(response.data[i]);
+                    }
+                }, function (err) {
+                    console.error(err);
+                }
+            );
+            $scope.mode.display = 'addChooseStyle';
         };
 
         $scope.toggleUpDownExtSelected = function() {
@@ -479,6 +550,7 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
                     }
                     if (layerName && candidatName === layerName) {
                         DataViewer.map.removeLayer(candidat);
+                        $scope.viewMap();
                         return;
                     }
                 }
@@ -538,13 +610,14 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
 
         $scope.viewMap = function(zoomOnMapContextExtent,layerStyleObj) {
             DataViewer.initConfig();
+            var layerData;
+            var cstlUrl = window.localStorage.getItem('cstlUrl');
             if ($scope.layers.toAdd && $scope.layers.toAdd.length>0) {
-                var cstlUrl = window.localStorage.getItem('cstlUrl');
                 var layersToView = [];
                 for (var i=0; i<$scope.layers.toAdd.length; i++) {
                     var layObj = $scope.layers.toAdd[i];
                     if (layObj.visible) {
-                        var layerData;
+                        // var layerData;
                         if (layObj.isWms) {//external wms layer
                             if(layObj.layer.externalServiceUrl) {
                                 if(layerStyleObj && layerStyleObj.layer.layer.name === layObj.layer.name){
@@ -614,7 +687,14 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
                                     layerData = DataViewer.createLayerWithStyle(cstlUrl,dataItem.dataId,layerName,
                                         layObj.styleObj?layObj.styleObj.name:dataItem.styleName,null,null,type!=='vector');
                                 } else {
-                                    layerData = DataViewer.createLayer(cstlUrl,dataItem.dataId,layerName,null,type!=='vector');
+                                    if ($scope.wrap.selectAllDataToAddFlag) {
+                                        layerData = DataViewer.createLayerWithStyle(cstlUrl, dataItem.dataId, layerName,
+                                            $scope.styles.selected.name, null, null, type !== 'vector');
+                                        layerData.setOpacity(layObj.opacity / 100);
+                                        layersToView.push(layerData);
+                                    } else {
+                                        layerData = DataViewer.createLayer(cstlUrl, dataItem.dataId, layerName, null, type !== 'vector');
+                                    }
                                 }
                             }
                         }
