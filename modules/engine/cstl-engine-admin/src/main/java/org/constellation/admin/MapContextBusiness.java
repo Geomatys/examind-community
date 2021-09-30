@@ -40,9 +40,9 @@ import org.apache.sis.referencing.cs.AxesConvention;
 import org.apache.sis.util.logging.Logging;
 
 import org.constellation.business.IDataBusiness;
-import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IMapContextBusiness;
 import org.constellation.business.IMetadataBusiness;
+import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IUserBusiness;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.DataBrief;
@@ -58,9 +58,9 @@ import org.constellation.dto.StyleBrief;
 import org.constellation.dto.StyleReference;
 import org.constellation.dto.service.Service;
 import org.constellation.exception.ConstellationException;
+import org.constellation.exception.TargetNotFoundException;
 import org.constellation.repository.LayerRepository;
 import org.constellation.repository.MapContextRepository;
-import org.constellation.repository.ProviderRepository;
 import org.constellation.repository.ServiceRepository;
 import org.constellation.repository.StyleRepository;
 import org.constellation.repository.StyledLayerRepository;
@@ -89,10 +89,7 @@ public class MapContextBusiness implements IMapContextBusiness {
     private IDataBusiness dataBusiness;
 
     @Inject
-    private IDatasetBusiness datasetBusiness;
-
-    @Inject
-    private ProviderRepository providerRepository;
+    private IProviderBusiness providerBusiness;
 
     @Inject
     private StyleRepository styleRepository;
@@ -115,7 +112,14 @@ public class MapContextBusiness implements IMapContextBusiness {
     @Override
     @Transactional
     public Integer create(final MapContextLayersDTO mapContext) throws ConstellationException {
-        return mapContextRepository.create(mapContext);
+        int id = mapContextRepository.create(mapContext);
+        if (mapContext.getLayers() != null) {
+            for (MapContextStyledLayerDTO layer : mapContext.getLayers()) {
+                layer.setMapcontextId(id);
+            }
+        }
+        mapContextRepository.setLinkedLayers(id, mapContext.getLayers());
+        return id;
     }
 
     @Override
@@ -130,7 +134,7 @@ public class MapContextBusiness implements IMapContextBusiness {
         mapContext.setEast(env.getMaximum(0));
         mapContext.setNorth(env.getMaximum(1));
         mapContext.setName(contextName);
-        final Integer id = create(mapContext);
+        final Integer id =  mapContextRepository.create(mapContext);
         final List<MapContextStyledLayerDTO> mapcontextlayers = new ArrayList<>();
         for (final DataBrief db : briefs) {
             final MapContextStyledLayerDTO mcStyledLayer = new MapContextStyledLayerDTO();
@@ -148,7 +152,7 @@ public class MapContextBusiness implements IMapContextBusiness {
             mcStyledLayer.setMapcontextId(id);
             mapcontextlayers.add(mcStyledLayer);
         }
-        setMapItems(id, mapcontextlayers);
+        mapContextRepository.setLinkedLayers(id, mapcontextlayers);
         return id;
     }
 
@@ -157,18 +161,7 @@ public class MapContextBusiness implements IMapContextBusiness {
         final List<MapContextLayersDTO> ctxtLayers = new ArrayList<>();
         final List<MapContextDTO> ctxts = mapContextRepository.findAll();
         for (final MapContextDTO ctxt : ctxts) {
-            final List<MapContextStyledLayerDTO> styledLayers = mapContextRepository.getLinkedLayers(ctxt.getId());
-
-            final List<MapContextStyledLayerDTO> styledLayersDto = generateLayerDto(styledLayers);
-
-            //get owner login.
-            String userLogin = null;
-            final Optional<CstlUser> user = userBusiness.findById(ctxt.getOwner());
-            if (user.isPresent()) {
-                userLogin = user.get().getLogin();
-            }
-
-            final MapContextLayersDTO mapcontext = buildMapContextLayers(ctxt, userLogin, styledLayersDto);
+            final MapContextLayersDTO mapcontext = convertToMapContextLayer(ctxt);
             ctxtLayers.add(mapcontext);
         }
         return ctxtLayers;
@@ -184,23 +177,25 @@ public class MapContextBusiness implements IMapContextBusiness {
         if (user.isPresent()) {
             userLogin = user.get().getLogin();
         }
-
-        final MapContextLayersDTO mapcontext = buildMapContextLayers(ctxt, userLogin, styledLayersDto);
-        return mapcontext;
+        return buildMapContextLayers(ctxt, userLogin, styledLayersDto);
     }
 
     @Override
     public MapContextLayersDTO findMapContextLayers(int contextId) throws ConstellationException {
         final MapContextDTO ctxt = mapContextRepository.findById(contextId);
-        final List<MapContextStyledLayerDTO> styledLayers = mapContextRepository.getLinkedLayers(contextId);
-        final List<MapContextStyledLayerDTO> styledLayersDto = generateLayerDto(styledLayers);
-        //get owner login.
-        String userLogin = null;
-        final Optional<CstlUser> user = userBusiness.findById(ctxt.getOwner());
-        if (user.isPresent()) {
-            userLogin = user.get().getLogin();
+        if (ctxt != null) {
+            return convertToMapContextLayer(ctxt);
         }
-        return buildMapContextLayers(ctxt, userLogin, styledLayersDto);
+        throw new TargetNotFoundException("No mapcontext found with id: " + contextId);
+    }
+
+    @Override
+    public MapContextLayersDTO findByName(String contextName) throws ConstellationException {
+        final MapContextDTO ctxt = mapContextRepository.findByName(contextName);
+        if (ctxt != null) {
+            return convertToMapContextLayer(ctxt);
+        }
+        throw new TargetNotFoundException("No mapcontext found with name: " + contextName);
     }
 
     /**
@@ -208,18 +203,22 @@ public class MapContextBusiness implements IMapContextBusiness {
      *
      * @param contextId Context identifier
      * @return
-     * @throws FactoryException
+     * @throws ConstellationException
      */
     @Override
-    public ParameterValues getExtent(int contextId) throws FactoryException,ConstellationException {
+    public ParameterValues getExtent(int contextId) throws ConstellationException {
         final ParameterValues values = new ParameterValues();
         final MapContextDTO context = mapContextRepository.findById(contextId);
         GeneralEnvelope env = null;
         if (context.getWest() != null && context.getSouth() != null && context.getEast() != null && context.getNorth() != null && context.getCrs() != null) {
-            final CoordinateReferenceSystem crs = AbstractCRS.castOrCopy(CRS.forCode(context.getCrs())).forConvention(AxesConvention.RIGHT_HANDED);
-            env = new GeneralEnvelope(crs);
-            env.setRange(0, context.getWest(), context.getEast());
-            env.setRange(1, context.getSouth(), context.getNorth());
+            try {
+                final CoordinateReferenceSystem crs = AbstractCRS.castOrCopy(CRS.forCode(context.getCrs())).forConvention(AxesConvention.RIGHT_HANDED);
+                env = new GeneralEnvelope(crs);
+                env.setRange(0, context.getWest(), context.getEast());
+                env.setRange(1, context.getSouth(), context.getNorth());
+            } catch (FactoryException ex) {
+                throw new ConstellationException(ex);
+            }
         }
 
         final List<MapContextStyledLayerDTO> styledLayers = generateLayerDto(mapContextRepository.getLinkedLayers(contextId));
@@ -244,10 +243,10 @@ public class MapContextBusiness implements IMapContextBusiness {
      *
      * @param styledLayers Layers to consider.
      * @return
-     * @throws FactoryException
+     * @throws ConstellationException
      */
     @Override
-    public ParameterValues getExtentForLayers(final List<MapContextStyledLayerDTO> styledLayers) throws FactoryException,ConstellationException {
+    public ParameterValues getExtentForLayers(final List<MapContextStyledLayerDTO> styledLayers) throws ConstellationException {
         final GeneralEnvelope env = getEnvelopeForLayers(styledLayers, null);
         if (env == null) {
             return null;
@@ -264,7 +263,7 @@ public class MapContextBusiness implements IMapContextBusiness {
     }
 
     private GeneralEnvelope getEnvelopeForLayers(final List<MapContextStyledLayerDTO> styledLayers,
-                                                 final GeneralEnvelope ctxtEnv) throws FactoryException,ConstellationException {
+                                                 final GeneralEnvelope ctxtEnv) throws ConstellationException {
         GeneralEnvelope env = ctxtEnv;
         for (final MapContextStyledLayerDTO styledLayer : styledLayers) {
             if (!styledLayer.isVisible()) {
@@ -315,9 +314,13 @@ public class MapContextBusiness implements IMapContextBusiness {
 
     @Override
     @Transactional
-    public void updateContext(MapContextLayersDTO mapContext) {
+    public void updateContext(MapContextLayersDTO mapContext) throws ConstellationException {
         mapContextRepository.update(mapContext);
+        for (MapContextStyledLayerDTO layer : mapContext.getLayers()) {
+            layer.setMapcontextId(mapContext.getId());
         }
+        mapContextRepository.setLinkedLayers(mapContext.getId(), mapContext.getLayers());
+    }
 
     @Override
     @Transactional
@@ -384,7 +387,7 @@ public class MapContextBusiness implements IMapContextBusiness {
                 final Layer layer = layerRepository.findById(layerID);
                 final DataBrief db = dataBusiness.getDataBrief(layer.getDataId(), true);
 
-                final ProviderBrief provider = providerRepository.findOne(db.getProviderId());
+                final ProviderBrief provider = providerBusiness.getProvider(db.getProviderId());
                 final QName name = new QName(layer.getNamespace(), layer.getName());
 
                 final org.constellation.dto.service.config.wxs.Layer layerConfig = new org.constellation.dto.service.config.wxs.Layer(layer.getId(), name);
@@ -425,7 +428,7 @@ public class MapContextBusiness implements IMapContextBusiness {
             } else if (dataID != null) {
                 final DataBrief db = dataBusiness.getDataBrief(dataID, true);
                 final QName dataName = new QName(db.getNamespace(), db.getName());
-                final ProviderBrief provider = providerRepository.findOne(db.getProviderId());
+                final ProviderBrief provider = providerBusiness.getProvider(db.getProviderId());
                 final org.constellation.dto.service.config.wxs.Layer layerConfig = new org.constellation.dto.service.config.wxs.Layer(styledLayer.getLayerId(), dataName);
                 layerConfig.setAlias(db.getName());
                 layerConfig.setDate(db.getDate());

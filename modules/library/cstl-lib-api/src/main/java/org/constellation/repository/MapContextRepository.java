@@ -28,6 +28,8 @@ public interface MapContextRepository extends AbstractRepository {
 
     MapContextDTO findById(int id);
 
+    MapContextDTO findByName(String name);
+
     List<MapContextDTO> findAll();
 
     List<Integer> findAllId();

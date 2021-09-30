@@ -28,7 +28,6 @@ import org.constellation.dto.ParameterValues;
 import org.constellation.dto.MapContextDTO;
 import org.constellation.dto.MapContextStyledLayerDTO;
 import org.opengis.geometry.Envelope;
-import org.opengis.util.FactoryException;
 
 /**
  * @author Cédric Briançon (Geomatys)
@@ -45,13 +44,15 @@ public interface IMapContextBusiness {
 
     MapContextLayersDTO findMapContextLayers(int contextId) throws ConstellationException;
 
-    ParameterValues getExtent(int contextId) throws FactoryException,ConstellationException;
+    MapContextLayersDTO findByName(String name) throws ConstellationException;
 
-    ParameterValues getExtentForLayers(final List<MapContextStyledLayerDTO> styledLayers) throws FactoryException,ConstellationException;
+    ParameterValues getExtent(int contextId) throws ConstellationException;
+
+    ParameterValues getExtentForLayers(final List<MapContextStyledLayerDTO> styledLayers) throws ConstellationException;
 
     List<MapContextDTO> getAllContexts();
 
-    void updateContext(MapContextLayersDTO mapContext);
+    void updateContext(MapContextLayersDTO mapContext) throws ConstellationException;
 
     void delete(int contextId) throws ConstellationException;
 

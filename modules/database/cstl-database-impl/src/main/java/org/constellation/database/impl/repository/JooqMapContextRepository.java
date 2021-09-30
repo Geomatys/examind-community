@@ -84,6 +84,11 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
     }
 
     @Override
+    public MapContextDTO findByName(String name) {
+        return convertToDTO(dsl.select().from(MAPCONTEXT).where(MAPCONTEXT.NAME.eq(name)).fetchOneInto(Mapcontext.class));
+    }
+
+    @Override
     public List<MapContextStyledLayerDTO> getLinkedLayers(int mapContextId) {
         List<MapcontextStyledLayer> mcLayers = dsl.select().from(MAPCONTEXT_STYLED_LAYER)
                 .where(MAPCONTEXT_STYLED_LAYER.MAPCONTEXT_ID.eq(mapContextId))

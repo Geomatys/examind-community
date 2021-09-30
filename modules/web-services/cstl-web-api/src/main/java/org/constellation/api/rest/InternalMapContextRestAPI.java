@@ -68,7 +68,7 @@ public class InternalMapContextRestAPI extends AbstractRestAPI {
         final ParameterValues values;
         try {
             values = contextBusiness.getExtentForLayers(layers);
-        } catch (FactoryException | ConstellationException ex) {
+        } catch (ConstellationException ex) {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
             return new ErrorMessage(ex).message("Failed to extract envelope for these layers.").build();
         }
@@ -85,7 +85,7 @@ public class InternalMapContextRestAPI extends AbstractRestAPI {
 
         try (final WebMapClient client = (version != null && !version.isEmpty()) ?
                     new WebMapClient(new URL(url), version) : new WebMapClient(new URL(url))) {
-            
+
             AbstractWMSCapabilities capa = client.getServiceCapabilities();
 
             final List<AbstractLayer> layers = capa.getLayers();

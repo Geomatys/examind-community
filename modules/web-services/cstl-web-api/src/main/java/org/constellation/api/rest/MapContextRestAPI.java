@@ -53,7 +53,6 @@ import org.geotoolkit.gml.xml.v311.EnvelopeType;
 import org.geotoolkit.owc.xml.v10.MethodCodeType;
 import org.geotoolkit.owc.xml.v10.OfferingType;
 import org.geotoolkit.owc.xml.v10.OperationType;
-import org.opengis.util.FactoryException;
 import org.springframework.http.HttpHeaders;
 import static org.springframework.http.HttpStatus.*;
 import org.springframework.http.MediaType;
@@ -196,15 +195,11 @@ public class MapContextRestAPI extends AbstractRestAPI {
             //set owner
             int userId = assertAuthentificated(req);
             mapContext.setOwner(userId);
-            final Integer mapContextCreated = contextBusiness.create(mapContext);
-            mapContext.setId(mapContextCreated);
-            if (mapContext.getLayers()!=null) {
-                for (MapContextStyledLayerDTO layer : mapContext.getLayers()) {
-                    layer.setMapcontextId(mapContext.getId());
-                }
-            }
-            contextBusiness.setMapItems(mapContextCreated, mapContext.getLayers());
-            return new ResponseEntity(mapContext, OK);
+            final Integer contextId = contextBusiness.create(mapContext);
+
+            // TODO does the front need this response or juste the id  ?
+            MapContextLayersDTO response = contextBusiness.findMapContextLayers(contextId);
+            return new ResponseEntity(response, OK);
         } catch (ConstellationException ex) {
              return new ErrorMessage().message(ex.getMessage()).build();
         }
@@ -222,15 +217,19 @@ public class MapContextRestAPI extends AbstractRestAPI {
     public ResponseEntity updateContext(
             @PathVariable("id") final int contextId,
             @RequestBody final MapContextLayersDTO mapContext) {
-        mapContext.setId(contextId);
-        if(mapContext.getLayers()==null) mapContext.setLayers(Collections.EMPTY_LIST);
+        try {
+            mapContext.setId(contextId);
+            if(mapContext.getLayers()==null) mapContext.setLayers(Collections.EMPTY_LIST);
 
-        contextBusiness.updateContext(mapContext);
-        for (MapContextStyledLayerDTO layer : mapContext.getLayers()) {
-            layer.setMapcontextId(mapContext.getId());
+            contextBusiness.updateContext(mapContext);
+
+            // TODO does the front need this response ?
+            MapContextLayersDTO response = contextBusiness.findMapContextLayers(contextId);
+            return new ResponseEntity(response, OK);
+        } catch (ConstellationException ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
+            return new ErrorMessage(ex).message("Failed to update for map context "+contextId+". "+ex.getMessage()).build();
         }
-        contextBusiness.setMapItems(contextId, mapContext.getLayers());
-        return new ResponseEntity(mapContext, OK);
     }
 
     /**
@@ -279,7 +278,7 @@ public class MapContextRestAPI extends AbstractRestAPI {
         final ParameterValues values;
         try {
             values = contextBusiness.getExtent(contextId);
-        } catch (FactoryException | ConstellationException ex) {
+        } catch (ConstellationException ex) {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
             return new ErrorMessage(ex).message("Failed to extract envelope for context "+contextId+". "+ex.getMessage()).build();
         }
@@ -355,7 +354,7 @@ public class MapContextRestAPI extends AbstractRestAPI {
                 ParameterValues extentValues = null;
                 try {
                     extentValues = contextBusiness.getExtentForLayers(Collections.singletonList(styledLayer));
-                } catch (FactoryException | ConstellationException ex) {
+                } catch (ConstellationException ex) {
                     LOGGER.log(Level.INFO, ex.getMessage(), ex);
                 }
                 if (extentValues != null) {
