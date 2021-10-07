@@ -193,6 +193,9 @@ public final class DataProviders extends Static{
         }
 
         provider = factory.createProvider(config.getIdentifier(), params);
+        if (provider == null) {
+             throw new ConfigurationException("Error while creating provider configuration for:" + providerId);
+        }
 
         CACHE.put(providerId, provider);
 
@@ -217,7 +220,11 @@ public final class DataProviders extends Static{
         } catch (ConfigurationException ex) {
             throw new ConfigurationException("Provider " +providerId + " does not exist");
         }
-        return inProvider.get(namespace, name);
+        try {
+            return inProvider.get(namespace, name);
+        } catch (ConstellationStoreException ex) {
+            throw new ConfigurationException(ex.getMessage(), ex);
+        }
     }
 
     /**
@@ -236,7 +243,7 @@ public final class DataProviders extends Static{
     }
 
     public static Set<GenericName> testProvider(String id, final DataProviderFactory factory,
-                                  final ParameterValueGroup params) throws DataStoreException {
+                                  final ParameterValueGroup params) throws ConstellationStoreException {
         final DataProvider provider = factory.createProvider(id, params);
 
         final Set<GenericName> names = new HashSet<>();
@@ -253,14 +260,14 @@ public final class DataProviders extends Static{
                 }
                 provider.dispose();
             } catch (Exception ex) {
-                LOGGER.log(Level.WARNING, "Error while testing provider: " + id, ex);
+                throw new ConstellationStoreException(ex);
             }
         }
         return names;
     }
 
 
-    public static HashMap<GenericName, CoordinateReferenceSystem> getCRS(int id) throws DataStoreException, ConfigurationException {
+    public static HashMap<GenericName, CoordinateReferenceSystem> getCRS(int id) throws ConstellationStoreException {
         HashMap<GenericName,CoordinateReferenceSystem> nameCoordinateReferenceSystemHashMap = new HashMap<>();
         //test getting CRS from data
         try  {
@@ -289,7 +296,7 @@ public final class DataProviders extends Static{
                 }
             }
         } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, "Error while extracting provider (" + id + ") + CRS.", ex);
+            throw new ConstellationStoreException(ex);
         }
         return nameCoordinateReferenceSystemHashMap;
     }

@@ -65,6 +65,7 @@ import org.constellation.admin.SpringHelper;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.service.ServiceComplete;
 import org.constellation.exception.ConfigurationException;
+import org.constellation.exception.ConstellationException;
 import org.constellation.provider.DataProviders;
 import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.feature.xml.jaxb.JAXBFeatureTypeWriter;
@@ -939,7 +940,7 @@ public class WPSUtils {
         try {
             //restart provider
             DataProviders.getProvider(providerId).reload();
-        } catch (ConfigurationException ex) {
+        } catch (ConstellationException ex) {
             LOGGER.log(Level.WARNING, "Error during WMS " + wmsInstance + " restart.", ex);
         }
 

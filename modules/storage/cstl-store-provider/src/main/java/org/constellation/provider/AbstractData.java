@@ -229,7 +229,7 @@ public abstract class AbstractData<T extends Resource> implements Data<T> {
     }
 
     @Override
-    public Object computeStatistic(int dataId, DataRepository dataRepository) {
+    public Object computeStatistic(int dataId, DataRepository dataRepository) throws ConstellationStoreException {
         //do nothing
         return null;
     }

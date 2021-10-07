@@ -51,7 +51,6 @@ import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.util.ArgumentChecks;
-import org.apache.sis.util.collection.BackingStoreException;
 import org.constellation.api.DataType;
 import static org.constellation.api.StatisticState.STATE_COMPLETED;
 import static org.constellation.api.StatisticState.STATE_ERROR;
@@ -502,7 +501,7 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
     }
 
     @Override
-    public ImageStatistics computeStatistic(int dataId, DataRepository dataRepository) {
+    public ImageStatistics computeStatistic(int dataId, DataRepository dataRepository) throws ConstellationStoreException {
         // Hack compute statistic from 5% of the first slice
         try {
             GridGeometry gg = getGeometry();
@@ -553,7 +552,7 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
             final Parameters out = Parameters.castOrWrap(process.call());
             return out.getMandatoryValue(StatisticsDescriptor.OUTCOVERAGE);
         } catch(Exception ex) {
-            throw new BackingStoreException("Statistics computing failed", ex);
+            throw new ConstellationStoreException("Statistics computing failed", ex);
         }
     }
 

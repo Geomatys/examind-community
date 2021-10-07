@@ -685,7 +685,7 @@ public class SOSworker extends SensorWorker {
         Object result;
         try {
             result = sensorBusiness.getSensorMetadata(sensorId);
-        } catch (ConfigurationException ex) {
+        } catch (ConstellationException ex) {
             throw new CstlServiceException(ex);
         }
         if (result instanceof SensorML &&

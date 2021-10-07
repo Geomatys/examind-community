@@ -162,7 +162,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
                 }
             }
             return new ResponseEntity(result, OK);
-        }catch(Throwable ex) {
+        }catch(Exception ex) {
             LOGGER.log(Level.WARNING,"Cannot list metadata metadata profiles due to exception error : "+ ex.getLocalizedMessage());
             return new ErrorMessage(ex).build();
         }
@@ -436,7 +436,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
         try {
             metadataBusiness.deleteMetadata(ids);
             return new ResponseEntity("Records deleted with success.", OK);
-        }catch(Throwable ex) {
+        }catch(Exception ex) {
             LOGGER.log(Level.WARNING,"Cannot delete metadata list due to exception error : "+ ex.getLocalizedMessage());
             return new ErrorMessage(ex).build();
         }
@@ -452,7 +452,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
         try {
             metadataBusiness.deleteMetadata(id);
             return new ResponseEntity("Record deleted with success.", OK);
-        }catch(Throwable ex) {
+        }catch(Exception ex) {
             LOGGER.log(Level.WARNING,"Cannot delete metadata list due to exception error : "+ ex.getLocalizedMessage());
             return new ErrorMessage(ex).build();
         }
@@ -504,7 +504,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
             map.put("file", file.getFileName().toString());
             return new ResponseEntity(map, OK);
 
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             return new ErrorMessage(ex).build();
         }
     }
@@ -520,7 +520,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
                 return new ResponseEntity(NOT_FOUND);
             }
 
-        } catch (IOException | ConfigurationException ex) {
+        } catch (Exception ex) {
             return new ErrorMessage(ex).build();
         }
     }
@@ -549,7 +549,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
     @RequestMapping(value="/metadatas/download/{directory}/{file:.+}",method=GET)
     public ResponseEntity download(
             @PathVariable("directory") final String directory,
-            @PathVariable("file") final String file, HttpServletResponse response) throws IOException {
+            @PathVariable("file") final String file, HttpServletResponse response) {
 
         Path dir = null;
         try{
@@ -1200,7 +1200,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
 
     @RequestMapping(value = "/attachments/view/{attachmentId}", method = RequestMethod.GET)
     public ResponseEntity get(@PathVariable("attachmentId") Integer attachmentId, final HttpServletResponse response) {
-        if(attachmentId != null) {
+        try {
             final Attachment mql   = metadataBusiness.getMetadataAttachment(attachmentId);
             final byte[] quicklook = mql.getContent();
             final String fileName  = mql.getFilename();
@@ -1235,14 +1235,12 @@ public class MetadataRestAPI extends AbstractRestAPI{
                 response.setHeader("Pragma", "cache");
                 response.setDateHeader("Expires", System.currentTimeMillis() + second*1000);
             }
-            try {
-                IOUtils.write(quicklook, response.getOutputStream());
-            } catch (IOException ex) {
-                LOGGER.log(Level.WARNING, "Error while writing attached file response", ex);
-            }
+            IOUtils.write(quicklook, response.getOutputStream());
             return ResponseEntity.ok().headers(responseHeaders).build();
+        } catch(Exception ex) {
+            LOGGER.log(Level.WARNING,ex.getLocalizedMessage(),ex);
+            return new ErrorMessage(ex).build();
         }
-        return null;
     }
 
     /**

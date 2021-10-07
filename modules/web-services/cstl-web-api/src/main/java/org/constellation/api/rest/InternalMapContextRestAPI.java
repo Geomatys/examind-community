@@ -131,7 +131,7 @@ public class InternalMapContextRestAPI extends AbstractRestAPI {
             }
 
             return new ResponseEntity(finalList, OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }

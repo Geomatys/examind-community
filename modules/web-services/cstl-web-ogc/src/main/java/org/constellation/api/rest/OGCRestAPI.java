@@ -347,7 +347,7 @@ public class OGCRestAPI {
     public ResponseEntity getServicesState() {
         try {
             return new ResponseEntity(wsengine.getWorkerStatus(), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             return new ErrorMessage(ex).build();
         }
     }
@@ -362,7 +362,7 @@ public class OGCRestAPI {
     public ResponseEntity getServiceState(final @PathVariable("spec") String serviceType) {
         try {
             return new ResponseEntity(wsengine.getWorkerStatus(serviceType), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             return new ErrorMessage(ex).build();
         }
     }
@@ -378,7 +378,7 @@ public class OGCRestAPI {
     public ResponseEntity getServiceState(final @PathVariable("spec") String serviceType, final @PathVariable("id") String id) {
         try {
             return new ResponseEntity(wsengine.getWorkerStatus(serviceType, id), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             return new ErrorMessage(ex).build();
         }
     }

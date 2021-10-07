@@ -22,7 +22,7 @@ import org.apache.sis.parameter.Parameters;
 import org.constellation.api.ServiceDef;
 import org.constellation.admin.SpringHelper;
 import org.constellation.ws.IWSEngine;
-import org.constellation.exception.ConfigurationException;
+import org.constellation.exception.ConstellationException;
 import static org.constellation.process.metadata.GetMetadataProcessDescriptor.INSTANCE;
 import static org.constellation.process.metadata.GetMetadataProcessDescriptor.METADATA;
 import static org.constellation.process.metadata.GetMetadataProcessDescriptor.METADATA_ID;
@@ -65,7 +65,7 @@ public class GetMetadataProcess extends AbstractCstlProcess {
             final ICSWConfigurer configurer = (ICSWConfigurer) engine.newInstance(ServiceDef.Specification.CSW);
             final Node n = configurer.getMetadata(serviceID, metadataID);
             outputParameters.getOrCreate(METADATA).setValue(n);
-        } catch (ConfigurationException ex) {
+        } catch (ConstellationException ex) {
             throw new ProcessException(null, this, ex);
         }
     }

@@ -37,7 +37,6 @@ import java.util.logging.Level;
 import org.apache.sis.geometry.GeneralDirectPosition;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
-import org.apache.sis.util.collection.BackingStoreException;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.GMLXmlFactory;
 import org.geotoolkit.observation.ObservationStore;
@@ -91,7 +90,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
     }
 
     @Override
-    protected Set<GenericName> extractProcedures() {
+    protected Set<GenericName> extractProcedures() throws DataStoreException {
         final Set<GenericName> result = new HashSet();
         // open csv file
         try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), delimiter, quotechar)) {
@@ -122,10 +121,10 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 }
                 return result;
             }
-            throw new BackingStoreException("csv headers not found");
+            throw new DataStoreException("csv headers not found");
         } catch (IOException ex) {
             LOGGER.log(Level.WARNING, "problem reading csv file", ex);
-            throw new BackingStoreException(ex);
+            throw new DataStoreException(ex);
         }
     }
 

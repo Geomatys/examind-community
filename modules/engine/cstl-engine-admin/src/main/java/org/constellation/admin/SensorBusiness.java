@@ -72,6 +72,7 @@ import org.constellation.business.IProviderBusiness.SPI_NAMES;
 import org.constellation.dto.SensorReference;
 import org.constellation.business.IUserBusiness;
 import org.constellation.dto.service.config.sos.ProcedureTree;
+import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.Data;
 import org.constellation.provider.SensorData;
@@ -335,7 +336,7 @@ public class SensorBusiness implements ISensorBusiness {
     }
 
     @Override
-    public Object getSensorMetadata(String sensorID) throws ConfigurationException {
+    public Object getSensorMetadata(String sensorID) throws ConstellationException {
         final Integer sensor = sensorRepository.findIdByIdentifier(sensorID);
         if (sensor != null) {
             return getSensorMetadata(sensor);
@@ -344,7 +345,7 @@ public class SensorBusiness implements ISensorBusiness {
     }
 
     @Override
-    public Object getSensorMetadata(Integer sensorID) throws ConfigurationException {
+    public Object getSensorMetadata(Integer sensorID) throws ConstellationException {
         final Sensor sensor = sensorRepository.findById(sensorID);
         if (sensor != null) {
             final DataProvider provider = DataProviders.getProvider(sensor.getProviderId());

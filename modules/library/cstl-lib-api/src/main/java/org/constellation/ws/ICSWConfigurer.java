@@ -85,7 +85,7 @@ public interface ICSWConfigurer extends IOGCConfigurer {
 
     List<Node> getFullMetadataList(final String id, final int count, final int startIndex, String type) throws ConfigurationException;
 
-    Node getMetadata(final String id, final String metadataID) throws ConfigurationException;
+    Node getMetadata(final String id, final String metadataID) throws ConstellationException;
 
     int getMetadataCount(final String id) throws ConfigurationException;
 

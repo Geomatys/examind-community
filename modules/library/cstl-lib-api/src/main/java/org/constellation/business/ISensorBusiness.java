@@ -30,6 +30,7 @@ import org.constellation.dto.Sensor;
 import org.constellation.dto.SensorReference;
 import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.dto.service.config.sos.SensorMLTree;
+import org.constellation.exception.ConstellationException;
 
 /**
  * @author Cédric Briançon (Geomatys)
@@ -71,9 +72,9 @@ public interface ISensorBusiness {
 
     Sensor getSensor(Integer sensorid);
 
-    Object getSensorMetadata(Integer sensorID) throws ConfigurationException;
+    Object getSensorMetadata(Integer sensorID) throws ConstellationException;
 
-    Object getSensorMetadata(String sensorID) throws ConfigurationException;
+    Object getSensorMetadata(String sensorID) throws ConstellationException;
 
     void updateSensorMetadata(Integer sensorID, Object sensorMetadata) throws ConfigurationException;
 

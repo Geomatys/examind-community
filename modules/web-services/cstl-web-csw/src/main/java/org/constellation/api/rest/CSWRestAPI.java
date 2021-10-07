@@ -115,7 +115,7 @@ public class CSWRestAPI {
                 return new ResponseEntity(new AcknowlegementType("Success", "CSW index successfully recreated"), OK);
             }
             return new ResponseEntity(new AcknowlegementType("Failure", null), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -130,7 +130,7 @@ public class CSWRestAPI {
                 return new ResponseEntity(new AcknowlegementType("Success", "The specified record have been added to the CSW index"), OK);
             }
             return new ResponseEntity(new AcknowlegementType("Failure", null), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -145,7 +145,7 @@ public class CSWRestAPI {
                 return new ResponseEntity(new AcknowlegementType("Success", "The specified record have been removed from the CSW index"), OK);
             }
             return new ResponseEntity(new AcknowlegementType("Failure", null), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -155,7 +155,7 @@ public class CSWRestAPI {
     public ResponseEntity stopIndexation(final @PathVariable("id") String id) {
         try {
             return new ResponseEntity(getConfigurer().stopIndexation(id), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -172,7 +172,7 @@ public class CSWRestAPI {
                 return new ResponseEntity(new AcknowlegementType("Success", "The specified record have been imported in the CSW"), OK);
             }
             return new ResponseEntity(new AcknowlegementType("Failure", null), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -186,7 +186,7 @@ public class CSWRestAPI {
                 return new ResponseEntity(new AcknowlegementType("Success", "The specified records have been imported in the CSW"), OK);
             }
             return new ResponseEntity(new AcknowlegementType("Failure", null), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -197,7 +197,7 @@ public class CSWRestAPI {
         try {
             final List<BriefNode> nodes = getConfigurer().getMetadataList(id, count, startIndex);
             return new ResponseEntity(nodes, OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -211,7 +211,7 @@ public class CSWRestAPI {
                 return new ResponseEntity(new AcknowlegementType("Success", "The specified record has been deleted from the CSW"), OK);
             }
             return new ResponseEntity(new AcknowlegementType("Failure", null), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -225,7 +225,7 @@ public class CSWRestAPI {
                 return new ResponseEntity(new AcknowlegementType("Success", "All records have been deleted from the CSW"), OK);
             }
             return new ResponseEntity(new AcknowlegementType("Failure", null), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -235,7 +235,7 @@ public class CSWRestAPI {
     public ResponseEntity getMetadata(final @PathVariable("id") String id, final @PathVariable("metaID") String metaID) {
         try {
             return new ResponseEntity(getConfigurer().getMetadata(id, metaID), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -250,7 +250,7 @@ public class CSWRestAPI {
                 return new ResponseEntity(AcknowlegementType.success("The CSW cache has been cleared"), OK);
             }
             return new ResponseEntity(AcknowlegementType.failure("Unable to find a csw service " + id), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -260,7 +260,7 @@ public class CSWRestAPI {
     public ResponseEntity metadataExist(final @PathVariable("id") String id, final @PathVariable("metaID") String metaID) {
         try {
             return new ResponseEntity(getConfigurer().metadataExist(id, metaID), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -277,7 +277,7 @@ public class CSWRestAPI {
             response.flushBuffer();
 
             return new ResponseEntity(OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -287,7 +287,7 @@ public class CSWRestAPI {
     public ResponseEntity getMetadataCount(final @PathVariable("id") String id) {
         try {
             return new ResponseEntity(new SimpleValue(getConfigurer().getMetadataCount(id)), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -297,7 +297,7 @@ public class CSWRestAPI {
     public ResponseEntity getCSWDatasourceType() {
         try {
             return new ResponseEntity(getConfigurer().getAvailableCSWDataSourceType(), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -313,7 +313,7 @@ public class CSWRestAPI {
             conf.setParameterList("CSWCascading", urls);
             serviceBusiness.configure("csw", id, details, conf);
             return new ResponseEntity(new AcknowlegementType("Success", "federated catalog added"), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -408,7 +408,7 @@ public class CSWRestAPI {
             s.append("</table></body></html>");
             IOUtils.write(s.toString(), response.getOutputStream());
             return new ResponseEntity(OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -421,7 +421,7 @@ public class CSWRestAPI {
             final String result =  configurer.getTreeRepresentation(serviceID);
             IOUtils.write(result, response.getOutputStream());
             return new ResponseEntity(OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }

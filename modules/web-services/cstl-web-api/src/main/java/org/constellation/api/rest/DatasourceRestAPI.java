@@ -105,7 +105,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
     public ResponseEntity getDatasource(@PathVariable("id") int id) {
         try {
             return new ResponseEntity(datasourceBusiness.getDatasource(id), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -129,7 +129,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
                 ds.setUrl(dsDirectory.toUri().toString());
             }
             return new ResponseEntity(datasourceBusiness.create(ds), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -146,7 +146,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
         try {
             datasourceBusiness.update(ds);
             return new ResponseEntity(OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -163,7 +163,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
         try {
             datasourceBusiness.delete(id);
             return new ResponseEntity(OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -182,7 +182,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
         try {
             IOUtils.write(datasourceBusiness.testDatasource(ds), response.getOutputStream());
             return new ResponseEntity(OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -218,7 +218,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
             datasourceBusiness.updateDatasourceAnalysisState(id, IDatasourceBusiness.AnalysisState.NOT_STARTED.name());
 
             return new ResponseEntity(OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -250,7 +250,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
             datasourceBusiness.updateDatasourceAnalysisState(id, IDatasourceBusiness.AnalysisState.NOT_STARTED.name());
 
             return new ResponseEntity(OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -304,7 +304,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
             // 3. record the new datasource
             DataSource ds = new DataSource(null, "local_files", dsDirectory.toUri().toString(), userName, pwd, null, false, System.currentTimeMillis(), "NOT_STARTED", null, false);
             return new ResponseEntity(datasourceBusiness.create(ds), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -364,7 +364,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
             datasourceBusiness.updateDatasourceAnalysisState(id, IDatasourceBusiness.AnalysisState.NOT_STARTED.name());
 
             return new ResponseEntity(OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -382,7 +382,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
     public ResponseEntity explore(@PathVariable("id") int id, @RequestParam(name = "path", required = false, defaultValue = "/") String path) {
         try {
             return new ResponseEntity(datasourceBusiness.exploreDatasource(id, path), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -413,7 +413,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
                 }
             }
             return new ResponseEntity(results, OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -437,7 +437,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
         try {
             IOUtils.write(datasourceBusiness.getDatasourceAnalysisState(id), response.getOutputStream());
             return new ResponseEntity(OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -461,7 +461,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
             storeParams.propertyToMap(provConfig.getParameters());
             return new ResponseEntity(datasourceBusiness.analyseDatasourceV3(id, provConfig), OK);
 
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -496,7 +496,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
 
             return new ResponseEntity(outputDatas, OK);
 
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -547,7 +547,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
 
             return new ResponseEntity(OK);
 
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -568,7 +568,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
                 datasourceBusiness.addSelectedPath(id, fb.getPath());
             }
             return new ResponseEntity(OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }

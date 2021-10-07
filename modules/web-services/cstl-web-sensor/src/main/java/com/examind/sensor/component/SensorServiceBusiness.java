@@ -49,6 +49,7 @@ import org.constellation.api.CommonConstants;
 import static org.constellation.api.CommonConstants.OBJECT_TYPE;
 import static org.constellation.api.CommonConstants.PROCEDURE;
 import org.constellation.dto.service.config.sos.ProcedureTree;
+import org.constellation.exception.ConstellationException;
 import org.constellation.util.NamedId;
 import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.gml.xml.v321.TimeInstantType;
@@ -151,7 +152,7 @@ public class SensorServiceBusiness {
         }
     }
 
-    public boolean removeSensor(final Integer id, final String sensorID) throws ConfigurationException {
+    public boolean removeSensor(final Integer id, final String sensorID) throws ConstellationException {
         final ObservationProvider pr = getOMProvider(id);
         try {
             final SensorMLTree tree = sensorBusiness.getSensorMLTree(sensorID);
@@ -188,12 +189,15 @@ public class SensorServiceBusiness {
             if (tree != null && tree.getParent() != null) {
                 final String parentID = tree.getParent().getIdentifier();
                 if (!"root".equals(parentID)) {
-                    final AbstractSensorML sml = (AbstractSensorML) sensorBusiness.getSensorMetadata(parentID);
-                    SensorUtils.removeComponent(sml, sensorID);
-                    sensorBusiness.updateSensorMetadata(parentID, sml);
+                    try {
+                        final AbstractSensorML sml = (AbstractSensorML) sensorBusiness.getSensorMetadata(parentID);
+                        SensorUtils.removeComponent(sml, sensorID);
+                        sensorBusiness.updateSensorMetadata(parentID, sml);
+                    } catch (Exception ex) {
+                        LOGGER.warning("Unable to read/update parent sensor metadata");
+                    }
                 }
             }
-
             return true;
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);

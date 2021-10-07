@@ -190,24 +190,6 @@ public class DataBusiness implements IDataBusiness {
      * {@inheritDoc}
      */
     @Override
-    public Object loadIsoDataMetadata(final String providerId,
-                                               final QName name) throws ConfigurationException {
-        final Data data = dataRepository.findDataFromProvider(name.getNamespaceURI(), name.getLocalPart(), providerId);
-        if (data != null) {
-            return loadIsoDataMetadata(data.getId());
-        }
-        return null;
-    }
-
-    @Override
-    public Object loadIsoDataMetadata(final int dataID) throws ConfigurationException {
-        return metadataBusiness.getIsoMetadataForData(dataID);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public Data getData(int dataId) throws ConfigurationException {
         Data d = dataRepository.findById(dataId);
         if (d == null) {
@@ -1185,7 +1167,7 @@ public class DataBusiness implements IDataBusiness {
         //merge with uploaded metadata
         DefaultMetadata uploadedMetadata;
         try {
-            uploadedMetadata = (DefaultMetadata) loadIsoDataMetadata(dataId);
+            uploadedMetadata = (DefaultMetadata) metadataBusiness.getIsoMetadataForData(dataId);
         } catch (Exception ex) {
             uploadedMetadata = null;
         }

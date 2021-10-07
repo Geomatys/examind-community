@@ -105,7 +105,7 @@ public class UserRestAPI extends AbstractRestAPI {
                             .setTotal(userBusiness.searchCount(text));
 
             return new ResponseEntity(page, OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -120,7 +120,7 @@ public class UserRestAPI extends AbstractRestAPI {
     public ResponseEntity countUsers() {
         try{
             return new ResponseEntity(Collections.singletonMap("count", userBusiness.countUser()), OK);
-        } catch (Throwable ex){
+        } catch (Exception ex){
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -141,7 +141,7 @@ public class UserRestAPI extends AbstractRestAPI {
             } else {
                 return new ErrorMessage(NOT_FOUND).i18N(I18nCodes.User.NOT_FOUND).build();
             }
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -158,7 +158,7 @@ public class UserRestAPI extends AbstractRestAPI {
         try {
             Integer userId = userBusiness.create(user);
             return new ResponseEntity(userId, CREATED);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -177,7 +177,7 @@ public class UserRestAPI extends AbstractRestAPI {
             user.setId(id);
             userBusiness.update(user);
             return new ResponseEntity(user,OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -200,7 +200,7 @@ public class UserRestAPI extends AbstractRestAPI {
                 }
             }
             return new ResponseEntity(OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -221,7 +221,7 @@ public class UserRestAPI extends AbstractRestAPI {
             }
             userBusiness.desactivate(id);
             return new ResponseEntity(NO_CONTENT);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }

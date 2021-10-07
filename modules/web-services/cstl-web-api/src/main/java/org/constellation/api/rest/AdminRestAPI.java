@@ -68,7 +68,7 @@ public class AdminRestAPI extends AbstractRestAPI {
         try {
             final String path = configurationBusiness.getConfigurationDirectory().toString();
             return new ResponseEntity(new AcknowlegementType(true, path), OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -84,7 +84,7 @@ public class AdminRestAPI extends AbstractRestAPI {
         try {
             Map<String, Object> results = configurationBusiness.getProperties(false);
             return new ResponseEntity(results,OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -104,7 +104,7 @@ public class AdminRestAPI extends AbstractRestAPI {
                 return new ResponseEntity(new StringList((List<String>) obj),OK);
             }
             return new ResponseEntity(new SimpleValue(obj),OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -124,7 +124,7 @@ public class AdminRestAPI extends AbstractRestAPI {
         try {
             configurationBusiness.setProperty(key, value.getValue());
             return new ResponseEntity(OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -140,7 +140,7 @@ public class AdminRestAPI extends AbstractRestAPI {
             }
 
             return new ResponseEntity(JsonUtils.toJSon(javaProperties),OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -167,7 +167,7 @@ public class AdminRestAPI extends AbstractRestAPI {
                 propertyRepository.update((String) entry.getKey(), (String) entry.getValue());
             }
             return new ResponseEntity(OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }

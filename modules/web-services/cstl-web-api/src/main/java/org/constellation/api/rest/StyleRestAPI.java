@@ -137,7 +137,7 @@ public final class StyleRestAPI extends AbstractRestAPI {
             }else {
                 return new ErrorMessage(UNPROCESSABLE_ENTITY).i18N(I18nCodes.Style.ALREADY_EXIST).build();
             }
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -170,7 +170,7 @@ public final class StyleRestAPI extends AbstractRestAPI {
             return new ResponseEntity(style,OK);
         } catch(TargetNotFoundException ex) {
             return new ErrorMessage(ex).i18N(I18nCodes.Style.NOT_FOUND).build();
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -194,7 +194,7 @@ public final class StyleRestAPI extends AbstractRestAPI {
             styleBusiness.updateStyle(id, style);
             stylejson.setId(id);
             return new ResponseEntity(id,OK);
-        }catch(Throwable ex) {
+        }catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -212,7 +212,7 @@ public final class StyleRestAPI extends AbstractRestAPI {
         try {
             styleBusiness.deleteStyle(id);
             return new ResponseEntity(OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -229,7 +229,7 @@ public final class StyleRestAPI extends AbstractRestAPI {
         try {
             final List<StyleBrief> styles = styleBusiness.getAvailableStyles("sld",null);
             return new ResponseEntity(JsonView.map(styles,STYLE_DEFAULT_FIELDS),OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -246,7 +246,7 @@ public final class StyleRestAPI extends AbstractRestAPI {
     public ResponseEntity existStyleName(@PathVariable(value="name") String name){
         try {
             return new ResponseEntity(styleBusiness.existsStyle("sld", name),OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -331,7 +331,7 @@ public final class StyleRestAPI extends AbstractRestAPI {
             }else {
                 return new ErrorMessage(UNPROCESSABLE_ENTITY).i18N(I18nCodes.Style.ALREADY_EXIST).build();
             }
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -357,7 +357,7 @@ public final class StyleRestAPI extends AbstractRestAPI {
             return new ResponseEntity(style,header,OK);
         } catch(TargetNotFoundException ex) {
             return new ErrorMessage(ex).status(UNPROCESSABLE_ENTITY).i18N(I18nCodes.Style.NOT_FOUND).build();
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -380,7 +380,7 @@ public final class StyleRestAPI extends AbstractRestAPI {
             return new ResponseEntity(OK);
         } catch(TargetNotFoundException ex) {
             return new ErrorMessage(ex).status(UNPROCESSABLE_ENTITY).i18N(I18nCodes.Style.NOT_FOUND).build();
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -402,7 +402,7 @@ public final class StyleRestAPI extends AbstractRestAPI {
             return new ResponseEntity(OK);
         } catch(TargetNotFoundException ex) {
             return new ErrorMessage(ex).status(UNPROCESSABLE_ENTITY).i18N(I18nCodes.Style.NOT_FOUND).build();
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }

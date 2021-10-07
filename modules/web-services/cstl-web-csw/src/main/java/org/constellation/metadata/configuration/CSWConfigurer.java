@@ -441,7 +441,7 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
 
 
     @Override
-    public Node getMetadata(final String id, final String metadataID) throws ConfigurationException {
+    public Node getMetadata(final String id, final String metadataID) throws ConstellationException {
         return metadataBusiness.getMetadataNode(metadataID);
     }
 

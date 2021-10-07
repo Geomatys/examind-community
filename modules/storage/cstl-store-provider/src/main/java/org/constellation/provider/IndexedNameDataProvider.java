@@ -21,6 +21,7 @@ package org.constellation.provider;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.constellation.exception.ConstellationStoreException;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.GenericName;
@@ -53,7 +54,7 @@ public abstract class IndexedNameDataProvider extends AbstractDataProvider {
      * {@inheritDoc }
      */
     @Override
-    public Data get(final GenericName key) {
+    public Data get(final GenericName key) throws ConstellationStoreException {
         return get(key, null);
     }
 

@@ -180,7 +180,7 @@ public interface Data<T extends Resource> {
      * @return Statistics result. For now, only one implementation exists, and it returns specific
      * {@link ImageStatistics}.
      */
-    Object computeStatistic(int dataId, DataRepository dataRepository);
+    Object computeStatistic(int dataId, DataRepository dataRepository) throws ConstellationStoreException;
 
     /**
      * Create a MapItem with the given style and parameters.

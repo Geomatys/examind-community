@@ -102,7 +102,7 @@ public class MetadataStoreProvider extends IndexedNameDataProvider implements Me
      * {@inheritDoc }
      */
     @Override
-    public Data get(GenericName key, Date version) {
+    public Data get(GenericName key, Date version) throws ConstellationStoreException {
         key = fullyQualified(key);
         if (key == null) {
             return null;
@@ -113,9 +113,8 @@ public class MetadataStoreProvider extends IndexedNameDataProvider implements Me
             return new DefaultMetadataData(key, store, metadata.node);
 
         } catch (MetadataIoException ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
+            throw new ConstellationStoreException(ex);
         }
-        return null;
     }
 
     @Override

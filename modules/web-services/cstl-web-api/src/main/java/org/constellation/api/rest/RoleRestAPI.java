@@ -51,7 +51,7 @@ public class RoleRestAPI extends AbstractRestAPI {
         try {
             final List<Role> roles = roleRepository.findAll();
             return new ResponseEntity(roles, OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }

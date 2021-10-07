@@ -140,7 +140,7 @@ public class CoverageDataTest {
         return null;
     }
 
-    private StatInfo getStatInfo(DefaultCoverageData data) throws JsonProcessingException  {
+    private StatInfo getStatInfo(DefaultCoverageData data) throws Exception  {
         ImageStatistics stat = data.computeStatistic(-1, null);
         final ObjectMapper mapper = new ObjectMapper();
         final SimpleModule module = new SimpleModule();

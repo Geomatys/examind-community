@@ -101,7 +101,7 @@ public class MapContextRestAPI extends AbstractRestAPI {
     public ResponseEntity getMapContexts() {
         try {
             return new ResponseEntity(contextBusiness.getAllContexts(),OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -117,7 +117,7 @@ public class MapContextRestAPI extends AbstractRestAPI {
     public ResponseEntity getMapContext(@PathVariable("id") final int id) {
         try {
             return new ResponseEntity(contextBusiness.getContextById(id),OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }

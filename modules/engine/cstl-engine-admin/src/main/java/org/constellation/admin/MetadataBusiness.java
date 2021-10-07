@@ -617,7 +617,7 @@ public class MetadataBusiness implements IMetadataBusiness {
      * {@inheritDoc}
      */
     @Override
-    public Object getMetadata(final int id) throws ConfigurationException {
+    public Object getMetadata(final int id) throws ConstellationException {
         final Metadata metadata = metadataRepository.findById(id);
         if (metadata != null) {
             return getMetadata(metadata.getMetadataId());
@@ -629,7 +629,7 @@ public class MetadataBusiness implements IMetadataBusiness {
      * {@inheritDoc}
      */
     @Override
-    public Object getMetadata(final String metadataId) throws ConfigurationException {
+    public Object getMetadata(final String metadataId) throws ConstellationException {
         final Node n = getMetadataNode(metadataId);
         if (n != null) {
             return unmarshallMetadata(n);
@@ -657,7 +657,7 @@ public class MetadataBusiness implements IMetadataBusiness {
      * {@inheritDoc}
      */
     @Override
-    public Node getMetadataNode(final String metadataId) throws ConfigurationException {
+    public Node getMetadataNode(final String metadataId) throws ConstellationException {
         final Metadata metadata = metadataRepository.findByMetadataId(metadataId);
         if (metadata != null) {
             final DataProvider provider = DataProviders.getProvider(metadata.getProviderId());
@@ -704,7 +704,7 @@ public class MetadataBusiness implements IMetadataBusiness {
      * {@inheritDoc}
      */
     @Override
-    public Object getIsoMetadataForData(final int dataId) throws ConfigurationException {
+    public Object getIsoMetadataForData(final int dataId) throws ConstellationException {
         final List<Metadata> metadatas = metadataRepository.findByDataId(dataId);
         for (Metadata metadata : metadatas) {
             Object obj = getMetadata(metadata.getId());
@@ -721,7 +721,7 @@ public class MetadataBusiness implements IMetadataBusiness {
      * {@inheritDoc}
      */
     @Override
-    public List<Object> getIsoMetadatasForData(final int dataId) throws ConfigurationException {
+    public List<Object> getIsoMetadatasForData(final int dataId) throws ConstellationException {
         List<Object> results = new ArrayList<>();
         final List<Metadata> metadatas = metadataRepository.findByDataId(dataId);
         for (Metadata metadata : metadatas) {
@@ -731,7 +731,7 @@ public class MetadataBusiness implements IMetadataBusiness {
     }
 
     @Override
-    public Object getIsoMetadataForService(final int serviceId) throws ConfigurationException {
+    public Object getIsoMetadataForService(final int serviceId) throws ConstellationException {
         final Metadata metadata = metadataRepository.findByServiceId(serviceId);
         if (metadata != null) {
             return getMetadata(metadata.getId());
@@ -743,7 +743,7 @@ public class MetadataBusiness implements IMetadataBusiness {
      * {@inheritDoc}
      */
     @Override
-    public Object getIsoMetadataForDataset(final int datasetId) throws ConfigurationException {
+    public Object getIsoMetadataForDataset(final int datasetId) throws ConstellationException {
         final Metadata metadata = metadataRepository.findByDatasetId(datasetId);
         if (metadata != null) {
             return getMetadata(metadata.getId());
@@ -1353,7 +1353,7 @@ public class MetadataBusiness implements IMetadataBusiness {
      */
     @Override
     @Transactional
-    public MetadataLightBrief duplicateMetadata(final int id, final String newTitle, final String newType) throws ConfigurationException {
+    public MetadataLightBrief duplicateMetadata(final int id, final String newTitle, final String newType) throws ConstellationException {
         final Metadata meta = metadataRepository.findById(id);
         if (meta != null) {
             List<MetadataBbox> bboxes = metadataRepository.getBboxes(id);

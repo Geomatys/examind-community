@@ -80,7 +80,7 @@ public class AuthRestAPI extends AbstractRestAPI{
             return new ResponseEntity<>(UNAUTHORIZED);
         } catch (DisabledException ex) {
             return new ResponseEntity<>(FORBIDDEN);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -93,7 +93,7 @@ public class AuthRestAPI extends AbstractRestAPI{
             return new ResponseEntity(HttpStatus.OK);
         } catch (UnknownAccountException ex) {
             return new ResponseEntity(HttpStatus.UNAUTHORIZED);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -125,7 +125,7 @@ public class AuthRestAPI extends AbstractRestAPI{
                 Collections.singletonList(email));
             return new ResponseEntity(OK);
 
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }

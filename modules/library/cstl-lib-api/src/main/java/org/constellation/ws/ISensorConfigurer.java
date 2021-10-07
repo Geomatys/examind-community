@@ -18,7 +18,7 @@
  */
 package org.constellation.ws;
 
-import org.constellation.exception.ConfigurationException;
+import org.constellation.exception.ConstellationException;
 
 /**
  *
@@ -26,5 +26,5 @@ import org.constellation.exception.ConfigurationException;
  */
 public interface ISensorConfigurer extends IOGCConfigurer {
 
-    void removeSensor(final Integer id, final String sensorID) throws ConfigurationException;
+    void removeSensor(final Integer id, final String sensorID) throws ConstellationException;
 }

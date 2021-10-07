@@ -95,21 +95,25 @@ public abstract class DefaultGeoData<T extends Resource> extends AbstractData<T>
         else return null;
     }
 
-    protected Optional<Query> resolveQuery(final Map portrayParameters) {
-        if (portrayParameters == null) return Optional.empty();
-        final Object rawValues = portrayParameters.get(KEY_EXTRA_PARAMETERS);
-        if (rawValues == null) return Optional.empty();
-        if (!(rawValues instanceof Map)) throw new IllegalArgumentException(KEY_EXTRA_PARAMETERS+" parameter must be a Map");
-        final Map<?, ?> extras = (Map) rawValues;
-        return extras.entrySet().stream()
-                .map(this::toFilter)
-                .filter(Objects::nonNull)
-                .reduce(FilterUtilities.FF::and)
-                .map(filter-> {
-                    final SimpleQuery query = new SimpleQuery();
-                    query.setFilter((Filter) filter);
-                    return query;
-                });
+    protected Optional<Query> resolveQuery(final Map portrayParameters) throws ConstellationStoreException {
+        try {
+            if (portrayParameters == null) return Optional.empty();
+            final Object rawValues = portrayParameters.get(KEY_EXTRA_PARAMETERS);
+            if (rawValues == null) return Optional.empty();
+            if (!(rawValues instanceof Map)) throw new IllegalArgumentException(KEY_EXTRA_PARAMETERS+" parameter must be a Map");
+            final Map<?, ?> extras = (Map) rawValues;
+            return extras.entrySet().stream()
+                    .map(this::toFilter)
+                    .filter(Objects::nonNull)
+                    .reduce(FilterUtilities.FF::and)
+                    .map(filter-> {
+                        final SimpleQuery query = new SimpleQuery();
+                        query.setFilter((Filter) filter);
+                        return query;
+                    });
+        } catch (BackingStoreException ex) {
+            throw new ConstellationStoreException(ex);
+        }
     }
 
     /**
@@ -126,9 +130,7 @@ public abstract class DefaultGeoData<T extends Resource> extends AbstractData<T>
         final String title = getName().tip().toString();
         layer.setIdentifier(title);
         layer.setTitle(title);
-
         resolveQuery(params).ifPresent(query -> layer.setQuery(query));
-
         return layer;
     }
 

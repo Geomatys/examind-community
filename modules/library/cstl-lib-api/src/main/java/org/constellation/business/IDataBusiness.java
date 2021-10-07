@@ -181,23 +181,6 @@ public interface IDataBusiness {
     Integer getDataId(QName fullName, int providerId) throws ConstellationException;
 
     /**
-     * Returns a metadata object for given providerId and data name.
-     * @param providerId given data provider id.
-     * @param name given data name.
-     * @return A metadata object
-     * @throws org.constellation.exception.ConfigurationException is thrown for UnsupportedEncodingException or JAXBException.
-     */
-    Object loadIsoDataMetadata(String providerId, QName name)  throws ConfigurationException;
-
-    /**
-     * Returns a metadata object for given data id.
-     * @param dataID identifier of the data
-     * @return A metadata object
-     * @throws org.constellation.exception.ConfigurationException is thrown for UnsupportedEncodingException or JAXBException.
-     */
-    Object loadIsoDataMetadata(int dataID)  throws ConfigurationException;
-
-    /**
      * Proceed to remove all data.
      * @throws org.constellation.exception.ConfigurationException
      */

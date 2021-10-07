@@ -98,7 +98,7 @@ public class ServiceRestAPI extends AbstractRestAPI {
         try {
             final ServiceReport report = new ServiceReport(wsengine.getRegisteredServices());
             return new ResponseEntity(report,OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -123,7 +123,7 @@ public class ServiceRestAPI extends AbstractRestAPI {
                 instances.add(instance);
             }
             return new ResponseEntity(instances, OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -156,7 +156,7 @@ public class ServiceRestAPI extends AbstractRestAPI {
                 serviceLayers.add(servLay);
             }
             return new ResponseEntity(serviceLayers, OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }

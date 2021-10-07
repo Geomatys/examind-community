@@ -154,7 +154,7 @@ public class SensorRestAPI extends AbstractRestAPI {
                 sensorBusiness.delete(id);
             }
             return new ResponseEntity(OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -176,7 +176,7 @@ public class SensorRestAPI extends AbstractRestAPI {
             } else {
                 return new ResponseEntity(NOT_FOUND);
             }
-        } catch (ConfigurationException ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, "error while unmarshalling SensorML", ex);
             return new ErrorMessage(ex).build();
         }
@@ -245,7 +245,7 @@ public class SensorRestAPI extends AbstractRestAPI {
             } else {
                 return new ErrorMessage().message("There is no sensor for id " + id).build();
             }
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING,"Error while saving sensorML",ex);
             return new ErrorMessage(ex).build();
         }
@@ -291,7 +291,7 @@ public class SensorRestAPI extends AbstractRestAPI {
         try {
             final Integer providerId = dataBusiness.getDataProvider(dataId);
             provider = DataProviders.getProvider(providerId);
-        } catch (ConfigurationException ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, "Error while accessing provider", ex);
             return new ErrorMessage(ex).message("Error while accessing provider.").build();
         }
@@ -302,7 +302,7 @@ public class SensorRestAPI extends AbstractRestAPI {
             } else {
                 return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider (and netCDF coverage) for now"),OK);
             }
-        } catch (ConstellationStoreException ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, "Error while reading netCDF", ex);
             return new ResponseEntity(new AcknowlegementType("Failure", "Error while reading netCDF"),OK);
         }
@@ -315,7 +315,7 @@ public class SensorRestAPI extends AbstractRestAPI {
             }
             IOUtils.write("The sensors has been succesfully generated", response.getOutputStream());
             return new ResponseEntity(OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -365,7 +365,7 @@ public class SensorRestAPI extends AbstractRestAPI {
         final List<Sensor> sensorsImported;
         try{
             sensorsImported = proceedToImportSensor(path);
-        } catch (IOException | JAXBException | ConfigurationException ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, "Error while reading sensorML file", ex);
             return new ErrorMessage(ex).message("fail to read sensorML file").build();
         }
@@ -468,7 +468,7 @@ public class SensorRestAPI extends AbstractRestAPI {
                 }
             }
             return new ResponseEntity(phenomenons,OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -508,7 +508,7 @@ public class SensorRestAPI extends AbstractRestAPI {
                 }
             }
             return new ResponseEntity(sensorIDS,OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -548,7 +548,7 @@ public class SensorRestAPI extends AbstractRestAPI {
             } else {
                 return new ResponseEntity(NOT_FOUND);
             }
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -600,7 +600,7 @@ public class SensorRestAPI extends AbstractRestAPI {
             } else {
                 return new ResponseEntity(NOT_FOUND);
             }
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }

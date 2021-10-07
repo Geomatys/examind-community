@@ -24,6 +24,7 @@ import java.util.logging.Level;
 
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.Instance;
+import org.constellation.exception.ConstellationException;
 import org.constellation.ogc.configuration.OGCConfigurer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.constellation.ws.ISensorConfigurer;
@@ -54,7 +55,7 @@ public class SensorServiceConfigurer extends OGCConfigurer implements ISensorCon
     }
 
     @Override
-    public void removeSensor(final Integer id, final String sensorID) throws ConfigurationException {
+    public void removeSensor(final Integer id, final String sensorID) throws ConstellationException {
         sensorServBusiness.removeSensor(id, sensorID);
     }
 

@@ -70,7 +70,7 @@ public class InternalMetadataRestAPI extends AbstractRestAPI {
         try {
             final MetadataLists mdList = metadataBusiness.getMetadataCodeLists();
             return new ResponseEntity(mdList, OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }

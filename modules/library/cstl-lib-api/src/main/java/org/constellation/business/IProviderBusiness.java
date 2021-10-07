@@ -103,7 +103,7 @@ public interface IProviderBusiness {
      */
     Integer create(final String id, final String providerSPIName, final ParameterValueGroup providerConfig) throws ConfigurationException;
 
-    Set<GenericName> test(String providerIdentifier, ProviderConfiguration configuration) throws ConfigurationException;
+    Set<GenericName> test(String providerIdentifier, ProviderConfiguration configuration) throws ConstellationException;
 
     void update(final Integer id, String providerConfig) throws ConfigurationException;
 

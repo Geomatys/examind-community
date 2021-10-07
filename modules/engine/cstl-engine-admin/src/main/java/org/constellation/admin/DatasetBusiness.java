@@ -176,7 +176,7 @@ public class DatasetBusiness implements IDatasetBusiness {
      * {@inheritDoc}
      */
     @Override
-    public Object getMetadata(final String datasetIdentifier) throws ConfigurationException {
+    public Object getMetadata(final String datasetIdentifier) throws ConstellationException {
         final Integer dsId = getDatasetId(datasetIdentifier);
         if (dsId != null) {
             return metadataBusiness.getIsoMetadataForDataset(dsId);
@@ -185,7 +185,7 @@ public class DatasetBusiness implements IDatasetBusiness {
     }
 
     @Override
-    public Object getMetadata(final int datasetId) throws ConfigurationException {
+    public Object getMetadata(final int datasetId) throws ConstellationException {
         return metadataBusiness.getIsoMetadataForDataset(datasetId);
     }
 

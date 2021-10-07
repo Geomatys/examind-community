@@ -44,7 +44,7 @@ public class InternalUserRestAPI extends AbstractRestAPI {
             } else {
                 return new ErrorMessage(NOT_FOUND).i18N(I18nCodes.User.NOT_FOUND).build();
             }
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -96,7 +96,7 @@ public class InternalUserRestAPI extends AbstractRestAPI {
                 userBusiness.update(user);
                 return new ResponseEntity(OK);
             }
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }

@@ -476,7 +476,7 @@ public class InternalDataRestAPI extends AbstractRestAPI {
                 }
             }
             return true;
-        } catch (ConfigurationException | DataStoreException e) {
+        } catch (Exception e) {
             LOGGER.log(Level.INFO, "Cannot get CRS for provider " + providerId);
         }
         return false;

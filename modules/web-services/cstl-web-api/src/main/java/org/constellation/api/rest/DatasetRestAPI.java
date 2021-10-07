@@ -140,7 +140,7 @@ public class DatasetRestAPI extends AbstractRestAPI {
                 LOGGER.log(Level.WARNING, "Cannot create dataset with empty identifier");
                 return new ResponseEntity("failed", HttpStatus.INTERNAL_SERVER_ERROR);
             }
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -340,7 +340,7 @@ public class DatasetRestAPI extends AbstractRestAPI {
                     .setContent(results)
                     .setTotal(total), OK);
 
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, "Error while searching datasets", ex);
             return new ErrorMessage(ex).build();
         }

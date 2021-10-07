@@ -90,7 +90,7 @@ public class PortrayalRestAPI {
                 dataId = brief.getId();
             }
             return new ResponseObject(mapBusiness.portraySLD(dataId, crs, bbox, width, height, sldBody, sldVersion, filter), MediaType.IMAGE_PNG, OK).getResponseEntity(response);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -131,7 +131,7 @@ public class PortrayalRestAPI {
                 dataId = brief.getId();
             }
             return new ResponseObject(mapBusiness.portray(dataId, crs, bbox, width, height, sldProvider, styleId, filter), MediaType.IMAGE_PNG, OK).getResponseEntity(response);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }

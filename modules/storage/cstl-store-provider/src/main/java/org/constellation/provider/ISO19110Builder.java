@@ -38,6 +38,7 @@ import org.apache.sis.storage.Resource;
 import org.apache.sis.util.iso.DefaultNameFactory;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.exception.ConfigurationException;
+import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.geotoolkit.feature.catalog.FeatureAttributeImpl;
 import org.geotoolkit.feature.catalog.FeatureCatalogueImpl;
@@ -69,7 +70,7 @@ public class ISO19110Builder {
 
     private static final Logger LOGGER = Logging.getLogger("org.constellation.provider");
 
-    public static FeatureCatalogue createCatalogueFromProvider(final int providerID) throws ConfigurationException {
+    public static FeatureCatalogue createCatalogueFromProvider(final int providerID) throws ConstellationException {
         DataProvider provider = DataProviders.getProvider(providerID);
         if (provider != null) {
             try {

@@ -115,7 +115,7 @@ public class MapRestAPI {
         try {
             Integer serviceId = serviceBusiness.getServiceIdByIdentifierAndType(spec, id);
             return new ResponseEntity(layerBusiness.getLayers(serviceId, securityManager.getCurrentUserLogin()), OK);
-        } catch(Throwable ex){
+        } catch(Exception ex){
             return new ErrorMessage(ex).build();
         }
     }
@@ -140,7 +140,7 @@ public class MapRestAPI {
                 sumLayers.add(new LayerSummary(lay,db, layerStyleBrief));
             }
             return new ResponseEntity(sumLayers, OK);
-        } catch(Throwable ex){
+        } catch(Exception ex){
             return new ErrorMessage(ex).build();
         }
     }
@@ -161,7 +161,7 @@ public class MapRestAPI {
             if (db == null) return new ResponseEntity("Target data not found",NOT_FOUND);
             layerBusiness.add(db.getId(), layer.getLayerAlias(), layer.getLayerNamespace(), layer.getLayerId(), sid, null);
             return new ResponseEntity(AcknowlegementType.success(String.format("Layer \"%s\" sucessfully added to %s service %s.", layer.getLayerId(), spec, id)), OK);
-        } catch(Throwable ex){
+        } catch(Exception ex){
             return new ErrorMessage(ex).build();
         }
     }
@@ -176,7 +176,7 @@ public class MapRestAPI {
         try {
             Integer layerId = layerBusiness.add(layer.getDataId(),  layer.getAlias(), layer.getNamespace(), layer.getName(), layer.getService(), null);
             return new ResponseEntity(AcknowlegementType.success("Layer \"" + layerId + "\" successfully added to service \"" + layer.getService() + "\"."), OK);
-        } catch(Throwable ex){
+        } catch(Exception ex){
             return new ErrorMessage(ex).build();
         }
     }
@@ -194,7 +194,7 @@ public class MapRestAPI {
         try {
             layerBusiness.update(layerId, layer);
             return new ResponseEntity("Layer \"" + layerId + "\" title successfully updated.", OK);
-        } catch(Throwable ex){
+        } catch(Exception ex){
             return new ErrorMessage(ex).build();
         }
     }
@@ -223,7 +223,7 @@ public class MapRestAPI {
                 layerBusiness.remove(nip.layerId);
             }
             return new ResponseEntity(OK);
-        } catch(Throwable ex){
+        } catch(Exception ex){
             return new ErrorMessage(ex).build();
         }
     }
@@ -238,7 +238,7 @@ public class MapRestAPI {
         try {
             layerBusiness.remove(layerId);
             return new ResponseEntity(OK);
-        } catch(Throwable ex){
+        } catch(Exception ex){
             return new ErrorMessage(ex).build();
         }
     }
@@ -259,7 +259,7 @@ public class MapRestAPI {
         try {
             styleBusiness.unlinkToLayer(params.getStyleId(), params.getLayerId());
             return new ResponseEntity(OK);
-        } catch(Throwable ex){
+        } catch(Exception ex){
             return new ErrorMessage(ex).build();
         }
     }
@@ -370,7 +370,7 @@ public class MapRestAPI {
                 }
             }
             return new ResponseEntity(map, OK);
-        } catch(Throwable ex){
+        } catch(Exception ex){
             return new ErrorMessage(ex).build();
         }
     }

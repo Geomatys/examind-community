@@ -126,7 +126,7 @@ public class PortrayalMessageConverter implements HttpMessageConverter<Portrayal
             } catch (IOException ex) {
                 LOGGER.log(Level.WARNING, "Error while Writing portrayal response:{0}", ex.getMessage());
             }
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Error while Writing portrayal response", ex);
             throw new IOException(ex);
         }

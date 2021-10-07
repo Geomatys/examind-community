@@ -205,7 +205,7 @@ public class TaskRestAPI extends AbstractRestAPI {
             final String jsonString = ParamUtilities.writeParameterDescriptorJSON(idesc);
             IOUtils.write(jsonString, response.getOutputStream());
             return new ResponseEntity(OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).message("Failure, Could not find chain for given authority/code.").build();
         }
@@ -258,7 +258,7 @@ public class TaskRestAPI extends AbstractRestAPI {
             ChainProcess cp = ChainProcessRetriever.convertToDto(chain);
             processBusiness.createChainProcess(cp);
             return new ResponseEntity(OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).message("Failure, Could not find chain for given authority/code.").build();
         }
@@ -297,7 +297,7 @@ public class TaskRestAPI extends AbstractRestAPI {
             Integer id = processBusiness.addTaskParameter(taskParameter);
             return new ResponseEntity(id, OK);
 
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -316,7 +316,7 @@ public class TaskRestAPI extends AbstractRestAPI {
             processBusiness.testTaskParameter(taskParameter);
             processBusiness.updateTaskParameter(taskParameter);
             return new ResponseEntity(OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -392,7 +392,7 @@ public class TaskRestAPI extends AbstractRestAPI {
         try {
             int userId = assertAuthentificated(req);
             processBusiness.executeTaskParameter(taskParameter, title, userId);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -416,7 +416,7 @@ public class TaskRestAPI extends AbstractRestAPI {
         try {
             int userId = assertAuthentificated(req);
             processBusiness.scheduleTaskParameter(taskParameter, title, userId, true);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -491,7 +491,7 @@ public class TaskRestAPI extends AbstractRestAPI {
                 }
             }
             return new ResponseEntity(servicePRef, OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -514,7 +514,7 @@ public class TaskRestAPI extends AbstractRestAPI {
                 }
             }
             return new ResponseEntity(mpRef, OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -620,7 +620,7 @@ public class TaskRestAPI extends AbstractRestAPI {
         try {
             processBusiness.cancelTaskForTaskParameter(id);
             return new ResponseEntity(OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -636,7 +636,7 @@ public class TaskRestAPI extends AbstractRestAPI {
         try {
             processBusiness.cancelTask(taskId);
             return new ResponseEntity(OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }

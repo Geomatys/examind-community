@@ -111,7 +111,7 @@ public class MetadataConfigurationUpgrade {
                                 } else {
                                     LOGGER.warning("Unable to find a DataProvider for ID:" + sp.getId());
                                 }
-                            } catch (Throwable ex) {
+                            } catch (Exception ex) {
                                 LOGGER.log(Level.WARNING,ex.getLocalizedMessage(),ex);
                             }
                         }

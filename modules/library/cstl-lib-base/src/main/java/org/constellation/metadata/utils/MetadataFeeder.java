@@ -1188,7 +1188,7 @@ public class MetadataFeeder {
             };
             return setExtent(envelope, copyBehavior);
         } catch (BackingStoreException e) {
-            throw e.unwrapOrRethrow(DataStoreException.class);
+            throw new DataStoreException(e);
         }
     }
 

@@ -43,7 +43,6 @@ import org.apache.sis.metadata.iso.identification.DefaultDataIdentification;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.IllegalNameException;
-import org.apache.sis.util.collection.BackingStoreException;
 import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.storage.DataStoreFactory;
@@ -99,11 +98,11 @@ public class DataStoreProvider extends AbstractDataProvider {
      * {@link Session}, the user would operate on.
      */
     @Override
-    public DataStore getMainStore() {
+    public DataStore getMainStore() throws ConstellationStoreException {
         try (Session session = storage.read()) {
             return session.handle().store;
         } catch (DataStoreException e) {
-            throw new BackingStoreException("Cannot read information from provider", e);
+            throw new ConstellationStoreException("Cannot read information from provider", e);
         }
     }
 
@@ -111,11 +110,11 @@ public class DataStoreProvider extends AbstractDataProvider {
      * {@inheritDoc }
      */
     @Override
-    public Set<GenericName> getKeys() {
+    public Set<GenericName> getKeys() throws ConstellationStoreException {
         try (Session session = storage.read()) {
             return session.handle().getNames();
         } catch (DataStoreException e) {
-            throw new BackingStoreException("Cannot read information from provider", e);
+            throw new ConstellationStoreException("Cannot read information from provider", e);
         }
     }
 
@@ -123,7 +122,7 @@ public class DataStoreProvider extends AbstractDataProvider {
      * {@inheritDoc }
      */
     @Override
-    public Data get(final GenericName key) {
+    public Data get(final GenericName key) throws ConstellationStoreException {
         return get(key, null);
     }
 
@@ -131,14 +130,14 @@ public class DataStoreProvider extends AbstractDataProvider {
      * {@inheritDoc }
      */
     @Override
-    public Data get(GenericName key, Date version) {
+    public Data get(GenericName key, Date version) throws ConstellationStoreException {
         try (Session session = storage.read()) {
             return session.handle().fetch(key, version);
         } catch (IllegalNameException e) {
             LOGGER.log(Level.FINE, "Queried an unknown name: "+key, e);
             return null;
         } catch (DataStoreException e) {
-            throw new BackingStoreException(e);
+            throw new ConstellationStoreException(e);
         }
     }
 
@@ -158,12 +157,12 @@ public class DataStoreProvider extends AbstractDataProvider {
      * {@inheritDoc }
      */
     @Override
-    public void reload() {
+    public void reload() throws ConstellationStoreException {
         try (Session session = storage.write()) {
             storage.disposeDataStore(session);
             session.handle(); // Force recreating data
         } catch (DataStoreException e) {
-            throw new BackingStoreException("Reloading of data provider failed", e);
+            throw new ConstellationStoreException("Reloading of data provider failed", e);
         }
     }
 

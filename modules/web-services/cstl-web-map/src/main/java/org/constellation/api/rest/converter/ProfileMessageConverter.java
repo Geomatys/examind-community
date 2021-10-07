@@ -68,7 +68,7 @@ public class ProfileMessageConverter implements HttpMessageConverter<CoveragePro
             final ObjectMapper om = new ObjectMapper();
             outputMessage.getHeaders().setContentType(MediaType.APPLICATION_JSON);
             om.writeValue(outputMessage.getBody(), r);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Error while Writing portrayal response", ex);
             throw new IOException(ex);
         }

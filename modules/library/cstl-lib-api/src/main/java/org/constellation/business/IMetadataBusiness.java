@@ -218,7 +218,7 @@ public interface IMetadataBusiness {
      * @return The geotk metadata object or {@code null} .
      * @throws org.constellation.exception.ConfigurationException
      */
-    Object getMetadata(final int id) throws ConfigurationException;
+    Object getMetadata(final int id) throws ConstellationException;
 
     /**
      * Return the geotk metadata object the specified pojo identifier.
@@ -228,7 +228,7 @@ public interface IMetadataBusiness {
      * @return The geotk metadata object or {@code null} .
      * @throws org.constellation.exception.ConfigurationException
      */
-    Object getMetadata(final String metadataId) throws ConfigurationException;
+    Object getMetadata(final String metadataId) throws ConstellationException;
 
     MetadataLightBrief getMetadataPojo(final String metadataId) throws ConfigurationException;
 
@@ -242,7 +242,7 @@ public interface IMetadataBusiness {
      * @return The geotk metadata object or {@code null} .
      * @throws org.constellation.exception.ConfigurationException
      */
-    Node getMetadataNode(final String metadataId) throws ConfigurationException;
+    Node getMetadataNode(final String metadataId) throws ConstellationException;
 
     /**
      * Return the geotk metadata object the specified pojo identifier.
@@ -417,7 +417,7 @@ public interface IMetadataBusiness {
      * @deprecated A data could have multiple metadatas.
      */
     @Deprecated
-    Object getIsoMetadataForData(final int dataId) throws ConfigurationException;
+    Object getIsoMetadataForData(final int dataId) throws ConstellationException;
 
     /**
      * Return a list of geotk metadata object linked with the specified data.
@@ -427,7 +427,7 @@ public interface IMetadataBusiness {
      * @return The geotk metadata object or {@code null} if there is no metadata linked to the specified data.
      * @throws org.constellation.exception.ConfigurationException
      */
-    List<Object> getIsoMetadatasForData(final int dataId) throws ConfigurationException;
+    List<Object> getIsoMetadatasForData(final int dataId) throws ConstellationException;
 
     /**
      * Return the geotk metadata object linked with the specified service.
@@ -437,7 +437,7 @@ public interface IMetadataBusiness {
      * @return The geotk metadata object or {@code null} if there is no metadata linked to the specified data.
      * @throws org.constellation.exception.ConfigurationException
      */
-    Object getIsoMetadataForService(final int serviceId) throws ConfigurationException;
+    Object getIsoMetadataForService(final int serviceId) throws ConstellationException;
 
     /**
      * Return the geotk metadata object linked with the specified dataset.
@@ -447,7 +447,7 @@ public interface IMetadataBusiness {
      * @return The geotk metadata object or {@code null} if there is no metadata linked to the specified dataset.
      * @throws org.constellation.exception.ConfigurationException
      */
-    Object getIsoMetadataForDataset(final int datasetId) throws ConfigurationException;
+    Object getIsoMetadataForDataset(final int datasetId) throws ConstellationException;
 
     /**
      * Update the CSW services index linked with the specified metadata pojos.
@@ -470,7 +470,7 @@ public interface IMetadataBusiness {
      * @return the new pojo created.
      * @throws org.constellation.exception.ConfigurationException
      */
-    MetadataLightBrief duplicateMetadata(final int id, final String newTitle, final String newType) throws ConfigurationException;
+    MetadataLightBrief duplicateMetadata(final int id, final String newTitle, final String newType) throws ConstellationException;
 
     /**
      * Count the number of metadata stored in the database.

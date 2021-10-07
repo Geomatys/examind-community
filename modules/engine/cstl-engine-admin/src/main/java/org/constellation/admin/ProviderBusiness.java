@@ -238,7 +238,7 @@ public class ProviderBusiness implements IProviderBusiness {
     }
 
     @Override
-    public Set<GenericName> test(final String providerIdentifier, final ProviderConfiguration configuration) throws ConfigurationException {
+    public Set<GenericName> test(final String providerIdentifier, final ProviderConfiguration configuration) throws ConstellationException {
         final String type = configuration.getType();
         final String subType = configuration.getSubType();
         final Map<String, String> inParams = configuration.getParameters();
@@ -249,11 +249,7 @@ public class ProviderBusiness implements IProviderBusiness {
         sources.parameter("id").setValue(providerIdentifier);
         sources.parameter("providerType").setValue(type);
         sources = fillProviderParameter(type, subType, inParams, sources);
-        try {
-            return DataProviders.testProvider(providerIdentifier, providerService, sources);
-        } catch (DataStoreException ex) {
-            throw new ConfigurationException(ex);
-        }
+        return DataProviders.testProvider(providerIdentifier, providerService, sources);
     }
 
     /**

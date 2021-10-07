@@ -138,7 +138,7 @@ public class THWRestAPI {
                 }
             }
             return new ResponseEntity(AcknowlegementType.success("Thesaurus datasource created"), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -182,7 +182,7 @@ public class THWRestAPI {
                     .setContent(toThesaurusBriefs(results))
                     .setTotal(listThesaurus.size()), OK);
 
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -192,7 +192,7 @@ public class THWRestAPI {
     public ResponseEntity get(@PathVariable("thesaurusUri") String thesaurusUri) {
         try {
             return new ResponseEntity(getThesaurus(thesaurusUri), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -203,7 +203,7 @@ public class THWRestAPI {
         try {
             thesaurusBusiness.createNewThesaurus(thesaurus);
             return new ResponseEntity(OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -213,7 +213,7 @@ public class THWRestAPI {
     public ResponseEntity list() throws ThesaurusException {
         try {
             return new ResponseEntity(toThesaurusBriefs(thesaurusBusiness.listThesaurus().values()), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -224,7 +224,7 @@ public class THWRestAPI {
         try {
             thesaurusBusiness.deleteThesaurus(thesaurusUri);
             return new ResponseEntity(OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -239,7 +239,7 @@ public class THWRestAPI {
         try (WriteableThesaurus thesaurus = getThesaurusWriter(thesaurusUri)) {
             List<Concept> concepts = thesaurus.getTopMostConcepts(null, null);
             return new ResponseEntity(toConceptNodes(concepts), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -253,7 +253,7 @@ public class THWRestAPI {
             ISOLanguageCode isoLang = ISOLanguageCode.fromCode(lang);
             List<Concept> concepts = thesaurus.search(keyword, SearchMode.AUTO_SEARCH, false, null, isoLang);
             return new ResponseEntity(toConceptNodes(concepts), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -264,7 +264,7 @@ public class THWRestAPI {
                                               @PathVariable("conceptUri") String conceptUri) {
         try (ThesaurusDatabaseWriter thesaurus = getThesaurusWriter(thesaurusUri)) {
             return new ResponseEntity(thesaurus.getConceptNarrowers(conceptUri), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -275,7 +275,7 @@ public class THWRestAPI {
                                      @PathVariable("conceptUri") String conceptUri) {
         try (ThesaurusDatabaseWriter thesaurus = getThesaurusWriter(thesaurusUri)) {
             return new ResponseEntity(thesaurus.getFullConcept(conceptUri), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -287,7 +287,7 @@ public class THWRestAPI {
             fullConcept.setUri(UUID.randomUUID().toString());
             thesaurus.insertConcept(fullConcept);
             return new ResponseEntity(OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -299,7 +299,7 @@ public class THWRestAPI {
             thesaurus.deleteConcept(fullConcept.getUri());
             thesaurus.insertConcept(fullConcept);
             return new ResponseEntity(OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -311,7 +311,7 @@ public class THWRestAPI {
         try (WriteableThesaurus thesaurus = getThesaurusWriter(thesaurusUri)) {
             thesaurus.deleteConceptCascade(conceptUri);
             return new ResponseEntity(OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -331,7 +331,7 @@ public class THWRestAPI {
                 }
             }
             return new ResponseEntity(totalResults, OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -370,7 +370,7 @@ public class THWRestAPI {
                 throw new Exception("the specified XML file does not contains a RDF object");
             }
             return new ResponseEntity(OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -389,7 +389,7 @@ public class THWRestAPI {
             response.setContentType(MediaType.APPLICATION_XML.toString());
             response.flushBuffer();
             return new ResponseEntity(OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -414,7 +414,7 @@ public class THWRestAPI {
             response.setContentType(MediaType.APPLICATION_XML.toString());
             response.flushBuffer();
             return new ResponseEntity(OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }

@@ -53,7 +53,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.constellation.dto.ProviderBrief;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.FeatureData;
-import org.geotoolkit.util.NamesExt;
 
 /**
  * RestFull API for provider management/operations.
@@ -107,7 +106,7 @@ public class ProviderRestAPI extends AbstractRestAPI {
         try {
             providerBusiness.reload(providerId);
             return new ResponseEntity(OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -132,7 +131,7 @@ public class ProviderRestAPI extends AbstractRestAPI {
                 LOGGER.log(Level.WARNING, "non data found for provider: {0}", providerIdentifier);
                 return new ErrorMessage().message("Unable to find any data, please check the database parameters and make sure that the database is properly configured.").build();
             }
-        } catch (ConfigurationException e) {
+        } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Cannot open provider "+providerIdentifier, e);
             return new ErrorMessage(e).build();
         }
@@ -146,7 +145,7 @@ public class ProviderRestAPI extends AbstractRestAPI {
 
         try {
             providerBusiness.update(id, config);
-        }catch(ConfigurationException ex){
+        } catch(Exception ex){
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -172,11 +171,10 @@ public class ProviderRestAPI extends AbstractRestAPI {
             if (createdata) {
                 providerBusiness.createOrUpdateData(prId, null, true);
             }
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
-
         return new ResponseEntity(OK);
     }
 
@@ -199,7 +197,7 @@ public class ProviderRestAPI extends AbstractRestAPI {
             }
             return new ErrorMessage().message("Cannot creates the prj file for the data. the operation is not implemented yet for this format.").build();
 
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -213,11 +211,10 @@ public class ProviderRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/{id}",method=DELETE,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity delete(@PathVariable("id") final Integer id) {
-
         try {
             providerBusiness.removeProvider(id);
             return new ResponseEntity(OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -235,7 +232,6 @@ public class ProviderRestAPI extends AbstractRestAPI {
             @PathVariable("id")         final String id,
             @PathVariable("dataName")   final String dataName,
             @PathVariable("property")   final String property) {
-
         try {
             final Data data = getProviderData(id, dataName);
             if (data instanceof FeatureData) {
@@ -244,7 +240,7 @@ public class ProviderRestAPI extends AbstractRestAPI {
                 throw new ConstellationStoreException("No data " + dataName + " found in provider:" + id + " (or is not a faure data)");
             }
 
-        } catch (ConfigurationException | ConstellationStoreException  ex) {
+        } catch (Exception  ex) {
             LOGGER.log(Level.WARNING, "Cannot retrieve information for data " + dataName, ex);
             return new ErrorMessage(ex).build();
         }
@@ -265,7 +261,7 @@ public class ProviderRestAPI extends AbstractRestAPI {
             if (data != null) {
                 isGeophysic = data.isGeophysic();
             }
-        } catch (ConstellationStoreException | ConfigurationException ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, "Cannot retrieve information for data " + dataName, ex);
             return new ErrorMessage(ex).build();
         }
@@ -281,29 +277,30 @@ public class ProviderRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/{id}/datas/name",method=GET,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity getDataNamesList(@PathVariable("id") int providerId) {
-
-        final DataProvider provider;
         try {
-            provider = DataProviders.getProvider(providerId);
-        } catch (ConfigurationException ex) {
+            final DataProvider provider = DataProviders.getProvider(providerId);
+            if (provider == null) {
+                return new ResponseEntity(NOT_FOUND);
+            }
+            final Set<GenericName> nameSet = provider.getKeys();
+            final List<String> names = new ArrayList<>();
+            for (GenericName n : nameSet) {
+                names.add(n.tip().toString());
+            }
+            Collections.sort(names);
+
+            //Search on Metadata to found description
+            final Map<String, String> dataDescriptions = new HashMap<>(0);
+            for (int i = 0; i < names.size(); i++) {
+                dataDescriptions.put(String.valueOf(i), names.get(i));
+            }
+
+            //Send String Map via REST
+            return new ResponseEntity(new ParameterValues(dataDescriptions), OK);
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING,"Error while accessing provider "+ providerId,ex);
             return new ErrorMessage(ex).build();
         }
-        final Set<GenericName> nameSet = provider.getKeys();
-        final List<String> names = new ArrayList<>();
-        for (GenericName n : nameSet) {
-            names.add(n.tip().toString());
-        }
-        Collections.sort(names);
-
-        //Search on Metadata to found description
-        final Map<String, String> dataDescriptions = new HashMap<>(0);
-        for (int i = 0; i < names.size(); i++) {
-            dataDescriptions.put(String.valueOf(i), names.get(i));
-        }
-
-        //Send String Map via REST
-        return new ResponseEntity(new ParameterValues(dataDescriptions), OK);
     }
 
     /**
@@ -318,7 +315,7 @@ public class ProviderRestAPI extends AbstractRestAPI {
         final List<DataBrief> briefs;
         try {
             briefs = providerBusiness.getDataBriefsFromProviderId(providerId, null, true, false, true);
-        } catch (ConstellationException ex) {
+        } catch (Exception ex) {
             return new ErrorMessage(ex).build();
         }
         return new ResponseEntity(briefs, OK);

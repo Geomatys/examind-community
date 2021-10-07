@@ -430,7 +430,7 @@ public class DataRestAPI extends AbstractRestAPI{
      *
      * @throws ConfigurationException if CRS can not be accessed, if it is null or invalid
      */
-    private void verifyCRS(int providerId) throws ConfigurationException {
+    private void verifyCRS(int providerId) throws ConstellationException {
         try {
             final Map<GenericName, CoordinateReferenceSystem> nameCoordinateReferenceSystemHashMap = DataProviders.getCRS(providerId);
             for(final CoordinateReferenceSystem crs : nameCoordinateReferenceSystemHashMap.values()){
@@ -712,7 +712,7 @@ public class DataRestAPI extends AbstractRestAPI{
     public ResponseEntity getData(@PathVariable("dataId") int dataId) {
         try {
             return new ResponseEntity(dataBusiness.getDataBrief(dataId, true),OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -723,7 +723,7 @@ public class DataRestAPI extends AbstractRestAPI{
         try {
             final DataBrief db = dataBusiness.getDataLayer(layerId);
             return new ResponseEntity(db, OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING,ex.getLocalizedMessage(),ex);
             return new ErrorMessage(ex).build();
         }
@@ -953,7 +953,7 @@ public class DataRestAPI extends AbstractRestAPI{
     public ResponseEntity getVectorDataColumns(final @PathVariable("dataId") int dataId) {
         try {
             return new ResponseEntity(dataBusiness.getVectorDataColumns(dataId),OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }

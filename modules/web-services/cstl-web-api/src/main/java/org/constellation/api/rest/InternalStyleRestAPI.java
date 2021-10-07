@@ -199,7 +199,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
             return new ErrorMessage(HttpStatus.UNPROCESSABLE_ENTITY).i18N(I18nCodes.Style.NOT_COLORMAP).build();
         } catch(TargetNotFoundException ex) {
             return new ErrorMessage(ex).i18N(I18nCodes.Style.NOT_FOUND).build();
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -365,7 +365,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
             styleBusiness.createStyle(type, mutableStyle);
             Style json = styleConverterBusiness.getJsonStyle(mutableStyle);
             return new ResponseEntity(json,OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -564,7 +564,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
             styleBusiness.createStyle(type, mutableStyle);
             Style json = styleConverterBusiness.getJsonStyle(mutableStyle);
             return new ResponseEntity(json,OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -700,7 +700,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                 result.setMapping(mapping);
             }
             return new ResponseEntity(result,OK);
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -723,7 +723,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                     .i18N(I18nCodes.Style.INVALID_ARGUMENT).build();
         } catch(TargetNotFoundException ex) {
             return new ErrorMessage(ex).status(UNPROCESSABLE_ENTITY).i18N(I18nCodes.Style.NOT_FOUND).build();
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -862,7 +862,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
             }else {
                 return new ErrorMessage(UNPROCESSABLE_ENTITY).i18N(I18nCodes.Style.ALREADY_EXIST).build();
             }
-        } catch(Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }

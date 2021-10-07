@@ -72,7 +72,7 @@ public class SensorStoreProvider extends IndexedNameDataProvider implements Sens
      * {@inheritDoc }
      */
     @Override
-    public Data get(GenericName key, Date version) {
+    public Data get(GenericName key, Date version) throws ConstellationStoreException {
         key = fullyQualified(key);
         if (key == null) {
             return null;
@@ -84,9 +84,8 @@ public class SensorStoreProvider extends IndexedNameDataProvider implements Sens
             return new DefaultSensorData(key, store, metadata);
 
         } catch (DataStoreException ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
+            throw new ConstellationStoreException(ex);
         }
-        return null;
     }
 
     @Override

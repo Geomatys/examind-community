@@ -50,7 +50,7 @@ public interface DataProvider{
      * Use this method if you need the complete list of entries in this data provider.
      * If you are just searching if a special key exists than you should use the contains method.
      */
-    Set<GenericName> getKeys();
+    Set<GenericName> getKeys() throws ConstellationStoreException;
 
     /**
      * If you want to intend to get the related data, you should use the
@@ -59,7 +59,7 @@ public interface DataProvider{
      * @param key Data name to be removed from this provider.
      * @return true if the given key data is in this data provider .
      */
-    boolean contains(GenericName key);
+    boolean contains(GenericName key) throws ConstellationStoreException;
 
     /**
      * Get the data related to the given key.
@@ -67,7 +67,7 @@ public interface DataProvider{
      * @param key Data name to find in this provider.
      * @return V object if it is in the data provider, or null if not.
      */
-    Data get(GenericName key);
+    Data get(GenericName key) throws ConstellationStoreException;
 
     /**
      * Get the data related to the given key built from the namespace and name.
@@ -77,13 +77,13 @@ public interface DataProvider{
      *
      * @return V object if it is in the data provider, or null if not.
      */
-    Data get(String namespace, String name);
+    Data get(String namespace, String name) throws ConstellationStoreException;
 
     /**
      * Reload data provider. this may be useful if new entries on disk have been
      * added after creation.
      */
-    void reload();
+    void reload() throws ConstellationStoreException;
 
     /**
      * Clear every caches, this data provider should not be used after a call
@@ -100,7 +100,7 @@ public interface DataProvider{
     /**
      * Remove all data from this provider.
      */
-    void removeAll();
+    void removeAll() throws ConstellationStoreException;
 
     /**
      * Remove a data from this provider.
@@ -126,13 +126,13 @@ public interface DataProvider{
      * @return
      * @throws org.constellation.exception.ConstellationStoreException
      */
-    DataStore getMainStore()throws ConstellationStoreException;
+    DataStore getMainStore() throws ConstellationStoreException;
 
     /**
      * Get the data related to the given key in given version.
      * @return Data if it is in the data provider, or null if not.
      */
-    Data get(GenericName key, Date version);
+    Data get(GenericName key, Date version) throws ConstellationStoreException;
 
     Path[] getFiles() throws ConstellationException;
 

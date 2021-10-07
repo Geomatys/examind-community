@@ -28,7 +28,6 @@ import org.apache.sis.internal.referencing.AxisDirections;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.util.ArgumentChecks;
-import org.apache.sis.util.collection.BackingStoreException;
 import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
 import org.constellation.dto.service.config.wxs.Layer;
 import org.constellation.dto.service.config.wxs.LayerContext;
@@ -38,7 +37,6 @@ import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
 import org.geotoolkit.lang.Static;
 import org.geotoolkit.math.XMath;
 import org.opengis.geometry.DirectPosition;
-import org.opengis.referencing.operation.MathTransform1D;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
 
@@ -52,9 +50,9 @@ import org.apache.sis.coverage.grid.GridOrientation;
 import org.apache.sis.geometry.GeneralDirectPosition;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.util.Utilities;
+import org.opengis.coverage.CannotEvaluateException;
 import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.datum.PixelInCell;
 
 /**
  * Set of utilities methods for FeatureInfoFormat and GetFeatureInfoCfg manipulation.
@@ -416,30 +414,18 @@ public final class FeatureInfoUtilities extends Static {
 
         final GridCoverage cvg = datasource.read(pointGeom).forConvertedValues(true);
         final List<SampleDimension> sampleDimensions = cvg.getSampleDimensions();
-
-        final double[] values = cvg.evaluator().apply(location);
-        final Map<SampleDimension, Object> samples = new LinkedHashMap<>();
-        for (int i = 0; i < values.length; i++) {
-            samples.put(sampleDimensions.get(i), values[i]);
+         final Map<SampleDimension, Object> samples = new LinkedHashMap<>();
+        try {
+            final double[] values = cvg.evaluator().apply(location);
+            for (int i = 0; i < values.length; i++) {
+                samples.put(sampleDimensions.get(i), values[i]);
+            }
+        } catch (CannotEvaluateException ex) {
+            for (int i = 0, n = sampleDimensions.size(); i < n; i++) {
+                samples.put(sampleDimensions.get(i), Double.NaN);
+            }
         }
         return samples.entrySet().stream();
-    }
-
-    /**
-     * Just apply given math transform to input value, but wraps potential transformation exception into a
-     * {@link BackingStoreException}.
-     *
-     * @param function The math transform to apply.
-     * @param value The value to transform.
-     * @return Transformed value.
-     * @throws BackingStoreException If any {@link TransformException} happened while applying transformation.
-     */
-    private static double uncheck(final MathTransform1D function, final double value) throws BackingStoreException {
-        try {
-            return function.transform(value);
-        } catch (TransformException e) {
-            throw new BackingStoreException(e);
-        }
     }
 
     private static int clamp(final DirectPosition source, final GridExtent bounds, final int dimension) {

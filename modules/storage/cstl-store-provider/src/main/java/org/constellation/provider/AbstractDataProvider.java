@@ -61,7 +61,7 @@ public abstract class AbstractDataProvider implements DataProvider{
      * {@inheritDoc}
      */
     @Override
-    public Data get(String namespace, String name) {
+    public Data get(String namespace, String name) throws ConstellationStoreException {
         GenericName gname;
         if (namespace == null || namespace.isEmpty()) {
             gname = NamesExt.create(name);
@@ -110,7 +110,7 @@ public abstract class AbstractDataProvider implements DataProvider{
     }
 
     @Override
-    public boolean contains(final GenericName key) {
+    public boolean contains(final GenericName key) throws ConstellationStoreException {
         for(GenericName n : getKeys()){
             if(NamesExt.match(n, key)){
                 return true;
@@ -133,7 +133,7 @@ public abstract class AbstractDataProvider implements DataProvider{
      * Empty implementation.
      */
     @Override
-    public void reload() {
+    public void reload() throws ConstellationStoreException {
     }
 
     /**
@@ -147,7 +147,7 @@ public abstract class AbstractDataProvider implements DataProvider{
      * {@inheritDoc}
      */
     @Override
-    public void removeAll() {
+    public void removeAll() throws ConstellationStoreException {
         for (GenericName key : getKeys()) {
             remove(key);
         }

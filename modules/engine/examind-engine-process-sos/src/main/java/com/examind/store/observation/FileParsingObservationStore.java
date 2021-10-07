@@ -147,12 +147,17 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
         if (procedureColumn == null) {
             names.add(NamesExt.create(getProcedureID()));
         } else {
-            names.addAll(extractProcedures());
+            try {
+                names.addAll(extractProcedures());
+            } catch (DataStoreException ex) {
+                // TODO change the signature of getProcedureNames to throw DataStoreException
+                LOGGER.log(Level.WARNING, "Error while getting procedure names", ex);
+            }
         }
         return names;
     }
 
-    protected abstract Set<GenericName> extractProcedures();
+    protected abstract Set<GenericName> extractProcedures() throws DataStoreException;
 
     protected String getProcedureID() {
         return procedureId;

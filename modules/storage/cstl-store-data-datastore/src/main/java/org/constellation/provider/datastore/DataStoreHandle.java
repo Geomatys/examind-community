@@ -219,7 +219,7 @@ final class DataStoreHandle implements AutoCloseable {
                     .filter(Optional::isPresent)
                     .map(Optional::get);
         } catch (BackingStoreException e) {
-            throw e.unwrapOrRethrow(DataStoreException.class);
+            throw new DataStoreException(e.getCause());
         }
     }
 
