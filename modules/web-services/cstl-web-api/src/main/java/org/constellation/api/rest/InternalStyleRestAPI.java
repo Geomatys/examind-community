@@ -711,6 +711,9 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
 
         try {
             final org.constellation.dto.Data data = dataBusiness.getData(dataId);
+            if (data == null) {
+                return new ErrorMessage().status(UNPROCESSABLE_ENTITY).i18N(I18nCodes.Style.NOT_FOUND).build();
+            }
             if ("COVERAGE".equals(data.getType())) {
                 final ImageStatistics stats = DefaultCoverageData.getDataStatistics(new StatInfo(data.getStatsState(), data.getStatsResult()));
                 if (stats != null) {

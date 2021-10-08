@@ -25,7 +25,6 @@ import javax.xml.namespace.QName;
 import org.constellation.dto.Data;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.DataSummary;
-import org.constellation.dto.ParameterValues;
 import org.constellation.dto.importdata.FileBean;
 import org.constellation.dto.metadata.MetadataLightBrief;
 import org.constellation.dto.process.DataProcessReference;
@@ -201,16 +200,6 @@ public interface IDataBusiness {
     void updateDataIncluded(int dataId, boolean included, final boolean removeFiles) throws ConstellationException;
 
     /**
-     * Returns {@link DataBrief} for given layer identifier.
-     *
-     * @param layerId given layer identifier.
-     *
-     * @return {@link DataBrief}.
-     * @throws ConstellationException is thrown if result fails.
-     */
-    DataBrief getDataLayer(int layerId) throws ConstellationException;
-
-    /**
      * Returns a list of {@link DataBrief} for given metadata identifier.
      *
      * @param metadataId given metadata identifier.
@@ -259,8 +248,6 @@ public interface IDataBusiness {
      * @return the list of light {@link DataBrief}.
      */
     List<DataBrief> getDataFromStyleId(final Integer styleId);
-
-    ParameterValues getVectorDataColumns(int id) throws ConstellationException;
 
     /**
      * Update the data metadata

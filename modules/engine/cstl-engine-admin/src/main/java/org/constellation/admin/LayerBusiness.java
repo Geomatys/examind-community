@@ -306,17 +306,14 @@ public class LayerBusiness implements ILayerBusiness {
         for(final Layer lay : layers){
             final LayerSummary layerSummary = new LayerSummary();
             if (lay.getDataId() != null) {
-                final Data data = dataRepository.findById(lay.getDataId());
-                if (data != null) {
-                    layerSummary.setName(data.getName());
-                    layerSummary.setNamespace(data.getNamespace());
-                    final DataBrief db = dataBusiness.getDataBrief(data.getId(), false);
-                    if (db != null) {
-                        layerSummary.setType(db.getType());
-                        layerSummary.setSubtype(db.getSubtype());
-                        layerSummary.setOwner(db.getOwner());
-                        layerSummary.setProvider(db.getProvider());
-                    }
+                final DataBrief db = dataBusiness.getDataBrief(lay.getDataId(), false);
+                if (db != null) {
+                    layerSummary.setName(db.getName());
+                    layerSummary.setNamespace(db.getNamespace());
+                    layerSummary.setType(db.getType());
+                    layerSummary.setSubtype(db.getSubtype());
+                    layerSummary.setOwner(db.getOwner());
+                    layerSummary.setProvider(db.getProvider());
                 }
             }
             layerSummary.setId(lay.getId());

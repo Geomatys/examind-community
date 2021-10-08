@@ -590,14 +590,19 @@ public final class DataProviders extends Static{
 
         final StorageConnector storage = storageRenewer.get();
         final ByteBuffer buffer = storage.getStorageAs(ByteBuffer.class);
-        final byte[] ctrlValue = new byte[Math.min(64, buffer.remaining())];
-        /* HACK: cast needed for java 8 support */ ((java.nio.Buffer)buffer.get(ctrlValue)).rewind();
+        byte[] ctrlValue = null;
+        if (buffer != null) {
+            ctrlValue = new byte[Math.min(64, buffer.remaining())];
+            /* HACK: cast needed for java 8 support */ ((java.nio.Buffer)buffer.get(ctrlValue)).rewind();
+        }
         try (AutoCloseable closeStorage = () -> storage.closeAllExcept(null)) {
             for (DataStoreProvider provider : candidates) {
                 name = idExtractor.apply(provider);
                 long start = System.currentTimeMillis();
                 ProbeResult result = provider.probeContent(storage);
-                assert isProperlyReset(storage, ctrlValue) : "Following datastore has not properly reset storage connector on probe operation: "+name;
+                if (ctrlValue != null) {
+                    assert isProperlyReset(storage, ctrlValue) : "Following datastore has not properly reset storage connector on probe operation: "+name;
+                }
                 // help detecting if a probe content on a provider is taking too much time
                 LOGGER.log(Level.FINER, "Probing on provider:{0} in {1}ms.", new Object[]{name, System.currentTimeMillis() - start});
                 results.put(name, result);

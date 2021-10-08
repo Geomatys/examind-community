@@ -988,6 +988,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
                         try {
                             final Path relativeSource = previousRoot.relativize(tempFile);
                             final Path newFile = providerDir.resolve(relativeSource.toString());
+                            Files.createDirectories(newFile.getParent());
                             if (mainScheme.equals("file")) {
                                 try {
                                     return Files.createLink(newFile, tempFile);

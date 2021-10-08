@@ -1611,12 +1611,6 @@ function Examind($http, url) {
                 data : pagedSearch
                 });
         },
-        getLayerSummary : function (layerId) {
-            return self.request({
-                method: 'GET',
-                url: 'layers/' + layerId + '/data'
-            });
-        },
         downloadMetadataForData : function (dataId) {
             return self.request({
                 method: 'GET',
@@ -1646,12 +1640,6 @@ function Examind($http, url) {
             return self.request({
                 method: 'DELETE',
                 url: 'datas/' + dataId + '/sensors/' + sensorId
-            });
-        },
-        getVectorDataColumns : function (dataId) {
-            return self.request({
-                method: 'GET',
-                url: 'datas/' + dataId + '/vectorcolumns'
             });
         },
         getAssociations : function (dataId) {

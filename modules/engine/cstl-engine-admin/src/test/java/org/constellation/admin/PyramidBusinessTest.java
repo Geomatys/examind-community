@@ -320,11 +320,11 @@ public class PyramidBusinessTest {
         
         Assert.assertNotNull(result.getPyramidDataId());
 
-        db = dataBusiness.getDataBrief(result.getPyramidDataId(), false);
-        Assert.assertNotNull(db);
+        org.constellation.dto.Data da = dataBusiness.getData(result.getPyramidDataId());
+        Assert.assertNotNull(da);
 
-        Assert.assertTrue(db.getRendered());
-        Assert.assertTrue(db.getHidden());
+        Assert.assertTrue(da.getRendered());
+        Assert.assertTrue(da.getHidden());
     }
 
     @Test

@@ -414,7 +414,7 @@ public class ConfigurationXmlBindingTest {
         context = new LayerContext();
         context.setMainLayer(mainLayer);
 
-        expresult = "{\"type\":\"LayerContext\",\"mainLayer\":{\"id\":null,\"dataId\":null,\"name\":null,\"alias\":null,\"version\":null,\"styles\":[],\"filter\":null,\"title\":\"mainTitle\",\"multiLangTitle\":{\"eng\":\"mainTitle\"},\"abstrac\":null,\"multiLangAbstract\":{},\"keywords\":[],\"multiLangKeywords\":{\"eng\":{\"list\":[\"kw1\",\"kw2\"]}},\"metadataURL\":null,\"dataURL\":null,\"authorityURL\":null,\"identifier\":null,\"attribution\":null,\"opaque\":null,\"crs\":[\"CRS-custo1\",\"CRS-custo2\"],\"dimensions\":[],\"date\":null,\"providerType\":null,\"providerID\":null,\"owner\":null,\"getFeatureInfoCfgs\":[]},\"security\":null,\"supportedLanguages\":null,\"customParameters\":{},\"getFeatureInfoCfgs\":[]}";
+        expresult = "{\"type\":\"LayerContext\",\"mainLayer\":{\"id\":null,\"dataId\":null,\"name\":null,\"alias\":null,\"version\":null,\"styles\":[],\"filter\":null,\"title\":\"mainTitle\",\"multiLangTitle\":{\"eng\":\"mainTitle\"},\"abstrac\":null,\"multiLangAbstract\":{},\"keywords\":[],\"multiLangKeywords\":{\"eng\":{\"list\":[\"kw1\",\"kw2\"]}},\"metadataURL\":null,\"dataURL\":null,\"authorityURL\":null,\"identifier\":null,\"attribution\":null,\"opaque\":null,\"crs\":[\"CRS-custo1\",\"CRS-custo2\"],\"dimensions\":[],\"date\":null,\"owner\":null,\"getFeatureInfoCfgs\":[]},\"security\":null,\"supportedLanguages\":null,\"customParameters\":{},\"getFeatureInfoCfgs\":[]}";
 
         result = mapper.writeValueAsString(context);
         assertEquals(expresult, result);

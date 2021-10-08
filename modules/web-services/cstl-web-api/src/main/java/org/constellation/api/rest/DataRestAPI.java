@@ -718,18 +718,6 @@ public class DataRestAPI extends AbstractRestAPI{
         }
     }
 
-    @RequestMapping(value="/layers/{layerId}/data",method=GET,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity getLayerData(@PathVariable("layerId") int layerId) {
-        try {
-            final DataBrief db = dataBusiness.getDataLayer(layerId);
-            return new ResponseEntity(db, OK);
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING,ex.getLocalizedMessage(),ex);
-            return new ErrorMessage(ex).build();
-        }
-
-    }
-
     @RequestMapping(value="/datas",method=GET,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity getDataList(@RequestParam(value="type",       required=false) String type,
                                       @RequestParam(value="published",  required=false) Boolean published,
@@ -939,22 +927,6 @@ public class DataRestAPI extends AbstractRestAPI{
             return new ResponseEntity(r, header, OK);
         } catch (IOException ex) {
             LOGGER.log(Level.WARNING,"Error while zipping data",ex);
-            return new ErrorMessage(ex).build();
-        }
-    }
-
-    /**
-     * Get the properties (columns) names for a vector data.
-     *
-     * @param dataId Vector data identifier
-     * @return
-     */
-    @RequestMapping(value="/datas/{dataId}/vectorcolumns",method=GET,produces=MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity getVectorDataColumns(final @PathVariable("dataId") int dataId) {
-        try {
-            return new ResponseEntity(dataBusiness.getVectorDataColumns(dataId),OK);
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
     }

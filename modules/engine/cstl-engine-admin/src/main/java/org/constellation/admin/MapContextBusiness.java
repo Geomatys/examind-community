@@ -52,7 +52,6 @@ import org.constellation.dto.MapContextDTO;
 import org.constellation.dto.MapContextLayersDTO;
 import org.constellation.dto.MapContextStyledLayerDTO;
 import org.constellation.dto.ParameterValues;
-import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.Style;
 import org.constellation.dto.StyleBrief;
 import org.constellation.dto.StyleReference;
@@ -428,7 +427,6 @@ public class MapContextBusiness implements IMapContextBusiness {
             } else if (dataID != null) {
                 final DataBrief db = dataBusiness.getDataBrief(dataID, true);
                 final QName dataName = new QName(db.getNamespace(), db.getName());
-                final ProviderBrief provider = providerBusiness.getProvider(db.getProviderId());
                 final org.constellation.dto.service.config.wxs.Layer layerConfig = new org.constellation.dto.service.config.wxs.Layer(styledLayer.getLayerId(), dataName);
                 layerConfig.setAlias(db.getName());
                 layerConfig.setDate(db.getDate());

@@ -85,7 +85,6 @@ import org.constellation.repository.StyleRepository;
 import org.constellation.security.SecurityManagerHolder;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.temporal.util.PeriodUtilities;
-import org.opengis.feature.PropertyType;
 import org.opengis.feature.catalog.FeatureCatalogue;
 import org.opengis.metadata.Metadata;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -285,18 +284,6 @@ public class DataBusiness implements IDataBusiness {
     public List<DataBrief> getDataBriefsFromMetadataId(final String metadataId) {
         final List<Data> datas = findByMetadataId(metadataId);
         return getDataBriefFrom(datas, null, null, true);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DataBrief getDataLayer(final int layerId) throws ConstellationException {
-        final Layer layer = layerRepository.findById(layerId);
-        if (layer != null) {
-            return getDataBrief(layer.getDataId(), true);
-        }
-        return null;
     }
 
     /**
@@ -895,42 +882,6 @@ public class DataBusiness implements IDataBusiness {
             // Relevant erase dataset when the is no more data in it. fr now we remove it
             deleteDatasetIfEmpty( data.getDatasetId());
         }
-    }
-
-    @Override
-    public ParameterValues getVectorDataColumns(int id) throws ConstellationException {
-        final Data d = dataRepository.findById(id);
-        if (d != null) {
-            final org.constellation.provider.Data provData = DataProviders.getProviderData(d.getProviderId(), d.getNamespace(), d.getName());
-            if (provData != null) {
-                final List<String> colNames = new ArrayList<>();
-                try {
-                    final Resource rs = provData.getOrigin();
-                    if (rs instanceof FeatureSet) {
-                        final FeatureSet fs = (FeatureSet) rs;
-                        final org.opengis.feature.FeatureType ft = fs.getType();
-                        for (final PropertyType prop : ft.getProperties(true)) {
-                            colNames.add(prop.getName().toString());
-                        }
-
-                        final ParameterValues values = new ParameterValues();
-                        final HashMap<String, String> mapVals = new HashMap<>();
-                        for (final String colName : colNames) {
-                            mapVals.put(colName, colName);
-                        }
-                        values.setValues(mapVals);
-                        return values;
-                    } else {
-                        throw new ConfigurationException("Not a vector data requested");
-                    }
-                } catch (Exception ex) {
-                    throw new ConfigurationException(ex.getMessage(), ex);
-                }
-            } else {
-                throw new ConfigurationException("Data not found in provider");
-            }
-        }
-        throw new ConfigurationException("Data not found for id:" + id);
     }
 
     @Override
