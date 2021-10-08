@@ -35,9 +35,9 @@ import java.util.TimeZone;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridGeometry;
+import org.apache.sis.coverage.grid.IncompleteGridGeometryException;
 import org.apache.sis.referencing.operation.transform.LinearTransform;
 import org.constellation.ws.MimeType;
-import org.geotoolkit.coverage.grid.GridGeometry2D;
 import org.geotoolkit.display2d.ext.pattern.PatternSymbolizer;
 import org.geotoolkit.filter.FilterFactory2;
 import org.geotoolkit.filter.FilterUtilities;
@@ -55,6 +55,7 @@ import org.geotoolkit.style.function.ThreshholdsBelongTo;
 import org.geotoolkit.wcs.xml.RangeSubset;
 import org.geotoolkit.wcs.xml.v100.IntervalType;
 import org.geotoolkit.wcs.xml.v100.TypedLiteralType;
+import org.opengis.coverage.CannotEvaluateException;
 import org.opengis.filter.Expression;
 import org.opengis.filter.Literal;
 import org.opengis.metadata.extent.GeographicBoundingBox;
@@ -315,28 +316,26 @@ public final class WCSUtils {
      * @param targetDims Information about sample values to add in metadata. If null, we skip this step.
      * @return Given spatial metadata if not null, or a new one. In all cases, the metadata has been modified with
      * target data information.
+     * @throws IncompleteGridGeometryException when the coordinate reference system or the grid to crs of given geometry
+     * is not available.
+     * @throws CannotEvaluateException when we cannot safely extract a 2D part of input grid geometry. Note that this is
+     * caused due to limitations of the {@link SpatialMetadata} capabilities.
      */
-    public static SpatialMetadata adapt(SpatialMetadata source, GridGeometry gg, final SampleDimension[] targetDims) {
+    public static SpatialMetadata adapt(SpatialMetadata source, GridGeometry gg, final SampleDimension[] targetDims) throws IncompleteGridGeometryException, CannotEvaluateException {
         if (source == null) {
             source = new SpatialMetadata(SpatialMetadataFormat.getImageInstance(SpatialMetadataFormat.GEOTK_FORMAT_NAME));
         }
 
         //add ImageCRS in SpatialMetadata
         if (gg != null) {
-            if (!(gg.getGridToCRS(PixelInCell.CELL_CENTER) instanceof LinearTransform) && gg instanceof GridGeometry2D) {
+            if (!(gg.getGridToCRS(PixelInCell.CELL_CENTER) instanceof LinearTransform)) {
                 /* HACK : For now, we cannot write properly additional dimension information, because grid domain
-             * accessor skip the entire grid to CRS if it is not linear. So, to at least keep 2D projection information,
-             * We delete time and elevation information. Another solution would be to use jacobian matrix to reduce
-             * non linear parts of the grid geometry to constants, but I have no time for now. Plus, all this code
-             * should not be necessary if we used proper APIs for response writing.
+                 * accessor skip the entire grid to CRS if it is not linear. So, to at least keep 2D projection information,
+                 * We delete time and elevation information. Another solution would be to use jacobian matrix to reduce
+                 * non linear parts of the grid geometry to constants, but I have no time for now. Plus, all this code
+                 * should not be necessary if we used proper APIs for response writing.
                  */
-                GridGeometry2D gg2d = (GridGeometry2D) gg;
-                gg = new GridGeometry2D(
-                        gg2d.getExtent2D(),
-                        PixelOrientation.CENTER,
-                        gg2d.getGridToCRS2D(PixelOrientation.CENTER),
-                        gg2d.getCoordinateReferenceSystem2D()
-                );
+                gg = gg.reduce(gg.getExtent().getSubspaceDimensions(2));
             }
 
             new ReferencingBuilder(source).setCoordinateReferenceSystem(gg.getCoordinateReferenceSystem());

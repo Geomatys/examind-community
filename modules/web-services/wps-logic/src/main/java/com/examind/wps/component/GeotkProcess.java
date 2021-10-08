@@ -59,6 +59,7 @@ import java.util.stream.Collectors;
 import javax.measure.Unit;
 import javax.measure.UnitConverter;
 import javax.xml.bind.JAXBException;
+import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.measure.Units;
 import org.apache.sis.referencing.CRS;
@@ -67,7 +68,6 @@ import org.apache.sis.util.UnconvertibleObjectException;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.service.config.wps.Process;
 import org.constellation.ws.CstlServiceException;
-import org.geotoolkit.coverage.grid.GridCoverage;
 import org.geotoolkit.gml.JTStoGeometry;
 import org.geotoolkit.ows.xml.BoundingBox;
 import org.geotoolkit.ows.xml.v200.AdditionalParametersType;
@@ -81,6 +81,7 @@ import org.geotoolkit.ows.xml.v200.OwsContextDescriptionType;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.processing.AbstractProcess;
 import org.geotoolkit.utility.parameter.ExtendedParameterDescriptor;
+import org.geotoolkit.wps.client.WPSVersion;
 import org.geotoolkit.wps.converters.WPSConvertersUtils;
 import org.geotoolkit.wps.io.WPSIO;
 import org.geotoolkit.wps.io.WPSMimeType;
@@ -1047,7 +1048,7 @@ public class GeotkProcess implements WPSProcess {
     /**
      * Create reference output.
      *
-     * @param clazz
+     * @param version Targeted WPS version (see {@link WPSVersion related version enum} for available choices).
      * @param requestedOutput
      * @param outputValue
      * @param parameters
