@@ -1,1 +1,2 @@
 org.constellation.converter.StringToCharacterConverter
+org.constellation.converter.DataProcessReferenceToResourceConverter

@@ -1177,19 +1177,24 @@ public class DataBusiness implements IDataBusiness {
         return new AbstractMap.SimpleImmutableEntry<>(entry.getKey(), results);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public List<DataProcessReference> findAllDataProcessReference() {
-        final List<DataProcessReference> dataPRef = new ArrayList<>();
+    public List<DataProcessReference> findDataProcessReference(String dataType) {
         final List<Data> datas = dataRepository.findAllByVisibility(false);
-        if(datas!=null){
-            for(final Data ds : datas){
-                final DataProcessReference ref = new DataProcessReference();
-                ref.setId(ds.getId());
-                ref.setName(ds.getName());
-                ref.setNamespace(ds.getNamespace());
-                ref.setProvider(ds.getProviderId());
-                ref.setType(ds.getType());
-                dataPRef.add(ref);
+        final List<DataProcessReference> dataPRef = new ArrayList<>();
+        if (datas != null) {
+            for (final Data ds : datas) {
+                if (dataType== null || dataType.equals(ds.getType())) {
+                    final DataProcessReference ref = new DataProcessReference();
+                    ref.setId(ds.getId());
+                    ref.setName(ds.getName());
+                    ref.setNamespace(ds.getNamespace());
+                    ref.setProvider(ds.getProviderId());
+                    ref.setType(ds.getType());
+                    dataPRef.add(ref);
+                }
             }
         }
         return dataPRef;

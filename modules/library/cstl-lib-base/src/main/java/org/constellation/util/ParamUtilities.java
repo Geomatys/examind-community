@@ -23,7 +23,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.apache.sis.util.ArgumentChecks;
 import org.apache.sis.util.Static;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.util.json.ParameterDescriptorJSONSerializer;
 import org.constellation.util.json.ParameterValueJSONDeserializer;
 import org.constellation.util.json.ParameterValueJSONSerializer;
@@ -44,8 +43,6 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.logging.Logger;
-import javax.xml.XMLConstants;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.dom.DOMSource;
 
@@ -59,8 +56,6 @@ import org.xml.sax.SAXException;
  *
  */
 public final class ParamUtilities extends Static {
-
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.util");
 
     /**
      * Reads an {@link java.io.InputStream} to build a {@link org.opengis.parameter.GeneralParameterValue}

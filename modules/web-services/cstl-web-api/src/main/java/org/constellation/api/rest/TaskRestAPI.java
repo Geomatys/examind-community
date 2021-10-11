@@ -35,7 +35,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.sis.parameter.ParameterBuilder;
-import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IMapContextBusiness;
@@ -82,6 +81,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
+import org.springframework.web.bind.annotation.RequestParam;
 
 
 /**
@@ -465,14 +465,14 @@ public class TaskRestAPI extends AbstractRestAPI {
     /**
      * List all data as DataProcessReference to GUI editors.
      *
+     * @param type filter on data type. can be  {@code null}
      * @return list of DataProcessReference
      */
     @RequestMapping(value="/task/list/datas",method=GET,produces=MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity getDatasProcessReferenceList() {
-        final List<DataProcessReference> dataPRef = dataBusiness.findAllDataProcessReference();
+    public ResponseEntity getDatasProcessReferenceList(@RequestParam(name = "type", required = false) String type) {
+        final List<DataProcessReference> dataPRef = dataBusiness.findDataProcessReference(type);
         return new ResponseEntity(dataPRef, OK);
     }
-
 
     /**
      * List all Services as ServiceProcessReference to GUI editors.

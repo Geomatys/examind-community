@@ -272,9 +272,10 @@ public interface IDataBusiness {
     /**
      * Returns list of all {@link DataProcessReference}.
      *
+     * @param type filter on data type. can be  {@code null}
      * @return A list of {@link DataProcessReference} object.
      */
-    List<DataProcessReference> findAllDataProcessReference();
+    List<DataProcessReference> findDataProcessReference(String type);
 
     /**
      * Remove old hidden data every hour.

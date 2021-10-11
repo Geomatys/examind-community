@@ -10,4 +10,15 @@ org.constellation.process.data.ImportDataDescriptor
 org.constellation.process.metadata.AddMetadataDescriptor
 org.constellation.process.metadata.RemoveMetadataDescriptor
 org.constellation.process.metadata.GetMetadataProcessDescriptor
+org.constellation.process.service.StartServiceDescriptor
+org.constellation.process.service.StopServiceDescriptor
+org.constellation.process.service.RestartServiceDescriptor
+org.constellation.process.service.DeleteServiceDescriptor
+org.constellation.process.service.GetConfigServiceDescriptor
+org.constellation.process.service.SetConfigServiceDescriptor
+org.constellation.process.service.CreateServiceDescriptor
+org.constellation.process.service.RenameServiceDescriptor
+com.examind.process.test.ProgressTestDescriptor
 com.examind.process.test.EchoDescriptor
+com.examind.process.test.NbFeatureDescriptor
+com.examind.process.test.NbBandDescriptor

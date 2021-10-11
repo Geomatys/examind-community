@@ -117,6 +117,26 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
                     }]
                 }
             })
+            .put('org.apache.sis.storage.GridCoverageResource', {
+                templateUrl: 'views/tasks/editor/data.html',
+                controller:'ProcessDataEditorController',
+                controllerAs: 'ec',
+                resolve : {
+                    'datas': ['DataService', function(DataService) {
+                        return DataService.getAllDatas('COVERAGE');
+                    }]
+                }
+            })
+            .put('org.apache.sis.storage.FeatureSet', {
+                templateUrl: 'views/tasks/editor/data.html',
+                controller:'ProcessDataEditorController',
+                controllerAs: 'ec',
+                resolve : {
+                    'datas': ['DataService', function(DataService) {
+                        return DataService.getAllDatas('VECTOR');
+                    }]
+                }
+            })
             .put('org.geotoolkit.map.MapContext', {
                 templateUrl: 'views/tasks/editor/mapcontext.html',
                 controller:'ProcessMapContextEditorController',
@@ -241,13 +261,26 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
         var self = this;
         self.dataset = null;
         self.datas = null;
+        self.vectors = null;
+        self.coverages = null;
         self.mapcontext = null;
 
         function initDatasets() {
             self.dataset = Examind.tasks.getDatasets();
         }
         function initDatas() {
-            self.datas = Examind.tasks.getDatas();
+            Examind.tasks.getDatas().then(function(response) {
+                self.datas = response.data;
+                self.coverages = [];
+                self.vectors = [];
+                self.datas.forEach(function(data) {
+                     if ('COVERAGE' === data.type) {
+                        self.coverages.push(data);
+                    } else if ('VECTOR' === data.type) {
+                        self.vectors.push(data);
+                    }
+                });
+            });
         }
         function initMapContexts() {
             self.mapcontext = Examind.tasks.getMapContexts();
@@ -260,13 +293,19 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
             return self.dataset;
         };
 
-        self.getAllDatas = function() {
+        self.getAllDatas = function(dataType) {
             if (self.datas === null) {
                 initDatas();
             }
-            return self.datas;
+            if ('COVERAGE' === dataType) {
+                return self.coverages;
+            } else if ('VECTOR' === dataType) {
+                return self.vectors;
+            } else {
+                return self.datas;
+            }
         };
-
+        
         self.getAllMapContexts = function() {
             if (self.mapcontext === null) {
                 initMapContexts();
@@ -401,7 +440,7 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
         var self = this;
 
         //full list
-        self.datas = datas.data;
+        self.datas = datas;
 
         //apply filter
         if (parameter.ext && parameter.ext.filter) {

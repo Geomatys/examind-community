@@ -6,9 +6,11 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.sis.storage.Resource;
 import org.apache.sis.util.ObjectConverters;
 import org.apache.sis.util.Static;
 import org.apache.sis.util.UnconvertibleObjectException;
+import org.constellation.dto.process.DataProcessReference;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -120,8 +122,15 @@ public class JsonUtils extends Static {
      */
     static Object readValue(JsonNode node, Class binding, String parameterName) throws IOException {
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            return mapper.treeToValue(node, binding);
+            // particular case if binding extends a Resource, a Resource is returned.
+            if (Resource.class.isAssignableFrom(binding)) {
+                ObjectMapper mapper = new ObjectMapper();
+                final DataProcessReference o = mapper.treeToValue(node, DataProcessReference.class);
+                return ObjectConverters.convert(o, Resource.class);
+            } else {
+                ObjectMapper mapper = new ObjectMapper();
+                return mapper.treeToValue(node, binding);
+            }
         } catch (JsonProcessingException ex) {
             if (node.isTextual()) {
                 try {

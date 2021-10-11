@@ -2092,17 +2092,21 @@ function Examind($http, url) {
         },
 
         /**
-         * Get datasets references.
+         * Get datas references.
          *
          * @returns {Promise}
          */
-        getDatas : function() {
+        getDatas : function(type) {
+            var url = 'task/list/datas';
+            if (type) {
+                url = url + '?type=' + type;
+            }
             return self.request({
                 method: 'GET',
-                url: 'task/list/datas'
+                url: url
                 });
         },
-        
+
         /**
          * Get mapContexts references.
          *

@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.process.service;
+package com.examind.process.test;
 
 import org.constellation.process.AbstractCstlProcess;
 import org.geotoolkit.process.ProcessDescriptor;
@@ -30,10 +30,10 @@ import org.opengis.parameter.ParameterValueGroup;
  *
  * @author Guilhem Legal (Geomatys).
  */
-public class ProgressTest extends AbstractCstlProcess {
+public class ProgressTestProcess extends AbstractCstlProcess {
 
 
-    public ProgressTest(final ProcessDescriptor desc, final ParameterValueGroup parameter) {
+    public ProgressTestProcess(final ProcessDescriptor desc, final ParameterValueGroup parameter) {
         super(desc, parameter);
     }
 
