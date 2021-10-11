@@ -1165,7 +1165,7 @@
         <repository>
             <id>springsource</id>
             <name>Spring Repository</name>
-            <url>http://repo.springsource.org/libs-milestone/</url>
+            <url>https://repo.spring.io/libs-milestone/</url>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
