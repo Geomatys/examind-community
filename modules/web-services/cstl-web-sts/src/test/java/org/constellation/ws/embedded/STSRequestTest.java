@@ -592,7 +592,17 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         expResult = getStringFromFile("com/examind/sts/embedded/mds-time2.json");
         compareJSON(expResult, result);
 
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams?$top=2&$filter=" + filter);
 
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-time2-top.json");
+        compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams?$top=2&$count=true&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-time2-top-ct.json");
+        compareJSON(expResult, result);
     }
 
     @Test

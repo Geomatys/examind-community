@@ -270,21 +270,33 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             selfLink = selfLink.substring(0, selfLink.length() - 1) + path;
         }
 
+        boolean hasNext = false;
         if (req.getTop() != null) {
             int top = req.getTop();
             if (req.getSkip()!= null) {
                 int skip = req.getSkip();
                 if (size != null) {
                     if (size > skip + top) {
-                        return selfLink + "?$skip=" + (skip + top) + "&$top=" + top;
+                        selfLink = selfLink + "?$skip=" + (skip + top) + "&$top=" + top;
+                        hasNext = true;
                     }
                 } else {
-                    return selfLink + "?$skip=" + (skip + top) + "&$top=" + top;
+                    selfLink = selfLink + "?$skip=" + (skip + top) + "&$top=" + top;
+                    hasNext = true;
                 }
             } else {
-                return selfLink + "?$skip=" + top + "&$top=" + top;
-
+                selfLink = selfLink + "?$skip=" + top + "&$top=" + top;
+                hasNext = true;
             }
+        }
+        if (hasNext && req.getFilter()!= null) {
+            selfLink = selfLink + "&$filter=" + req.getFilter();
+        }
+        if (hasNext && req.getCount()) {
+            selfLink = selfLink + "&$count=true";
+        }
+        if (hasNext) {
+            return selfLink;
         }
         return null;
     }

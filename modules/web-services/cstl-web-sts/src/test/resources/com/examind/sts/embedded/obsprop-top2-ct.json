@@ -9,5 +9,5 @@
     "MultiDatastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/ObservedProperties(salinity)/MultiDatastreams"
   } ],
   "@iot.count" : 3,
-  "@iot.nextLink" : "http://localhost:9090/WS/sts/default/ObservedProperties?$skip=2&$top=1"
+  "@iot.nextLink" : "http://localhost:9090/WS/sts/default/ObservedProperties?$skip=2&$top=1&$count=true"
 }

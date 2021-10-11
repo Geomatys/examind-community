@@ -33,5 +33,5 @@
     "Datastream@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Observations(urn:ogc:object:observation:GEOM:2000-2-1)/Datastreams",
     "FeatureOfInterest@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Observations(urn:ogc:object:observation:GEOM:2000-2-1)/FeaturesOfInterest"
   } ],
-  "@iot.nextLink" : "http://localhost:9090/WS/sts/default/Observations?$skip=64&$top=4"
+  "@iot.nextLink" : "http://localhost:9090/WS/sts/default/Observations?$skip=64&$top=4&$count=true"
 }
