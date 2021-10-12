@@ -354,16 +354,17 @@ public final class DataProviders extends Static{
     }
 
     /**
-     * Returns scales array for data. (for wmts scales)
+     * Returns scales array for data.(for wmts scales)
      *
      * @param providerId Identifier of the provider
-     * @param dataId Data name.
+     * @param dataNamespace Data namespace.
+     * @param dataName Data name.
      * @param crs coordinate reference system.
      *
      * @return scales array for data. (for wmts scales)
      * @throws ConstellationException
      */
-    public static Double[] computeScales(final int providerId, final String dataId, final String crs) throws ConstellationException {
+    public static Double[] computeScales(final int providerId, final String dataNamespace, final String dataName, final String crs) throws ConstellationException {
         CoordinateReferenceSystem c = null;
          if (crs != null) {
              try {
@@ -372,14 +373,15 @@ public final class DataProviders extends Static{
                  throw new ConstellationException("Failed to decode CRS: " + crs, ex);
              }
         }
-        return computeScales(providerId, dataId, c);
+        return computeScales(providerId, dataNamespace, dataName, c);
     }
 
-    public static Double[] computeScales(final int providerId, final String dataName, final CoordinateReferenceSystem crs) throws ConstellationException {
+    private static Double[] computeScales(final int providerId, final String dataNamespace, final String dataName, final CoordinateReferenceSystem crs) throws ConstellationException {
         //get data
-        final Data inData = DataProviders.getProviderData(providerId, null, dataName);
+        final Data inData = DataProviders.getProviderData(providerId, dataNamespace, dataName);
         if (inData==null) {
-            throw new ConstellationException("Data "+dataName+" does not exist in provider "+providerId);
+            String nmsp = dataNamespace != null ? "{" + dataNamespace + "} " : "";
+            throw new ConstellationException("Data " + nmsp + dataName + " does not exist in provider "+providerId);
         }
         Envelope dataEnv;
         try {
@@ -462,12 +464,12 @@ public final class DataProviders extends Static{
         return getBestScales(briefs, c);
     }
 
-    public static double[] getBestScales(List<? extends org.constellation.dto.Data> briefs, CoordinateReferenceSystem crs) {
+    public static double[] getBestScales(List<? extends org.constellation.dto.Data> briefs, CoordinateReferenceSystem crs) throws ConstellationException {
         final List<Double> mergedScales = new LinkedList<>();
         for (final org.constellation.dto.Data db : briefs){
             final Double[] scales;
             try {
-                scales = DataProviders.computeScales(db.getProviderId(), db.getName(), crs);
+                scales = DataProviders.computeScales(db.getProviderId(), db.getNamespace(), db.getName(), crs);
             }catch(Exception ex) {
                 LOGGER.log(Level.WARNING, ex.getMessage(), ex);
                 continue;
@@ -492,6 +494,9 @@ public final class DataProviders extends Static{
                 mergedScales.clear();
                 mergedScales.addAll(scalesList);
             }
+        }
+        if (mergedScales.isEmpty()) {
+            throw new ConstellationException("No scale found for supplied datas");
         }
         double[] results = new double[mergedScales.size()];
         for (int i = 0; i < results.length; i++) {
