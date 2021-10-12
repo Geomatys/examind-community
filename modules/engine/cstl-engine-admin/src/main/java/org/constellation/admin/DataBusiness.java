@@ -205,46 +205,51 @@ public class DataBusiness implements IDataBusiness {
         final Data data = dataRepository.findById(dataId);
         if (data != null) {
             final List<DataBrief> dataBriefs = getDataBriefFrom(Collections.singletonList(data), null, null, fetchDataDescription);
-            if (dataBriefs != null && dataBriefs.size() == 1) {
+            if (!dataBriefs.isEmpty()) {
                 return dataBriefs.get(0);
+            } else {
+                throw new ConstellationException("Unable to build a dataBrief from the data with the id:" + dataId);
             }
+        } else {
+            throw new TargetNotFoundException("Unable to find a data with the id: " + dataId);
         }
-        throw new ConstellationException(new Exception("Problem : DataBrief Construction is null or multiple"));
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public DataBrief getDataBrief(QName dataName,Integer providerId, boolean fetchDataDescription) throws ConstellationException {
+    public DataBrief getDataBrief(final QName dataName, Integer providerId, boolean fetchDataDescription) throws ConstellationException {
         final Data data = dataRepository.findByNameAndNamespaceAndProviderId(dataName.getLocalPart(), dataName.getNamespaceURI(), providerId);
         if (data != null) {
-            final List<Data> datas = new ArrayList<>();
-            datas.add(data);
-            final List<DataBrief> dataBriefs = getDataBriefFrom(datas, null, null, fetchDataDescription);
-            if (dataBriefs != null && dataBriefs.size() == 1) {
+            final List<DataBrief> dataBriefs = getDataBriefFrom(Collections.singletonList(data), null, null, fetchDataDescription);
+            if (!dataBriefs.isEmpty()) {
                 return dataBriefs.get(0);
+            } else {
+                throw new ConstellationException("Unable to build a dataBrief from the data with the id:" + data.getId());
             }
+        } else {
+            throw new TargetNotFoundException("Unable to find a data with the name: " + dataName + " in the provider id:" + providerId);
         }
-        throw new ConstellationException(new Exception("Problem : DataBrief Construction is null or multiple"));
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public DataBrief getDataBrief(final QName fullName,
-                                  final String providerIdentifier, boolean fetchDataDescription) throws ConstellationException {
-        final Data data = dataRepository.findDataFromProvider(fullName.getNamespaceURI(), fullName.getLocalPart(), providerIdentifier);
-        final List<Data> datas = new ArrayList<>();
+    public DataBrief getDataBrief(final QName dataName, final String providerIdentifier, boolean fetchDataDescription) throws ConstellationException {
+        final Data data = dataRepository.findDataFromProvider(dataName.getNamespaceURI(), dataName.getLocalPart(), providerIdentifier);
         if (data != null) {
-            datas.add(data);
-            final List<DataBrief> dataBriefs = getDataBriefFrom(datas, null, null, fetchDataDescription);
-            if (dataBriefs != null && dataBriefs.size() == 1) {
+            final List<DataBrief> dataBriefs = getDataBriefFrom(Collections.singletonList(data), null, null, fetchDataDescription);
+            if (!dataBriefs.isEmpty()) {
                 return dataBriefs.get(0);
+            } else {
+                throw new ConstellationException("Unable to build a dataBrief from the data with the id:" + data.getId());
             }
         }
-        throw new ConstellationException(new Exception("Problem : DataBrief Construction is null or multiple"));
+         else {
+            throw new TargetNotFoundException("Unable to find a data with the name: " + dataName + " in the provider:" + providerIdentifier);
+        }
     }
 
     /**
@@ -384,7 +389,7 @@ public class DataBusiness implements IDataBusiness {
      * @param sensorable filter en sensorable data. can be {@code null}
      * @param published filter en published data. can be {@code null}
      * @param fetchDataDescription Flag to add or not data dscription (high cost)
-     * @return the list of {@link DataBrief}.
+     * @return the list of {@link DataBrief} never {@code null}.
      */
     protected List<DataBrief> getDataBriefFrom(final List<Data> datas, Boolean sensorable, Boolean published, Boolean fetchDataDescription) {
         final List<DataBrief> dataBriefs = new ArrayList<>();

@@ -116,6 +116,7 @@ public class MapRestAPI {
             Integer serviceId = serviceBusiness.getServiceIdByIdentifierAndType(spec, id);
             return new ResponseEntity(layerBusiness.getLayers(serviceId, securityManager.getCurrentUserLogin()), OK);
         } catch(Exception ex){
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
     }
@@ -142,6 +143,7 @@ public class MapRestAPI {
             }
             return new ResponseEntity(sumLayers, OK);
         } catch(Exception ex){
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
     }
@@ -163,6 +165,7 @@ public class MapRestAPI {
             layerBusiness.add(db.getId(), layer.getLayerAlias(), layer.getLayerNamespace(), layer.getLayerId(), sid, null);
             return new ResponseEntity(AcknowlegementType.success(String.format("Layer \"%s\" sucessfully added to %s service %s.", layer.getLayerId(), spec, id)), OK);
         } catch(Exception ex){
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
     }
@@ -178,6 +181,7 @@ public class MapRestAPI {
             Integer layerId = layerBusiness.add(layer.getDataId(),  layer.getAlias(), layer.getNamespace(), layer.getName(), layer.getService(), null);
             return new ResponseEntity(AcknowlegementType.success("Layer \"" + layerId + "\" successfully added to service \"" + layer.getService() + "\"."), OK);
         } catch(Exception ex){
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
     }
@@ -196,6 +200,7 @@ public class MapRestAPI {
             layerBusiness.update(layerId, layer);
             return new ResponseEntity("Layer \"" + layerId + "\" title successfully updated.", OK);
         } catch(Exception ex){
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
     }
@@ -225,6 +230,7 @@ public class MapRestAPI {
             }
             return new ResponseEntity(OK);
         } catch(Exception ex){
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
     }
@@ -240,6 +246,7 @@ public class MapRestAPI {
             layerBusiness.remove(layerId);
             return new ResponseEntity(OK);
         } catch(Exception ex){
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
     }
@@ -250,6 +257,7 @@ public class MapRestAPI {
             styleBusiness.linkToLayer(params.getStyleId(), params.getLayerId());
             return new ResponseEntity(OK);
         } catch(Exception ex){
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
     }
@@ -261,6 +269,7 @@ public class MapRestAPI {
             styleBusiness.unlinkToLayer(params.getStyleId(), params.getLayerId());
             return new ResponseEntity(OK);
         } catch(Exception ex){
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
     }
@@ -372,6 +381,7 @@ public class MapRestAPI {
             }
             return new ResponseEntity(map, OK);
         } catch(Exception ex){
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
     }
@@ -413,6 +423,7 @@ public class MapRestAPI {
                     .setTotal(total), OK);
 
         } catch(Exception ex){
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
     }
