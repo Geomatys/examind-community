@@ -25,7 +25,7 @@ import org.constellation.dto.service.ServiceStatus;
 import org.constellation.dto.service.config.wps.ProcessList;
 import org.constellation.dto.service.config.wps.Process;
 import org.constellation.dto.service.config.wps.ProcessContext;
-import org.constellation.dto.service.config.wxs.Layer;
+import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.dto.service.ServiceReport;
 import org.constellation.dto.service.Instance;
 import org.constellation.dto.StringList;
@@ -259,7 +259,7 @@ public class ConfigurationXmlBindingTest {
         StringList k = new StringList(Arrays.asList("kw1", "kw2"));
         kewords.put("eng", k);
 
-        Layer mainLayer = new Layer(null, null, "mainTitle", null, null, null, null, null, null, null, null, Arrays.asList("CRS-custo1", "CRS-custo2"));
+        LayerConfig mainLayer = new LayerConfig(null, null, "mainTitle", null, null, null, null, null, null, null, null, Arrays.asList("CRS-custo1", "CRS-custo2"));
         mainLayer.setMultiLangTitle(titles);
         mainLayer.setMultiLangKeywords(kewords);
 
@@ -407,15 +407,14 @@ public class ConfigurationXmlBindingTest {
         StringList k = new StringList(Arrays.asList("kw1", "kw2"));
         kewords.put("eng", k);
 
-        Layer mainLayer = new Layer(null, null,"mainTitle", null, null, null, null, null, null, null, null, Arrays.asList("CRS-custo1", "CRS-custo2"));
+        LayerConfig mainLayer = new LayerConfig(null, null,"mainTitle", null, null, null, null, null, null, null, null, Arrays.asList("CRS-custo1", "CRS-custo2"));
         mainLayer.setMultiLangTitle(titles);
         mainLayer.setMultiLangKeywords(kewords);
 
         context = new LayerContext();
         context.setMainLayer(mainLayer);
 
-        expresult = "{\"type\":\"LayerContext\",\"mainLayer\":{\"id\":null,\"dataId\":null,\"name\":null,\"alias\":null,\"version\":null,\"styles\":[],\"filter\":null,\"title\":\"mainTitle\",\"multiLangTitle\":{\"eng\":\"mainTitle\"},\"abstrac\":null,\"multiLangAbstract\":{},\"keywords\":[],\"multiLangKeywords\":{\"eng\":{\"list\":[\"kw1\",\"kw2\"]}},\"metadataURL\":null,\"dataURL\":null,\"authorityURL\":null,\"identifier\":null,\"attribution\":null,\"opaque\":null,\"crs\":[\"CRS-custo1\",\"CRS-custo2\"],\"dimensions\":[],\"date\":null,\"owner\":null,\"getFeatureInfoCfgs\":[]},\"security\":null,\"supportedLanguages\":null,\"customParameters\":{},\"getFeatureInfoCfgs\":[]}";
-
+        expresult = "{\"type\":\"LayerContext\",\"mainLayer\":{\"id\":null,\"name\":null,\"alias\":null,\"service\":null,\"dataId\":null,\"date\":null,\"config\":null,\"ownerId\":null,\"title\":\"mainTitle\",\"version\":null,\"styles\":[],\"filter\":null,\"multiLangTitle\":{\"eng\":\"mainTitle\"},\"abstrac\":null,\"multiLangAbstract\":{},\"keywords\":[],\"multiLangKeywords\":{\"eng\":{\"list\":[\"kw1\",\"kw2\"]}},\"metadataURL\":null,\"dataURL\":null,\"authorityURL\":null,\"identifier\":null,\"attribution\":null,\"opaque\":null,\"crs\":[\"CRS-custo1\",\"CRS-custo2\"],\"dimensions\":[],\"getFeatureInfoCfgs\":[]},\"security\":null,\"supportedLanguages\":null,\"customParameters\":{},\"getFeatureInfoCfgs\":[]}";
         result = mapper.writeValueAsString(context);
         assertEquals(expresult, result);
 

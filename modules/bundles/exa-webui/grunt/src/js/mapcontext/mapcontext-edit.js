@@ -940,9 +940,23 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
         };
 
         $scope.initWmsSourceMapContext = function() {
-            Examind.services.listServiceLayers('wms', $scope.getCurrentLang()).then(
+            Examind.services.getInstances('wms', $scope.getCurrentLang()).then(
                 function(response) {
-                    $scope.servicesLayers = response.data;
+                    var services = response.data;
+                    services.forEach(function(service) {
+                        var serviceLayer = {
+                            id: service.id,
+                            identifier: service.identifier,
+                            name: service.name,
+                            versions: service.versions,
+                            layers: []
+                        };
+                        Examind.map.getLayers('wms', service.identifier).then(
+                                function(response) {
+                                    serviceLayer.layers = response.data;
+                                    $scope.servicesLayers.push(serviceLayer);
+                                });
+                    });
                 });
             $scope.selection.layer = null;
             $scope.selection.service = null;

@@ -25,7 +25,7 @@ import org.constellation.business.IStyleBusiness;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.config.Language;
 import org.constellation.dto.service.config.Languages;
-import org.constellation.dto.service.config.wxs.Layer;
+import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.exception.TargetNotFoundException;
 import org.constellation.map.featureinfo.FeatureInfoUtilities;
@@ -221,7 +221,7 @@ public abstract class LayerWorker extends AbstractWorker {
         return style;
     }
 
-    protected Layer getMainLayer() {
+    protected LayerConfig getMainLayer() {
         if (layerContext == null) {
             return null;
         }
@@ -334,7 +334,7 @@ public abstract class LayerWorker extends AbstractWorker {
                 layerName = nip.layerName;
             }
             List<StyleReference> styles = new ArrayList<>();
-            Layer configuration;
+            LayerConfig configuration;
             try {
                 configuration = layerBusiness.getLayer(nip.layerId, login);
                 styles.addAll(configuration.getStyles());

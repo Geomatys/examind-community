@@ -22,10 +22,24 @@ package org.constellation.dto;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class Identifiable {
+public abstract class Identifiable {
     
     protected Integer id;
-    
+
+    protected Identifiable() {
+
+    }
+
+    protected Identifiable(Integer id) {
+        this.id = id;
+    }
+
+    protected Identifiable(Identifiable that) {
+        if (that != null) {
+            this.id = that.id;
+        }
+    }
+
     /**
      * @return the id
      */

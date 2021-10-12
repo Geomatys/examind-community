@@ -69,7 +69,7 @@ import org.constellation.api.ServiceDef;
 import org.constellation.dto.NameInProvider;
 import org.constellation.dto.contact.Details;
 import org.constellation.dto.service.config.wxs.FormatURL;
-import org.constellation.dto.service.config.wxs.Layer;
+import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.Data;
@@ -412,7 +412,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     LOGGER.log(Level.WARNING, "Error while getting featureType for:{0}\ncause:{1}", new Object[]{layer.getName(), ex.getMessage()});
                     continue;
                 }
-                final Layer confLayer = layer.getConfiguration();
+                final LayerConfig confLayer = layer.getConfiguration();
                 final org.geotoolkit.wfs.xml.FeatureType ftt;
                 try {
 

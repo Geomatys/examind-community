@@ -33,7 +33,7 @@ import org.constellation.business.IStyleBusiness;
 import org.constellation.dto.*;
 import org.constellation.dto.portrayal.LayerStyleUpdate;
 import org.constellation.dto.service.config.wxs.AddLayer;
-import org.constellation.dto.service.config.wxs.Layer;
+import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.dto.service.config.wxs.LayerSummary;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationRuntimeException;
@@ -104,11 +104,11 @@ public class MapRestAPI {
 
 
     /**
-     * Extracts and returns the list of {@link Layer}s available on a "map" service.
+     * Extracts and returns the list of {@link LayerConfig}s available on a "map" service.
      *
      * @param spec the service type
      * @param id the service identifier
-     * @return the {@link Layer} list
+     * @return the {@link LayerConfig} list
      */
     @RequestMapping(value="/MAP/{spec}/{id}/layer/all",method=GET,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity getLayers(final @PathVariable("spec") String spec, final @PathVariable("id") String id) {
@@ -132,10 +132,10 @@ public class MapRestAPI {
     public ResponseEntity getLayersSummary(final @PathVariable("spec") String spec, final @PathVariable("id") String id) {
         try {
             Integer serviceId = serviceBusiness.getServiceIdByIdentifierAndType(spec, id);
-            final List<Layer> layers = layerBusiness.getLayers(serviceId, securityManager.getCurrentUserLogin());
+            final List<LayerConfig> layers = layerBusiness.getLayers(serviceId, securityManager.getCurrentUserLogin());
 
             final List<LayerSummary> sumLayers = new ArrayList<>();
-            for (final Layer lay : layers) {
+            for (final LayerConfig lay : layers) {
                 final Data db = dataBusiness.getData(lay.getDataId());
                 final String owner = userBusiness.findById(db.getOwnerId()).get().getLogin();
                 List<StyleBrief> layerStyleBrief = Util.convertRefIntoStylesBrief(lay.getStyles());
@@ -178,7 +178,7 @@ public class MapRestAPI {
     @RequestMapping(value="/MAP/layer/add",method=PUT, consumes=APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
     public ResponseEntity addLayer(final @RequestBody org.constellation.dto.Layer layer) {
         try {
-            Integer layerId = layerBusiness.add(layer.getDataId(),  layer.getAlias(), layer.getNamespace(), layer.getName(), layer.getService(), null);
+            Integer layerId = layerBusiness.add(layer.getDataId(),  layer.getAlias(), layer.getName().getNamespaceURI(), layer.getName().getLocalPart(), layer.getService(), null);
             return new ResponseEntity(AcknowlegementType.success("Layer \"" + layerId + "\" successfully added to service \"" + layer.getService() + "\"."), OK);
         } catch(Exception ex){
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
@@ -411,12 +411,12 @@ public class MapRestAPI {
             final int pageNumber = pagedSearch.getPage();
             final int rowsPerPage = pagedSearch.getSize();
 
-            final Map.Entry<Integer,List<Layer>> entry = layerBusiness.filterAndGet(filterMap,sortEntry,pageNumber,rowsPerPage);
+            final Map.Entry<Integer,List<LayerConfig>> entry = layerBusiness.filterAndGet(filterMap,sortEntry,pageNumber,rowsPerPage);
             final int total = entry.getKey();
-            final List<Layer> results = entry.getValue();
+            final List<LayerConfig> results = entry.getValue();
 
             // Build and return the content list of page.
-            return new ResponseEntity(new Page<Layer>()
+            return new ResponseEntity(new Page<LayerConfig>()
                     .setNumber(pageNumber)
                     .setSize(rowsPerPage)
                     .setContent(results)

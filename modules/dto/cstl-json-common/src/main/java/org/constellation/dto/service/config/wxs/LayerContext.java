@@ -42,7 +42,7 @@ import java.util.Objects;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class LayerContext extends AbstractConfigurationObject {
 
-    private Layer mainLayer;
+    private LayerConfig mainLayer;
 
     private String security;
 
@@ -61,11 +61,11 @@ public class LayerContext extends AbstractConfigurationObject {
     /**
      * @return the layers
      */
-    public Layer getMainLayer() {
+    public LayerConfig getMainLayer() {
         return mainLayer;
     }
 
-    public void setMainLayer(final Layer mainlayer) {
+    public void setMainLayer(final LayerConfig mainlayer) {
         this.mainLayer = mainlayer;
     }
 

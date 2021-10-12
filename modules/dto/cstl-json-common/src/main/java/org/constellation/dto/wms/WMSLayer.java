@@ -10,7 +10,7 @@ import java.util.List;
  *
  * @author Mehdi Sidhoum (Geomatys).
  */
-public class LayerDTO implements Serializable {
+public class WMSLayer implements Serializable {
 
     private String name;
     private String title;
@@ -19,10 +19,10 @@ public class LayerDTO implements Serializable {
     private BoundingBox boundingBox;
     private String version;
 
-    public LayerDTO() {
+    public WMSLayer() {
     }
 
-    public LayerDTO(String name, String title, String resume, List<StyleDTO> styles, BoundingBox boundingBox,String version) {
+    public WMSLayer(String name, String title, String resume, List<StyleDTO> styles, BoundingBox boundingBox,String version) {
         this.name = name;
         this.title = title;
         this.resume = resume;

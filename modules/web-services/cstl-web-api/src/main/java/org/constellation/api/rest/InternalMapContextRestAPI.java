@@ -31,7 +31,7 @@ import org.constellation.dto.BoundingBox;
 import org.constellation.dto.CoordinateReferenceSystem;
 import org.constellation.dto.MapContextStyledLayerDTO;
 import org.constellation.dto.ParameterValues;
-import org.constellation.dto.wms.LayerDTO;
+import org.constellation.dto.wms.WMSLayer;
 import org.constellation.dto.wms.StyleDTO;
 import org.constellation.exception.ConstellationException;
 import org.geotoolkit.wms.WebMapClient;
@@ -89,7 +89,7 @@ public class InternalMapContextRestAPI extends AbstractRestAPI {
             AbstractWMSCapabilities capa = client.getServiceCapabilities();
 
             final List<AbstractLayer> layers = capa.getLayers();
-            final List<LayerDTO> finalList = new ArrayList<>();
+            final List<WMSLayer> finalList = new ArrayList<>();
             for (final AbstractLayer layer : layers) {
                 // Remove layer groups, if any
                 if (layer.getLayer() != null && layer.getLayer().size() > 0) {
@@ -127,7 +127,7 @@ public class InternalMapContextRestAPI extends AbstractRestAPI {
                         }
                     }
                 }
-                finalList.add(new LayerDTO(layer.getName(),layer.getTitle(), layer.getAbstract(),styles,bbox,version));
+                finalList.add(new WMSLayer(layer.getName(),layer.getTitle(), layer.getAbstract(),styles,bbox,version));
             }
 
             return new ResponseEntity(finalList, OK);

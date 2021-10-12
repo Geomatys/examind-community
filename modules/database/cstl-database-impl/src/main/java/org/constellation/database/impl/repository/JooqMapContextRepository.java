@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
+import javax.xml.namespace.QName;
 import static org.constellation.database.api.jooq.Tables.CSTL_USER;
 
 import org.constellation.database.api.jooq.tables.pojos.Mapcontext;
@@ -127,7 +128,7 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
                 .set(MAPCONTEXT_STYLED_LAYER.LAYER_VISIBLE, layer.isVisible())
                 .set(MAPCONTEXT_STYLED_LAYER.LAYER_ORDER, layer.getOrder())
                 .set(MAPCONTEXT_STYLED_LAYER.LAYER_OPACITY, layer.getOpacity())
-                .set(MAPCONTEXT_STYLED_LAYER.EXTERNAL_LAYER, layer.getExternalLayer())
+                .set(MAPCONTEXT_STYLED_LAYER.EXTERNAL_LAYER, layer.getExternalLayer() != null ? layer.getExternalLayer().getLocalPart() : null)
                 .set(MAPCONTEXT_STYLED_LAYER.EXTERNAL_LAYER_EXTENT, layer.getExternalLayerExtent())
                 .set(MAPCONTEXT_STYLED_LAYER.EXTERNAL_SERVICE_URL, layer.getExternalServiceUrl())
                 .set(MAPCONTEXT_STYLED_LAYER.EXTERNAL_SERVICE_VERSION, layer.getExternalServiceVersion())
@@ -151,7 +152,7 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
         MapcontextRecord newRecord = dsl.newRecord(MAPCONTEXT);
         newRecord.from(convertToDAO(mapContext));
         newRecord.store();
-        return newRecord.into(Mapcontext.class).getId();
+        return newRecord.getId();
     }
 
     @Override
@@ -259,7 +260,7 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
 
     private MapContextStyledLayerDTO convertToDto(MapcontextStyledLayer mcSl, Layer layer, Data data) {
         if (mcSl != null) {
-            String layerName = null;
+            QName layerName = null;
             String layerNamespace = null;
             String layerAlias = null;
             Integer serviceID = null;
@@ -268,7 +269,6 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
             String layerTitle = null;
             if (layer != null) {
                 layerName = layer.getName();
-                layerNamespace = layer.getNamespace();
                 layerAlias = layer.getAlias();
                 serviceID = layer.getService();
                 date = layer.getDate();
@@ -298,7 +298,7 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
                     mcSl.getLayerOrder(),
                     mcSl.getLayerOpacity(),
                     mcSl.getLayerVisible(),
-                    mcSl.getExternalLayer(),
+                    mcSl.getExternalLayer() != null ? new QName(mcSl.getExternalLayer()) : null,
                     mcSl.getExternalLayerExtent(),
                     mcSl.getExternalServiceUrl(),
                     mcSl.getExternalServiceVersion(),
@@ -306,7 +306,6 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
                     mcSl.getIswms(),
                     mcSl.getDataId(),
                     layerName,
-                    layerNamespace,
                     layerAlias,
                     serviceID,
                     date,

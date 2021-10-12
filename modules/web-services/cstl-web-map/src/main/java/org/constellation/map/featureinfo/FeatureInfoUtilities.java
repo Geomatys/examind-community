@@ -29,7 +29,7 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.util.ArgumentChecks;
 import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
-import org.constellation.dto.service.config.wxs.Layer;
+import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.exception.ConfigurationException;
 import org.geotoolkit.display2d.canvas.RenderingContext2D;
@@ -88,7 +88,7 @@ public final class FeatureInfoUtilities extends Static {
      * @throws ConfigurationException if binding class is not an {@link FeatureInfoFormat} instance
      * or declared {@link GetFeatureInfoCfg} MimeType is not supported by the {@link FeatureInfoFormat} implementation.
      */
-    public static FeatureInfoFormat getFeatureInfoFormat (final LayerContext serviceConf, final Layer layerConf, final String mimeType)
+    public static FeatureInfoFormat getFeatureInfoFormat (final LayerContext serviceConf, final LayerConfig layerConf, final String mimeType)
             throws ClassNotFoundException, ConfigurationException {
 
         ArgumentChecks.ensureNonNull("serviceConf", serviceConf);

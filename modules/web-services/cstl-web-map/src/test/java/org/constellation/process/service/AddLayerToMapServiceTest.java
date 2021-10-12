@@ -20,7 +20,7 @@ package org.constellation.process.service;
 
 import org.constellation.util.Util;
 import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
-import org.constellation.dto.service.config.wxs.Layer;
+import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.map.featureinfo.CSVFeatureInfoFormat;
 import org.constellation.map.featureinfo.FeatureInfoUtilities;
@@ -117,13 +117,13 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
 
             final org.geotoolkit.process.Process process = descriptor.createProcess(inputs);
             final ParameterValueGroup outputs = process.call();
-            final Layer outputLayer = (Layer) outputs.parameter(AddLayerToMapServiceDescriptor.OUT_LAYER_PARAM_NAME).getValue();
+            final LayerConfig outputLayer = (LayerConfig) outputs.parameter(AddLayerToMapServiceDescriptor.OUT_LAYER_PARAM_NAME).getValue();
 
             assertNotNull(outputLayer);
-            final List<Layer> layers = layerBusiness.getLayers(serviceId, null);
+            final List<LayerConfig> layers = layerBusiness.getLayers(serviceId, null);
             assertTrue(layers.size() == 1);
 
-            final Layer outLayer = layers.get(0);
+            final LayerConfig outLayer = layers.get(0);
             assertEquals(Util.getLayerId(COUNTRIES_DATA_REF).tip().toString(),outLayer.getName().getLocalPart());
             assertEquals("Europe-costlines" ,outLayer.getAlias());
             assertNotNull(outLayer.getFilter());
@@ -162,17 +162,17 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
 
             final org.geotoolkit.process.Process process = descriptor.createProcess(inputs);
             final ParameterValueGroup outputs = process.call();
-            final Layer layer = (Layer) outputs.parameter(AddLayerToMapServiceDescriptor.OUT_LAYER_PARAM_NAME).getValue();
+            final LayerConfig layer = (LayerConfig) outputs.parameter(AddLayerToMapServiceDescriptor.OUT_LAYER_PARAM_NAME).getValue();
 
             assertNotNull(layer);
 
-            final List<Layer> layers = layerBusiness.getLayers(serviceId, null);
+            final List<LayerConfig> layers = layerBusiness.getLayers(serviceId, null);
             assertFalse(layers.isEmpty());
             assertTrue(layers.size() == 1);
             assertTrue(layer.getGetFeatureInfoCfgs().isEmpty()); //default generic GetFeatureInfo
 
 
-            final Layer outLayer = layers.get(0);
+            final LayerConfig outLayer = layers.get(0);
             assertEquals(Util.getLayerId(COUNTRIES_DATA_REF).tip().toString() ,outLayer.getName().getLocalPart());
             assertEquals("Europe-costlines" ,outLayer.getAlias());
             assertNotNull(outLayer.getFilter());
@@ -201,7 +201,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
 
             Integer dataId = dataBusiness.getDataId(new QName("Countries"), providerId);
 
-            Layer layer = new Layer(new QName(NamesExt.getNamespace(Util.getLayerId(COUNTRIES_DATA_REF)), Util.getLayerId(COUNTRIES_DATA_REF).tip().toString()));
+            LayerConfig layer = new LayerConfig(new QName(NamesExt.getNamespace(Util.getLayerId(COUNTRIES_DATA_REF)), Util.getLayerId(COUNTRIES_DATA_REF).tip().toString()));
             layer.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());
 
             layerBusiness.add(dataId,
@@ -229,16 +229,16 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
 
             final org.geotoolkit.process.Process process = descriptor.createProcess(inputs);
             final ParameterValueGroup outputs = process.call();
-            final Layer outputLayer = (Layer) outputs.parameter(AddLayerToMapServiceDescriptor.OUT_LAYER_PARAM_NAME).getValue();
+            final LayerConfig outputLayer = (LayerConfig) outputs.parameter(AddLayerToMapServiceDescriptor.OUT_LAYER_PARAM_NAME).getValue();
 
             assertNotNull(outputLayer);
 
-            final List<Layer> layers = layerBusiness.getLayers(serviceId, null);
+            final List<LayerConfig> layers = layerBusiness.getLayers(serviceId, null);
             assertFalse(layers.isEmpty());
             assertTrue(layers.size() == 1);
             assertTrue(outputLayer.getGetFeatureInfoCfgs().size() > 0); //default generic GetFeatureInfo
 
-            final Layer outLayer = layers.get(0);
+            final LayerConfig outLayer = layers.get(0);
             assertEquals(Util.getLayerId(COUNTRIES_DATA_REF).tip().toString(),outLayer.getName().getLocalPart());
             assertEquals("Europe-costlines" ,outLayer.getAlias());
             assertNotNull(outLayer.getFilter());
@@ -271,7 +271,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
 
             Integer countriesDataId = dataBusiness.getDataId(new QName("Countries"), providerId);
 
-            Layer layer1 = new Layer(new QName(NamesExt.getNamespace(Util.getLayerId(COUNTRIES_DATA_REF)), Util.getLayerId(COUNTRIES_DATA_REF).tip().toString()));
+            LayerConfig layer1 = new LayerConfig(new QName(NamesExt.getNamespace(Util.getLayerId(COUNTRIES_DATA_REF)), Util.getLayerId(COUNTRIES_DATA_REF).tip().toString()));
             layer1.setGetFeatureInfoCfgs(gfi);
             layerBusiness.add(countriesDataId,
                               "Europe-costlines",
@@ -282,7 +282,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
 
             Integer cityDataId = dataBusiness.getDataId(new QName("city"), providerId);
 
-            Layer layer2 = new Layer(new QName(NamesExt.getNamespace(Util.getLayerId(COUNTRIES_DATA_REF)), "city"));
+            LayerConfig layer2 = new LayerConfig(new QName(NamesExt.getNamespace(Util.getLayerId(COUNTRIES_DATA_REF)), "city"));
             layer2.setGetFeatureInfoCfgs(gfi);
             layerBusiness.add(cityDataId,
                               null,
@@ -307,16 +307,16 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
 
             final org.geotoolkit.process.Process process = descriptor.createProcess(inputs);
             final ParameterValueGroup outputs = process.call();
-            final Layer outputLayer = (Layer) outputs.parameter(AddLayerToMapServiceDescriptor.OUT_LAYER_PARAM_NAME).getValue();
+            final LayerConfig outputLayer = (LayerConfig) outputs.parameter(AddLayerToMapServiceDescriptor.OUT_LAYER_PARAM_NAME).getValue();
 
             assertNotNull(outputLayer);
 
-            final List<Layer> layers = layerBusiness.getLayers(serviceId, null);
+            final List<LayerConfig> layers = layerBusiness.getLayers(serviceId, null);
             assertFalse(layers.isEmpty());
             assertTrue(layers.size() == 2);
             assertTrue(outputLayer.getGetFeatureInfoCfgs().size() > 0); //default generic GetFeatureInfo
 
-             for (Layer outLayer : layers) {
+             for (LayerConfig outLayer : layers) {
                  assertNotNull(outLayer);
                  if (Util.getLayerId(COUNTRIES_DATA_REF).tip().toString().equals(outLayer.getName().getLocalPart())) {
                      assertEquals("Europe-costlines", outLayer.getAlias());
@@ -360,17 +360,17 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
 
             final org.geotoolkit.process.Process process = descriptor.createProcess(inputs);
             final ParameterValueGroup outputs = process.call();
-            final Layer outputLayer = (Layer) outputs.parameter(AddLayerToMapServiceDescriptor.OUT_LAYER_PARAM_NAME).getValue();
+            final LayerConfig outputLayer = (LayerConfig) outputs.parameter(AddLayerToMapServiceDescriptor.OUT_LAYER_PARAM_NAME).getValue();
 
             assertNotNull(outputLayer);
 
-            final List<Layer> layers = layerBusiness.getLayers(serviceId, null);
+            final List<LayerConfig> layers = layerBusiness.getLayers(serviceId, null);
             assertFalse(layers.isEmpty());
             assertTrue(layers.size() == 1);
             assertTrue(outputLayer.getGetFeatureInfoCfgs().isEmpty()); //default generic GetFeatureInfo
 
 
-            final Layer outLayer = layers.get(0);
+            final LayerConfig outLayer = layers.get(0);
             assertEquals(Util.getLayerId(COUNTRIES_DATA_REF).tip().toString(),outLayer.getName().getLocalPart());
             assertNull(outLayer.getAlias());
             assertNull(outLayer.getFilter());
@@ -415,17 +415,17 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
 
             final org.geotoolkit.process.Process process = descriptor.createProcess(inputs);
             final ParameterValueGroup outputs = process.call();
-            final Layer output = (Layer) outputs.parameter(AddLayerToMapServiceDescriptor.OUT_LAYER_PARAM_NAME).getValue();
+            final LayerConfig output = (LayerConfig) outputs.parameter(AddLayerToMapServiceDescriptor.OUT_LAYER_PARAM_NAME).getValue();
 
             assertNotNull(output);
 
-            final List<Layer> layers = layerBusiness.getLayers(serviceId, null);
+            final List<LayerConfig> layers = layerBusiness.getLayers(serviceId, null);
             assertFalse(layers.isEmpty());
             assertTrue(layers.size() == 1);
             assertTrue(output.getGetFeatureInfoCfgs().size() == 1); //default generic GetFeatureInfo
 
 
-            final Layer outLayer = layers.get(0);
+            final LayerConfig outLayer = layers.get(0);
             assertEquals(Util.getLayerId(COUNTRIES_DATA_REF).tip().toString(),outLayer.getName().getLocalPart());
             assertEquals("Europe-costlines" ,outLayer.getAlias());
             assertNotNull(outLayer.getFilter());

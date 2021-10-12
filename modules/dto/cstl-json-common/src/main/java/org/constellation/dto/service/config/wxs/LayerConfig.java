@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import org.constellation.dto.Filter;
+import org.constellation.dto.Layer;
 import org.constellation.dto.Reference;
 import org.constellation.dto.StringList;
 import org.constellation.dto.StyleReference;
@@ -47,18 +48,7 @@ import org.constellation.dto.StyleReference;
  */
 @XmlRootElement(name="LayerConfig")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class Layer {
-    @XmlAttribute
-    private Integer id;
-
-    @XmlAttribute
-    private Integer dataId;
-
-    @XmlAttribute
-    private QName name;
-
-    @XmlAttribute
-    private String alias;
+public class LayerConfig extends Layer {
 
     @XmlAttribute
     private Long version;
@@ -68,10 +58,6 @@ public class Layer {
 
     @XmlElement(name="filter")
     private Filter filter;
-
-    @Deprecated
-    @XmlElement(name="title")
-    private String title;
 
     @XmlElement(name="multiLangTitle")
     private Map<String, String> multiLangTitle;
@@ -114,88 +100,72 @@ public class Layer {
     @XmlElement(name="dimension")
     private List<DimensionDefinition> dimensions;
 
-    @XmlElement(name="Modified-Date")
-    private Date date;
-
-    @XmlElement(name = "owner")
-    private Integer owner;
-
     @XmlElementWrapper(name="featureInfos")
     @XmlElement(name="FeatureInfo")
     private List<GetFeatureInfoCfg> getFeatureInfoCfgs;
 
-    public Layer() {
+    public LayerConfig() {
     }
 
-    public Layer(Layer that) {
+    public LayerConfig(LayerConfig that) {
+        super(that);
         if (that != null) {
             this.abstrac = that.abstrac;
-            this.id = that.id;
-            this.dataId = that.dataId;
             this.attribution = that.attribution;
             this.authorityURL = that.authorityURL;
             this.crs = that.crs;
             this.dataURL = that.dataURL;
             this.filter = that.filter;
-            this.alias = that.alias;
             this.version = that.version;
             this.identifier = that.identifier;
             this.keywords = that.keywords;
             this.metadataURL = that.metadataURL;
-            this.name = that.name;
             this.styles = that.styles;
             this.opaque = that.opaque;
             this.multiLangTitle = that.multiLangTitle;
             this.multiLangAbstract = that.multiLangAbstract;
             this.multiLangKeywords = that.multiLangKeywords;
-            this.title = that.title;
             this.getFeatureInfoCfgs = that.getFeatureInfoCfgs;
         }
     }
 
-    public Layer(final QName name) {
+    public LayerConfig(final QName name) {
         this.name = name;
     }
 
-    public Layer(final Integer id, final QName name) {
+    public LayerConfig(final Integer id, final QName name) {
         this.id = id;
         this.name = name;
     }
 
-    public Layer(final Integer id, final QName name, final List<StyleReference> styles) {
-        this.id = id;
-        this.name = name;
-        this.styles = styles;
-    }
-
-    public Layer(final Integer id, final QName name, final String title, final String abstrac, final List<String> keywords, final FormatURL metadataURL,
+    public LayerConfig(final Integer id, final QName name, final String title, final String abstrac, final List<String> keywords, final FormatURL metadataURL,
             final FormatURL dataURL, final FormatURL authorityURL, final Reference identifier, final AttributionType attribution, final Boolean opaque,
             final List<String> crs)
     {
         this(id, name, null, null, null, title, abstrac, keywords, metadataURL, dataURL, authorityURL, identifier, attribution, opaque, crs);
     }
 
-    public Layer(final Integer id, final QName name, final List<StyleReference> styles, final Filter filter, final String alias, final String title, final String abstrac, final List<String> keywords, final FormatURL metadataURL,
+    public LayerConfig(final Integer id, final QName name, final List<StyleReference> styles, final Filter filter, final String alias, final String title, final String abstrac, final List<String> keywords, final FormatURL metadataURL,
             final FormatURL dataURL, final FormatURL authorityURL, final Reference identifier, final AttributionType attribution, final Boolean opaque,
             final List<String> crs)
     {
         this(id, name, styles, filter, alias, title, abstrac, keywords, metadataURL, dataURL, authorityURL, identifier, attribution, opaque, crs, null);
     }
 
-    public Layer(final Integer id, final QName name, final List<StyleReference> styles, final Filter filter, final String alias, final String title, final String abstrac, final List<String> keywords, final FormatURL metadataURL,
+    public LayerConfig(final Integer id, final QName name, final List<StyleReference> styles, final Filter filter, final String alias, final String title, final String abstrac, final List<String> keywords, final FormatURL metadataURL,
             final FormatURL dataURL, final FormatURL authorityURL, final Reference identifier, final AttributionType attribution, final Boolean opaque,
             final List<String> crs, final List<DimensionDefinition> dimensions) {
         this(id, name, styles, filter, alias, title, abstrac, keywords, metadataURL, dataURL, authorityURL, identifier, attribution, opaque, crs, dimensions, null);
     }
 
-    public Layer(final Integer id, final QName name, final List<StyleReference> styles, final Filter filter, final String alias, final String title, final String abstrac, final List<String> keywords, final FormatURL metadataURL,
+    public LayerConfig(final Integer id, final QName name, final List<StyleReference> styles, final Filter filter, final String alias, final String title, final String abstrac, final List<String> keywords, final FormatURL metadataURL,
                  final FormatURL dataURL, final FormatURL authorityURL, final Reference identifier, final AttributionType attribution, final Boolean opaque,
                  final List<String> crs, final List<DimensionDefinition> dimensions, final Date version) {
+        super(id, name, alias, null, null, null, null, null, title);
         this.id           = id;
         this.name         = name;
         this.styles       = styles;
         this.filter       = filter;
-        this.title        = title;
         this.abstrac      = abstrac;
         this.keywords     = keywords;
         this.metadataURL  = metadataURL != null ? Arrays.asList(metadataURL): null;
@@ -207,38 +177,7 @@ public class Layer {
         this.crs          = crs;
         this.dimensions   = dimensions;
         this.version      = version != null ? version.getTime(): null;
-        this.alias        = alias;
         this.getFeatureInfoCfgs = null;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Integer getDataId() {
-        return dataId;
-    }
-
-    public void setDataId(Integer dataId) {
-        this.dataId = dataId;
-    }
-
-    /**
-     * @return the name
-     */
-    public QName getName() {
-        return name;
-    }
-
-    /**
-     * @param name the name to set
-     */
-    public void setName(final QName name) {
-        this.name = name;
     }
 
     public List<StyleReference> getStyles() {
@@ -260,14 +199,6 @@ public class Layer {
         this.filter = filter;
     }
 
-    public String getAlias() {
-        return alias;
-    }
-
-    public final void setAlias(String alias) {
-        this.alias = alias;
-    }
-
     /**
      * Get layer data version Date in timestamp
      * @return timestamp or null if not defined
@@ -282,16 +213,6 @@ public class Layer {
      */
     public void setVersion(Long version) {
         this.version = version;
-    }
-
-    @Deprecated
-    public String getTitle() {
-        return title;
-    }
-
-    @Deprecated
-    public void setTitle(final String title) {
-        this.title = title;
     }
 
     @Deprecated
@@ -398,22 +319,6 @@ public class Layer {
         this.dimensions = dimensions;
     }
 
-    public Date getDate() {
-        return date;
-    }
-
-    public void setDate(final Date date) {
-        this.date = date;
-    }
-
-    public Integer getOwner() {
-        return owner;
-    }
-
-    public void setOwner(final Integer owner) {
-        this.owner = owner;
-    }
-
     /**
      * Return custom getFeatureInfos
      * @return a list with GetFeatureInfoCfg, can be null.
@@ -482,16 +387,7 @@ public class Layer {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("[Layer]");
-        if (id != null) {
-            sb.append("id:\n").append(id).append('\n');
-        }
-        if (dataId != null) {
-            sb.append("dataId:\n").append(dataId).append('\n');
-        }
-        if (name != null) {
-            sb.append("name:\n").append(name).append('\n');
-        }
+        final StringBuilder sb = new StringBuilder(super.toString());
         if (styles != null && !styles.isEmpty()) {
             for (StyleReference style : styles) {
                 sb.append("style:\n").append(style).append('\n');
@@ -499,9 +395,6 @@ public class Layer {
         }
         if (filter != null) {
             sb.append("filter:\n").append(filter).append('\n');
-        }
-        if (alias != null) {
-            sb.append("alias:\n").append(alias).append('\n');
         }
         if (version != null) {
             sb.append("version:\n").append(version).append('\n');
@@ -532,9 +425,6 @@ public class Layer {
         }
         if (opaque != null) {
             sb.append("opaque:\n").append(opaque).append('\n');
-        }
-        if (title != null) {
-            sb.append("title:\n").append(title).append('\n');
         }
         if (multiLangTitle != null && !multiLangTitle.isEmpty()) {
             sb.append("multi language titles:\n").append('\n');
@@ -571,28 +461,23 @@ public class Layer {
 
     @Override
     public boolean equals(final Object obj) {
-        if (obj instanceof Layer) {
-            final Layer that = (Layer) obj;
+        if (obj instanceof LayerConfig && super.equals(obj)) {
+            final LayerConfig that = (LayerConfig) obj;
             return Objects.equals(this.abstrac,      that.abstrac) &&
-                   Objects.equals(this.id,           that.id) &&
-                   Objects.equals(this.dataId,       that.dataId) &&
                    Objects.equals(this.attribution,  that.attribution) &&
                    Objects.equals(this.authorityURL, that.authorityURL) &&
                    Objects.equals(this.crs,          that.crs) &&
                    Objects.equals(this.dataURL,      that.dataURL) &&
                    Objects.equals(this.filter,       that.filter) &&
-                   Objects.equals(this.alias,        that.alias) &&
                    Objects.equals(this.version,      that.version) &&
                    Objects.equals(this.identifier,   that.identifier) &&
                    Objects.equals(this.keywords,     that.keywords) &&
                    Objects.equals(this.metadataURL,  that.metadataURL) &&
-                   Objects.equals(this.name,         that.name) &&
                    Objects.equals(this.styles,       that.styles) &&
                    Objects.equals(this.opaque,       that.opaque) &&
                    Objects.equals(this.multiLangTitle,    that.multiLangTitle) &&
                    Objects.equals(this.multiLangAbstract, that.multiLangAbstract) &&
                    Objects.equals(this.multiLangKeywords, that.multiLangKeywords) &&
-                   Objects.equals(this.title,        that.title) &&
                    Objects.equals(this.getFeatureInfoCfgs, that.getFeatureInfoCfgs);
         }
         return false;
@@ -601,14 +486,11 @@ public class Layer {
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 79 * hash + (this.id != null ? this.id.hashCode() : 0);
+        hash = 79 * hash + super.hashCode();
         hash = 79 * hash + (this.dataId != null ? this.dataId.hashCode() : 0);
-        hash = 79 * hash + (this.name != null ? this.name.hashCode() : 0);
         hash = 79 * hash + (this.styles != null ? this.styles.hashCode() : 0);
         hash = 79 * hash + (this.filter != null ? this.filter.hashCode() : 0);
-        hash = 79 * hash + (this.alias != null ? this.alias.hashCode() : 0);
         hash = 79 * hash + (this.version != null ? this.version.hashCode() : 0);
-        hash = 79 * hash + (this.title != null ? this.title.hashCode() : 0);
         hash = 79 * hash + (this.abstrac != null ? this.abstrac.hashCode() : 0);
         hash = 79 * hash + (this.keywords != null ? this.keywords.hashCode() : 0);
         hash = 79 * hash + (this.metadataURL != null ? this.metadataURL.hashCode() : 0);

@@ -22,7 +22,7 @@ import org.constellation.business.ILayerBusiness;
 import org.constellation.dto.NameInProvider;
 import org.constellation.dto.ServiceReference;
 import org.constellation.exception.ConfigurationException;
-import org.constellation.dto.service.config.wxs.Layer;
+import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.exception.ConstellationException;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.security.SecurityManagerHolder;
@@ -77,7 +77,7 @@ public class RemoveLayerFromMapService extends AbstractCstlProcess {
         }
         final GenericName layerName = Util.getLayerId(layerRef);
 
-        Layer oldLayer = null;
+        LayerConfig oldLayer = null;
         try {
             String login = null;
             try {

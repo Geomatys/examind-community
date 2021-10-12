@@ -40,7 +40,7 @@ import org.constellation.dto.DataBrief;
 import org.constellation.dto.contact.AccessConstraint;
 import org.constellation.dto.contact.Contact;
 import org.constellation.dto.contact.Details;
-import org.constellation.dto.service.config.wxs.Layer;
+import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.exception.ConstellationException;
 import org.constellation.test.utils.Order;
@@ -165,7 +165,7 @@ public class LayerBusinessTest {
         // search all
         Map<String, Object> filters = new HashMap<>();
         Map.Entry<String, String> sort = null;
-        Map.Entry<Integer, List<Layer>> results = layerBusiness.filterAndGet(filters, sort, 1, 20);
+        Map.Entry<Integer, List<LayerConfig>> results = layerBusiness.filterAndGet(filters, sort, 1, 20);
 
         Assert.assertEquals(new Integer(13), results.getKey());
         Assert.assertEquals(13, results.getValue().size());

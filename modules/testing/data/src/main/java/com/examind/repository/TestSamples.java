@@ -7,6 +7,7 @@ import org.constellation.dto.CstlUser;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import javax.xml.namespace.QName;
 import org.constellation.dto.Data;
 import org.constellation.dto.DataSet;
 import org.constellation.dto.DataSource;
@@ -178,8 +179,7 @@ public class TestSamples {
         layer.setDataId(dataId);
         layer.setDate(new Date());
         layer.setConfig(null);
-        layer.setName(name);
-        layer.setNamespace(namespace);
+        layer.setName(new QName(namespace, name));
         layer.setOwnerId(ownerId);
         layer.setService(serviceId);
         layer.setTitle(title);
@@ -192,8 +192,7 @@ public class TestSamples {
         layer.setDataId(dataId);
         layer.setDate(new Date());
         layer.setConfig(null);
-        layer.setName("test'l'ayer");
-        layer.setNamespace("test' nmsp");
+        layer.setName(new QName("test' nmsp", "test'l'ayer"));
         layer.setOwnerId(ownerId);
         layer.setService(serviceId);
         layer.setTitle("layer' 'tiltle");
@@ -206,8 +205,7 @@ public class TestSamples {
         layer.setDataId(dataId);
         layer.setDate(new Date());
         layer.setConfig(null);
-        layer.setName("testlayer3");
-        layer.setNamespace("");
+        layer.setName(new QName("", "testlayer3"));
         layer.setOwnerId(ownerId);
         layer.setService(serviceId);
         layer.setTitle("layer tiltle");
@@ -220,8 +218,7 @@ public class TestSamples {
         layer.setDataId(dataId);
         layer.setDate(new Date());
         layer.setConfig(null);
-        layer.setName("test'l'ayer4;");
-        layer.setNamespace("test' nmsp");
+        layer.setName(new QName("test' nmsp", "test'l'ayer4;"));
         layer.setOwnerId(ownerId);
         layer.setService(serviceId);
         layer.setTitle("layer' 'tiltle");

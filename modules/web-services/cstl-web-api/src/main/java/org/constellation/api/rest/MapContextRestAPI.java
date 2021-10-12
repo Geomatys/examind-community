@@ -31,6 +31,7 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
+import javax.xml.namespace.QName;
 import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 import org.constellation.api.TilingMode;
 import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
@@ -326,7 +327,7 @@ public class MapContextRestAPI extends AbstractRestAPI {
 
         for (final MapContextStyledLayerDTO styledLayer : ctxt.getLayers()) {
             final boolean isExternal = (styledLayer.getExternalLayer() != null);
-            final String layerName = (isExternal) ? styledLayer.getExternalLayer() : styledLayer.getName();
+            final QName layerName = (isExternal) ? styledLayer.getExternalLayer() : styledLayer.getName();
 
             final EntryType newEntry = new EntryType();
             newEntry.addId(new IdType("Web Map Service Layer"));
@@ -383,17 +384,13 @@ public class MapContextRestAPI extends AbstractRestAPI {
             }else {
                 //internal data
                 final Integer dataID = styledLayer.getDataId();
-                String layerDataName = layerName;
+                QName layerDataName = layerName;
                 String provider="";
                 try {
                     final DataBrief data = dataBusiness.getDataBrief(dataID, false);
                     final String namespace = data.getNamespace();
                     final String dataName = data.getName();
-                    if (namespace!= null && !namespace.isEmpty()) {
-                        layerDataName = "{"+namespace+"}"+dataName;
-                    } else {
-                        layerDataName = dataName;
-                    }
+                    layerDataName = new QName(namespace, dataName);
                     provider = data.getProvider();
                 } catch(ConstellationException ex) {
                     LOGGER.log(Level.INFO, ex.getMessage(), ex);

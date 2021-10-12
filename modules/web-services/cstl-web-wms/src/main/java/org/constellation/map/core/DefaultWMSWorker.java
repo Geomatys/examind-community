@@ -70,7 +70,7 @@ import org.constellation.dto.service.config.wxs.AttributionType;
 import org.constellation.dto.service.config.wxs.DimensionDefinition;
 import org.constellation.dto.service.config.wxs.FilterAndDimension;
 import org.constellation.dto.service.config.wxs.FormatURL;
-import org.constellation.dto.service.config.wxs.Layer;
+import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
@@ -854,7 +854,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
      * @return
      * @throws CstlServiceException
      */
-    private AbstractLayer customizeLayer(final String version, final AbstractLayer outputLayer, final Layer configLayer, String language) throws CstlServiceException
+    private AbstractLayer customizeLayer(final String version, final AbstractLayer outputLayer, final LayerConfig configLayer, String language) throws CstlServiceException
     {
         if (configLayer == null) {
             return outputLayer;
@@ -1072,7 +1072,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         }
 
         //search custom FeatureInfoFormat
-        Layer config = null;
+        LayerConfig config = null;
         if (layersCache.size() == 1) {
             config = layersCache.get(0).getConfiguration();
         }

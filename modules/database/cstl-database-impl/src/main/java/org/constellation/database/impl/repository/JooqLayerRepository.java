@@ -75,13 +75,13 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, or
         newRecord.setAlias(layer.getAlias());
         newRecord.setConfig(layer.getConfig());
         newRecord.setData(layer.getDataId());
-        newRecord.setName(layer.getName());
-        newRecord.setNamespace(layer.getNamespace());
+        newRecord.setName(layer.getName().getLocalPart());
+        newRecord.setNamespace(layer.getName().getNamespaceURI());
         newRecord.setService(layer.getService());
         newRecord.setTitle(layer.getTitle());
         newRecord.setDate(layer.getDate() != null ? layer.getDate().getTime() : null);
         if (newRecord.store() > 0)
-            return newRecord.into(Layer.class).getId();
+            return newRecord.getId();
 
         return null;
     }
@@ -91,8 +91,8 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, or
     public void update(Layer layer) {
         LayerRecord layerRecord = new LayerRecord();
         layerRecord.from(layer);
-        UpdateConditionStep<LayerRecord> set = dsl.update(LAYER).set(LAYER.NAME, layer.getName())
-                .set(LAYER.NAMESPACE, layer.getNamespace()).set(LAYER.ALIAS, layer.getAlias()).set(LAYER.DATA, layer.getDataId())
+        UpdateConditionStep<LayerRecord> set = dsl.update(LAYER).set(LAYER.NAME, layer.getName().getLocalPart())
+                .set(LAYER.NAMESPACE, layer.getName().getNamespaceURI()).set(LAYER.ALIAS, layer.getAlias()).set(LAYER.DATA, layer.getDataId())
                 .set(LAYER.CONFIG, layer.getConfig()).set(LAYER.TITLE, layer.getTitle()).where(LAYER.ID.eq(layer.getId()));
         set.execute();
     }
@@ -337,8 +337,7 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, or
             dto.setDataId(dao.getData());
             dto.setDate(new Date(dao.getDate()));
             dto.setId(dao.getId());
-            dto.setName(dao.getName());
-            dto.setNamespace(dao.getNamespace());
+            dto.setName(new QName(dao.getNamespace(), dao.getName()));
             dto.setOwnerId(dao.getOwner());
             dto.setService(dao.getService());
             dto.setTitle(dao.getTitle());

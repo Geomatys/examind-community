@@ -1819,21 +1819,6 @@ function Examind($http, url) {
     self.services = {
 
         /**
-         * Get a list of layers for all the services of the specified type.
-         *
-         * @param {String} type : mandatory
-         * @param {String} lang : optional
-         * @returns {Promise}
-         */
-        listServiceLayers : function(type,lang) {
-            return self.request({
-                method: 'GET',
-                url: 'services/layers?type=' + type + '&lang=' +lang,
-                headers: {'Accept': 'application/json'}
-            });
-        },
-
-        /**
          * Get a list of all services.
          *
          * @param {String} type : optional

@@ -387,12 +387,12 @@ public class MapContextBusiness implements IMapContextBusiness {
                 final Layer layer = layerRepository.findById(layerID);
                 final Data db = dataBusiness.getData(layer.getDataId());
 
-                final QName name = new QName(layer.getNamespace(), layer.getName());
+                final QName name = layer.getName();
 
-                final org.constellation.dto.service.config.wxs.Layer layerConfig = new org.constellation.dto.service.config.wxs.Layer(layer.getId(), name);
+                final org.constellation.dto.service.config.wxs.LayerConfig layerConfig = new org.constellation.dto.service.config.wxs.LayerConfig(layer.getId(), name);
                 layerConfig.setAlias(layer.getAlias());
                 layerConfig.setDate(layer.getDate());
-                layerConfig.setOwner(layer.getOwnerId());
+                layerConfig.setOwnerId(layer.getOwnerId());
                 layerConfig.setDataId(layer.getDataId());
 
                 final List<Integer> styledLays = styledLayerRepository.findByLayer(layer.getId());
@@ -426,10 +426,10 @@ public class MapContextBusiness implements IMapContextBusiness {
             } else if (dataID != null) {
                 final Data db = dataBusiness.getData(dataID);
                 final QName dataName = new QName(db.getNamespace(), db.getName());
-                final org.constellation.dto.service.config.wxs.Layer layerConfig = new org.constellation.dto.service.config.wxs.Layer(styledLayer.getLayerId(), dataName);
+                final org.constellation.dto.service.config.wxs.LayerConfig layerConfig = new org.constellation.dto.service.config.wxs.LayerConfig(styledLayer.getLayerId(), dataName);
                 layerConfig.setAlias(db.getName());
                 layerConfig.setDate(db.getDate());
-                layerConfig.setOwner(db.getOwnerId());
+                layerConfig.setOwnerId(db.getOwnerId());
                 layerConfig.setDataId(dataID);
 
                 // Fill styles
@@ -465,7 +465,7 @@ public class MapContextBusiness implements IMapContextBusiness {
         return styledLayersDto;
     }
 
-    private static MapContextStyledLayerDTO buildMapContextStyledLayer(MapContextStyledLayerDTO mcSl, final org.constellation.dto.service.config.wxs.Layer layer,
+    private static MapContextStyledLayerDTO buildMapContextStyledLayer(MapContextStyledLayerDTO mcSl, final org.constellation.dto.service.config.wxs.LayerConfig layer,
                 final Data db, String owner) {
         List<StyleBrief> layerStyleBrief = null;
         if (layer != null) {

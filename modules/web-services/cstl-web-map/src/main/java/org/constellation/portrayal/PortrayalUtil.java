@@ -18,7 +18,7 @@
  */
 package org.constellation.portrayal;
 
-import org.constellation.dto.service.config.wxs.Layer;
+import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.provider.Data;
 import org.geotoolkit.map.MapBuilder;
 import org.apache.sis.portrayal.MapLayers;
@@ -79,7 +79,7 @@ public final class PortrayalUtil {
                 final Map<String, Object> userData = mapLayer.getUserProperties();
                 userData.put("layerId", layer.getId());
                 userData.put("layerName", layer.getName());
-                final Layer layerConf = layer.getConfiguration();
+                final LayerConfig layerConf = layer.getConfiguration();
                 final String alias;
                 if (layerConf != null && (alias = layerConf.getAlias()) != null) {
                     userData.put("alias", alias);

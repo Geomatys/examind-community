@@ -21,7 +21,7 @@ package org.constellation.process.service;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.dto.service.config.wxs.DimensionDefinition;
 import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
-import org.constellation.dto.service.config.wxs.Layer;
+import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.util.DataReference;
 import org.geotoolkit.process.ProcessDescriptor;
@@ -130,7 +130,7 @@ public class AddLayerToMapService extends AbstractCstlProcess {
         final QName layerQName = new QName(namespace, name);
 
         //create future new layer
-        final Layer newLayer = new Layer(layerQName);
+        final LayerConfig newLayer = new LayerConfig(layerQName);
 
         //add filter if exist
         if (layerFilter != null) {

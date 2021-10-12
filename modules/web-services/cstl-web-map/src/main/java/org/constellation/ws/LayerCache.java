@@ -28,7 +28,7 @@ import org.apache.sis.util.logging.Logging;
 import org.constellation.api.DataType;
 import org.constellation.api.ServiceDef;
 import org.constellation.dto.StyleReference;
-import org.constellation.dto.service.config.wxs.Layer;
+import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.Data;
 import org.geotoolkit.util.DateRange;
@@ -50,9 +50,9 @@ public class LayerCache {
     private final GenericName name;
     private final List<StyleReference> styles;
     private final Data data;
-    private final Layer configuration;
+    private final LayerConfig configuration;
 
-    public LayerCache(final Integer id, GenericName name, Data d, List<StyleReference> styles, final Layer configuration) {
+    public LayerCache(final Integer id, GenericName name, Data d, List<StyleReference> styles, final LayerConfig configuration) {
         this.id = id;
         this.data = d;
         this.name = name;
@@ -76,7 +76,7 @@ public class LayerCache {
         return data;
     }
 
-    public Layer getConfiguration() {
+    public LayerConfig getConfiguration() {
         return configuration;
     }
 

@@ -21,7 +21,7 @@ package org.constellation.process.service;
 import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.util.iso.ResourceInternationalString;
 import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
-import org.constellation.dto.service.config.wxs.Layer;
+import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.process.AbstractCstlProcessDescriptor;
 import org.constellation.process.ExamindProcessFactory;
@@ -171,11 +171,11 @@ public class AddLayerToMapServiceDescriptor extends AbstractCstlProcessDescripto
      */
     public static final String OUT_LAYER_PARAM_NAME = "layer";
     public static final InternationalString OUT_LAYER_PARAM_REMARKS = new ResourceInternationalString(BUNDLE, OUT_LAYER_PARAM_REMARKS_KEY);
-    public static final ParameterDescriptor<Layer> OUT_LAYER = BUILDER
+    public static final ParameterDescriptor<LayerConfig> OUT_LAYER = BUILDER
             .addName(OUT_LAYER_PARAM_NAME)
             .setRemarks(OUT_LAYER_PARAM_REMARKS)
             .setRequired(true)
-            .create(Layer.class, null);
+            .create(LayerConfig.class, null);
 
     /**Output parameters */
     public static final ParameterDescriptorGroup OUTPUT_DESC =  BUILDER.addName("OutputParameters").setRequired(true)

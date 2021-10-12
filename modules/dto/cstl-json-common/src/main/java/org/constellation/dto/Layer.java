@@ -22,6 +22,7 @@ import java.io.Serializable;
 import java.util.Date;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.namespace.QName;
 
 /**
  *
@@ -31,8 +32,7 @@ import javax.xml.bind.annotation.XmlType;
 @XmlRootElement
 public class Layer extends Identifiable implements Serializable {
 
-    private String name;
-    private String namespace;
+    protected QName name;
     private String alias;
     private Integer service;
     protected Integer dataId;
@@ -46,8 +46,7 @@ public class Layer extends Identifiable implements Serializable {
 
     public Layer(
             Integer id,
-            String name,
-            String namespace,
+            QName name,
             String alias,
             Integer service,
             Integer dataId,
@@ -56,9 +55,8 @@ public class Layer extends Identifiable implements Serializable {
             Integer ownerId,
             String title
     ) {
-        this.id = id;
+        super(id);
         this.name = name;
-        this.namespace = namespace;
         this.alias = alias;
         this.service = service;
         this.dataId = dataId;
@@ -66,6 +64,20 @@ public class Layer extends Identifiable implements Serializable {
         this.config = config;
         this.ownerId = ownerId;
         this.title = title;
+    }
+
+    public Layer(Layer that) {
+        super(that);
+        if (that != null) {
+            this.name = that.name;
+            this.alias = that.alias;
+            this.service = that.service;
+            this.dataId = that.dataId;
+            this.date = that.date;
+            this.config = that.config;
+            this.ownerId = that.ownerId;
+            this.title = that.title;
+        }
     }
 
     public Integer getDataId() {
@@ -76,11 +88,11 @@ public class Layer extends Identifiable implements Serializable {
         this.dataId = dataId;
     }
 
-    public String getName() {
+    public QName getName() {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(QName name) {
         this.name = name;
     }
 
@@ -106,14 +118,6 @@ public class Layer extends Identifiable implements Serializable {
 
     public void setDate(Date date) {
         this.date = date;
-    }
-
-    public String getNamespace() {
-        return namespace;
-    }
-
-    public void setNamespace(String namespace) {
-        this.namespace = namespace;
     }
 
     /**
@@ -171,7 +175,6 @@ public class Layer extends Identifiable implements Serializable {
         if (title != null ? !title.equals(that.title) : that.title != null) return false;
         if (date != null ? !date.equals(that.date) : that.date != null) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
-        if (namespace != null ? !namespace.equals(that.namespace) : that.namespace != null) return false;
         if (ownerId != null ? !ownerId.equals(that.ownerId) : that.ownerId != null) return false;
 
         return true;
@@ -182,7 +185,6 @@ public class Layer extends Identifiable implements Serializable {
         int result = name != null ? name.hashCode() : 0;
         result = 31 * result + (id != null ? id.hashCode() : 0);
         result = 31 * result + (dataId != null ? dataId.hashCode() : 0);
-        result = 31 * result + (namespace != null ? namespace.hashCode() : 0);
         result = 31 * result + (alias != null ? alias.hashCode() : 0);
         result = 31 * result + (title != null ? title.hashCode() : 0);
         result = 31 * result + (date != null ? date.hashCode() : 0);
@@ -196,7 +198,6 @@ public class Layer extends Identifiable implements Serializable {
                 "id='" + id + '\'' +
                 ", dataId='" + dataId + '\'' +
                 ", name='" + name + '\'' +
-                ", namespace='" + namespace + '\'' +
                 ", alias='" + alias + '\'' +
                 ", title='" + title + '\'' +
                 ", date=" + date +

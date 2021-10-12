@@ -18,12 +18,12 @@
  */
 package org.constellation.dto;
 
-import org.constellation.dto.service.config.wxs.Layer;
 import org.constellation.dto.service.config.wxs.LayerSummary;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import javax.xml.namespace.QName;
 
 /**
  * TODO. This pojo is wayyyyyyy too complex. => rework this
@@ -42,7 +42,7 @@ public class MapContextStyledLayerDTO extends LayerSummary implements Comparable
     private String externalStyle;
     private String externalServiceUrl;
     private String externalServiceVersion;
-    private String externalLayer;
+    private QName externalLayer;
     private String externalLayerExtent;
 
     /**
@@ -59,15 +59,14 @@ public class MapContextStyledLayerDTO extends LayerSummary implements Comparable
 		Integer layerOrder,
 		Integer layerOpacity,
 		Boolean layerVisible,
-		String  externalLayer,
+		QName  externalLayer,
 		String  externalLayerExtent,
 		String  externalServiceUrl,
 		String  externalServiceVersion,
 		String  externalStyle,
 		Boolean iswms,
 		Integer dataId,
-                String layerName,
-                String layerNamespace,
+                QName layerName,
                 String layerAlias,
                 Integer serviceID,
                 Date date,
@@ -78,7 +77,7 @@ public class MapContextStyledLayerDTO extends LayerSummary implements Comparable
                 String dataSubType,
                 String dataOwner,
                 final List<StyleBrief> targetStyles) {
-            super(layerId, layerName, layerNamespace, layerAlias, serviceID, dataId, date, layerConfig, ownerId, layerTitle, dataType, dataSubType, dataOwner, targetStyles);
+            super(layerId, layerName, layerAlias, serviceID, dataId, date, layerConfig, ownerId, layerTitle, dataType, dataSubType, dataOwner, targetStyles);
             this.id = id;
             this.mapcontextId = mapcontextId;
             this.layerId = layerId;
@@ -96,7 +95,7 @@ public class MapContextStyledLayerDTO extends LayerSummary implements Comparable
 
             if (externalLayer != null) {
                 super.setName(externalLayer);
-                super.setAlias(externalLayer);
+                super.setAlias(externalLayer.getLocalPart());
             }
             if (externalStyle != null) {
                 final StyleBrief style = new StyleBrief();
@@ -113,7 +112,7 @@ public class MapContextStyledLayerDTO extends LayerSummary implements Comparable
 		Integer layerOrder,
 		Integer layerOpacity,
 		Boolean layerVisible,
-		String  externalLayer,
+		QName   externalLayer,
 		String  externalLayerExtent,
 		String  externalServiceUrl,
 		String  externalServiceVersion,
@@ -142,7 +141,7 @@ public class MapContextStyledLayerDTO extends LayerSummary implements Comparable
 
         if (externalLayer != null) {
                 super.setName(externalLayer);
-                super.setAlias(externalLayer);
+                super.setAlias(externalLayer.getLocalPart());
         }
         if (externalStyle != null) {
             final StyleBrief style = new StyleBrief();
@@ -163,7 +162,7 @@ public class MapContextStyledLayerDTO extends LayerSummary implements Comparable
                 final org.constellation.dto.Layer layer,
                 final Data db,
                 final String owner) {
-        super(layer, db, owner);
+        super(layer, db, owner, null);
         this.id = id;
         this.mapcontextId = mapcontextId;
         this.layerId = layer.getId();
@@ -253,11 +252,11 @@ public class MapContextStyledLayerDTO extends LayerSummary implements Comparable
         this.externalServiceVersion = externalServiceVersion;
     }
 
-    public String getExternalLayer() {
+    public QName getExternalLayer() {
         return externalLayer;
     }
 
-    public void setExternalLayer(String externalLayer) {
+    public void setExternalLayer(QName externalLayer) {
         this.externalLayer = externalLayer;
     }
 

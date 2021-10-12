@@ -23,7 +23,7 @@ import java.util.Map;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.DataBrief;
-import org.constellation.dto.service.config.wxs.Layer;
+import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.dto.service.config.wxs.LayerSummary;
 import org.constellation.dto.service.config.wxs.FilterAndDimension;
 import org.constellation.dto.NameInProvider;
@@ -35,7 +35,7 @@ import org.constellation.dto.StyleReference;
 public interface ILayerBusiness {
     void removeAll() throws ConstellationException;
 
-    Integer add(int dataId, String alias, String namespace, String name, int serviceId, Layer config) throws ConfigurationException;
+    Integer add(int dataId, String alias, String namespace, String name, int serviceId, LayerConfig config) throws ConfigurationException;
 
     /**
      * Update a layer.
@@ -51,7 +51,7 @@ public interface ILayerBusiness {
 
     void removeForService(Integer serviceId) throws ConstellationException;
 
-    List<Layer> getLayers(Integer serviceId, String userLogin) throws ConfigurationException;
+    List<LayerConfig> getLayers(Integer serviceId, String userLogin) throws ConfigurationException;
 
     List<NameInProvider> getLayerNames(Integer ServiceId, String userLogin) throws ConfigurationException;
 
@@ -66,7 +66,7 @@ public interface ILayerBusiness {
      * @return Layer
      * @throws ConfigurationException
      */
-    Layer getLayer(Integer layerId, String login) throws ConfigurationException;
+    LayerConfig getLayer(Integer layerId, String login) throws ConfigurationException;
 
     FilterAndDimension getLayerFilterDimension(Integer layerId) throws ConfigurationException;
 
@@ -104,6 +104,6 @@ public interface ILayerBusiness {
 
     List<StyleReference> getLayerStyles(Integer layerId) throws ConstellationException;
 
-    Map.Entry<Integer, List<Layer>> filterAndGet(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage) throws ConstellationException;
+    Map.Entry<Integer, List<LayerConfig>> filterAndGet(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage) throws ConstellationException;
 
 }

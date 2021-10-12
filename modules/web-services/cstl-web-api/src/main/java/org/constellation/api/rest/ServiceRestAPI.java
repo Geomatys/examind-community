@@ -33,16 +33,8 @@ import org.constellation.api.ServiceDef.Specification;
 import org.constellation.ws.IWSEngine;
 import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
 import org.constellation.business.IConfigurationBusiness;
-import org.constellation.business.IDataBusiness;
-import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IServiceBusiness;
-import org.constellation.dto.CstlUser;
-import org.constellation.dto.Data;
-import org.constellation.dto.StyleBrief;
 import org.constellation.dto.service.Instance;
-import org.constellation.dto.service.config.wxs.Layer;
-import org.constellation.dto.service.config.wxs.LayerSummary;
-import org.constellation.dto.service.config.wxs.ServiceLayersDTO;
 import org.constellation.dto.service.ServiceReport;
 import org.constellation.dto.service.ServiceComplete;
 import org.constellation.exception.ConfigurationException;
@@ -52,8 +44,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 import static org.springframework.http.HttpStatus.*;
 import org.springframework.http.MediaType;
-import org.constellation.security.SecurityManager;
-import org.constellation.util.Util;
 import org.constellation.ws.IOGCConfigurer;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -81,13 +71,7 @@ public class ServiceRestAPI extends AbstractRestAPI {
     @Inject
     private IServiceBusiness serviceBusiness;
     @Inject
-    private ILayerBusiness layerBusiness;
-    @Inject
-    private IDataBusiness dataBusiness;
-    @Inject
     private IConfigurationBusiness configBusiness;
-    @Inject
-    private SecurityManager securityManager;
 
     /**
      * Get available service types.
@@ -124,40 +108,6 @@ public class ServiceRestAPI extends AbstractRestAPI {
                 instances.add(instance);
             }
             return new ResponseEntity(instances, OK);
-        } catch(Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
-            return new ErrorMessage(ex).build();
-        }
-    }
-
-    /**
-     * List service layers.
-     *
-     * @param lang metadata lang, can be null
-     * @param type service type, not null
-     * @return
-     */
-    @RequestMapping(value="/services/layers", method=GET, produces=MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity listServiceLayers(
-            @RequestParam(value="lang",required=false) String lang,
-            @RequestParam(value="type",required=false) String type) {
-        try {
-            final List<ServiceLayersDTO> serviceLayers = new ArrayList<>();
-            final List<ServiceComplete> services = serviceBusiness.getAllServicesByType(lang, type);
-            for (final ServiceComplete service : services) {
-                final List<Layer> layers = layerBusiness.getLayers(service.getId(), securityManager.getCurrentUserLogin());
-                final List<LayerSummary> layerSummaries = new ArrayList<>();
-                for (final Layer lay : layers) {
-                    final Data db = dataBusiness.getData(lay.getDataId());
-                    final String owner = userBusiness.findById(db.getOwnerId()).map(CstlUser::getLogin).orElse(null);
-                    final List<StyleBrief> sBriefs = Util.convertRefIntoStylesBrief(lay.getStyles());
-                    final LayerSummary sum = new LayerSummary(lay, db, owner, sBriefs);
-                    layerSummaries.add(sum);
-                }
-                final ServiceLayersDTO servLay = new ServiceLayersDTO(service, layerSummaries);
-                serviceLayers.add(servLay);
-            }
-            return new ResponseEntity(serviceLayers, OK);
         } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();

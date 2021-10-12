@@ -24,7 +24,6 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import java.util.Objects;
 import org.constellation.dto.Reference;
-import org.constellation.dto.Reference;
 
 /**
  *

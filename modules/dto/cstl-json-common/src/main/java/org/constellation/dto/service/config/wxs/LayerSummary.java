@@ -23,7 +23,9 @@ import java.util.Date;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import java.util.List;
+import javax.xml.namespace.QName;
 import org.constellation.dto.Data;
+import org.constellation.dto.Layer;
 import org.constellation.dto.StyleBrief;
 
 /**
@@ -40,49 +42,21 @@ public class LayerSummary extends org.constellation.dto.Layer {
     public LayerSummary() {}
 
     public LayerSummary(final Layer layer, final Data db, final String owner, final List<StyleBrief> targetStyles) {
-        super(layer.getId(),
-              layer.getName().getLocalPart(),
-              layer.getName().getNamespaceURI(),
-              layer.getAlias(),
-              null,
-              db.getId(),
-              layer.getDate(),
-              null,
-              db.getOwnerId(),
-              layer.getTitle());
+        super(layer);
         this.type = db.getType();
         this.subtype = db.getSubtype();
         this.owner = owner;
         this.targetStyle = targetStyles;
     }
 
-    public LayerSummary(final Integer id, final String name, final String namespace, final String alias, final Integer serviceID,
+    public LayerSummary(final Integer id, final QName name, final String alias, final Integer serviceID,
             final Integer dataID, final Date date, final String config, final Integer ownerId, final String title,
             final String dataType, final String dataSubType, final String dataOwner, final List<StyleBrief> targetStyles) {
-        super(id, name, namespace, alias, serviceID, dataID, date, config, ownerId,  title);
+        super(id, name, alias, serviceID, dataID, date, config, ownerId,  title);
         this.type = dataType;
         this.subtype = dataSubType;
         this.owner = dataOwner;
         this.targetStyle = targetStyles;
-    }
-
-    /**
-     * for test purpose do no use this constructor otherwise
-     */
-    public LayerSummary(final org.constellation.dto.Layer layer, final Data db, final String owner) {
-        super(layer.getId(),
-              layer.getName(),
-              layer.getNamespace(),
-              layer.getAlias(),
-              null,
-              db.getId(),
-              layer.getDate(),
-              null,
-              db.getOwnerId(),
-              layer.getTitle());
-        this.type = db.getType();
-        this.subtype = db.getSubtype();
-        this.owner = owner;
     }
 
     public String getType() {
@@ -156,7 +130,6 @@ public class LayerSummary extends org.constellation.dto.Layer {
                 "id='" + getId() + '\'' +
                 ", dataId='" + getDataId() + '\'' +
                 ", name='" + getName() + '\'' +
-                ", namespace='" + getNamespace() + '\'' +
                 ", alias='" + getAlias() + '\'' +
                 ", title='" + getTitle() + '\'' +
                 ", type='" + type + '\'' +

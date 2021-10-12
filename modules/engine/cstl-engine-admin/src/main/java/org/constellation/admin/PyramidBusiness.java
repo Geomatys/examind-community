@@ -388,7 +388,8 @@ public class PyramidBusiness implements IPyramidBusiness {
                 //it is a wms layer
                 final String serviceVersion = layer.getExternalServiceVersion() != null ? layer.getExternalServiceVersion() : "1.3.0";
                 final WebMapClient wmsServer = new WebMapClient(serviceUrl, WMSVersion.getVersion(serviceVersion));
-                final WMSResource wmsLayer = new WMSResource(wmsServer, layer.getName());
+                GenericName layerName = NamesExt.create(layer.getName());
+                final WMSResource wmsLayer = new WMSResource(wmsServer, layerName);
                 context.getComponents().add(MapBuilder.createLayer(wmsLayer));
                 continue;
             }

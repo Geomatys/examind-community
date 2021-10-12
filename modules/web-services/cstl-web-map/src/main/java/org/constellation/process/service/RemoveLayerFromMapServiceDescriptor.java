@@ -20,7 +20,7 @@ package org.constellation.process.service;
 
 import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.util.iso.ResourceInternationalString;
-import org.constellation.dto.service.config.wxs.Layer;
+import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.process.AbstractCstlProcessDescriptor;
 import org.constellation.process.ExamindProcessFactory;
@@ -98,11 +98,11 @@ public class RemoveLayerFromMapServiceDescriptor extends AbstractCstlProcessDesc
      */
     public static final String OLD_LAYER_PARAM_NAME = "old_layer";
     public static final InternationalString OLD_LAYER_PARAM_REMARKS = new ResourceInternationalString(BUNDLE, OLD_LAYER_PARAM_REMARKS_KEY);
-    public static final ParameterDescriptor<Layer> OLD_LAYER = BUILDER
+    public static final ParameterDescriptor<LayerConfig> OLD_LAYER = BUILDER
             .addName(OLD_LAYER_PARAM_NAME)
             .setRemarks(OLD_LAYER_PARAM_REMARKS)
             .setRequired(true)
-            .create(Layer.class, null);
+            .create(LayerConfig.class, null);
 
     /**Output parameters */
     public static final ParameterDescriptorGroup OUTPUT_DESC =  BUILDER.addName("OutputParameters").setRequired(true)

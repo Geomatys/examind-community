@@ -22,8 +22,7 @@ import org.constellation.dto.service.config.csw.BriefNodeList;
 import org.constellation.dto.service.config.csw.BriefNode;
 import org.constellation.dto.service.config.sos.ObservationFilter;
 import org.constellation.dto.metadata.MetadataLists;
-import org.constellation.dto.service.config.wxs.LayerList;
-import org.constellation.dto.service.config.wxs.Layer;
+import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.dto.contact.AccessConstraint;
 import org.constellation.dto.contact.Contact;
@@ -39,20 +38,6 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlElementDecl;
 import javax.xml.bind.annotation.XmlRegistry;
 import javax.xml.namespace.QName;
-import org.constellation.dto.AcknowlegementType;
-import org.constellation.dto.BandDescription;
-import org.constellation.dto.CoverageDataDescription;
-import org.constellation.dto.DataBrief;
-import org.constellation.dto.ExceptionReport;
-import org.constellation.dto.FeatureDataDescription;
-import org.constellation.dto.MailingProperties;
-import org.constellation.dto.ParameterValues;
-import org.constellation.dto.PropertyDescription;
-import org.constellation.dto.SimpleValue;
-import org.constellation.dto.StringList;
-import org.constellation.dto.StringMap;
-import org.constellation.dto.StringTreeNode;
-import org.constellation.dto.StyleBrief;
 
 /**
  * @author Benjamin Garcia (Geomatys)
@@ -116,12 +101,8 @@ public class ObjectFactory {
         return new ProcessContext();
     }
 
-    public LayerList createLayerList() {
-        return new LayerList();
-    }
-
-    public Layer createLayer() {
-        return new Layer();
+    public LayerConfig createLayer() {
+        return new LayerConfig();
     }
 
     public InstanceReport createInstanceReport() {
