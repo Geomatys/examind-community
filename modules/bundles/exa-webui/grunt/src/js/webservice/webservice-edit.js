@@ -949,20 +949,24 @@ angular.module('cstl-webservice-edit', [
 
         $scope.submitWMTSLayer = function () {
             if ($scope.pyramidFlag) {
-                var dataId = $scope.values.listSelect.map(function (value) {
-                    return value.id;
+                var dataName = $scope.values.listSelect.map(function (value) {
+                    return value.name;
                 })[0];
-                var providerId = $scope.values.listSelect.map(function (value) {
-                    return value.providerId;
+                var dataNamespace = $scope.values.listSelect.map(function (value) {
+                    return value.namespace;
+                })[0];
+                var providerName = $scope.values.listSelect.map(function (value) {
+                    return value.provider;
                 })[0];
 
                 Examind.map.addLayer($scope.service.type, $scope.service.identifier,
                     {
                         layerAlias: $scope.values.userLayerName,
-                        layerId: loadedCRS ? loadedCRS[$scope.existingPyramidCRS.code].id : dataId,
+                        layerId: loadedCRS ? loadedCRS[$scope.existingPyramidCRS.code].name : dataName,
+                        layerNamespace: loadedCRS ? loadedCRS[$scope.existingPyramidCRS.code].namespace : dataNamespace,
                         serviceType: $scope.service.type,
                         serviceId: $scope.service.identifier,
-                        providerId: loadedCRS ? loadedCRS[$scope.existingPyramidCRS.code].providerId : providerId
+                        providerId: loadedCRS ? loadedCRS[$scope.existingPyramidCRS.code].provider : providerName
                     }).then(
                     function () {//success
                         Growl('success', 'Success', 'Layer successfully added to service ' + $scope.service.name);

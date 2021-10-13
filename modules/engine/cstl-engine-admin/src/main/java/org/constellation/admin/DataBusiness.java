@@ -33,7 +33,6 @@ import javax.xml.namespace.QName;
 import org.apache.sis.metadata.MetadataCopier;
 import org.apache.sis.metadata.MetadataStandard;
 import org.apache.sis.metadata.iso.DefaultMetadata;
-import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.listener.DefaultDataBusinessListener;
@@ -55,8 +54,6 @@ import org.constellation.dto.DataDescription;
 import org.constellation.dto.DataSet;
 import org.constellation.dto.DataSummary;
 import org.constellation.dto.Dimension;
-import org.constellation.dto.Layer;
-import org.constellation.dto.ParameterValues;
 import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.ServiceReference;
 import org.constellation.dto.SimpleDataDescription;
@@ -436,102 +433,104 @@ public class DataBusiness implements IDataBusiness {
                 }
             }
 
-            final DataBrief db = new DataBrief();
-            db.setId(data.getId());
-            final Optional<CstlUser> user = userBusiness.findById(data.getOwnerId());
-            if (user.isPresent()) {
-                db.setOwner(user.get().getLogin());
-            }
-
-            if (Boolean.TRUE.equals(fetchDataDescription)) {
-                try {
-                    final org.constellation.provider.Data provData = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
-                    if (provData != null) {
-                        StatInfo stats = null;
-                        if (DataType.COVERAGE.name().equals(data.getType()) && (data.getRendered() == null || !data.getRendered())) {
-                            stats = new StatInfo(data.getStatsState(), data.getStatsResult());
-                        }
-                        final DataDescription dataDescription = provData.getDataDescription(stats);
-                        db.setDataDescription(dataDescription);
-                    } else {
-                        // because UI can't support data without data description
-                        db.setDataDescription(new SimpleDataDescription());
-                        LOGGER.warning("Unable to find a provider data: {" + data.getNamespace() + "} " + data.getName());
-                    }
-                } catch (Exception e) {
-                    LOGGER.log(Level.WARNING, e.getMessage(), e);
-                }
-            }
-
-            String title = data.getName();
-            Integer dsid = data.getDatasetId();
-            if(dsid != null && dsid >= 0) {
-                String datasetId = datasetRepository.findById(dsid).getIdentifier();
-                title = datasetId+" / "+data.getName();
-            }
-            final int providerId = data.getProviderId();
-            final String providerName = getProviderIdentifier(providerId);
-            db.setName(data.getName());
-            db.setNamespace(data.getNamespace());
-            db.setTitle(title);
-            db.setDate(data.getDate());
-            db.setProviderId(providerId);
-            db.setProvider(providerName);
-            db.setDatasetId(data.getDatasetId());
-            db.setType(data.getType());
-            db.setSubtype(data.getSubtype());
-            db.setSensorable(data.getSensorable());
-            db.setTargetSensor(targetSensors);
-            db.setStatsResult(data.getStatsResult());
-            db.setStatsState(data.getStatsState());
-            db.setRendered(data.getRendered());
-            db.setHidden(data.getHidden());
-            db.setIncluded(data.getIncluded());
-
-            final List<DataBrief> linkedBriefs = new ArrayList<>();
-            for (final Data d : linkedDataList) {
-                if ("pyramid".equalsIgnoreCase(d.getSubtype()) && !d.getRendered()) {
-                    final String pyramidProvId = getProviderIdentifier(d.getProviderId());
-                    db.setPyramidConformProviderId(pyramidProvId);
-                }
-                linkedBriefs.add(new DataBrief(d));
-            }
-            db.setLinkedDatas(linkedBriefs);
-
-            //if the data is a pyramid itself. we need to fill the property to enable the picto of pyramided data.
-            if("pyramid".equalsIgnoreCase(data.getSubtype()) && !data.getRendered()){
-                db.setPyramidConformProviderId(providerName);
-            }
-
-            /**
-             * Add for linked styles
-             */
-            final List<Style> styles = styleRepository.findByData(data.getId());
-            final List<StyleBrief> styleBriefs = new ArrayList<>(0);
-            for (final Style style : styles) {
-                final StyleBrief sb = new StyleBrief();
-                sb.setId(style.getId());
-                sb.setType(style.getType());
-                sb.setProvider(1 == style.getProviderId()? "sld" : "sld_temp");
-                sb.setDate(style.getDate());
-                sb.setName(style.getName());
-
-                final Optional<CstlUser> userStyle = userBusiness.findById(style.getOwnerId());
-                if (userStyle.isPresent()) {
-                    sb.setOwner(userStyle.get().getLogin());
-                }
-                styleBriefs.add(sb);
-            }
-            db.setTargetStyle(styleBriefs);
-            db.setTargetService(new ArrayList<>(serviceRefs));
-
-            /**
-             * Add for linked metadatas
-             */
-            db.setMetadatas(metadataBusiness.getMetadataBriefForData(data.getId()));
+            final DataBrief db = convertToDataBrief(data, targetSensors, linkedDataList, serviceRefs, fetchDataDescription);
             dataBriefs.add(db);
         }
         return dataBriefs;
+    }
+
+    /**
+     * Convert a {@link Data} into a {@link DataBrief}.
+     *
+     * @param data given list of {@link Data}.
+
+     * @param fetchDataDescription Flag to add or not data dscription (high cost)
+     * @return a {@link DataBrief}  never {@code null}.
+     */
+    private DataBrief convertToDataBrief(Data data, List<String> targetSensors, final List<Data> linkedDataList, final Set<ServiceReference> serviceRefs , Boolean fetchDataDescription) {
+       final DataBrief db = new DataBrief(data);
+       
+       final Optional<CstlUser> user = userBusiness.findById(data.getOwnerId());
+       if (user.isPresent()) {
+           db.setOwner(user.get().getLogin());
+       }
+
+       if (Boolean.TRUE.equals(fetchDataDescription)) {
+           try {
+               final org.constellation.provider.Data provData = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
+               if (provData != null) {
+                   StatInfo stats = null;
+                   if (DataType.COVERAGE.name().equals(data.getType()) && (data.getRendered() == null || !data.getRendered())) {
+                       stats = new StatInfo(data.getStatsState(), data.getStatsResult());
+                   }
+                   final DataDescription dataDescription = provData.getDataDescription(stats);
+                   db.setDataDescription(dataDescription);
+               } else {
+                   // because UI can't support data without data description
+                   db.setDataDescription(new SimpleDataDescription());
+                   LOGGER.warning("Unable to find a provider data: {" + data.getNamespace() + "} " + data.getName());
+               }
+           } catch (Exception e) {
+               LOGGER.log(Level.WARNING, e.getMessage(), e);
+           }
+       }
+
+       String title = data.getName();
+       Integer dsid = data.getDatasetId();
+       if(dsid != null && dsid >= 0) {
+           String datasetId = datasetRepository.findById(dsid).getIdentifier();
+           title = datasetId+" / "+data.getName();
+       }
+       final int providerId = data.getProviderId();
+       final String providerName = getProviderIdentifier(providerId);
+       db.setTitle(title);
+       db.setProvider(providerName);
+       db.setTargetSensor(targetSensors);
+
+       final List<DataBrief> linkedBriefs = new ArrayList<>();
+       for (final Data ld : linkedDataList) {
+           // do not return a complete brief for linked data.
+           DataBrief d = convertToDataBrief(ld, new ArrayList<>(), new ArrayList<>(), new HashSet<>(), false);
+           if ("pyramid".equalsIgnoreCase(d.getSubtype()) && !d.getRendered()) {
+               final String pyramidProvId = getProviderIdentifier(d.getProviderId());
+               db.setPyramidConformProviderId(pyramidProvId);
+           }
+           linkedBriefs.add(d);
+       }
+       db.setLinkedDatas(linkedBriefs);
+
+       //if the data is a pyramid itself. we need to fill the property to enable the picto of pyramided data.
+       if("pyramid".equalsIgnoreCase(data.getSubtype()) && !data.getRendered()){
+           db.setPyramidConformProviderId(providerName);
+       }
+
+       /**
+        * Add for linked styles
+        */
+       final List<Style> styles = styleRepository.findByData(data.getId());
+       final List<StyleBrief> styleBriefs = new ArrayList<>(0);
+       for (final Style style : styles) {
+           final StyleBrief sb = new StyleBrief();
+           sb.setId(style.getId());
+           sb.setType(style.getType());
+           sb.setProvider(1 == style.getProviderId()? "sld" : "sld_temp");
+           sb.setDate(style.getDate());
+           sb.setName(style.getName());
+
+           final Optional<CstlUser> userStyle = userBusiness.findById(style.getOwnerId());
+           if (userStyle.isPresent()) {
+               sb.setOwner(userStyle.get().getLogin());
+           }
+           styleBriefs.add(sb);
+       }
+       db.setTargetStyle(styleBriefs);
+       db.setTargetService(new ArrayList<>(serviceRefs));
+
+       /**
+        * Add for linked metadatas
+        */
+       db.setMetadatas(metadataBusiness.getMetadataBriefForData(data.getId()));
+       return db;
     }
 
     /**
