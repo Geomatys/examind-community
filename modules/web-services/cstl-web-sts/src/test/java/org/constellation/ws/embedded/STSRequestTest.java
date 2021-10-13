@@ -783,6 +783,30 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         String result = getStringResponse(getFoiUrl) + "\n";
         String expResult = getStringFromFile("com/examind/sts/embedded/loc-all.json");
         compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Locations?$top=2");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/loc-top.json");
+        compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Locations?$top=2&$skip=2");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/loc-top2.json");
+        compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Locations?$top=2&$count=true");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/loc-top-ct.json");
+        compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Locations?$top=2&$skip=2&$count=true");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/loc-top2-ct.json");
+        compareJSON(expResult, result);
     }
 
     @Test
@@ -795,6 +819,44 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         String result = getStringResponse(getFoiUrl) + "\n";
         String expResult = getStringFromFile("com/examind/sts/embedded/loc-bbox.json");
+        compareJSON(expResult, result);
+
+        filter = "st_contains(location, geography'POLYGON ((30 -3, 10 20, 20 40, 40 40, 30 -3))')".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/Locations?$top=2&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/loc-bbox-top.json");
+        compareJSON(expResult, result);
+
+        filter = "st_contains(location, geography'POLYGON ((30 -3, 10 20, 20 40, 40 40, 30 -3))')".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/Locations?$skip=2&$top=2&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/loc-bbox-top2.json");
+        compareJSON(expResult, result);
+        
+        /*
+         * Test on count
+         */
+        
+        getFoiUrl = new URL(getDefaultURL() + "/Locations?$count=true&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/loc-bbox-ct.json");
+        compareJSON(expResult, result);
+
+        filter = "st_contains(location, geography'POLYGON ((30 -3, 10 20, 20 40, 40 40, 30 -3))')".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/Locations?$count=true&$top=2&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/loc-bbox-top-ct.json");
+        compareJSON(expResult, result);
+
+        filter = "st_contains(location, geography'POLYGON ((30 -3, 10 20, 20 40, 40 40, 30 -3))')".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/Locations?$count=true&$skip=2&$top=2&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/loc-bbox-top2-ct.json");
         compareJSON(expResult, result);
     }
 

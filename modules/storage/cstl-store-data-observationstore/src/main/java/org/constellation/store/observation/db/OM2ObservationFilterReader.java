@@ -714,9 +714,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         List<Observation> results = new ArrayList<>(observations.values());
         
         // TODO make a real pagination
-        Long limit     = getLongHint(hints, PAGE_LIMIT);
-        Long offset    = getLongHint(hints, PAGE_OFFSET);
-        return  applyPostPagination(offset, limit, results);
+        return applyPostPagination(hints, results);
     }
 
     private DataArrayProperty buildComplexResult(final String version, final Collection<AnyScalar> fields, final int nbValue,
@@ -862,9 +860,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             throw new DataStoreException("the service has throw a Datastore Exception:" + ex.getMessage(), ex);
         }
         // TODO make a real pagination
-        Long limit     = getLongHint(hints, PAGE_LIMIT);
-        Long offset    = getLongHint(hints, PAGE_OFFSET);
-        return  applyPostPagination(offset, limit, observations);
+        return applyPostPagination(hints, observations);
     }
 
     @Override
@@ -1568,14 +1564,19 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 sqlRequest.replaceFirst("WHERE", "");
             }
         }
-        sqlRequest.append(" ORDER BY \"id\"");
-        sqlRequest = appendPaginationToRequest(sqlRequest, hints);
-
          // will be removed when postgis filter will be set in request
         Polygon spaFilter = null;
         if (envelopeFilter != null) {
             spaFilter = JTS.toGeometry(envelopeFilter);
         }
+        sqlRequest.append(" ORDER BY \"id\"");
+
+        boolean applyPostPagination = true;
+        if (spaFilter == null) {
+            applyPostPagination = false;
+            sqlRequest = appendPaginationToRequest(sqlRequest, hints);
+        }
+
         Map<String, Geometry> locations = new LinkedHashMap<>();
         try(final Connection c            = source.getConnection();
             final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
@@ -1616,6 +1617,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
             throw new DataStoreException("the service has throw a SQL Exception.", ex);
+        }
+        if (applyPostPagination) {
+            locations = applyPostPagination(hints, locations);
         }
         return locations;
     }

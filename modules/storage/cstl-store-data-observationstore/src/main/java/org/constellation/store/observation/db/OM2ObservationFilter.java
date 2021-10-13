@@ -43,16 +43,25 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import org.apache.sis.geometry.GeneralEnvelope;
+import org.apache.sis.referencing.CRS;
 
 import org.geotoolkit.observation.model.Field;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
+import static org.constellation.store.observation.db.OM2BaseReader.LOGGER;
+import static org.constellation.store.observation.db.OM2BaseReader.defaultCRS;
+import org.geotoolkit.geometry.jts.JTS;
+import org.geotoolkit.gml.JTStoGeometry;
+import org.geotoolkit.gml.xml.AbstractGeometry;
 import static org.geotoolkit.observation.ObservationFilterFlags.*;
 import org.geotoolkit.observation.model.FieldPhenomenon;
 import org.geotoolkit.observation.model.OMEntity;
@@ -63,14 +72,21 @@ import org.geotoolkit.observation.model.FieldType;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildCompositePhenomenon;
+import static org.geotoolkit.sos.xml.SOSXmlFactory.getGMLVersion;
+import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKBReader;
 import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.ComparisonOperatorName;
 import org.opengis.filter.Literal;
 import org.opengis.filter.TemporalOperator;
 import org.opengis.filter.TemporalOperatorName;
 import org.opengis.filter.ValueReference;
+import org.opengis.geometry.Geometry;
 import org.opengis.observation.CompositePhenomenon;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.temporal.TemporalGeometricPrimitive;
+import org.opengis.util.FactoryException;
 
 /**
  *
@@ -941,13 +957,85 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 }
             }
             // TODO make a real pagination
-            Long limit     = getLongHint(hints, PAGE_LIMIT);
-            Long offset    = getLongHint(hints, PAGE_OFFSET);
-            return  applyPostPagination(offset, limit, results);
+            return applyPostPagination(hints, results);
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString() + '\n' + ex.getMessage());
             throw new DataStoreException("the service has throw a SQL Exception.");
         }
+    }
+
+    private List<String> filterSensorLocations(Map<String, Object> hints) throws DataStoreException {
+        if (obsJoin) {
+            final String obsJoin = ", \"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"procedure\" = pr.\"id\" ";
+            if (firstFilter) {
+                sqlRequest.replaceFirst("WHERE", obsJoin);
+            } else {
+                sqlRequest.replaceFirst("WHERE", obsJoin + "AND ");
+            }
+        } else {
+            if (firstFilter) {
+                sqlRequest.replaceFirst("WHERE", "");
+            }
+        }
+         // will be removed when postgis filter will be set in request
+        Polygon spaFilter = null;
+        if (envelopeFilter != null) {
+            spaFilter = JTS.toGeometry(envelopeFilter);
+        }
+        sqlRequest.append(" ORDER BY \"id\"");
+
+        boolean applyPostPagination = true;
+        if (spaFilter == null) {
+            applyPostPagination = false;
+            sqlRequest = appendPaginationToRequest(sqlRequest, hints);
+        }
+
+        List<String> locations            = new ArrayList<>();
+        try(final Connection c            = source.getConnection();
+            final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
+            final ResultSet rs            = pstmt.executeQuery()) {
+            while (rs.next()) {
+                try {
+                    final String procedure = rs.getString("id");
+                    
+                     // exclude from spatial filter (will be removed when postgis filter will be set in request)
+                    if (spaFilter != null) {
+                        final byte[] b = rs.getBytes(2);
+                        final int srid = rs.getInt(3);
+                        final CoordinateReferenceSystem crs;
+                        if (srid != 0) {
+                            crs = CRS.forCode("urn:ogc:def:crs:EPSG::" + srid);
+                        } else {
+                            crs = defaultCRS;
+                        }
+                        final org.locationtech.jts.geom.Geometry geom;
+                        if (b != null) {
+                            WKBReader reader = new WKBReader();
+                            geom             = reader.read(b);
+                        } else {
+                            continue;
+                        }
+                   
+                        if (!spaFilter.intersects(geom)) {
+                            continue;
+                        }
+                    }
+                    // can it happen? if so the pagination will be broken
+                    if (!locations.contains(procedure)) {
+                        locations.add(procedure);
+                    }
+                } catch (FactoryException | ParseException ex) {
+                    throw new DataStoreException(ex);
+                }
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
+            throw new DataStoreException("the service has throw a SQL Exception.", ex);
+        }
+        if (applyPostPagination) {
+            locations = applyPostPagination(hints, locations);
+        }
+        return locations;
     }
 
     private String getFeatureOfInterestRequest(Map<String, Object> hints) {
@@ -1045,7 +1133,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             case PROCEDURE:           request = getProcedureRequest(hints); break;
             case OFFERING:            request = getOfferingRequest(hints); break;
             case OBSERVATION:         return new LinkedHashSet(filterObservation(hints));
-            case LOCATION:
+            case LOCATION:            return new LinkedHashSet(filterSensorLocations(hints));
             case HISTORICAL_LOCATION: 
             case RESULT:              throw new DataStoreException("not implemented yet.");
             default: throw new DataStoreException("unexpected object type:" + objectType);
@@ -1082,8 +1170,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             case OFFERING:            request = getOfferingRequest(hints); break;
             case OBSERVATION:         return filterObservation(hints).size();
             case RESULT:              return filterResult(hints).size();
-            case HISTORICAL_LOCATION:
-            case LOCATION:            throw new DataStoreException("not implemented yet.");
+            case LOCATION:            return filterSensorLocations(hints).size();
+            case HISTORICAL_LOCATION: throw new DataStoreException("not implemented yet.");
             default: throw new DataStoreException("unexpected object type:" + objectType);
         }
 
@@ -1386,14 +1474,16 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         return null;
     }
 
-    protected List applyPostPagination(Long offset, Long size, List full) {
+    protected List applyPostPagination(Map<String, Object> hints, List full) {
+        Long limit     = getLongHint(hints, PAGE_LIMIT);
+        Long offset    = getLongHint(hints, PAGE_OFFSET);
         int from = 0;
         if (offset != null) {
             from = offset.intValue();
         }
         int to = full.size();
-        if (size != null) {
-            to = from + size.intValue();
+        if (limit != null) {
+            to = from + limit.intValue();
             if (to >= full.size()) {
                 to = full.size();
             }
@@ -1403,5 +1493,36 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             return full;
         }
         return full.subList(from, to);
+    }
+
+    protected Map applyPostPagination(Map<String, Object> hints, Map<?, ?> full) {
+        Long limit     = getLongHint(hints, PAGE_LIMIT);
+        Long offset    = getLongHint(hints, PAGE_OFFSET);
+        int from = 0;
+        if (offset != null) {
+            from = offset.intValue();
+        }
+        int to = full.size();
+        if (limit != null) {
+            to = from + limit.intValue();
+            if (to >= full.size()) {
+                to = full.size();
+            }
+        }
+        if (from > to) {
+            full.clear();
+            return full;
+        }
+        Map result = new LinkedHashMap();
+        Iterator it = full.entrySet().iterator();
+        int i = 0;
+        while (it.hasNext() && i < to) {
+             Entry e = (Entry) it.next();
+            if (i >= from) {
+                result.put(e.getKey(), e.getValue());
+            }
+            i++;
+        }
+        return result;
     }
 }

@@ -41,6 +41,7 @@ import org.apache.sis.internal.storage.query.SimpleQuery;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.util.Utilities;
 import org.apache.sis.xml.MarshallerPool;
+import static org.constellation.api.CommonConstants.LOCATION;
 import static org.constellation.api.CommonConstants.FEATURE_OF_INTEREST;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBJECT_TYPE;
@@ -1365,7 +1366,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             } else {
                 final SimpleQuery subquery = buildExtraFilterQuery(req, true);
                 if (req.getCount()) {
-                    count = new BigDecimal(omProvider.getCount(subquery, new HashMap(Collections.singletonMap(OBJECT_TYPE, PROCEDURE))));
+                    count = new BigDecimal(omProvider.getCount(subquery, new HashMap(Collections.singletonMap(OBJECT_TYPE, LOCATION))));
                 }
                 Map<String, org.opengis.geometry.Geometry> locs = omProvider.getLocation(subquery, new HashMap<>());
                 List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), null);
