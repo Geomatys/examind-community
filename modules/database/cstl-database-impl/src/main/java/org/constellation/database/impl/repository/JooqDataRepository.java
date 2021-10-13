@@ -25,10 +25,8 @@ import org.constellation.database.api.jooq.Tables;
 import org.constellation.dto.Data;
 import org.constellation.database.api.jooq.tables.pojos.DataXData;
 import org.constellation.database.api.jooq.tables.pojos.Metadata;
-import org.constellation.database.api.jooq.tables.pojos.MetadataXCsw;
 import org.constellation.database.api.jooq.tables.records.DataRecord;
 import org.constellation.database.api.jooq.tables.records.DataXDataRecord;
-import org.constellation.database.api.jooq.tables.records.MetadataXCswRecord;
 import org.constellation.repository.DataRepository;
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -235,7 +233,6 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, org.
 
         dsl.update(DATA)
                 .set(DATA.DATE, data.getDate() != null ? data.getDate().getTime() : null)
-                .set(DATA.METADATA, data.getMetadata())
                 .set(DATA.NAME, data.getName())
                 .set(DATA.NAMESPACE, data.getNamespace())
                 .set(DATA.OWNER, data.getOwnerId())
@@ -555,7 +552,6 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, org.
             dto.setHidden(dao.getHidden());
             dto.setId(dao.getId());
             dto.setIncluded(dao.getIncluded());
-            dto.setMetadata(dao.getMetadata());
             dto.setName(dao.getName());
             dto.setNamespace(dao.getNamespace());
             dto.setOwnerId(dao.getOwner());
@@ -579,7 +575,6 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, org.
             dao.setHidden(dto.getHidden());
             dao.setId(dto.getId());
             dao.setIncluded(dto.getIncluded());
-            dao.setMetadata(dto.getMetadata());
             dao.setName(dto.getName());
             dao.setNamespace(dto.getNamespace());
             dao.setOwner(dto.getOwnerId());

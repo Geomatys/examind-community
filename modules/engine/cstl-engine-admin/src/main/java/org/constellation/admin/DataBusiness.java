@@ -19,9 +19,6 @@
 
 package org.constellation.admin;
 
-import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -36,7 +33,6 @@ import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.listener.DefaultDataBusinessListener;
-import org.constellation.admin.util.DataCoverageUtilities;
 import org.constellation.admin.util.MetadataUtilities;
 import org.constellation.api.DataType;
 import org.constellation.business.IConfigurationBusiness;
@@ -60,7 +56,6 @@ import org.constellation.dto.SimpleDataDescription;
 import org.constellation.dto.StatInfo;
 import org.constellation.dto.Style;
 import org.constellation.dto.StyleBrief;
-import org.constellation.dto.importdata.FileBean;
 import org.constellation.dto.metadata.MetadataLightBrief;
 import org.constellation.dto.process.DataProcessReference;
 import org.constellation.dto.service.Service;
@@ -80,7 +75,6 @@ import org.constellation.repository.SensorRepository;
 import org.constellation.repository.ServiceRepository;
 import org.constellation.repository.StyleRepository;
 import org.constellation.security.SecurityManagerHolder;
-import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.temporal.util.PeriodUtilities;
 import org.opengis.feature.catalog.FeatureCatalogue;
 import org.opengis.metadata.Metadata;
@@ -750,27 +744,7 @@ public class DataBusiness implements IDataBusiness {
      */
     @Override
     @Transactional
-    public Integer create(final QName name, final Integer providerId,
-                       final String type, final boolean sensorable,
-                       final boolean included, final String subType, final String metadataXml) {
-        return create(name, providerId, type, sensorable, included, null, subType, metadataXml, false, null);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Transactional
-    public Integer create(QName name, Integer providerId, String type, boolean sensorable, boolean included, Boolean rendered, String subType, String metadataXml) {
-        return create(name, providerId, type, sensorable, included, null, subType, metadataXml, false, null);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Transactional
-    public Integer create(QName name, Integer providerId, String type, boolean sensorable, boolean included, Boolean rendered, String subType, String metadataXml, boolean hidden, Integer owner) {
+    public Integer create(QName name, Integer providerId, String type, boolean sensorable, boolean included, Boolean rendered, String subType, boolean hidden, Integer owner) {
         if (providerId != null) {
             Data data = new Data();
             data.setDate(new Date());
@@ -789,7 +763,6 @@ public class DataBusiness implements IDataBusiness {
             data.setType(type);
             data.setSubtype(subType);
             data.setIncluded(included);
-            data.setMetadata(metadataXml);
             data.setRendered(rendered);
             data.setHidden(hidden);
             int id = dataRepository.create(data);
@@ -984,62 +957,6 @@ public class DataBusiness implements IDataBusiness {
         dataRepository.update(data);
     }
 
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public List<FileBean> getFilesFromPath(final String pathStr, final boolean filtered, final boolean onlyXML) throws ConstellationException {
-        final List<FileBean> listBean = new ArrayList<>();
-        final Set<String> extensions = DataCoverageUtilities.getAvailableFileExtension().keySet();
-
-        Path path;
-        try {
-            path = IOUtilities.toPath(pathStr);
-        } catch (IOException e) {
-            throw new ConstellationException("Invalid path :" +e.getMessage());
-        }
-
-        if (!Files.exists(path)) {
-            throw new ConstellationException("path does not exists!");
-        }
-
-        final boolean isLocal = path.toUri().toASCIIString().startsWith("file");
-
-        DirectoryStream.Filter<Path> filter = new DirectoryStream.Filter<Path>() {
-            @Override
-            public boolean accept(Path entry) throws IOException {
-
-                if (Files.isRegularFile(entry)) {
-                    String ext = IOUtilities.extension(entry).toLowerCase();
-
-                    if (filtered) {
-                        if (onlyXML && !"xml".equals(ext)) {
-                            return false;
-                        // allow zip files
-                        } else if ("zip".equals(ext)) {
-                            return true;
-
-                        } else if (!extensions.contains(ext)) {
-                            return false;
-                        }
-                    }
-                }
-                return true;
-            }
-        };
-
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(path, filter)) {
-            for (Path child : stream) {
-                listBean.add(new FileBean(child, isLocal));
-            }
-        } catch (IOException e) {
-            throw new ConstellationException("Error occurs during directory browsing", e);
-        }
-
-        Collections.sort(listBean);
-        return listBean;
-    }
 
     @Transactional
     @Override

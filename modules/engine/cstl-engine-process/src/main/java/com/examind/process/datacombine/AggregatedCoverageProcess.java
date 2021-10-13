@@ -74,7 +74,7 @@ public class AggregatedCoverageProcess extends AbstractDataCombineProcess {
             config.parameter("mode").setValue(mode);
 
             int pid = providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "computed-resource", source);
-            providerBusiness.createOrUpdateData(pid, dataset.getId(), false);
+            providerBusiness.createOrUpdateData(pid, dataset.getId(), false, false, null);
 
             // init metadata
             dataBusiness.acceptDatas(providerBusiness.getDataIdsFromProviderId(pid), 1, false);

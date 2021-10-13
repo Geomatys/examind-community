@@ -39,7 +39,6 @@ public class Data extends Identifiable implements Serializable {
     private Boolean sensorable;
     private Date date;
     private Integer ownerId;
-    private String metadata;
     private Integer datasetId;
     private String statsResult;
     private Boolean rendered;
@@ -60,7 +59,6 @@ public class Data extends Identifiable implements Serializable {
             Boolean sensorable,
             Date date,
             Integer ownerId,
-            String metadata,
             Integer datasetId,
             String statsResult,
             Boolean rendered,
@@ -76,7 +74,6 @@ public class Data extends Identifiable implements Serializable {
         this.sensorable = sensorable;
         this.date = date;
         this.ownerId = ownerId;
-        this.metadata = metadata;
         this.datasetId = datasetId;
         this.statsResult = statsResult;
         this.rendered = rendered;
@@ -96,7 +93,6 @@ public class Data extends Identifiable implements Serializable {
             this.sensorable = data.sensorable;
             this.date = data.date;
             this.ownerId = data.ownerId;
-            this.metadata = data.metadata;
             this.datasetId = data.datasetId;
             this.statsResult = data.statsResult;
             this.rendered = data.rendered;
@@ -232,20 +228,6 @@ public class Data extends Identifiable implements Serializable {
     }
 
     /**
-     * @return the metadata
-     */
-    public String getMetadata() {
-        return metadata;
-    }
-
-    /**
-     * @param metadata the metadata to set
-     */
-    public void setMetadata(String metadata) {
-        this.metadata = metadata;
-    }
-
-    /**
      * @return the datasetId
      */
     public Integer getDatasetId() {
@@ -332,7 +314,6 @@ public class Data extends Identifiable implements Serializable {
                     && Objects.equals(this.sensorable, that.sensorable)
                     && Objects.equals(this.date, that.date)
                     && Objects.equals(this.ownerId, that.ownerId)
-                    && Objects.equals(this.metadata, that.metadata)
                     && Objects.equals(this.datasetId, that.datasetId)
                     && Objects.equals(this.statsResult, that.statsResult)
                     && Objects.equals(this.rendered, that.rendered)
@@ -355,7 +336,6 @@ public class Data extends Identifiable implements Serializable {
         hash = 71 * hash + Objects.hashCode(this.sensorable);
         hash = 71 * hash + Objects.hashCode(this.date);
         hash = 71 * hash + Objects.hashCode(this.ownerId);
-        hash = 71 * hash + Objects.hashCode(this.metadata);
         hash = 71 * hash + Objects.hashCode(this.datasetId);
         hash = 71 * hash + Objects.hashCode(this.statsResult);
         hash = 71 * hash + Objects.hashCode(this.rendered);

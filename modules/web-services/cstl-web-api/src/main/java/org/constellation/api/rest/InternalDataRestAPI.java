@@ -18,23 +18,13 @@
  */
 package org.constellation.api.rest;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
-import java.util.zip.CRC32;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.namespace.QName;
-import org.apache.sis.metadata.iso.DefaultMetadata;
-import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
@@ -44,40 +34,21 @@ import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.DataCustomConfiguration;
-import org.constellation.dto.importdata.FileBean;
-import org.constellation.dto.ImportedData;
-import org.constellation.dto.ParameterValues;
 import org.constellation.dto.ProviderConfiguration;
-import org.constellation.dto.SelectedExtension;
 import org.constellation.dto.metadata.MetadataLightBrief;
 import org.constellation.dto.metadata.RootObj;
-import org.constellation.exception.ConfigurationException;
-import org.constellation.exception.ConstellationException;
-import org.constellation.metadata.utils.Utils;
-import static org.constellation.metadata.utils.Utils.UNKNOW_IDENTIFIER;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.ISO19110Builder;
-import org.constellation.util.Util;
 import org.geotoolkit.client.AbstractClientProvider;
-import org.geotoolkit.nio.IOUtilities;
-import org.geotoolkit.nio.ZipUtilities;
 import static org.apache.sis.util.ArraysExt.contains;
-import org.constellation.admin.util.DataCoverageUtilities;
-import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IProviderBusiness.SPI_NAMES;
-import org.constellation.business.IPyramidBusiness;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.storage.ResourceType;
 import static org.geotoolkit.storage.ResourceType.*;
 import org.opengis.feature.catalog.FeatureCatalogue;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.crs.ImageCRS;
-import org.opengis.util.GenericName;
-import org.springframework.http.HttpStatus;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -86,7 +57,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
 /**
  *
@@ -106,381 +76,6 @@ public class InternalDataRestAPI extends AbstractRestAPI {
 
     @Inject
     private IDatasetBusiness datasetBusiness;
-
-    @Inject
-    private IPyramidBusiness pyramidBusiness;
-
-    @Inject
-    private IConfigurationBusiness configBusiness;
-
-    /**
-     * Give subfolder list of data from a server file path
-     *
-     * @param path server file path
-     * @param filtered {@code True} if we want to keep only known files.
-     * @return a file list
-     */
-    @RequestMapping(value="/internal/datas/datapath/{filtered}",method=POST,consumes=APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity listDataFolderContent(@PathVariable("filtered") final Boolean filtered,
-            @RequestBody final String path) {
-
-        try {
-            final List<FileBean> listBean = dataBusiness.getFilesFromPath(path, filtered, false);
-            return new ResponseEntity(listBean,OK);
-        }catch(Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
-            return new ErrorMessage(ex).build();
-        }
-    }
-
-    /**
-     * Give subfolder list of metadata xml from a server file path
-     *
-     * @param path server file path
-     * @param filtered {@code True} if we want to keep only known files.
-     * @return a {@link ResponseEntity} which contain file list
-     */
-    @RequestMapping(value="/internal/datas/metadatapath/{filtered}",method=POST,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity ListMetaDataFolderContent(@PathVariable("filtered") final Boolean filtered,
-            @RequestBody final String path) {
-
-        try {
-            final List<FileBean> listBean = dataBusiness.getFilesFromPath(path, filtered, true);
-            return new ResponseEntity(listBean,OK);
-        }catch(Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
-            return new ErrorMessage(ex).build();
-        }
-    }
-
-    @RequestMapping(value="/internal/datas/testextension/{ext}",method=GET,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity testExtension(@PathVariable("ext") final String extension) {
-
-        final Map<String, String> extensions = DataCoverageUtilities.getAvailableFileExtension();
-        String type = extensions.get(extension.toLowerCase());
-        if (type == null) {
-            type = "";
-        }
-        return new ResponseEntity(new SelectedExtension(type, extension), OK);
-    }
-
-    /**
-     * Receive a {@link MultipartFile} which contain a file need to be save on server to create data on provider
-     * @param data
-     * @return A {@link ResponseEntity} with 200 code if upload work, 500 if not work.
-     */
-    @RequestMapping(value="/internal/datas/upload/data",method=POST, consumes=MULTIPART_FORM_DATA_VALUE, produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity uploadData(@RequestParam("data") MultipartFile data, HttpServletRequest req) {
-        try {
-            assertAuthentificated(req);
-            final Path uploadDirectory = getUploadDirectory(req);
-            final HashMap<String,String> hashMap = new HashMap<>();
-            final String dataName = data.getOriginalFilename();
-            final Path newFileData = uploadDirectory.resolve(dataName);
-            if (!data.isEmpty()) {
-                try(InputStream in = data.getInputStream()){
-                    Files.copy(in, newFileData, StandardCopyOption.REPLACE_EXISTING);
-                }
-                hashMap.put("dataPath", newFileData.toUri().toString());
-            }
-            return new ResponseEntity(hashMap,OK);
-        }catch(Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
-            return new ErrorMessage(ex).build();
-        }
-    }
-
-    /**
-     * Receive a {@link MultipartFile} which contain a file need to be save on server to create data on provider
-     *
-     * @param metadata
-     * @param identifier
-     * @param serverMetadataPath
-     * @return A {@link ResponseEntity} with 200 code if upload work, 500 if not work.
-     */
-    @RequestMapping(value="/internal/datas/upload/metadata",method=POST, consumes=MULTIPART_FORM_DATA_VALUE, produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity uploadMetadata(
-            @RequestParam(name = "metadata", required = false) MultipartFile metadata,
-            @RequestParam(name = "identifier", required = false) String identifier,
-            @RequestParam(name = "serverMetadataPath", required = false) String serverMetadataPath,
-            HttpServletRequest req) {
-
-        try {
-            assertAuthentificated(req);
-            final Map<String,String> hashMap = new HashMap<>();
-            if (identifier != null && ! identifier.isEmpty()){
-                hashMap.put("dataName", identifier);
-            } else {
-                Path metadataFile = null;
-                if (serverMetadataPath !=null && !serverMetadataPath.isEmpty()){
-                    metadataFile = IOUtilities.toPath(serverMetadataPath);
-
-                } else  if (metadata.getOriginalFilename() != null && !metadata.getOriginalFilename().isEmpty()) {
-
-                    final Path uploadDirectory = getUploadDirectory(req);
-                    final Path newFileMetaData = uploadDirectory.resolve(metadata.getOriginalFilename());
-                    if (!metadata.isEmpty()) {
-                        try (InputStream in = metadata.getInputStream()) {
-                            Files.copy(in, newFileMetaData, StandardCopyOption.REPLACE_EXISTING);
-                            metadataFile = newFileMetaData;
-                        }
-                    }
-                }
-                if (metadataFile != null) {
-                    Object obj = metadataBusiness.getMetadataFromFile(metadataFile);
-                    if (obj == null) {
-                        throw new ConstellationException("metadata file is incorrect");
-                    }
-
-                    final String metaIdentifier = Utils.findIdentifier(obj);
-                    if (!UNKNOW_IDENTIFIER.equals(metaIdentifier)) {
-                        hashMap.put("dataName", metaIdentifier);
-                    }else {
-                        throw new ConstellationException("metadata does not contains any identifier," +
-                                " please check the fileIdentifier in your metadata.");
-                    }
-                    hashMap.put("metadataPath", metadataFile.toAbsolutePath().toUri().toString());
-                    hashMap.put("metatitle", Utils.findTitle(obj));
-                    hashMap.put("metaIdentifier", metaIdentifier);
-                }
-            }
-            //verify uniqueness of data identifier
-            final Integer prId = providerBusiness.getIDFromIdentifier(hashMap.get("dataName"));
-            if (prId!=null){
-                return new ErrorMessage().message("dataName or identifier of metadata is already used").build();
-            }
-            return new ResponseEntity(hashMap, OK);
-        } catch (Exception ex) {
-            return new ErrorMessage(ex).build();
-        }
-    }
-
-    /**
-     * Init metadata for imported data.
-     * It is the first save called after import phase.
-     * if user send its own metadata he can decide if its
-     * metadata will be merged with reader metadata by passing parameter flag mergeWithUploadedMD.
-     *
-     * @param providerId Provider identifier.
-     * @param dataType Data type.
-     * @param mergeWithUploadedMD Flag to indicate if we merge xith the uploaded metadata.
-     *
-     * @return {@link ResponseEntity}
-     * @throws ConfigurationException
-     */
-    @RequestMapping(value = "/internal/datas/init/metadata",consumes=APPLICATION_JSON_VALUE, method = POST)
-    public ResponseEntity initMetadataFromReader(@RequestParam("providerId")final String providerId,
-                                                 @RequestParam("dataType")  final String dataType,
-                                                 @RequestParam("mergeWithUploadedMD") final String mergeWithUploadedMD) throws ConfigurationException {
-        Object uploadedMetadata;
-        try{
-            uploadedMetadata = datasetBusiness.getMetadata(providerId);
-        }catch(Exception ex){
-            uploadedMetadata = null;
-        }
-        if(uploadedMetadata!=null && (mergeWithUploadedMD == null || mergeWithUploadedMD.equalsIgnoreCase("false"))){
-            //skip if there is uploaded metadata and user want to keep this original metadata.
-            return new ResponseEntity(OK);
-        }
-        try {
-            Integer dsId = datasetBusiness.getDatasetId(providerId);
-            datasetBusiness.initDatasetMetadata(dsId, providerId, dataType, false);
-        } catch (ConstellationException ex) {
-            throw ex.toRuntimeException();
-        }
-        return new ResponseEntity(OK);
-    }
-
-    /**
-     * Import data from upload Directory to integrated directory
-     * - change file location from upload to integrated
-     * this method do all chain: init provider and metadata.
-     *
-     * @param values {@link org.constellation.dto.ParameterValues} containing file path &amp; data type
-     * @return a {@link ResponseEntity}
-     */
-    @RequestMapping(value="/internal/datas/import/full",method=POST,consumes=APPLICATION_JSON_VALUE , produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity proceedToImport(@RequestBody final ParameterValues values, HttpServletRequest req) {
-
-        final String filePathStr      = values.getValues().get("dataPath");
-        final String metadataFilePath = values.getValues().get("metadataFilePath");
-        final String dataType         = values.getValues().get("dataType");
-        final String dataName         = values.getValues().get("dataName");
-        final String fileExtension    = values.getValues().get("extension");
-        final String fsServer         = values.getValues().get("fsServer");
-
-        final ImportedData importedDataReport = new ImportedData();
-        try {
-            assertAuthentificated(req);
-            final Path dataIntegratedDirectory = configBusiness.getDataIntegratedDirectory(null);
-            final Path uploadFolder = getUploadDirectory(req);
-
-            if (metadataFilePath != null) {
-                Path metadataPath = IOUtilities.toPath(metadataFilePath);
-                if (metadataPath.startsWith(uploadFolder.toAbsolutePath())) {
-                    final Path destMd = dataIntegratedDirectory.toAbsolutePath().resolve(metadataPath.getFileName().toString());
-                    Files.move(metadataPath, destMd, StandardCopyOption.REPLACE_EXISTING);
-                    importedDataReport.setMetadataFile(destMd.toUri().toString());
-                } else {
-                    importedDataReport.setMetadataFile(metadataFilePath);
-                }
-            }
-
-            // For server file mode, we let the data in its current location
-            if (fsServer != null && fsServer.equalsIgnoreCase("true")) {
-
-                Path filePath = IOUtilities.toPath(filePathStr);
-                String ext = IOUtilities.extension(filePath);
-
-                // if the server file is a zip we unzip it, in the integrated folder
-                if ("zip".equals(ext.toLowerCase())) {
-
-                     //init provider directory
-                    final Path intDirPath  = dataIntegratedDirectory;
-                    final Path providerDir = intDirPath.resolve(dataName);
-                    final Path dataDir     = providerDir.resolve(dataName);
-                    if (Files.exists(dataDir)) {
-                        IOUtilities.deleteRecursively(dataDir);
-                    }
-                    Files.createDirectories(dataDir);
-
-                    //unzip
-                    ZipUtilities.unzip(filePath, dataDir, new CRC32());
-                    filePath = dataDir.toAbsolutePath();
-                }
-
-                importedDataReport.setDataFile(filePath.toAbsolutePath().toUri().toString());
-
-
-            // For upload mode, we move the data to the "integrated" folder of examind.
-            } else if (filePathStr != null) {
-                Path filePath = IOUtilities.toPath(filePathStr);
-                filePath = Util.renameFile(dataName, filePath);
-
-                //init provider directory
-                final Path intDirPath  = dataIntegratedDirectory;
-                final Path providerDir = intDirPath.resolve(dataName);
-                final Path dataDir     = providerDir.resolve(dataName);
-                if (Files.exists(dataDir)) {
-                    IOUtilities.deleteRecursively(dataDir);
-                }
-                Files.createDirectories(dataDir);
-
-                //unzip
-                String ext = IOUtilities.extension(filePath);
-                if ("zip".equals(ext.toLowerCase())) {
-                    ZipUtilities.unzip(filePath, dataDir, new CRC32());
-                    filePath = dataDir.toAbsolutePath();
-                }
-
-                //move to integrated
-                if (filePath.startsWith(uploadFolder.toAbsolutePath())) {
-                    final Path destFile = dataDir.toAbsolutePath().resolve(filePath.getFileName().toString());
-                    Files.move(filePath, destFile, StandardCopyOption.REPLACE_EXISTING);
-                    importedDataReport.setDataFile(destFile.toAbsolutePath().toUri().toString());
-                } else {
-                    importedDataReport.setDataFile(filePath.toAbsolutePath().toUri().toString());
-                }
-            }
-
-            String dataFile = importedDataReport.getDataFile();
-            final String metadataPath = importedDataReport.getMetadataFile();
-            final String uploadType  = dataType;
-            importedDataReport.setDataType(uploadType);
-            final String providerIdentifier = dataName;
-
-            Integer datasetId;
-
-            if ("vector".equalsIgnoreCase(uploadType)) {
-
-                String[] extracted = DataProviders.findFeatureFactoryForFiles(dataFile);
-                dataFile             = extracted[0];
-                final String subType = extracted[1];
-
-                //create provider
-                final ProviderConfiguration config = new ProviderConfiguration("data-store", subType, dataFile);
-                final Integer prId = providerBusiness.create(providerIdentifier, config);
-                datasetId = providerBusiness.createOrUpdateData(prId, null, true);
-
-                //verify CRS
-                if (verifyCRS(prId)) {
-                    importedDataReport.setVerifyCRS("success");
-                } else {
-                    importedDataReport.setVerifyCRS("error");
-                    //get a list of EPSG codes
-                    importedDataReport.setCodes(DataProviders.getAllEpsgCodes());
-                }
-
-            } else if("raster".equalsIgnoreCase(uploadType)) {
-                //create provider
-                final ProviderConfiguration config = new ProviderConfiguration("data-store", "coverage-file", dataFile);
-                final Integer prId = providerBusiness.create(providerIdentifier, config);
-                datasetId = providerBusiness.createOrUpdateData(prId, null, true);
-
-                //verify CRS
-                if (verifyCRS(prId)) {
-                    importedDataReport.setVerifyCRS("success");
-                } else {
-                    importedDataReport.setVerifyCRS("error");
-                    //get a list of EPSG codes
-                    importedDataReport.setCodes(DataProviders.getAllEpsgCodes());
-                }
-
-                /**
-                 * For each data created in provider, we need to pyramid conform each raster.
-                 */
-                pyramidBusiness.createAllPyramidConformForProvider(prId);
-
-            } else if ("observation".equalsIgnoreCase(uploadType)) {
-                String subType = "observationFile";
-                if ("xml".equalsIgnoreCase(fileExtension)) {
-                    subType = "observationXmlFile";
-                }
-                //create provider
-                final ProviderConfiguration config = new ProviderConfiguration("data-store", subType, dataFile);
-                final Integer prId = providerBusiness.create(providerIdentifier, config);
-                datasetId = providerBusiness.createOrUpdateData(prId, null, true);
-
-            } else {
-                //not supported
-                throw new UnsupportedOperationException("The uploaded file is not recognized or not supported by the application. file:"+uploadType);
-            }
-
-            //set up user metadata
-            if (metadataPath != null && !metadataPath.isEmpty()) {
-                try {
-                    Path f = IOUtilities.toPath(metadataPath);
-                    Object metadata = metadataBusiness.getMetadataFromFile(f);
-                    if (metadata == null) {
-                        throw new ConstellationException("Cannot save uploaded metadata because it is not recognized as a valid file.");
-                    }
-                    datasetBusiness.updateMetadata(datasetId, metadata, false);
-                } catch (ConfigurationException | IOException ex) {
-                    throw new ConstellationException("Error while saving dataset metadata, " + ex.getMessage());
-                }
-            }
-
-            return new ResponseEntity(importedDataReport,OK);
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
-            return new ErrorMessage(ex).build();
-        }
-    }
-
-    private boolean verifyCRS(int providerId) {
-        try {
-            final Map<GenericName, CoordinateReferenceSystem> nameCoordinateReferenceSystemHashMap = DataProviders.getCRS(providerId);
-            for(final CoordinateReferenceSystem crs : nameCoordinateReferenceSystemHashMap.values()){
-                if (crs == null || crs instanceof ImageCRS) {
-                    throw new DataStoreException("CRS is null or is instance of ImageCRS");
-                }
-            }
-            return true;
-        } catch (Exception e) {
-            LOGGER.log(Level.INFO, "Cannot get CRS for provider " + providerId);
-        }
-        return false;
-    }
 
     @RequestMapping(value="/internal/datas/store/{storeId}",method=GET,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity getDataStoreConfiguration(@PathVariable(name="storeId") String storeId){
@@ -641,51 +236,6 @@ public class InternalDataRestAPI extends AbstractRestAPI {
         }
     }
 
-    /**
-     * Create a dataset with an optional metadata file.
-     *
-     * @param values
-     * @param req
-     * @return
-     */
-    @RequestMapping(value="/internal/datasets",method=POST,consumes=APPLICATION_JSON_VALUE,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity createEmptyDataset(@RequestBody final ParameterValues values, HttpServletRequest req) {
-
-        final String metaPath = values.getValues().get("metadataFilePath");
-
-        final String datasetIdentifier = values.getValues().get("datasetIdentifier");
-        if (datasetIdentifier != null && !datasetIdentifier.isEmpty()) {
-            try {
-                if (datasetBusiness.existsByName(datasetIdentifier)) {
-                    LOGGER.log(Level.WARNING, "Dataset with identifier " + datasetIdentifier + " already exist");
-                    return new ResponseEntity("failed", HttpStatus.CONFLICT);
-                }
-
-                Object metadata = null;
-                if (metaPath != null) {
-                    final java.nio.file.Path f = IOUtilities.toPath(metaPath);
-                    if (metadataBusiness.isSpecialMetadataFormat(f)){
-                        metadata = metadataBusiness.getMetadataFromSpecialFormat(f);
-                    } else {
-                        metadata = (DefaultMetadata) metadataBusiness.unmarshallMetadata(f);
-                    }
-                }
-
-                Integer userId = assertAuthentificated(req);
-                Integer dsId = datasetBusiness.createDataset(datasetIdentifier, userId, null);
-                datasetBusiness.updateMetadata(dsId, metadata, false);
-
-                return new ResponseEntity(dsId, HttpStatus.CREATED);
-            } catch (Exception ex) {
-                LOGGER.log(Level.WARNING, "Failed to create dataset with identifier " + datasetIdentifier, ex);
-                return new ResponseEntity("failed", HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        } else {
-            LOGGER.log(Level.WARNING, "Cannot create dataset with empty identifier");
-            return new ResponseEntity("failed", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
     @RequestMapping(value="/internal/datas/provider/{providerId}",method=GET,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity getDataListsForProviders(@PathVariable("providerId") final String providerId) {
         try {
@@ -696,36 +246,6 @@ public class InternalDataRestAPI extends AbstractRestAPI {
                 briefs.add(dataBusiness.getDataBrief(dataId, true));
             }
             return new ResponseEntity(briefs, OK);
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
-            return new ErrorMessage(ex).build();
-        }
-    }
-
-    @RequestMapping(value="/internal/datas/saveUploadedMetadata",method=POST,consumes=APPLICATION_JSON_VALUE,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity saveUploadedMetadata(final @RequestBody ParameterValues values) {
-        final String providerId = values.getValues().get("providerId");
-        final String mdPath = values.getValues().get("mdPath");
-        try {
-            if (mdPath != null && !mdPath.isEmpty()) {
-                try {
-                    java.nio.file.Path f = IOUtilities.toPath(mdPath);
-                    final Object metadata;
-                    if (metadataBusiness.isSpecialMetadataFormat(f)) {
-                        metadata = metadataBusiness.getMetadataFromSpecialFormat(f);
-                    } else {
-                        metadata = metadataBusiness.unmarshallMetadata(f);
-                    }
-                    if (metadata == null) {
-                        throw new ConstellationException("Cannot save uploaded metadata because it is not recognized as a valid file!");
-                    }
-                    // for now we assume datasetID == providerID
-                    datasetBusiness.updateMetadata(providerId, metadata);
-                } catch (ConfigurationException | IOException ex) {
-                    throw new ConstellationException("Error while saving dataset metadata, " + ex.getMessage());
-                }
-            }
-            return new ResponseEntity(OK);
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
@@ -772,7 +292,5 @@ public class InternalDataRestAPI extends AbstractRestAPI {
             return new ErrorMessage(ex).build();
         }
     }
-
-
 
 }

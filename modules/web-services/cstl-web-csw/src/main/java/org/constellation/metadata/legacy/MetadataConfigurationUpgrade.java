@@ -135,7 +135,7 @@ public class MetadataConfigurationUpgrade {
 
                             providerID = providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "metadata-store", sourcef);
                             try {
-                                providerBusiness.createOrUpdateData(providerID, null, false);
+                                providerBusiness.createOrUpdateData(providerID, null, false, false, null);
                             } catch (ConstellationException ex) {
                                 throw new ConfigurationException(ex);
                             }

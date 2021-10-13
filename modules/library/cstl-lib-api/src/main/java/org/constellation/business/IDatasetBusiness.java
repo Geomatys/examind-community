@@ -84,19 +84,6 @@ public interface IDatasetBusiness {
      */
     Object getMetadata(final int datasetId) throws ConstellationException;
 
-    /**
-     * Proceed to extract metadata from reader and fill additional info
-     * then save metadata in dataset.
-     *
-     * @param datasetId given dataset identifier.
-     * @param providerId given provider identifier.
-     * @param dataType data type vector or raster.
-     * @param hidden flag to indicate if the metadata should be hidden for now.
-     *
-     * @throws ConstellationException
-     */
-    void initDatasetMetadata(final int datasetId, final String providerId, final String dataType, final boolean hidden) throws ConstellationException;
-
     void removeDataset(Integer datasetId) throws ConstellationException;
 
     void removeDataset(final String datasetIdentifier) throws ConstellationException;

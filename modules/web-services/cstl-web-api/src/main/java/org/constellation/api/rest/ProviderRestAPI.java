@@ -169,7 +169,7 @@ public class ProviderRestAPI extends AbstractRestAPI {
         try {
             Integer prId = providerBusiness.create(id, config);
             if (createdata) {
-                providerBusiness.createOrUpdateData(prId, null, true);
+                providerBusiness.createOrUpdateData(prId, null, true, false, null);
             }
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);

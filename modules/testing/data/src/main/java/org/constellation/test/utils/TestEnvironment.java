@@ -314,7 +314,7 @@ public class TestEnvironment {
            DeployedTestResource dpr = resources.get(tr);
            if (dpr != null) {
                int pid = dpr.createProvider(providerBusiness, datasetId);
-               int dsId = providerBusiness.createOrUpdateData(pid, datasetId, true);
+               int dsId = providerBusiness.createOrUpdateData(pid, datasetId, true, false, null);
                List<DataImport> datas = providerBusiness.getDataBriefsFromProviderId(pid, null, true, false, false)
                        .stream().map(db -> new DataImport(db.getId(), db.getNamespace(), db.getName()))
                        .collect(Collectors.toList());
@@ -341,7 +341,7 @@ public class TestEnvironment {
            if (dpr != null) {
                dpr.dataDir = location;
                int pid = dpr.createProvider(providerBusiness, datasetId);
-               int dsId = providerBusiness.createOrUpdateData(pid, datasetId, true);
+               int dsId = providerBusiness.createOrUpdateData(pid, datasetId, true, false, null);
                List<DataImport> datas = providerBusiness.getDataBriefsFromProviderId(pid, null, true, false, false)
                        .stream().map(db -> new DataImport(db.getId(), db.getNamespace(), db.getName()))
                        .collect(Collectors.toList());
@@ -397,7 +397,7 @@ public class TestEnvironment {
             config.parameter("mode").setValue("ORDER");
 
             int pid = providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "computed-resource", source);
-            int dsId = providerBusiness.createOrUpdateData(pid, datasetId, true);
+            int dsId = providerBusiness.createOrUpdateData(pid, datasetId, true, false, null);
             List<DataImport> datas = providerBusiness.getDataBriefsFromProviderId(pid, null, true, false, false)
                        .stream().map(db -> new DataImport(db.getId(), db.getNamespace(), db.getName()))
                        .collect(Collectors.toList());

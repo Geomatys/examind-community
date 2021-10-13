@@ -20,10 +20,8 @@
 package org.constellation.admin;
 
 import java.util.AbstractMap;
-import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.exception.ConstellationException;
-import org.constellation.admin.util.MetadataUtilities;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.exception.ConfigurationException;
@@ -36,9 +34,6 @@ import org.constellation.dto.DataSet;
 import org.constellation.repository.DataRepository;
 import org.constellation.repository.DatasetRepository;
 import org.constellation.repository.ProviderRepository;
-import org.constellation.provider.DataProvider;
-import org.constellation.provider.DataProviders;
-import org.constellation.security.SecurityManagerHolder;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,9 +44,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IDataBusiness;
@@ -59,7 +52,6 @@ import org.constellation.business.IUserBusiness;
 import org.constellation.dto.metadata.MetadataLightBrief;
 import org.constellation.metadata.utils.Utils;
 import org.constellation.dto.process.DatasetProcessReference;
-import org.constellation.exception.ConstellationStoreException;
 
 /**
  *
@@ -111,9 +103,6 @@ public class DatasetBusiness implements IDatasetBusiness {
      */
     @Inject
     protected IMetadataBusiness metadataBusiness;
-
-    @Inject
-    private IConfigurationBusiness configBusiness;
 
     /**
      * Creates a new instance of {@link DatasetBusiness}.
@@ -223,105 +212,6 @@ public class DatasetBusiness implements IDatasetBusiness {
         } else {
             LOGGER.warning("No metadata provider available");
         }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Transactional
-    public void initDatasetMetadata(final int datasetId, final String providerId, final String dataType, final boolean hidden) throws ConstellationException {
-        final Integer provider = providerRepository.findIdForIdentifier(providerId);
-        final DataProvider dataProvider = DataProviders.getProvider(provider);
-        DefaultMetadata extractedMetadata;
-        String crsName = null;
-        if (dataType != null) {
-            switch (dataType) {
-                case "raster":
-                case "coverage":
-                case "vector":
-                    try {
-                        extractedMetadata = dataProvider.getStoreMetadata();
-                        crsName = dataProvider.getCRSName();
-                    } catch (ConstellationStoreException e) {
-                        LOGGER.log(Level.WARNING, "Error when trying to get raster metadata", e);
-                        extractedMetadata = new DefaultMetadata();
-                    }
-                    break;
-                default:
-                    extractedMetadata = new DefaultMetadata();
-            }
-        } else {
-            extractedMetadata = new DefaultMetadata();
-        }
-        //initialize metadata from the template and fill it with properties file
-        final DataSet dataset = datasetRepository.findById(datasetId);
-        if (dataset == null) {
-            throw new ConstellationException("Unable to find the dataset");
-        }
-        final String metadataID = MetadataUtilities.getMetadataIdForDataset(dataset.getIdentifier());
-
-        // find unused title
-        String cleanTitle = clearTitleOrdinal(dataset.getIdentifier());
-        String title = cleanTitle;
-        int i = 1;
-        while (metadataBusiness.existMetadataTitle(title)) {
-            title = cleanTitle + '_' + i;
-            i++;
-        }
-
-        // get current user name and email and store into metadata contact.
-        final String login = SecurityManagerHolder.getInstance().getCurrentUserLogin();
-        final Optional<CstlUser> optUser = userBusiness.findOne(login);
-
-        //fill in keywords all data name of dataset children.
-        final List<String> keywords = new ArrayList<>();
-
-        final List<Data> dataList = dataRepository.findAllByDatasetId(dataset.getId());
-        if (dataList != null) {
-            for(final Data d : dataList){
-                final String dataName = d.getName();
-                if(!keywords.contains(dataName)){
-                    keywords.add(dataName);
-                }
-            }
-        }
-        final Properties prop = configBusiness.getMetadataTemplateProperties();
-        final String xml = MetadataUtilities.fillMetadataFromProperties(prop, dataType, metadataID, title, crsName, optUser, keywords);
-        final DefaultMetadata templateMetadata = (DefaultMetadata) metadataBusiness.unmarshallMetadata(xml);
-
-        DefaultMetadata mergedMetadata;
-        if (extractedMetadata != null) {
-            mergedMetadata =  Utils.mergeMetadata(templateMetadata, extractedMetadata);
-        } else {
-            mergedMetadata = templateMetadata;
-        }
-
-        //merge with uploaded metadata
-        DefaultMetadata uploadedMetadata;
-        try {
-            uploadedMetadata = (DefaultMetadata) getMetadata(dataset.getId());
-        } catch (Exception ex) {
-            uploadedMetadata = null;
-        }
-        if (uploadedMetadata != null) {
-            mergedMetadata = Utils.mergeMetadata(uploadedMetadata,mergedMetadata);
-        }
-        mergedMetadata.prune();
-
-        //Save metadata
-        updateMetadata(datasetId, mergedMetadata, hidden);
-    }
-
-    private static String clearTitleOrdinal(String title) {
-        int pos = title.lastIndexOf('_');
-        if (pos != -1) {
-            try {
-                Integer.parseInt(title.substring(pos + 1));
-                return title.substring(0, pos);
-            } catch (NumberFormatException ex) {} // not a number
-        }
-        return title;
     }
 
     @Override

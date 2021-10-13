@@ -168,14 +168,14 @@ public interface IProviderBusiness {
      * @param providerId given provider identifier
      * @param datasetId given dataset identifier to attach to data.
      * @param createDatasetIfNull flag that indicates if a dataset will be created in case of given datasetId is null.
+     * @param hideNewData Flag used to create data as hidden until validated.
+     * @param owner he owner of the dataset/datas created.
      *
      * @return The asssigned dataset id if createDatasetIfNull is set to true, or if a datasetId is specified.
      * return {@code null} else.
      * 
      * @throws org.constellation.exception.ConfigurationException
      */
-    Integer createOrUpdateData(final int providerId, Integer datasetId, final boolean createDatasetIfNull) throws ConstellationException;
-
     Integer createOrUpdateData(final int providerId, Integer datasetId, final boolean createDatasetIfNull, final boolean hideNewData, Integer owner) throws ConstellationException;
 
     void reload(int providerId) throws ConstellationException;

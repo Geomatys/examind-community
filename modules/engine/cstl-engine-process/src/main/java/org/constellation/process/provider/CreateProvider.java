@@ -18,7 +18,6 @@
  */
 package org.constellation.process.provider;
 
-import java.io.IOException;
 import static org.constellation.process.provider.CreateProviderDescriptor.PROVIDER_TYPE;
 import static org.constellation.process.provider.CreateProviderDescriptor.SOURCE;
 import java.util.Collection;
@@ -98,7 +97,7 @@ public final class CreateProvider extends AbstractCstlProcess {
                 final boolean createDataset = (pv!=null && Boolean.TRUE.equals(pv.getValue()));
 
                 final Integer pr = providerBusiness.create(id, service.getName(), source);
-                providerBusiness.createOrUpdateData(pr, null, createDataset);
+                providerBusiness.createOrUpdateData(pr, null, createDataset, false, null);
 
                 outputParameters.getOrCreate(CREATED_ID).setValue(pr);
 

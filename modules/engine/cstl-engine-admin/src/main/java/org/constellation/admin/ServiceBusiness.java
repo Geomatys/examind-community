@@ -46,7 +46,6 @@ import org.constellation.exception.ConstellationPersistenceException;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.service.Service;
 import org.constellation.dto.service.ServiceComplete;
-import org.constellation.repository.DatasetRepository;
 import org.constellation.repository.ServiceRepository;
 import org.constellation.repository.ThesaurusRepository;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
@@ -73,7 +72,6 @@ import org.constellation.dto.service.config.wps.ProcessContext;
 import org.constellation.dto.service.config.wps.Processes;
 import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
 import org.constellation.dto.service.config.wxs.LayerContext;
-import org.constellation.repository.MetadataRepository;
 import org.constellation.ws.MimeType;
 
 @Component
@@ -90,12 +88,6 @@ public class ServiceBusiness implements IServiceBusiness {
 
     @Inject
     private ServiceRepository serviceRepository;
-
-    @Inject
-    private MetadataRepository metadatarepository;
-
-    @Inject
-    private DatasetRepository datasetRepository;
 
     @Inject
     private IConfigurationBusiness configBusiness;

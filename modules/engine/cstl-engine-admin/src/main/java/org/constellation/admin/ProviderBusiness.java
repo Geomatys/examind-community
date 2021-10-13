@@ -148,7 +148,7 @@ public class ProviderBusiness implements IProviderBusiness {
         if (provider != null) {
             provider.reload();
         }
-        createOrUpdateData(providerId,null,false);
+        createOrUpdateData(providerId, null, false, false, null);
 
         //send message for other nodes to reload (will cause double reload on this node)
         final ClusterMessage message = clusterBusiness.createRequest(PRV_MESSAGE_TYPE_ID,false);
@@ -521,15 +521,6 @@ public class ProviderBusiness implements IProviderBusiness {
      * {@inheritDoc }
      */
     @Override
-    public Integer createOrUpdateData(final int providerId, Integer datasetId,final boolean createDatasetIfNull)
-            throws  ConstellationException{
-        return createOrUpdateData(providerId, datasetId, createDatasetIfNull, false, null);
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
     public Integer createOrUpdateData(final int providerId, Integer datasetId,final boolean createDatasetIfNull, final boolean hideNewData, Integer owner)
             throws ConstellationException{
         final ProviderBrief pr = providerRepository.findOne(providerId);
@@ -683,7 +674,7 @@ public class ProviderBusiness implements IProviderBusiness {
 
                 Integer dataId = dataBusiness.create(name,
                         pr.getId(), type.name(), provider.isSensorAffectable(),
-                        included, rendered, subType, null, hideNewData, owner);
+                        included, rendered, subType, hideNewData, owner);
 
 
                 if (datasetId != null) {

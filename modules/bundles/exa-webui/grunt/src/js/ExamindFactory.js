@@ -1251,6 +1251,9 @@ function Examind($http, url) {
                 data: dataIds
             });
         },
+        /**
+         * This method has been removed from the server and should be removed (with all its use) from the front code.
+         */
         getDataFolder : function (path, filtered) {
             return self.request({
                 method: 'POST',
@@ -1259,6 +1262,9 @@ function Examind($http, url) {
                 data: path
             });
         },
+        /**
+         * This method has been removed from the server and should be removed (with all its use) from the front code.
+         */
         getMetaDataFolder : function (path, filtered) {
             return self.request({
                 method: 'POST',
@@ -1288,6 +1294,9 @@ function Examind($http, url) {
                 data: formData
             });
         },
+        /**
+         * This method has been removed from the server and should be removed (with all its use) from the front code.
+         */
         createDataset : function (datasetIdentifier, metadataFilePath) {
             return self.request({
                 method: 'POST',
@@ -1327,6 +1336,9 @@ function Examind($http, url) {
                 headers: {'Accept': 'application/json'}
             });
         },
+        /**
+         * This method has been removed from the server and should be removed (with all its use) from the front code.
+         */
         initMetadata : function (providerId, dataType, mergeWithUploadedMD) {
             return self.request({
                 method: 'POST',
@@ -1335,6 +1347,9 @@ function Examind($http, url) {
                 data: {}
             });
         },
+        /**
+         * This method has been removed from the server and should be removed (with all its use) from the front code.
+         */
         uploadData : function (formData) {
             return self.request({
                 headers: {'Content-Type': undefined},
@@ -1345,6 +1360,9 @@ function Examind($http, url) {
                 cache: false
             });
         },
+        /**
+         * This method has been removed from the server and should be removed (with all its use) from the front code.
+         */
         uploadMetadata : function (formData) {
             return self.request({
                 headers: {'Content-Type': undefined},
@@ -1355,6 +1373,9 @@ function Examind($http, url) {
                 cache: false
             });
         },
+        /**
+         * This method has been removed from the server and should be removed (with all its use) from the front code.
+         */
         proceedToImport : function (dataPath, metadataFilePath, dataType, dataName, extension, fsServer) {
             return self.request({
                 method: 'POST',
@@ -1617,6 +1638,9 @@ function Examind($http, url) {
                 url: 'datas/' + dataId + '/metadata'
             });
         },
+        /**
+         * This method has been removed from the server and should be removed (with all its use) from the front code.
+         */
         testExtension : function (extension) {
             return self.request({
                 method: 'GET',
@@ -1669,6 +1693,9 @@ function Examind($http, url) {
                 data: dataIds
             });
         },
+        /**
+         * This method has been removed from the server and should be removed (with all its use) from the front code.
+         */
         saveUploadedMetadata : function(params) {
             return self.request({
                 method: 'POST',

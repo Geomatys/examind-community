@@ -68,23 +68,6 @@ public interface IDataBusiness {
 
     /**
      * Proceed to create a new data for given parameters.
-     *
-     * TODO seems only used by Junit tests, should not be public in DataBusiness API.
-     *
-     * @param name data name to create.
-     * @param providerId provider identifier.
-     * @param type data type.
-     * @param sensorable flag that indicates if data is sensorable.
-     * @param included flag that indicates if data is included.
-     * @param subType data subType.
-     * @param metadataXml metadata of data.
-     * @deprecated seems only used by Junit tests use {@link #create(javax.xml.namespace.QName, String, String, boolean, boolean, Boolean, String, String)}
-     * instead.
-     */
-    Integer create(QName name, Integer providerId, String type, boolean sensorable, boolean included, String subType, String metadataXml);
-
-    /**
-     * Proceed to create a new data for given parameters.
      * @param name data name to create.
      * @param providerId provider identifier.
      * @param type data type.
@@ -92,24 +75,12 @@ public interface IDataBusiness {
      * @param included flag that indicates if data is included.
      * @param rendered flag that indicates if data is rendered (can be null).
      * @param subType data subType.
-     * @param metadataXml metadata of data.
-     */
-    Integer create(QName name, Integer providerId, String type, boolean sensorable, boolean included, Boolean rendered, String subType, String metadataXml);
-
-    /**
-     * Proceed to create a new data for given parameters.
-     * @param name data name to create.
-     * @param providerId provider identifier.
-     * @param type data type.
-     * @param sensorable flag that indicates if data is sensorable.
-     * @param included flag that indicates if data is included.
-     * @param rendered flag that indicates if data is rendered (can be null).
-     * @param subType data subType.
-     * @param metadataXml metadata of data.
      * @param hidden flag that indicates if data is hidden.
      * @param owner the owner id, or {@code null} if you want to use the current logged user.
+     *
+     * @return Return the data identifier assigned.
      */
-    Integer create(QName name, Integer providerId, String type, boolean sensorable, boolean included, Boolean rendered, String subType, String metadataXml, boolean hidden, Integer owner);
+    Integer create(QName name, Integer providerId, String type, boolean sensorable, boolean included, Boolean rendered, String subType, boolean hidden, Integer owner);
 
     /**
      * Proceed to remove data for given provider.
@@ -258,16 +229,6 @@ public interface IDataBusiness {
      *
      */
     MetadataLightBrief updateMetadata(int dataId, Object metadata, boolean hidden) throws ConstellationException;
-
-    /**
-     * Give subfolder list from a server file path
-     *
-     * @param path server file path
-     * @param filtered {@code True} if we want to keep only known files.
-     * @param onlyXML flag to list only xml files used list metadata xml.
-     * @return the file list
-     */
-    List<FileBean> getFilesFromPath(final String path, final boolean filtered, final boolean onlyXML) throws ConstellationException;
 
     /**
      * Returns list of all {@link DataProcessReference}.
