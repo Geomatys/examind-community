@@ -28,14 +28,11 @@ import org.opengis.metadata.Metadata;
 import org.opengis.metadata.content.CoverageDescription;
 
 import org.apache.sis.metadata.iso.DefaultMetadata;
-import org.apache.sis.storage.GridCoverageResource;
-import org.apache.sis.storage.Resource;
 import org.apache.sis.util.collection.BackingStoreException;
 import org.apache.sis.util.logging.Logging;
 
 import org.geotoolkit.storage.coverage.CoverageDescriptionAdapter;
 import org.geotoolkit.storage.coverage.ImageStatistics;
-import org.geotoolkit.storage.multires.MultiResolutionResource;
 
 import org.constellation.api.DataType;
 import org.constellation.business.IDataCoverageJob;
@@ -58,6 +55,8 @@ import static org.constellation.api.StatisticState.STATE_PENDING;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.exception.ConstellationException;
+import org.constellation.provider.CoverageData;
+import org.constellation.provider.PyramidData;
 import org.springframework.scheduling.annotation.Scheduled;
 
 /**
@@ -170,16 +169,15 @@ public class DataCoverageJob implements IDataCoverageJob {
 
                 if (providerRepository.existsById(data.getProviderId())) {
                     final org.constellation.provider.Data dataP  = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
-                    final Resource res = dataP.getOrigin();
 
-                    if (res instanceof MultiResolutionResource) {
+                    if (dataP instanceof PyramidData) {
                         //pyramid, too large to compute statistics
                         data.setStatsState(STATE_PARTIAL);
                         updateData(data);
                         return;
                     }
 
-                    if (res instanceof GridCoverageResource) {
+                    if (dataP instanceof CoverageData) {
                         final Object result = dataP.computeStatistic(dataId, dataRepository);
                         if (result instanceof ImageStatistics) {
                             updateMetadata((ImageStatistics) result, data);

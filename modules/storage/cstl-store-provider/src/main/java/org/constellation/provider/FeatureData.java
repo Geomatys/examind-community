@@ -24,6 +24,7 @@ import org.opengis.feature.FeatureType;
 import org.apache.sis.storage.FeatureSet;
 
 import org.constellation.exception.ConstellationStoreException;
+import org.constellation.provider.Data;
 
 /**
  * Layer details for Feature sources.

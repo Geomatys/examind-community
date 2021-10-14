@@ -33,6 +33,8 @@ import org.constellation.provider.DefaultCoverageData;
 import org.constellation.provider.DefaultFeatureData;
 import org.constellation.provider.DefaultOtherData;
 import org.constellation.provider.mapcontext.DefaultMapContextData;
+import org.constellation.provider.DefaultPyramidData;
+import org.geotoolkit.storage.multires.MultiResolutionResource;
 import org.opengis.util.GenericName;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
@@ -51,7 +53,9 @@ public class DefaultExaDataCreator implements ExaDataCreator {
     public Data create(final String dataName, Date version, final DataStore store, final Resource rs) throws DataStoreException {
         if (rs == null) throw new DataStoreException("Unable to find a resource named:" + dataName);
         final GenericName targetName = rs.getIdentifier().orElseThrow(() -> new DataStoreException("Only named datasets should be available from provider"));
-        if (rs instanceof GridCoverageResource) {
+        if (rs instanceof MultiResolutionResource && rs instanceof GridCoverageResource) {
+            return new DefaultPyramidData(targetName, (GridCoverageResource) rs, store);
+        } else if (rs instanceof GridCoverageResource) {
             return new DefaultCoverageData(targetName, (GridCoverageResource) rs, store);
         } else if (rs instanceof FeatureSet){
             return new DefaultFeatureData(targetName, store, (FeatureSet) rs, null, null, null, null, version);

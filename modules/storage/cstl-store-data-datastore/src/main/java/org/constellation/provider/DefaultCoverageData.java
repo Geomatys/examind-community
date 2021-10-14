@@ -70,7 +70,6 @@ import org.geotoolkit.processing.coverage.statistics.Statistics;
 import org.geotoolkit.processing.coverage.statistics.StatisticsDescriptor;
 import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.storage.coverage.ImageStatistics;
-import org.geotoolkit.storage.multires.MultiResolutionResource;
 import org.geotoolkit.style.DefaultStyleFactory;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.style.StyleConstants;
@@ -392,25 +391,7 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
     }
 
     @Override
-    public String getSubType() throws ConstellationStoreException {
-        if (getOrigin() instanceof MultiResolutionResource) {
-            return "pyramid";
-        }
-        return null;
-    }
-
-    @Override
     public Boolean isRendered() {
-        if (getOrigin() instanceof MultiResolutionResource) {
-//            try {
-//                ViewType packMode = ((MultiResolutionResource) origin).getPackMode();
-//                if (ViewType.RENDERED.equals(packMode)) {
-                    return Boolean.TRUE;
-//                }
-//            } catch (DataStoreException e) {
-//                LOGGER.log(Level.WARNING, e.getLocalizedMessage(), e);
-//            }
-        }
         return Boolean.FALSE;
     }
 

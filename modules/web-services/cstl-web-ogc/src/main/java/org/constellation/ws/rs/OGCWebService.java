@@ -48,6 +48,7 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.LAYER_NOT_DEFINED;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.STYLE_NOT_DEFINED;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.TILE_OUT_OF_RANGE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.VERSION_NEGOTIATION_FAILED;
 import org.geotoolkit.util.StringUtilities;
 import org.opengis.util.CodeList;
@@ -274,6 +275,7 @@ public abstract class OGCWebService<W extends Worker> extends AbstractWebService
             !ex.getExceptionCode().equals(CURRENT_UPDATE_SEQUENCE)    && !ex.getExceptionCode().equals(org.constellation.ws.ExceptionCode.CURRENT_UPDATE_SEQUENCE) &&
             !ex.getExceptionCode().equals(INVALID_VALUE)              && !ex.getExceptionCode().equals(org.constellation.ws.ExceptionCode.AXIS_LABEL_INVALID) &&
             !ex.getExceptionCode().equals(INVALID_DIMENSION_VALUE)    && !ex.getExceptionCode().equals(org.constellation.ws.ExceptionCode.INVALID_DIMENSION_VALUE) &&
+            !ex.getExceptionCode().equals(TILE_OUT_OF_RANGE)          &&
             !ex.getExceptionCode().equals(org.constellation.ws.ExceptionCode.INVALID_SRS) &&
             !ex.getExceptionCode().equals(org.constellation.ws.ExceptionCode.INVALID_SUBSETTING)) {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);

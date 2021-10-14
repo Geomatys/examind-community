@@ -32,6 +32,7 @@ import org.apache.sis.storage.GridCoverageResource;
 import org.geotoolkit.image.io.metadata.SpatialMetadata;
 
 import org.constellation.exception.ConstellationStoreException;
+import org.constellation.provider.Data;
 
 /**
  * Coverage extension of a {@link Data}, which add some methods specific

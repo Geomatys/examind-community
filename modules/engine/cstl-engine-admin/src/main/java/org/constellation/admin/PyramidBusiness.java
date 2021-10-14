@@ -79,6 +79,7 @@ import org.geotoolkit.map.MapBuilder;
 import org.apache.sis.portrayal.MapLayers;
 import org.apache.sis.portrayal.MapItem;
 import org.constellation.api.ProviderType;
+import org.constellation.provider.PyramidData;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
 import org.geotoolkit.process.Process;
@@ -268,7 +269,6 @@ public class PyramidBusiness implements IPyramidBusiness {
             final String providerId = UUID.randomUUID().toString();
             context.setIdentifier("Styled pyramid " + crs + " for " + providerId + ": " + pyramidDataName);
 
-            MultiResolutionResource outRef;
             Integer pyDataId;
             final String prefix      = tilingMode.equals(RENDERED) ? RENDERED_PREFIX : CONFORM_PREFIX;
             String pyramidIdentifier = prefix + providerId;
@@ -279,9 +279,7 @@ public class PyramidBusiness implements IPyramidBusiness {
             final Integer pyramidProvider  = createPyramidProvider(pyramidIdentifier, pGname, true, tilingMode, tileFormat, globalEnv, 256, scales);
             final Data pyData              = DataProviders.getProviderData(pyramidProvider, null, pyramidDataName);
 
-            if (pyData != null && pyData.getOrigin() instanceof MultiResolutionResource) {
-                outRef = (MultiResolutionResource) pyData.getOrigin();
-            } else {
+            if (!(pyData instanceof PyramidData)) {
                 throw new ConstellationException("No pyramid data created (in provider).");
             }
 
@@ -307,7 +305,7 @@ public class PyramidBusiness implements IPyramidBusiness {
                 throw new ConstellationException("No pyramid data has been created.");
             }
 
-            TilingContext t = buildTilingProcess(userId, outRef, context, tilingMode);
+            TilingContext t = buildTilingProcess(userId, (PyramidData) pyData, context, tilingMode);
             t.contextName = context.getIdentifier();
             t.pyDataId = pyDataId;
             t.pyramidIdentifier = pyramidIdentifier;
@@ -374,7 +372,6 @@ public class PyramidBusiness implements IPyramidBusiness {
         context.setIdentifier("Styled pyramid " + crs + " for " + pyramidIdentifier + ":" + pyramidDataName);
 
         //create the output folder for pyramid
-        MultiResolutionResource outRef;
         Integer pyDataId;
 
         //create the output provider
@@ -383,9 +380,7 @@ public class PyramidBusiness implements IPyramidBusiness {
         final Integer pyramidProvider  = createPyramidProvider(pyramidIdentifier, pGname, true, tilingMode, tileFormat, globalEnv, tileSize, scales);
         final Data pyData              = DataProviders.getProviderData(pyramidProvider, null, pyramidDataName);
 
-        if (pyData != null && pyData.getOrigin() instanceof MultiResolutionResource) {
-            outRef = (MultiResolutionResource) pyData.getOrigin();
-        } else {
+        if (!(pyData instanceof PyramidData)) {
             throw new ConstellationException("No pyramid data created (in provider).");
         }
 
@@ -407,7 +402,7 @@ public class PyramidBusiness implements IPyramidBusiness {
             throw new ConstellationException("No pyramid data has been created.");
         }
 
-        final TilingContext t = buildTilingProcess(userId, outRef, context, tilingMode);
+        final TilingContext t = buildTilingProcess(userId, (PyramidData) pyData, context, tilingMode);
         t.contextName = context.getIdentifier();
         t.pyDataId = pyDataId;
         t.pyramidIdentifier = pyramidIdentifier;
@@ -475,12 +470,12 @@ public class PyramidBusiness implements IPyramidBusiness {
         return inRef;
     }
     
-    private TilingContext buildTilingProcess(Integer userId, MultiResolutionResource outRef, MapLayers context, TilingMode mode) throws ConstellationException {
+    private TilingContext buildTilingProcess(Integer userId, PyramidData pyData, MapLayers context, TilingMode mode) throws ConstellationException {
         try {
             final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor("administration", "gen-pyramid");
             final ParameterValueGroup input = desc.getInputDescriptor().createValue();
             input.parameter("mapcontext").setValue(context);
-            input.parameter("resource").setValue(outRef);
+            input.parameter("resource").setValue(pyData.getOrigin());
             input.parameter("mode").setValue(mode.name());
             final org.geotoolkit.process.Process p = desc.createProcess(input);
 
@@ -578,7 +573,7 @@ public class PyramidBusiness implements IPyramidBusiness {
             //create the output pyramid coverage reference
             DataStore pyramidStore = outProvider.getMainStore();
             if (RENDERED.equals(mode)) {
-                MultiResolutionResource outRef = (MultiResolutionResource) ((WritableAggregate) pyramidStore).add(new DefiningCoverageResource(pyramidGname));
+                XMLCoverageResource outRef = (XMLCoverageResource) ((WritableAggregate) pyramidStore).add(new DefiningCoverageResource(pyramidGname));
                 ((XMLCoverageResource) outRef).setPackMode(RENDERED.name());
                 ((XMLCoverageResource) outRef).setPreferredFormat(tileFormat);
             } else if (CONFORM.equals(mode)) {

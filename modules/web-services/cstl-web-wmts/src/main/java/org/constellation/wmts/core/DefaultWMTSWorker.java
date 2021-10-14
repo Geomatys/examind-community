@@ -74,6 +74,7 @@ import org.geotoolkit.display2d.service.SceneDef;
 import org.geotoolkit.geometry.jts.JTSEnvelope2D;
 import org.apache.sis.portrayal.MapLayers;
 import org.geotoolkit.internal.referencing.CRSUtilities;
+import org.constellation.provider.PyramidData;
 import org.geotoolkit.ows.xml.AbstractCapabilitiesCore;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.*;
 import org.geotoolkit.ows.xml.v110.AcceptFormatsType;
@@ -283,7 +284,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                 }
                 final String name = layer.getName().tip().toString();
                 final Object origin = data.getOrigin();
-                if (!(origin instanceof MultiResolutionResource)) {
+                if (!(data instanceof PyramidData)) {
                     //WMTS only handle PyramidalModel
                     LOGGER.log(Level.WARNING, "Layer {0} has not a PyramidalModel origin. It will not be included in capabilities", name);
                     continue;
@@ -310,8 +311,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                      * values will be filled when we'll browse mosaics to build tile matrix capabilities.
                      */
                     final HashMap<Integer, Dimension> dims = new HashMap<>();
-                    final Map<Integer, CoordinateReferenceSystem> splittedCRS =
-                            ReferencingUtilities.indexedDecompose(pyramidSetEnvCRS);
+                    final Map<Integer, CoordinateReferenceSystem> splittedCRS = ReferencingUtilities.indexedDecompose(pyramidSetEnvCRS);
                     final Iterator<Map.Entry<Integer, CoordinateReferenceSystem>> iterator = splittedCRS.entrySet().iterator();
                     while (iterator.hasNext()) {
                         final Map.Entry<Integer, CoordinateReferenceSystem> entry = iterator.next();
@@ -735,8 +735,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                         INVALID_PARAMETER_VALUE, "layerName");
             }
 
-            final Object origin = data.getOrigin();
-            if (!(origin instanceof MultiResolutionResource)) {
+            if (!(data instanceof PyramidData)) {
                 //WMTS only handle PyramidalCoverageReference
                 throw new CstlServiceException("Operation request contains an invalid parameter value, "
                         + "invalid layer : " + layerName + " , layer is not a pyramid model " + layerName,
@@ -744,7 +743,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
             }
 
             org.geotoolkit.storage.multires.TileMatrixSet pyramid = null;
-            for (org.geotoolkit.storage.multires.TileMatrixSet pr : TileMatrices.getTileMatrixSets((MultiResolutionResource) origin)) {
+            for (org.geotoolkit.storage.multires.TileMatrixSet pr : TileMatrices.getTileMatrixSets((MultiResolutionResource) data.getOrigin())) {
                 if (validPyramidNames.contains(pr.getIdentifier())) {
                     pyramid = pr;
                     break;

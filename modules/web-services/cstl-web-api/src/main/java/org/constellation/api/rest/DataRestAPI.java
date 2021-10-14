@@ -38,12 +38,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.metadata.iso.DefaultMetadata;
-import org.apache.sis.metadata.iso.citation.Citations;
 import org.apache.sis.referencing.CommonCRS;
-import org.apache.sis.referencing.IdentifiedObjects;
 import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.storage.GridCoverageResource;
-import org.apache.sis.storage.Resource;
 import org.constellation.api.TilingMode;
 import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
 import org.constellation.business.IConfigurationBusiness;
@@ -71,13 +67,10 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.metadata.utils.Utils;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviders;
+import org.constellation.provider.PyramidData;
 import org.constellation.util.MetadataMerger;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.nio.ZipUtilities;
-import org.geotoolkit.storage.multires.MultiResolutionModel;
-import org.geotoolkit.storage.multires.MultiResolutionResource;
-import org.geotoolkit.storage.multires.TileMatrixSet;
-import org.opengis.metadata.Identifier;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.crs.ImageCRS;
 import org.opengis.util.GenericName;
@@ -459,29 +452,12 @@ public class DataRestAPI extends AbstractRestAPI{
 
             //get data
             final Data data = DataProviders.getProviderData(brief.getProviderId(), brief.getNamespace(), brief.getName());
-            if (data == null) return new ResponseEntity(result, OK);
-            final Resource resource = data.getOrigin();
-            if (resource == null) return new ResponseEntity(result, OK);
+            if (!(data instanceof PyramidData)) return new ResponseEntity(result, OK);
 
-
-            if (resource instanceof GridCoverageResource && resource instanceof MultiResolutionResource) {
-                final MultiResolutionResource mr = (MultiResolutionResource) resource;
-                for (MultiResolutionModel mrm : mr.getModels()) {
-                    if (mrm instanceof TileMatrixSet) {
-                        final CoordinateReferenceSystem crs = ((TileMatrixSet) mrm).getCoordinateReferenceSystem();
-                        final Identifier epsgid = IdentifiedObjects.getIdentifier(crs, Citations.EPSG);
-                        final Identifier otherid = IdentifiedObjects.getIdentifier(crs, null);
-                        if (epsgid != null) {
-                            crss.add("EPSG:"+epsgid.getCode());
-                        } else {
-                            crss.add(IdentifiedObjects.toString(otherid));
-                        }
-                    }
-                }
-            }
+            crss.addAll( ((PyramidData)data).listPyramidCRSCode());
 
             return new ResponseEntity(result, OK);
-        } catch (ConstellationException | DataStoreException ex) {
+        } catch (ConstellationException ex) {
             return new ErrorMessage().message(ex.getMessage()).build();
         }
     }
