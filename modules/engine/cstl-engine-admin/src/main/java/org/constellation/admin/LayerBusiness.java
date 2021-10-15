@@ -52,6 +52,7 @@ import org.constellation.dto.NameInProvider;
 import org.constellation.dto.StyleReference;
 import org.constellation.dto.service.Service;
 import org.constellation.dto.service.config.wxs.FilterAndDimension;
+import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.dto.service.config.wxs.LayerSummary;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
@@ -105,7 +106,7 @@ public class LayerBusiness implements ILayerBusiness {
     @Override
     @Transactional
     public Integer add(int dataId, String alias, String namespace, String name,
-             int serviceId, org.constellation.dto.service.config.wxs.LayerConfig config) throws ConfigurationException {
+             int serviceId, LayerConfig config) throws ConfigurationException {
 
         final Service service = serviceBusiness.getServiceById(serviceId, null);
 
@@ -116,17 +117,7 @@ public class LayerBusiness implements ILayerBusiness {
                 namespace = null;
             }
 
-            Layer layer;
-            if (alias != null) {
-                layer = layerRepository.findByServiceIdAndAlias(serviceId, alias);
-            } else {
-                layer = layerRepository.findByServiceIdAndDataId(service.getId(), dataId);
-            }
-            boolean update = true;
-            if (layer == null) {
-                update = false;
-                layer = new Layer();
-            }
+            Layer layer = new Layer();
             layer.setName(new QName(namespace, name));
             layer.setAlias(alias);
             layer.setService(service.getId());
@@ -139,14 +130,7 @@ public class LayerBusiness implements ILayerBusiness {
             final String configXml = writeLayerConfiguration(config);
             layer.setConfig(configXml);
 
-            int layerID;
-            if (!update) {
-                layerID = layerRepository.create(layer);
-            } else {
-                layerRepository.update(layer);
-                layerID = layer.getId();
-            }
-
+            int layerID = layerRepository.create(layer);
             for (int styleID : styleRepository.getStyleIdsForData(dataId)) {
                 styleRepository.linkStyleToLayer(styleID, layerID);
             }
@@ -278,56 +262,31 @@ public class LayerBusiness implements ILayerBusiness {
      * {@inheritDoc}
      */
     @Override
-    public List<LayerSummary> getLayerRefFromStyleId(final Integer styleId) {
-        final List<LayerSummary> sumLayers = new ArrayList<>();
-        final List<Layer> layers = layerRepository.getLayersRefsByLinkedStyle(styleId);
-        for(final Layer lay : layers) {
-            final LayerSummary layerSummary = new LayerSummary();
-            layerSummary.setId(lay.getId());
-            layerSummary.setName(lay.getName());
-            layerSummary.setDataId(lay.getDataId());
-            sumLayers.add(layerSummary);
-        }
-        return sumLayers;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public List<LayerSummary> getLayerSummaryFromStyleId(final Integer styleId) throws ConstellationException{
         final List<LayerSummary> sumLayers = new ArrayList<>();
         final List<Layer> layers = layerRepository.getLayersByLinkedStyle(styleId);
-        for(final Layer lay : layers){
-            final LayerSummary layerSummary = new LayerSummary();
+        for(final Layer lay : layers) {
+            DataBrief db = null;
             if (lay.getDataId() != null) {
-                final DataBrief db = dataBusiness.getDataBrief(lay.getDataId(), false);
-                if (db != null) {
-                    layerSummary.setName(new QName(db.getNamespace(), db.getName()));
-                    layerSummary.setType(db.getType());
-                    layerSummary.setSubtype(db.getSubtype());
-                    layerSummary.setOwner(db.getOwner());
-                }
+                db = dataBusiness.getDataBrief(lay.getDataId(), false);
             }
-            layerSummary.setId(lay.getId());
-            layerSummary.setAlias(lay.getAlias());
-            layerSummary.setTitle(lay.getTitle());
-            layerSummary.setDate(lay.getDate());
-            layerSummary.setDataId(lay.getDataId());
+            String owner = userBusiness.findById(lay.getOwnerId()).map(CstlUser::getLogin).orElse(null);
+            // Styles ?
+            final LayerSummary layerSummary = new LayerSummary(lay, db, owner, null);
             sumLayers.add(layerSummary);
         }
         return sumLayers;
     }
 
     @Override
-    public List<org.constellation.dto.service.config.wxs.LayerConfig> getLayers(final Integer serviceId, final String login) throws ConfigurationException {
-        final List<org.constellation.dto.service.config.wxs.LayerConfig> response = new ArrayList<>();
+    public List<LayerConfig> getLayers(final Integer serviceId, final String login) throws ConfigurationException {
+        final List<LayerConfig> response = new ArrayList<>();
         if (serviceId != null) {
             final LayerSecurityFilter securityFilter = getSecurityFilter(serviceId);
             final List<Layer> layers   = layerRepository.findByServiceId(serviceId);
             for (Layer layer : layers) {
                 if (securityFilter.allowed(login, layer.getId())) {
-                    org.constellation.dto.service.config.wxs.LayerConfig confLayer = toLayerConfig(layer);
+                    LayerConfig confLayer = toLayerConfig(layer);
                     if (confLayer != null) {
                         response.add(confLayer);
                     }
@@ -395,7 +354,7 @@ public class LayerBusiness implements ILayerBusiness {
      * @throws TargetNotFoundException if the layer does not exist.
      */
     @Override
-    public org.constellation.dto.service.config.wxs.LayerConfig getLayer(final Integer LayerId, final String login) throws ConfigurationException {
+    public LayerConfig getLayer(final Integer LayerId, final String login) throws ConfigurationException {
         Layer layer = layerRepository.findById(LayerId);
         if (layer != null) {
             final LayerSecurityFilter securityFilter = getSecurityFilter(layer.getService());
@@ -488,7 +447,7 @@ public class LayerBusiness implements ILayerBusiness {
 
         Layer layer = layerRepository.findById(layerId);
         if (layer != null) {
-            org.constellation.dto.service.config.wxs.LayerConfig layerConfig = readLayerConfiguration(layer.getConfig());
+            LayerConfig layerConfig = readLayerConfiguration(layer.getConfig());
             if (layerConfig != null) {
                 return new FilterAndDimension(layerConfig.getFilter(), layerConfig.getDimensions());
             }
@@ -507,14 +466,14 @@ public class LayerBusiness implements ILayerBusiness {
     }
 
     @Override
-    public Map.Entry<Integer, List<org.constellation.dto.service.config.wxs.LayerConfig>> filterAndGet(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage) throws ConfigurationException {
+    public Map.Entry<Integer, List<LayerConfig>> filterAndGet(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage) throws ConfigurationException {
         final Map.Entry<Integer, List<Layer>> entry = layerRepository.filterAndGet(filterMap, sortEntry, pageNumber, rowsPerPage);
         return new AbstractMap.SimpleImmutableEntry<>(entry.getKey(), toLayerConfig(entry.getValue()));
     }
 
 
-    private List<org.constellation.dto.service.config.wxs.LayerConfig> toLayerConfig(List<Layer> layers) throws ConfigurationException {
-        List<org.constellation.dto.service.config.wxs.LayerConfig> results = new ArrayList<>();
+    private List<LayerConfig> toLayerConfig(List<Layer> layers) throws ConfigurationException {
+        List<LayerConfig> results = new ArrayList<>();
         for (Layer layer : layers) {
             results.add(toLayerConfig(layer));
         }
@@ -527,10 +486,10 @@ public class LayerBusiness implements ILayerBusiness {
      * @return
      * @throws ConfigurationException
      */
-    private org.constellation.dto.service.config.wxs.LayerConfig toLayerConfig(Layer layer) throws ConfigurationException {
-        org.constellation.dto.service.config.wxs.LayerConfig layerConfig = readLayerConfiguration(layer.getConfig());
+    private LayerConfig toLayerConfig(Layer layer) throws ConfigurationException {
+        LayerConfig layerConfig = readLayerConfiguration(layer.getConfig());
         if (layerConfig == null) {
-            layerConfig = new org.constellation.dto.service.config.wxs.LayerConfig(layer.getId(), layer.getName());
+            layerConfig = new LayerConfig(layer.getId(), layer.getName());
             layerConfig.setTitle(layer.getTitle());
         }
         layerConfig.setId(layer.getId());
@@ -568,13 +527,13 @@ public class LayerBusiness implements ILayerBusiness {
 
     }
 
-    private org.constellation.dto.service.config.wxs.LayerConfig readLayerConfiguration(final String xml) throws ConfigurationException {
+    private LayerConfig readLayerConfiguration(final String xml) throws ConfigurationException {
         try {
             if (xml != null) {
                 final Unmarshaller u = GenericDatabaseMarshallerPool.getInstance().acquireUnmarshaller();
                 final Object config = u.unmarshal(new StringReader(xml));
                 GenericDatabaseMarshallerPool.getInstance().recycle(u);
-                return (org.constellation.dto.service.config.wxs.LayerConfig) config;
+                return (LayerConfig) config;
             }
             return null;
         } catch (JAXBException ex) {
@@ -582,7 +541,7 @@ public class LayerBusiness implements ILayerBusiness {
         }
     }
 
-    private String writeLayerConfiguration(final org.constellation.dto.service.config.wxs.LayerConfig obj) {
+    private String writeLayerConfiguration(final LayerConfig obj) {
         String config = null;
         if (obj != null) {
             try {

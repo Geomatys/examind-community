@@ -236,13 +236,19 @@ function DataModalController($scope, Dashboard, $modalInstance, service, exclude
                 Examind.datas.pyramidData(crs, $scope.values.userLayerName, dataIds).then(
                     function(response){//success
                         response = response.data;
-                        if(response.dataId && response.providerId) {
-                            Examind.map.addLayer($scope.service.type, $scope.service.identifier,
-                                {layerAlias: response.dataId,
-                                    layerId: response.dataId,
-                                    serviceType: $scope.service.type,
-                                    serviceId: $scope.service.identifier,
-                                    providerId: response.providerId}).then(
+                        if (response.pyramidDataId) {
+                            var pyramidLayer = {
+                                name: $scope.values.userLayerName,
+                                namespace: null,
+                                alias: null,
+                                service: $scope.service.id,
+                                dataId: response.pyramidDataId,
+                                date: null,
+                                config: null,
+                                ownerId: null,
+                                title: null
+                            };
+                            Examind.map.addLayerNew(pyramidLayer).then(
                                 function () {//success
                                     Growl('success','Success','Layer successfully added to service '+$scope.service.name);
                                     $scope.close();
@@ -260,17 +266,18 @@ function DataModalController($scope, Dashboard, $modalInstance, service, exclude
             } else {
                 //using angular.forEach to avoid jsHint warning when declaring function in loop
                 angular.forEach($scope.values.listSelect, function(value, key){
-                    var providerId = value.provider;
-                    if($scope.service.type.toLowerCase() === 'wms'){
-                        providerId = value.pyramidConformProviderId?value.pyramidConformProviderId:value.provider;
-                    }
-                    Examind.map.addLayer($scope.service.type, $scope.service.identifier,
-                        {layerAlias: value.name,
-                            layerId: value.name,
-                            serviceType: $scope.service.type,
-                            serviceId: $scope.service.identifier,
-                            providerId: providerId,
-                            layerNamespace: value.namespace}).then(
+                    var layer = {
+                        name: value.name,
+                        namespace: value.namespace,
+                        alias: null,
+                        service: $scope.service.id,
+                        dataId: value.id,
+                        date: null,
+                        config: null,
+                        ownerId: null,
+                        title: null
+                    };
+                    Examind.map.addLayerNew(layer).then(
                         function(response) {//on success
                             Growl('success', 'Success', response.data.message);
                             $scope.close();

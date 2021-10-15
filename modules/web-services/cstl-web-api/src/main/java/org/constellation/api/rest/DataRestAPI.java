@@ -630,19 +630,20 @@ public class DataRestAPI extends AbstractRestAPI{
      * Creates btw a mapcontext that contains internal data.
      * N.B : It creates a styled pyramid, which can be used for display purposes, but not for analysis.
      *
-     * @param crs
-     * @param layerName
-     * @param dataIds
-     * @param mode
+     * @param crs The selected CRS for the generated pyramid.
+     * @param layerName The given pyramid name.
+     * @param dataIds The list of data identifier to integrate in the generated pyramid.
+     * @param mode Tiling mode, default to RENDERED.
      * @param req
-     * @return
+     *
+     * @return Informations about tiling process.
      */
     @RequestMapping(value="/datas/pyramid",method=POST,consumes=APPLICATION_JSON_VALUE,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity pyramidDatas(
             @RequestParam("crs") final String crs, 
             @RequestParam("layerName") final String layerName,
             @RequestBody final List<Integer> dataIds,
-            @RequestParam(name = "mode", defaultValue = "RENDERED") final String mode, 
+            @RequestParam(name = "mode", defaultValue = "RENDERED") final String mode,
             HttpServletRequest req) {
         try {
 

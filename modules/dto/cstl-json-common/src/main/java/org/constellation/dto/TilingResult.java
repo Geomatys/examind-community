@@ -27,10 +27,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 public class TilingResult {
 
-    // those two are the historical attribute use by the front, the should be renamed or removed
-    private String providerId;
-    private String dataId;
-
     // new attributes
     private Integer taskId;
     private Integer pyramidDataId;
@@ -38,27 +34,9 @@ public class TilingResult {
     public TilingResult() {
     }
 
-    public TilingResult(String providerId, String dataId, Integer taskId, Integer pyramidDataId) {
-        this.providerId = providerId;
-        this.dataId = dataId;
+    public TilingResult(Integer taskId, Integer pyramidDataId) {
         this.taskId = taskId;
         this.pyramidDataId = pyramidDataId;
-    }
-
-    public String getProviderId() {
-        return providerId;
-    }
-
-    public void setProviderId(String providerId) {
-        this.providerId = providerId;
-    }
-
-    public String getDataId() {
-        return dataId;
-    }
-
-    public void setDataId(String dataId) {
-        this.dataId = dataId;
     }
 
     public Integer getTaskId() {

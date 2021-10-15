@@ -75,18 +75,6 @@ public interface LayerRepository extends AbstractRepository {
      */
     List<Layer> getLayersByLinkedStyle(final int styleId);
 
-    /**
-     * Retrieve all layer reference linked to a given style id.
-     * Output Layer object only contain fields :
-     * <ul>
-     *     <li>id</li>
-     *     <li>name</li>
-     * </ul>
-     * @param styleId style id candidate
-     * @return list of lighten {@link Layer}
-     */
-    List<Layer> getLayersRefsByLinkedStyle(final int styleId);
-
     Map.Entry<Integer, List<Layer>> filterAndGet(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage);
 
 }

@@ -910,6 +910,11 @@ angular.module('cstl-webservice-edit', [
                             } else {
                                 $scope.crsList = response.data.crs;
                             }
+                            // remove duplicate
+                            $scope.crsList = $scope.crsList.filter(function (elem, pos, arr) {
+                                return arr.indexOf(elem) === pos;
+                            });
+
                         }, function () {//error
                             Growl('warning', 'Warning', 'An error occurred!');
                         }
@@ -943,6 +948,10 @@ angular.module('cstl-webservice-edit', [
                                         } else {
                                             $scope.crsList = response.data.crs;
                                         }
+                                        // remove duplicate
+                                        $scope.crsList = $scope.crsList.filter(function (elem, pos, arr) {
+                                            return arr.indexOf(elem) === pos;
+                                        });
                                     }, function () {//error
                                         Growl('warning', 'Warning', 'An error occurred!');
                                     }
@@ -966,25 +975,21 @@ angular.module('cstl-webservice-edit', [
 
         $scope.submitWMTSLayer = function () {
             if ($scope.pyramidFlag) {
-                var dataName = $scope.values.listSelect.map(function (value) {
-                    return value.name;
+                var dataId = $scope.values.listSelect.map(function (value) {
+                    return value.id;
                 })[0];
-                var dataNamespace = $scope.values.listSelect.map(function (value) {
-                    return value.namespace;
-                })[0];
-                var providerName = $scope.values.listSelect.map(function (value) {
-                    return value.provider;
-                })[0];
-
-                Examind.map.addLayer($scope.service.type, $scope.service.identifier,
-                    {
-                        layerAlias: $scope.values.userLayerName,
-                        layerId: loadedCRS ? loadedCRS[$scope.existingPyramidCRS.code].name : dataName,
-                        layerNamespace: loadedCRS ? loadedCRS[$scope.existingPyramidCRS.code].namespace : dataNamespace,
-                        serviceType: $scope.service.type,
-                        serviceId: $scope.service.identifier,
-                        providerId: loadedCRS ? loadedCRS[$scope.existingPyramidCRS.code].provider : providerName
-                    }).then(
+                var pyramidLayer = {
+                                name: $scope.values.userLayerName,
+                                namespace: null,
+                                alias: null,
+                                service: $scope.service.id,
+                                dataId: loadedCRS ? loadedCRS[$scope.existingPyramidCRS.code].id : dataId,
+                                date: null,
+                                config: null,
+                                ownerId: null,
+                                title: null
+                            };
+                Examind.map.addLayerNew(pyramidLayer).then(
                     function () {//success
                         Growl('success', 'Success', 'Layer successfully added to service ' + $scope.service.name);
                         $scope.close();
@@ -1011,15 +1016,19 @@ angular.module('cstl-webservice-edit', [
                     Examind.datas.pyramidData($scope.crs, $scope.values.userLayerName, dataIds).then(
                         function (response) {//success
                             response = response.data;
-                            if (response.dataId && response.providerId) {
-                                Examind.map.addLayer($scope.service.type, $scope.service.identifier,
-                                    {
-                                        layerAlias: response.dataId,
-                                        layerId: response.dataId,
-                                        serviceType: $scope.service.type,
-                                        serviceId: $scope.service.identifier,
-                                        providerId: response.providerId
-                                    }).then(
+                            if (response.pyramidDataId) {
+                                var pyramidLayer = {
+                                    name: $scope.values.userLayerName,
+                                    namespace: null,
+                                    alias: null,
+                                    service: $scope.service.id,
+                                    dataId: response.pyramidDataId,
+                                    date: null,
+                                    config: null,
+                                    ownerId: null,
+                                    title: null
+                                };
+                                Examind.map.addLayerNew(pyramidLayer).then(
                                     function () {//success
                                         Growl('success', 'Success', 'Layer successfully added to service ' + $scope.service.name);
                                         $scope.close();
@@ -1044,15 +1053,19 @@ angular.module('cstl-webservice-edit', [
                         $scope.values.userLayerName).then(
                         function (response) {//on success
                             response = response.data;
-                            if (response.dataId && response.providerId) {
-                                Examind.map.addLayer($scope.service.type, $scope.service.identifier,
-                                    {
-                                        layerAlias: response.dataId,
-                                        layerId: response.dataId,
-                                        serviceType: $scope.service.type,
-                                        serviceId: $scope.service.identifier,
-                                        providerId: response.providerId
-                                    }).then(
+                            if (response.pyramidDataId) {
+                                var pyramidLayer = {
+                                    name: $scope.values.userLayerName,
+                                    namespace: null,
+                                    alias: null,
+                                    service: $scope.service.id,
+                                    dataId: response.pyramidDataId,
+                                    date: null,
+                                    config: null,
+                                    ownerId: null,
+                                    title: null
+                                };
+                                Examind.map.addLayerNew(pyramidLayer).then(
                                     function () {//success
                                         Growl('success', 'Success', 'Layer successfully added to service ' + $scope.service.name);
                                         $scope.close();
@@ -1126,13 +1139,19 @@ angular.module('cstl-webservice-edit', [
                 Examind.datas.pyramidData(crs, $scope.values.userLayerName, dataIds).then(
                     function(response){//success
                         response = response.data;
-                        if(response.dataId && response.providerId) {
-                            Examind.map.addLayer($scope.service.type, $scope.service.identifier,
-                                {layerAlias: response.dataId,
-                                    layerId: response.dataId,
-                                    serviceType: $scope.service.type,
-                                    serviceId: $scope.service.identifier,
-                                    providerId: response.providerId}).then(
+                        if(response.pyramidDataId) {
+                            var pyramidLayer = {
+                                name: $scope.values.userLayerName,
+                                namespace: null,
+                                alias: null,
+                                service: $scope.service.id,
+                                dataId: response.pyramidDataId,
+                                date: null,
+                                config: null,
+                                ownerId: null,
+                                title: null
+                            };
+                            Examind.map.addLayerNew(pyramidLayer).then(
                                 function () {//success
                                     Growl('success','Success','Layer successfully added to service '+$scope.service.name);
                                     $scope.close();
@@ -1153,13 +1172,13 @@ angular.module('cstl-webservice-edit', [
                     var layer = {
                         name: value.name,
                         namespace: value.namespace,
-                        alias: value.name,
+                        alias: null,
                         service: $scope.service.id,
                         dataId: value.id,
-                        date: '',
-                        config: '',
+                        date: null,
+                        config: null,
                         ownerId: value.ownerId,
-                        title: ''
+                        title: null
                     };
 
                     if ($scope.values.listSelect.length === 1) {
@@ -1253,15 +1272,19 @@ angular.module('cstl-webservice-edit', [
                 $scope.values.userLayerName).then(
                 function (response) {//on success
                     response = response.data;
-                    if (response.dataId && response.providerId) {
-                        Examind.map.addLayer($scope.service.type, $scope.service.identifier,
-                            {
-                                layerAlias: response.dataId,
-                                layerId: response.dataId,
-                                serviceType: $scope.service.type,
-                                serviceId: $scope.service.identifier,
-                                providerId: response.providerId
-                            }).then(
+                    if (response.pyramidDataId) {
+                        var pyramidLayer = {
+                            name: $scope.values.userLayerName,
+                            namespace: null,
+                            alias: null,
+                            service: $scope.service.id,
+                            dataId: response.pyramidDataId,
+                            date: null,
+                            config: null,
+                            ownerId: null,
+                            title: null
+                        };
+                        Examind.map.addLayerNew(pyramidLayer).then(
                             function () {//success
                                 Growl('success', 'Success', 'Layer successfully added to service ' + $scope.service.name);
                                 $scope.close();

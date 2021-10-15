@@ -177,7 +177,10 @@ public class PyramidBusinessTest {
 
         TilingResult result = pyramidBusiness.pyramidDatas(1, "my_pyramid", dataIds, "CRS:84", TilingMode.RENDERED);
 
-        Assert.assertEquals("my_pyramid", result.getDataId());
+        Assert.assertNotNull(result.getPyramidDataId());
+        org.constellation.dto.Data d = dataBusiness.getData(result.getPyramidDataId());
+        Assert.assertNotNull(d);
+        Assert.assertEquals("my_pyramid", d.getName());
         Assert.assertNotNull(result.getTaskId());
 
         // wait for process to start
@@ -216,14 +219,14 @@ public class PyramidBusinessTest {
             Assert.assertEquals(TaskState.SUCCEED.name(), tilingTask.getState());
         }
 
-        DataProvider dp = DataProviders.getProvider(result.getProviderId());
+        DataProvider dp = DataProviders.getProvider(d.getProviderId());
         Assert.assertNotNull(dp);
 
-        Data d = dp.get(null, result.getDataId());
+        Data dd = dp.get(d.getNamespace(), d.getName());
 
-        Assert.assertNotNull(d);
-        Assert.assertTrue(d.getOrigin() instanceof MultiResolutionResource);
-        MultiResolutionResource mr = (MultiResolutionResource) d.getOrigin();
+        Assert.assertNotNull(dd);
+        Assert.assertTrue(dd.getOrigin() instanceof MultiResolutionResource);
+        MultiResolutionResource mr = (MultiResolutionResource) dd.getOrigin();
         
         Assert.assertEquals(1, mr.getModels().size());
         MultiResolutionModel model = mr.getModels().iterator().next();
@@ -262,7 +265,10 @@ public class PyramidBusinessTest {
 
         TilingResult result = pyramidBusiness.pyramidMapContext(1, "my_pyramid_context", "CRS:84", mapContext, TilingMode.RENDERED);
 
-        Assert.assertEquals("my_pyramid_context", result.getDataId());
+        Assert.assertNotNull(result.getPyramidDataId());
+        org.constellation.dto.Data d = dataBusiness.getData(result.getPyramidDataId());
+        Assert.assertNotNull(d);
+        Assert.assertEquals("my_pyramid_context", d.getName());
         Assert.assertNotNull(result.getTaskId());
 
         // wait for process to start
@@ -301,14 +307,14 @@ public class PyramidBusinessTest {
             Assert.assertEquals(TaskState.SUCCEED.name(), tilingTask.getState());
         }
 
-        DataProvider dp = DataProviders.getProvider(result.getProviderId());
+        DataProvider dp = DataProviders.getProvider(d.getProviderId());
         Assert.assertNotNull(dp);
 
-        Data d = dp.get(null, result.getDataId());
+        Data dd = dp.get(d.getNamespace(), d.getName());
 
-        Assert.assertNotNull(d);
-        Assert.assertTrue(d.getOrigin() instanceof MultiResolutionResource);
-        MultiResolutionResource mr = (MultiResolutionResource) d.getOrigin();
+        Assert.assertNotNull(dd);
+        Assert.assertTrue(dd.getOrigin() instanceof MultiResolutionResource);
+        MultiResolutionResource mr = (MultiResolutionResource) dd.getOrigin();
 
         Assert.assertEquals(1, mr.getModels().size());
         MultiResolutionModel model = mr.getModels().iterator().next();
@@ -338,6 +344,9 @@ public class PyramidBusinessTest {
 
         TilingResult result = pyramidBusiness.pyramidDatas(1, null, dataIds, null, TilingMode.CONFORM);
 
+        Assert.assertNotNull(result.getPyramidDataId());
+        org.constellation.dto.Data d = dataBusiness.getData(result.getPyramidDataId());
+        Assert.assertNotNull(d);
         Assert.assertNotNull(result.getTaskId());
 
         // wait for process to start
@@ -376,14 +385,14 @@ public class PyramidBusinessTest {
             Assert.assertEquals(TaskState.SUCCEED.name(), tilingTask.getState());
         }
 
-        DataProvider dp = DataProviders.getProvider(result.getProviderId());
+        DataProvider dp = DataProviders.getProvider(d.getProviderId());
         Assert.assertNotNull(dp);
 
-        Data d = dp.get(null, result.getDataId());
+        Data dd = dp.get(d.getNamespace(), d.getName());
 
         Assert.assertNotNull(d);
-        Assert.assertTrue(d.getOrigin() instanceof MultiResolutionResource);
-        MultiResolutionResource mr = (MultiResolutionResource) d.getOrigin();
+        Assert.assertTrue(dd.getOrigin() instanceof MultiResolutionResource);
+        MultiResolutionResource mr = (MultiResolutionResource) dd.getOrigin();
         
         Assert.assertEquals(1, mr.getModels().size());
         MultiResolutionModel model = mr.getModels().iterator().next();

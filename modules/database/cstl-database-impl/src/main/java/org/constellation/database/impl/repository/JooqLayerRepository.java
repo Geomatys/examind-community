@@ -201,12 +201,6 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, or
     }
 
     @Override
-    public List<Layer> getLayersRefsByLinkedStyle(final int styleId) {
-        return convertListToDto(dsl.select(REF_FIELDS).from(LAYER).join(STYLED_LAYER).onKey(STYLED_LAYER.LAYER).where(STYLED_LAYER.STYLE.eq(styleId))
-                .fetchInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
-    }
-
-    @Override
     public List<Layer> findAll() {
         return convertListToDto(dsl.select().from(LAYER).fetchInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
     }

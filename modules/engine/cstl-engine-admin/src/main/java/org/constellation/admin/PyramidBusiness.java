@@ -150,7 +150,7 @@ public class PyramidBusiness implements IPyramidBusiness {
         //add task in scheduler (previous transaction must be commited)
         processBusiness.runProcess("Create " + t.contextName, t.p, t.taskId, userId);
 
-        return new TilingResult(t.pyramidIdentifier, t.pyramidDataName, t.taskId, t.pyDataId);
+        return new TilingResult(t.taskId, t.pyDataId);
     }
 
     /**
@@ -332,7 +332,7 @@ public class PyramidBusiness implements IPyramidBusiness {
         //add task in scheduler (previous transaction must be commited)
         processBusiness.runProcess("Create " + t.contextName, t.p, t.taskId, userId);
 
-        return new TilingResult(t.pyramidIdentifier, t.pyramidDataName, t.taskId, t.pyDataId);
+        return new TilingResult(t.taskId, t.pyDataId);
     }
 
     @Transactional

@@ -85,23 +85,6 @@ public interface ILayerBusiness {
      */
     List<LayerSummary> getLayerSummaryFromStyleId(final Integer styleId) throws ConstellationException;
 
-    /**
-     * Returns a list of light {@link LayerSummary} for given style id.
-     * Output LayerSummary contain only :
-     * <ul>
-     *     <li>id</li>
-     *     <li>name</li>
-     *     <li>namespace</li>
-     *     <li>provider</li>
-     *     <li>type</li>
-     *     <li>subtype</li>
-     * </ul>
-     *
-     * @param styleId the given style id.
-     * @return the list of light {@link DataBrief}.
-     */
-    List<LayerSummary> getLayerRefFromStyleId(final Integer styleId);
-
     List<StyleReference> getLayerStyles(Integer layerId) throws ConstellationException;
 
     Map.Entry<Integer, List<LayerConfig>> filterAndGet(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage) throws ConstellationException;

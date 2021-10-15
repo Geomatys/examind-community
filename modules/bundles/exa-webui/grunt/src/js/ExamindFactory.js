@@ -2224,15 +2224,6 @@ function Examind($http, url) {
             });
         },
         
-        addLayer : function(type, id, addLayer) {
-            return self.request({
-                method: 'PUT',
-                url: 'MAP/' + type + '/' + id + '/layer',
-                headers: {'Accept': 'application/json'},
-                data: addLayer
-            });
-        },
-
         /**
          * Update a layer.
          *

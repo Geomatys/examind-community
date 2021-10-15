@@ -32,7 +32,6 @@ import org.constellation.business.IServiceBusiness;
 import org.constellation.business.IStyleBusiness;
 import org.constellation.dto.*;
 import org.constellation.dto.portrayal.LayerStyleUpdate;
-import org.constellation.dto.service.config.wxs.AddLayer;
 import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.dto.service.config.wxs.LayerSummary;
 import org.constellation.exception.ConfigurationException;
@@ -66,14 +65,11 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.constellation.business.IUserBusiness;
-import javax.xml.namespace.QName;
 
 import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
-import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  *
@@ -151,28 +147,6 @@ public class MapRestAPI {
     /**
      * Adds a new layer to a "map" service instance.
      *
-     * @param spec the service type
-     * @param id the service identifier
-     * @param layer the layer to be added
-     */
-    @RequestMapping(value="/MAP/{spec}/{id}/layer",method=PUT, consumes=APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity addLayer(final @PathVariable("spec") String spec, final @PathVariable("id") String id, final @RequestBody AddLayer layer) {
-        try {
-            Integer sid = serviceBusiness.getServiceIdByIdentifierAndType(spec, id);
-            if (sid == null) return new ResponseEntity(String.format("Target service %s/%s does not exist", spec, id), NOT_FOUND);
-            DataBrief db = dataBusiness.getDataBrief(new QName(layer.getLayerNamespace(), layer.getLayerId()), layer.getProviderId(), false);
-            if (db == null) return new ResponseEntity("Target data not found",NOT_FOUND);
-            layerBusiness.add(db.getId(), layer.getLayerAlias(), layer.getLayerNamespace(), layer.getLayerId(), sid, null);
-            return new ResponseEntity(AcknowlegementType.success(String.format("Layer \"%s\" sucessfully added to %s service %s.", layer.getLayerId(), spec, id)), OK);
-        } catch(Exception ex){
-            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
-            return new ErrorMessage(ex).build();
-        }
-    }
-
-    /**
-     * Adds a new layer to a "map" service instance.
-     *
      * @param layer the layer to be added
      */
     @RequestMapping(value="/MAP/layer/add",method=PUT, consumes=APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
@@ -199,36 +173,6 @@ public class MapRestAPI {
         try {
             layerBusiness.update(layerId, layer);
             return new ResponseEntity("Layer \"" + layerId + "\" title successfully updated.", OK);
-        } catch(Exception ex){
-            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
-            return new ErrorMessage(ex).build();
-        }
-    }
-
-    /**
-     * Remove a layer from a service.
-     *
-     * @param spec service type.
-     * @param serviceId the service identifier
-     * @param layerName the layer to remove
-     */
-    @Deprecated
-    @RequestMapping(value="/MAP/{spec}/{id}/delete/{layerName}",method=POST, consumes=APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity deleteLayer(final @PathVariable("spec") String spec, final @PathVariable("id") String serviceId, final @PathVariable("layerName") String layerName, final @RequestBody SimpleValue layernmsp) {
-        try {
-            String namespace = null;
-            if (layernmsp != null && !layernmsp.getValue().isEmpty()) {
-                namespace = layernmsp.getValue();
-            }
-            final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType(spec, serviceId);
-            if (sid != null) {
-                final NameInProvider nip = layerBusiness.getFullLayerName(sid,
-                                                                          layerName,
-                                                                          namespace,
-                                                                          securityManager.getCurrentUserLogin());
-                layerBusiness.remove(nip.layerId);
-            }
-            return new ResponseEntity(OK);
         } catch(Exception ex){
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
