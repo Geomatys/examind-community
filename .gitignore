@@ -1,14 +1,14 @@
 target/
 *.log
-//Intellij
+# Intellij
 *.iml
 .idea/
-//eclipse
+# eclipse
 .classpath
 .project
 .settings/
 nb-configuration.xml
-modules/cstl-sdi/overlays
+overlays/
 node_modules/
 node/
 docker/data/home/.constellation
