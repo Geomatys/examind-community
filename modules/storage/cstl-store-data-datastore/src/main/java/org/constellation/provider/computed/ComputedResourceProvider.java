@@ -24,14 +24,17 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
+import java.util.logging.Level;
+import org.apache.sis.parameter.Parameters;
+import org.opengis.parameter.ParameterNotFoundException;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.GenericName;
 
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.DataStore;
-import org.apache.sis.util.iso.Names;
 import org.constellation.admin.SpringHelper;
 import org.constellation.exception.ConfigurationException;
 
@@ -45,6 +48,8 @@ import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.DataProviders;
 import static org.constellation.provider.computed.ComputedResourceProviderDescriptor.DATA_IDS;
 import static org.constellation.provider.computed.ComputedResourceProviderDescriptor.DATA_NAME;
+import static org.constellation.provider.computed.ComputedResourceProviderDescriptor.DATA_NAME_ID;
+
 import org.constellation.repository.DataRepository;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValue;
@@ -54,19 +59,16 @@ import org.opengis.parameter.ParameterValue;
  */
 public abstract class ComputedResourceProvider extends AbstractDataProvider {
 
-    protected final GenericName dataName;
     private final List<Integer> dataIds;
 
     protected Data cachedData = null;
 
     public ComputedResourceProvider(String providerId, DataProviderFactory service, ParameterValueGroup param) {
         super(providerId,service,param);
-        String name = (String) param.parameter(DATA_NAME.getName().getCode()).getValue();
-        dataName = Names.createGenericName(null, null, name);
         dataIds = new ArrayList<>();
         for (GeneralParameterValue value : param.values()) {
             if (value.getDescriptor().equals(DATA_IDS)) {
-                dataIds.add(((ParameterValue)value).intValue());
+                dataIds.add(((ParameterValue) value).intValue());
             }
         }
     }
@@ -156,6 +158,30 @@ public abstract class ComputedResourceProvider extends AbstractDataProvider {
 
         DefaultMetadata metadata = new DefaultMetadata();
         return metadata;
+    }
+
+    /**
+     * Utility method that search for a {@value org.constellation.provider.computed.ComputedResourceProviderDescriptor#DATA_NAME_ID}
+     * parameter in {@link #getSource() source parameters}.
+     * Note: This is a utility method, there's no guarantee over returned value. Computed resource implementations are
+     * free to use it or not.
+     *
+     * @return If parameter is found, and paired value is not null, it is returned.
+     * @see ComputedResourceProviderDescriptor#DATA_NAME
+     */
+    protected Optional<String> getDataName() {
+        final ParameterValueGroup source = getSource();
+        if (source == null) return Optional.empty();
+        try {
+            String name = Parameters.castOrWrap(source).getValue(DATA_NAME);
+            if (name != null) return Optional.of(name);
+        } catch (ParameterNotFoundException e) {
+            // Ok. Current implementation does not use data name input.
+            LOGGER.log(Level.FINE, e, () -> String.format(
+                    "Computed resource provider %s does not use supertype parameter %s",
+                    source.getDescriptor().getName(), DATA_NAME_ID));
+        }
+        return Optional.empty();
     }
 
     protected abstract Data getComputedData();

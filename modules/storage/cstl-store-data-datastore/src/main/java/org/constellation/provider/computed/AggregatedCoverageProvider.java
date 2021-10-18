@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.logging.Level;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.util.iso.Names;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.provider.Data;
@@ -84,7 +85,8 @@ public class AggregatedCoverageProvider extends ComputedResourceProvider {
                 }
                 Mode modee = Mode.valueOf(mode);
                 AggregatedCoverageResource res = new AggregatedCoverageResource(bands, modee, resultCrs);
-                cachedData = new DefaultCoverageData(dataName, res, null);
+                final String aggregationName = getDataName().orElse("Aggregation");
+                cachedData = new DefaultCoverageData(Names.createLocalName(null, ":", aggregationName), res, null);
             } catch (ConstellationException | DataStoreException | TransformException | FactoryException ex){
                 LOGGER.log(Level.WARNING, id, ex);
             }

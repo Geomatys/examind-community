@@ -36,8 +36,9 @@ public abstract class ComputedResourceProviderDescriptor {
     public static final ParameterDescriptor<Integer> DATA_IDS =
             new ExtendedParameterDescriptor<>("data_ids", "data identifiers", 2, Integer.MAX_VALUE, Integer.class, null, null, null);
 
+    static final String DATA_NAME_ID = "DataName";
     public static final ParameterDescriptor<String> DATA_NAME =
-             BUILDER.addName("DataName").setRemarks("Data Name").setRequired(false).create(String.class,null);
+             BUILDER.addName(DATA_NAME_ID).setRemarks("Data Name").setRequired(false).create(String.class,null);
 
 
     public abstract ParameterDescriptorGroup getOpenParameters();
