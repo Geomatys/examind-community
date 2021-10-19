@@ -883,8 +883,13 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             final ResultSet rs               = pstmt.executeQuery()) {
             final List<String> results       = new ArrayList<>();
             while (rs.next()) {
-                final String procedure        = rs.getString("procedure");
-                final String procedureID      = procedure.substring(sensorIdBase.length());
+                final String procedure       = rs.getString("procedure");
+                final String procedureID;
+                if (procedure.startsWith(sensorIdBase)) {
+                    procedureID      = procedure.substring(sensorIdBase.length());
+                } else {
+                    procedureID      = procedure;
+                }
                 if (template) {
                     if (MEASUREMENT_QNAME.equals(resultModel)) {
                         final String index = rs.getString("order");

@@ -1,0 +1,12 @@
+{
+  "name" : "Sensor test 1",
+  "description" : "",
+  "properties" : {
+    "type" : "timeseries"
+  },
+  "@iot.id" : "urn:ogc:object:sensor:GEOM:test-1",
+  "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Things(urn:ogc:object:sensor:GEOM:test-1)",
+  "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Things(urn:ogc:object:sensor:GEOM:test-1)/HistoricalLocations",
+  "Datastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Things(urn:ogc:object:sensor:GEOM:test-1)/Datastreams",
+  "MultiDatastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Things(urn:ogc:object:sensor:GEOM:test-1)/MultiDatastreams"
+}
