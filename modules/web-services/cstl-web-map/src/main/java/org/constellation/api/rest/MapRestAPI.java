@@ -31,6 +31,7 @@ import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.business.IStyleBusiness;
 import org.constellation.dto.*;
+import org.constellation.dto.metadata.User;
 import org.constellation.dto.portrayal.LayerStyleUpdate;
 import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.dto.service.config.wxs.LayerSummary;
@@ -133,7 +134,9 @@ public class MapRestAPI {
             final List<LayerSummary> sumLayers = new ArrayList<>();
             for (final LayerConfig lay : layers) {
                 final Data db = dataBusiness.getData(lay.getDataId());
-                final String owner = userBusiness.findById(db.getOwnerId()).get().getLogin();
+                final String owner = userBusiness.findById(db.getOwnerId())
+                        .map(CstlUser::getLogin)
+                        .orElse(null);
                 List<StyleBrief> layerStyleBrief = Util.convertRefIntoStylesBrief(lay.getStyles());
                 sumLayers.add(new LayerSummary(lay, db, owner, layerStyleBrief));
             }
