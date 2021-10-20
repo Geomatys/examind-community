@@ -75,7 +75,12 @@ public class WPSConfigurer extends OGCConfigurer implements IWPSConfigurer {
             }
         } else {
             for (ProcessFactory pFacto : context.getProcessFactories()) {
-                final ProcessingRegistry processingRegistry = ProcessFinder.getProcessFactory(pFacto.getAutorityCode());
+                final String autorityCode = pFacto.getAutorityCode();
+                final ProcessingRegistry processingRegistry = ProcessFinder.getProcessFactory(autorityCode);
+                if (processingRegistry == null) {
+                    LOGGER.warning("No processing registry found for "+autorityCode);
+                    continue;
+                }
                 if (pFacto.getLoadAll()) {
                     for (ProcessDescriptor descriptor : processingRegistry.getDescriptors()) {
                         if (WPSUtils.isSupportedProcess(descriptor)) {
