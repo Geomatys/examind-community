@@ -81,6 +81,8 @@ public final class Utils {
       * if the object is a ISO19115:Metadata or CSW:Record we know were to search the title,
       * else we try to find a getName(), getTitle(), or getId() method.
       *
+      * This method use path with an old structure (MDweb) and should be changed to use proper XPath
+      *
       * @param obj the object for which we want a title.
       *
       * @return the founded title or UNKNOW_TITLE
@@ -143,6 +145,8 @@ public final class Utils {
       * This method try to find a standard name for this object.
       * if the object is a ISO19115:Metadata we know where to search,
       *
+      * This method use path with an old structure (MDweb) and should be changed to use proper XPath
+      *
       * @param obj the object for which we want a title.
       *
       * @return the founded standard name or {@code null}
@@ -174,6 +178,8 @@ public final class Utils {
     /**
      * This method try to find an identifier for this object.
      *
+     * This method use path with an old structure (MDweb) and should be changed to use proper XPath
+     *
      * @param obj the object for which we want a identifier.
      *
      * @return the founded identifier or UNKNOW_IDENTIFIER
@@ -201,6 +207,8 @@ public final class Utils {
 
     /**
      * This method try to find an identifier for this object.
+     *
+     * This method use path with an old structure (MDweb) and should be changed to use proper XPath
      *
      * @param obj the object for which we want a identifier.
      * @param paths
@@ -250,6 +258,8 @@ public final class Utils {
 
     /**
      * This method try to set an identifier for this object.
+     *
+     * This method use path with an old structure (MDweb) and should be changed to use proper XPath
      *
      * @param identifier the new identifier to set
      * @param object the object for which we want to set identifier.
@@ -387,6 +397,8 @@ public final class Utils {
 
     /**
      * This method try to set an title for this object.
+     *
+     * This method use path with an old structure (MDweb) and should be changed to use proper XPath
      *
      * @param title the new title to set.
      * @param object the object for which we want to set title.
@@ -544,6 +556,8 @@ public final class Utils {
     /**
      * This method try to find an identifier for this Document Node.
      *
+     * This method use path with an old structure (MDweb) and should be changed to use proper XPath
+     *
      * @param node the node object for which we want a identifier.
      * @param paths
      *
@@ -573,6 +587,8 @@ public final class Utils {
      * Extract the String values denoted by the specified paths
      * and return the values as a String values1,values2,....
      * if there is no values corresponding to the paths the method return "null" (the string)
+     *
+     * This method use path with an old structure (MDweb) and should be changed to use proper XPath
      *
      * @param metadata
      * @param paths

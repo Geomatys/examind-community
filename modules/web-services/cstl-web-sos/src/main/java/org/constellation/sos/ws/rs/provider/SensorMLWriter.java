@@ -66,7 +66,7 @@ public class SensorMLWriter implements HttpMessageConverter<AbstractSensorML> {
     
     @Override
     public AbstractSensorML read(Class<? extends AbstractSensorML> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("AbstractSensorML message converter do not support reading.");
+        throw new HttpMessageNotReadableException("AbstractSensorML message converter do not support reading.", him);
     }
 
    @Override

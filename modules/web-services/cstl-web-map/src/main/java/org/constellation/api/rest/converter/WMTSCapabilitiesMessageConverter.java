@@ -63,7 +63,7 @@ public class WMTSCapabilitiesMessageConverter implements HttpMessageConverter<Ca
             if (o instanceof Capabilities) {
                 return (Capabilities) o;
             }
-            throw new HttpMessageNotReadableException("Bad object input found (not a Capabilities).");
+            throw new HttpMessageNotReadableException("Bad object input found (not a Capabilities).", inputMessage);
         } catch (JAXBException ex) {
             throw new IOException(ex);
         }

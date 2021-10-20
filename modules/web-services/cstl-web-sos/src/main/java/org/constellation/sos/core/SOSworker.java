@@ -134,7 +134,6 @@ import static org.geotoolkit.sos.xml.SOSXmlFactory.buildCapabilities;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildContents;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildDataArrayProperty;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildDeleteSensorResponse;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildEnvelope;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildFeatureProperty;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildGetObservationByIdResponse;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildGetObservationResponse;
@@ -973,7 +972,7 @@ public class SOSworker extends SensorWorker {
             if (requestObservation.getSpatialFilter() != null) {
                 // for a BBOX Spatial ops
                 if (requestObservation.getSpatialFilter().getOperatorType() == SpatialOperatorName.BBOX) {
-                    final Envelope e = getEnvelopeFromBBOX(currentVersion, BBOX.wrap((BinarySpatialOperator)requestObservation.getSpatialFilter()));
+                    final Envelope e = BBOX.wrap((BinarySpatialOperator)requestObservation.getSpatialFilter()).getEnvelope();
 
                     if (e != null && e.isCompleteEnvelope2D() || isCompleteEnvelope3D(e)) {
                         if (pc.isBoundedObservation) {
@@ -1137,10 +1136,6 @@ public class SOSworker extends SensorWorker {
         return response;
     }
 
-    private Envelope getEnvelopeFromBBOX(final String version, final BBOX bbox) {
-        return buildEnvelope(version, null, bbox.getMinX(), bbox.getMinY(), bbox.getMaxX(), bbox.getMaxY(), bbox.getSRS());
-    }
-
     /**
      * Web service operation
      */
@@ -1214,7 +1209,7 @@ public class SOSworker extends SensorWorker {
             if (request.getSpatialFilter() != null) {
                 // for a BBOX Spatial ops
                 if (request.getSpatialFilter().getOperatorType() == SpatialOperatorName.BBOX) {
-                    final Envelope e = getEnvelopeFromBBOX(currentVersion, BBOX.wrap((BinarySpatialOperator)request.getSpatialFilter()));
+                    final Envelope e = BBOX.wrap((BinarySpatialOperator)request.getSpatialFilter()).getEnvelope();
 
                     if (e != null && e.isCompleteEnvelope2D()) {
                         if (pc.isBoundedObservation) {
@@ -1596,7 +1591,7 @@ public class SOSworker extends SensorWorker {
     }
 
     private List<SamplingFeature> spatialFiltering(final BBOX bbox, final String currentVersion) throws ConstellationStoreException, CstlServiceException {
-        final Envelope e = getEnvelopeFromBBOX(currentVersion, bbox);
+        final Envelope e = bbox.getEnvelope();
         if (e != null && e.isCompleteEnvelope2D()) {
             return omProvider.getFullFeaturesOfInterestForBBOX((String)null, e, currentVersion);
         } else {

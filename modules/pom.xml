@@ -17,20 +17,6 @@
     <description>Examind's modules.</description>
 
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <systemPropertyVariables>
-                        <spring.profiles.active>${spring.profiles.active}</spring.profiles.active>
-                    </systemPropertyVariables>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
     <!-- =========================================================== -->
     <!--     Modules included in the build                           -->
     <!-- =========================================================== -->

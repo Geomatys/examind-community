@@ -350,7 +350,7 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
         if (hidden != null) {
             query = query.and(METADATA.IS_HIDDEN.eq(hidden));
         }
-        return query.fetchCount();
+        return dsl.fetchCount(query);
     }
 
     @Override
@@ -400,7 +400,7 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
     public int countMetadata(final boolean includeService, final boolean onlyPublished, final Integer providerId, final String type) {
         SelectJoinStep<Record1<String>> query =  dsl.select(METADATA.METADATA_ID).from(METADATA);
         if (includeService && !onlyPublished && providerId == null && type == null) {
-            return query.fetchCount();
+            return dsl.fetchCount(query);
         } else {
             SelectConditionStep<Record1<String>> filterQuery = null;
             if (!includeService) {
@@ -427,7 +427,7 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
                     filterQuery = filterQuery.and(METADATA.TYPE.eq(type));
                 }
             }
-            return filterQuery.fetchCount();
+            return dsl.fetchCount(filterQuery);
         }
     }
 

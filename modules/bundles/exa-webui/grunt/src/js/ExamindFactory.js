@@ -1274,26 +1274,6 @@ function Examind($http, url) {
             });
 
         },
-        createData : function (formData, dataType, extension) {
-            return self.request({
-                method: 'POST',
-                url: 'datas/upload?dataType=' + dataType + '&extension=' + extension,
-                headers: {'Content-Type': undefined},
-                transformRequest: angular.identity,
-                data: formData,
-                cache: false
-            });
-        },
-        uploadDataMetadata : function (formData, dataId) {
-            return self.request({
-                method: 'POST',
-                headers: {'Content-Type': undefined},
-                url: 'datas/' + dataId + '/metadata/upload',
-                transformRequest: angular.identity,
-                cache: false,
-                data: formData
-            });
-        },
         /**
          * This method has been removed from the server and should be removed (with all its use) from the front code.
          */

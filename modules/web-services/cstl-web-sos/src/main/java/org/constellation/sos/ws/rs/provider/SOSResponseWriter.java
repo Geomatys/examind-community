@@ -112,7 +112,7 @@ public class SOSResponseWriter implements HttpMessageConverter<SOSResponse> {
     
     @Override
     public SOSResponse read(Class<? extends SOSResponse> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("SOSResponse message converter do not support reading.");
+        throw new HttpMessageNotReadableException("SOSResponse message converter do not support reading.", him);
     }
 
     @Override

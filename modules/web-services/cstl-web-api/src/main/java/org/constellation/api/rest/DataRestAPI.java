@@ -18,13 +18,10 @@
  */
 package org.constellation.api.rest;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,13 +31,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.UUID;
 import java.util.logging.Level;
-import java.util.zip.CRC32;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.metadata.iso.DefaultMetadata;
@@ -67,7 +61,6 @@ import org.constellation.dto.DataSetBrief;
 import org.constellation.dto.Filter;
 import org.constellation.dto.Page;
 import org.constellation.dto.PagedSearch;
-import org.constellation.dto.ProviderConfiguration;
 import org.constellation.dto.TilingResult;
 import org.constellation.dto.Sort;
 import org.constellation.dto.metadata.MetadataBrief;
@@ -76,7 +69,6 @@ import org.constellation.dto.metadata.RootObj;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.metadata.utils.Utils;
-import static org.constellation.metadata.utils.Utils.UNKNOW_IDENTIFIER;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviders;
 import org.constellation.util.MetadataMerger;
@@ -91,7 +83,6 @@ import org.opengis.referencing.crs.ImageCRS;
 import org.opengis.util.GenericName;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import static org.springframework.http.HttpStatus.*;
 import org.springframework.http.MediaType;
 import static org.springframework.http.MediaType.*;
@@ -103,7 +94,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Manage data sending
@@ -142,155 +132,6 @@ public class DataRestAPI extends AbstractRestAPI{
 
     @Inject
     private IDataCoverageJob dataCoverageJob;
-
-    /**
-     * Receive a {@link MultipartFile} which contain a data file to save on server,
-     * or a path to a file already on the server.
-     *
-     * - Move uploaded data to integrated folder.
-     * - Create the provider.
-     * - Verify the CRS validity.
-     * - Launch pyramidage for raster data
-     * - Initialize extracted metadata for dataset / datas
-     * - Finally return the data briefs created.
-     *
-     * @param data An uploaded data file.
-     * @param serverPath A path to a data file already on the server.
-     * @param dataType The type of the data (example : raster, vector, ...).
-     * @param fileExtension The file extension.
-     * @param datasetName Optional dataset name where to insert the data. If not supplied, a new dataset will be created based on the fileName
-     * @param req
-     *
-     * @return A list of Databrief extracted from the uploaded file.
-     */
-    @RequestMapping(value="/datas/upload",method=POST, consumes=MULTIPART_FORM_DATA_VALUE, produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity uploadData(@RequestParam(name = "data", required = false) MultipartFile data,
-                                     @RequestParam(name = "serverPath", required = false) String serverPath,
-                                     @RequestParam("dataType") String dataType,
-                                     @RequestParam("extension") String fileExtension,
-                                     @RequestParam(name = "datasetName", required = false) String datasetName,
-                                     HttpServletRequest req) {
-
-        try {
-            final int userId           = assertAuthentificated(req);
-            final Path uploadDirectory = getUploadDirectory(req);
-            final String fileName;
-            if (data != null) {
-                fileName = data.getOriginalFilename();
-            } else if (serverPath != null) {
-                final int lastSeparator = serverPath.lastIndexOf(File.separator);
-                fileName = serverPath.substring(lastSeparator + 1);
-            } else {
-                return new ResponseEntity("Neither local nor server file has been provided.", HttpStatus.BAD_REQUEST);
-            }
-            boolean uniqueDS = (datasetName == null);
-            if (uniqueDS) {
-                datasetName   = FilenameUtils.removeExtension(fileName);
-            }
-
-            final String providerId    = fileName + '-' + UUID.randomUUID().toString();
-            String dataFile;
-
-            // Server mode
-            if (serverPath !=null && !serverPath.isEmpty()){
-                dataFile = serverPath;
-            }
-
-            // Upload mode
-            else {
-
-                // 1. Move the file to upload directory
-                Path newFileData = uploadDirectory.resolve(fileName);
-                if (!data.isEmpty()) {
-                    try(InputStream in = data.getInputStream()){
-                        Files.copy(in, newFileData, StandardCopyOption.REPLACE_EXISTING);
-                    }
-                }
-
-                // 2. init provider directory
-                final Path providerDir = configBusiness.getDataIntegratedDirectory(providerId);
-                final Path dataDir     = providerDir.resolve(fileName);
-                if (Files.exists(dataDir)) {
-                    IOUtilities.deleteRecursively(dataDir);
-                }
-                Files.createDirectories(dataDir);
-
-                // 3. unzip if needed
-                String ext = IOUtilities.extension(newFileData);
-                if ("zip".equals(ext.toLowerCase())) {
-                    ZipUtilities.unzip(newFileData, dataDir, new CRC32());
-                    newFileData = dataDir.toAbsolutePath();
-                }
-
-                // 4. move to integrated
-                if (newFileData.startsWith(uploadDirectory.toAbsolutePath())) {
-                    final Path destFile = dataDir.toAbsolutePath().resolve(newFileData.getFileName().toString());
-                    Files.move(newFileData, destFile, StandardCopyOption.REPLACE_EXISTING);
-                    newFileData = destFile;
-                }
-
-                dataFile = newFileData.toAbsolutePath().toUri().toString();
-            }
-
-
-            final String uploadType = dataType;
-
-            // 5. determine the provider type
-            String subType;
-            if ("vector".equalsIgnoreCase(uploadType)) {
-                String[] extracted = DataProviders.findFeatureFactoryForFiles(dataFile);
-                dataFile           = extracted[0];
-                subType            = extracted[1];
-
-            } else if("raster".equalsIgnoreCase(uploadType)) {
-                subType = "coverage-file";
-
-            } else if ("observation".equalsIgnoreCase(uploadType)) {
-                subType = "observationFile";
-                if ("xml".equalsIgnoreCase(fileExtension)) {
-                    subType = "observationXmlFile";
-                }
-            } else {
-                // TODO remove data if throw an exception?
-                throw new UnsupportedOperationException("The uploaded file is not recognized or not supported by the application. file:" + uploadType);
-            }
-
-            // 6. get or create dataset (with unique name if not specified)
-            Integer dsId = null;
-            if (uniqueDS) {
-                String freeDatasetName = datasetName;
-                int i = 1;
-                while (datasetBusiness.existsByName(freeDatasetName)) {
-                    freeDatasetName = datasetName + "_" + i;
-                    i++;
-                }
-                datasetName = freeDatasetName;
-            } else  {
-                dsId = datasetBusiness.getDatasetId(datasetName);
-            }
-            if (dsId == null) {
-                dsId = datasetBusiness.createDataset(datasetName, userId, null);
-            }
-
-            // 7. create provider and all its datas with an hidden state
-            final ProviderConfiguration config = new ProviderConfiguration("data-store", subType, dataFile);
-            final Integer prId = providerBusiness.create(providerId, config);
-            providerBusiness.createOrUpdateData(prId, dsId, true, true, userId);
-
-            // 8. verify CRS for vector and raster
-            if ("vector".equalsIgnoreCase(uploadType) || "raster".equalsIgnoreCase(uploadType)) {
-                verifyCRS(prId); // TODO remove data if throw an exception?
-            }
-
-            // 9. retrieve all the newly create datas
-            final List<DataBrief> briefs = dataBusiness.getDataBriefsFromDatasetId(dsId, true, true, null, null, true);
-
-            return new ResponseEntity(briefs, OK);
-        } catch(Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
-            return new ErrorMessage(ex).build();
-        }
-    }
 
     @RequestMapping(value="/datas/{dataId}/accept",method=POST, produces=APPLICATION_JSON_VALUE)
     public ResponseEntity acceptData(@PathVariable Integer dataId, @RequestParam(name="hidden", required = false, defaultValue = "false") Boolean hidden, HttpServletRequest req) {
@@ -357,70 +198,6 @@ public class DataRestAPI extends AbstractRestAPI{
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
-    }
-
-    /**
-     * Receive a {@link MultipartFile} which contain a metadata file to save on server,
-     * or a path to a file already on the server.The metadata object will be extracted from the file, saved in the database
- and then bounded to the specified data.
-     *
-     *
-     *
-     * @param metadata An uploaded metadata file.
-     * @param dataId The data identifier.
-     * @param serverMetadataPath A path to a metadata file already on the server.
-     * @param req
-     *
-     * @return A {@link ResponseEntity} with 200 code if upload work, 500 if not work.
-     */
-    @RequestMapping(value="/datas/{dataId}/metadata/upload",method=POST, consumes=MULTIPART_FORM_DATA_VALUE, produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity uploadDataMetadata(
-            @RequestParam(name = "metadata", required = false) MultipartFile metadata,
-            @RequestParam(name = "serverMetadataPath", required = false) String serverMetadataPath,
-            @PathVariable("dataId") Integer dataId,
-            HttpServletRequest req) {
-
-        try {
-            assertAuthentificated(req);
-            Path metadataFile = null;
-
-            // Server mode
-            if (serverMetadataPath !=null && !serverMetadataPath.isEmpty()){
-                metadataFile = IOUtilities.toPath(serverMetadataPath);
-
-            // Upload mode
-            } else if (metadata.getOriginalFilename() != null && !metadata.getOriginalFilename().isEmpty()) {
-
-                final Path uploadDirectory = getUploadDirectory(req);
-                final Path newFileMetaData = uploadDirectory.resolve(metadata.getOriginalFilename());
-                if (!metadata.isEmpty()) {
-                    try (InputStream in = metadata.getInputStream()) {
-                        Files.copy(in, newFileMetaData, StandardCopyOption.REPLACE_EXISTING);
-                        metadataFile = newFileMetaData;
-                    }
-                }
-            }
-
-            if (metadataFile != null) {
-
-                // 1. Extract metadata Object
-                Object obj = metadataBusiness.getMetadataFromFile(metadataFile);
-                if (obj == null) {
-                    throw new ConstellationException("metadata file is incorrect");
-                }
-                final String metaIdentifier = Utils.findIdentifier(obj);
-                if (UNKNOW_IDENTIFIER.equals(metaIdentifier)) {
-                    throw new ConstellationException("metadata does not contains any identifier," +
-                            " please check the fileIdentifier in your metadata.");
-                }
-
-                // 2. Update metadata and bound it to the data
-                dataBusiness.updateMetadata(dataId, obj, false);
-            }
-        } catch (ConstellationException | IOException ex) {
-            return new ErrorMessage(ex).build();
-        }
-        return new ResponseEntity(OK);
     }
 
     /**

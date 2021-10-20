@@ -59,7 +59,7 @@ public class ProfileMessageConverter implements HttpMessageConverter<CoveragePro
 
     @Override
     public CoverageProfileInfoFormat.Profile read(Class<? extends CoverageProfileInfoFormat.Profile> clazz, HttpInputMessage inputMessage) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("Not supported.");
+        throw new HttpMessageNotReadableException("Not supported.", inputMessage);
     }
 
     @Override

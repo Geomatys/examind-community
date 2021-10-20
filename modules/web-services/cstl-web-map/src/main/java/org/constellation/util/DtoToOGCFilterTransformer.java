@@ -21,9 +21,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
+import org.apache.sis.filter.DefaultFilterFactory;
 
 import org.geotoolkit.util.NamesExt;
 import org.apache.sis.geometry.GeneralEnvelope;
+import org.apache.sis.measure.Quantities;
 import org.geotoolkit.gml.GeometrytoJTS;
 import org.geotoolkit.gml.xml.v311.AbstractGeometryType;
 import org.geotoolkit.gml.xml.v311.DirectPositionType;
@@ -36,7 +38,6 @@ import org.apache.sis.util.ObjectConverters;
 
 import org.opengis.util.GenericName;
 import org.opengis.filter.Filter;
-import org.geotoolkit.filter.FilterFactory2;
 import org.opengis.filter.MatchAction;
 import org.opengis.filter.Expression;
 import org.opengis.filter.ValueReference;
@@ -54,16 +55,16 @@ import org.geotoolkit.ogc.xml.OGCJAXBStatics;
  */
 public class DtoToOGCFilterTransformer {
 
-    protected final FilterFactory2 filterFactory;
+    protected final DefaultFilterFactory filterFactory;
 
     private final Map<String, String> namespaceMapping;
 
-    public DtoToOGCFilterTransformer(final FilterFactory2 factory) {
+    public DtoToOGCFilterTransformer(final DefaultFilterFactory factory) {
         this.filterFactory = factory;
         this.namespaceMapping = null;
     }
 
-    public DtoToOGCFilterTransformer(final FilterFactory2 factory, final Map<String, String> namespaceMapping) {
+    public DtoToOGCFilterTransformer(final DefaultFilterFactory factory, final Map<String, String> namespaceMapping) {
         this.filterFactory = factory;
         this.namespaceMapping = namespaceMapping;
     }
@@ -142,9 +143,9 @@ public class DtoToOGCFilterTransformer {
             final String units = f.getUnits();
 
             if (OGCJAXBStatics.FILTER_SPATIAL_DWITHIN.equalsIgnoreCase(OpName)) {
-                return filterFactory.dwithin(geom1, geom2, distance, units);
+                return filterFactory.within(geom1, geom2, Quantities.create(distance, units));
             } else if (OGCJAXBStatics.FILTER_SPATIAL_BEYOND.equalsIgnoreCase(OpName)) {
-                return filterFactory.beyond(geom1, geom2, distance, units);
+                return filterFactory.beyond(geom1, geom2, Quantities.create(distance, units));
             }
 
             throw new IllegalArgumentException("Illegal filter element" + OpName + ".");
@@ -158,8 +159,10 @@ public class DtoToOGCFilterTransformer {
             final double maxy = Double.parseDouble(values[3]);
 
             final String srs = values[4];
-
-            return filterFactory.bbox(f.getField(), minx, miny, maxx, maxy, srs);
+            GeneralEnvelope env = new GeneralEnvelope(CRS.forCode(srs));
+            env.setRange(0, minx, maxx);
+            env.setRange(1, miny, maxy);
+            return filterFactory.bbox(filterFactory.property(f.getField()), env);
         }
 
         throw new IllegalArgumentException("Unknowed filter element" + OpName);

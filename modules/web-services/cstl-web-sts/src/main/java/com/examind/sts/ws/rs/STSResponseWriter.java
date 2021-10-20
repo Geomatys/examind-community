@@ -22,7 +22,6 @@ package com.examind.sts.ws.rs;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.jsontype.NamedType;
 import org.apache.sis.util.logging.Logging;
 
 import java.io.IOException;
@@ -64,12 +63,12 @@ public class STSResponseWriter implements HttpMessageConverter<STSResponse> {
 
     @Override
     public List<MediaType> getSupportedMediaTypes() {
-        return Arrays.asList(MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON_UTF8);
+        return Arrays.asList(MediaType.APPLICATION_JSON);
     }
 
     @Override
     public STSResponse read(Class<? extends STSResponse> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("STSResponse message converter do not support reading.");
+        throw new HttpMessageNotReadableException("STSResponse message converter do not support reading.", him);
     }
 
     @Override

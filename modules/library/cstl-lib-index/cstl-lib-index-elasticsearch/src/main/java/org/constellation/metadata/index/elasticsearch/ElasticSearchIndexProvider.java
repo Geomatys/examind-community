@@ -24,7 +24,6 @@ import org.apache.sis.util.logging.Logging;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.filter.ElasticSearchFilterParser;
 import org.constellation.filter.FilterParser;
-import org.constellation.filter.SQLFilterParser;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.metadata.index.IndexProvider;
 import org.constellation.metadata.index.IndexSearcher;
@@ -102,11 +101,6 @@ public class ElasticSearchIndexProvider implements IndexProvider {
     @Override
     public FilterParser getFilterParser(Automatic configuration) throws ConfigurationException {
         return new ElasticSearchFilterParser(false);
-    }
-
-    @Override
-    public FilterParser getSQLFilterParser(Automatic configuration) throws ConfigurationException {
-        return new SQLFilterParser();
     }
 
     @Override

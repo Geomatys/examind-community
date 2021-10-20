@@ -31,7 +31,6 @@ import org.geotoolkit.index.LogicalFilterType;
 import org.geotoolkit.lucene.filter.LuceneOGCSpatialQuery;
 import org.geotoolkit.lucene.filter.SpatialQuery;
 import org.geotoolkit.lucene.index.LuceneIndexSearcher;
-import org.geotoolkit.filter.FilterFactory2;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import javax.xml.bind.JAXBException;
@@ -46,6 +45,7 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.TermQuery;
+import org.apache.sis.filter.DefaultFilterFactory;
 import org.constellation.test.utils.SpringTestRunner;
 import org.geotoolkit.filter.FilterUtilities;
 
@@ -63,7 +63,7 @@ import org.springframework.test.context.ContextConfiguration;
 @RunWith(SpringTestRunner.class)
 public abstract class AbstractAnalyzerTest {
 
-    protected static final FilterFactory2 FF = FilterUtilities.FF;
+    protected static final DefaultFilterFactory FF = FilterUtilities.FF;
 
     protected static final Logger logger = Logging.getLogger("org.constellation.metadata.index.generic");
 
@@ -409,7 +409,7 @@ public abstract class AbstractAnalyzerTest {
         GeneralEnvelope bbox = new GeneralEnvelope(min1, max1);
         CoordinateReferenceSystem crs = CommonCRS.defaultGeographic();
         bbox.setCoordinateReferenceSystem(crs);
-        LuceneOGCSpatialQuery sf          = LuceneOGCSpatialQuery.wrap(FF.bbox(LuceneOGCSpatialQuery.GEOMETRY_PROPERTY, -20, -20, 20, 20, "EPSG:4326"));
+        LuceneOGCSpatialQuery sf          = LuceneOGCSpatialQuery.wrap(FF.bbox(LuceneOGCSpatialQuery.GEOMETRY_PROPERTY, bbox));
         SpatialQuery spatialQuery = new SpatialQuery("metafile:doc", sf, LogicalFilterType.AND);
 
         Set<String> result = indexSearcher.doSearch(spatialQuery);
@@ -426,7 +426,7 @@ public abstract class AbstractAnalyzerTest {
          * Test 1 spatial search: NOT BBOX filter
          */
         //sf           = new BBOXFilter(bbox, "urn:x-ogc:def:crs:EPSG:6.11:4326");
-        sf           = LuceneOGCSpatialQuery.wrap(FF.bbox(LuceneOGCSpatialQuery.GEOMETRY_PROPERTY, -20, -20, 20, 20, "EPSG:4326"));
+        sf           = LuceneOGCSpatialQuery.wrap(FF.bbox(LuceneOGCSpatialQuery.GEOMETRY_PROPERTY, bbox));
         BooleanQuery f = new BooleanQuery.Builder()
                                 .add(sf, BooleanClause.Occur.MUST_NOT)
                                 .add(new TermQuery(new Term("metafile", "doc")), BooleanClause.Occur.MUST)

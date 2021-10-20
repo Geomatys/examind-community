@@ -66,7 +66,7 @@ public class WMSResponseWriter implements HttpMessageConverter<WMSResponse> {
 
     @Override
     public WMSResponse read(Class<? extends WMSResponse> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("WMSResponse message converter do not support reading.");
+        throw new HttpMessageNotReadableException("WMSResponse message converter do not support reading.", him);
     }
 
     @Override

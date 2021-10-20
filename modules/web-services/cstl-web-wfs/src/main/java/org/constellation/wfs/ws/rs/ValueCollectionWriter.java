@@ -63,7 +63,7 @@ public class ValueCollectionWriter implements HttpMessageConverter<ValueCollecti
 
     @Override
     public ValueCollectionWrapper read(Class<? extends ValueCollectionWrapper> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("ValueCollectionWrapper message converter do not support reading.");
+        throw new HttpMessageNotReadableException("ValueCollectionWrapper message converter do not support reading.", him);
     }
     
     @Override

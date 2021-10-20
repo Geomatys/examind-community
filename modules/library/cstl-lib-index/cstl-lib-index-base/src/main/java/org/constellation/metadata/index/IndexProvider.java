@@ -39,7 +39,5 @@ public interface IndexProvider  {
 
     FilterParser getFilterParser(final Automatic configuration) throws ConfigurationException;
 
-    FilterParser getSQLFilterParser(final Automatic configuration) throws ConfigurationException;
-
     boolean refreshIndex(final Automatic configuration, String serviceID, Indexer indexer, boolean asynchrone) throws ConfigurationException;
 }

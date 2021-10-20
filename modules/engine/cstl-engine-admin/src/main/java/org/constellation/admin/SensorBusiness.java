@@ -44,7 +44,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -190,12 +189,6 @@ public class SensorBusiness implements ISensorBusiness {
             }
         }
         return false;
-    }
-
-    @Override
-    @Transactional
-    public void delete(String sensorid, String providerId) throws ConfigurationException {
-        delete(sensorid);
     }
 
     @Override

@@ -53,7 +53,6 @@ import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.measure.NumberRange;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
-import org.apache.sis.referencing.IdentifiedObjects;
 import org.apache.sis.referencing.crs.DefaultTemporalCRS;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
@@ -184,7 +183,6 @@ import org.geotoolkit.wcs.xml.v200.ServiceParametersType;
 import org.opengis.coverage.grid.RectifiedGrid;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.extent.GeographicBoundingBox;
-import org.opengis.referencing.crs.CompoundCRS;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.crs.TemporalCRS;
 import org.opengis.referencing.cs.CoordinateSystemAxis;
@@ -329,7 +327,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             /*
              * Spatial metadata
              */
-            final EnvelopeType nativeEnvelope = getGMLEnvelope(layer.getEnvelope());
+            final EnvelopeType nativeEnvelope = new EnvelopeType(layer.getEnvelope());
             if (nativeEnvelope != null && !envelopes.contains(nativeEnvelope)) {
                 envelopes.add(nativeEnvelope);
             }
@@ -392,54 +390,6 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
         }
-    }
-
-    /**
-     * TODO remove when geotk > MC0028
-     *
-     * @param env
-     * @return
-     */
-    private EnvelopeType getGMLEnvelope(final org.opengis.geometry.Envelope env) {
-        if (env != null) {
-            List<DirectPositionType> pos = new ArrayList<>();
-            String srsName;
-            pos.add(new DirectPositionType(env.getLowerCorner(), false));
-            pos.add(new DirectPositionType(env.getUpperCorner(), false));
-            final CoordinateReferenceSystem crs = env.getCoordinateReferenceSystem();
-            if (crs != null) {
-                try {
-                    if (crs instanceof CompoundCRS) {
-                        final StringBuilder sb = new StringBuilder();
-                        final CompoundCRS compCrs = (CompoundCRS) crs;
-                        // see OGC 07-092r3 7.5.2
-                        sb.append("urn:ogc:def:crs,");
-                        for (CoordinateReferenceSystem child : compCrs.getComponents()) {
-                            String childSrs = IdentifiedObjects.lookupURN(child, null);
-                            if (childSrs != null) {
-                                if (childSrs.startsWith("urn:ogc:def:")) {
-                                    childSrs = childSrs.substring(12);
-                                }
-                                sb.append(childSrs).append(',');
-                            } else {
-                                sb.append("crs:EPSG::unknow,");
-                            }
-                        }
-                        sb.deleteCharAt(sb.length() - 1);
-                        srsName = sb.toString();
-                    } else {
-                        srsName = IdentifiedObjects.lookupURN(crs, null);
-                        if (srsName == null) {
-                            srsName = "urn:ogc:def:crs:EPSG::unknow";
-                        }
-                    }
-                    return new EnvelopeType(pos, srsName);
-                } catch (FactoryException ex) {
-                    LOGGER.log(Level.SEVERE, "Factory exception xhile creating GML envelope from opengis one", ex);
-                }
-            }
-        }
-        return null;
     }
 
     /**

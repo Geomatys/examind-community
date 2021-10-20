@@ -59,7 +59,7 @@ public class OpenSearchResponseWriter implements HttpMessageConverter<OpenSearch
 
     @Override
     public OpenSearchResponse read(Class<? extends OpenSearchResponse> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("OpenSearchResponse message converter do not support reading.");
+        throw new HttpMessageNotReadableException("OpenSearchResponse message converter do not support reading.", him);
     }
 
     @Override

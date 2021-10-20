@@ -34,6 +34,7 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
 import org.constellation.admin.SpringHelper;
+import org.constellation.api.ProviderType;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.exception.ConstellationException;
 import org.geotoolkit.nio.IOUtilities;
@@ -113,7 +114,7 @@ public abstract class AbstractProviderTest extends AbstractProcessTest {
      * @param providerSource
      */
     protected Integer addProvider(String id,ParameterValueGroup providerSource) throws ConfigurationException {
-        return providerBusiness.create(id, DATASTORE_SERVICE.getName(), providerSource);
+        return providerBusiness.storeProvider(id, ProviderType.LAYER, DATASTORE_SERVICE.getName(), providerSource);
     }
 
     /**

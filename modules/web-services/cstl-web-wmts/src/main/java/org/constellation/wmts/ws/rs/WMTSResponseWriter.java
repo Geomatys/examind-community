@@ -62,7 +62,7 @@ public class WMTSResponseWriter<T extends WMTSResponse>  implements HttpMessageC
 
     @Override
     public T read(Class<? extends T> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("WMTS response converter do not support reading.");
+        throw new HttpMessageNotReadableException("WMTS response converter do not support reading.", him);
     }
 
     @Override

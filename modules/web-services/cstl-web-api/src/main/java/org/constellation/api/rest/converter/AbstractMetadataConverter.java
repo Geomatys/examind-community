@@ -55,7 +55,7 @@ public class AbstractMetadataConverter implements HttpMessageConverter<AbstractM
 
     @Override
     public AbstractMetadata read(Class<? extends AbstractMetadata> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("Abstract metadata converter do not support reading.");
+        throw new HttpMessageNotReadableException("Abstract metadata converter do not support reading.", him);
     }
 
     @Override

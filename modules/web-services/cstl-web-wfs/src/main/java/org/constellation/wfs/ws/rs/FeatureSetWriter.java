@@ -68,7 +68,7 @@ public class FeatureSetWriter implements HttpMessageConverter<FeatureSetWrapper>
 
     @Override
     public FeatureSetWrapper read(Class<? extends FeatureSetWrapper> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("FeatureSetWrapper message converter do not support reading.");
+        throw new HttpMessageNotReadableException("FeatureSetWrapper message converter do not support reading.", him);
     }
 
     @Override

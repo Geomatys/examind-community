@@ -61,7 +61,7 @@ public class NodeWriter implements HttpMessageConverter<Node> {
 
     @Override
     public Node read(Class<? extends Node> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("CSWResponse message converter do not support reading.");
+        throw new HttpMessageNotReadableException("CSWResponse message converter do not support reading.", him);
     }
 
     @Override

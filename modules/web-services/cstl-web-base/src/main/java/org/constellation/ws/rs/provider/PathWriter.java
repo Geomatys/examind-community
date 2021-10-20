@@ -59,7 +59,7 @@ public class PathWriter implements HttpMessageConverter<Path> {
 
     @Override
     public Path read(Class<? extends Path> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("Path message converter do not support reading.");
+        throw new HttpMessageNotReadableException("Path message converter do not support reading.", him);
     }
 
     @Override

@@ -119,79 +119,79 @@ public class STSService extends OGCWebService<STSWorker> {
 
             if (request instanceof GetCapabilities) {
                 final GetCapabilities model = (GetCapabilities) request;
-                return new ResponseObject(worker.getCapabilities(model), MediaType.APPLICATION_JSON_UTF8);
+                return new ResponseObject(worker.getCapabilities(model), MediaType.APPLICATION_JSON);
 
             } else if (request instanceof GetFeatureOfInterests) {
                 final GetFeatureOfInterests model = (GetFeatureOfInterests) request;
-                return new ResponseObject(worker.getFeatureOfInterests(model), MediaType.APPLICATION_JSON_UTF8);
+                return new ResponseObject(worker.getFeatureOfInterests(model), MediaType.APPLICATION_JSON);
 
             } else if (request instanceof GetFeatureOfInterestById) {
                 final GetFeatureOfInterestById model = (GetFeatureOfInterestById) request;
-                return new ResponseObject(worker.getFeatureOfInterestById(model), MediaType.APPLICATION_JSON_UTF8);
+                return new ResponseObject(worker.getFeatureOfInterestById(model), MediaType.APPLICATION_JSON);
 
             } else if (request instanceof GetThings) {
                 final GetThings model = (GetThings) request;
-                return new ResponseObject(worker.getThings(model), MediaType.APPLICATION_JSON_UTF8);
+                return new ResponseObject(worker.getThings(model), MediaType.APPLICATION_JSON);
 
             } else if (request instanceof GetThingById) {
                 final GetThingById model = (GetThingById) request;
-                return new ResponseObject(worker.getThingById(model), MediaType.APPLICATION_JSON_UTF8);
+                return new ResponseObject(worker.getThingById(model), MediaType.APPLICATION_JSON);
 
             } else if (request instanceof GetObservations) {
                 final GetObservations model = (GetObservations) request;
-                return new ResponseObject(worker.getObservations(model), MediaType.APPLICATION_JSON_UTF8);
+                return new ResponseObject(worker.getObservations(model), MediaType.APPLICATION_JSON);
 
             } else if (request instanceof GetObservationById) {
                 final GetObservationById model = (GetObservationById) request;
-                return new ResponseObject(worker.getObservationById(model), MediaType.APPLICATION_JSON_UTF8);
+                return new ResponseObject(worker.getObservationById(model), MediaType.APPLICATION_JSON);
 
             } else if (request instanceof GetDatastreams) {
                 final GetDatastreams model = (GetDatastreams) request;
-                return new ResponseObject(worker.getDatastreams(model), MediaType.APPLICATION_JSON_UTF8);
+                return new ResponseObject(worker.getDatastreams(model), MediaType.APPLICATION_JSON);
 
             } else if (request instanceof GetDatastreamById) {
                 final GetDatastreamById model = (GetDatastreamById) request;
-                return new ResponseObject(worker.getDatastreamById(model), MediaType.APPLICATION_JSON_UTF8);
+                return new ResponseObject(worker.getDatastreamById(model), MediaType.APPLICATION_JSON);
 
             } else if (request instanceof GetMultiDatastreams) {
                 final GetMultiDatastreams model = (GetMultiDatastreams) request;
-                return new ResponseObject(worker.getMultiDatastreams(model), MediaType.APPLICATION_JSON_UTF8);
+                return new ResponseObject(worker.getMultiDatastreams(model), MediaType.APPLICATION_JSON);
 
             } else if (request instanceof GetMultiDatastreamById) {
                 final GetMultiDatastreamById model = (GetMultiDatastreamById) request;
-                return new ResponseObject(worker.getMultiDatastreamById(model), MediaType.APPLICATION_JSON_UTF8);
+                return new ResponseObject(worker.getMultiDatastreamById(model), MediaType.APPLICATION_JSON);
 
             } else if (request instanceof GetObservedProperties) {
                 final GetObservedProperties model = (GetObservedProperties) request;
-                return new ResponseObject(worker.getObservedProperties(model), MediaType.APPLICATION_JSON_UTF8);
+                return new ResponseObject(worker.getObservedProperties(model), MediaType.APPLICATION_JSON);
 
             } else if (request instanceof GetObservedPropertyById) {
                 final GetObservedPropertyById model = (GetObservedPropertyById) request;
-                return new ResponseObject(worker.getObservedPropertyById(model), MediaType.APPLICATION_JSON_UTF8);
+                return new ResponseObject(worker.getObservedPropertyById(model), MediaType.APPLICATION_JSON);
 
             } else if (request instanceof GetLocations) {
                 final GetLocations model = (GetLocations) request;
-                return new ResponseObject(worker.getLocations(model), MediaType.APPLICATION_JSON_UTF8);
+                return new ResponseObject(worker.getLocations(model), MediaType.APPLICATION_JSON);
 
             } else if (request instanceof GetLocationById) {
                 final GetLocationById model = (GetLocationById) request;
-                return new ResponseObject(worker.getLocationById(model), MediaType.APPLICATION_JSON_UTF8);
+                return new ResponseObject(worker.getLocationById(model), MediaType.APPLICATION_JSON);
 
             } else if (request instanceof GetHistoricalLocations) {
                 final GetHistoricalLocations model = (GetHistoricalLocations) request;
-                return new ResponseObject(worker.getHistoricalLocations(model), MediaType.APPLICATION_JSON_UTF8);
+                return new ResponseObject(worker.getHistoricalLocations(model), MediaType.APPLICATION_JSON);
 
             } else if (request instanceof GetHistoricalLocationById) {
                 final GetHistoricalLocationById model = (GetHistoricalLocationById) request;
-                return new ResponseObject(worker.getHistoricalLocationById(model), MediaType.APPLICATION_JSON_UTF8);
+                return new ResponseObject(worker.getHistoricalLocationById(model), MediaType.APPLICATION_JSON);
 
             } else if (request instanceof GetSensors) {
                 final GetSensors model = (GetSensors) request;
-                return new ResponseObject(worker.getSensors(model), MediaType.APPLICATION_JSON_UTF8);
+                return new ResponseObject(worker.getSensors(model), MediaType.APPLICATION_JSON);
 
             } else if (request instanceof GetSensorById) {
                 final GetSensorById model = (GetSensorById) request;
-                return new ResponseObject(worker.getSensorById(model), MediaType.APPLICATION_JSON_UTF8);
+                return new ResponseObject(worker.getSensorById(model), MediaType.APPLICATION_JSON);
             }
 
 
@@ -223,7 +223,7 @@ public class STSService extends OGCWebService<STSWorker> {
         final String exceptionCode     = getOWSExceptionCodeRepresentation(ex.getExceptionCode());
         final ExceptionResponse report = new org.geotoolkit.ows.xml.v200.ExceptionReport(ex.getMessage(), exceptionCode, ex.getLocator(), version);
         final int port = getHttpCodeFromErrorCode(exceptionCode);
-        return new ResponseObject(report,  MediaType.APPLICATION_JSON_UTF8, port);
+        return new ResponseObject(report,  MediaType.APPLICATION_JSON, port);
     }
 
     private int getHttpCodeFromErrorCode(final String exceptionCode) {
@@ -352,7 +352,7 @@ public class STSService extends OGCWebService<STSWorker> {
 
     private ResponseObject getCapabilities(STSWorker worker) throws CstlServiceException {
         if (worker != null) {
-            return new ResponseObject(worker.getCapabilities(new GetCapabilities()), MediaType.APPLICATION_JSON_UTF8);
+            return new ResponseObject(worker.getCapabilities(new GetCapabilities()), MediaType.APPLICATION_JSON);
         }
         return new ResponseObject(HttpStatus.NOT_FOUND);
     }

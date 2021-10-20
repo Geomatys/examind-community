@@ -73,6 +73,6 @@ public class NodeReader implements HttpMessageConverter<Node>{
 
     @Override
     public void write(Node r, MediaType contentType, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
-        throw new HttpMessageNotReadableException("Node message converter do not support writing.");
+        throw new HttpMessageNotWritableException("Node message converter do not support writing.");
     }
 }

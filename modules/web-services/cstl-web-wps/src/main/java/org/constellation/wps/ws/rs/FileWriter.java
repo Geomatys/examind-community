@@ -61,7 +61,7 @@ public class FileWriter implements HttpMessageConverter<File> {
 
     @Override
     public File read(Class<? extends File> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("File message converter do not support reading.");
+        throw new HttpMessageNotReadableException("File message converter do not support reading.", him);
     }
 
    @Override

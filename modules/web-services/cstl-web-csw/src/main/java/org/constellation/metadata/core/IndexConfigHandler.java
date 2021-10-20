@@ -47,8 +47,6 @@ public interface IndexConfigHandler {
     
     FilterParser getFilterParser(final Automatic configuration) throws ConfigurationException ;
     
-    FilterParser getSQLFilterParser(final Automatic configuration) throws ConfigurationException ;
-    
     MetadataSecurityFilter getSecurityFilter();
     
     Map<String, List<String>> getBriefFieldMap(final Automatic configuration);

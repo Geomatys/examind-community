@@ -98,7 +98,7 @@ public class WPSResponseWriter implements HttpMessageConverter<WPSResponse> {
 
     @Override
     public WPSResponse read(Class<? extends WPSResponse> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("WPSResponse message converter do not support reading.");
+        throw new HttpMessageNotReadableException("WPSResponse message converter do not support reading.", him);
     }
 
     @Override

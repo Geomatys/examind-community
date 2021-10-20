@@ -75,7 +75,7 @@ public class CSWResponseWriter implements HttpMessageConverter<Object> {
 
     @Override
     public Object read(Class<? extends Object> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("CSWResponse message converter do not support reading.");
+        throw new HttpMessageNotReadableException("CSWResponse message converter do not support reading.", him);
     }
 
     @Override

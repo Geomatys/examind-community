@@ -35,8 +35,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import org.geotoolkit.filter.FilterFactory2;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
@@ -49,6 +47,9 @@ import java.net.URL;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.sis.filter.DefaultFilterFactory;
+import org.apache.sis.geometry.GeneralEnvelope;
+import org.apache.sis.referencing.CommonCRS;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
@@ -61,6 +62,7 @@ import org.geotoolkit.gml.xml.v321.EnvelopeType;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import org.opengis.filter.Filter;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 
 /**
@@ -71,7 +73,7 @@ import org.opengis.filter.Filter;
 @RunWith(TestRunner.class)
 public class ElasticSearchIndexTest {
 
-    protected static final FilterFactory2 FF = FilterUtilities.FF;
+    protected static final DefaultFilterFactory FF = FilterUtilities.FF;
 
 
     private static final Logger LOGGER = Logging.getLogger("org.constellation.metadata");
@@ -80,7 +82,7 @@ public class ElasticSearchIndexTest {
 
     private static ElasticSearchNodeIndexer indexer;
 
-    private static final File configDirectory  = new File("ElasticSearchIndexTest");
+    private static final File CONFIG_DIRECTORY  = new File("ElasticSearchIndexTest");
 
     private static String GEOM_PROP= "geoextent";
 
@@ -105,7 +107,7 @@ public class ElasticSearchIndexTest {
 
         LOGGER.info("\n\n ELASTIC-SEARCH SERVER PRESENT \n\n");
 
-        IOUtilities.deleteRecursively(configDirectory.toPath());
+        IOUtilities.deleteRecursively(CONFIG_DIRECTORY.toPath());
         List<Node> object         = fillTestData();
         String indexName          = "ElasticSearchIndexTest" + UUID.randomUUID().toString();
         indexer                   = new ElasticSearchNodeIndexer(object, "localhost", 9200, null, null, null, indexName, new HashMap<>(), true);
@@ -119,7 +121,7 @@ public class ElasticSearchIndexTest {
             indexer.destroy();
         }
         if (indexSearcher != null) {indexSearcher.destroy();}
-        IOUtilities.deleteRecursively(configDirectory.toPath());
+        IOUtilities.deleteRecursively(CONFIG_DIRECTORY.toPath());
     }
 
 
@@ -1099,7 +1101,12 @@ public class ElasticSearchIndexTest {
         /**
          * Test 1 spatial search: BBOX filter
          */
-        XContentBuilder sf = SpatialFilterBuilder.build(FF.bbox(GEOM_PROP, -20, -20, 20, 20, "EPSG:4326"), false);
+        double min1[] = {-20, -20};
+        double max1[] = { 20,  20};
+        GeneralEnvelope bbox = new GeneralEnvelope(min1, max1);
+        CoordinateReferenceSystem crs = CommonCRS.defaultGeographic();
+        bbox.setCoordinateReferenceSystem(crs);
+        XContentBuilder sf = SpatialFilterBuilder.build(FF.bbox(FF.property(GEOM_PROP), bbox), false);
         SpatialQuery spatialQuery = new SpatialQuery(sf);
 
         Set<String> result = indexSearcher.doSearch(spatialQuery);
@@ -1122,7 +1129,7 @@ public class ElasticSearchIndexTest {
          */
         resultReport = "";
 
-        Filter f = FF.not(FF.bbox(GEOM_PROP, -20, -20, 20, 20, "CRS:84"));
+        Filter f = FF.not(FF.bbox(FF.property(GEOM_PROP), bbox));
         sf = SpatialFilterBuilder.build(f, false);
         spatialQuery = new SpatialQuery(null, sf);
 

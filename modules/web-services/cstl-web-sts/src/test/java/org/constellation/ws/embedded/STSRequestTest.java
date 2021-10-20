@@ -51,6 +51,7 @@ import static org.constellation.test.utils.TestResourceUtils.unmarshallSensorRes
 import org.constellation.test.utils.TestRunner;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.getCurrentPort;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.unmarshallJsonResponse;
+import org.geotoolkit.gml.AxisResolve;
 import org.geotoolkit.gml.GeometrytoJTS;
 import org.geotoolkit.gml.xml.v321.PointType;
 import org.junit.AfterClass;
@@ -1341,7 +1342,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         sb.append("\n\n\n").append("X=").append(x).append("  Y=").append(y).append('\n');
 
         Envelope e = new GeneralEnvelope(dp, dp);
-        Geometry geom = GeometrytoJTS.toJTS(pt, false);
+        Geometry geom = GeometrytoJTS.toJTS(pt, AxisResolve.AUTO, false);
         sb.append("WGS84  => " + e.getLowerCorner().getOrdinate(0) + " - " + e.getLowerCorner().getOrdinate(1)).append('\n');
         sb.append("Binary: ").append(org.apache.commons.codec.binary.Hex.encodeHexString(writer.write(geom))).append('\n');
 
@@ -1349,7 +1350,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         sb.append("27582  => " + e.getLowerCorner().getOrdinate(0) + " - " + e.getLowerCorner().getOrdinate(1)).append('\n');
         pt = new PointType(e.getLowerCorner());
-        geom = GeometrytoJTS.toJTS(pt, false);
+        geom = GeometrytoJTS.toJTS(pt, AxisResolve.AUTO, false);
         sb.append("Binary: ").append(org.apache.commons.codec.binary.Hex.encodeHexString(writer.write(geom))).append('\n');
     }
 

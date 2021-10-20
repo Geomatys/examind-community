@@ -62,7 +62,7 @@ public class WFSResponseWriter implements HttpMessageConverter<WFSResponse> {
 
     @Override
     public WFSResponse read(Class<? extends WFSResponse> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("WFSResponse message converter do not support reading.");
+        throw new HttpMessageNotReadableException("WFSResponse message converter do not support reading.", him);
     }
     
     @Override

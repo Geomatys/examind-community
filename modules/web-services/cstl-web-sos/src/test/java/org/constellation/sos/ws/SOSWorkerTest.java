@@ -775,7 +775,7 @@ public abstract class SOSWorkerTest {
 
         assertTrue(obsResult != null);
         assertEquals(expResult.getName(), obsResult.getName());
-        assertEquals(expResult.getFeatureOfInterest(), obsResult.getFeatureOfInterest());
+        assertEquals(expResult.getPropertyFeatureOfInterest(), obsResult.getPropertyFeatureOfInterest());
         assertEquals(expResult.getObservedProperty().getName().getCode(), obsResult.getObservedProperty().getName().getCode());
 
         // due to transient field observed properties name will not be equals. so if the code is equals, we assume that its correct
@@ -853,7 +853,7 @@ public abstract class SOSWorkerTest {
 
         assertTrue(obsResult != null);
         assertEquals(expResult.getName(), obsResult.getName());
-        assertEquals(expResult.getFeatureOfInterest(), obsResult.getFeatureOfInterest());
+        assertEquals(expResult.getPropertyFeatureOfInterest(), obsResult.getPropertyFeatureOfInterest());
          assertEquals(expResult.getObservedProperty().getName().getCode(), obsResult.getObservedProperty().getName().getCode());
 
         // due to transient field observed properties name will not be equals. so if the code is equals, we assume that its correct
@@ -899,7 +899,7 @@ public abstract class SOSWorkerTest {
 
         assertTrue(obsResult != null);
         assertEquals(expResult.getName(), obsResult.getName());
-        assertEquals(expResult.getFeatureOfInterest(), obsResult.getFeatureOfInterest());
+        assertEquals(expResult.getPropertyFeatureOfInterest(), obsResult.getPropertyFeatureOfInterest());
          assertEquals(expResult.getObservedProperty().getName().getCode(), obsResult.getObservedProperty().getName().getCode());
 
         // due to transient field observed properties name will not be equals. so if the code is equals, we assume that its correct
@@ -1091,7 +1091,7 @@ public abstract class SOSWorkerTest {
 
         assertTrue(obsResult != null);
         assertEquals(expResult.getName(), obsResult.getName());
-        assertEquals(expResult.getFeatureOfInterest(), obsResult.getFeatureOfInterest());
+        assertEquals(expResult.getPropertyFeatureOfInterest(), obsResult.getPropertyFeatureOfInterest());
         assertPhenomenonEquals(expResult, obsResult);
         assertProcedureEquals(expResult.getProcedure(), obsResult.getProcedure());
 
@@ -1625,9 +1625,10 @@ public abstract class SOSWorkerTest {
 
         assertTrue(obsResult != null);
         assertEquals(expResult.getName(), obsResult.getName());
-        assertTrue(obsResult.getFeatureOfInterest() instanceof SamplingCurveType);
-        SamplingCurveType sampCurveResult    = (SamplingCurveType) obsResult.getFeatureOfInterest();
-        SamplingCurveType sampCurveRxpResult = (SamplingCurveType) expResult.getFeatureOfInterest();
+        assertNotNull(obsResult.getPropertyFeatureOfInterest());
+        assertTrue(obsResult.getPropertyFeatureOfInterest().getAbstractFeature() instanceof SamplingCurveType);
+        SamplingCurveType sampCurveResult    = (SamplingCurveType) obsResult.getPropertyFeatureOfInterest().getAbstractFeature();
+        SamplingCurveType sampCurveRxpResult = (SamplingCurveType) expResult.getPropertyFeatureOfInterest().getAbstractFeature();
         assertEquals(sampCurveResult.getLength(), sampCurveRxpResult.getLength());
         assertEquals(sampCurveResult.getShape(), sampCurveRxpResult.getShape());
         assertEquals(sampCurveResult.getBoundedBy(), sampCurveRxpResult.getBoundedBy());

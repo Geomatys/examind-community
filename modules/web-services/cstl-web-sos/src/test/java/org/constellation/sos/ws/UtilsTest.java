@@ -196,22 +196,22 @@ public class UtilsTest {
 
         Envelope result = SensorUtils.getCollectionBound("1.0.0", observations, "urn:ogc:def:crs:EPSG::4326");
 
-        EnvelopeType expResult = new EnvelopeType(null, new DirectPositionType(-180.0, -90.0), new DirectPositionType(180.0, 90.0), "urn:ogc:def:crs:EPSG::4326");
+        EnvelopeType expResult = new EnvelopeType(new DirectPositionType(-180.0, -90.0), new DirectPositionType(180.0, 90.0), "urn:ogc:def:crs:EPSG::4326");
         expResult.setSrsDimension(2);
         expResult.setAxisLabels("Y X");
         assertEquals(expResult, result);
 
 
         SamplingPointType sp1 = new SamplingPointType(null, null, null, null, null);
-        sp1.setBoundedBy(new EnvelopeType(null, new DirectPositionType(-10.0, -10.0), new DirectPositionType(10.0, 10.0), "urn:ogc:def:crs:EPSG::4326"));
+        sp1.setBoundedBy(new EnvelopeType(new DirectPositionType(-10.0, -10.0), new DirectPositionType(10.0, 10.0), "urn:ogc:def:crs:EPSG::4326"));
         obs1 = new ObservationType(null, null, sp1, pheno, null, this, null);
 
         SamplingPointType sp2 = new SamplingPointType(null, null, null, null, null);
-        sp2.setBoundedBy(new EnvelopeType(null, new DirectPositionType(-5.0, -5.0), new DirectPositionType(15.0, 15.0), "urn:ogc:def:crs:EPSG::4326"));
+        sp2.setBoundedBy(new EnvelopeType(new DirectPositionType(-5.0, -5.0), new DirectPositionType(15.0, 15.0), "urn:ogc:def:crs:EPSG::4326"));
         obs2 = new ObservationType(null, null, sp2, pheno, null, this, null);
 
         SamplingPointType sp3 = new SamplingPointType(null, null, null, null, null);
-        sp3.setBoundedBy(new EnvelopeType(null, new DirectPositionType(0.0, -8.0), new DirectPositionType(20.0, 10.0), "urn:ogc:def:crs:EPSG::4326"));
+        sp3.setBoundedBy(new EnvelopeType(new DirectPositionType(0.0, -8.0), new DirectPositionType(20.0, 10.0), "urn:ogc:def:crs:EPSG::4326"));
         obs3 = new ObservationType(null, null, sp3, pheno, null, this, null);
 
         observations = new ArrayList<>();
@@ -221,7 +221,7 @@ public class UtilsTest {
 
         result = SensorUtils.getCollectionBound("1.0.0", observations, "urn:ogc:def:crs:EPSG::4326");
 
-        expResult = new EnvelopeType(null, new DirectPositionType(-10.0, -10.0), new DirectPositionType(20.0, 15.0), "urn:ogc:def:crs:EPSG::4326");
+        expResult = new EnvelopeType(new DirectPositionType(-10.0, -10.0), new DirectPositionType(20.0, 15.0), "urn:ogc:def:crs:EPSG::4326");
         expResult.setSrsDimension(2);
         expResult.setAxisLabels("Y X");
 

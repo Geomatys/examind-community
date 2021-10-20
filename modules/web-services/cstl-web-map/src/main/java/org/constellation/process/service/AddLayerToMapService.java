@@ -36,6 +36,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import org.apache.sis.parameter.Parameters;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.DataBrief;
@@ -46,7 +47,6 @@ import static org.constellation.process.service.AddLayerToMapServiceDescriptor.*
 import org.constellation.util.OGCFilterToDTOTransformer;
 import org.constellation.util.Util;
 import org.geotoolkit.util.NamesExt;
-import static org.geotoolkit.parameter.Parameters.getOrCreate;
 import org.opengis.util.GenericName;
 
 /**
@@ -86,15 +86,15 @@ public class AddLayerToMapService extends AbstractCstlProcess {
                                                     final DataReference layerRef, final String layerAlias,
                                                     final DataReference layerStyleRef, final Filter layerFilter,
                                                     final String layerDimension, final GetFeatureInfoCfg[] customGFI){
-        final ParameterValueGroup params = INSTANCE.getInputDescriptor().createValue();
-        getOrCreate(LAYER_REF, params).setValue(layerRef);
-        getOrCreate(LAYER_ALIAS, params).setValue(layerAlias);
-        getOrCreate(LAYER_STYLE, params).setValue(layerStyleRef);
-        getOrCreate(LAYER_FILTER, params).setValue(layerFilter);
-        getOrCreate(LAYER_DIMENSION, params).setValue(layerDimension);
-        getOrCreate(LAYER_CUSTOM_GFI, params).setValue(customGFI);
-        getOrCreate(SERVICE_TYPE, params).setValue(serviceType);
-        getOrCreate(SERVICE_INSTANCE, params).setValue(serviceInstance);
+        final Parameters params = Parameters.castOrWrap(INSTANCE.getInputDescriptor().createValue());
+        params.getOrCreate(LAYER_REF).setValue(layerRef);
+        params.getOrCreate(LAYER_ALIAS).setValue(layerAlias);
+        params.getOrCreate(LAYER_STYLE).setValue(layerStyleRef);
+        params.getOrCreate(LAYER_FILTER).setValue(layerFilter);
+        params.getOrCreate(LAYER_DIMENSION).setValue(layerDimension);
+        params.getOrCreate(LAYER_CUSTOM_GFI).setValue(customGFI);
+        params.getOrCreate(SERVICE_TYPE).setValue(serviceType);
+        params.getOrCreate(SERVICE_INSTANCE).setValue(serviceInstance);
         return params;
     }
 
@@ -188,7 +188,7 @@ public class AddLayerToMapService extends AbstractCstlProcess {
         }
 
         //output
-        getOrCreate(OUT_LAYER, outputParameters).setValue(newLayer);
+        outputParameters.getOrCreate(OUT_LAYER).setValue(newLayer);
 
     }
 }

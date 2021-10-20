@@ -60,6 +60,7 @@ import static org.constellation.util.NodeUtilities.updateObjects;
 import static org.constellation.util.NodeUtilities.extractNodes;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
+import org.w3c.dom.Attr;
 
 /**
  * A CSW Metadata Writer. This writer does not require a database.
@@ -233,7 +234,7 @@ public class FileMetadataWriter extends AbstractMetadataWriter {
             if (xpath.indexOf('/', 1) != -1) {
 
                 Node parent = metadataDoc.getDocumentElement();
-                NodeUtilities.NodeAndOrdinal nao = extractNodes(parent, xpath, true);
+                NodeUtilities.NodeAndOrdinal nao = extractNodes(parent, xpath, ALL_PREFIX_MAPPING, true);
 
                 // we verify that the metadata to update has the same type that the Xpath type
                 if (nao == null) {
@@ -257,7 +258,11 @@ public class FileMetadataWriter extends AbstractMetadataWriter {
 
                 List<Node> nodes = new ArrayList<>();
                 for (Node n : nao.nodes) {
-                    nodes.add(n.getParentNode());
+                    if (n instanceof Attr) {
+                        nodes.add(((Attr)n).getOwnerElement());
+                    } else if (n != null && n.getParentNode() != null) {
+                        nodes.add(n.getParentNode());
+                    }
                 }
 
                 updateObjects(nodes, propertyName, propertyNmsp, value);

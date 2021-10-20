@@ -69,7 +69,7 @@ public class ExceptionReportWriter implements HttpMessageConverter<ExceptionResp
 
     @Override
     public ExceptionResponse read(Class<? extends ExceptionResponse> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("Exception Response message converter do not support reading.");
+        throw new HttpMessageNotReadableException("Exception Response message converter do not support reading.", him);
     }
 
    @Override

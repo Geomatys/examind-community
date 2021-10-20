@@ -62,7 +62,7 @@ public class BoundingBoxWriter implements HttpMessageConverter<BoundingBox> {
     
     @Override
     public BoundingBox read(Class<? extends BoundingBox> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("Exception Response message converter do not support reading.");
+        throw new HttpMessageNotReadableException("Exception Response message converter do not support reading.", him);
     }
 
    @Override

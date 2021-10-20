@@ -32,19 +32,19 @@ import org.geotoolkit.process.ProcessFinder;
 import org.junit.*;
 import org.opengis.filter.Filter;
 import org.opengis.parameter.ParameterValueGroup;
-import javax.xml.namespace.QName;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import org.apache.sis.filter.DefaultFilterFactory;
+import org.apache.sis.geometry.GeneralEnvelope;
+import org.apache.sis.referencing.CommonCRS;
 import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.StyleReference;
-import org.geotoolkit.util.NamesExt;
 import org.constellation.exception.ConstellationException;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
-import org.geotoolkit.filter.FilterFactory2;
 import org.geotoolkit.filter.FilterUtilities;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -61,7 +61,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
     private static final String PROCESS_NAME = "service.add_layer";
     private static DataReference COUNTRIES_DATA_REF;
     private static final StyleReference STYLE_DATA_REF = new StyleReference(null, "redBlue", 1, "sld");
-    private static final FilterFactory2 FF = FilterUtilities.FF;
+    private static final DefaultFilterFactory FF = FilterUtilities.FF;
 
     private Integer providerId;
 
@@ -105,7 +105,10 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
             serviceId = createCustomInstance("addLayer1", inputContext);
             startInstance("addLayer1");
 
-            final Filter bbox = FF.bbox("geom", 10, 0, 30, 50, null);
+            GeneralEnvelope env = new GeneralEnvelope(CommonCRS.defaultGeographic());
+            env.setRange(0, 10, 30);
+            env.setRange(1, 0, 50);
+            final Filter bbox = FF.bbox(FF.property("geom"), env);
 
             final ParameterValueGroup inputs = descriptor.getInputDescriptor().createValue();
             inputs.parameter(AddLayerToMapServiceDescriptor.LAYER_REF_PARAM_NAME).setValue(COUNTRIES_DATA_REF);
@@ -150,7 +153,10 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
 
             startInstance("addLayer2");
 
-            final Filter bbox = FF.bbox("geom", 10, 0, 30, 50, null);
+            GeneralEnvelope env = new GeneralEnvelope(CommonCRS.defaultGeographic());
+            env.setRange(0, 10, 30);
+            env.setRange(1, 0, 50);
+            final Filter bbox = FF.bbox(FF.property("geom"), env);
 
             final ParameterValueGroup inputs = descriptor.getInputDescriptor().createValue();
             inputs.parameter(AddLayerToMapServiceDescriptor.LAYER_REF_PARAM_NAME).setValue(COUNTRIES_DATA_REF);
@@ -248,7 +254,11 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
             serviceId = createCustomInstance("addLayer7", inputContext);
             startInstance("addLayer7");
 
-            final Filter bbox = FF.bbox("geom", 10, 0, 30, 50, null);
+            GeneralEnvelope env = new GeneralEnvelope(CommonCRS.defaultGeographic());
+            env.setRange(0, 10, 30);
+            env.setRange(1, 0, 50);
+            final Filter bbox = FF.bbox(FF.property("geom"), env);
+
             final GetFeatureInfoCfg[] customGFI = new GetFeatureInfoCfg[1];
             customGFI[0] = new GetFeatureInfoCfg("text/plain", CSVFeatureInfoFormat.class.getCanonicalName());
 

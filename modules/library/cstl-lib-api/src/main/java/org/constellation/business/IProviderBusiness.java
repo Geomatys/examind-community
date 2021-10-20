@@ -88,21 +88,6 @@ public interface IProviderBusiness {
      */
     Integer create(final String id, SPI_NAMES spiName, ParameterValueGroup spiConfiguration) throws ConfigurationException;
 
-    /**
-     * Create and save a provider object with given identifier. Input spi and configuration must be DataProviderFactory
-     * and its proper configuration filled from org.constellation.provider.DataProviderFactory#getProviderDescriptor().
-     *
-     * @param id The identifier (name) to give to the created provider.
-     * @param providerSPIName Name of the org.constellation.provider.DataProviderFactory to identify underlying data source type.
-     * @param providerConfig The configuration needed for providerSPI parameter to open a valid data source.
-     *
-     * @return A new Provider ID
-     * @throws ConfigurationException If a provider already exists with the given name, or if the configuration is invalid.
-     *
-     * @deprecated : Following procedure will be removed once the new DataStoreSource system will be created.
-     */
-    Integer create(final String id, final String providerSPIName, final ParameterValueGroup providerConfig) throws ConfigurationException;
-
     Set<GenericName> test(String providerIdentifier, ProviderConfiguration configuration) throws ConstellationException;
 
     void update(final Integer id, String providerConfig) throws ConfigurationException;
@@ -113,7 +98,20 @@ public interface IProviderBusiness {
 
     void update(final String id, SPI_NAMES spiName, ParameterValueGroup spiConfiguration) throws ConfigurationException;
 
-    Integer storeProvider(String providerId, ProviderType type, String factoryName, GeneralParameterValue config) throws ConfigurationException;
+    /**
+     * Create and save a provider object with given identifier.Input spi and configuration must be DataProviderFactory
+     * and its proper configuration filled from org.constellation.provider.DataProviderFactory#getProviderDescriptor().
+     *
+     * @param id The identifier (name) to give to the created provider.
+     * @param type The provider type
+     * @param factoryName Name of the org.constellation.provider.DataProviderFactory to identify underlying data source type.
+     * @param config The configuration needed for providerSPI parameter to open a valid data source.
+     *
+     * @return A new Provider ID
+     * @throws ConfigurationException If a provider already exists with the given name, or if the configuration is invalid.
+     *
+     */
+    Integer storeProvider(String id, ProviderType type, String factoryName, GeneralParameterValue config) throws ConfigurationException;
 
     /**
      * Get all datas from the specified provider

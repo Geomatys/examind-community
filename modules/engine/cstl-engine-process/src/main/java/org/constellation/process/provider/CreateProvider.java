@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.apache.sis.parameter.Parameters;
 import org.constellation.admin.SpringHelper;
+import org.constellation.api.ProviderType;
 import org.constellation.exception.ConstellationException;
 import org.constellation.business.IProviderBusiness;
 
@@ -96,7 +97,7 @@ public final class CreateProvider extends AbstractCstlProcess {
                 final ParameterValue pv = source.parameter("create_dataset");
                 final boolean createDataset = (pv!=null && Boolean.TRUE.equals(pv.getValue()));
 
-                final Integer pr = providerBusiness.create(id, service.getName(), source);
+                final Integer pr = providerBusiness.storeProvider(id, ProviderType.LAYER, service.getName(), source);
                 providerBusiness.createOrUpdateData(pr, null, createDataset, false, null);
 
                 outputParameters.getOrCreate(CREATED_ID).setValue(pr);

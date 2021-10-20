@@ -35,6 +35,7 @@ import java.util.logging.Level;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.xml.bind.JAXBException;
+import org.apache.sis.filter.DefaultFilterFactory;
 import org.apache.sis.internal.storage.query.SimpleQuery;
 import org.apache.sis.internal.system.DefaultFactories;
 
@@ -81,7 +82,6 @@ import org.geotoolkit.style.interval.DefaultIntervalPalette;
 import org.geotoolkit.style.interval.IntervalPalette;
 import org.opengis.feature.Feature;
 import org.opengis.filter.Filter;
-import org.geotoolkit.filter.FilterFactory2;
 import org.opengis.sld.LayerStyle;
 import org.opengis.sld.NamedLayer;
 import org.opengis.sld.UserLayer;
@@ -259,7 +259,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                 double maximum = Double.NEGATIVE_INFINITY;
 
                 final MutableStyleFactory SF = (MutableStyleFactory) DefaultFactories.forBuildin(StyleFactory.class);
-                final FilterFactory2 FF = FilterUtilities.FF;
+                final DefaultFilterFactory FF = FilterUtilities.FF;
 
                 final ValueReference property = FF.property(attribute);
 
@@ -373,7 +373,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
 
     private Symbolizer createSymbolizer(final String symbolizerType) {
         final MutableStyleFactory SF = GO2Utilities.STYLE_FACTORY;
-        final FilterFactory2 FF = GO2Utilities.FILTER_FACTORY;
+        final DefaultFilterFactory FF = GO2Utilities.FILTER_FACTORY;
         final Symbolizer symbolizer;
         if ("polygon".equals(symbolizerType)) {
             final Stroke stroke = SF.stroke(Color.BLACK, 1);
@@ -487,7 +487,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                 * II - Extract all different values.
                 */
                 final MutableStyleFactory SF = (MutableStyleFactory) DefaultFactories.forBuildin(StyleFactory.class);
-                final FilterFactory2 FF = FilterUtilities.FF;
+                final DefaultFilterFactory FF = FilterUtilities.FF;
                 final ValueReference property = FF.property(attribute);
                 final List<Object> differentValues = new ArrayList<>();
 
@@ -594,7 +594,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                 FeatureSet fs = (FeatureSet) rs;
 
                 final Map<Object,Long> mapping = new LinkedHashMap<>();
-                final FilterFactory2 FF = FilterUtilities.FF;
+                final DefaultFilterFactory FF = FilterUtilities.FF;
                 final ValueReference property = FF.property(attribute);
 
                 final SimpleQuery query = new SimpleQuery();

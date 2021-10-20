@@ -68,7 +68,7 @@ public class RenderedImageWriter implements HttpMessageConverter<RenderedImage> 
 
     @Override
     public RenderedImage read(Class<? extends RenderedImage> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("Rendered image message converter do not support reading.");
+        throw new HttpMessageNotReadableException("Rendered image message converter do not support reading.", him);
     }
 
     @Override

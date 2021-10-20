@@ -19,12 +19,12 @@
 
 package org.constellation.json.util;
 
+import org.apache.sis.filter.DefaultFilterFactory;
 import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.util.Static;
 import org.geotoolkit.sld.DefaultSLDFactory;
 import org.geotoolkit.sld.MutableSLDFactory;
 import org.geotoolkit.style.MutableStyleFactory;
-import org.geotoolkit.filter.FilterFactory2;
 import org.geotoolkit.filter.FilterUtilities;
 import org.opengis.style.StyleFactory;
 
@@ -48,5 +48,5 @@ public final class StyleFactories extends Static {
     /**
      * Filters factory.
      */
-    public static final FilterFactory2 FF = FilterUtilities.FF;
+    public static final DefaultFilterFactory FF = FilterUtilities.FF;
 }

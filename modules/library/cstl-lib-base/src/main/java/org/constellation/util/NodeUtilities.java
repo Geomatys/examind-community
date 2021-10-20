@@ -421,57 +421,6 @@ public class NodeUtilities {
          return new NodeAndOrdinal(ordinal, nodes, propertyName);
     }
 
-    @Deprecated
-    public static NodeAndOrdinal extractNodes(final Node metadata, String fullPathID, boolean create) {
-        // remove Standard
-        final String pathPrefix = fullPathID.substring(1, fullPathID.indexOf(':'));
-        fullPathID = fullPathID.substring(fullPathID.indexOf(':') + 1);
-        final String pathType =  fullPathID.substring(0, fullPathID.indexOf('/'));
-        if (!matchType(metadata, pathType, pathPrefix)) {
-            return null;
-        }
-         String pathID;
-         String conditionalPath  = null;
-         String conditionalValue = null;
-
-         // if the path ID contains a # we have a conditional value next to the searched value.
-         final int separator = fullPathID.indexOf('#');
-         if (separator != -1) {
-             pathID               = fullPathID.substring(0, separator);
-             conditionalPath      = pathID + '/' + fullPathID.substring(separator + 1, fullPathID.indexOf('='));
-             conditionalValue     = fullPathID.substring(fullPathID.indexOf('=') + 1);
-             int nextSeparator    = conditionalValue.indexOf('/');
-             if (nextSeparator == -1) {
-                 throw new IllegalArgumentException("A conditionnal path must be in the form ...start_path#conditional_path=value/endPath");
-             } else {
-                 pathID = pathID + conditionalValue.substring(nextSeparator);
-                 conditionalValue = conditionalValue.substring(0, nextSeparator);
-             }
-         } else {
-             pathID = fullPathID;
-         }
-
-         final String propertyName;
-         int ordinal = -1;
-         if (pathID.endsWith("]") && pathID.indexOf('[') != -1) {
-             try {
-                 ordinal = Integer.parseInt(pathID.substring(pathID.lastIndexOf('[') + 1, pathID.length() - 1));
-             } catch (NumberFormatException ex) {
-                 LOGGER.warning("Unable to parse last path ordinal");
-             }
-             propertyName = pathID.substring(pathID.lastIndexOf('/') + 1, pathID.indexOf('['));
-         } else {
-             propertyName = pathID.substring(pathID.lastIndexOf('/') + 1, pathID.length());
-         }
-         final List<Node> nodes;
-         if (conditionalPath == null) {
-             nodes = getNodeFromPath(metadata, pathID, create);
-         } else {
-             nodes  = getNodeFromConditionalPath(pathID, conditionalPath, conditionalValue, metadata); // create?
-         }
-         return new NodeAndOrdinal(ordinal, nodes, propertyName);
-    }
-
     public static class NodeAndOrdinal {
         public final int ordinal;
         public final List<Node> nodes;
@@ -542,16 +491,6 @@ public class NodeUtilities {
             }
         }
         return result;
-    }
-
-    /**
-     * @deprecated This method should be replaced by {@link  NodeUtilities#matchRootName(org.w3c.dom.Node, java.lang.String, java.lang.String)}
-     * because the prefix can change and does not reflect a real namespace.
-     */
-    @Deprecated
-    private static boolean matchType(final Node n, final String type, final String prefix) {
-        final List<String> namespaces = XpathUtils.getNamespaceFromPrefix(prefix);
-        return (type.equals(n.getLocalName()) || type.equals("*")) && namespaces.contains(n.getNamespaceURI());
     }
 
     /**

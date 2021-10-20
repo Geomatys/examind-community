@@ -23,6 +23,7 @@ import org.constellation.dto.InternalSensor;
 import static org.constellation.database.api.jooq.tables.InternalSensor.INTERNAL_SENSOR;
 import org.constellation.database.api.jooq.tables.records.InternalSensorRecord;
 import org.constellation.repository.InternalSensorRepository;
+import org.jooq.Select;
 import org.jooq.UpdateSetFirstStep;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
@@ -81,7 +82,8 @@ public class JooqInternalSensorRepository extends AbstractJooqRespository<Intern
 
     @Override
     public int countSensors() {
-        return dsl.select(INTERNAL_SENSOR.SENSOR_ID).from(INTERNAL_SENSOR).fetchCount();
+        final Select query = dsl.select(INTERNAL_SENSOR.SENSOR_ID).from(INTERNAL_SENSOR);
+        return dsl.fetchCount(query);
     }
 
     @Override

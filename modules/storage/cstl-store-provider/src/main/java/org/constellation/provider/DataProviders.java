@@ -63,18 +63,14 @@ import org.constellation.exception.ConstellationStoreException;
 import org.constellation.exception.TargetNotFoundException;
 import org.constellation.repository.ProviderRepository;
 import org.constellation.util.ParamUtilities;
-import org.constellation.util.nio.PathExtensionVisitor;
 import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.geometry.GeometricUtilities;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.io.wkt.PrjFiles;
-import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.storage.ResourceType;
 import org.geotoolkit.storage.StoreMetadataExt;
-import org.geotoolkit.storage.feature.FeatureStore;
-import org.geotoolkit.storage.feature.FileFeatureStoreFactory;
 import org.geotoolkit.storage.memory.ExtendedFeatureStore;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -303,58 +299,6 @@ public final class DataProviders extends Static{
     }
 
     /**
-     * Search a feature factory matching (by file extension) in the files pointed by the specified path.
-     * Return then the factory code and a path pointing to the matching file.
-     *
-     * @param dataPath
-     * @param factoryComparator
-     * @return
-     * @throws IOException
-     */
-    public static String[] findFeatureFactoryForFiles(String dataPath) throws IOException {
-
-        final Path file = IOUtilities.toPath(dataPath);
-        final boolean importFromDirectory = Files.isDirectory(file);
-
-        PathExtensionVisitor extensionVisitor = new PathExtensionVisitor();
-        Files.walkFileTree(file, extensionVisitor);
-        final Map<String, SortedSet<Path>> extensions = extensionVisitor.getExtensions();
-
-        //search and sort possible file feature stores
-        final List<FileFeatureStoreFactory> factories = new ArrayList(DataStores.getProviders(FileFeatureStoreFactory.class));
-        //Collections.sort(factories, factoryComparator);
-
-        //find factory which can support the given file
-        DataStoreProvider validFactory = null;
-        search:
-        for (FileFeatureStoreFactory f : factories) {
-            final Collection<String> exts = f.getSuffix();
-            for (String ext : exts) {
-                //HACK to remove dot at beginning of ext
-                ext = ext.startsWith(".") ? ext.substring(1) : ext;
-
-                if (extensions.keySet().contains(ext)) {
-
-                    validFactory = (DataStoreProvider) f;
-
-                    //change data url to point directly to matching file
-                    final SortedSet<Path> files = extensions.get(ext);
-                    dataPath = files.iterator().next().toAbsolutePath().toString();
-                    break search;
-                }
-            }
-        }
-
-        if (validFactory==null) {
-            throw new UnsupportedOperationException("The uploaded file (or zip content) is not recognized or not supported by the application.");
-        }
-
-        final String subType = validFactory.getOpenParameters().getName().getCode();
-
-        return new String[]{dataPath, subType};
-    }
-
-    /**
      * Returns scales array for data.(for wmts scales)
      *
      * @param providerId Identifier of the provider
@@ -542,23 +486,13 @@ public final class DataProviders extends Static{
      * Release all loaded providers.
      */
     public synchronized static void dispose() {
-        try{
+        try {
             //sproviders were loaded, dispose each of them
-            for(final Integer key : CACHE.keySet()){
+            for (final Integer key : CACHE.keySet()) {
                 dispose(key);
             }
-        }finally{
+        } finally {
             CACHE.clear();
-        }
-    }
-
-    private static String getType(Resource r) throws DataStoreException {
-        if (r instanceof GridCoverageResource) {
-            return "raster";
-        } else if (r instanceof FeatureSet) {
-            return "vector";
-        } else {
-            return "unknow";
         }
     }
 
@@ -705,9 +639,8 @@ public final class DataProviders extends Static{
             } else if(datastore instanceof ExtendedFeatureStore) {
 
                 final ExtendedFeatureStore efs = (ExtendedFeatureStore) datastore;
-                final FeatureStore fstore = efs.getWrapped();
-                if (fstore instanceof ResourceOnFileSystem) {
-                    dataFileStore = (ResourceOnFileSystem)fstore;
+                if (efs.getWrapped() instanceof ResourceOnFileSystem) {
+                    dataFileStore = (ResourceOnFileSystem)efs.getWrapped();
                 } else {
                     return false;
                 }

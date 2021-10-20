@@ -60,7 +60,7 @@ public class GridCoverageNCWriter implements HttpMessageConverter<Entry<GridCove
 
     @Override
     public Entry read(Class<? extends Entry<GridCoverage, SpatialMetadata>> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("Entry message converter do not support reading.");
+        throw new HttpMessageNotReadableException("Entry message converter do not support reading.", him);
     }
 
     @Override

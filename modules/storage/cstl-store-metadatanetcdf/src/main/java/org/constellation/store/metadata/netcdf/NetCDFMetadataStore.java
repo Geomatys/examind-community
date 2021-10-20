@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import javax.xml.namespace.QName;
 import org.apache.sis.metadata.ModifiableMetadata;
 import org.apache.sis.metadata.iso.DefaultIdentifier;
 import org.apache.sis.metadata.iso.DefaultMetadata;
@@ -60,8 +59,7 @@ public class NetCDFMetadataStore extends AbstractCstlMetadataStore implements Re
         super(params);
         configurationParams = (Map) params.parameter(CONFIG_PARAMS.getName().toString()).getValue();
         final Path folder   =  (Path) params.parameter(FOLDER.getName().toString()).getValue();
-        reader = new NetCDFMetadataReader(configurationParams, folder);
-
+        reader = new NetCDFMetadataReader(configurationParams, folder, Collections.EMPTY_MAP);
     }
 
     @Override

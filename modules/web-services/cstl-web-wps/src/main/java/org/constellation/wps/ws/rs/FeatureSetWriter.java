@@ -64,7 +64,7 @@ public class FeatureSetWriter implements HttpMessageConverter<FeatureSet> {
 
     @Override
     public FeatureSet read(Class<? extends FeatureSet> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("Feature Collection message converter do not support reading.");
+        throw new HttpMessageNotReadableException("Feature Collection message converter do not support reading.", him);
     }
 
    @Override

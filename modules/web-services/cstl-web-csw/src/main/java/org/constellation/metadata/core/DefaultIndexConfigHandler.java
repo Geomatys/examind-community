@@ -137,18 +137,6 @@ public class DefaultIndexConfigHandler implements IndexConfigHandler{
     }
 
     @Override
-    public FilterParser getSQLFilterParser(final Automatic configuration) throws ConfigurationException {
-
-        String indexType = configuration.getIndexType();
-        IndexProvider indexProvider = providers.get(indexType);
-        if (indexProvider != null) {
-            return indexProvider.getSQLFilterParser(configuration);
-        } else {
-            throw new ConfigurationException("unexpected Datasource type: can't find proper filter parser \""+ indexType +"\"");
-        }
-    }
-
-    @Override
     public MetadataSecurityFilter getSecurityFilter() {
         return new NoMetadataSecurityFilter();
     }

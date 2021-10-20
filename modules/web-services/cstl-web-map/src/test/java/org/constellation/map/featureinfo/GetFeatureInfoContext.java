@@ -43,7 +43,7 @@ class GetFeatureInfoContext {
      * @return Created layer for further configuration.
      */
     public MapLayer createLayer(String name, FeatureType datatype, List<Feature> dataset) {
-        final MapLayer layer = MapBuilder.createFeatureLayer(new InMemoryFeatureSet(datatype, dataset));
+        final MapLayer layer = MapBuilder.createLayer(new InMemoryFeatureSet(datatype, dataset));
         prepareLayer(name, layer);
 
         return layer;

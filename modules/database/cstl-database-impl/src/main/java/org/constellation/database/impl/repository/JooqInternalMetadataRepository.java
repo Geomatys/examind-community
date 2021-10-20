@@ -23,6 +23,7 @@ import static org.constellation.database.api.jooq.Tables.INTERNAL_METADATA;
 import org.constellation.dto.metadata.InternalMetadata;
 import org.constellation.database.api.jooq.tables.records.InternalMetadataRecord;
 import org.constellation.repository.InternalMetadataRepository;
+import org.jooq.Select;
 import org.jooq.UpdateSetFirstStep;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
@@ -84,7 +85,8 @@ public class JooqInternalMetadataRepository extends AbstractJooqRespository<Inte
 
     @Override
     public int countMetadata() {
-        return dsl.select(INTERNAL_METADATA.METADATA_ID).from(INTERNAL_METADATA).fetchCount();
+        final Select query = dsl.select(INTERNAL_METADATA.METADATA_ID).from(INTERNAL_METADATA);
+        return dsl.fetchCount(query);
     }
 
     @Override

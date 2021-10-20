@@ -60,7 +60,7 @@ public class GeneralParameterDescriptorConverter implements HttpMessageConverter
 
     @Override
     public GeneralParameterDescriptor read(Class<? extends GeneralParameterDescriptor> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("General Parameter Descriptor message converter do not support reading.");
+        throw new HttpMessageNotReadableException("General Parameter Descriptor message converter do not support reading.", him);
     }
 
     @Override

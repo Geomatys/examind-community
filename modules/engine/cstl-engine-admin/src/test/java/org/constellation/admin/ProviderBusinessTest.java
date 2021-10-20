@@ -26,6 +26,7 @@ import javax.annotation.PostConstruct;
 import org.apache.sis.parameter.DefaultParameterValueGroup;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.ComparisonMode;
+import org.constellation.api.ProviderType;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.exception.ConfigurationException;
@@ -122,7 +123,7 @@ public class ProviderBusinessTest {
                 providerConf.groups("choice").get(0).addGroup(config.getDescriptor().getName().getCode());
         org.apache.sis.parameter.Parameters.copy(config, choice);
 
-        Integer read = pBusiness.create(id, factory.getName(), providerConf);
+        Integer read = pBusiness.storeProvider(id, ProviderType.LAYER, factory.getName(), providerConf);
         // TODO : Re-activate when auto-generated equals will be done.
         //Assert.assertEquals("Created provider must be equal to read one.", p, read);
 

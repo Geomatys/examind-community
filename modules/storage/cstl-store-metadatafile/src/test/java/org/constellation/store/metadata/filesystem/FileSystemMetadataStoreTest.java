@@ -22,7 +22,9 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,6 +39,7 @@ import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFi
 import org.constellation.util.NodeUtilities;
 import org.constellation.util.Util;
 import org.geotoolkit.csw.xml.DomainValues;
+import org.geotoolkit.csw.xml.v202.RecordPropertyType;
 import org.geotoolkit.csw.xml.v202.RecordType;
 import org.geotoolkit.ebrim.xml.EBRIMMarshallerPool;
 import org.geotoolkit.metadata.MetadataType;
@@ -207,6 +210,43 @@ public class FileSystemMetadataStoreTest {
         result = fsStore1.deleteMetadata("CTDF02");
         Assert.assertTrue(result);
     }
+
+    @Test
+    @Order(order=5)
+    public void updateMetadataTest() throws Exception {
+
+        RecordInfo result = fsStore1.getMetadata("42292_5p_19900609195600", MetadataType.NATIVE);
+        Assert.assertNotNull(result);
+        Assert.assertEquals(MetadataType.NATIVE, result.actualFormat);
+        Assert.assertEquals(MetadataType.ISO_19115, result.originalFormat);
+        Assert.assertEquals("42292_5p_19900609195600", result.identifier);
+        Assert.assertNotNull(result.node);
+        Object obj = NodeUtilities.getMetadataFromNode(result.node, EBRIMMarshallerPool.getInstance());
+        Assert.assertTrue(obj instanceof DefaultMetadata);
+        DefaultMetadata iso = (DefaultMetadata) obj;
+        Assert.assertEquals(iso.getLanguage(), Locale.ENGLISH);
+
+
+        /**
+         * update language from eng to fra
+         */
+        RecordPropertyType prop = new RecordPropertyType("/gmd:MD_Metadata/gmd:language/gmd:LanguageCode/@codeListValue", "fra");
+        boolean updated = fsStore1.updateMetadata("42292_5p_19900609195600", Collections.singletonMap(prop.getName(), prop.getValue()));
+        Assert.assertTrue(updated);
+
+        result = fsStore1.getMetadata("42292_5p_19900609195600", MetadataType.NATIVE);
+        Assert.assertNotNull(result);
+        Assert.assertEquals(MetadataType.NATIVE, result.actualFormat);
+        Assert.assertEquals(MetadataType.ISO_19115, result.originalFormat);
+        Assert.assertEquals("42292_5p_19900609195600", result.identifier);
+        Assert.assertNotNull(result.node);
+        obj = NodeUtilities.getMetadataFromNode(result.node, EBRIMMarshallerPool.getInstance());
+        Assert.assertTrue(obj instanceof DefaultMetadata);
+        iso = (DefaultMetadata) obj;
+        Assert.assertEquals(iso.getLanguage(), Locale.FRENCH);
+    }
+
+
 
     @Test
     @Order(order=6)

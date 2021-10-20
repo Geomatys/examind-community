@@ -78,13 +78,14 @@ import org.geotoolkit.coverage.xmlstore.XMLCoverageStoreFactory;
 import org.geotoolkit.map.MapBuilder;
 import org.apache.sis.portrayal.MapLayers;
 import org.apache.sis.portrayal.MapItem;
+import org.constellation.api.ProviderType;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
 import org.geotoolkit.process.Process;
 import org.geotoolkit.storage.coverage.DefiningCoverageResource;
 import org.geotoolkit.storage.multires.DefiningTileMatrixSet;
 import org.geotoolkit.storage.multires.MultiResolutionResource;
-import org.geotoolkit.storage.multires.TileMatrices;
+import org.geotoolkit.storage.multires.TileMatrixSetBuilder;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.geometry.Envelope;
@@ -568,7 +569,7 @@ public class PyramidBusiness implements IPyramidBusiness {
             xmlParams.getOrCreate(XMLCoverageStoreFactory.PATH).setValue(pyramidDirectory.toUri());
             xmlParams.getOrCreate(XMLCoverageStoreFactory.CACHE_TILE_STATE).setValue(cacheTileState);
 
-            Integer pid = providerBusiness.create(pyramidProviderId, factory.getName(), pparams);
+            Integer pid = providerBusiness.storeProvider(pyramidProviderId, ProviderType.LAYER, factory.getName(), pparams);
 
             final DataProvider outProvider = DataProviders.getProvider(pid);
 
@@ -605,7 +606,12 @@ public class PyramidBusiness implements IPyramidBusiness {
         try {
             //prepare the pyramid and mosaics
             final Dimension tileDim = new Dimension(tileSize, tileSize);
-            final DefiningTileMatrixSet template = TileMatrices.createTemplate(globalEnv, tileDim, scales);
+            final DefiningTileMatrixSet template = new TileMatrixSetBuilder()
+                                                        .setDomain(globalEnv, 1)
+                                                        .setScales(scales)
+                                                        .setNbTileThreshold(1)
+                                                        .setTileSize(tileDim)
+                                                        .build();
             outRef.createModel(template);
         } catch (DataStoreException ex) {
             throw new ConstellationException("Error while creating pyramid template.", ex);

@@ -34,7 +34,6 @@ import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.xml.namespace.QName;
 import org.apache.sis.parameter.Parameters;
-import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.api.DataType;
@@ -273,7 +272,7 @@ public class ProviderBusiness implements IProviderBusiness {
                 providerConfig.groups("choice").get(0).addGroup(spiConfiguration.getDescriptor().getName().getCode());
         org.apache.sis.parameter.Parameters.copy(spiConfiguration, choice);
 
-        return create(id, pFactory.getName(), providerConfig);
+        return storeProvider(id, ProviderType.LAYER, pFactory.getName(), providerConfig);
     }
 
     /**
@@ -293,20 +292,15 @@ public class ProviderBusiness implements IProviderBusiness {
             sources.parameter("id").setValue(id);
             sources.parameter("providerType").setValue(type);
             sources = fillProviderParameter(type, subType, inParams, sources);
-            return create(id, providerService.getName(), sources);
+            return storeProvider(id, ProviderType.LAYER, providerService.getName(), sources);
         }
         throw new ConfigurationException("Unable to find a provider factory for type:" + type);
     }
 
+    
     /**
      * {@inheritDoc}
      */
-    @Override
-    @Transactional
-    public Integer create(final String id, final String providerFactoryId, final ParameterValueGroup providerConfig) throws ConfigurationException {
-        return storeProvider(id, ProviderType.LAYER, providerFactoryId, providerConfig);
-    }
-
     @Override
     @Transactional
     public Integer storeProvider(final String identifier, final ProviderType type, final String providerFactoryId,

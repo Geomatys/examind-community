@@ -75,7 +75,7 @@ public class GridCoverageWriter implements HttpMessageConverter<GeotiffResponse>
 
     @Override
     public GeotiffResponse read(Class<? extends GeotiffResponse> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("Entry message converter do not support reading.");
+        throw new HttpMessageNotReadableException("Entry message converter do not support reading.", him);
     }
 
     @Override

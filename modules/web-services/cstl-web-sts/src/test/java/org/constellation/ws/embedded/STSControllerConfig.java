@@ -18,6 +18,7 @@
  */
 package org.constellation.ws.embedded;
 
+import com.examind.sts.ws.rs.STSResponseWriter;
 import java.util.List;
 import org.constellation.ws.rs.provider.ExceptionReportWriter;
 import org.springframework.context.annotation.Configuration;

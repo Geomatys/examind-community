@@ -33,7 +33,6 @@ import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
-import org.geotoolkit.filter.FilterFactory2;
 import org.opengis.geometry.Envelope;
 import org.opengis.temporal.TemporalObject;
 
@@ -103,7 +102,7 @@ public class OdataFilterParser {
                     Geometry geom = reader.read(geomStr);
                     geom.setUserData(CommonCRS.WGS84.geographic());
                     Envelope e = JTS.toEnvelope(geom);
-                    return ((FilterFactory2) ff).bbox(ff.property("location"), e);
+                    return ff.bbox(ff.property("location"), e);
                 } catch (ParseException ex) {
                     throw new CstlServiceException("malformed spatial filter geometry", INVALID_PARAMETER_VALUE, "FILTER");
                 }

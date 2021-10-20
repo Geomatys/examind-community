@@ -24,6 +24,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 import org.apache.sis.cql.CQLException;
+import org.apache.sis.filter.DefaultFilterFactory;
 import org.apache.sis.internal.storage.query.SimpleQuery;
 import org.apache.sis.portrayal.MapItem;
 import org.apache.sis.storage.Query;
@@ -36,7 +37,6 @@ import org.apache.sis.portrayal.MapLayer;
 import org.apache.sis.storage.DataStore;
 import org.geotoolkit.map.MapBuilder;
 import org.opengis.filter.Filter;
-import org.geotoolkit.filter.FilterFactory2;
 import org.geotoolkit.filter.FilterUtilities;
 import org.opengis.style.Style;
 import org.opengis.util.GenericName;
@@ -52,7 +52,7 @@ public abstract class DefaultGeoData<T extends Resource> extends AbstractData<T>
     }
 
     protected Filter buildDimFilter(final String dimName, final String dimValue) {
-        final FilterFactory2 factory = FilterUtilities.FF;
+        final DefaultFilterFactory factory = FilterUtilities.FF;
         Object value = dimValue;
         try {
             value = Double.parseDouble(dimValue);

@@ -67,7 +67,7 @@ public class MapContextMessageConverter implements HttpMessageConverter<FeedType
             if (o instanceof FeedType) {
                 return (FeedType) o;
             }
-            throw new HttpMessageNotReadableException("Bad object input found (not a FeedType).");
+            throw new HttpMessageNotReadableException("Bad object input found (not a FeedType).", inputMessage);
         } catch (JAXBException ex) {
             throw new IOException(ex);
         }

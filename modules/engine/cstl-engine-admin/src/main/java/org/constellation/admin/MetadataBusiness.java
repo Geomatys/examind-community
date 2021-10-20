@@ -55,7 +55,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URI;
@@ -1357,21 +1356,6 @@ public class MetadataBusiness implements IMetadataBusiness {
         try {
             final Unmarshaller um = EBRIMMarshallerPool.getInstance().acquireUnmarshaller();
             Object obj = um.unmarshal(new StringReader(metadata));
-            EBRIMMarshallerPool.getInstance().recycle(um);
-            return obj;
-        } catch (JAXBException ex) {
-            throw new ConfigurationException("Unable to unmarshall metadata", ex);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Object unmarshallMetadata(final File metadata) throws ConfigurationException {
-        try {
-            final Unmarshaller um = EBRIMMarshallerPool.getInstance().acquireUnmarshaller();
-            Object obj = um.unmarshal(metadata);
             EBRIMMarshallerPool.getInstance().recycle(um);
             return obj;
         } catch (JAXBException ex) {

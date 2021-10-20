@@ -152,7 +152,7 @@ public class InternalMetadataWriter extends AbstractMetadataWriter {
 
                 if (xpath.indexOf('/', 1) != -1) {
                     Node parent = metadataDoc.getDocumentElement();
-                    NodeUtilities.NodeAndOrdinal nao = extractNodes(parent, xpath, true);
+                    NodeUtilities.NodeAndOrdinal nao = extractNodes(parent, xpath, ALL_PREFIX_MAPPING, true);
 
                     // we verify that the metadata to update has the same type that the Xpath type
                     if (nao == null) {

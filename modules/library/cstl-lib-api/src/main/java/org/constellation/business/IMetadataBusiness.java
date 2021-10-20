@@ -550,16 +550,6 @@ public interface IMetadataBusiness {
     Object unmarshallMetadata(final String metadata) throws ConfigurationException;
 
     /**
-     * Unmarshall metadata from a File
-     * @param metadata
-     * @return
-     * @throws ConfigurationException
-     * @deprecated use {@link #unmarshallMetadata(Path)} instead
-     */
-    @Deprecated
-    Object unmarshallMetadata(final File metadata) throws ConfigurationException;
-
-    /**
      * Unmarshall metadata from a Path
      * @param metadata
      * @return

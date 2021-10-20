@@ -74,7 +74,7 @@ public class StreamResponseWriter implements HttpMessageConverter<ImageTile>  {
 
     @Override
     public ImageTile read(Class<? extends ImageTile> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("Stream response converter do not support reading.");
+        throw new HttpMessageNotReadableException("Stream response converter do not support reading.", him);
     }
 
     @Override

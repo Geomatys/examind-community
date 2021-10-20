@@ -61,7 +61,7 @@ public class TiffBufferedImageWriter<T extends BufferedImage> implements HttpMes
 
     @Override
     public T read(Class<? extends T> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-         throw new HttpMessageNotReadableException("Tiff image converter do not support reading.");
+         throw new HttpMessageNotReadableException("Tiff image converter do not support reading.", him);
     }
 
     @Override

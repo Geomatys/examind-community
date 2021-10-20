@@ -7,7 +7,6 @@ import org.constellation.business.IConfigurationBusiness;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.filter.FilterParser;
 import org.constellation.filter.LuceneFilterParser;
-import org.constellation.filter.SQLFilterParser;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.metadata.index.IndexProvider;
 import org.constellation.metadata.index.IndexSearcher;
@@ -57,11 +56,6 @@ public class LuceneNodeIndexProvider implements IndexProvider {
     @Override
     public FilterParser getFilterParser(Automatic configuration) throws ConfigurationException {
         return new LuceneFilterParser();
-    }
-
-    @Override
-    public FilterParser getSQLFilterParser(Automatic configuration) throws ConfigurationException {
-        return new SQLFilterParser();
     }
 
     @Override

@@ -73,6 +73,7 @@ import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
 import org.geotoolkit.geometry.jts.JTSEnvelope2D;
 import org.apache.sis.portrayal.MapLayers;
+import org.geotoolkit.internal.referencing.CRSUtilities;
 import org.geotoolkit.ows.xml.AbstractCapabilitiesCore;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.*;
 import org.geotoolkit.ows.xml.v110.AcceptFormatsType;
@@ -95,7 +96,6 @@ import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.temporal.util.TimeParser;
 import org.geotoolkit.wmts.WMTSUtilities;
 import org.geotoolkit.wmts.xml.WMTSMarshallerPool;
-import org.geotoolkit.wmts.xml.WMTSXmlFactory;
 import org.geotoolkit.wmts.xml.v100.Capabilities;
 import org.geotoolkit.wmts.xml.v100.ContentsType;
 import org.geotoolkit.wmts.xml.v100.Dimension;
@@ -302,7 +302,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                     }
 
                     final CoordinateReferenceSystem pyramidSetEnvCRS = pyramidSetEnv.getCoordinateReferenceSystem();
-                    final int xAxis = Math.max(0, CoverageUtilities.getMinOrdinate(pyramidSetEnvCRS));
+                    final int xAxis = Math.max(0, CRSUtilities.firstHorizontalAxis(pyramidSetEnvCRS));
                     final int yAxis = xAxis + 1;
 
                     /* We get pyramid set CRS components to identify additional dimensions. We remove horizontal component
@@ -343,7 +343,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                     final List<BoundingBoxType> bboxList = new ArrayList<>();
                     for (org.geotoolkit.storage.multires.TileMatrixSet pyramid : pyramids) {
                         final GeneralEnvelope pyramidEnv = CoverageUtilities.getPyramidEnvelope(pyramid);
-                        final int envXAxis = Math.max(0, CoverageUtilities.getMinOrdinate(pyramid.getCoordinateReferenceSystem()));
+                        final int envXAxis = Math.max(0, CRSUtilities.firstHorizontalAxis(pyramid.getCoordinateReferenceSystem()));
                         final int envYAxis = xAxis + 1;
                         final BoundingBoxType bbox = new WGS84BoundingBoxType(
                                 getCRSCode(pyramid.getCoordinateReferenceSystem()),

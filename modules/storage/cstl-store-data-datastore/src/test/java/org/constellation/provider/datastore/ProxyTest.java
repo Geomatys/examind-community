@@ -457,11 +457,6 @@ public class ProxyTest {
         }
 
         @Override
-        public Object unmarshallMetadata(File metadata) throws ConfigurationException {
-            throw new UnsupportedOperationException("Not supported yet"); // "Alexis Manin (Geomatys)" on 23/03/2020
-        }
-
-        @Override
         public Object unmarshallMetadata(Path metadata) throws ConfigurationException {
             throw new UnsupportedOperationException("Not supported yet"); // "Alexis Manin (Geomatys)" on 23/03/2020
         }

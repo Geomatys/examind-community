@@ -41,7 +41,6 @@ import org.geotoolkit.ogc.xml.XMLFilter;
 import org.geotoolkit.ogc.xml.ComparisonOperator;
 import org.geotoolkit.lucene.filter.LuceneOGCSpatialQuery;
 import org.geotoolkit.ogc.xml.BinaryComparisonOperator;
-import org.geotoolkit.filter.FilterFactory2;
 import org.opengis.filter.LikeOperator;
 import org.opengis.filter.NullOperator;
 import org.opengis.filter.Expression;
@@ -62,6 +61,7 @@ import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
+import org.apache.sis.filter.DefaultFilterFactory;
 import static org.constellation.api.CommonConstants.QUERY_CONSTRAINT;
 import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.index.LogicalFilterType;
@@ -94,7 +94,7 @@ import org.opengis.util.CodeList;
  */
 public abstract class AbstractFilterParser implements FilterParser {
 
-    protected static final FilterFactory2 FF = FilterUtilities.FF;
+    protected static final DefaultFilterFactory FF = FilterUtilities.FF;
 
     /**
      * use for debugging purpose
@@ -320,7 +320,7 @@ public abstract class AbstractFilterParser implements FilterParser {
     /**
      * Return a piece of query for An Id filter.
      *
-     * @param jbIdsOps an Id filter
+     * @param idfilter an Id filter
      * @return a piece of query.
      */
     protected String treatIDOperator(final ID idfilter) {
@@ -375,7 +375,7 @@ public abstract class AbstractFilterParser implements FilterParser {
     /**
      * Build a lucene Filter query with the specified Spatial filter.
      *
-     * @param jbSpatialOps a spatial filter.
+     * @param spatialOps a spatial filter.
      */
     protected Query treatSpatialOperator(final SpatialOperator spatialOps) throws FilterParserException {
         LuceneOGCSpatialQuery spatialQuery   = null;
@@ -402,8 +402,13 @@ public abstract class AbstractFilterParser implements FilterParser {
                                                  INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
             }
 
-            //we transform the EnvelopeType in GeneralEnvelope
-            spatialQuery = wrap(FF.bbox(GEOMETRY_PROPERTY, bbox.getMinX(), bbox.getMinY(),bbox.getMaxX(),bbox.getMaxY(),crsName));
+            Envelope envelope = bbox.getEnvelope();
+            // fix an issue if dimension are not set on envelope
+            if (envelope.getSrsDimension() == null) {
+                int dim = envelope.getCoordinateReferenceSystem().getCoordinateSystem().getDimension();
+                envelope.setSrsDimension(dim);
+            }
+            spatialQuery = wrap(FF.bbox(GEOMETRY_PROPERTY, bbox.getEnvelope()));
 
         } else if (spatialOps instanceof DistanceOperator) {
 

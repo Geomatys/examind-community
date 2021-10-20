@@ -69,7 +69,7 @@ public class PortrayalMessageConverter implements HttpMessageConverter<Portrayal
 
     @Override
     public PortrayalResponse read(Class<? extends PortrayalResponse> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("Portrayal message converter do not support reading.");
+        throw new HttpMessageNotReadableException("Portrayal message converter do not support reading.", him);
     }
 
     @Override

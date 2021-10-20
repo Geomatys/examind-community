@@ -64,7 +64,7 @@ public class TimeObjectConverter implements HttpMessageConverter<TemporalGeometr
 
     @Override
     public List<MediaType> getSupportedMediaTypes() {
-        return Arrays.asList(MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON_UTF8, MediaType.APPLICATION_XML, MediaType.TEXT_XML);
+        return Arrays.asList(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_XML);
     }
 
     @Override
@@ -76,8 +76,7 @@ public class TimeObjectConverter implements HttpMessageConverter<TemporalGeometr
     public void write(TemporalGeometricPrimitive r, MediaType mt, HttpOutputMessage hom) throws IOException, HttpMessageNotWritableException {
         try {
             // if it's a json POST, create a JSonMarshaller.
-            if (mt.equals(MediaType.APPLICATION_JSON) ||
-                mt.equals(MediaType.APPLICATION_JSON_UTF8)) {
+            if (mt.equals(MediaType.APPLICATION_JSON)) {
                 //transform xlm namespace to json namespace
                 Map<String, String> nSMap = new HashMap<>(0);
                 nSMap.put("http://www.opengis.net/gml/3.2", "gml32");

@@ -1,4 +1,21 @@
-
+/*
+ *    Constellation - An open source and standard compliant SDI
+ *    http://www.constellation-sdi.org
+ *
+ * Copyright 2021 Geomatys.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.constellation.metadata.index.elasticsearch;
 
 import java.io.IOException;
@@ -6,6 +23,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.logging.Logger;
+import org.apache.sis.util.logging.Logging;
 import static org.constellation.api.CommonConstants.QUERY_CONSTRAINT;
 import org.constellation.filter.FilterParserException;
 import org.constellation.filter.FilterParserUtils;
@@ -52,6 +71,8 @@ import org.opengis.util.FactoryException;
  */
 public class SpatialFilterBuilder {
 
+    private static final Logger LOGGER = Logging.getLogger("org.constellation.metadata.index.elasticsearch");
+    
     public static XContentBuilder build(Filter filter, boolean withPlugin) throws IOException, FilterParserException {
         XContentBuilder builder = XContentFactory.jsonBuilder();
         builder.startObject();
@@ -80,14 +101,14 @@ public class SpatialFilterBuilder {
                 builder.startObject("ogc_filter")
                        .startObject("geoextent")
                        .field("filter", "BBOX");
-                builder = addEnvelope(builder, bbox.getMinX(), bbox.getMaxX(), bbox.getMinY(), bbox.getMaxY(), withPlugin);
+                builder = addEnvelope(builder, bbox.getEnvelope(), withPlugin);
                 builder.field("CRS", crsName)
                        .endObject()
                        .endObject();
             } else {
                 builder.startObject("geo_shape")
                        .startObject("geoextent");
-                builder = addEnvelope(builder, bbox.getMinX(), bbox.getMaxX(), bbox.getMinY(), bbox.getMaxY(), withPlugin);
+                builder = addEnvelope(builder, bbox.getEnvelope(), withPlugin);
                 builder.field("relation", "intersects")
                        .endObject()
                        .endObject();
@@ -556,7 +577,7 @@ public class SpatialFilterBuilder {
             } else if (gmlGeom instanceof Envelope) {
                 final Envelope gmlEnvelope = (Envelope) gmlGeom;
                 crsName  = gmlEnvelope.getSrsName();
-                addEnvelope(builder, gmlEnvelope.getMinimum(0), gmlEnvelope.getMaximum(0), gmlEnvelope.getMinimum(1), gmlEnvelope.getMaximum(1), withPlugin);
+                addEnvelope(builder, gmlEnvelope, withPlugin);
 
             } else if (gmlGeom instanceof LineString) {
                 final LineString ls = (LineString) gmlGeom;
@@ -615,8 +636,16 @@ public class SpatialFilterBuilder {
         return builder;
     }
 
-    private static XContentBuilder addEnvelope(XContentBuilder builder, final double minx, final double maxx,
-            final double miny, final double maxy, boolean withPlugin) throws IOException {
+    private static XContentBuilder addEnvelope(XContentBuilder builder, final Envelope env, boolean withPlugin) throws IOException {
+        if (env.getDimension() < 2) {
+            throw new IllegalArgumentException("Envelope must have at least 2 dimensions.");
+        } else if (env.getDimension() > 2) {
+            LOGGER.warning("More than 2 dimension in envelope will be ignored");
+        }
+        final double minx = env.getMinimum(0);
+        final double maxx = env.getMaximum(0);
+        final double miny = env.getMinimum(1);
+        final double maxy = env.getMaximum(1);
         if (withPlugin) {
             builder.field("minx",         minx)
                    .field("maxx",         maxx)

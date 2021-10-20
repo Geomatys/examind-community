@@ -138,12 +138,12 @@ public class StyleMessageConverter implements HttpMessageConverter<Object> {
             }
         }
         
-        if(style==null){
-            throw new HttpMessageNotReadableException("No UserStyle definition found.");
+        if (style == null) {
+            throw new HttpMessageNotReadableException("No UserStyle definition found.", inputMessage);
         }
         
         //log styles which have been ignored
-        if(!styles.isEmpty()){
+        if (!styles.isEmpty()) {
             final StringBuilder sb = new StringBuilder("Ignored styles at import :");
             for(MutableStyle ms : styles){
                 sb.append(' ').append(ms.getName());

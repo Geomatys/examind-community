@@ -63,9 +63,6 @@ public interface ISensorBusiness {
 
     void deleteAll() throws ConfigurationException;
 
-    @Deprecated
-    void delete(String sensorid, String providerId) throws ConfigurationException;
-
     void deleteFromProvider(Integer providerId) throws ConfigurationException;
 
     Sensor getSensor(String sensorid);

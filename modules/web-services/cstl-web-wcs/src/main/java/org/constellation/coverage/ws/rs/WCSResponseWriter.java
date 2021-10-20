@@ -62,7 +62,7 @@ public class WCSResponseWriter implements HttpMessageConverter<Object> {
     
     @Override
     public Object read(Class<? extends Object> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("Entry message converter do not support reading.");
+        throw new HttpMessageNotReadableException("Entry message converter do not support reading.", him);
     }
 
     @Override

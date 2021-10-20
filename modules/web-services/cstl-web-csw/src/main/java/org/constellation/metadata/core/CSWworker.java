@@ -27,7 +27,6 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.contact.Details;
 import org.constellation.filter.FilterParser;
 import org.constellation.filter.FilterParserException;
-import org.constellation.filter.SQLQuery;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.metadata.harvest.CatalogueHarvester;
 import org.geotoolkit.metadata.MetadataIoException;
@@ -199,11 +198,6 @@ public class CSWworker extends AbstractWorker implements Refreshable {
     private FilterParser filterParser;
 
     /**
-     * A filter parser which create SQL query from OGC filter (used for ebrim query)
-     */
-    private FilterParser sqlFilterParser;
-
-    /**
      * A catalogue Harvester communicating with other CSW
      */
     private CatalogueHarvester catalogueHarvester;
@@ -340,7 +334,6 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         }
         indexSearcher                 = indexHandler.getIndexSearcher(configuration, getId());
         filterParser                  = indexHandler.getFilterParser(configuration);
-        sqlFilterParser               = indexHandler.getSQLFilterParser(configuration);
         securityFilter                = indexHandler.getSecurityFilter();
         if (profile == TRANSACTIONAL) {
             catalogueHarvester        = indexHandler.getCatalogueHarvester(configuration, mdStore);
@@ -766,26 +759,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         final String[] results;
         if (outputSchema.equals(EBRIM_30) || outputSchema.equals(EBRIM_25)) {
 
-            // build the sql query from the specified filter
-            final SQLQuery sqlQuery;
-            try {
-                sqlQuery = (SQLQuery) sqlFilterParser.getQuery(query.getConstraint(), variables, prefixs, getConvertibleTypeNames(typeNames));
-            } catch (FilterParserException ex) {
-                throw new CstlServiceException(ex.getMessage(), ex, ex.getExceptionCode(), ex.getLocator());
-            }
-
-           // TODO sort not yet implemented
-           LOGGER.log(Level.INFO, "ebrim SQL query obtained:{0}", sqlQuery);
-           try {
-            // we try to execute the query
-            results = securityFilter.filterResults(userLogin, mdStore.executeEbrimSQLQuery(sqlQuery.getTextQuery()));
-           } catch (MetadataIoException ex) {
-               CodeList execptionCode = ex.getExceptionCode();
-               if (execptionCode == null) {
-                   execptionCode = NO_APPLICABLE_CODE;
-               }
-               throw new CstlServiceException(ex, execptionCode);
-           }
+            throw new CstlServiceException("Ebrim queries are not supported", OPERATION_NOT_SUPPORTED);
 
         } else {
 

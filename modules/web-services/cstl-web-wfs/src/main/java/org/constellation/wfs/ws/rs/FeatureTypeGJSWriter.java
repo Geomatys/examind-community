@@ -59,7 +59,7 @@ public class FeatureTypeGJSWriter implements HttpMessageConverter<FeatureTypeLis
 
     @Override
     public FeatureTypeList read(Class<? extends FeatureTypeList> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("FeatureTypeList message converter do not support reading.");
+        throw new HttpMessageNotReadableException("FeatureTypeList message converter do not support reading.", him);
     }
 
     @Override

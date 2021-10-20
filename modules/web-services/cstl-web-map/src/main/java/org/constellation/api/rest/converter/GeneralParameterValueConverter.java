@@ -60,7 +60,7 @@ public class GeneralParameterValueConverter implements HttpMessageConverter<Gene
 
     @Override
     public GeneralParameterValue read(Class<? extends GeneralParameterValue> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("General Parameter Value message converter do not support reading.");
+        throw new HttpMessageNotReadableException("General Parameter Value message converter do not support reading.", him);
     }
 
     @Override

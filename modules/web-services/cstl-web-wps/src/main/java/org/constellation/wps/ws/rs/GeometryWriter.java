@@ -67,7 +67,7 @@ public class GeometryWriter implements HttpMessageConverter<AbstractGeometry> {
 
     @Override
     public AbstractGeometry read(Class<? extends AbstractGeometry> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("AbstractGeometry message converter do not support reading.");
+        throw new HttpMessageNotReadableException("AbstractGeometry message converter do not support reading.", him);
     }
 
    @Override
