@@ -32,17 +32,20 @@ import javax.servlet.http.HttpServletRequest;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.namespace.QName;
-import static org.constellation.api.ProviderConstants.INTERNAL_MAP_CONTEXT_PROVIDER;
 import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 import org.constellation.api.TilingMode;
 import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IMapContextBusiness;
 import org.constellation.business.IPyramidBusiness;
+import org.constellation.dto.AbstractMCLayerDTO;
+import org.constellation.dto.Data;
 import org.constellation.dto.DataBrief;
+import org.constellation.dto.DataMCLayerDTO;
+import org.constellation.dto.ExternalServiceMCLayerDTO;
 import org.constellation.dto.Filter;
+import org.constellation.dto.InternalServiceMCLayerDTO;
 import org.constellation.dto.MapContextLayersDTO;
-import org.constellation.dto.MapContextStyledLayerDTO;
 import org.constellation.dto.Page;
 import org.constellation.dto.PagedSearch;
 import org.constellation.dto.ParameterValues;
@@ -326,9 +329,9 @@ public class MapContextRestAPI extends AbstractRestAPI {
             feed.addWhere(where);
         }
 
-        for (final MapContextStyledLayerDTO styledLayer : ctxt.getLayers()) {
-            final boolean isExternal = (styledLayer.getExternalLayer() != null);
-            final QName layerName = (isExternal) ? styledLayer.getExternalLayer() : styledLayer.getName();
+        for (final AbstractMCLayerDTO styledLayer : ctxt.getLayers()) {
+            final QName layerName = styledLayer.getName();
+            final boolean isWMS  = styledLayer instanceof InternalServiceMCLayerDTO;
 
             final EntryType newEntry = new EntryType();
             newEntry.addId(new IdType("Web Map Service Layer"));
@@ -341,18 +344,22 @@ public class MapContextRestAPI extends AbstractRestAPI {
             final String defStyle;
             final String urlWms;
             final String layerBBox;
-            if (isExternal) {
-                urlWms = styledLayer.getExternalServiceUrl();
-                defStyle = (styledLayer.getExternalStyle() != null) ? styledLayer.getExternalStyle().split(",")[0] : "";
-                layerBBox = styledLayer.getExternalLayerExtent();
+            if (styledLayer instanceof  ExternalServiceMCLayerDTO) {
+                ExternalServiceMCLayerDTO extLayer = (ExternalServiceMCLayerDTO) styledLayer;
+                urlWms = extLayer.getExternalServiceUrl();
+                defStyle = (extLayer.getExternalStyle() != null) ? extLayer.getExternalStyle().split(",")[0] : "";
+                layerBBox = extLayer.getExternalLayerExtent();
             } else {
                 String reqUrl = getServiceURL(req, false);
-                if (styledLayer.isIswms()) {
-                    urlWms = reqUrl + "/WS/wms/"+ styledLayer.getServiceIdentifier();
+                if (isWMS) {
+                    InternalServiceMCLayerDTO isLayer = (InternalServiceMCLayerDTO) styledLayer;
+                    urlWms = reqUrl + "/WS/wms/"+ isLayer.getServiceIdentifier();
+                    defStyle = (isLayer.getStyleName()!= null) ? isLayer.getStyleName() : "";
                 } else {
+                    DataMCLayerDTO dtLayer = (DataMCLayerDTO) styledLayer;
                     urlWms = reqUrl + "/API/portray/style";
+                    defStyle = (dtLayer.getStyleName()!= null) ? dtLayer.getStyleName() : "";
                 }
-                defStyle = (styledLayer.getExternalStyle() != null) ? styledLayer.getExternalStyle() : "";
                 ParameterValues extentValues = null;
                 try {
                     extentValues = contextBusiness.getExtentForLayers(Collections.singletonList(styledLayer));
@@ -366,7 +373,7 @@ public class MapContextRestAPI extends AbstractRestAPI {
                 }
             }
 
-            if(styledLayer.isIswms()){
+            if (isWMS) {
                 final StringBuilder capsUrl = new StringBuilder();
                 capsUrl.append(urlWms).append("?REQUEST=GetCapabilities&SERVICE=WMS");
                 final OperationType opCaps = new OperationType(GET_CAPABILITIES, capsUrl.toString(), null, null);
@@ -375,16 +382,17 @@ public class MapContextRestAPI extends AbstractRestAPI {
             }
 
             final StringBuilder getMapUrl = new StringBuilder();
-            if(styledLayer.isIswms()){
+            if (isWMS) {
                 //external wms or internal wms layer
                 getMapUrl.append(urlWms).append("?REQUEST=GetMap&SERVICE=WMS&FORMAT=image/png&TRANSPARENT=true&WIDTH=1024&HEIGHT=768&CRS=CRS:84&BBOX=")
                         .append(layerBBox)
                         .append("&LAYERS=").append(layerName)
                         .append("&STYLES=").append(defStyle)
                         .append("&VERSION=1.3.0");
-            }else {
+            } else {
                 //internal data
-                final Integer dataID = styledLayer.getDataId();
+                DataMCLayerDTO dtLayer = (DataMCLayerDTO) styledLayer;
+                final Integer dataID = dtLayer.getDataId();
                 QName layerDataName = layerName;
                 String provider="";
                 try {
@@ -469,9 +477,7 @@ public class MapContextRestAPI extends AbstractRestAPI {
     public ResponseEntity getMapContextData(@PathVariable("id") final Integer contextId, HttpServletRequest req) {
         try {
             assertNotNullOrEmpty("Context id", contextId);
-            final MapContextLayersDTO mc = contextBusiness.findMapContextLayers(contextId);
-            final DataBrief d = dataBusiness.getDataBrief(new QName(mc.getName()), INTERNAL_MAP_CONTEXT_PROVIDER, false);
-            
+            Data d = contextBusiness.getMapContextDataId(contextId);
             return new ResponseEntity(new TilingResult(null, d.getId()), OK);
 
         } catch (Exception ex) {

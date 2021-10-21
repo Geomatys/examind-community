@@ -20,13 +20,13 @@ package org.constellation.business;
 
 import java.util.List;
 import java.util.Map;
+import org.constellation.dto.AbstractMCLayerDTO;
+import org.constellation.dto.Data;
 import org.constellation.dto.DataBrief;
-
 import org.constellation.dto.MapContextLayersDTO;
 import org.constellation.exception.ConstellationException;
 import org.constellation.dto.ParameterValues;
 import org.constellation.dto.MapContextDTO;
-import org.constellation.dto.MapContextStyledLayerDTO;
 import org.opengis.geometry.Envelope;
 
 /**
@@ -40,7 +40,7 @@ public interface IMapContextBusiness {
 
     Integer create(final MapContextLayersDTO mapContext) throws ConstellationException;
 
-    void setMapItems(final int contextId, final List<MapContextStyledLayerDTO> layers);
+    void setMapItems(final int contextId, final List<AbstractMCLayerDTO> layers);
 
     MapContextLayersDTO findMapContextLayers(int contextId) throws ConstellationException;
 
@@ -48,7 +48,7 @@ public interface IMapContextBusiness {
 
     ParameterValues getExtent(int contextId) throws ConstellationException;
 
-    ParameterValues getExtentForLayers(final List<MapContextStyledLayerDTO> styledLayers) throws ConstellationException;
+    ParameterValues getExtentForLayers(final List<AbstractMCLayerDTO> styledLayers) throws ConstellationException;
 
     List<MapContextDTO> getAllContexts();
 
@@ -59,6 +59,8 @@ public interface IMapContextBusiness {
     void deleteAll()throws ConstellationException;
 
     MapContextDTO getContextById(int id);
+
+    Data getMapContextDataId(int id) throws ConstellationException;
 
     Map.Entry<Integer, List<MapContextDTO>> filterAndGetBrief(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage);
 

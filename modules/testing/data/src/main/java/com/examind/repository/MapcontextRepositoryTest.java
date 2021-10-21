@@ -26,7 +26,8 @@ import org.constellation.dto.CstlUser;
 import org.constellation.dto.Data;
 import org.constellation.dto.Layer;
 import org.constellation.dto.MapContextDTO;
-import org.constellation.dto.MapContextStyledLayerDTO;
+import org.constellation.dto.AbstractMCLayerDTO;
+import org.constellation.dto.InternalServiceMCLayerDTO;
 import org.constellation.repository.LayerRepository;
 import org.constellation.repository.MapContextRepository;
 import org.constellation.repository.DataRepository;
@@ -91,8 +92,8 @@ public class MapcontextRepositoryTest extends AbstractRepositoryTest {
         /*
          * layers
          */
-        MapContextStyledLayerDTO mpl =  new MapContextStyledLayerDTO(null, mpid1, 0, 100, true, l1, db, owner.getLogin());
-        List<MapContextStyledLayerDTO> layers = new ArrayList<>();
+        AbstractMCLayerDTO mpl =  new InternalServiceMCLayerDTO(l1.getName(), 0, 100, true, l1.getId(), null, null, l1.getDate(), db.getType(), owner.getLogin(), l1.getDataId(), null, null);
+        List<AbstractMCLayerDTO> layers = new ArrayList<>();
         layers.add(mpl);
         mapcontextRepository.setLinkedLayers(mpid1, layers);
 
@@ -100,9 +101,9 @@ public class MapcontextRepositoryTest extends AbstractRepositoryTest {
         Assert.assertNotNull(layers);
         Assert.assertEquals(1, layers.size());
 
-        MapContextStyledLayerDTO resMpl = layers.get(0);
+        AbstractMCLayerDTO resMpl = layers.get(0);
         mpl.setId(resMpl.getId());
-        Assert.assertEquals(mpl.getTitle(), layers.get(0).getTitle());
+        Assert.assertEquals(mpl.getName(), layers.get(0).getName());
         Assert.assertEquals(mpl, layers.get(0));
 
         int mpid2 = mapcontextRepository.create(TestSamples.newMapcontext(owner, "mp';", "'; delete * from admin.mp;'"));

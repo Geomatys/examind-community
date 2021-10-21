@@ -23,7 +23,7 @@ import java.util.Objects;
 
 public class MapContextLayersDTO extends MapContextDTO {
 
-    private List<MapContextStyledLayerDTO> layers;
+    private List<AbstractMCLayerDTO> layers;
 
     public MapContextLayersDTO() {
         super();
@@ -40,16 +40,16 @@ public class MapContextLayersDTO extends MapContextDTO {
 		Double  south,
 		String  keywords,
                 String userOwner,
-                final List<MapContextStyledLayerDTO> layers) {
+                final List<AbstractMCLayerDTO> layers) {
         super(id, name, owner, description, crs, west, north, east, south, keywords, userOwner);
         this.layers = layers;
     }
 
-    public List<MapContextStyledLayerDTO> getLayers() {
+    public List<AbstractMCLayerDTO> getLayers() {
         return layers;
     }
 
-    public void setLayers(List<MapContextStyledLayerDTO> layers) {
+    public void setLayers(List<AbstractMCLayerDTO> layers) {
         this.layers = layers;
     }
 
@@ -58,7 +58,7 @@ public class MapContextLayersDTO extends MapContextDTO {
         StringBuilder sb = new StringBuilder(super.toString());
         if (layers != null) {
             sb.append("layers:\n");
-            for (MapContextStyledLayerDTO layer : layers) {
+            for (AbstractMCLayerDTO layer : layers) {
                 sb.append(layer).append('\n');
             }
         }

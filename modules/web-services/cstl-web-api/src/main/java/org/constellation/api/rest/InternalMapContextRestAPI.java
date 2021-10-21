@@ -27,9 +27,9 @@ import javax.inject.Inject;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.referencing.CommonCRS;
 import org.constellation.business.IMapContextBusiness;
+import org.constellation.dto.AbstractMCLayerDTO;
 import org.constellation.dto.BoundingBox;
 import org.constellation.dto.CoordinateReferenceSystem;
-import org.constellation.dto.MapContextStyledLayerDTO;
 import org.constellation.dto.ParameterValues;
 import org.constellation.dto.wms.WMSLayer;
 import org.constellation.dto.wms.StyleDTO;
@@ -40,7 +40,6 @@ import org.geotoolkit.wms.xml.AbstractWMSCapabilities;
 import org.opengis.geometry.DirectPosition;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.Identifier;
-import org.opengis.util.FactoryException;
 import static org.springframework.http.HttpStatus.OK;
 import org.springframework.http.MediaType;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -62,8 +61,7 @@ public class InternalMapContextRestAPI extends AbstractRestAPI {
     private IMapContextBusiness contextBusiness;
 
     @RequestMapping(value="/internal/mapcontexts/extent/layers",method=POST,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity getContextExtents(
-            @RequestBody final List<MapContextStyledLayerDTO> layers) {
+    public ResponseEntity getContextExtents(@RequestBody final List<AbstractMCLayerDTO> layers) {
 
         final ParameterValues values;
         try {

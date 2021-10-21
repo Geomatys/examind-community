@@ -25,29 +25,40 @@ import static org.constellation.database.api.jooq.Tables.MAPCONTEXT_STYLED_LAYER
 import java.util.List;
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Map;
-import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.xml.namespace.QName;
+import org.apache.sis.util.logging.Logging;
 import static org.constellation.database.api.jooq.Tables.CSTL_USER;
 
 import org.constellation.database.api.jooq.tables.pojos.Mapcontext;
 import org.constellation.database.api.jooq.tables.pojos.MapcontextStyledLayer;
 import org.constellation.database.api.jooq.tables.records.MapcontextRecord;
+import org.constellation.database.api.jooq.tables.records.MapcontextStyledLayerRecord;
+import org.constellation.dto.AbstractMCLayerDTO;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.Data;
+import org.constellation.dto.DataMCLayerDTO;
+import org.constellation.dto.ExternalServiceMCLayerDTO;
+import org.constellation.dto.InternalServiceMCLayerDTO;
 import org.constellation.dto.Layer;
 import org.constellation.repository.MapContextRepository;
 import org.constellation.dto.MapContextDTO;
-import org.constellation.dto.MapContextStyledLayerDTO;
+import org.constellation.dto.Style;
+import org.constellation.dto.service.Service;
+import org.constellation.exception.ConfigurationException;
 import org.constellation.repository.DataRepository;
 import org.constellation.repository.LayerRepository;
-import org.constellation.repository.ProviderRepository;
+import org.constellation.repository.ServiceRepository;
+import org.constellation.repository.StyleRepository;
 import org.constellation.repository.UserRepository;
 
 import org.jooq.Field;
+import org.jooq.InsertSetMoreStep;
 import org.jooq.Select;
 import org.jooq.SelectConditionStep;
 import org.jooq.SelectLimitStep;
@@ -63,6 +74,8 @@ import org.springframework.transaction.annotation.Transactional;
 @DependsOn("database-initer")
 public class JooqMapContextRepository extends AbstractJooqRespository<MapcontextRecord, Mapcontext> implements MapContextRepository {
 
+    private static final Logger LOGGER = Logging.getLogger("org.constellation.database.impl.repository");
+
     @Autowired
     private LayerRepository layerRepository;
 
@@ -70,10 +83,13 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
     private DataRepository dataRepository;
 
     @Autowired
-    private ProviderRepository providerRepository;
+    private UserRepository userRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    private StyleRepository styleRepository;
+
+    @Autowired
+    private ServiceRepository serviceRepository;
 
     public JooqMapContextRepository() {
         super(Mapcontext.class, MAPCONTEXT);
@@ -90,52 +106,62 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
     }
 
     @Override
-    public List<MapContextStyledLayerDTO> getLinkedLayers(int mapContextId) {
+    public List<AbstractMCLayerDTO> getLinkedLayers(int mapContextId) {
         List<MapcontextStyledLayer> mcLayers = dsl.select().from(MAPCONTEXT_STYLED_LAYER)
                 .where(MAPCONTEXT_STYLED_LAYER.MAPCONTEXT_ID.eq(mapContextId))
                 .fetchInto(MapcontextStyledLayer.class);
 
-        List<MapContextStyledLayerDTO> results = new ArrayList<>();
+        List<AbstractMCLayerDTO> results = new ArrayList<>();
         for (MapcontextStyledLayer mclayer : mcLayers) {
-            Layer layer = null;
-            Data data = null;
-            if (mclayer.getLayerId() != null) {
-                layer = layerRepository.findById(mclayer.getLayerId());
+            try {
+                results.add(convertToDto(mclayer));
+            } catch (ConfigurationException ex) {
+                LOGGER.log(Level.WARNING, "Error while reading mapcontext layer", ex);
             }
-            if (mclayer.getDataId() != null) {
-                data = dataRepository.findById(mclayer.getDataId());
-            }
-            results.add(convertToDto(mclayer, layer, data));
         }
         return results;
     }
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public void setLinkedLayers(int contextId, List<MapContextStyledLayerDTO> layers) {
+    public void setLinkedLayers(int contextId, List<AbstractMCLayerDTO> layers) {
         // Remove eventually existing old layers for this map context
         dsl.delete(MAPCONTEXT_STYLED_LAYER).where(MAPCONTEXT_STYLED_LAYER.MAPCONTEXT_ID.eq(contextId)).execute();
 
         if (layers.isEmpty()) {
             return;
         }
+        for (final AbstractMCLayerDTO layer : layers) {
+            InsertSetMoreStep<MapcontextStyledLayerRecord> insert =
+                 dsl.insertInto(MAPCONTEXT_STYLED_LAYER)
+                    .set(MAPCONTEXT_STYLED_LAYER.MAPCONTEXT_ID, contextId)
+                    .set(MAPCONTEXT_STYLED_LAYER.LAYER_VISIBLE, layer.isVisible())
+                    .set(MAPCONTEXT_STYLED_LAYER.LAYER_ORDER, layer.getOrder())
+                    .set(MAPCONTEXT_STYLED_LAYER.LAYER_OPACITY, layer.getOpacity());
+            if (layer instanceof InternalServiceMCLayerDTO) {
+                InternalServiceMCLayerDTO isLayer = (InternalServiceMCLayerDTO) layer;
+                insert=
+                insert.set(MAPCONTEXT_STYLED_LAYER.LAYER_ID, isLayer.getLayerId())
+                      .set(MAPCONTEXT_STYLED_LAYER.STYLE_ID, isLayer.getStyleId())
+                      .set(MAPCONTEXT_STYLED_LAYER.ISWMS, true);
 
-        for (final MapContextStyledLayerDTO layer : layers) {
-            dsl.insertInto(MAPCONTEXT_STYLED_LAYER)
-                .set(MAPCONTEXT_STYLED_LAYER.LAYER_ID, layer.getLayerId())
-                .set(MAPCONTEXT_STYLED_LAYER.MAPCONTEXT_ID, layer.getMapcontextId())
-                .set(MAPCONTEXT_STYLED_LAYER.STYLE_ID, layer.getStyleId())
-                .set(MAPCONTEXT_STYLED_LAYER.LAYER_VISIBLE, layer.isVisible())
-                .set(MAPCONTEXT_STYLED_LAYER.LAYER_ORDER, layer.getOrder())
-                .set(MAPCONTEXT_STYLED_LAYER.LAYER_OPACITY, layer.getOpacity())
-                .set(MAPCONTEXT_STYLED_LAYER.EXTERNAL_LAYER, layer.getExternalLayer() != null ? layer.getExternalLayer().getLocalPart() : null)
-                .set(MAPCONTEXT_STYLED_LAYER.EXTERNAL_LAYER_EXTENT, layer.getExternalLayerExtent())
-                .set(MAPCONTEXT_STYLED_LAYER.EXTERNAL_SERVICE_URL, layer.getExternalServiceUrl())
-                .set(MAPCONTEXT_STYLED_LAYER.EXTERNAL_SERVICE_VERSION, layer.getExternalServiceVersion())
-                .set(MAPCONTEXT_STYLED_LAYER.EXTERNAL_STYLE, layer.getExternalStyle())
-                .set(MAPCONTEXT_STYLED_LAYER.ISWMS, layer.isIswms())
-                .set(MAPCONTEXT_STYLED_LAYER.DATA_ID, layer.getDataId())
-                .execute();
+            } else if (layer instanceof DataMCLayerDTO) {
+                DataMCLayerDTO dLayer = (DataMCLayerDTO) layer;
+                insert=
+                insert.set(MAPCONTEXT_STYLED_LAYER.DATA_ID, dLayer.getDataId())
+                      .set(MAPCONTEXT_STYLED_LAYER.STYLE_ID, dLayer.getStyleId())
+                      .set(MAPCONTEXT_STYLED_LAYER.ISWMS, true);
+
+            } else if (layer instanceof ExternalServiceMCLayerDTO) {
+                ExternalServiceMCLayerDTO eLayer = (ExternalServiceMCLayerDTO) layer;
+                insert=
+                insert.set(MAPCONTEXT_STYLED_LAYER.EXTERNAL_LAYER, eLayer.getExternalLayer() != null ? eLayer.getExternalLayer().getLocalPart() : null)
+                      .set(MAPCONTEXT_STYLED_LAYER.EXTERNAL_LAYER_EXTENT, eLayer.getExternalLayerExtent())
+                      .set(MAPCONTEXT_STYLED_LAYER.EXTERNAL_SERVICE_URL, eLayer.getExternalServiceUrl())
+                      .set(MAPCONTEXT_STYLED_LAYER.EXTERNAL_SERVICE_VERSION, eLayer.getExternalServiceVersion())
+                      .set(MAPCONTEXT_STYLED_LAYER.EXTERNAL_STYLE, eLayer.getExternalStyle());
+            }
+            insert.execute();
         }
     }
 
@@ -258,64 +284,74 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
         return convertMCListToDto(dsl.select().from(MAPCONTEXT).fetchInto(Mapcontext.class));
     }
 
-    private MapContextStyledLayerDTO convertToDto(MapcontextStyledLayer mcSl, Layer layer, Data data) {
+    private AbstractMCLayerDTO convertToDto(MapcontextStyledLayer mcSl) throws ConfigurationException {
         if (mcSl != null) {
-            QName layerName = null;
-            String layerNamespace = null;
-            String layerAlias = null;
-            Integer serviceID = null;
-            Date date = null;
-            String layerConfig = null;
-            String layerTitle = null;
+            Layer layer = null;
+            Data data = null;
+            Style style = null;
+            if (mcSl.getLayerId() != null) {
+                layer = layerRepository.findById(mcSl.getLayerId());
+                data = dataRepository.findById(layer.getDataId());
+            } else if (mcSl.getDataId() != null) {
+                data = dataRepository.findById(mcSl.getDataId());
+            }
+            if (mcSl.getStyleId() != null) {
+                style = styleRepository.findById(mcSl.getStyleId());
+            }
+            
             if (layer != null) {
-                layerName = layer.getName();
-                layerAlias = layer.getAlias();
-                serviceID = layer.getService();
-                date = layer.getDate();
-                layerConfig = layer.getConfig();
-                layerTitle = layer.getTitle();
-            }
+                final String owner = userRepository.findById(layer.getOwnerId())
+                                                   .map(CstlUser::getLogin)
+                                                   .orElse(null);
+                final Service serv = serviceRepository.findById(layer.getService());
 
-            String dataType = null;
-            String dataSubType = null;
-            String dataOwner = null;
-            Integer ownerId = null;
-            if (data != null) {
-                dataType = data.getType();
-                dataSubType = data.getSubtype();
-                Optional<CstlUser> user = userRepository.findById(data.getOwnerId());
-                if (user.isPresent()) {
-                    dataOwner = user.get().getLogin();
-                }
-                ownerId = data.getOwnerId();
-            }
-            // TODO target styles
+                List<String> versions = Arrays.asList(serv.getVersions().split("µ"));
+                final QName layerName = layer.getAlias() != null ? new QName(layer.getAlias()) : layer.getName();
+                return new InternalServiceMCLayerDTO(layerName,
+                                                     mcSl.getLayerOrder(),
+                                                     mcSl.getLayerOpacity(),
+                                                     mcSl.getLayerVisible(),
+                                                     mcSl.getLayerId(),
+                                                     mcSl.getStyleId(),
+                                                     style != null ? style.getName() : null,
+                                                     layer.getDate(),
+                                                     data != null ? data.getType() : null,
+                                                     owner,
+                                                     data != null ? data.getId(): null,
+                                                     serv.getIdentifier(),
+                                                     versions);
+            } else if (data != null) {
+                final String owner = userRepository.findById(data.getOwnerId())
+                                                   .map(CstlUser::getLogin)
+                                                   .orElse(null);
+                return new DataMCLayerDTO(new QName(data.getNamespace(), data.getName()),
+                                          mcSl.getLayerOrder(),
+                                          mcSl.getLayerOpacity(),
+                                          mcSl.getLayerVisible(),
+                                          data.getDate(),
+                                          data.getType(),
+                                          owner,
+                                          mcSl.getDataId(),
+                                          mcSl.getStyleId(),
+                                          style != null ? style.getName() : null);
 
-            return new MapContextStyledLayerDTO(mcSl.getId(),
-                    mcSl.getMapcontextId(),
-                    mcSl.getLayerId(),
-                    mcSl.getStyleId(),
-                    mcSl.getLayerOrder(),
-                    mcSl.getLayerOpacity(),
-                    mcSl.getLayerVisible(),
-                    mcSl.getExternalLayer() != null ? new QName(mcSl.getExternalLayer()) : null,
-                    mcSl.getExternalLayerExtent(),
-                    mcSl.getExternalServiceUrl(),
-                    mcSl.getExternalServiceVersion(),
-                    mcSl.getExternalStyle(),
-                    mcSl.getIswms(),
-                    mcSl.getDataId(),
-                    layerName,
-                    layerAlias,
-                    serviceID,
-                    date,
-                    layerConfig,
-                    ownerId,
-                    layerTitle,
-                    dataType,
-                    dataSubType,
-                    dataOwner,
-                    null);
+            } else if (mcSl.getExternalLayer() != null) {
+                QName layerName = new QName(mcSl.getExternalLayer());
+                return new ExternalServiceMCLayerDTO(layerName,
+                                                     mcSl.getLayerOrder(),
+                                                     mcSl.getLayerOpacity(),
+                                                     mcSl.getLayerVisible(),
+                                                     null,
+                                                     null,
+                                                     null,
+                                                     layerName,
+                                                     mcSl.getExternalStyle(),
+                                                     mcSl.getExternalServiceUrl(),
+                                                     mcSl.getExternalServiceVersion(),
+                                                     mcSl.getExternalLayerExtent());
+            } else {
+                throw new ConfigurationException("Unable to find a proper Mapcontext layer type");
+            }
         }
         return null;
     }

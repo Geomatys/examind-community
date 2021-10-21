@@ -233,8 +233,9 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
                 }
             } else if ($scope.mode.display==='chooseLayer') {
                 // Add the selected layer to the current map context
+                
+                // External WMS layer
                 if ($scope.selection.extLayer) {
-                    // External WMS layer
                     var llExtent = '';
                     if ($scope.selection.extLayer.boundingBox) {
                         var bbox = $scope.selection.extLayer.boundingBox;
@@ -262,32 +263,31 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
                     var layerExtToAdd = {
                         layer: layerExt,
                         visible: true,
-                        isWms:true,
                         opacity: 100,
                         styleObj:styleExtArray && styleExtArray.length>0?styleExtArray[0]:null
                     };
                     $scope.layers.toAdd.push(layerExtToAdd);
+                    
+                // Internal WMS layer
                 } else if ($scope.selection.layer) {
-                    // Internal WMS layer
                     var styleArray = $scope.selection.layer.targetStyle;
                     var layerToAdd = {
                         layer: $scope.selection.layer,
                         service: $scope.selection.service,
                         visible: true,
-                        isWms:true,
                         opacity:100,
                         styleObj:styleArray && styleArray.length>0?styleArray[0]:null
                     };
                     layerToAdd.layer.layerId = $scope.selection.layer.id;
                     $scope.layers.toAdd.push(layerToAdd);
-                }else if ($scope.selection.internalData.length > 0) {
-                    // Internal Data layer
+                    
+                // Internal Data layer
+                } else if ($scope.selection.internalData.length > 0) {
                     angular.forEach($scope.selection.internalData, function(data){
                         var styleArr = data.targetStyle;
                         var layerObjToAdd = {
                             layer: data,
                             visible: true,
-                            isWms:false,
                             opacity:100,
                             styleObj:styleArr && styleArr.length>0?styleArr[0]:null
                         };
@@ -338,10 +338,10 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
                         var layer = $scope.layers.toAdd[p];
                         layer.styleObj = $scope.styles.selected;
                         /*jshint loopfunc:true */
-                        var find =  layer.layer.targetStyle.find(function (elt) {
+                        var find =  layer.layer.targetStyle && layer.layer.targetStyle.find(function (elt) {
                             return elt.id === $scope.styles.selected.id;
                         });
-                        if(!find){
+                        if(!find && layer.layer.targetStyle){
                             layer.layer.targetStyle.unshift($scope.styles.selected);
                         }
                     }
@@ -371,32 +371,60 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
             $scope.layers.toSend = [];
             for (var i = 0; i < $scope.layers.toAdd.length; i++) {
                 var layObj = $scope.layers.toAdd[i];
-                var externalStyle;
-                if(layObj.layer.externalServiceUrl){
-                    externalStyle = (layObj.styleObj) ? layObj.styleObj.name : (layObj.layer.externalStyle)?layObj.layer.externalStyle:null;
-                }
+                var toSend;
                 var styleId = null;
-                if (layObj.styleObj && layObj.styleObj.id) {
-                    styleId = layObj.styleObj.id;
-                } else if (layObj.layer.styleId) {
-                    styleId = layObj.layer.styleId;
+                //external wms layer
+                if(layObj.layer.externalServiceUrl){
+                    var externalStyle;
+                    externalStyle = (layObj.styleObj) ? layObj.styleObj.name : (layObj.layer.externalStyle)?layObj.layer.externalStyle:null;
+                    toSend = {
+                        layerType: "external-service",
+                        name: layObj.layer.name,
+                        order: i,
+                        opacity: layObj.opacity,
+                        visible: layObj.visible,
+                        externalServiceUrl: layObj.layer.externalServiceUrl,
+                        externalServiceVersion: layObj.layer.externalServiceVersion,
+                        externalLayer: layObj.layer.externalLayer,
+                        externalLayerExtent: layObj.layer.externalLayerExtent,
+                        externalStyle: externalStyle
+                    };
+                    
+                 //internal wms layer
+                } else if (layObj.layer.layerId) {
+                    styleId = null;
+                    if (layObj.styleObj && layObj.styleObj.id) {
+                        styleId = layObj.styleObj.id;
+                    } else if (layObj.layer.styleId) {
+                        styleId = layObj.layer.styleId;
+                    }
+                    toSend = {
+                        layerType: "internal-service",
+                        name: layObj.layer.name,
+                        order: i,
+                        opacity: layObj.opacity,
+                        visible: layObj.visible,
+                        layerId: layObj.layer.layerId,
+                        styleId: styleId,
+                    };
+                //internal data layer
+                } else {
+                    styleId = null;
+                    if (layObj.styleObj && layObj.styleObj.id) {
+                        styleId = layObj.styleObj.id;
+                    } else if (layObj.layer.styleId) {
+                        styleId = layObj.layer.styleId;
+                    }
+                    toSend = {
+                        layerType: "internal-data",
+                        name: layObj.layer.name,
+                        order: i,
+                        opacity: layObj.opacity,
+                        visible: layObj.visible,
+                        dataId: layObj.layer.dataId,
+                        styleId: styleId,
+                    };
                 }
-               
-                var toSend = {
-                    mapcontextId: (ctxt) ? ctxt.id : null,
-                    layerId: (layObj.isWms)? (layObj.layer.layerId) ? layObj.layer.layerId : null : null,
-                    dataId: layObj.layer.dataId ? layObj.layer.dataId : null,
-                    iswms: layObj.isWms,
-                    styleId: styleId,
-                    order: i,
-                    opacity: layObj.opacity,
-                    visible: layObj.visible,
-                    externalServiceUrl: layObj.layer.externalServiceUrl,
-                    externalServiceVersion: layObj.layer.externalServiceVersion,
-                    externalLayer: layObj.layer.externalLayer,
-                    externalLayerExtent: layObj.layer.externalLayerExtent,
-                    externalStyle: externalStyle
-                };
                 $scope.layers.toSend.push(toSend);
             }
         }
@@ -460,6 +488,8 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
         $scope.goToStyleMapItem = function(item) {
             $scope.styles.selected = null;
             $scope.styles.existing = [];
+            
+            // for external WMS layer
             if (item.layer.externalLayer) {
                 var styleItems = [];
                 if (item.layer.externalStyle) {
@@ -480,40 +510,59 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
                         } else if(item.layer.styleName && candidat.name === item.layer.styleName){
                             $scope.styles.selected = candidat;
                             break;
-                        }else if(item.layer.externalStyle && candidat.name === item.layer.externalStyle.split(',')[0]){
+                        } else if(item.layer.externalStyle && candidat.name === item.layer.externalStyle.split(',')[0]) {
                             $scope.styles.selected = candidat;
                             break;
                         }
                     }
                 }
-            } else {
-                // for Internal data layer and for internal wms layer
-                Examind.styles.getStyles().then(
+            // for Internal wms layer
+            } else if (item.layer.layerId) {
+                Examind.map.getLayer(item.layer.layerId).then(
                     function (response) {
-                        if(response.data) {
-                            for (var j = 0; j < item.layer.targetStyle.length; j++) {
-                                var tgStyle = item.layer.targetStyle[j];
-                                for (var i = 0; i < response.data.length; i++) {
-                                    var style = response.data[i];
-                                    if ((style.id === tgStyle.id && angular.isDefined(style.id) && angular.isDefined(tgStyle.id)) ||
-                                        (style.name === tgStyle.name && style.provider === tgStyle.provider)) {
-                                        $scope.styles.existing.push(style);
+                        if (response.data && response.data.styles) {
+                            for (var i = 0; i < response.data.styles.length; i++) {
+                                var style = response.data.styles[i];
+                                $scope.styles.existing.push(style);
+                            }
+                            
+                            if ($scope.styles.existing && $scope.styles.existing.length > 0) {
+                                for (var s = 0; s < $scope.styles.existing.length; s++) {
+                                    var candidat = $scope.styles.existing[s];
+                                    if (item.styleObj) {
+                                        if (item.styleObj.name && candidat.name === item.styleObj.name) {
+                                            $scope.styles.selected = candidat;
+                                            break;
+                                        }
+                                    } else if (item.layer.styleId && candidat.id === item.layer.styleId) {
+                                        $scope.styles.selected = candidat;
                                         break;
                                     }
                                 }
                             }
-                            if($scope.styles.existing && $scope.styles.existing.length>0){
-                                for(var s=0;s<$scope.styles.existing.length;s++) {
+                        }
+                    }
+                );
+             
+            // for Internal data layer
+            } else if (item.layer.dataId) {
+                Examind.datas.getAssociations(item.layer.dataId).then(
+                    function (response) {
+                        if (response.data && response.data.styles) {
+                            for (var i = 0; i < response.data.styles.length; i++) {
+                                var style = response.data.styles[i];
+                                $scope.styles.existing.push(style);
+                            }
+                            
+                            if ($scope.styles.existing && $scope.styles.existing.length > 0) {
+                                for (var s = 0; s < $scope.styles.existing.length; s++) {
                                     var candidat = $scope.styles.existing[s];
-                                    if(item.styleObj){
-                                        if(item.styleObj.name && candidat.name === item.styleObj.name) {
+                                    if (item.styleObj) {
+                                        if (item.styleObj.name && candidat.name === item.styleObj.name) {
                                             $scope.styles.selected = candidat;
                                             break;
                                         }
-                                    } else if(item.layer.styleName && candidat.name === item.layer.styleName){
-                                        $scope.styles.selected = candidat;
-                                        break;
-                                    }else if(item.layer.externalStyle && candidat.name === item.layer.externalStyle){
+                                    } else if (item.layer.styleId && candidat.id === item.layer.styleId) {
                                         $scope.styles.selected = candidat;
                                         break;
                                     }
@@ -535,24 +584,19 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
             for (var i=0; i<DataViewer.layers.length; i++) {
                 var candidat = DataViewer.layers[i];
                 var candidatName = candidat.get('name');
-                if(item.isWms) {
-                    if ((item.layer.name && candidatName === item.layer.name) ||
-                        (item.layer.externalLayer && candidatName === item.layer.externalLayer)) {
-                        DataViewer.map.removeLayer(candidat);
-                        return;
-                    }
-                }else {
-                    var layerName;
-                    if (item.layer.namespace) {
-                        layerName = '{' + item.layer.namespace + '}' + item.layer.name;
-                    } else {
-                        layerName = item.layer.name;
-                    }
-                    if (layerName && candidatName === layerName) {
-                        DataViewer.map.removeLayer(candidat);
-                        $scope.viewMap();
-                        return;
-                    }
+                
+                var layerName;
+                if (item.layer.namespace) {
+                    layerName = '{' + item.layer.namespace + '}' + item.layer.name;
+                } else {
+                    layerName = item.layer.name;
+                }
+                
+                if ((item.layer.name && candidatName === item.layer.name) ||
+                    (item.layer.externalLayer && candidatName === item.layer.externalLayer) ||
+                    (layerName && candidatName === layerName)) {
+                    DataViewer.map.removeLayer(candidat);
+                    return;
                 }
             }
         };
@@ -562,23 +606,17 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
             for (var i=0; i<DataViewer.layers.length; i++) {
                 var candidat = DataViewer.layers[i];
                 var candidatName = candidat.get('name');
-                if(item.isWms) {
-                    if ((item.layer.name && candidatName === item.layer.name) ||
-                        (item.layer.externalLayer && candidatName === item.layer.externalLayer)) {
-                        candidat.setVisible(item.visible);
-                        return;
-                    }
-                }else {
-                    var layerName;
-                    if (item.layer.namespace) {
-                        layerName = '{' + item.layer.namespace + '}' + item.layer.name;
-                    } else {
-                        layerName = item.layer.name;
-                    }
-                    if (layerName && candidatName === layerName) {
-                        candidat.setVisible(item.visible);
-                        return;
-                    }
+                var layerName;
+                if (item.layer.namespace) {
+                    layerName = '{' + item.layer.namespace + '}' + item.layer.name;
+                } else {
+                    layerName = item.layer.name;
+                }
+                if ((item.layer.name && candidatName === item.layer.name) ||
+                    (item.layer.externalLayer && candidatName === item.layer.externalLayer) ||
+                    (layerName && candidatName === layerName)) {
+                    candidat.setVisible(item.visible);
+                    return;
                 }
             }
         };
@@ -587,23 +625,17 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
             for (var i=0; i<DataViewer.layers.length; i++) {
                 var candidat = DataViewer.layers[i];
                 var candidatName = candidat.get('name');
-                if(item.isWms) {
-                    if ((item.layer.name && candidatName === item.layer.name) ||
-                        (item.layer.externalLayer && candidatName === item.layer.externalLayer)) {
-                        candidat.setOpacity(item.opacity / 100);
-                        return;
-                    }
-                }else {
-                    var layerName;
-                    if (item.layer.namespace) {
-                        layerName = '{' + item.layer.namespace + '}' + item.layer.name;
-                    } else {
-                        layerName = item.layer.name;
-                    }
-                    if (layerName && candidatName === layerName) {
-                        candidat.setOpacity(item.opacity / 100);
-                        return;
-                    }
+                var layerName;
+                if (item.layer.namespace) {
+                    layerName = '{' + item.layer.namespace + '}' + item.layer.name;
+                } else {
+                    layerName = item.layer.name;
+                }
+                if ((item.layer.name && candidatName === item.layer.name) ||
+                    (item.layer.externalLayer && candidatName === item.layer.externalLayer) ||
+                    (layerName && candidatName === layerName)) {
+                    candidat.setOpacity(item.opacity / 100);
+                    return;
                 }
             }
         };
@@ -617,79 +649,61 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
                 for (var i=0; i<$scope.layers.toAdd.length; i++) {
                     var layObj = $scope.layers.toAdd[i];
                     if (layObj.visible) {
-                        // var layerData;
-                        if (layObj.isWms) {//external wms layer
-                            if(layObj.layer.externalServiceUrl) {
-                                if(layerStyleObj && layerStyleObj.layer.layer.name === layObj.layer.name){
-                                    if(layerStyleObj.style && layerStyleObj.style.name){
-                                        layerData = DataViewer.createLayerExternalWMSWithStyle(layObj.layer.externalServiceUrl,
-                                            layObj.layer.externalLayer,
-                                            layerStyleObj.style.name);
-                                    }else {
-                                        layerData = DataViewer.createLayerExternalWMS(layObj.layer.externalServiceUrl, layObj.layer.externalLayer);
-                                    }
-                                }else {
-                                    if(layObj.styleObj || layObj.layer.externalStyle){
-                                        layerData = DataViewer.createLayerExternalWMSWithStyle(layObj.layer.externalServiceUrl,
-                                            layObj.layer.externalLayer,
-                                            layObj.styleObj?layObj.styleObj.name:layObj.layer.externalStyle.split(',')[0]);
-                                    }else {
-                                        layerData = DataViewer.createLayerExternalWMS(layObj.layer.externalServiceUrl, layObj.layer.externalLayer);
-                                    }
+                        //external wms layer
+                        if (layObj.layer.externalServiceUrl) {
+                            if (layerStyleObj && layerStyleObj.layer.layer.name === layObj.layer.name) {
+                                if (layerStyleObj.style && layerStyleObj.style.name) {
+                                    layerData = DataViewer.createLayerExternalWMSWithStyle(layObj.layer.externalServiceUrl, layObj.layer.externalLayer, layerStyleObj.style.name);
+                                } else {
+                                    layerData = DataViewer.createLayerExternalWMS(layObj.layer.externalServiceUrl, layObj.layer.externalLayer);
                                 }
-                            }else {//internal wms layer
-                                var serviceName = (layObj.layer.serviceIdentifier) ? layObj.layer.serviceIdentifier : layObj.service.identifier;
-                                var versions=[];
-                                var arry;
-                                if(layObj.service && layObj.service.versions) {
-                                    arry = layObj.service.versions.split('µ');
-                                    versions.push(arry[arry.length-1]);
-                                }else if(layObj.layer.serviceVersions) {
-                                    arry = layObj.layer.serviceVersions.split('µ');
-                                    versions.push(arry[arry.length-1]);
-                                }
-
-                                if(layerStyleObj && layerStyleObj.layer.layer.name === layObj.layer.name){
-                                    if(layerStyleObj.style && layerStyleObj.style.name){
-                                        layerData = DataViewer.createLayerWMSWithStyle(cstlUrl, layObj.layer.name, serviceName,
-                                            layerStyleObj.style.name,versions);
-                                    }else {
-                                        layerData = DataViewer.createLayerWMS(cstlUrl, layObj.layer.name, serviceName,versions);
-                                    }
-                                }else {
-                                    if(layObj.styleObj || layObj.layer.externalStyle){
-                                        layerData = DataViewer.createLayerWMSWithStyle(cstlUrl, layObj.layer.name, serviceName,
-                                            layObj.styleObj?layObj.styleObj.name:layObj.layer.externalStyle.split(',')[0],versions);
-                                    }else {
-                                        layerData = DataViewer.createLayerWMS(cstlUrl, layObj.layer.name, serviceName,versions);
-                                    }
-                                }
-                            }
-                        } else {//internal data layer
-                            var layerName,providerId;
-                            var dataItem = layObj.layer;
-                            if (dataItem.namespace) {
-                                layerName = '{' + dataItem.namespace + '}' + dataItem.name;
                             } else {
-                                layerName = dataItem.name;
-                            }
-                            providerId = dataItem.provider;
-                            var type = dataItem.type?dataItem.type.toLowerCase():null;
-                            if(layerStyleObj && layerStyleObj.layer.layer.name === dataItem.name){
-                                if(layerStyleObj.style && layerStyleObj.style.name){
-                                    layerData = DataViewer.createLayerWithStyle(cstlUrl,dataItem.dataId,layerName,
-                                        layerStyleObj.style.name,null,null,type!=='vector');
-                                }else {
-                                    layerData = DataViewer.createLayer(cstlUrl, dataItem.dataId,layerName,null,type!=='vector');
+                                if (layObj.styleObj || layObj.layer.externalStyle) {
+                                    var exLstyleName = layObj.styleObj ? layObj.styleObj.name : layObj.layer.externalStyle.split(',')[0];
+                                    layerData = DataViewer.createLayerExternalWMSWithStyle(layObj.layer.externalServiceUrl, layObj.layer.externalLayer, exLstyleName);
+                                } else {
+                                    layerData = DataViewer.createLayerExternalWMS(layObj.layer.externalServiceUrl, layObj.layer.externalLayer);
                                 }
-                            }else {
+                            }
+                        //internal wms layer
+                        } else if (layObj.layer.layerId) {
+                            var serviceName = (layObj.layer.serviceIdentifier) ? layObj.layer.serviceIdentifier : layObj.service.identifier;
+                            var versions    = layObj.layer.serviceVersions;
+                            var inlayerName   = layObj.layer.alias ? layObj.layer.alias : layObj.layer.name;
+                            
+                            if (layerStyleObj && layerStyleObj.layer.layer.name === layObj.layer.name) {
+                                if (layerStyleObj.style && layerStyleObj.style.name) {
+                                    layerData = DataViewer.createLayerWMSWithStyle(cstlUrl, inlayerName, serviceName, layerStyleObj.style.name,versions);
+                                } else {
+                                    layerData = DataViewer.createLayerWMS(cstlUrl, inlayerName, serviceName,versions);
+                                }
+                            } else {
+                                if (layObj.styleObj || layObj.layer.styleName) {
+                                    var inLstyleName = layObj.styleObj ? layObj.styleObj.name : layObj.layer.styleName;
+                                    layerData = DataViewer.createLayerWMSWithStyle(cstlUrl, inlayerName, serviceName, inLstyleName ,versions);
+                                } else {
+                                    layerData = DataViewer.createLayerWMS(cstlUrl, inlayerName, serviceName,versions);
+                                }
+                            }
+                        //internal data layer
+                        } else {
+                            var layerName;
+                            var dataItem = layObj.layer;
+                            layerName = dataItem.name;
+                            var type = dataItem.type ? dataItem.type.toLowerCase() : null;
+                            if (layerStyleObj && layerStyleObj.layer.layer.name === dataItem.name) {
+                                if(layerStyleObj.style && layerStyleObj.style.name){
+                                    layerData = DataViewer.createLayerWithStyle(cstlUrl, dataItem.dataId, layerName, layerStyleObj.style.name, null, null, type!=='vector');
+                                } else {
+                                    layerData = DataViewer.createLayer(cstlUrl, dataItem.dataId, layerName, null, type!=='vector');
+                                }
+                            } else {
                                 if (layObj.styleObj || dataItem.styleName) {
-                                    layerData = DataViewer.createLayerWithStyle(cstlUrl,dataItem.dataId,layerName,
-                                        layObj.styleObj?layObj.styleObj.name:dataItem.styleName,null,null,type!=='vector');
+                                    var inDstyleName = layObj.styleObj ? layObj.styleObj.name : dataItem.styleName;
+                                    layerData = DataViewer.createLayerWithStyle(cstlUrl,dataItem.dataId,layerName, inDstyleName, null, null, type!=='vector');
                                 } else {
                                     if ($scope.wrap.selectAllDataToAddFlag) {
-                                        layerData = DataViewer.createLayerWithStyle(cstlUrl, dataItem.dataId, layerName,
-                                            $scope.styles.selected.name, null, null, type !== 'vector');
+                                        layerData = DataViewer.createLayerWithStyle(cstlUrl, dataItem.dataId, layerName, $scope.styles.selected.name, null, null, type !== 'vector');
                                         layerData.setOpacity(layObj.opacity / 100);
                                         layersToView.push(layerData);
                                     } else {
@@ -718,14 +732,14 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
                     var extent = [$scope.ctxt.west, $scope.ctxt.south, $scope.ctxt.east, $scope.ctxt.north];
                     DataViewer.map.updateSize();
                     //because zoomToExtent take extent in EPSG:4326 we need to reproject the zoom extent
-                    if($scope.ctxt.crs !== 'EPSG:4326' && $scope.ctxt.crs !=='CRS:84'){
+                    if ($scope.ctxt.crs !== 'EPSG:4326' && $scope.ctxt.crs !=='CRS:84'){
                         var projection = ol.proj.get($scope.ctxt.crs);
                         extent = ol.proj.transformExtent(extent, projection,'EPSG:4326');
                     }
                     DataViewer.zoomToExtent(extent, DataViewer.map.getSize(),true);
                 }
             } else {
-                if($scope.layers.toSend.length===0){
+                if ($scope.layers.toSend.length===0) {
                     fillLayersToSend(null);
                 } else {
                     Examind.mapcontexts.getMapLayersExtent($scope.layers.toSend).then(
@@ -760,25 +774,27 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
         };
 
         $scope.zoomToLayerExtent = function(item) {
-            if(item.isWms) {
-                if(item.layer.externalLayerExtent){
-                    var extentArr = item.layer.externalLayerExtent.split(',');
-                    if(extentArr.length===4){
-                        var extent = [Number(extentArr[0]),Number(extentArr[1]),Number(extentArr[2]),Number(extentArr[3])];
-                        DataViewer.zoomToExtent(extent,DataViewer.map.getSize(),false);
-                    }
-                }else if(item.layer.dataId) {
-
-                    Examind.datas.getGeographicExtent(item.layer.dataId).then(
-                        function(response){
-                            var bbox = response.data.boundingBox;
-                            if (bbox) {
-                                var extent = [bbox[0],bbox[1],bbox[2],bbox[3]];
-                                DataViewer.zoomToExtent(extent,DataViewer.map.getSize(),false);
-                            }
-                        });
+            // external layer
+            if (item.layer.externalLayerExtent) {
+                var extentArr = item.layer.externalLayerExtent.split(',');
+                if(extentArr.length===4){
+                    var extent = [Number(extentArr[0]),Number(extentArr[1]),Number(extentArr[2]),Number(extentArr[3])];
+                    DataViewer.zoomToExtent(extent,DataViewer.map.getSize(),false);
                 }
-            } else {
+            // internal layer (also use data id for now)    
+            } else if (item.layer.layerId) {
+                Examind.datas.getGeographicExtent(item.layer.dataId).then(
+                    function(response){
+                        var bbox = response.data.boundingBox;
+                        if (bbox) {
+                            var extent = [bbox[0],bbox[1],bbox[2],bbox[3]];
+                            DataViewer.zoomToExtent(extent,DataViewer.map.getSize(),false);
+                        }
+                    });
+
+            // internal data 
+            } else if(item.layer.dataId) {
+
                 Examind.datas.getGeographicExtent(item.layer.dataId).then(
                     function(response){
                         var bbox = response.data.boundingBox;
@@ -845,7 +861,7 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
          * @returns {boolean}
          */
         $scope.isInSelected = function(item){
-            for(var i=0; i < $scope.selection.internalData.length; i++){
+            for (var i=0; i < $scope.selection.internalData.length; i++) {
                 if($scope.selection.internalData[i].id === item.id){
                     return true;
                 }
@@ -973,18 +989,20 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
             }
             DataViewer.initConfig();
             var layerData;
-            if($scope.selection.layer && $scope.selection.service){
+            
+            //internal wms layer
+            if($scope.selection.layer && $scope.selection.service) {
                 var cstlUrl = window.localStorage.getItem('cstlUrl');
                 var serviceName = ($scope.selection.layer.serviceIdentifier) ? $scope.selection.layer.serviceIdentifier : $scope.selection.service.identifier;
                 var versions = [];
-                if($scope.selection.service.versions){
-                    var arry = $scope.selection.service.versions.split('µ');
-                    versions.push(arry[arry.length-1]);
+                if ($scope.selection.service.versions) {
+                    versions = $scope.selection.service.versions;
                 }
-                if ($scope.selection.layer.targetStyle && $scope.selection.layer.targetStyle.length > 0) {
-                    layerData = DataViewer.createLayerWMSWithStyle(cstlUrl, $scope.selection.layer.name, serviceName, $scope.selection.layer.targetStyle[0].name,versions);
+                var layerName = $scope.selection.layer.alias ? $scope.selection.layer.alias : $scope.selection.layer.name;
+                if ($scope.selection.layer.styleName) {
+                    layerData = DataViewer.createLayerWMSWithStyle(cstlUrl, layerName, serviceName, $scope.selection.layer.styleName,versions);
                 } else {
-                    layerData = DataViewer.createLayerWMS(cstlUrl, $scope.selection.layer.name, serviceName,versions);
+                    layerData = DataViewer.createLayerWMS(cstlUrl, layerName, serviceName,versions);
                 }
                 //to force the browser cache reloading styled layer.
                 layerData.get('params').ts=new Date().getTime();
@@ -992,21 +1010,17 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
                 DataViewer.initMap('wmsDataSourcePreview');
                 var arrayLayer = [];
                 arrayLayer.push({
-                    mapcontextId:null,
-                    layerId: $scope.selection.layer.id,
-                    dataId: $scope.selection.layer.dataId,
-                    iswms: true,
-                    styleId: $scope.selection.layer.styleId,
+                    layerType: "internal-service",
                     order: 0,
                     opacity: 100,
                     visible: true,
-                    externalServiceUrl: null,
-                    externalServiceVersion: null,
-                    externalLayer: null,
-                    externalLayerExtent: null,
-                    externalStyle: null
+                    layerId: $scope.selection.layer.id,
+                    dataId: $scope.selection.layer.dataId,
+                    styleId: $scope.selection.layer.styleId,
                 });
                 zoomToLayer(arrayLayer);
+                
+            //external wms layer   
             } else if($scope.selection.extLayer) {
                 var llExtent = '';
                 if ($scope.selection.extLayer.boundingBox) {
@@ -1024,18 +1038,20 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
                     }
                 }
                 var layerExt = {
+                    layerType: "external-service",
+                    order: 0,
+                    opacity: 100,
+                    visible: true,
                     externalLayer: $scope.selection.extLayer.name,
                     externalLayerExtent: llExtent,
                     externalServiceUrl: $scope.external.serviceUrl,
                     externalServiceVersion: $scope.selection.extLayer.version,
                     externalStyle: extStyle
                 };
-                if($scope.selection.extLayer.styles && $scope.selection.extLayer.styles.length>0){
-                    layerData = DataViewer.createLayerExternalWMSWithStyle(layerExt.externalServiceUrl,
-                        layerExt.externalLayer,
-                        $scope.selection.extLayer.styles[0].name);
-                }else {
-                    layerData = DataViewer.createLayerExternalWMS(layerExt.externalServiceUrl,layerExt.externalLayer);
+                if ($scope.selection.extLayer.styles && $scope.selection.extLayer.styles.length>0) {
+                    layerData = DataViewer.createLayerExternalWMSWithStyle(layerExt.externalServiceUrl, layerExt.externalLayer, $scope.selection.extLayer.styles[0].name);
+                } else {
+                    layerData = DataViewer.createLayerExternalWMS(layerExt.externalServiceUrl, layerExt.externalLayer);
                 }
                 //to force the browser cache reloading styled layer.
                 layerData.get('params').ts=new Date().getTime();
@@ -1044,21 +1060,7 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
                 //zoom to layer extent
                 DataViewer.initMap('wmsDataSourcePreview');
                 var arrayExtLayer = [];
-                arrayExtLayer.push({
-                    mapcontextId:null,
-                    layerId: null,
-                    dataId: null,
-                    iswms: true,
-                    styleId: null,
-                    order: 0,
-                    opacity: 100,
-                    visible: true,
-                    externalServiceUrl: layerExt.externalServiceUrl,
-                    externalServiceVersion: layerExt.externalServiceVersion,
-                    externalLayer: layerExt.externalLayer,
-                    externalLayerExtent: layerExt.externalLayerExtent,
-                    externalStyle: layerExt.externalStyle
-                });
+                arrayExtLayer.push(layerExt);
                 zoomToLayer(arrayExtLayer);
             } else {
                 DataViewer.initMap('wmsDataSourcePreview');

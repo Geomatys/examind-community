@@ -20,11 +20,9 @@ package org.constellation.admin;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
@@ -47,29 +45,25 @@ import org.constellation.business.IMapContextBusiness;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IUserBusiness;
+import org.constellation.dto.AbstractMCLayerDTO;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.Data;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.DataDescription;
+import org.constellation.dto.DataMCLayerDTO;
+import org.constellation.dto.ExternalServiceMCLayerDTO;
+import org.constellation.dto.InternalServiceMCLayerDTO;
 import org.constellation.dto.Layer;
 import org.constellation.dto.MapContextDTO;
 import org.constellation.dto.MapContextLayersDTO;
-import org.constellation.dto.MapContextStyledLayerDTO;
 import org.constellation.dto.ParameterValues;
-import org.constellation.dto.Style;
 import org.constellation.dto.StyleBrief;
-import org.constellation.dto.StyleReference;
-import org.constellation.dto.service.Service;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.TargetNotFoundException;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.DataProviders;
 import org.constellation.repository.LayerRepository;
 import org.constellation.repository.MapContextRepository;
-import org.constellation.repository.ServiceRepository;
-import org.constellation.repository.StyleRepository;
-import org.constellation.repository.StyledLayerRepository;
-import org.constellation.util.Util;
 import org.opengis.geometry.Envelope;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.context.annotation.Primary;
@@ -98,20 +92,11 @@ public class MapContextBusiness implements IMapContextBusiness {
     private IProviderBusiness providerBusiness;
 
     @Inject
-    private StyleRepository styleRepository;
-
-    @Inject
-    private ServiceRepository serviceRepository;
-
-    @Inject
-    private StyledLayerRepository styledLayerRepository;
-
-    @Inject
     private IUserBusiness userBusiness;
 
     @Override
     @Transactional
-    public void setMapItems(final int contextId, final List<MapContextStyledLayerDTO> layers) {
+    public void setMapItems(final int contextId, final List<AbstractMCLayerDTO> layers) {
         mapContextRepository.setLinkedLayers(contextId, layers);
         reloadMapContextProvider();
     }
@@ -120,11 +105,6 @@ public class MapContextBusiness implements IMapContextBusiness {
     @Transactional
     public Integer create(final MapContextLayersDTO mapContext) throws ConstellationException {
         int id = mapContextRepository.create(mapContext);
-        if (mapContext.getLayers() != null) {
-            for (MapContextStyledLayerDTO layer : mapContext.getLayers()) {
-                layer.setMapcontextId(id);
-            }
-        }
         mapContextRepository.setLinkedLayers(id, mapContext.getLayers());
         reloadMapContextProvider();
         return id;
@@ -143,22 +123,20 @@ public class MapContextBusiness implements IMapContextBusiness {
         mapContext.setNorth(env.getMaximum(1));
         mapContext.setName(contextName);
         final Integer id =  mapContextRepository.create(mapContext);
-        final List<MapContextStyledLayerDTO> mapcontextlayers = new ArrayList<>();
+        final List<AbstractMCLayerDTO> mapcontextlayers = new ArrayList<>();
         for (final DataBrief db : briefs) {
-            final MapContextStyledLayerDTO mcStyledLayer = new MapContextStyledLayerDTO();
-            mcStyledLayer.setDataId(db.getId());
             final StyleBrief style = db.getFirstStyle();
-            if (style != null) {
-                mcStyledLayer.setExternalStyle(style.getName());
-                mcStyledLayer.setStyleId(style.getId());
-            }
-            mcStyledLayer.setIswms(false);
-            mcStyledLayer.setLayerId(null);
-            mcStyledLayer.setOpacity(100);
-            mcStyledLayer.setOrder(briefs.indexOf(db));
-            mcStyledLayer.setVisible(true);
-            mcStyledLayer.setMapcontextId(id);
-            mapcontextlayers.add(mcStyledLayer);
+            mapcontextlayers.add(new DataMCLayerDTO(
+                                          new QName(db.getNamespace(), db.getName()),
+                                          briefs.indexOf(db),
+                                          100,
+                                          true,
+                                          db.getDate(),
+                                          db.getType(),
+                                          db.getOwner(),
+                                          db.getId(),
+                                          style != null ? style.getId(): null,
+                                          style != null ? style.getName() : null));
         }
         mapContextRepository.setLinkedLayers(id, mapcontextlayers);
         reloadMapContextProvider();
@@ -177,16 +155,10 @@ public class MapContextBusiness implements IMapContextBusiness {
     }
 
     private MapContextLayersDTO convertToMapContextLayer(final MapContextDTO ctxt) throws ConstellationException {
-        final List<MapContextStyledLayerDTO> styledLayers = mapContextRepository.getLinkedLayers(ctxt.getId());
-        final List<MapContextStyledLayerDTO> styledLayersDto = generateLayerDto(styledLayers);
-
+        final List<AbstractMCLayerDTO> styledLayers = mapContextRepository.getLinkedLayers(ctxt.getId());
         //get owner login.
-        String userLogin = null;
-        final Optional<CstlUser> user = userBusiness.findById(ctxt.getOwner());
-        if (user.isPresent()) {
-            userLogin = user.get().getLogin();
-        }
-        return buildMapContextLayers(ctxt, userLogin, styledLayersDto);
+        String userLogin = userBusiness.findById(ctxt.getOwner()).map(CstlUser::getLogin).orElse(null);
+        return buildMapContextLayers(ctxt, userLogin, styledLayers);
     }
 
     @Override
@@ -230,7 +202,7 @@ public class MapContextBusiness implements IMapContextBusiness {
             }
         }
 
-        final List<MapContextStyledLayerDTO> styledLayers = generateLayerDto(mapContextRepository.getLinkedLayers(contextId));
+        final List<AbstractMCLayerDTO> styledLayers = mapContextRepository.getLinkedLayers(contextId);
         env = getEnvelopeForLayers(styledLayers, env);
 
         if (env == null) {
@@ -255,7 +227,7 @@ public class MapContextBusiness implements IMapContextBusiness {
      * @throws ConstellationException
      */
     @Override
-    public ParameterValues getExtentForLayers(final List<MapContextStyledLayerDTO> styledLayers) throws ConstellationException {
+    public ParameterValues getExtentForLayers(final List<AbstractMCLayerDTO> styledLayers) throws ConstellationException {
         final GeneralEnvelope env = getEnvelopeForLayers(styledLayers, null);
         if (env == null) {
             return null;
@@ -271,20 +243,37 @@ public class MapContextBusiness implements IMapContextBusiness {
         return values;
     }
 
-    private GeneralEnvelope getEnvelopeForLayers(final List<MapContextStyledLayerDTO> styledLayers,
+    private GeneralEnvelope getEnvelopeForLayers(final List<AbstractMCLayerDTO> styledLayers,
                                                  final GeneralEnvelope ctxtEnv) throws ConstellationException {
         GeneralEnvelope env = ctxtEnv;
-        for (final MapContextStyledLayerDTO styledLayer : styledLayers) {
+        for (final AbstractMCLayerDTO styledLayer : styledLayers) {
             if (!styledLayer.isVisible()) {
                 continue;
             }
-            Integer layerID = styledLayer.getLayerId();
-            Integer dataID = styledLayer.getDataId();
-            if (layerID != null || dataID != null) {
-                if (dataID == null) {
-                    final Layer layerRecord = layerRepository.findById(layerID);
-                    dataID = layerRecord.getDataId();
+            Integer dataID = null;
+            if (styledLayer instanceof InternalServiceMCLayerDTO) {
+                InternalServiceMCLayerDTO isLayer = (InternalServiceMCLayerDTO) styledLayer;
+                final Layer layerRecord = layerRepository.findById(isLayer.getLayerId());
+                dataID = layerRecord.getDataId();
+            } else if (styledLayer instanceof DataMCLayerDTO) {
+                DataMCLayerDTO dLayer = (DataMCLayerDTO) styledLayer;
+                dataID = dLayer.getDataId();
+            } else if (styledLayer instanceof ExternalServiceMCLayerDTO) {
+                ExternalServiceMCLayerDTO eLayer = (ExternalServiceMCLayerDTO) styledLayer;
+                final String extLayerExtent = eLayer.getExternalLayerExtent();
+                if (extLayerExtent != null && !extLayerExtent.isEmpty()) {
+                    final String[] layExtent = extLayerExtent.split(",");
+                    final GeneralEnvelope tempEnv = new GeneralEnvelope(CommonCRS.defaultGeographic());
+                    tempEnv.setRange(0, Double.parseDouble(layExtent[0]), Double.parseDouble(layExtent[2]));
+                    tempEnv.setRange(1, Double.parseDouble(layExtent[1]), Double.parseDouble(layExtent[3]));
+                    if (env == null) {
+                        env = tempEnv;
+                    } else {
+                        env.add(tempEnv);
+                    }
                 }
+            }
+            if (dataID != null) {
                 DataBrief db = dataBusiness.getDataBrief(dataID, true);
                 final DataDescription ddesc = db.getDataDescription();
                 if (ddesc != null) {
@@ -296,19 +285,6 @@ public class MapContextBusiness implements IMapContextBusiness {
                         env = dataEnv;
                     } else {
                         env.add(dataEnv);
-                    }
-                }
-            } else {
-                final String extLayerExtent = styledLayer.getExternalLayerExtent();
-                if (extLayerExtent != null && !extLayerExtent.isEmpty()) {
-                    final String[] layExtent = extLayerExtent.split(",");
-                    final GeneralEnvelope tempEnv = new GeneralEnvelope(CommonCRS.defaultGeographic());
-                    tempEnv.setRange(0, Double.parseDouble(layExtent[0]), Double.parseDouble(layExtent[2]));
-                    tempEnv.setRange(1, Double.parseDouble(layExtent[1]), Double.parseDouble(layExtent[3]));
-                    if (env == null) {
-                        env = tempEnv;
-                    } else {
-                        env.add(tempEnv);
                     }
                 }
             }
@@ -325,9 +301,6 @@ public class MapContextBusiness implements IMapContextBusiness {
     @Transactional
     public void updateContext(MapContextLayersDTO mapContext) throws ConstellationException {
         mapContextRepository.update(mapContext);
-        for (MapContextStyledLayerDTO layer : mapContext.getLayers()) {
-            layer.setMapcontextId(mapContext.getId());
-        }
         mapContextRepository.setLinkedLayers(mapContext.getId(), mapContext.getLayers());
         // in case of name change
         reloadMapContextProvider();
@@ -400,8 +373,16 @@ public class MapContextBusiness implements IMapContextBusiness {
         return new AbstractMap.SimpleImmutableEntry<>(entry.getKey(), results);
     }
 
+    @Override
+    public Data getMapContextDataId(int id) throws ConstellationException {
+        final MapContextDTO mc = mapContextRepository.findById(id);
+        if (mc != null) {
+            return dataBusiness.getDataBrief(new QName(mc.getName()), INTERNAL_MAP_CONTEXT_PROVIDER, false);
+        }
+        throw new TargetNotFoundException("No mapcontext found with id: " + id);
+    }
 
-    private static MapContextLayersDTO buildMapContextLayers(MapContextDTO mctx, String userOwner, List<MapContextStyledLayerDTO> layers) {
+    private static MapContextLayersDTO buildMapContextLayers(MapContextDTO mctx, String userOwner, List<AbstractMCLayerDTO> layers) {
         return new MapContextLayersDTO(mctx.getId(),
                 mctx.getName(),
                 mctx.getOwner(),
@@ -414,116 +395,5 @@ public class MapContextBusiness implements IMapContextBusiness {
                 mctx.getKeywords(),
                 userOwner,
                 layers);
-    }
-
-    private List<MapContextStyledLayerDTO> generateLayerDto(final List<MapContextStyledLayerDTO> styledLayers) throws ConstellationException{
-        final List<MapContextStyledLayerDTO> styledLayersDto = new ArrayList<>();
-        for (final MapContextStyledLayerDTO styledLayer : styledLayers) {
-            final MapContextStyledLayerDTO dto;
-            final Integer layerID = styledLayer.getLayerId();
-            final Integer dataID = styledLayer.getDataId();
-            if (layerID != null) {
-                final Layer layer = layerRepository.findById(layerID);
-                final Data db = dataBusiness.getData(layer.getDataId());
-
-                final QName name = layer.getName();
-
-                final org.constellation.dto.service.config.wxs.LayerConfig layerConfig = new org.constellation.dto.service.config.wxs.LayerConfig(layer.getId(), name);
-                layerConfig.setAlias(layer.getAlias());
-                layerConfig.setDate(layer.getDate());
-                layerConfig.setOwnerId(layer.getOwnerId());
-                layerConfig.setDataId(layer.getDataId());
-
-                final List<Integer> styledLays = styledLayerRepository.findByLayer(layer.getId());
-                final List<StyleReference> drs = new ArrayList<>();
-                for (final Integer styledLay : styledLays) {
-                    final Style s = styleRepository.findById(styledLay);
-                    if (s == null) {
-                        continue;
-                    }
-                    final StyleReference dr = new StyleReference(s.getId(), s.getName(), s.getProviderId(), "sld");
-                    drs.add(dr);
-                }
-                layerConfig.setStyles(drs);
-                String owner = userBusiness.findById(db.getOwnerId()).map(CstlUser::getLogin).orElse(null);
-
-                dto = buildMapContextStyledLayer(styledLayer, layerConfig, db, owner);
-
-                if (styledLayer.getStyleId() != null) {
-                    // Extract style information for this layer
-                    final Style style = styleRepository.findById(styledLayer.getStyleId());
-                    if (style != null) {
-                        dto.setStyleName(style.getName());
-                    }
-                }
-
-                // Extract service information for this layer
-                final Layer layerRecord = layerRepository.findById(styledLayer.getLayerId());
-                final Service serviceRecord = serviceRepository.findById(layerRecord.getService());
-                dto.setServiceIdentifier(serviceRecord.getIdentifier());
-                dto.setServiceVersions(serviceRecord.getVersions());
-            } else if (dataID != null) {
-                final Data db = dataBusiness.getData(dataID);
-                final QName dataName = new QName(db.getNamespace(), db.getName());
-                final org.constellation.dto.service.config.wxs.LayerConfig layerConfig = new org.constellation.dto.service.config.wxs.LayerConfig(styledLayer.getLayerId(), dataName);
-                layerConfig.setAlias(db.getName());
-                layerConfig.setDate(db.getDate());
-                layerConfig.setOwnerId(db.getOwnerId());
-                layerConfig.setDataId(dataID);
-
-                // Fill styles
-                final List<Integer> stylesIds = styleRepository.getStyleIdsForData(dataID);
-                final List<StyleReference> drs = new ArrayList<>();
-                for (final Integer styleId : stylesIds) {
-                    final Style s = styleRepository.findById(styleId);
-                    if (s == null) {
-                        continue;
-                    }
-                    final StyleReference dr = new StyleReference(s.getId(), s.getName(), s.getProviderId(), "sld");
-                    drs.add(dr);
-                }
-                layerConfig.setStyles(drs);
-                String owner = userBusiness.findById(db.getOwnerId()).map(CstlUser::getLogin).orElse(null);
-                dto = buildMapContextStyledLayer(styledLayer, layerConfig, db, owner);
-
-                if (styledLayer.getStyleId() != null) {
-                    // Extract style information for this layer
-                    final Style style = styleRepository.findById(styledLayer.getStyleId());
-                    if (style != null) {
-                        dto.setStyleName(style.getName());
-                    }
-                }
-
-            } else {
-                dto = styledLayer;
-            }
-
-            styledLayersDto.add(dto);
-        }
-        Collections.sort(styledLayersDto);
-        return styledLayersDto;
-    }
-
-    private static MapContextStyledLayerDTO buildMapContextStyledLayer(MapContextStyledLayerDTO mcSl, final org.constellation.dto.service.config.wxs.LayerConfig layer,
-                final Data db, String owner) {
-        List<StyleBrief> layerStyleBrief = null;
-        if (layer != null) {
-            layerStyleBrief = Util.convertRefIntoStylesBrief(layer.getStyles());
-        }
-        return new MapContextStyledLayerDTO(mcSl.getId(),
-                mcSl.getMapcontextId(),
-                mcSl.getLayerId(),
-                mcSl.getStyleId(),
-                mcSl.getOrder(),
-                mcSl.getOpacity(),
-                mcSl.isVisible(),
-                mcSl.getExternalLayer(),
-                mcSl.getExternalLayerExtent(),
-                mcSl.getExternalServiceUrl(),
-                mcSl.getExternalServiceVersion(),
-                mcSl.getExternalStyle(),
-                mcSl.isIswms(),
-                mcSl.getDataId(), layer, db, owner, layerStyleBrief);
-
     }
 }

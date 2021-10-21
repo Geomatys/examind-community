@@ -30,7 +30,6 @@ import org.constellation.dto.DataBrief;
 import org.constellation.util.Util;
 import org.constellation.webservice.map.component.MapBusiness;
 import org.constellation.ws.rs.ResponseObject;
-import org.geotoolkit.util.StringUtilities;
 import static org.springframework.http.HttpStatus.*;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -86,8 +85,15 @@ public class PortrayalRestAPI {
         try {
             // OLD API
             if (dataId == null) {
+                if (dataName == null || providerId == null) {
+                    return  new ResponseEntity(BAD_REQUEST);
+                }
                 final DataBrief brief = dataBusiness.getDataBrief(Util.parseQName(dataName), providerId, false);
-                dataId = brief.getId();
+                if (brief != null) {
+                    dataId = brief.getId();
+                } else {
+                    return new ResponseEntity(NOT_FOUND);
+                }
             }
             return new ResponseObject(mapBusiness.portraySLD(dataId, crs, bbox, width, height, sldBody, sldVersion, filter), MediaType.IMAGE_PNG, OK).getResponseEntity(response);
         } catch (Exception ex) {
@@ -127,8 +133,15 @@ public class PortrayalRestAPI {
         try {
             // OLD API
             if (dataId == null) {
+                if (dataName == null || providerId == null) {
+                    return  new ResponseEntity(BAD_REQUEST);
+                }
                 final DataBrief brief = dataBusiness.getDataBrief(Util.parseQName(dataName), providerId, false);
-                dataId = brief.getId();
+                if (brief != null) {
+                    dataId = brief.getId();
+                } else {
+                    return new ResponseEntity(NOT_FOUND);
+                }
             }
             return new ResponseObject(mapBusiness.portray(dataId, crs, bbox, width, height, sldProvider, styleId, filter), MediaType.IMAGE_PNG, OK).getResponseEntity(response);
         } catch (Exception ex) {

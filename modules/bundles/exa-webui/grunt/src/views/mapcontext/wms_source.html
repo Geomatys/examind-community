@@ -39,7 +39,7 @@
                                                                  ng-click="selectLayer(layer, serviceLayer);previewWMSLayer();">
                                                                 <div class="top">
                                                                     <span class="item-title"
-                                                                          title="{{layer.name}}">{{truncate(layer.name,40)}}</span>
+                                                                          title="{{layer.alias ? layer.alias : layer.name}}">{{truncate(layer.alias ? layer.alias : layer.name,40)}}</span>
                                                                     <span class="pull-right text-right item-list-style">{{layer.type==='coverage'?'raster':layer.type==='feature-store'?'vector':layer.type==='observation-store'?'vector':layer.type}}</span>
                                                                     <img ng-if="layer.type=='VECTOR'  && (layer.subtype=='Point' || layer.subtype=='MultiPoint')"
                                                                          ng-src="{{(selection.layer && layer.id==selection.layer.id)?'img/vector-multipoint-selected.svg':'img/vector-multipoint.svg'}}"

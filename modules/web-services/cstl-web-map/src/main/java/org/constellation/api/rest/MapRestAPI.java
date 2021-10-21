@@ -119,6 +119,22 @@ public class MapRestAPI {
     }
 
     /**
+     * Extracts and returns single {@link LayerConfig} available on a "map" service.
+     *
+     * @param id the layer id
+     * @return the {@link LayerConfig} list
+     */
+    @RequestMapping(value="/MAP/layer/{id}",method=GET,produces=APPLICATION_JSON_VALUE)
+    public ResponseEntity getLayer(final @PathVariable("id") Integer id) {
+        try {
+            return new ResponseEntity(layerBusiness.getLayer(id, securityManager.getCurrentUserLogin()), OK);
+        } catch(Exception ex){
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
+    }
+
+    /**
      *
      * @param spec the service type
      * @param id the service identifier

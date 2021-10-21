@@ -25,8 +25,8 @@ import java.util.logging.Logger;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IMapContextBusiness;
 import org.constellation.configuration.ConfigDirectory;
+import org.constellation.dto.AbstractMCLayerDTO;
 import org.constellation.dto.MapContextLayersDTO;
-import org.constellation.dto.MapContextStyledLayerDTO;
 import org.constellation.dto.ParameterValues;
 import org.constellation.exception.ConstellationException;
 import org.constellation.test.utils.Order;
@@ -90,7 +90,7 @@ public class MapContextBusinessTest {
         mapContext.setNorth(90.0);
         mapContext.setSouth(-90.0);
 
-        List<MapContextStyledLayerDTO> layers = new ArrayList<>();
+        List<AbstractMCLayerDTO> layers = new ArrayList<>();
         mapContext.setLayers(layers);
 
         mpBusiness.deleteAll();

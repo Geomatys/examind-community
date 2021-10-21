@@ -2198,7 +2198,21 @@ function Examind($http, url) {
     self.map = {
 
         /**
-         * Get all layers
+         * Get single layer
+         *
+         * @returns {Promise}
+         */
+        getLayer : function(layerId) {
+            return self.request({
+                method: 'GET',
+                url: 'MAP/layer/' + layerId,
+                headers: {'Accept': 'application/json'}
+            });
+        },
+
+
+        /**
+         * Get all layers for a service
          *
          * @returns {Promise}
          */

@@ -169,27 +169,28 @@ angular.module('cstl-mapcontext-dashboard', ['cstl-restapi', 'cstl-services', 'u
                         var layObj = mapcontextLayers[i];
                         if (layObj.visible) {
                             var layerData;
-                            if (layObj.isWms) {//wms layer external and internal
-                                if(layObj.layer.externalServiceUrl) {
-                                    layerData = (layObj.layer.externalStyle) ?
-                                        MapContextDashboardViewer.createLayerExternalWMSWithStyle(layObj.layer.externalServiceUrl,
-                                            layObj.layer.externalLayer, layObj.layer.externalStyle.split(',')[0]) :
-                                        MapContextDashboardViewer.createLayerExternalWMS(layObj.layer.externalServiceUrl, layObj.layer.externalLayer);
-                                }else {
-                                    var serviceName = (layObj.layer.serviceIdentifier) ? layObj.layer.serviceIdentifier : layObj.service.identifier;
-                                    var versions=[];
-                                    if(layObj.layer.serviceVersions) {
-                                        var arry = layObj.layer.serviceVersions.split('µ');
-                                        versions.push(arry[arry.length-1]);
-                                    }
-                                    if(layObj.layer.externalStyle){
-                                        layerData = MapContextDashboardViewer.createLayerWMSWithStyle(cstlUrl, layObj.layer.name, serviceName, layObj.layer.externalStyle.split(',')[0],versions);
-                                    }else {
-                                        layerData = MapContextDashboardViewer.createLayerWMS(cstlUrl, layObj.layer.name, serviceName,versions);
-                                    }
+                            
+                            //external wms layer
+                            if (layObj.layer.externalServiceUrl) {
+                                if (layObj.layer.externalStyle) {
+                                    var exStyleName = layObj.layer.externalStyle.split(',')[0];
+                                    layerData = MapContextDashboardViewer.createLayerExternalWMSWithStyle(layObj.layer.externalServiceUrl, layObj.layer.externalLayer, exStyleName);
+                                } else {
+                                    layerData = MapContextDashboardViewer.createLayerExternalWMS(layObj.layer.externalServiceUrl, layObj.layer.externalLayer);
                                 }
-                            } else {//internal data layer
-                                var layerName,providerId;
+                            
+                            //internal wms layer
+                            } else if (layObj.layer.layerId) {
+                                var serviceName = (layObj.layer.serviceIdentifier) ? layObj.layer.serviceIdentifier : layObj.service.identifier;
+                                var versions    = layObj.layer.serviceVersions;
+                                if (layObj.layer.styleName) {
+                                    layerData = MapContextDashboardViewer.createLayerWMSWithStyle(cstlUrl, layObj.layer.name, serviceName, layObj.layer.styleName, versions);
+                                } else {
+                                    layerData = MapContextDashboardViewer.createLayerWMS(cstlUrl, layObj.layer.name, serviceName,versions);
+                                }
+                            //internal data layer
+                            } else {
+                                var layerName;
                                 var dataItem = layObj.layer;
                                 var type = dataItem.type?dataItem.type.toLowerCase():null;
                                 if (dataItem.namespace) {
@@ -197,12 +198,11 @@ angular.module('cstl-mapcontext-dashboard', ['cstl-restapi', 'cstl-services', 'u
                                 } else {
                                     layerName = dataItem.name;
                                 }
-                                providerId = dataItem.provider;
                                 if (layObj.styleObj || dataItem.styleName) {
-                                    layerData = MapContextDashboardViewer.createLayerWithStyle(cstlUrl,dataItem.dataId,layerName,
-                                        layObj.styleObj?layObj.styleObj.name:dataItem.styleName,null,null,type!=='vector');
+                                    var inDStyleName = layObj.styleObj ? layObj.styleObj.name : dataItem.styleName;
+                                    layerData = MapContextDashboardViewer.createLayerWithStyle(cstlUrl, dataItem.dataId, layerName, inDStyleName, null, null, type!=='vector');
                                 } else {
-                                    layerData = MapContextDashboardViewer.createLayer(cstlUrl,dataItem.dataId,layerName,null,type!=='vector');
+                                    layerData = MapContextDashboardViewer.createLayer(cstlUrl, dataItem.dataId, layerName, null, type!=='vector');
                                 }
                             }
                             layerData.setOpacity(layObj.opacity / 100);
@@ -237,25 +237,18 @@ angular.module('cstl-mapcontext-dashboard', ['cstl-restapi', 'cstl-services', 'u
             for (var i=0; i<$scope.selected.layers.length; i++) {
                 var lay = $scope.selected.layers[i];
                 styleObj = undefined;
-                if(lay.externalServiceUrl){
-                    if(lay.externalStyle){
-                        styleObj = {"name":lay.externalStyle.split(',')[0]};
-                    }
-                }else if(lay.targetStyle && lay.targetStyle.length>0 && lay.externalStyle){
-                    var styleToMatch = lay.externalStyle.split(',')[0];
-                    for(var j=0;j<lay.targetStyle.length;j++){
-                        var candidat =lay.targetStyle[j];
-                        if(styleToMatch === candidat.name){
-                            styleObj = candidat;
-                            break;
-                        }
-                    }
+                //external wms layer
+                if (lay.externalServiceUrl && lay.externalStyle) {
+                     styleObj = {"name":lay.externalStyle.split(',')[0]};
+                     
+                // internal wms layer and internal Data     
+                } else if (lay.styleId && lay.styleName) {
+                    styleObj = {"id": lay.styleId, "name": lay.styleName};
                 }
                 lays.push({
                     "layer": lay,
                     "visible": lay.visible,
                     "opacity": lay.opacity,
-                    "isWms": lay.iswms,
                     "styleObj": styleObj
                 });
             }

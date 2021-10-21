@@ -20,9 +20,8 @@ package org.constellation.repository;
 
 import java.util.List;
 import java.util.Map;
-
+import org.constellation.dto.AbstractMCLayerDTO;
 import org.constellation.dto.MapContextDTO;
-import org.constellation.dto.MapContextStyledLayerDTO;
 
 public interface MapContextRepository extends AbstractRepository {
 
@@ -34,9 +33,9 @@ public interface MapContextRepository extends AbstractRepository {
 
     List<Integer> findAllId();
 
-    List<MapContextStyledLayerDTO> getLinkedLayers(int mapContextId);
+    List<AbstractMCLayerDTO> getLinkedLayers(int mapContextId);
 
-    void setLinkedLayers(int mapContextId, List<MapContextStyledLayerDTO> layers);
+    void setLinkedLayers(int mapContextId, List<AbstractMCLayerDTO> layers);
 
     Integer create(MapContextDTO mapContext);
 

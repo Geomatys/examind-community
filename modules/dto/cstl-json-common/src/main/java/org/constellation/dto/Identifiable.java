@@ -18,6 +18,8 @@
  */
 package org.constellation.dto;
 
+import java.util.Objects;
+
 /**
  *
  * @author Guilhem Legal (Geomatys)
@@ -52,5 +54,31 @@ public abstract class Identifiable {
      */
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("[").append(this.getClass().getSimpleName()).append("]\n");
+        sb.append("id:").append(id).append('\n');
+        return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj instanceof Identifiable) {
+            Identifiable that = (Identifiable) obj;
+            return Objects.equals(this.id, that.id) ;
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 29 * hash + Objects.hashCode(this.id);
+        return hash;
     }
 }

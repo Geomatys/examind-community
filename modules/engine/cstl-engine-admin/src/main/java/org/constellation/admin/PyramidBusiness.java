@@ -23,7 +23,6 @@ import java.awt.Dimension;
 import java.awt.image.DataBuffer;
 import java.awt.image.RenderedImage;
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -59,7 +58,6 @@ import org.constellation.business.IPyramidBusiness;
 import org.constellation.business.IStyleBusiness;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.MapContextLayersDTO;
-import org.constellation.dto.MapContextStyledLayerDTO;
 import org.constellation.dto.TilingResult;
 import org.constellation.dto.StyleBrief;
 import org.constellation.dto.process.TaskParameter;
@@ -89,9 +87,6 @@ import org.geotoolkit.storage.multires.MultiResolutionResource;
 import org.geotoolkit.storage.multires.TileMatrices;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.util.NamesExt;
-import org.geotoolkit.wms.WMSResource;
-import org.geotoolkit.wms.WebMapClient;
-import org.geotoolkit.wms.xml.WMSVersion;
 import org.opengis.geometry.Envelope;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -370,65 +365,9 @@ public class PyramidBusiness implements IPyramidBusiness {
             scales[i] = scales[i - 1] / 2.0;
         }
 
-        final MapLayers context = MapBuilder.createContext();
-
-        for (final MapContextStyledLayerDTO layer : mc.getLayers()) {
-
-            final Integer dataId = layer.getDataId();
-
-            // external Layer
-            if (dataId == null) {
-                URL serviceUrl;
-                try {
-                    serviceUrl = new URL(layer.getExternalServiceUrl());
-                } catch (Exception ex) {
-                    LOGGER.log(Level.WARNING, "An external wms layer in mapcontext have invalid service url! " + layer.getName());
-                    continue;
-                }
-                //it is a wms layer
-                final String serviceVersion = layer.getExternalServiceVersion() != null ? layer.getExternalServiceVersion() : "1.3.0";
-                final WebMapClient wmsServer = new WebMapClient(serviceUrl, WMSVersion.getVersion(serviceVersion));
-                GenericName layerName = NamesExt.create(layer.getName());
-                final WMSResource wmsLayer = new WMSResource(wmsServer, layerName);
-                context.getComponents().add(MapBuilder.createLayer(wmsLayer));
-                continue;
-            }
-            //get data
-            final Data inData;
-            try {
-                final org.constellation.dto.Data dbD = dataBusiness.getData(dataId);
-                inData = DataProviders.getProviderData(dbD.getProviderId(), dbD.getNamespace(), dbD.getName());
-            } catch (ConfigurationException ex) {
-                LOGGER.log(Level.WARNING, "Data " + dataId + " does not exist");
-                continue;
-            }
-
-            if (inData  == null) {
-                LOGGER.log(Level.WARNING, "Data: " + dataId + " does not exist.");
-                continue;
-            }
-
-            MutableStyle style = null;
-            try {
-                final StyleBrief styleB = layer.getFirstStyle();
-                if (styleB != null) {
-                    if (styleB.getId() != null) {
-                        style = (MutableStyle) styleBusiness.getStyle(styleB.getId());
-                    } else {
-                        LOGGER.warning("Map context layer style ignored (no id)");
-                    }
-                }
-            } catch (Exception ex) {
-                LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
-            }
-
-            try {
-                //if style is null, a default style will be used in maplayer.
-                context.getComponents().add(inData.getMapLayer(style, null));
-            } catch (ConstellationStoreException ex) {
-                LOGGER.log(Level.WARNING, "Failed to create map context item for data " + ex.getMessage(), ex);
-            }
-        }
+        org.constellation.dto.Data mcData = mapContextBusiness.getMapContextDataId(mc.getId());
+        Data d = DataProviders.getProviderData(mcData.getProviderId(), mcData.getNamespace(), mcData.getName());
+        final MapLayers context =  (MapLayers) d.getMapLayer(null, null);
 
         String pyramidIdentifier = RENDERED_PREFIX + UUID.randomUUID().toString();
         context.setIdentifier("Styled pyramid " + crs + " for " + pyramidIdentifier + ":" + pyramidDataName);
