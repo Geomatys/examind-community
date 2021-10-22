@@ -38,8 +38,8 @@ public class ExternalServiceMCLayerDTO extends AbstractMCLayerDTO {
     public ExternalServiceMCLayerDTO(){}
     
     public ExternalServiceMCLayerDTO(Integer id, QName name, Integer order, Integer opacity, Boolean visible, Date date, String type, String owner,
-            QName externalLayer, String externalStyle, String externalServiceUrl, String externalServiceVersion,  String externalLayerExtent) {
-        super(id, name, order, opacity, visible, date, type, owner);
+            QName externalLayer, String externalStyle, String externalServiceUrl, String externalServiceVersion,  String externalLayerExtent, String query) {
+        super(id, name, order, opacity, visible, date, type, owner, query);
         this.externalLayer = externalLayer;
         this.externalStyle = externalStyle;
         this.externalServiceUrl = externalServiceUrl;

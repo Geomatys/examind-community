@@ -26,8 +26,8 @@ import javax.validation.constraints.Size;
 
 import org.jooq.Field;
 import org.jooq.Record1;
-import org.jooq.Record14;
-import org.jooq.Row14;
+import org.jooq.Record15;
+import org.jooq.Row15;
 import org.jooq.impl.UpdatableRecordImpl;
 
 
@@ -35,7 +35,7 @@ import org.jooq.impl.UpdatableRecordImpl;
  * Generated DAO object for table admin.mapcontext_styled_layer
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
-public class MapcontextStyledLayerRecord extends UpdatableRecordImpl<MapcontextStyledLayerRecord> implements Record14<Integer, Integer, Integer, Integer, Integer, Integer, Boolean, String, String, String, String, String, Boolean, Integer> {
+public class MapcontextStyledLayerRecord extends UpdatableRecordImpl<MapcontextStyledLayerRecord> implements Record15<Integer, Integer, Integer, Integer, Integer, Integer, Boolean, String, String, String, String, String, Boolean, Integer, String> {
 
     private static final long serialVersionUID = 1L;
 
@@ -255,6 +255,22 @@ public class MapcontextStyledLayerRecord extends UpdatableRecordImpl<MapcontextS
         return (Integer) get(13);
     }
 
+    /**
+     * Setter for <code>admin.mapcontext_styled_layer.query</code>.
+     */
+    public MapcontextStyledLayerRecord setQuery(String value) {
+        set(14, value);
+        return this;
+    }
+
+    /**
+     * Getter for <code>admin.mapcontext_styled_layer.query</code>.
+     */
+    @Size(max = 10485760)
+    public String getQuery() {
+        return (String) get(14);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -265,17 +281,17 @@ public class MapcontextStyledLayerRecord extends UpdatableRecordImpl<MapcontextS
     }
 
     // -------------------------------------------------------------------------
-    // Record14 type implementation
+    // Record15 type implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public Row14<Integer, Integer, Integer, Integer, Integer, Integer, Boolean, String, String, String, String, String, Boolean, Integer> fieldsRow() {
-        return (Row14) super.fieldsRow();
+    public Row15<Integer, Integer, Integer, Integer, Integer, Integer, Boolean, String, String, String, String, String, Boolean, Integer, String> fieldsRow() {
+        return (Row15) super.fieldsRow();
     }
 
     @Override
-    public Row14<Integer, Integer, Integer, Integer, Integer, Integer, Boolean, String, String, String, String, String, Boolean, Integer> valuesRow() {
-        return (Row14) super.valuesRow();
+    public Row15<Integer, Integer, Integer, Integer, Integer, Integer, Boolean, String, String, String, String, String, Boolean, Integer, String> valuesRow() {
+        return (Row15) super.valuesRow();
     }
 
     @Override
@@ -349,6 +365,11 @@ public class MapcontextStyledLayerRecord extends UpdatableRecordImpl<MapcontextS
     }
 
     @Override
+    public Field<String> field15() {
+        return MapcontextStyledLayer.MAPCONTEXT_STYLED_LAYER.QUERY;
+    }
+
+    @Override
     public Integer component1() {
         return getId();
     }
@@ -419,6 +440,11 @@ public class MapcontextStyledLayerRecord extends UpdatableRecordImpl<MapcontextS
     }
 
     @Override
+    public String component15() {
+        return getQuery();
+    }
+
+    @Override
     public Integer value1() {
         return getId();
     }
@@ -486,6 +512,11 @@ public class MapcontextStyledLayerRecord extends UpdatableRecordImpl<MapcontextS
     @Override
     public Integer value14() {
         return getDataId();
+    }
+
+    @Override
+    public String value15() {
+        return getQuery();
     }
 
     @Override
@@ -573,7 +604,13 @@ public class MapcontextStyledLayerRecord extends UpdatableRecordImpl<MapcontextS
     }
 
     @Override
-    public MapcontextStyledLayerRecord values(Integer value1, Integer value2, Integer value3, Integer value4, Integer value5, Integer value6, Boolean value7, String value8, String value9, String value10, String value11, String value12, Boolean value13, Integer value14) {
+    public MapcontextStyledLayerRecord value15(String value) {
+        setQuery(value);
+        return this;
+    }
+
+    @Override
+    public MapcontextStyledLayerRecord values(Integer value1, Integer value2, Integer value3, Integer value4, Integer value5, Integer value6, Boolean value7, String value8, String value9, String value10, String value11, String value12, Boolean value13, Integer value14, String value15) {
         value1(value1);
         value2(value2);
         value3(value3);
@@ -588,6 +625,7 @@ public class MapcontextStyledLayerRecord extends UpdatableRecordImpl<MapcontextS
         value12(value12);
         value13(value13);
         value14(value14);
+        value15(value15);
         return this;
     }
 
@@ -605,7 +643,7 @@ public class MapcontextStyledLayerRecord extends UpdatableRecordImpl<MapcontextS
     /**
      * Create a detached, initialised MapcontextStyledLayerRecord
      */
-    public MapcontextStyledLayerRecord(Integer id, Integer mapcontextId, Integer layerId, Integer styleId, Integer layerOrder, Integer layerOpacity, Boolean layerVisible, String externalLayer, String externalLayerExtent, String externalServiceUrl, String externalServiceVersion, String externalStyle, Boolean iswms, Integer dataId) {
+    public MapcontextStyledLayerRecord(Integer id, Integer mapcontextId, Integer layerId, Integer styleId, Integer layerOrder, Integer layerOpacity, Boolean layerVisible, String externalLayer, String externalLayerExtent, String externalServiceUrl, String externalServiceVersion, String externalStyle, Boolean iswms, Integer dataId, String query) {
         super(MapcontextStyledLayer.MAPCONTEXT_STYLED_LAYER);
 
         setId(id);
@@ -622,5 +660,6 @@ public class MapcontextStyledLayerRecord extends UpdatableRecordImpl<MapcontextS
         setExternalStyle(externalStyle);
         setIswms(iswms);
         setDataId(dataId);
+        setQuery(query);
     }
 }

@@ -23,10 +23,15 @@ import java.net.URL;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.sis.cql.CQLException;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.portrayal.MapItem;
+import org.apache.sis.portrayal.MapLayer;
 import org.apache.sis.portrayal.MapLayers;
 import org.apache.sis.referencing.CRS;
+import org.apache.sis.storage.GridCoverageResource;
+import org.apache.sis.storage.Query;
+import org.apache.sis.storage.Resource;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
@@ -39,7 +44,6 @@ import org.constellation.dto.Layer;
 import org.constellation.dto.MapContextLayersDTO;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
-import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviders;
 import org.geotoolkit.map.MapBuilder;
@@ -84,20 +88,20 @@ public class MapContextUtils {
     /**
     * Build a Geotoolkit map item from an Examind Map context layer.
     *
-    *
-    * @param layer The Map context layer to transform.
+    * @param layer The Map context layer to transform (Must be not {@code null}).
     * @return A map item ready-to-be rendered by Geotoolkit.
     * @throws ConfigurationException If the data or style referenced from this
     * layer cannot be found in administration database.
     */
    public static MapItem load(final AbstractMCLayerDTO layer, IDataBusiness dataBusiness, IStyleBusiness styleBusiness, ILayerBusiness layerBusiness) throws ConstellationException {
-
+        if (layer == null) throw new ConstellationException("layer must not be null");
+        MapItem mi = null;
         if (layer instanceof InternalServiceMCLayerDTO isLayer) {
             final Integer layerId = isLayer.getLayerId();
             final Layer layerConf = layerBusiness.getLayer(layerId, null);
 
             final org.constellation.dto.Data data = dataBusiness.getData(layerConf.getDataId());
-            
+
             final Integer styleId = isLayer.getStyleId();
             final org.opengis.style.Style layerStyle;
             if (styleId != null) {
@@ -107,7 +111,7 @@ public class MapContextUtils {
             }
 
             final Data realData = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
-            return realData.getMapLayer(layerStyle);
+            mi = realData.getMapLayer(layerStyle);
 
         } else if (layer instanceof DataMCLayerDTO dtLayer) {
             final Integer dataId = dtLayer.getDataId();
@@ -127,7 +131,7 @@ public class MapContextUtils {
             }
 
             final Data realData = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
-            return realData.getMapLayer(layerStyle);
+            mi = realData.getMapLayer(layerStyle);
 
         } else if (layer instanceof ExternalServiceMCLayerDTO extLayer) {
              String serviceUrl = extLayer.getExternalServiceUrl();
@@ -149,12 +153,34 @@ public class MapContextUtils {
                         wmsLayer.setStyles(wmsStyle);
                     }
 
-                    return MapBuilder.createLayer(wmsLayer);
+                   mi = MapBuilder.createLayer(wmsLayer);
                 } catch (MalformedURLException ex) {
                     throw new ConstellationException(ex);
                 }
             }
         }
-        throw new ConstellationException("Not enough information in map context layer named " + layer.getName() + ". We cannot load back related data.");
+        if (mi != null) {
+            if (layer.getQuery() != null) {
+                if (mi instanceof MapLayer maplayer) {
+                    final Resource data = maplayer.getData();
+                    Query q = null;
+                    try {
+                        if (data instanceof GridCoverageResource) {
+                            q = SimpleQueryParser.parseCoverageQuery(layer.getQuery());
+                        } else {
+                            q = SimpleQueryParser.parseFeatureQuery(layer.getQuery());
+                        }
+                    } catch (CQLException ex) {
+                        LOGGER.log(Level.WARNING, "Unable to parse query : {0}", layer.getQuery());
+                    }
+                    maplayer.setQuery(q);
+                } else {
+                    LOGGER.warning("Unable to apply a query on a non MapLayer item");
+                }
+            }
+            return mi;
+        } else {
+            throw new ConstellationException("Not enough information in map context layer named " + layer.getName() + ". We cannot load back related data.");
+        }
     }
 }

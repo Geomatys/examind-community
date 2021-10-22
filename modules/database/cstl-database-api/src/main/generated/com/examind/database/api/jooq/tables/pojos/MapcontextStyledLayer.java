@@ -47,6 +47,7 @@ public class MapcontextStyledLayer implements Serializable {
     private String  externalStyle;
     private Boolean iswms;
     private Integer dataId;
+    private String  query;
 
     public MapcontextStyledLayer() {}
 
@@ -65,6 +66,7 @@ public class MapcontextStyledLayer implements Serializable {
         this.externalStyle = value.externalStyle;
         this.iswms = value.iswms;
         this.dataId = value.dataId;
+        this.query = value.query;
     }
 
     public MapcontextStyledLayer(
@@ -81,7 +83,8 @@ public class MapcontextStyledLayer implements Serializable {
         String  externalServiceVersion,
         String  externalStyle,
         Boolean iswms,
-        Integer dataId
+        Integer dataId,
+        String  query
     ) {
         this.id = id;
         this.mapcontextId = mapcontextId;
@@ -97,6 +100,7 @@ public class MapcontextStyledLayer implements Serializable {
         this.externalStyle = externalStyle;
         this.iswms = iswms;
         this.dataId = dataId;
+        this.query = query;
     }
 
     /**
@@ -315,6 +319,22 @@ public class MapcontextStyledLayer implements Serializable {
         return this;
     }
 
+    /**
+     * Getter for <code>admin.mapcontext_styled_layer.query</code>.
+     */
+    @Size(max = 10485760)
+    public String getQuery() {
+        return this.query;
+    }
+
+    /**
+     * Setter for <code>admin.mapcontext_styled_layer.query</code>.
+     */
+    public MapcontextStyledLayer setQuery(String query) {
+        this.query = query;
+        return this;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("MapcontextStyledLayer (");
@@ -333,6 +353,7 @@ public class MapcontextStyledLayer implements Serializable {
         sb.append(", ").append(externalStyle);
         sb.append(", ").append(iswms);
         sb.append(", ").append(dataId);
+        sb.append(", ").append(query);
 
         sb.append(")");
         return sb.toString();

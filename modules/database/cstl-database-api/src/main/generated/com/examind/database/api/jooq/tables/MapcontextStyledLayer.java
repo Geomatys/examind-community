@@ -31,7 +31,7 @@ import org.jooq.ForeignKey;
 import org.jooq.Identity;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row14;
+import org.jooq.Row15;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -132,6 +132,11 @@ public class MapcontextStyledLayer extends TableImpl<MapcontextStyledLayerRecord
      * The column <code>admin.mapcontext_styled_layer.data_id</code>.
      */
     public final TableField<MapcontextStyledLayerRecord, Integer> DATA_ID = createField(DSL.name("data_id"), SQLDataType.INTEGER, this, "");
+
+    /**
+     * The column <code>admin.mapcontext_styled_layer.query</code>.
+     */
+    public final TableField<MapcontextStyledLayerRecord, String> QUERY = createField(DSL.name("query"), SQLDataType.VARCHAR(10485760), this, "");
 
     private MapcontextStyledLayer(Name alias, Table<MapcontextStyledLayerRecord> aliased) {
         this(alias, aliased, null);
@@ -251,11 +256,11 @@ public class MapcontextStyledLayer extends TableImpl<MapcontextStyledLayerRecord
     }
 
     // -------------------------------------------------------------------------
-    // Row14 type methods
+    // Row15 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row14<Integer, Integer, Integer, Integer, Integer, Integer, Boolean, String, String, String, String, String, Boolean, Integer> fieldsRow() {
-        return (Row14) super.fieldsRow();
+    public Row15<Integer, Integer, Integer, Integer, Integer, Integer, Boolean, String, String, String, String, String, Boolean, Integer, String> fieldsRow() {
+        return (Row15) super.fieldsRow();
     }
 }

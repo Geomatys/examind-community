@@ -93,6 +93,7 @@ import javax.xml.transform.stream.StreamResult;
 import static junit.framework.Assert.assertTrue;
 import org.apache.catalina.Context;
 import org.apache.sis.test.xml.DocumentComparator;
+import org.constellation.business.IMapContextBusiness;
 import org.constellation.business.IPyramidBusiness;
 import org.constellation.business.IUserBusiness;
 import org.constellation.test.utils.JSONComparator;
@@ -155,6 +156,7 @@ public abstract class AbstractGrizzlyServer {
     protected ISensorBusiness sensorBusiness;
     protected IUserBusiness userBusiness;
     protected IPyramidBusiness pyramidBusiness;
+    protected IMapContextBusiness mapBusiness;
     protected IDataCoverageJob dataCoverageJob;
 
     protected static Class controllerConfiguration;
@@ -165,7 +167,7 @@ public abstract class AbstractGrizzlyServer {
     public void startServer() throws Exception {
         startServer(TestConfiguration.class);
     }
-    
+
     /**
      * Initialize and start the server.
      * @param configClass
@@ -188,6 +190,7 @@ public abstract class AbstractGrizzlyServer {
         sensorBusiness   = SpringHelper.getBean(ISensorBusiness.class).orElseThrow(IllegalStateException::new);
         userBusiness     = SpringHelper.getBean(IUserBusiness.class).orElseThrow(IllegalStateException::new);
         pyramidBusiness  = SpringHelper.getBean(IPyramidBusiness.class).orElseThrow(IllegalStateException::new);
+        mapBusiness      = SpringHelper.getBean(IMapContextBusiness.class).orElseThrow(IllegalStateException::new);
         dataCoverageJob  = SpringHelper.getBean(IDataCoverageJob.class).orElseThrow(IllegalStateException::new);
     }
 
@@ -314,7 +317,7 @@ public abstract class AbstractGrizzlyServer {
     protected static String getStringResponse(final URLConnection conec) throws UnsupportedEncodingException, IOException {
         return getStringResponse(conec, 200);
     }
-    
+
     protected static String getStringResponse(final URLConnection conec, int expectedHttpCode) throws UnsupportedEncodingException, IOException {
         InputStream is;
         int returnCode = ((HttpURLConnection)conec).getResponseCode();
@@ -488,7 +491,7 @@ public abstract class AbstractGrizzlyServer {
         final InputStream stream = new ByteArrayInputStream(content);
         return new MemoryCacheImageInputStream(stream);
     }
-    
+
     /**
      * Returned the {@link BufferedImage} from an URL requesting an image.
      *

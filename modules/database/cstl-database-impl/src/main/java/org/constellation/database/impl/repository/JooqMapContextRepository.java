@@ -159,6 +159,7 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
                     .set(MAPCONTEXT_STYLED_LAYER.MAPCONTEXT_ID, contextId)
                     .set(MAPCONTEXT_STYLED_LAYER.LAYER_VISIBLE, layer.isVisible())
                     .set(MAPCONTEXT_STYLED_LAYER.LAYER_ORDER, layer.getOrder())
+                    .set(MAPCONTEXT_STYLED_LAYER.QUERY, layer.getQuery())
                     .set(MAPCONTEXT_STYLED_LAYER.LAYER_OPACITY, layer.getOpacity());
             if (layer instanceof InternalServiceMCLayerDTO isLayer) {
                 insert=
@@ -342,7 +343,8 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
                                                      owner,
                                                      data != null ? data.getId(): null,
                                                      serviceId,
-                                                     versions);
+                                                     versions,
+                                                     mcSl.getQuery());
             } else if (data != null) {
                 String owner      = null;
                 String dataType   = null;
@@ -366,7 +368,8 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
                                           owner,
                                           mcSl.getDataId(),
                                           mcSl.getStyleId(),
-                                          styleName);
+                                          styleName,
+                                          mcSl.getQuery());
 
             } else if (mcSl.getExternalLayer() != null) {
                 QName layerName = new QName(mcSl.getExternalLayer());
@@ -382,7 +385,8 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
                                                      mcSl.getExternalStyle(),
                                                      mcSl.getExternalServiceUrl(),
                                                      mcSl.getExternalServiceVersion(),
-                                                     mcSl.getExternalLayerExtent());
+                                                     mcSl.getExternalLayerExtent(),
+                                                     mcSl.getQuery());
             } else {
                 throw new ConfigurationException("Unable to find a proper Mapcontext layer type");
             }

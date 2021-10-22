@@ -38,8 +38,8 @@ public class DataMCLayerDTO extends AbstractMCLayerDTO {
 
     public DataMCLayerDTO() {}
 
-    public DataMCLayerDTO(Integer id, QName name, Integer order, Integer opacity, Boolean visible, Date date, String type, String owner, Integer dataId, Integer styleId, String styleName) {
-        super(id, name, order, opacity, visible, date, type, owner);
+    public DataMCLayerDTO(Integer id, QName name, Integer order, Integer opacity, Boolean visible, Date date, String type, String owner, Integer dataId, Integer styleId, String styleName, String query) {
+        super(id, name, order, opacity, visible, date, type, owner, query);
         this.dataId = dataId;
         this.styleId = styleId;
         this.styleName = styleName;

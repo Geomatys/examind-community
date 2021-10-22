@@ -46,14 +46,14 @@ public abstract class AbstractMCLayerDTO extends Identifiable implements Compara
     private Integer order;
     private Integer opacity;
     private Boolean visible;
-
+    private String query;
     private Date date;
     private String type;
     private String owner;
 
     public AbstractMCLayerDTO() {}
 
-    public AbstractMCLayerDTO(Integer id, QName name, Integer order, Integer opacity, Boolean visible, Date date, String type, String owner) {
+    public AbstractMCLayerDTO(Integer id, QName name, Integer order, Integer opacity, Boolean visible, Date date, String type, String owner, String query) {
         super(id);
         this.name = name;
         this.order = order;
@@ -62,6 +62,7 @@ public abstract class AbstractMCLayerDTO extends Identifiable implements Compara
         this.date = date;
         this.type = type;
         this.owner = owner;
+        this.query = query;
     }
 
     public QName getName() {
@@ -118,6 +119,14 @@ public abstract class AbstractMCLayerDTO extends Identifiable implements Compara
 
     public void setOwner(String owner) {
         this.owner = owner;
+    }
+
+    public String getQuery() {
+        return query;
+    }
+
+    public void setQuery(String query) {
+        this.query = query;
     }
 
     @Override

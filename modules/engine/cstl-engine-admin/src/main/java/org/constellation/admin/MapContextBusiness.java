@@ -143,7 +143,8 @@ public class MapContextBusiness implements IMapContextBusiness {
                                           db.getOwner(),
                                           db.getId(),
                                           style != null ? style.getId(): null,
-                                          style != null ? style.getName() : null));
+                                          style != null ? style.getName() : null,
+                                          null));
         }
         mapContextRepository.setLinkedLayers(id, mapcontextlayers);
         reloadMapContextProvider();

@@ -1,0 +1,1 @@
+ALTER TABLE "admin"."mapcontext_styled_layer" ADD COLUMN "query" character varying(10485760);

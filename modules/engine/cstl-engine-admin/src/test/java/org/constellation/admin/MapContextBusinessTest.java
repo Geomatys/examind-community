@@ -102,7 +102,7 @@ public class MapContextBusinessTest extends AbstractBusinessTest {
                                                     new QName(COV_DATA.namespace, COV_DATA.name),
                                                     1, 0, true,
                                                     d.getDate(), "COVERAGE", null,
-                                                    COV_DATA.id, null, null);
+                                                    COV_DATA.id, null, null, null);
         layers.add(dtLayer);
         Assert.assertTrue(mapContext.isAllInternalData());
 
@@ -112,7 +112,7 @@ public class MapContextBusinessTest extends AbstractBusinessTest {
                                                  0, 0, true,
                                                  null, null, null,
                                                  new QName("layer1"), "style1",
-                                                 "http://test.com/wms", "1.3.0", null);
+                                                 "http://test.com/wms", "1.3.0", null, null);
         layers.add(esLayer);
         mapContext.setLayers(layers);
 

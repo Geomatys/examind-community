@@ -44,8 +44,8 @@ public class InternalServiceMCLayerDTO extends AbstractMCLayerDTO {
     public InternalServiceMCLayerDTO(){}
 
     public InternalServiceMCLayerDTO(Integer id, QName name, Integer order, Integer opacity, Boolean visible, Integer layerId,
-            Integer styleId, String styleName, Date date, String type, String owner, Integer dataId, String serviceIdentifier, List<String> serviceVersions) {
-        super(id, name, order, opacity, visible, date, type, owner);
+            Integer styleId, String styleName, Date date, String type, String owner, Integer dataId, String serviceIdentifier, List<String> serviceVersions, String query) {
+        super(id, name, order, opacity, visible, date, type, owner, query);
         this.layerId = layerId;
         this.styleId = styleId;
         this.dataId = dataId;

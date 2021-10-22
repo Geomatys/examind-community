@@ -95,7 +95,7 @@ public class MapcontextRepositoryTest extends AbstractRepositoryTest {
         /*
          * layers
          */
-        AbstractMCLayerDTO mpl =  new InternalServiceMCLayerDTO(1, l1.getName(), 0, 100, true, l1.getId(), null, null, l1.getDate(), db.getType(), owner.getLogin(), l1.getDataId(), null, null);
+        AbstractMCLayerDTO mpl =  new InternalServiceMCLayerDTO(1, l1.getName(), 0, 100, true, l1.getId(), null, null, l1.getDate(), db.getType(), owner.getLogin(), l1.getDataId(), null, null, null);
         List<AbstractMCLayerDTO> layers = new ArrayList<>();
         layers.add(mpl);
         mapcontextRepository.setLinkedLayers(mpid1, layers);
@@ -124,19 +124,19 @@ public class MapcontextRepositoryTest extends AbstractRepositoryTest {
 
         filterMap.put("owner", owner.getId());
         Map.Entry<Integer, List<MapContextDTO>> results = mapcontextRepository.filterAndGet(filterMap, sortEntry, 1, 10);
-        Assert.assertEquals(new Integer(2), results.getKey());
+        Assert.assertEquals(Integer.valueOf(2), results.getKey());
         Assert.assertTrue(results.getValue().contains(mp1));
         Assert.assertTrue(results.getValue().contains(mp2));
 
         filterMap.put("term", "mp");
         results = mapcontextRepository.filterAndGet(filterMap, sortEntry, 1, 10);
-        Assert.assertEquals(new Integer(2), results.getKey());
+        Assert.assertEquals(Integer.valueOf(2), results.getKey());
         Assert.assertTrue(results.getValue().contains(mp1));
         Assert.assertTrue(results.getValue().contains(mp2));
 
         filterMap.put("term", "admin.mp");
         results = mapcontextRepository.filterAndGet(filterMap, sortEntry, 1, 10);
-        Assert.assertEquals(new Integer(1), results.getKey());
+        Assert.assertEquals(Integer.valueOf(1), results.getKey());
         Assert.assertTrue(results.getValue().contains(mp2));
 
         /**
