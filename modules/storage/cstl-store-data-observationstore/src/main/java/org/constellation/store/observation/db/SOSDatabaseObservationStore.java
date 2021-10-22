@@ -16,6 +16,8 @@
  */
 package org.constellation.store.observation.db;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -39,7 +41,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import org.apache.commons.dbcp.BasicDataSource;
+import javax.sql.DataSource;
 import org.apache.sis.internal.storage.AbstractFeatureSet;
 import org.apache.sis.internal.storage.StoreResource;
 import org.apache.sis.metadata.ModifiableMetadata;
@@ -58,7 +60,6 @@ import org.apache.sis.storage.WritableFeatureSet;
 import org.apache.sis.storage.event.StoreEvent;
 import org.apache.sis.storage.event.StoreListener;
 import org.apache.sis.storage.event.StoreListeners;
-import org.constellation.api.CommonConstants;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import org.constellation.util.Util;
 import org.geotoolkit.storage.event.FeatureStoreContentEvent;
@@ -68,8 +69,6 @@ import org.geotoolkit.data.om.xml.XmlObservationUtils;
 import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.storage.feature.GenericNameIndex;
-import org.geotoolkit.jdbc.DBCPDataSource;
-import org.geotoolkit.jdbc.ManageableDataSource;
 import org.geotoolkit.observation.AbstractObservationStore;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.ObservationFilterReader;
@@ -104,7 +103,7 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
     private ObservationReader reader;
     private ObservationWriter writer;
     private ObservationFilterReader filter;
-    private ManageableDataSource source;
+    private DataSource source;
     protected final String schemaPrefix;
 
     private final boolean isPostgres;
@@ -117,35 +116,31 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
 
         try {
             //create a datasource
-            final BasicDataSource dataSource = new BasicDataSource();
+            HikariConfig config = new HikariConfig();
+            config.setJdbcUrl(SOSDatabaseParamsUtils.getJDBCUrl(params));
 
-            // some default data source behaviour
-            dataSource.setPoolPreparedStatements(true);
 
             // driver
             final String driver = SOSDatabaseParamsUtils.getDriverClassName(params);
-            dataSource.setDriverClassName(driver);
+            config.setDriverClassName(driver);
             isPostgres = driver.startsWith("org.postgresql");
             types = OMFeatureTypes.getFeatureTypes("SamplingPoint");
             Boolean timescaleDB = (Boolean) params.parameter(SOSDatabaseObservationStoreFactory.TIMESCALEDB.getName().toString()).getValue();
 
             // url
-            dataSource.setUrl(SOSDatabaseParamsUtils.getJDBCUrl(params));
+            config.setJdbcUrl(SOSDatabaseParamsUtils.getJDBCUrl(params));
 
             // username
             final String user = (String) params.parameter(SOSDatabaseObservationStoreFactory.USER.getName().toString()).getValue();
-            dataSource.setUsername(user);
+            config.setUsername(user);
 
             // password
             final String passwd = (String) params.parameter(SOSDatabaseObservationStoreFactory.PASSWD.getName().toString()).getValue();
             if (passwd != null) {
-                dataSource.setPassword(passwd);
+                config.setPassword(passwd);
             }
 
-            // some datastores might need this
-            dataSource.setAccessToUnderlyingConnectionAllowed(true);
-
-            source = new DBCPDataSource(dataSource);
+            source =  new HikariDataSource(config);
             final Map<String,Object> properties = getBasicProperties();
 
             String sp =  (String) params.parameter(SOSDatabaseObservationStoreFactory.SCHEMA_PREFIX.getName().toString()).getValue();

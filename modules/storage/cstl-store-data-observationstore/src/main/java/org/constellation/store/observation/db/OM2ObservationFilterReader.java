@@ -454,7 +454,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 final int oid = rs.getInt("id");
                 Observation observation = observations.get(procedure + '-' + featureID);
                 final int pid = getPIDFromProcedure(procedure, c);
-                final Field mainField = getMainField(procedure);
+                final Field mainField = getMainField(procedure, c);
                 boolean isTimeField   = false;
                 int offset            = 0;
                 if (mainField != null) {
@@ -789,7 +789,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 /*
                  *  BUILD RESULT
                  */
-                final Field mainField = getMainField(procedure);
+                final Field mainField = getMainField(procedure, c);
                 boolean isTimeField   = FieldType.TIME.equals(mainField.type);
 
                 List<FieldPhenomenon> fieldPhen = getPhenomenonFields(phen, fields, c);
@@ -990,7 +990,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                  }
             }
 
-            final Field timeField = getTimeField(currentProcedure);
+            final Field timeField = getTimeField(currentProcedure, c);
             if (timeField != null) {
                 sqlMeasureRequest.replaceAll("$time", timeField.name);
             }
@@ -1167,7 +1167,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                  }
             }
             // add measure filter
-            final Field timeField = getTimeField(currentProcedure);
+            final Field timeField = getTimeField(currentProcedure, c);
             if (timeField != null) {
                 sqlMeasureRequest.replaceAll("$time", timeField.name);
             }

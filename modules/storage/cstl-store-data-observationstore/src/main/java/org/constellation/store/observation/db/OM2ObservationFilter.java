@@ -904,7 +904,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     final String observedProperty = rs.getString("observed_property");
                     final int pid                 = getPIDFromProcedure(procedure, c);
                     final List<Field> fields      = readFields(procedure, true, c);
-                    final Field mainField         = getMainField(procedure);
+                    final Field mainField         = getMainField(procedure, c);
                     boolean isTimeField           = false;
                     if (mainField != null) {
                         isTimeField = FieldType.TIME.equals(mainField.type);
