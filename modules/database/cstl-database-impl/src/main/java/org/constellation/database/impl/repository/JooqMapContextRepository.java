@@ -106,6 +106,13 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
     }
 
     @Override
+    public boolean existsByName(String name) {
+        return dsl.selectCount().from(MAPCONTEXT)
+                .where(MAPCONTEXT.NAME.eq(name))
+                .fetchOne(0, Integer.class) > 0;
+    }
+
+    @Override
     public List<AbstractMCLayerDTO> getLinkedLayers(int mapContextId) {
         List<MapcontextStyledLayer> mcLayers = dsl.select().from(MAPCONTEXT_STYLED_LAYER)
                 .where(MAPCONTEXT_STYLED_LAYER.MAPCONTEXT_ID.eq(mapContextId))
@@ -128,7 +135,7 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
         // Remove eventually existing old layers for this map context
         dsl.delete(MAPCONTEXT_STYLED_LAYER).where(MAPCONTEXT_STYLED_LAYER.MAPCONTEXT_ID.eq(contextId)).execute();
 
-        if (layers.isEmpty()) {
+        if (layers == null || layers.isEmpty()) {
             return;
         }
         for (final AbstractMCLayerDTO layer : layers) {

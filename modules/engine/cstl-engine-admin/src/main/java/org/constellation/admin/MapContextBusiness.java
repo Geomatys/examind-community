@@ -58,6 +58,7 @@ import org.constellation.dto.MapContextDTO;
 import org.constellation.dto.MapContextLayersDTO;
 import org.constellation.dto.ParameterValues;
 import org.constellation.dto.StyleBrief;
+import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.TargetNotFoundException;
 import org.constellation.provider.DataProviderFactory;
@@ -104,6 +105,9 @@ public class MapContextBusiness implements IMapContextBusiness {
     @Override
     @Transactional
     public Integer create(final MapContextLayersDTO mapContext) throws ConstellationException {
+        if (mapContextRepository.existsByName(mapContext.getName())) {
+            throw new ConfigurationException("Map context name is already used");
+        }
         int id = mapContextRepository.create(mapContext);
         mapContextRepository.setLinkedLayers(id, mapContext.getLayers());
         reloadMapContextProvider();
@@ -113,6 +117,9 @@ public class MapContextBusiness implements IMapContextBusiness {
     @Override
     @Transactional
     public Integer createFromData(Integer userId, String contextName, String crs, Envelope env, List<DataBrief> briefs) throws ConstellationException {
+        if (mapContextRepository.existsByName(contextName)) {
+            throw new ConfigurationException("Map context name is already used");
+        }
         final MapContextLayersDTO mapContext = new MapContextLayersDTO();
         mapContext.setOwner(userId);
         mapContext.setCrs(crs);
@@ -300,6 +307,16 @@ public class MapContextBusiness implements IMapContextBusiness {
     @Override
     @Transactional
     public void updateContext(MapContextLayersDTO mapContext) throws ConstellationException {
+        // verify if there is a new name and if it is already used.
+        MapContextDTO old = mapContextRepository.findById(mapContext.getId());
+        if (old == null) {
+            throw new TargetNotFoundException("Uable to find a mapcontext with  the id:" + mapContext.getId());
+
+        // look for a name change
+        } else if (!old.getName().equals(mapContext.getName()) && mapContextRepository.existsByName(mapContext.getName())) {
+            throw new ConfigurationException("Map context name is already used");
+
+        }
         mapContextRepository.update(mapContext);
         mapContextRepository.setLinkedLayers(mapContext.getId(), mapContext.getLayers());
         // in case of name change
@@ -345,7 +362,13 @@ public class MapContextBusiness implements IMapContextBusiness {
     private void reloadMapContextProvider() {
         try {
             providerBusiness.reload(INTERNAL_MAP_CONTEXT_PROVIDER);
-        } catch (ConstellationException ex) {
+
+        // in some context the provider can be missing.
+        } catch (TargetNotFoundException ex) {
+           LOGGER.log(Level.INFO, "Error while reloading map context provider:" +  ex.getMessage());
+
+        // catch also the persistence runtime exception for old database with non unique mapcontext name
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, "Error while reloading map context provider", ex);
         }
     }

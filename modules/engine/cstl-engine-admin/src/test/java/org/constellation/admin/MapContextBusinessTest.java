@@ -28,6 +28,7 @@ import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.AbstractMCLayerDTO;
 import org.constellation.dto.MapContextLayersDTO;
 import org.constellation.dto.ParameterValues;
+import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
@@ -102,6 +103,40 @@ public class MapContextBusinessTest {
 
         MapContextLayersDTO result = mpBusiness.findMapContextLayers(mid);
         Assert.assertEquals(mapContext, result);
+
+        // try to create a context with an already used name.
+        boolean exLaunched = false;
+        try {
+            mpBusiness.create(mapContext);
+        } catch (ConfigurationException ex) {
+            exLaunched = true;
+        }
+        Assert.assertTrue(exLaunched);
+
+        MapContextLayersDTO mapContext2 = new MapContextLayersDTO();
+        mapContext2.setCrs("CRS:84");
+        mapContext2.setDescription("desc");
+        mapContext2.setKeywords("kw1,kw2");
+        mapContext2.setName("map-context-2");
+        mapContext2.setOwner(1);
+        mapContext2.setUserOwner("admin");
+
+        Integer mid2 = mpBusiness.create(mapContext2);
+        Assert.assertNotNull(mid2);
+        mapContext2.setId(mid);
+
+        // try to update a context with an already used name.
+        mapContext2.setName("map-context-1");
+        exLaunched = false;
+        try {
+            mpBusiness.create(mapContext2);
+        } catch (ConfigurationException ex) {
+            exLaunched = true;
+        }
+        Assert.assertTrue(exLaunched);
+
+        mpBusiness.delete(mid2);
+
     }
 
     @Test

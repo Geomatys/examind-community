@@ -60,6 +60,7 @@ import org.constellation.dto.ProviderBrief;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
+import org.constellation.exception.TargetNotFoundException;
 import org.constellation.repository.ProviderRepository;
 import org.constellation.util.ParamUtilities;
 import org.constellation.util.nio.PathExtensionVisitor;
@@ -178,7 +179,7 @@ public final class DataProviders extends Static{
         //load provider from configuration
         final ProviderRepository repo = SpringHelper.getBean(ProviderRepository.class);
         final ProviderBrief config = repo.findOne(providerId);
-        if(config==null) throw new ConfigurationException("No provider configuration for id "+providerId);
+        if(config==null) throw new TargetNotFoundException("No provider configuration for id "+providerId);
 
         //find factory
         final DataProviderFactory factory = getFactory(config.getImpl());
@@ -218,7 +219,7 @@ public final class DataProviders extends Static{
         try {
             inProvider = DataProviders.getProvider(providerId);
         } catch (ConfigurationException ex) {
-            throw new ConfigurationException("Provider " +providerId + " does not exist");
+            throw new TargetNotFoundException("Provider " + providerId + " does not exist");
         }
         try {
             return inProvider.get(namespace, name);
@@ -381,7 +382,7 @@ public final class DataProviders extends Static{
         final Data inData = DataProviders.getProviderData(providerId, dataNamespace, dataName);
         if (inData==null) {
             String nmsp = dataNamespace != null ? "{" + dataNamespace + "} " : "";
-            throw new ConstellationException("Data " + nmsp + dataName + " does not exist in provider "+providerId);
+            throw new TargetNotFoundException("Data " + nmsp + dataName + " does not exist in provider "+providerId);
         }
         Envelope dataEnv;
         try {

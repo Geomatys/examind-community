@@ -50,6 +50,7 @@ import org.constellation.dto.Style;
 import org.constellation.dto.metadata.MetadataBrief;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
+import org.constellation.exception.TargetNotFoundException;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviderFactory;
@@ -140,7 +141,7 @@ public class ProviderBusiness implements IProviderBusiness {
     @Override
     public void reload(int providerId) throws ConstellationException {
         if (!providerRepository.existsById(providerId)){
-            throw new ConstellationException("Provider " + providerId + " does not exist.");
+            throw new TargetNotFoundException("Provider " + providerId + " does not exist.");
         }
 
         // if already instanciated, must be reloaded before updating data.
@@ -160,8 +161,8 @@ public class ProviderBusiness implements IProviderBusiness {
     @Override
     public void reload(String identifier) throws ConstellationException {
         final Integer provider = providerRepository.findIdForIdentifier(identifier);
-        if (provider==null){
-            throw new ConstellationException("Provider "+identifier+" does not exist.");
+        if (provider == null) {
+            throw new TargetNotFoundException("Provider " + identifier + " does not exist.");
         }
         reload(provider);
     }
@@ -333,7 +334,7 @@ public class ProviderBusiness implements IProviderBusiness {
     @Transactional
     public void update(final String id, SPI_NAMES spiName, ParameterValueGroup spiConfiguration) throws ConfigurationException {
         if (getIDFromIdentifier(id) == null) {
-            throw new ConfigurationException("Unexting provider for name "+id);
+            throw new TargetNotFoundException("Unexting provider for name " + id);
         }
 
         final String providerType = spiName.name;
@@ -386,7 +387,7 @@ public class ProviderBusiness implements IProviderBusiness {
 
         final ProviderBrief provider = providerRepository.findByIdentifier(id);
         if (provider == null) {
-            throw new ConfigurationException("Provider " + id + " does not exist.");
+            throw new TargetNotFoundException("Provider " + id + " does not exist.");
         }
         provider.setConfig(config);
 
@@ -405,7 +406,7 @@ public class ProviderBusiness implements IProviderBusiness {
 
         final ProviderBrief provider = providerRepository.findOne(id);
         if (provider == null) {
-            throw new ConfigurationException("Provider " + id + " does not exist.");
+            throw new TargetNotFoundException("Provider " + id + " does not exist.");
         }
         provider.setConfig(config);
 
@@ -525,7 +526,7 @@ public class ProviderBusiness implements IProviderBusiness {
             throws ConstellationException{
         final ProviderBrief pr = providerRepository.findOne(providerId);
         if (pr == null) {
-            throw new ConstellationException("Provider " + providerId + " does not exist.");
+            throw new TargetNotFoundException("Provider " + providerId + " does not exist.");
         }
         final List<org.constellation.dto.Data> previousData = dataRepository.findByProviderId(pr.getId());
 

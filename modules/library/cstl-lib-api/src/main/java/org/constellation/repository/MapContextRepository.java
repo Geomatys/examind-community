@@ -25,6 +25,14 @@ import org.constellation.dto.MapContextDTO;
 
 public interface MapContextRepository extends AbstractRepository {
 
+    /**
+     * Test if the mapcontext name exist.
+     *
+     * @param name mapcontext candidate name.
+     * @return {@code true} if the mapcontext name is already used.
+     */
+    boolean existsByName(String name);
+
     MapContextDTO findById(int id);
 
     MapContextDTO findByName(String name);
