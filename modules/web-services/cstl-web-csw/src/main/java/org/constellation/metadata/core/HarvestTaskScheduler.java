@@ -36,10 +36,8 @@ import javax.xml.bind.Unmarshaller;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -325,18 +323,10 @@ public class HarvestTaskScheduler {
                 report.append("at ").append(new Date(System.currentTimeMillis()));
 
                 mailService.send("Harvest report", report.toString(), emails);
-            } catch (SQLException ex) {
-                LOGGER.log(Level.SEVERE, "The service has throw an SQLException: {0}", ex.getMessage());
-            } catch (JAXBException ex) {
-                LOGGER.log(Level.SEVERE, "The resource can not be parsed: {0}", ex.getMessage());
-            } catch (MalformedURLException ex) {
-                LOGGER.severe("The source URL is malformed");
-            } catch (IOException ex) {
-                LOGGER.severe("The service can't open the connection to the source");
             } catch (CstlServiceException ex) {
                 LOGGER.log(Level.SEVERE, "Constellation exception:{0}", ex.getMessage());
             } catch (ConstellationException ex) {
-                LOGGER.log(Level.SEVERE, "MessagingException exception:{0}", ex.getMessage());
+                LOGGER.log(Level.SEVERE, "ConstellationException exception:{0}", ex.getMessage());
             }
         }
     }

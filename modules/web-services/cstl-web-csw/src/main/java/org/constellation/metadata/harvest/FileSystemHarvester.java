@@ -30,13 +30,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.logging.Level;
 import org.geotoolkit.csw.xml.FederatedSearchResultBase;
 import org.geotoolkit.metadata.MetadataStore;
 
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
 
 /**
@@ -45,43 +45,44 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
  */
 public class FileSystemHarvester extends CatalogueHarvester {
 
-
     /**
      * Build a new catalogue harvester able to harvest a fileSystem.
      *
      * @param store The Writer allowing to store the metadata in the datasource.
      *
-     * @throws org.geotoolkit.metadata.MetadataIoException
-     *
      */
-    public FileSystemHarvester(MetadataStore store) throws MetadataIoException {
+    public FileSystemHarvester(MetadataStore store) {
         super(store);
 
     }
 
     @Override
-    public int[] harvestCatalogue(String sourceURL) throws IOException, CstlServiceException, SQLException {
+    public int[] harvestCatalogue(String sourceURL) throws CstlServiceException {
         if (!store.writeSupported()) {
             throw new CstlServiceException("The Service can not write into the database",
                                           OPERATION_NOT_SUPPORTED, "Harvest");
         }
+        try {
+            final Path dataDirectory = IOUtilities.toPath(sourceURL);
+            if (!Files.isDirectory(dataDirectory)) {
+                throw new CstlServiceException("The supplied source is not a valid directory",
+                                              INVALID_PARAMETER_VALUE, "sourceURL");
+            }
+            //we initialize the getRecords request
+            final int nbRecordInserted = harvestDirectory(dataDirectory);
+            // TODO
+            final int nbRecordUpdated  = 0;
 
-        final Path dataDirectory = IOUtilities.toPath(sourceURL);
-        if (!Files.isDirectory(dataDirectory)) {
-            throw new CstlServiceException("The supplied source is not a valid directory",
-                                          NO_APPLICABLE_CODE, "sourceURL");
+            final int[] result = new int [3];
+            result[0]    = nbRecordInserted;
+            result[1]    = nbRecordUpdated;
+            result[2]    = 0;
+
+            return result;
+        } catch (IOException ex) {
+            throw new CstlServiceException("The service can't open the connection to the source",
+                                              INVALID_PARAMETER_VALUE, "sourceURL");
         }
-        //we initialize the getRecords request
-        final int nbRecordInserted = harvestDirectory(dataDirectory);
-        // TODO
-        final int nbRecordUpdated  = 0;
-
-        final int[] result = new int [3];
-        result[0]    = nbRecordInserted;
-        result[1]    = nbRecordUpdated;
-        result[2]    = 0;
-
-        return result;
     }
 
 

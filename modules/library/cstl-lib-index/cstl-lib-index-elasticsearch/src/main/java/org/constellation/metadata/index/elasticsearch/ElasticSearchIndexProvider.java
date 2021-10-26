@@ -56,7 +56,7 @@ public class ElasticSearchIndexProvider implements IndexProvider {
     }
 
     @Override
-    public Indexer getIndexer(Automatic configuration, MetadataStore mdStore, String serviceID) throws IndexingException, ConfigurationException {
+    public Indexer getIndexer(Automatic configuration, MetadataStore mdStore, String serviceID) throws ConfigurationException {
         String host = configuration.getParameter(ES_URL_PARAM);
         String scheme = configuration.getParameter(ES_SCHEME_PARAM);
         String portStr = configuration.getParameter(ES_PORT_PARAM);
@@ -70,11 +70,15 @@ public class ElasticSearchIndexProvider implements IndexProvider {
         }
         String user = configuration.getParameter(ES_USER_PARAM);
         String pwd = configuration.getParameter(ES_PWD_PARAM);
-        return new ElasticSearchNodeIndexer(mdStore, host, port, scheme, user, pwd, serviceID, ((AbstractCstlMetadataStore)mdStore).getAdditionalQueryable(), true);
+        try {
+            return new ElasticSearchNodeIndexer(mdStore, host, port, scheme, user, pwd, serviceID, ((AbstractCstlMetadataStore)mdStore).getAdditionalQueryable(), true);
+        } catch (IndexingException ex) {
+            throw new ConfigurationException(ex);
+        }
     }
 
     @Override
-    public IndexSearcher getIndexSearcher(Automatic configuration, String serviceID) throws IndexingException, ConfigurationException {
+    public IndexSearcher getIndexSearcher(Automatic configuration, String serviceID) throws ConfigurationException {
         String host = configuration.getParameter(ES_URL_PARAM);
         String scheme = configuration.getParameter(ES_SCHEME_PARAM);
         String portStr = configuration.getParameter(ES_PORT_PARAM);
@@ -88,7 +92,11 @@ public class ElasticSearchIndexProvider implements IndexProvider {
         }
         String user = configuration.getParameter(ES_USER_PARAM);
         String pwd = configuration.getParameter(ES_PWD_PARAM);
-        return new ElasticSearchIndexSearcher(host, port, scheme, user, pwd, serviceID);
+        try {
+            return new ElasticSearchIndexSearcher(host, port, scheme, user, pwd, serviceID);
+        } catch (IndexingException ex) {
+            throw new ConfigurationException(ex);
+        }
     }
 
     @Override

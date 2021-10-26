@@ -23,12 +23,10 @@ import org.constellation.dto.service.config.csw.BriefNode;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.config.DataSourceType;
 import org.constellation.dto.service.Instance;
-import org.constellation.dto.StringList;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.geotoolkit.metadata.MetadataIoException;
 import org.geotoolkit.metadata.MetadataType;
 import org.constellation.ogc.configuration.OGCConfigurer;
-import org.geotoolkit.index.IndexingException;
 import org.geotoolkit.lucene.index.AbstractIndexer;
 import org.geotoolkit.nio.ZipUtilities;
 import org.constellation.metadata.index.Indexer;
@@ -51,8 +49,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
-import org.constellation.business.IConfigurationBusiness;
-import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.ICSWConfigurer;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
@@ -104,9 +100,6 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
     @Autowired
     protected IProviderBusiness providerBusiness;
 
-    @Autowired
-    private IConfigurationBusiness configBusiness;
-
     /**
      * Create a new {@link CSWConfigurer} instance.
      */
@@ -114,6 +107,9 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
         indexing = false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean refreshIndex(final String id, final boolean asynchrone, final boolean forced) throws ConstellationException {
         if (isIndexing(id) && !forced) {
@@ -125,23 +121,23 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
         startIndexation(id);
         try {
             return refreshIndex(asynchrone, id);
-        } catch (IndexingException ex) {
-            throw new ConfigurationException(ex);
         } finally {
             endIndexation(id);
         }
     }
 
     /**
-     * Destroy the CSW index directory in order that it will be recreated.
+     * Rebuild the CSW index in order that it will be recreated.
      *
      * @param asynchrone a flag for indexation mode.
      * @param id The service identifier.
      *
-     * @return
-     * @throws CstlServiceException
+     * @return {@code true} if the indexation succeed.
+     * 
+     * @throws TargetNotFoundException If the csw service does not exist.
+     * @throws ConstellationException If a problem occurs during the indexation.
      */
-    private boolean refreshIndex(final boolean asynchrone, final String id) throws ConstellationException, IndexingException {
+    private boolean refreshIndex(final boolean asynchrone, final String id) throws ConstellationException {
         String suffix = "";
         if (asynchrone) {
             suffix = " (asynchrone)";
@@ -205,13 +201,7 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
     }
 
     /**
-     * Add some CSW record to the index.
-     *
-     * @param id identifier of the CSW service.
-     * @param identifierList list of metadata identifier to add into the index.
-     *
-     * @return
-     * @throws ConfigurationException
+     * {@inheritDoc}
      */
     @Override
     public boolean addToIndex(final String id, final List<String> identifierList) throws ConstellationException {
@@ -252,13 +242,7 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
     }
 
     /**
-     * Remove some CSW record to the index.
-     *
-     * @param id identifier of the CSW service.
-     * @param identifierList list of metadata identifier to add into the index.
-     *
-     * @return
-     * @throws ConfigurationException
+     * {@inheritDoc}
      */
     @Override
     public boolean removeFromIndex(final String id, final List<String> identifierList) throws ConfigurationException {
@@ -288,10 +272,7 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
 
 
     /**
-     * Stop all the indexation going on.
-     *
-     * @param id identifier of the CSW service.
-     * @return an Acknowledgment.
+     * {@inheritDoc}
      */
     @Override
     public boolean stopIndexation(final String id) {
@@ -303,6 +284,9 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
         return true;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean importRecords(final String id, final Path f, final String fileName) throws ConstellationException {
         LOGGER.finer("Importing record");
@@ -337,6 +321,9 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean importRecord(String id, String metadataId) throws ConstellationException {
         if (metadataBusiness.existInternalMetadata(metadataId, true, false, null)) {
@@ -346,12 +333,18 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean importRecords(String id, Collection<String> metadataIds) throws ConstellationException {
         metadataBusiness.linkMetadataIDsToCSW(new ArrayList<>(metadataIds), id);
         return true;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean importRecord(final String id, final Node n) throws ConstellationException {
         final int providerID = getProviderID(id);
@@ -361,6 +354,9 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
         return true;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean removeRecords(final String id, final String metadataId) throws ConstellationException {
         if (metadataBusiness.isLinkedMetadataToCSW(metadataId, id)) {
@@ -370,6 +366,9 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean removeAllRecords(final String id) throws ConstellationException {
         final MetadataStore store = getMetadataStore(id);
@@ -384,11 +383,17 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
         return true;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean metadataExist(final String id, final String metadataID) throws ConfigurationException {
         return metadataBusiness.isLinkedMetadataToCSW(metadataID, id);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<BriefNode> getMetadataList(final String id, final int count, final int startIndex) throws ConfigurationException {
         final Automatic config        = getServiceConfiguration(id);
@@ -412,6 +417,9 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
         return results;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Node> getFullMetadataList(final String id, final int count, final int startIndex, String type) throws ConfigurationException {
         final MetadataStore store = getMetadataStore(id);
@@ -435,12 +443,17 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
         }
     }
 
-
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Node getMetadata(final String id, final String metadataID) throws ConstellationException {
         return metadataBusiness.getMetadataNode(metadataID);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int getMetadataCount(final String id) throws ConfigurationException {
         final MetadataStore store = getMetadataStore(id);
@@ -454,16 +467,22 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
         return 0;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public StringList getAvailableCSWDataSourceType() {
+    public List<String> getAvailableCSWDataSourceType() {
         final List<DataSourceType> sources = indexHandler.getAvailableDatastourceType();
-        final StringList result = new StringList();
+        final List<String> result = new ArrayList<>();
         for (DataSourceType source : sources) {
-            result.getList().add(source.getName());
+            result.add(source.getName());
         }
         return result;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean removeIndex(String id) throws ConfigurationException {
         try {
@@ -503,9 +522,9 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
      *
      * @param configurationDirectory The CSW configuration directory.
      *
-     * @throws org.constellation.ws.CstlServiceException
+     * @throws ConstellationException if something went wrong during the indexation.
      */
-    private void synchroneIndexRefresh(final List<String> cswInstances, final boolean reloadFSStore) throws ConstellationException, IndexingException {
+    private void synchroneIndexRefresh(final List<String> cswInstances, final boolean reloadFSStore) throws ConstellationException {
         boolean deleted = false;
         String requestUUID = UUID.randomUUID().toString();
         for (String cswInstance : cswInstances) {
@@ -540,7 +559,7 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
      * @param id The service identifier.
      * @param configurationDirectory  The CSW configuration directory.
      *
-     * @throws org.constellation.ws.CstlServiceException
+     * @throws ConfigurationException if something went wrong during the indexation.
      */
     private void asynchroneIndexRefresh(final List<String> cswInstances) throws ConfigurationException {
         String requestUUID = UUID.randomUUID().toString();
@@ -551,7 +570,7 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
             try {
                 indexHandler.refreshIndex(config, cswInstance, indexer, true);
 
-            } catch (IllegalArgumentException | IndexingException ex) {
+            } catch (ConstellationException ex) {
                 throw new ConfigurationException("An exception occurs while creating the index!\ncause:" + ex.getMessage());
             } finally {
                 if (indexer != null) {
@@ -600,7 +619,7 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
      * @param serviceID the service identifier (form multiple CSW) default: ""
      * @param store the metadata reader of the specified sevrice.
      *
-     * @return A lucene Indexer.
+     * @return A geotk Indexer.
      * @throws ConfigurationException
      */
     protected Indexer getIndexer(final String serviceID, MetadataStore store, final String uuid) throws ConfigurationException {

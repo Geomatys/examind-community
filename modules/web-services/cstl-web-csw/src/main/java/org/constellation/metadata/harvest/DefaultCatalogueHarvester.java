@@ -70,6 +70,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.constellation.exception.ConstellationStoreException;
 
 import static org.constellation.metadata.core.CSWConstants.CSW;
 import static org.constellation.metadata.core.CSWConstants.CSW_202_VERSION;
@@ -214,22 +216,29 @@ public class DefaultCatalogueHarvester extends CatalogueHarvester {
      * @return An array containing: the number of inserted records, the number of updated records and the number of deleted records.
      */
     @Override
-    public int[] harvestCatalogue(String sourceURL) throws MalformedURLException, IOException, CstlServiceException {
+    public int[] harvestCatalogue(String sourceURL) throws ConstellationStoreException, CstlServiceException {
 
         if (!store.writeSupported()) {
             throw new CstlServiceException("The Service can not write into the database",
                                           OPERATION_NOT_SUPPORTED, "Harvest");
         }
 
-        //first we make a getCapabilities(GET) request to see what service version we have
-        Object distantCapabilities = sendRequest(sourceURL + "?request=GetCapabilities&service=CSW", null);
+        Object distantCapabilities = null;
+        try {
+            //first we make a getCapabilities(GET) request to see what service version we have
+            distantCapabilities = sendRequest(sourceURL + "?request=GetCapabilities&service=CSW", null);
 
-        //if the GET request does not work we try the POST request
-        if (distantCapabilities == null) {
-            distantCapabilities = sendRequest(sourceURL, GETCAPABILITIES_V202);
+            //if the GET request does not work we try the POST request
             if (distantCapabilities == null) {
-                distantCapabilities = sendRequest(sourceURL, GETCAPABILITIES_V200);
+                distantCapabilities = sendRequest(sourceURL, GETCAPABILITIES_V202);
+                if (distantCapabilities == null) {
+                    distantCapabilities = sendRequest(sourceURL, GETCAPABILITIES_V200);
+                }
             }
+        } catch (MalformedURLException ex) {
+            throw new ConstellationStoreException("The source URL is malformed");
+        } catch (IOException ex) {
+            throw new ConstellationStoreException("The service can't open the connection to the source");
         }
 
         GetRecordsRequest getRecordRequest = null;
@@ -271,7 +280,12 @@ public class DefaultCatalogueHarvester extends CatalogueHarvester {
             //we make multiple request by pack of 20 record
             while (moreResults) {
 
-                final Object harvested = sendRequest(sourceURL, getRecordRequest);
+                final Object harvested;
+                try {
+                    harvested = sendRequest(sourceURL, getRecordRequest);
+                } catch (IOException ex) {
+                    throw new ConstellationStoreException("The source URL is malformed");
+                }
 
                 // if the service respond with non xml or unstandardized response
                 if (harvested == null) {

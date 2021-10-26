@@ -18,6 +18,7 @@
  */
 package org.constellation.metadata.harvest;
 
+import java.io.IOException;
 import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.apache.sis.internal.xml.LegacyNamespaces;
@@ -29,14 +30,12 @@ import org.w3c.dom.Node;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.storage.DataStoreException;
+import org.constellation.exception.ConstellationStoreException;
 import org.constellation.metadata.utils.CSWUtils;
 import org.geotoolkit.csw.xml.FederatedSearchResultBase;
 import org.geotoolkit.metadata.MetadataStore;
@@ -82,12 +81,12 @@ public abstract class CatalogueHarvester {
      *
      * @return An array containing: the number of inserted records, the number of updated records and the number of deleted records.
      */
-    public abstract int[] harvestCatalogue(final String sourceURL) throws MalformedURLException, IOException, CstlServiceException, SQLException;
+    public abstract int[] harvestCatalogue(final String sourceURL) throws ConstellationStoreException, CstlServiceException;
 
     /**
      * Transfer The request to all the servers specified in distributedServers.
      *
-     * @return
+     * @return A list of records harvesed in distributed servers.
      */
     public abstract List<FederatedSearchResultBase> transferGetRecordsRequest(final GetRecordsRequest request, final List<String> distributedServers,
             final int startPosition, final int maxRecords);
@@ -100,41 +99,46 @@ public abstract class CatalogueHarvester {
      *
      * @return An array containing: the number of inserted records, the number of updated records and the number of deleted records.
      */
-    public int[] harvestSingle(final String sourceURL, final String resourceType) throws MalformedURLException, IOException, CstlServiceException, JAXBException {
+    public int[] harvestSingle(final String sourceURL, final String resourceType) throws CstlServiceException, ConstellationStoreException {
         final int[] result = new int[3];
         result[0] = 0;
         result[1] = 0;
         result[2] = 0;
 
-        final Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
+        try {
+            final Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
 
-        if (LegacyNamespaces.GMD.equals(resourceType) ||
-            LegacyNamespaces.CSW.equals(resourceType) ||
-           "http://www.isotc211.org/2005/gfc".equals(resourceType)) {
+            if (LegacyNamespaces.GMD.equals(resourceType) ||
+                LegacyNamespaces.CSW.equals(resourceType) ||
+               "http://www.isotc211.org/2005/gfc".equals(resourceType)) {
 
-            final InputStream in      = getSingleMetadata(sourceURL);
-            final Object harvestedObj = unmarshaller.unmarshal(in);
-            marshallerPool.recycle(unmarshaller);
+                try (final InputStream in      = getSingleMetadata(sourceURL)) {
+                    final Object harvestedObj = unmarshaller.unmarshal(in);
+                    marshallerPool.recycle(unmarshaller);
 
-            if (harvestedObj == null) {
-                throw new CstlServiceException("The resource can not be parsed.",
-                        INVALID_PARAMETER_VALUE, "Source");
-            }
-            final Node harvested = CSWUtils.transformToNode(harvestedObj, marshallerPool);
-            LOGGER.log(Level.INFO, "Object Type of the harvested Resource: {0}", harvested.getClass().getName());
+                    if (harvestedObj == null) {
+                        throw new CstlServiceException("The resource can not be parsed.",
+                                INVALID_PARAMETER_VALUE, "Source");
+                    }
+                    final Node harvested = CSWUtils.transformToNode(harvestedObj, marshallerPool);
+                    LOGGER.log(Level.INFO, "Object Type of the harvested Resource: {0}", harvested.getClass().getName());
 
-            // ugly patch TODO handle update
-            try {
-                if (store.storeMetadata(harvested)) {
-                    result[0] = 1;
+                    // ugly patch TODO handle update
+                    try {
+                        if (store.storeMetadata(harvested)) {
+                            result[0] = 1;
+                        }
+                    } catch (IllegalArgumentException e) {
+                        result[1] = 1;
+                    }  catch (MetadataIoException ex) {
+                        throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
+                    }
                 }
-            } catch (IllegalArgumentException e) {
-                result[1] = 1;
-            }  catch (MetadataIoException ex) {
-                throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
+            } else {
+                throw new CstlServiceException("unexpected resourceType: " + resourceType, NO_APPLICABLE_CODE);
             }
-        } else {
-            throw new CstlServiceException("unexpected resourceType: " + resourceType, NO_APPLICABLE_CODE);
+        } catch (JAXBException | IOException ex) {
+            throw new ConstellationStoreException(ex);
         }
         return result;
     }

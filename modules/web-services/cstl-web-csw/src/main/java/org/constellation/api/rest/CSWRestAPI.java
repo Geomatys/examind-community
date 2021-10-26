@@ -296,7 +296,7 @@ public class CSWRestAPI {
     @RequestMapping(value="/CSW/types",method=GET,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity getCSWDatasourceType() {
         try {
-            return new ResponseEntity(getConfigurer().getAvailableCSWDataSourceType(), OK);
+            return new ResponseEntity(new StringList(getConfigurer().getAvailableCSWDataSourceType()), OK);
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();

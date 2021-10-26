@@ -24,6 +24,8 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.config.DataSourceType;
 import org.constellation.filter.FilterParser;
 import org.constellation.dto.service.config.generic.Automatic;
+import org.constellation.exception.ConstellationException;
+import org.constellation.exception.ConstellationStoreException;
 import org.constellation.metadata.harvest.ByIDHarvester;
 import org.constellation.metadata.harvest.CatalogueHarvester;
 import org.constellation.metadata.harvest.DefaultCatalogueHarvester;
@@ -34,8 +36,6 @@ import org.constellation.metadata.index.Indexer;
 import org.constellation.metadata.security.MetadataSecurityFilter;
 import org.constellation.metadata.security.NoMetadataSecurityFilter;
 import org.geotoolkit.ebrim.xml.EBRIMMarshallerPool;
-import org.geotoolkit.index.IndexingException;
-import org.geotoolkit.metadata.MetadataIoException;
 import org.geotoolkit.metadata.MetadataStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -63,7 +63,7 @@ public class DefaultIndexConfigHandler implements IndexConfigHandler{
     private Map<String, IndexProvider> providers;
 
     @Override
-    public CatalogueHarvester getCatalogueHarvester(final Automatic configuration, final MetadataStore store) throws MetadataIoException {
+    public CatalogueHarvester getCatalogueHarvester(final Automatic configuration, final MetadataStore store) throws ConstellationStoreException {
         int type = -1;
         String idDir = null;
         if (configuration != null) {
@@ -89,7 +89,7 @@ public class DefaultIndexConfigHandler implements IndexConfigHandler{
     }
 
     @Override
-    public Indexer getIndexer(final Automatic configuration, final MetadataStore mdStore, final String serviceID) throws IndexingException, ConfigurationException {
+    public Indexer getIndexer(final Automatic configuration, final MetadataStore mdStore, final String serviceID) throws ConstellationException {
 
         String indexType = configuration.getIndexType();
         IndexProvider indexProvider = providers.get(indexType);
@@ -101,7 +101,7 @@ public class DefaultIndexConfigHandler implements IndexConfigHandler{
     }
 
     @Override
-    public IndexSearcher getIndexSearcher(final Automatic configuration, final String serviceID) throws IndexingException, ConfigurationException {
+    public IndexSearcher getIndexSearcher(final Automatic configuration, final String serviceID) throws ConstellationException {
 
         String indexType = configuration.getIndexType();
         IndexProvider indexProvider = providers.get(indexType);
@@ -113,7 +113,7 @@ public class DefaultIndexConfigHandler implements IndexConfigHandler{
     }
 
     @Override
-    public void refreshIndex(final Automatic configuration, String serviceID, Indexer indexer, boolean asynchrone) throws IndexingException, ConfigurationException {
+    public void refreshIndex(final Automatic configuration, String serviceID, Indexer indexer, boolean asynchrone) throws ConstellationException {
 
         String indexType = configuration.getIndexType();
         IndexProvider indexProvider = providers.get(indexType);

@@ -18,8 +18,6 @@
  */
 package org.constellation.metadata.harvest;
 
-// J2SE dependencies
-
 import com.google.common.base.Charsets;
 import org.geotoolkit.metadata.MetadataIoException;
 import org.constellation.ws.CstlServiceException;
@@ -39,10 +37,10 @@ import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
+import org.constellation.exception.ConstellationStoreException;
 import org.constellation.metadata.utils.CSWUtils;
 import org.geotoolkit.csw.xml.FederatedSearchResultBase;
 import org.geotoolkit.metadata.MetadataStore;
@@ -50,17 +48,13 @@ import org.geotoolkit.metadata.MetadataStore;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
 
-// JAXB dependencies
-// Constellation dependencies
-// Geotoolkit dependencies
-
 /**
  * This catalogue harvester is a special tool used to harvest a CSW.
  * we must have a list of identifier stored in n file named id0, id1, ....idn
  *
  * Each file must have one identifier by line.
  *
- * @author Guilhem Legal
+ * @author Guilhem Legal (Geomatys)
  */
 public class ByIDHarvester extends CatalogueHarvester {
 
@@ -80,10 +74,10 @@ public class ByIDHarvester extends CatalogueHarvester {
      * @param store The Writer allowing to store the metadata in the datasource.
      * @param identifierDirectory a Path of the directory containing the identifier files.
      *
-     * @throws MetadataIoException If the parameters identifierDirectory does not point to a valid and existing directory,
-     *                             or if its {@code null}.
+     * @throws ConstellationStoreException If the parameters identifierDirectory does not point to a valid and existing directory,
+     *                                     or if its {@code null}.
      */
-    public ByIDHarvester(MetadataStore store, String identifierDirectory) throws MetadataIoException {
+    public ByIDHarvester(MetadataStore store, String identifierDirectory) throws ConstellationStoreException {
         super(store);
         if (identifierDirectory != null) {
             identifierDirectoryPath = identifierDirectory;
@@ -91,10 +85,10 @@ public class ByIDHarvester extends CatalogueHarvester {
             if (Files.isDirectory(f)) {
                 LOGGER.log(Level.INFO, "Getting identifier file from :{0}", f.toString());
             } else {
-                throw new MetadataIoException("The identifierDirectory does not exist or is not a directory:" + f.toString());
+                throw new ConstellationStoreException("The identifierDirectory does not exist or is not a directory:" + f.toString());
             }
         } else {
-            throw new MetadataIoException("The identifierDirectory is null.");
+            throw new ConstellationStoreException("The identifierDirectory is null.");
         }
     }
 
@@ -129,7 +123,7 @@ public class ByIDHarvester extends CatalogueHarvester {
      * @return An array containing: the number of inserted records, the number of updated records and the number of deleted records.
      */
     @Override
-    public int[] harvestCatalogue(String sourceURL) throws MalformedURLException, IOException, CstlServiceException, SQLException {
+    public int[] harvestCatalogue(String sourceURL) throws ConstellationStoreException, CstlServiceException {
 
         if (!store.writeSupported()) {
             throw new CstlServiceException("The Service can not write into the database",
@@ -155,9 +149,12 @@ public class ByIDHarvester extends CatalogueHarvester {
 
 
                 final String currentSourceURL = sourceURL + GET_RECORD_BY_ID_REQUEST + identifier;
-                final Object harvested = sendRequest(currentSourceURL);
-
-
+                final Object harvested;
+                try {
+                    harvested = sendRequest(currentSourceURL);
+                } catch (IOException ex) {
+                    throw new ConstellationStoreException("The service can't open the connection to the source");
+                }
 
                 // if the service respond correctly
                 if (harvested instanceof GetRecordByIdResponseType) {

@@ -25,13 +25,13 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.config.DataSourceType;
 import org.constellation.filter.FilterParser;
 import org.constellation.dto.service.config.generic.Automatic;
+import org.constellation.exception.ConstellationException;
+import org.constellation.exception.ConstellationStoreException;
 import org.constellation.metadata.harvest.CatalogueHarvester;
 import org.constellation.metadata.index.IndexSearcher;
 import org.constellation.metadata.index.Indexer;
-import org.geotoolkit.metadata.MetadataIoException;
 import org.constellation.metadata.security.MetadataSecurityFilter;
 import org.geotoolkit.metadata.MetadataStore;
-import org.geotoolkit.index.IndexingException;
 
 /**
  *
@@ -39,11 +39,11 @@ import org.geotoolkit.index.IndexingException;
  */
 public interface IndexConfigHandler {
 
-    CatalogueHarvester getCatalogueHarvester(final Automatic configuration, final MetadataStore store) throws MetadataIoException;
+    CatalogueHarvester getCatalogueHarvester(final Automatic configuration, final MetadataStore store) throws ConstellationStoreException;
     
-    Indexer getIndexer(final Automatic configuration, final MetadataStore mdStore, final String serviceID) throws IndexingException, ConfigurationException ;
+    Indexer getIndexer(final Automatic configuration, final MetadataStore mdStore, final String serviceID) throws ConstellationException ;
     
-    IndexSearcher getIndexSearcher(final Automatic configuration, final String serviceID) throws IndexingException, ConfigurationException;
+    IndexSearcher getIndexSearcher(final Automatic configuration, final String serviceID) throws ConstellationException;
     
     FilterParser getFilterParser(final Automatic configuration) throws ConfigurationException ;
     
@@ -59,7 +59,7 @@ public interface IndexConfigHandler {
     
     List<DataSourceType> getAvailableDatastourceType();
     
-    void refreshIndex(final Automatic configuration, String serviceID, Indexer indexer, boolean asynchrone) throws IndexingException, ConfigurationException ;
+    void refreshIndex(final Automatic configuration, String serviceID, Indexer indexer, boolean asynchrone) throws ConstellationException ;
 
     HarvestTaskScheduler getHavestTaskScheduler(String serviceID, CatalogueHarvester catalogueHarvester);
 }

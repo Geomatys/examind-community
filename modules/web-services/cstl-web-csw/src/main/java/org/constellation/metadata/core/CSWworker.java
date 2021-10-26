@@ -99,10 +99,7 @@ import javax.inject.Named;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
-import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -122,7 +119,7 @@ import static org.constellation.api.QueryConstants.SERVICE_PARAMETER;
 import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IConfigurationBusiness;
-import org.constellation.business.IMetadataBusiness;
+import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import static org.constellation.metadata.core.CSWConstants.ALL;
 import static org.constellation.metadata.core.CSWConstants.CSW;
@@ -285,14 +282,6 @@ public class CSWworker extends AbstractWorker implements Refreshable {
             init();
             started();
 
-        } catch (MetadataIoException | IndexingException e) {
-            StringBuilder sb =  new StringBuilder(e.getMessage());
-            Throwable tr = e.getCause();
-            while (tr != null) {
-                sb.append('\n').append(tr.getMessage());
-                tr = tr.getCause();
-            }
-            startError(sb.toString(), e);
         } catch (ConfigurationException ex) {
             String msg;
             if (ex.getMessage() == null) {
@@ -313,7 +302,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
      * @throws MetadataIoException If an error occurs while querying the dataSource.
      * @throws IndexingException If an error occurs while initializing the indexation.
      */
-    private void init() throws MetadataIoException, IndexingException, JAXBException, ConfigurationException, ConstellationStoreException {
+    private void init() throws ConstellationException {
 
         //we initialize all the data retriever (reader/writer) and index worker
         List<Integer> providerIds = serviceBusiness.getCSWLinkedProviders(getId());
@@ -342,7 +331,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
                     indexer.createIndex();
                 } catch (Exception ex) {
                     indexer.destroy();
-                    throw ex;
+                    throw new ConstellationException(ex);
                 }
             }
         } finally {
@@ -404,7 +393,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
     /**
      * Initialize the Anchors in function of the reader capacity.
      */
-    private void initializeAnchorsMap() throws JAXBException {
+    private void initializeAnchorsMap() {
         if (EBRIMMarshallerPool.getInstance() instanceof AnchoredMarshallerPool) {
             final AnchoredMarshallerPool pool = (AnchoredMarshallerPool) EBRIMMarshallerPool.getInstance();
             final Map<String, URI> concepts = mdStore.getConceptMap();
@@ -1553,20 +1542,9 @@ public class CSWworker extends AbstractWorker implements Refreshable {
 
                 }
 
-            } catch (SQLException ex) {
-                throw new CstlServiceException("The service has throw an SQLException: " + ex.getMessage(),
-                                              NO_APPLICABLE_CODE);
-            } catch (JAXBException ex) {
-                throw new CstlServiceException("The resource can not be parsed: " + ex.getMessage(),
-                                              INVALID_PARAMETER_VALUE, SOURCE);
-            } catch (MalformedURLException ex) {
-                throw new CstlServiceException("The source URL is malformed",
-                                              INVALID_PARAMETER_VALUE, SOURCE);
-            } catch (IOException ex) {
-                throw new CstlServiceException("The service can't open the connection to the source",
-                                              INVALID_PARAMETER_VALUE, SOURCE);
+            } catch (ConstellationStoreException ex) {
+                throw new CstlServiceException(ex.getMessage(), INVALID_PARAMETER_VALUE, SOURCE);
             }
-
         } else {
             throw new CstlServiceException("you must specify a source",
                                               MISSING_PARAMETER_VALUE, SOURCE);

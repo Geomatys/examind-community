@@ -35,15 +35,23 @@ public class LuceneNodeIndexProvider implements IndexProvider {
     }
 
     @Override
-    public Indexer getIndexer(Automatic configuration, MetadataStore mdStore, String serviceID) throws IndexingException, ConfigurationException {
-        final Path instanceDirectory = configBusiness.getInstanceDirectory("csw", serviceID);
-        return new NodeIndexer(mdStore, instanceDirectory, "", ((AbstractCstlMetadataStore)mdStore).getAdditionalQueryable(), false);
+    public Indexer getIndexer(Automatic configuration, MetadataStore mdStore, String serviceID) throws ConfigurationException {
+        try {
+            final Path instanceDirectory = configBusiness.getInstanceDirectory("csw", serviceID);
+            return new NodeIndexer(mdStore, instanceDirectory, "", ((AbstractCstlMetadataStore)mdStore).getAdditionalQueryable(), false);
+        } catch (IndexingException ex) {
+            throw new ConfigurationException(ex);
+        }
     }
 
     @Override
-    public IndexSearcher getIndexSearcher(Automatic configuration, String serviceID) throws IndexingException, ConfigurationException {
-        final Path instanceDirectory = configBusiness.getInstanceDirectory("csw", serviceID);
-        return new LuceneIndexSearcher(instanceDirectory, "", null, true);
+    public IndexSearcher getIndexSearcher(Automatic configuration, String serviceID) throws ConfigurationException {
+        try {
+            final Path instanceDirectory = configBusiness.getInstanceDirectory("csw", serviceID);
+            return new LuceneIndexSearcher(instanceDirectory, "", null, true);
+        } catch (IndexingException ex) {
+            throw new ConfigurationException(ex);
+        }
     }
 
     @Override
