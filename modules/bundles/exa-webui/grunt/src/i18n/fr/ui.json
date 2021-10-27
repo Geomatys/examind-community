@@ -324,6 +324,8 @@
   "wiz.data.import.step1.label.download": "Télécharger",
   "wiz.data.import.step1.label.remote.reading": "Lecture à distance",
   "wiz.data.import.step1.label.remote.reading.help": "Par défaut, le système essaie de télécharger les données à distance avant la lecture, mais si vous activez l'option de lecture à distance le système va lire les données de l'emplacement distant.",
+  "wiz.data.import.step1.label.remote.deep": "Analyse profonde",
+  "wiz.data.import.step1.label.remote.deep.help":  "Par défaut, le système n'analyse que le premier niveau, mais si vous activez l'option analyse profonde, le système va anayse l'intégralité du repertoire",
   "wiz.data.import.step1.label.auto.generate.metadata": "Générer automatiquement les métadonnées",
   "wiz.data.import.step1.label.s63": "S63",
   "wiz.data.import.step1.label.cloud": "Cloud",

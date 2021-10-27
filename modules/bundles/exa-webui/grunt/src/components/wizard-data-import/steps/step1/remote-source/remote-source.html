@@ -111,6 +111,22 @@
                     <label class="tgl-btn" for="cbReadRemote"></label>
                 </div>
             </div>
+            <div ng-if="remoteCtrl.showDeepOption()" class="col-sm-4 remote-flag">
+                <label>{{'wiz.data.import.step1.label.remote.deep' | translate}}</label>
+                <i popover-placement="bottom"
+                   popover-trigger="mouseenter"
+                   popover-title="{{'wiz.data.import.step1.label.remote.deep' | translate}}"
+                   popover="{{'wiz.data.import.step1.label.remote.deep.help' | translate}}">
+                    <span class="fa fa-question-circle"></span>
+                </i>
+                <pan>&nbsp;:&nbsp;</pan>
+                <div class="tgl-read-remote">
+                    <input class="tgl tgl-ios" id="cbDeepAnalysis"
+                           ng-model="remoteCtrl.wizardValues.step1.deepAnalysis"
+                           type="checkbox"/>
+                    <label class="tgl-btn" for="cbDeepAnalysis"></label>
+                </div>
+            </div>
         </div>
         <div ng-if="remoteCtrl.getDataSourceId()" class="format-handler">
             <files-formats stores="remoteCtrl.stores"
@@ -127,6 +143,7 @@
                            can-show-provider-config-properties="remoteCtrl.canShowProviderConfigProperties"
                            select-all="remoteCtrl.selectAll"
                            show-advanced-config-block="remoteCtrl.showAdvancedConfigBlock"
+                           wizard-values="remoteCtrl.wizardValues"
                            hide-field="remoteCtrl.hideField">
             </files-formats>
         </div>

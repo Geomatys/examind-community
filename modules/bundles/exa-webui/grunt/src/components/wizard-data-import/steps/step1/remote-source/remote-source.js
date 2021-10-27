@@ -33,7 +33,8 @@ function remoteSourceDirective() {
             isDisabledFile: '&',
             getDataSource: '&',
             deleteDataSource: '&',
-            getStores: '&'
+            getStores: '&',
+            wizardValues: '='
         }
     };
 }
@@ -42,6 +43,8 @@ function RemoteSourceController($scope, $translate, Examind, Growl, cfpLoadingBa
     var self = this;
 
     self.remote = $scope.remote;
+
+    self.wizardValues = $scope.wizardValues;
 
     self.processing = $scope.processing;
 
@@ -345,9 +348,13 @@ function RemoteSourceController($scope, $translate, Examind, Growl, cfpLoadingBa
         dataSource.readFromRemote = self.remote.protocol.readFromRemote;
         self.setDataSource(dataSource);
     };
-
+    
     self.showReadFromRemoteOption = function () {
         return self.remote.protocol.id !== 'http' && self.remote.protocol.id !== 'https' && self.remote.protocol.id !== 'ftp';
+    };
+    
+    self.showDeepOption = function () {
+        return self.remote.protocol.id === 'file';
     };
 
     self.getBtnLabelFor = function (protocolId) {

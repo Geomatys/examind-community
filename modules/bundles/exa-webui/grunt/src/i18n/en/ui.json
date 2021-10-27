@@ -324,6 +324,8 @@
   "wiz.data.import.step1.label.download": "Download",
   "wiz.data.import.step1.label.remote.reading": "Remote reading",
   "wiz.data.import.step1.label.remote.reading.help": "By default the system try to download the remote data before reading, but if you activate the remote reading option the system will read the data from the remote location.",
+  "wiz.data.import.step1.label.remote.deep": "Deep Analysis",
+  "wiz.data.import.step1.label.remote.deep.help":  "By default the system do not analyze more than one level, but if you activate the deep analysis option the system will analyse the full subtree.",
   "wiz.data.import.step1.label.auto.generate.metadata": "Auto generate the metadata",
   "wiz.data.import.step1.label.s63": "S63",
   "wiz.data.import.step1.label.cloud": "Cloud",

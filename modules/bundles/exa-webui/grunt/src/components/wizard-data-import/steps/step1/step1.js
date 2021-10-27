@@ -177,8 +177,8 @@ function Step1WizardController($scope, $rootScope, $translate, $interval, $modal
          * deep analysis is deactivated by default.
          * activate it only for local files for now
          */
-        var deep = false;
-        if (self.wizardValues.step1.dataSource.type === "local_files") {
+        var deep = self.wizardValues.step1.deepAnalysis;
+        if (self.wizardValues.step1.dataSource.type === 'local_files') {
             deep = true;
         }
         /**
@@ -668,7 +668,8 @@ function Step1WizardController($scope, $rootScope, $translate, $interval, $modal
                 advConfig: {},
                 formSchema: {},
                 backFlag: false,
-                isS63: false
+                isS63: false,
+                deepAnalysis: false
             };
 
             // The database source connection info
