@@ -960,8 +960,8 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
 
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.0.0", "2.0.0");
-        instances.add(new Instance(1, "default", "WPS server", "WPS server developed by Geomatys for Constellation SDI.", "wps", versions, 80, ServiceStatus.STARTED, "null/wps/default"));
-        instances.add(new Instance(2, "test",    "WPS server", "WPS server developed by Geomatys for Constellation SDI.", "wps", versions, 80, ServiceStatus.STARTED, "null/wps/test"));
+        instances.add(new Instance(1, "default", "WPS server", "WPS server developed by Geomatys for Constellation SDI.", "wps", versions, 79, ServiceStatus.STARTED, "null/wps/default"));
+        instances.add(new Instance(2, "test",    "WPS server", "WPS server developed by Geomatys for Constellation SDI.", "wps", versions, 79, ServiceStatus.STARTED, "null/wps/test"));
         InstanceReport expResult2 = new InstanceReport(instances);
         assertEquals(expResult2, obj);
 

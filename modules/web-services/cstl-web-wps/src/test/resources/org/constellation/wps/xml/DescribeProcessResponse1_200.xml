@@ -2032,40 +2032,6 @@
   </wps:ProcessOffering>
   <wps:ProcessOffering jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native" processVersion="1.0.0">
     <wps:Process>
-      <ows:Title xml:lang="fr-FR">Geotoolkit : Coverage:reduceToDomain</ows:Title>
-      <ows:Abstract xml:lang="fr-FR">Reduce to CRS domain a coverage, correctly transpose values which cross the anti-meridan.</ows:Abstract>
-      <ows:Identifier>urn:exa:wps:geotoolkit::coverage:reduceToDomain</ows:Identifier>
-      <wps:Input minOccurs="1" maxOccurs="1">
-        <ows:Title xml:lang="fr-FR">Coverage_in</ows:Title>
-        <ows:Abstract xml:lang="fr-FR">Input coverage </ows:Abstract>
-        <ows:Identifier>urn:exa:wps:geotoolkit::coverage:reduceToDomain:input:coverage_in</ows:Identifier>
-        <wps:ComplexData>
-          <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100" default="true"/>
-          <wps:Format mimeType="application/netcdf" encoding="base64" maximumMegabytes="100"/>
-          <wps:Format mimeType="application/netcdf" maximumMegabytes="100"/>
-          <wps:Format mimeType="application/x-ogc-grib" encoding="base64" maximumMegabytes="100"/>
-          <wps:Format mimeType="application/x-ogc-grib" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/tiff;subtype=geotiff" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/x-geotiff" encoding="base64" maximumMegabytes="100"/>
-        </wps:ComplexData>
-      </wps:Input>
-      <wps:Output>
-        <ows:Title xml:lang="fr-FR">Coverage_out</ows:Title>
-        <ows:Abstract xml:lang="fr-FR">Output coverage </ows:Abstract>
-        <ows:Identifier>urn:exa:wps:geotoolkit::coverage:reduceToDomain:output:coverage_out</ows:Identifier>
-        <wps:ComplexData>
-          <wps:Format mimeType="image/x-geotiff" default="true"/>
-          <wps:Format mimeType="application/x-ogc-wms" encoding="utf-8"/>
-          <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64"/>
-          <wps:Format mimeType="image/tiff;subtype=geotiff"/>
-          <wps:Format mimeType="image/x-geotiff" encoding="base64"/>
-        </wps:ComplexData>
-      </wps:Output>
-    </wps:Process>
-  </wps:ProcessOffering>
-  <wps:ProcessOffering jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native" processVersion="1.0.0">
-    <wps:Process>
       <ows:Title xml:lang="fr-FR">Geotoolkit : Vector:diffGeometry</ows:Title>
       <ows:Abstract xml:lang="fr-FR">Compute difference between a FeatureCollection and a geometry. Return a FeatureCollection.</ows:Abstract>
       <ows:Identifier>urn:exa:wps:geotoolkit::vector:diffGeometry</ows:Identifier>

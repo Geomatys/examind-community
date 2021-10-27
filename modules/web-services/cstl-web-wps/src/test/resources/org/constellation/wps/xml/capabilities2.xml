@@ -313,11 +313,6 @@
             <ows:Abstract>Returns the length of this Geometry.</ows:Abstract>
         </wps:Process>
         <wps:Process wps:processVersion="1.0.0">
-            <ns10:Identifier>urn:exa:wps:geotoolkit::coverage:reduceToDomain</ns10:Identifier>
-            <ows:Title xml:lang="en-EN">Geotoolkit : Coverage:reduceToDomain</ows:Title>
-            <ows:Abstract>Reduce to CRS domain a coverage, correctly transpose values which cross the anti-meridan.</ows:Abstract>
-        </wps:Process>
-        <wps:Process wps:processVersion="1.0.0">
             <ns10:Identifier>urn:exa:wps:geotoolkit::vector:diffGeometry</ns10:Identifier>
             <ows:Title xml:lang="en-EN">Geotoolkit : Vector:diffGeometry</ows:Title>
             <ows:Abstract>Compute difference between a FeatureCollection and a geometry. Return a FeatureCollection.</ows:Abstract>

@@ -337,11 +337,6 @@
             <ows:Identifier>urn:exa:wps:geotoolkit::jts:lenght</ows:Identifier>
         </wps:ProcessSummary>
         <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
-            <ows:Title xml:lang="en-EN">Geotoolkit : Coverage:reduceToDomain</ows:Title>
-            <ows:Abstract>Reduce to CRS domain a coverage, correctly transpose values which cross the anti-meridan.</ows:Abstract>
-            <ows:Identifier>urn:exa:wps:geotoolkit::coverage:reduceToDomain</ows:Identifier>
-        </wps:ProcessSummary>
-        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
             <ows:Title xml:lang="en-EN">Geotoolkit : Vector:diffGeometry</ows:Title>
             <ows:Abstract>Compute difference between a FeatureCollection and a geometry. Return a FeatureCollection.</ows:Abstract>
             <ows:Identifier>urn:exa:wps:geotoolkit::vector:diffGeometry</ows:Identifier>
