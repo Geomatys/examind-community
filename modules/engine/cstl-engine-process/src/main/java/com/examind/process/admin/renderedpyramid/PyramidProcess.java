@@ -11,7 +11,7 @@ import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.ResourceInternationalString;
 import org.geotoolkit.map.MapBuilder;
-import org.geotoolkit.storage.multires.MultiResolutionResource;
+import org.geotoolkit.storage.multires.TiledResource;
 import org.geotoolkit.storage.multires.TileGenerator;
 import org.geotoolkit.display2d.MapContextTileGenerator;
 import org.geotoolkit.factory.Hints;
@@ -45,7 +45,7 @@ public class PyramidProcess extends AbstractProcessDescriptor implements AdminPr
 
     public static final String BUNDLE_LOCATION = "com/examind/process/admin/renderedpyramid/bundle";
     protected static final ParameterDescriptor<MapLayers> MAPCONTEXT;
-    protected static final ParameterDescriptor<MultiResolutionResource> RESOURCE;
+    protected static final ParameterDescriptor<TiledResource> RESOURCE;
     protected static final ParameterDescriptor<InterpolationCase> INTERPOLATION;
     protected static final ParameterDescriptor<String> MODE;
 
@@ -64,7 +64,7 @@ public class PyramidProcess extends AbstractProcessDescriptor implements AdminPr
 
         RESOURCE = builder.addName("resource")
                 .setRequired(true)
-                .create(MultiResolutionResource.class, null);
+                .create(TiledResource.class, null);
 
         INTERPOLATION = builder.addName("interpolation")
                 .setRequired(true)
@@ -100,7 +100,7 @@ public class PyramidProcess extends AbstractProcessDescriptor implements AdminPr
         protected void execute() throws ProcessException {
 
             final MapLayers context = inputParameters.getMandatoryValue(MAPCONTEXT);
-            final MultiResolutionResource resource = inputParameters.getMandatoryValue(RESOURCE);
+            final TiledResource resource = inputParameters.getMandatoryValue(RESOURCE);
             final InterpolationCase interpolation = inputParameters.getMandatoryValue(INTERPOLATION);
             final String mode = inputParameters.getMandatoryValue(MODE);
 

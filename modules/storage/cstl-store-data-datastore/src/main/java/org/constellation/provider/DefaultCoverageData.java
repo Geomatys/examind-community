@@ -38,6 +38,7 @@ import org.apache.sis.coverage.grid.GridCoverageProcessor;
 import org.apache.sis.coverage.grid.GridDerivation;
 import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
+import org.apache.sis.coverage.grid.GridOrientation;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.image.Interpolation;
 import org.apache.sis.internal.util.UnmodifiableArrayList;
@@ -492,7 +493,7 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
                 for (int i = 2; i < extent.getDimension(); i++) {
                     subSample[i] = Math.toIntExact(extent.getSize(i));
                 }
-                gg = gg.derive().subsample(subSample).build();
+                gg = gg.derive().subgrid(null, subSample).build();
 
             } else if (gg.isDefined(GridGeometry.ENVELOPE)) {
                 final Envelope env = gg.getEnvelope();
@@ -520,7 +521,7 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
                         high[i] = 1;
                     }
                 }
-                gg = new GridGeometry(new GridExtent(null, low, high, true), env);
+                gg = new GridGeometry(new GridExtent(null, low, high, true), env, GridOrientation.HOMOTHETY);
             }
 
             final GridCoverage cov = origin.read(gg);

@@ -51,8 +51,7 @@ import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.test.utils.TestEnvironment;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
-import org.geotoolkit.storage.multires.MultiResolutionModel;
-import org.geotoolkit.storage.multires.MultiResolutionResource;
+import org.geotoolkit.storage.multires.TiledResource;
 import org.geotoolkit.storage.multires.TileMatrixSet;
 import org.geotoolkit.util.NamesExt;
 import org.junit.AfterClass;
@@ -143,7 +142,7 @@ public class PyramidBusinessTest {
             final GridCoverageResource cvr = (GridCoverageResource) provider.get(name).getOrigin();
             final GridGeometry gg = cvr.getGridGeometry();
 
-            final GridGeometry readGG = gg.derive().subsample(4, 4).build();
+            final GridGeometry readGG = gg.derive().subgrid((GridExtent)null, 4, 4).build();
             final GridCoverage cvg = cvr.read(readGG);
             final RenderedImage rendering = cvg.render(null);
             Assert.assertNotNull(rendering);
@@ -227,11 +226,11 @@ public class PyramidBusinessTest {
         Data dd = dp.get(d.getNamespace(), d.getName());
 
         Assert.assertNotNull(dd);
-        Assert.assertTrue(dd.getOrigin() instanceof MultiResolutionResource);
-        MultiResolutionResource mr = (MultiResolutionResource) dd.getOrigin();
+        Assert.assertTrue(dd.getOrigin() instanceof TiledResource);
+        TiledResource mr = (TiledResource) dd.getOrigin();
         
-        Assert.assertEquals(1, mr.getModels().size());
-        MultiResolutionModel model = mr.getModels().iterator().next();
+        Assert.assertEquals(1, mr.getTileMatrixSets().size());
+        TileMatrixSet model = mr.getTileMatrixSets().iterator().next();
         Assert.assertEquals("image/png", model.getFormat());
         
         Assert.assertTrue(model instanceof TileMatrixSet);
@@ -315,11 +314,11 @@ public class PyramidBusinessTest {
         Data dd = dp.get(d.getNamespace(), d.getName());
 
         Assert.assertNotNull(dd);
-        Assert.assertTrue(dd.getOrigin() instanceof MultiResolutionResource);
-        MultiResolutionResource mr = (MultiResolutionResource) dd.getOrigin();
+        Assert.assertTrue(dd.getOrigin() instanceof TiledResource);
+        TiledResource mr = (TiledResource) dd.getOrigin();
 
-        Assert.assertEquals(1, mr.getModels().size());
-        MultiResolutionModel model = mr.getModels().iterator().next();
+        Assert.assertEquals(1, mr.getTileMatrixSets().size());
+        TileMatrixSet model = mr.getTileMatrixSets().iterator().next();
         Assert.assertEquals("image/png", model.getFormat());
         
         Assert.assertTrue(model instanceof TileMatrixSet);
@@ -393,11 +392,11 @@ public class PyramidBusinessTest {
         Data dd = dp.get(d.getNamespace(), d.getName());
 
         Assert.assertNotNull(d);
-        Assert.assertTrue(dd.getOrigin() instanceof MultiResolutionResource);
-        MultiResolutionResource mr = (MultiResolutionResource) dd.getOrigin();
+        Assert.assertTrue(dd.getOrigin() instanceof TiledResource);
+        TiledResource mr = (TiledResource) dd.getOrigin();
         
-        Assert.assertEquals(1, mr.getModels().size());
-        MultiResolutionModel model = mr.getModels().iterator().next();
+        Assert.assertEquals(1, mr.getTileMatrixSets().size());
+        TileMatrixSet model = mr.getTileMatrixSets().iterator().next();
         //Assert.assertEquals("image/tiff", model.getFormat()); it seems that tiff is not supported....
         
         Assert.assertTrue(model instanceof TileMatrixSet);

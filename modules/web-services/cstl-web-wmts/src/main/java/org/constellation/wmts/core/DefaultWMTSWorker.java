@@ -90,7 +90,7 @@ import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.storage.coverage.CoverageUtilities;
 import org.geotoolkit.storage.coverage.ImageTile;
 import org.geotoolkit.storage.coverage.finder.StrictlyCoverageFinder;
-import org.geotoolkit.storage.multires.MultiResolutionResource;
+import org.geotoolkit.storage.multires.TiledResource;
 import org.geotoolkit.storage.multires.Tile;
 import org.geotoolkit.storage.multires.TileMatrices;
 import org.geotoolkit.style.MutableStyle;
@@ -291,7 +291,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                 }
 
                 try {
-                    final MultiResolutionResource pmodel = (MultiResolutionResource) origin;
+                    final TiledResource pmodel = (TiledResource) origin;
                     final List<org.geotoolkit.storage.multires.TileMatrixSet> pyramids = TileMatrices.getTileMatrixSets(pmodel);
                     if (pyramids.isEmpty()) {
                         throw new CstlServiceException("No valid extent for layer " + name);
@@ -743,7 +743,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
             }
 
             org.geotoolkit.storage.multires.TileMatrixSet pyramid = null;
-            for (org.geotoolkit.storage.multires.TileMatrixSet pr : TileMatrices.getTileMatrixSets((MultiResolutionResource) data.getOrigin())) {
+            for (org.geotoolkit.storage.multires.TileMatrixSet pr : TileMatrices.getTileMatrixSets((TiledResource) origin)) {
                 if (validPyramidNames.contains(pr.getIdentifier())) {
                     pyramid = pr;
                     break;

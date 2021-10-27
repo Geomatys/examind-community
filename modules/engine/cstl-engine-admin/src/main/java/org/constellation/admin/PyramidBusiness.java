@@ -83,9 +83,9 @@ import org.constellation.provider.PyramidData;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
 import org.geotoolkit.process.Process;
-import org.geotoolkit.storage.coverage.DefiningCoverageResource;
+import org.geotoolkit.storage.coverage.DefiningGridCoverageResource;
 import org.geotoolkit.storage.multires.DefiningTileMatrixSet;
-import org.geotoolkit.storage.multires.MultiResolutionResource;
+import org.geotoolkit.storage.multires.TiledResource;
 import org.geotoolkit.storage.multires.TileMatrixSetBuilder;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.util.NamesExt;
@@ -573,7 +573,7 @@ public class PyramidBusiness implements IPyramidBusiness {
             //create the output pyramid coverage reference
             DataStore pyramidStore = outProvider.getMainStore();
             if (RENDERED.equals(mode)) {
-                XMLCoverageResource outRef = (XMLCoverageResource) ((WritableAggregate) pyramidStore).add(new DefiningCoverageResource(pyramidGname));
+                TiledResource outRef = (TiledResource) ((WritableAggregate) pyramidStore).add(new DefiningGridCoverageResource(pyramidGname));
                 ((XMLCoverageResource) outRef).setPackMode(RENDERED.name());
                 ((XMLCoverageResource) outRef).setPreferredFormat(tileFormat);
             } else if (CONFORM.equals(mode)) {
@@ -584,10 +584,10 @@ public class PyramidBusiness implements IPyramidBusiness {
             //this produces an update event which will create the DataRecord
             outProvider.reload();
 
-            MultiResolutionResource outRef;
+            TiledResource outRef;
             Data pyData = outProvider.get(pyramidGname);
-            if (pyData != null && pyData.getOrigin() instanceof MultiResolutionResource) {
-                outRef = (MultiResolutionResource) pyData.getOrigin();
+            if (pyData != null && pyData.getOrigin() instanceof TiledResource) {
+                outRef = (TiledResource) pyData.getOrigin();
             } else {
                 throw new ConstellationException("No pyramid data created (in provider).");
             }
@@ -599,7 +599,7 @@ public class PyramidBusiness implements IPyramidBusiness {
         }
     }
 
-    protected void createTemplate(MultiResolutionResource outRef, Envelope globalEnv, int tileSize, double[] scales) throws ConstellationException {
+    protected void createTemplate(TiledResource outRef, Envelope globalEnv, int tileSize, double[] scales) throws ConstellationException {
         try {
             //prepare the pyramid and mosaics
             final Dimension tileDim = new Dimension(tileSize, tileSize);
@@ -609,7 +609,7 @@ public class PyramidBusiness implements IPyramidBusiness {
                                                         .setNbTileThreshold(1)
                                                         .setTileSize(tileDim)
                                                         .build();
-            outRef.createModel(template);
+            outRef.createTileMatrixSet(template);
         } catch (DataStoreException ex) {
             throw new ConstellationException("Error while creating pyramid template.", ex);
         }

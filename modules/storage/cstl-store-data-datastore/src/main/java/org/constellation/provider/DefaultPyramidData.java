@@ -27,7 +27,7 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
 import org.constellation.exception.ConstellationStoreException;
 import org.geotoolkit.storage.multires.MultiResolutionModel;
-import org.geotoolkit.storage.multires.MultiResolutionResource;
+import org.geotoolkit.storage.multires.TiledResource;
 import org.geotoolkit.storage.multires.TileMatrixSet;
 import org.opengis.metadata.Identifier;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -68,17 +68,15 @@ public class DefaultPyramidData extends DefaultCoverageData implements PyramidDa
     public List<String> listPyramidCRSCode() throws ConstellationStoreException {
         List<String> results = new ArrayList<>();
         try {
-            final MultiResolutionResource mr = (MultiResolutionResource) origin;
-            for (MultiResolutionModel mrm : mr.getModels()) {
-                if (mrm instanceof TileMatrixSet) {
-                    final CoordinateReferenceSystem crs = ((TileMatrixSet) mrm).getCoordinateReferenceSystem();
-                    final Identifier epsgid = IdentifiedObjects.getIdentifier(crs, Citations.EPSG);
-                    final Identifier otherid = IdentifiedObjects.getIdentifier(crs, null);
-                    if (epsgid != null) {
-                        results.add("EPSG:"+epsgid.getCode());
-                    } else {
-                        results.add(IdentifiedObjects.toString(otherid));
-                    }
+            final TiledResource mr = (TiledResource) origin;
+            for (TileMatrixSet mrm : mr.getTileMatrixSets()) {
+                final CoordinateReferenceSystem crs = mrm.getCoordinateReferenceSystem();
+                final Identifier epsgid = IdentifiedObjects.getIdentifier(crs, Citations.EPSG);
+                final Identifier otherid = IdentifiedObjects.getIdentifier(crs, null);
+                if (epsgid != null) {
+                    results.add("EPSG:"+epsgid.getCode());
+                } else {
+                    results.add(IdentifiedObjects.toString(otherid));
                 }
             }
         } catch (DataStoreException ex) {

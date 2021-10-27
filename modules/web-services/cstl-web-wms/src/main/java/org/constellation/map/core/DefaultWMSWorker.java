@@ -111,6 +111,7 @@ import org.geotoolkit.inspire.xml.vs.LanguagesType;
 import org.apache.sis.portrayal.MapLayers;
 import org.apache.sis.portrayal.MapItem;
 import org.apache.sis.portrayal.MapLayer;
+import org.apache.sis.storage.Query;
 import org.geotoolkit.filter.FilterUtilities;
 import org.apache.sis.util.Version;
 import org.constellation.api.DataType;

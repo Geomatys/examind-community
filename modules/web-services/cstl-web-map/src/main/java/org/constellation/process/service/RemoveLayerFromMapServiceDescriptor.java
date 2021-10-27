@@ -19,7 +19,7 @@
 package org.constellation.process.service;
 
 import org.apache.sis.parameter.ParameterBuilder;
-import org.apache.sis.util.iso.ResourceInternationalString;
+import org.apache.sis.util.ResourceInternationalString;
 import org.constellation.dto.DataReference;
 import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.process.AbstractCstlProcess;
