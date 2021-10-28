@@ -963,6 +963,7 @@
   "layer.listing.selectall.button": "sélectionner toutes les couches",
   "layer.listing.selected.data.button": "Voir",
   "layer.listing.selected.delete.button": "Supprimer",
+  "layer.listing.selected.calculate.statistics": "Calcul des statistiques",
   "layer.listing.selected.export.button": "Exporter",
   "layer.listing.selected.metadata.button": "Métadonnées",
   "layer.listing.selected.gotometadata.button": "Ouvrir la métadonnée dans le gestionnaire des fiches",
@@ -1850,5 +1851,6 @@
   "group.members.count": "{{ total }} utilisateurs",
   "group.users.filter": "Filtrer sur les utilisateurs",
   "group.users.back": "Retour",
-  "group.new": "Nouveau groupe"
+  "group.new": "Nouveau groupe",
+  "msg.data.stats": "Calcul des statistiques de la donnée demandé avec succés"
 }

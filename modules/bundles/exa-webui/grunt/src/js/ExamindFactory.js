@@ -1706,7 +1706,14 @@ function Examind($http, url) {
                 headers: {'Accept': 'application/json'},
                 data: dataIds
             });
-        }
+        },
+        computeStatistics : function (dataId) {
+            return self.request({
+                method: 'POST',
+                url: 'datas/'+ dataId + '/stats',
+                headers: {'Accept': 'application/json'}
+            });
+        },
     };
 
 

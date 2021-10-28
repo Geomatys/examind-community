@@ -26,6 +26,16 @@
             </a>
         </span>
     </div>
+    <div class="col-sm-2" ng-if="lc.data && lc.data[0] && lc.data[0].type === 'COVERAGE' && lc.data[0].subtype !== 'pyramid'">
+        <span class="tooltipicon">
+            <button type="button" class="btn btn-info" tooltip-placement="bottom"
+                    tooltip-html-unsafe="{{'layer.listing.selected.calculate.statistics' | translate }}"
+                    ng-disabled="lc.data && lc.data[0] && lc.data[0].statsState"
+                    ng-click="lc.calculateStatistics()">
+                <i class="glyphicon glyphicon-stats"></i>
+            </button>
+        </span>
+    </div>
     <div class="col-sm-2">
         <span class="tooltipicon">
             <button id="deleteLayer" type="button" class="btn btn-danger2" tooltip-placement="bottom" tooltip-html-unsafe="{{'layer.listing.selected.delete.button' | translate }}"

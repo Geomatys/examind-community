@@ -953,6 +953,7 @@
   "layer.listing.selectall.button": "select all layers",
   "layer.listing.selected.data.button": "View",
   "layer.listing.selected.delete.button": "Delete",
+  "layer.listing.selected.calculate.statistics": "Calculates Statistics",
   "layer.listing.selected.export.button": "Export",
   "layer.listing.selected.metadata.button": "Metadata",
   "layer.listing.selected.gotometadata.button": "Open the metadata in dashboard page",
@@ -1852,5 +1853,6 @@
   "thesaurus.title.thesaurus_concepts": "Thesaurus concepts",
   "thesaurus.tooltip.concepts": "Concepts",
   "thesaurus.tooltip.export": "Export",
-  "thesaurus.tooltip.import": "Import"
+  "thesaurus.tooltip.import": "Import",
+  "msg.data.stats": "Data statistics computation successfully requested"
 }

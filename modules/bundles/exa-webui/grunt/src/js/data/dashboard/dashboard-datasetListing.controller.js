@@ -119,6 +119,22 @@ function DatasetListingController($rootScope, $scope, $modal, $q, DashboardHelpe
     // Observe the 'reloadDatasets' event to re-launch the search.
     $scope.$on('reloadDatasets', self.search);
 
+    self.calculateStatistics = function () {
+        // call calculate statistics API
+        if (self.data && self.data[0]) {
+            Examind.datas.computeStatistics(self.data[0].id)
+                    .then(function () {
+                        $translate('msg.data.stats')
+                                .then(function (translatedMsg) {
+                                    Growl('success', 'Success', translatedMsg);
+                                });
+                    }, function (e) {
+                        console.error(e);
+                        Growl('error', 'Error', 'Cannot compute data statistics');
+                    });
+        }
+    };
+
     self.deleteData = function () {
         return Dataset.deleteData(self.data[0],
             function () {
