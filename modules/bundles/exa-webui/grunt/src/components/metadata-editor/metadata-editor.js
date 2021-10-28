@@ -4,8 +4,7 @@ angular.module('examind.components.metadata.editor', [
     'examind.components.metadata.editor.bbox.modal'
 ])
     .controller('MetadataEditorController', MetadataEditorController)
-    .directive('metadataEditor', metadataEditorDirective)
-    .directive('scrollBottom', scrollBottomDirective);
+    .directive('metadataEditor', metadataEditorDirective);
 
 function metadataEditorDirective() {
     return {
@@ -590,49 +589,4 @@ function MetadataEditorController($scope, $timeout, $translate, $modal, Examind)
         self.load.processing = false;
     }, 2000);
 
-}
-
-function scrollBottomDirective($window) {
-    return {
-        restrict: 'E',
-        link: function (scope, $element) {
-
-            // Window "scroll" event callback.
-            function onScroll() {
-                if ($(document).height() > $(window).height() && $(window).scrollTop() + $(window).height() < $(document).height()) {
-                    $element.show();
-                } else {
-                    $element.hide();
-                }
-            }
-
-            // Immediate sync.
-            onScroll();
-
-            scope.scrollBottom = function () {
-                $("html, body").animate({
-                    scrollTop: $(document).height()
-                }, {
-                    duration: 1000,
-                    complete: onScroll
-                });
-            };
-
-            scope.$watch(function () {
-                return $(document).height();
-            }, onScroll);
-
-            // Observe window "scroll" event.
-            angular.element($window).bind('scroll', onScroll);
-
-            // No longer observe "scroll" event on directive destroy.
-            $element.on('$destroy', function () {
-                angular.element($window).unbind('scroll', onScroll);
-            });
-        },
-        template:
-        '<div class="scroll-bottom" ng-click="scrollBottom()">' +
-        '<span class="glyphicon glyphicon-chevron-down"></span>' +
-        '</div>'
-    };
 }
