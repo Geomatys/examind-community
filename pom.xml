@@ -39,7 +39,7 @@
 
         <!-- third party dependencies versions -->
         <codahale.metrics.version>3.0.1</codahale.metrics.version>
-        <commons-io.version>2.4</commons-io.version>
+        <commons-io.version>2.7</commons-io.version>
         <commons-lang.version>2.6</commons-lang.version>
         <commons-lang3.version>3.1</commons-lang3.version>
         <commons-collections.version>3.2.2</commons-collections.version>
@@ -63,7 +63,7 @@
         <joda.version>2.2</joda.version>
         <jooq.version>3.5.3</jooq.version>
         <jsp-api.version>2.2</jsp-api.version>
-        <logback.version>1.1.8</logback.version>
+        <logback.version>1.2.0</logback.version>
         <maven-plugin-api.version>2.0.9</maven-plugin-api.version>
         <metrics-spring.version>3.0.0-RC2</metrics-spring.version>
         <postgresql.version>42.2.2</postgresql.version>
@@ -74,7 +74,7 @@
         <stax-utils.version>20060502</stax-utils.version>
         <validation-api.version>2.0.1.Final</validation-api.version>
         <woodstox.version>4.1.2</woodstox.version>
-        <xstream.version>1.4.15</xstream.version>
+        <xstream.version>1.4.18</xstream.version>
     </properties>
 
     <!--
