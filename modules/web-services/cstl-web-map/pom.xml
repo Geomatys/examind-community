@@ -52,23 +52,7 @@
         </dependency>
         <dependency>
             <groupId>org.geotoolkit</groupId>
-            <artifactId>geotk-coverage-xml</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.geotoolkit</groupId>
-            <artifactId>geotk-xml-sld</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.geotoolkit</groupId>
             <artifactId>geotk-xml-wmts</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.geotoolkit</groupId>
-            <artifactId>geotk-svg-batik</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.geotoolkit</groupId>
-            <artifactId>geotk-client-store</artifactId>
         </dependency>
         <dependency>
             <groupId>org.geotoolkit</groupId>
@@ -78,12 +62,6 @@
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.examind.community</groupId>
-            <artifactId>cstl-store-data-datastore</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
         <!-- Tests dependencies -->
         <dependency>
             <groupId>com.examind.community</groupId>

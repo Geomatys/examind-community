@@ -238,6 +238,15 @@
         <!-- Optionnal Geotk dependencies all included by default -->
         <dependency>
             <groupId>org.geotoolkit</groupId>
+            <artifactId>geotk-coverage-xml</artifactId>
+        </dependency>
+        <!-- used for what ?-->
+         <dependency>
+            <groupId>org.geotoolkit</groupId>
+            <artifactId>geotk-svg-batik</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.geotoolkit</groupId>
             <artifactId>geotk-client-osmtms</artifactId>
         </dependency>
         <dependency>
