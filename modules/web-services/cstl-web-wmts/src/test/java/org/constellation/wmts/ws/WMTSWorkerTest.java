@@ -25,7 +25,6 @@ import org.apache.sis.xml.MarshallerPool;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.admin.SpringHelper;
-import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.ws.CstlServiceException;
@@ -49,7 +48,13 @@ import java.io.StringWriter;
 import java.util.logging.Level;
 
 import org.apache.sis.util.logging.Logging;
+import org.constellation.business.IDataBusiness;
+import org.constellation.business.ILayerBusiness;
+import org.constellation.business.IProviderBusiness;
 import org.constellation.exception.ConstellationException;
+import org.constellation.test.utils.TestEnvironment;
+import org.constellation.test.utils.TestEnvironment.TestResources;
+import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.VERSION_NEGOTIATION_FAILED;
@@ -75,6 +80,15 @@ public class WMTSWorkerTest {
     @Inject
     private IServiceBusiness serviceBusiness;
 
+    @Inject
+    private ILayerBusiness layerBusiness;
+
+    @Inject
+    private IDataBusiness dataBusiness;
+
+    @Inject
+    private IProviderBusiness providerBusiness;
+
     private static MarshallerPool pool;
     private static WMTSWorker worker ;
 
@@ -88,16 +102,29 @@ public class WMTSWorkerTest {
         try {
 
             try {
+                layerBusiness.removeAll();
                 serviceBusiness.deleteAll();
+                dataBusiness.deleteAll();
+                providerBusiness.removeAll();
             } catch (ConstellationException ex) {}
 
             pool = WMTSMarshallerPool.getInstance();
 
-            serviceBusiness.create("wmts", "default", new LayerContext(), null, null);
+            Integer sid = serviceBusiness.create("wmts", "default", new LayerContext(), null, null);
+
+            final TestResources testResource = initDataDirectory();
+
+            TestEnvironment.DataImport did  = testResource.createProvider(TestEnvironment.TestResource.XML_PYRAMID, providerBusiness, null).datas.get(0);
+
+            // one layer with alias
+            layerBusiness.add(did.id, "haiti", did.namespace, did.name, sid, null);
+
+            // same data, but with namespace
+            layerBusiness.add(did.id, null, "nmsp", did.name, sid, null);
 
             worker = new DefaultWMTSWorker("default");
-            worker.setServiceUrl("http://geomatys.com/constellation/WS/");
-        } catch (ConfigurationException ex) {
+            worker.setServiceUrl("http://localhost:9090/WS/");
+        } catch (Exception ex) {
             Logging.getLogger("org.constellation.wmts.ws").log(Level.SEVERE, null, ex);
         }
     }

@@ -21,6 +21,7 @@ package org.constellation.ws.embedded;
 import java.util.List;
 import org.constellation.api.rest.converter.PortrayalMessageConverter;
 import org.constellation.api.rest.converter.ProfileMessageConverter;
+import org.constellation.wmts.ws.rs.StreamResponseWriter;
 import org.constellation.wmts.ws.rs.WMTSResponseWriter;
 import org.constellation.ws.rs.provider.ExceptionReportWriter;
 import org.constellation.ws.rs.provider.RenderedImageWriter;
@@ -44,6 +45,7 @@ public class WMTSControllerConfig  extends WebMvcConfigurationSupport {
     @Override
     protected void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
         converters.add(new MappingJackson2HttpMessageConverter());
+        converters.add(new StreamResponseWriter());
         converters.add(new WMTSResponseWriter());
         converters.add(new PortrayalMessageConverter());
         converters.add(new ProfileMessageConverter());

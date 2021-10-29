@@ -18,6 +18,7 @@
  */
 package org.constellation.ws.embedded;
 
+import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Arrays;
@@ -25,27 +26,23 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
-import javax.imageio.ImageIO;
-import javax.imageio.spi.ImageReaderSpi;
-import javax.imageio.spi.ImageWriterSpi;
-import javax.xml.namespace.QName;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.Instance;
 import org.constellation.dto.service.InstanceReport;
 import org.constellation.dto.service.ServiceStatus;
 import org.constellation.dto.service.config.wxs.LayerContext;
-import org.constellation.test.utils.Order;
+import org.constellation.test.ImageTesting;
 import org.constellation.test.utils.TestEnvironment;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import org.constellation.test.utils.TestRunner;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.LOGGER;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.controllerConfiguration;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.getCurrentPort;
+import static org.constellation.ws.embedded.AbstractGrizzlyServer.getImageFromURL;
+import static org.constellation.ws.embedded.AbstractGrizzlyServer.getStringFromFile;
+import static org.constellation.ws.embedded.AbstractGrizzlyServer.getStringResponse;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.pool;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.unmarshallJsonResponse;
-import org.geotoolkit.image.io.plugin.WorldFileImageReader;
-import org.geotoolkit.image.jai.Registry;
-import org.geotoolkit.referencing.CRS;
 import org.geotoolkit.wmts.xml.WMTSMarshallerPool;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -63,6 +60,12 @@ public class WMTSRequestsTest extends AbstractGrizzlyServer {
     
     private static boolean initialized = false;
 
+    private static final String TILE_MATRIX_SET = "cdfc088c-8f08-490d-94cb-01c4153d0846";
+
+    private static final String TILE_MATRIX_1 = "434d9625502892559x-8,015,018d798x2,037,564d801";
+
+    private static final String LAYER_1 = "haiti";
+    private static final String LAYER_2 = "nmsp:haiti_01_pyramid";
     /**
      * Initialize the list of layers from the defined providers in Constellation's configuration.
      */
@@ -81,13 +84,18 @@ public class WMTSRequestsTest extends AbstractGrizzlyServer {
 
                 pool = WMTSMarshallerPool.getInstance();
 
-                final LayerContext config = new LayerContext();
+                Integer sid = serviceBusiness.create("wmts", "default", new LayerContext(), null, null);
 
-                Integer defId = serviceBusiness.create("wmts", "default", config, null, null);
+                TestEnvironment.DataImport did  = testResource.createProvider(TestEnvironment.TestResource.XML_PYRAMID, providerBusiness, null).datas.get(0);
+
+                // one layer with alias
+                layerBusiness.add(did.id, "haiti", did.namespace, did.name, sid, null);
+
+                // same data, but with namespace
+                layerBusiness.add(did.id, null, "nmsp", did.name, sid, null);
                 
-                serviceBusiness.start(defId);
+                serviceBusiness.start(sid);
                 waitForRestStart("wmts","default");
-                waitForRestStart("wcs","test");
 
                 initialized = true;
             } catch (Exception ex) {
@@ -103,24 +111,73 @@ public class WMTSRequestsTest extends AbstractGrizzlyServer {
     }
     
     @Test
-    @Order(order=1)
     public void testGetCapabilities() throws Exception {
-        // TODO
+        initLayerList();
+        URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wmts/default?SERVICE=WMTS&request=GetCapabilities");
+
+        String result = getStringResponse(getCapsUrl);
+        String expResult = getStringFromFile("org/constellation/wmts/xml/WMTSCapabilities1-0-0.xml");
+
+        domCompare(result, expResult);
     }
-    
+
+    @Test
+    public void getTileTest() throws Exception {
+        initLayerList();
+
+        // REST mode
+        URL url = new URL("http://localhost:"+ getCurrentPort() + "/WS/wmts/default/" +LAYER_1 + "/" + TILE_MATRIX_SET + "/" +TILE_MATRIX_1 + "/0/0.png");
+
+        BufferedImage image = getImageFromURL(url, "image/png");
+
+        // Test on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(256, image.getWidth());
+        assertEquals(256, image.getHeight());
+        assertTrue(ImageTesting.getNumColors(image) > 8);
+
+        // KVP mode
+        url = new URL("http://localhost:"+ getCurrentPort() + "/WS/wmts/default?layer=" +LAYER_1 + "&TileMatrixSet=" + TILE_MATRIX_SET + "&TileMatrix=" +TILE_MATRIX_1 +
+                      "&TileCol=0&TileRow=0&format=image/png&service=WMTS&request=GetTile&version=1.0.0");
+
+        image = getImageFromURL(url, "image/png");
+
+        // Test on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(256, image.getWidth());
+        assertEquals(256, image.getHeight());
+        assertTrue(ImageTesting.getNumColors(image) > 8);
+
+        url = new URL("http://localhost:"+ getCurrentPort() + "/WS/wmts/default/" + LAYER_2 + "/" + TILE_MATRIX_SET + "/" +TILE_MATRIX_1 + "/0/0.png");
+
+        image = getImageFromURL(url, "image/png");
+
+        // Test on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(256, image.getWidth());
+        assertEquals(256, image.getHeight());
+        assertTrue(ImageTesting.getNumColors(image) > 8);
+    }
+
     /**
-     * the server don't want to start bcause of  
+     * GetFeature info is not working right now.
      * 
-     * Caused by: java.lang.NoSuchMethodError: javax.servlet.ServletContext.getVirtualServerName()Ljava/lang/String;
-	at org.apache.catalina.authenticator.AuthenticatorBase.startInternal(AuthenticatorBase.java:1183)
-	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:150)
-     * 
-     * 
-     * I have seen this problem various times and fixed it almost everywhere with different solutions. i did not suceed here => TODO
-     * 
+     * @throws Exception
      */
     @Ignore
-    @Order(order=2)
+    public void getFeatureInfoTest() throws Exception {
+        initLayerList();
+
+        URL lurl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wmts/default?layer=" +LAYER_1 + "&TileMatrixSet=" + TILE_MATRIX_SET + "&TileMatrix=" +TILE_MATRIX_1 +
+                          "&TileCol=0&TileRow=0&format=image/png&service=WMTS&request=GetFeatureInfo&version=1.0.0" +
+                          "&infoformat=application/json&I=1&J=1");
+
+        URLConnection conec = lurl.openConnection();
+
+        Object obj = unmarshallJsonResponse(conec, InstanceReport.class);
+    }
+
+    @Test
     public void listInstanceTest() throws Exception {
         initLayerList();
         
@@ -134,10 +191,9 @@ public class WMTSRequestsTest extends AbstractGrizzlyServer {
 
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.0.0");
-        instances.add(new Instance(1, "default", "Examind STS Server", "Examind STS Server", "wmts", versions, 12, ServiceStatus.STARTED, "null/wmts/default"));
+        instances.add(new Instance(1, "default", "Web Map Tile Service by Examind", "Service that contrains the map access interface to some TileMatrixSets", "wmts", versions, 2, ServiceStatus.STARTED, "null/wmts/default"));
         InstanceReport expResult2 = new InstanceReport(instances);
         assertEquals(expResult2, obj);
-
     }
     
 }

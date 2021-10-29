@@ -155,6 +155,13 @@ public class TestEnvironment {
          */
         public static final TestResource NETCDF = new TestResource("org/constellation/netcdf/2005092200_sst_21-24.en.nc", TestEnvironment::createNCProvider);
 
+        /**
+         * Coverage xml pyramid datastore.
+         *
+         * data : - haiti_01_pyramid
+         */
+        public static TestResource XML_PYRAMID = new TestResource("org/constellation/data/tiles/xml-pyramid/haiti_01_pyramid.zip", TestEnvironment::createXMLPyramidProvider, null);
+
         public static final TestResource SQL_SCRIPTS = new TestResource("org/constellation/sql", null, null);
 
         /**
@@ -665,6 +672,24 @@ public class TestEnvironment {
             ParameterValueGroup params = provider.getOpenParameters().createValue();
             params.parameter("path").setValue(p);
             return provider.open(params);
+        } catch (Exception ex) {
+            throw new ConstellationRuntimeException(ex);
+        }
+    }
+
+    private static Integer createXMLPyramidProvider(IProviderBusiness providerBusiness, Path pyramidDir) {
+        final String providerIdentifier = "xmlPyramidSrc-" + UUID.randomUUID().toString();
+        try {
+            final DataProviderFactory dsFactory = DataProviders.getFactory("data-store");
+            final ParameterValueGroup source = dsFactory.getProviderDescriptor().createValue();
+            source.parameter("id").setValue(providerIdentifier);
+            final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) dsFactory.getStoreDescriptor(), source);
+
+            final ParameterValueGroup config = choice.addGroup("coverage-xml-pyramid");
+            config.parameter("path").setValue(pyramidDir.toUri().toURL());
+            config.parameter("cacheTileState").setValue(true);
+
+            return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "data-store", source);
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
         }

@@ -3,12 +3,12 @@
     <description>Service that contrains the map access interface to some TileMatrixSets</description>
     <identifier>default</identifier>
     <keywords>WMTS</keywords>
-    <keywords>Constellation</keywords>
+    <keywords>Examind</keywords>
     <keywords>Geomatys</keywords>
     <keywords>tile</keywords>
     <keywords>tile matrix set</keywords>
     <keywords>map</keywords>
-    <name>Web Map Tile Service by Constellation</name>
+    <name>Web Map Tile Service by Examind</name>
     <serviceConstraints>
         <accessConstraint>NONE</accessConstraint>
         <fees>NONE</fees>

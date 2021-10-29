@@ -345,7 +345,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                         final GeneralEnvelope pyramidEnv = CoverageUtilities.getPyramidEnvelope(pyramid);
                         final int envXAxis = Math.max(0, CRSUtilities.firstHorizontalAxis(pyramid.getCoordinateReferenceSystem()));
                         final int envYAxis = xAxis + 1;
-                        final BoundingBoxType bbox = new WGS84BoundingBoxType(
+                        final BoundingBoxType bbox = new BoundingBoxType(
                                 getCRSCode(pyramid.getCoordinateReferenceSystem()),
                                 pyramidEnv.getMinimum(envXAxis),
                                 pyramidEnv.getMinimum(envYAxis),

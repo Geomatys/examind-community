@@ -1,4 +1,101 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Capabilities version="1.0.0" xmlns="http://www.opengis.net/wmts/1.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:gml="http://www.opengis.net/gml">
-    <Contents/>
-</Capabilities>
+<wmts:Capabilities version="1.0.0"
+                  xmlns:wmts="http://www.opengis.net/wmts/1.0" 
+                  xmlns:ows="http://www.opengis.net/ows/1.1"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <wmts:Contents>
+    <wmts:Layer>
+      <ows:Title>haiti</ows:Title>
+      <ows:Abstract>haiti</ows:Abstract>
+      <ows:WGS84BoundingBox crs="urn:ogc:def:crs:OGC:2:84" dimensions="2">
+        <ows:LowerCorner>-72.00013888888887 16.08755175286606</ows:LowerCorner>
+        <ows:UpperCorner>-70.93347222222222 18.000138888888902</ows:UpperCorner>
+      </ows:WGS84BoundingBox>
+      <ows:Identifier>haiti</ows:Identifier>
+      <ows:BoundingBox crs="EPSG:3857" dimensions="2">
+        <ows:LowerCorner>-8015018.7981560845 1814863.9757088209</ows:LowerCorner>
+        <ows:UpperCorner>-7896278.0079765925 2037564.8014569199</ows:UpperCorner>
+      </ows:BoundingBox>
+      <wmts:Style isDefault="true">
+        <ows:Title>default</ows:Title>
+        <ows:Identifier>default</ows:Identifier>
+      </wmts:Style>
+      <wmts:Format>image/png</wmts:Format>
+      <wmts:TileMatrixSetLink>
+        <wmts:TileMatrixSet>cdfc088c-8f08-490d-94cb-01c4153d0846</wmts:TileMatrixSet>
+      </wmts:TileMatrixSetLink>
+      <wmts:ResourceURL format="image/png" resourceType="tile" template="http://localhost:9090/WS/wmts/default/haiti/{tileMatrixSet}/{tileMatrix}/{tileRow}/{tileCol}.{format}"/>
+    </wmts:Layer>
+    <wmts:Layer>
+      <ows:Title>nmsp:haiti_01_pyramid</ows:Title>
+      <ows:Abstract>nmsp:haiti_01_pyramid</ows:Abstract>
+      <ows:WGS84BoundingBox crs="urn:ogc:def:crs:OGC:2:84" dimensions="2">
+        <ows:LowerCorner>-72.00013888888887 16.08755175286606</ows:LowerCorner>
+        <ows:UpperCorner>-70.93347222222222 18.000138888888902</ows:UpperCorner>
+      </ows:WGS84BoundingBox>
+      <ows:Identifier>nmsp:haiti_01_pyramid</ows:Identifier>
+      <ows:BoundingBox crs="EPSG:3857" dimensions="2">
+        <ows:LowerCorner>-8015018.7981560845 1814863.9757088209</ows:LowerCorner>
+        <ows:UpperCorner>-7896278.0079765925 2037564.8014569199</ows:UpperCorner>
+      </ows:BoundingBox>
+      <wmts:Style isDefault="true">
+        <ows:Title>default</ows:Title>
+        <ows:Identifier>default</ows:Identifier>
+      </wmts:Style>
+      <wmts:Format>image/png</wmts:Format>
+      <wmts:TileMatrixSetLink>
+        <wmts:TileMatrixSet>cdfc088c-8f08-490d-94cb-01c4153d0846</wmts:TileMatrixSet>
+      </wmts:TileMatrixSetLink>
+      <wmts:ResourceURL format="image/png" resourceType="tile" template="http://localhost:9090/WS/wmts/default/nmsp:haiti_01_pyramid/{tileMatrixSet}/{tileMatrix}/{tileRow}/{tileCol}.{format}"/>
+    </wmts:Layer>
+    <wmts:TileMatrixSet>
+      <ows:Identifier>cdfc088c-8f08-490d-94cb-01c4153d0846</ows:Identifier>
+      <ows:SupportedCRS>EPSG:3857</ows:SupportedCRS>
+      <wmts:TileMatrix>
+        <ows:Identifier>30d922080775909333x-8,015,018d798x2,037,564d801</ows:Identifier>
+        <wmts:ScaleDenominator>110436.00277110477</wmts:ScaleDenominator>
+        <wmts:TopLeftCorner>-8015018.7981560845 2037564.8014569199</wmts:TopLeftCorner>
+        <wmts:TileWidth>256</wmts:TileWidth>
+        <wmts:TileHeight>256</wmts:TileHeight>
+        <wmts:MatrixWidth>15</wmts:MatrixWidth>
+        <wmts:MatrixHeight>15</wmts:MatrixHeight>
+      </wmts:TileMatrix>
+      <wmts:TileMatrix>
+        <ows:Identifier>54d370318786156986x-8,015,018d798x2,037,564d801</ows:Identifier>
+        <wmts:ScaleDenominator>194179.70995056067</wmts:ScaleDenominator>
+        <wmts:TopLeftCorner>-8015018.7981560845 2037564.8014569199</wmts:TopLeftCorner>
+        <wmts:TileWidth>256</wmts:TileWidth>
+        <wmts:TileHeight>256</wmts:TileHeight>
+        <wmts:MatrixWidth>8</wmts:MatrixWidth>
+        <wmts:MatrixHeight>9</wmts:MatrixHeight>
+      </wmts:TileMatrix>
+      <wmts:TileMatrix>
+        <ows:Identifier>108d74063757231397x-8,015,018d798x2,037,564d801</ows:Identifier>
+        <wmts:ScaleDenominator>388359.41990112135</wmts:ScaleDenominator>
+        <wmts:TopLeftCorner>-8015018.7981560845 2037564.8014569199</wmts:TopLeftCorner>
+        <wmts:TileWidth>256</wmts:TileWidth>
+        <wmts:TileHeight>256</wmts:TileHeight>
+        <wmts:MatrixWidth>4</wmts:MatrixWidth>
+        <wmts:MatrixHeight>5</wmts:MatrixHeight>
+      </wmts:TileMatrix>
+      <wmts:TileMatrix>
+        <ows:Identifier>217d48127514462794x-8,015,018d798x2,037,564d801</ows:Identifier>
+        <wmts:ScaleDenominator>776718.8398022427</wmts:ScaleDenominator>
+        <wmts:TopLeftCorner>-8015018.7981560845 2037564.8014569199</wmts:TopLeftCorner>
+        <wmts:TileWidth>256</wmts:TileWidth>
+        <wmts:TileHeight>256</wmts:TileHeight>
+        <wmts:MatrixWidth>2</wmts:MatrixWidth>
+        <wmts:MatrixHeight>3</wmts:MatrixHeight>
+      </wmts:TileMatrix>
+      <wmts:TileMatrix>
+        <ows:Identifier>434d9625502892559x-8,015,018d798x2,037,564d801</ows:Identifier>
+        <wmts:ScaleDenominator>1553437.6796044854</wmts:ScaleDenominator>
+        <wmts:TopLeftCorner>-8015018.7981560845 2037564.8014569199</wmts:TopLeftCorner>
+        <wmts:TileWidth>256</wmts:TileWidth>
+        <wmts:TileHeight>256</wmts:TileHeight>
+        <wmts:MatrixWidth>1</wmts:MatrixWidth>
+        <wmts:MatrixHeight>2</wmts:MatrixHeight>
+      </wmts:TileMatrix>
+    </wmts:TileMatrixSet>
+  </wmts:Contents>
+</wmts:Capabilities>
