@@ -26,9 +26,8 @@ import java.util.Objects;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class Sensor extends Identifiable implements Serializable {
+public class Sensor extends SensorReference implements Serializable {
 
-    private String  identifier;
     private String  name;
     private String  description;
     private String  type;
@@ -43,20 +42,6 @@ public class Sensor extends Identifiable implements Serializable {
 
     }
     
-    /**
-     * @return the identifier
-     */
-    public String getIdentifier() {
-        return identifier;
-    }
-
-    /**
-     * @param identifier the identifier to set
-     */
-    public void setIdentifier(String identifier) {
-        this.identifier = identifier;
-    }
-
     /**
      * @return the type
      */
@@ -185,9 +170,7 @@ public class Sensor extends Identifiable implements Serializable {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("[Sensor]\n");
-        sb.append("id").append(id).append('\n');
-        sb.append("identifier").append(identifier).append('\n');
+        final StringBuilder sb = new StringBuilder(super.toString());
         sb.append("name").append(name).append('\n');
         sb.append("description").append(description).append('\n');
         sb.append("type").append(type).append('\n');
@@ -203,8 +186,7 @@ public class Sensor extends Identifiable implements Serializable {
     @Override
     public int hashCode() {
         int hash = 5;
-        hash = 97 * hash + Objects.hashCode(this.id);
-        hash = 97 * hash + Objects.hashCode(this.identifier);
+        hash = 97 * hash + super.hashCode();
         hash = 97 * hash + Objects.hashCode(this.name);
         hash = 97 * hash + Objects.hashCode(this.description);
         hash = 97 * hash + Objects.hashCode(this.type);
@@ -222,11 +204,9 @@ public class Sensor extends Identifiable implements Serializable {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof Sensor) {
+        if (obj instanceof Sensor && super.equals(obj)) {
             final Sensor that = (Sensor) obj;
             return Objects.equals(this.date, that.date) &&
-                   Objects.equals(this.id, that.id) &&
-                   Objects.equals(this.identifier, that.identifier) &&
                    Objects.equals(this.name, that.name) &&
                    Objects.equals(this.description, that.description) &&
                    Objects.equals(this.type, that.type) &&

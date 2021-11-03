@@ -25,7 +25,6 @@ import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.process.AbstractCstlProcessDescriptor;
 import org.constellation.process.ExamindProcessFactory;
-import org.constellation.util.DataReference;
 import org.opengis.filter.Filter;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
@@ -33,6 +32,7 @@ import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.InternationalString;
 
 import org.constellation.api.ServiceDef;
+import org.constellation.dto.DataReference;
 import org.constellation.dto.StyleReference;
 
 /**

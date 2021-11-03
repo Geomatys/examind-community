@@ -6,31 +6,19 @@ import java.util.Objects;
 /**
  * @author Fabien Bernard (Geomatys).
  */
-public class SensorReference implements Serializable {
+public class SensorReference extends Identifiable implements Serializable {
 
     private static final long serialVersionUID = 7557342300322707217L;
 
-
-    protected Integer id;
-
     protected String identifier;
-
 
     public SensorReference() {
 
     }
 
     public SensorReference(Integer id, String identifier) {
-        this.id = id;
+        super(id);
         this.identifier = identifier;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     public String getIdentifier() {
@@ -43,26 +31,30 @@ public class SensorReference implements Serializable {
 
     @Override
     public String toString() {
-        return "{id=" + id + " identifier=" + identifier + "}";
+        StringBuilder sb = new StringBuilder(super.toString());
+        if (this.identifier != null) {
+            sb.append("identifier: ").append(identifier).append('\n');
+        }
+        return sb.toString();
     }
+
     @Override
     public boolean equals(Object obj) {
         if (obj == this) {
             return true;
         }
-        if (obj instanceof SensorReference) {
+        if (obj instanceof SensorReference && super.equals(obj)) {
             SensorReference that = (SensorReference) obj;
-            return Objects.equals(this.id,         that.id) &&
-                   Objects.equals(this.identifier, that.identifier);
+            return Objects.equals(this.identifier, that.identifier);
         }
         return false;
     }
 
     @Override
     public int hashCode() {
-        int hash = 3;
-        hash = 97 * hash + Objects.hashCode(this.id);
-        hash = 97 * hash + Objects.hashCode(this.identifier);
+        int hash = 7;
+        hash = 71 * hash + super.hashCode();
+        hash = 71 * hash + Objects.hashCode(this.identifier);
         return hash;
     }
 }

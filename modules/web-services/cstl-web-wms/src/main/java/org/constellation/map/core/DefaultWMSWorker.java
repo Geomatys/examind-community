@@ -92,7 +92,6 @@ import org.constellation.portrayal.PortrayalResponse;
 import org.constellation.portrayal.PortrayalUtil;
 import org.constellation.provider.CoverageData;
 import org.constellation.provider.Data;
-import org.constellation.util.DataReference;
 import org.constellation.util.DtoToOGCFilterTransformer;
 import org.constellation.util.Util;
 import org.constellation.ws.CstlServiceException;
@@ -962,10 +961,6 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         final AbstractLegendURL legendURL2 = createLegendURL(currentVersion, MimeType.IMAGE_GIF, or, dimension.width, dimension.height);
 
         String styleName = ms.getName();
-        if (styleName != null && !styleName.isEmpty() && styleName.startsWith("${")) {
-            final DataReference dataRef = new DataReference(styleName);
-            styleName = Util.getLayerId(dataRef).tip().toString();
-        }
         return createStyle(currentVersion, styleName, styleName, null, legendURL1, legendURL2);
     }
 

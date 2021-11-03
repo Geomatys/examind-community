@@ -20,23 +20,19 @@ package org.constellation.process.service;
 
 import org.apache.sis.parameter.Parameters;
 import org.constellation.business.ILayerBusiness;
+import org.constellation.dto.DataReference;
 import org.constellation.dto.NameInProvider;
 import org.constellation.dto.ServiceReference;
 import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.exception.ConstellationException;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.security.SecurityManagerHolder;
-import org.constellation.util.DataReference;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.constellation.process.service.RemoveLayerFromMapServiceDescriptor.*;
-import org.constellation.util.Util;
-import org.geotoolkit.util.NamesExt;
-import static org.geotoolkit.parameter.Parameters.getOrCreate;
-import org.opengis.util.GenericName;
 
 /**
  * Process that remove a layer from a webMapService configuration.
@@ -70,13 +66,6 @@ public class RemoveLayerFromMapService extends AbstractCstlProcess {
         final DataReference layerRef        = inputParameters.getValue(LAYER_REF);
         final ServiceReference serviceRef   = inputParameters.getValue(SERVICE_REF);
 
-        //check layer reference
-        final String dataType = layerRef.getDataType();
-        if (dataType.equals(DataReference.PROVIDER_STYLE_TYPE) || dataType.equals(DataReference.SERVICE_TYPE)) {
-            throw new ProcessException("Layer Reference must be a from a layer provider.", this, null);
-        }
-        final GenericName layerName = Util.getLayerId(layerRef);
-
         LayerConfig oldLayer = null;
         try {
             String login = null;
@@ -86,8 +75,8 @@ public class RemoveLayerFromMapService extends AbstractCstlProcess {
                //do nothing
             }
             final NameInProvider nip = layerBusiness.getFullLayerName(serviceRef.getId(),
-                                                                      layerName.tip().toString(),
-                                                                      NamesExt.getNamespace(layerName),
+                                                                      layerRef.getName(),
+                                                                      layerRef.getNamespace(),
                                                                       login);
             oldLayer = layerBusiness.getLayer(nip.layerId, login);
             layerBusiness.remove(nip.layerId);

@@ -184,13 +184,6 @@ public final class Util {
         return null;
     }
 
-    public static GenericName getLayerId(DataReference dr) {
-        if (dr != null) {
-            return NamesExt.valueOf(dr.layerId);
-        }
-        return null;
-    }
-
     public static StyleReference findStyleReference(final String styleID, List<StyleReference> styles) {
         if (styles != null) {
             for (StyleReference styleRef : styles) {
@@ -200,21 +193,6 @@ public final class Util {
             }
         }
         return null;
-    }
-
-    public static List<StyleBrief> convertIntoStylesBrief(final List<DataReference> refs) {
-        final List<StyleBrief> briefs = new ArrayList<>();
-        if (refs != null) {
-            for (final DataReference ref: refs) {
-                final StyleBrief styleToAdd = new StyleBrief();
-                styleToAdd.setProvider(ref.getProviderId());
-                final String styleName = getLayerId(ref).tip().toString();
-                styleToAdd.setName(styleName);
-                styleToAdd.setTitle(styleName);
-                briefs.add(styleToAdd);
-            }
-        }
-        return briefs;
     }
 
     public static List<StyleBrief> convertRefIntoStylesBrief(final List<StyleReference> refs) {

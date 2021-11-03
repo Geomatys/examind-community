@@ -18,14 +18,12 @@
  */
 package org.constellation.process.service;
 
-import org.constellation.util.Util;
 import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
 import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.map.featureinfo.CSVFeatureInfoFormat;
 import org.constellation.map.featureinfo.FeatureInfoUtilities;
 import org.constellation.process.ExamindProcessFactory;
-import org.constellation.util.DataReference;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
@@ -39,9 +37,11 @@ import java.util.List;
 import org.apache.sis.filter.DefaultFilterFactory;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CommonCRS;
-import org.constellation.dto.ProviderBrief;
+import org.constellation.dto.DataReference;
 import org.constellation.dto.StyleReference;
 import org.constellation.exception.ConstellationException;
+import org.constellation.test.utils.TestEnvironment.DataImport;
+import org.constellation.test.utils.TestEnvironment.ProviderImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
@@ -70,9 +70,15 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
 
         //setup data
         final TestResources testResource = initDataDirectory();
-        providerId = testResource.createProvider(TestResource.SHAPEFILES, providerBusiness, null).id;
-        ProviderBrief pb = providerBusiness.getProvider(providerId);
-        COUNTRIES_DATA_REF = DataReference.createProviderDataReference(DataReference.PROVIDER_LAYER_TYPE, pb.getIdentifier(), "Countries");
+        ProviderImport pi = testResource.createProvider(TestResource.SHAPEFILES, providerBusiness, null);
+        providerId = pi.id;
+        Integer dataId = null;
+        for (DataImport di : pi.datas) {
+            if ("Countries".equals(di.name)) {
+                dataId = di.id;
+            }
+        }
+        COUNTRIES_DATA_REF = new DataReference(dataId, "Countries", null, providerId);
     }
 
     @After
@@ -127,7 +133,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
             assertTrue(layers.size() == 1);
 
             final LayerConfig outLayer = layers.get(0);
-            assertEquals(Util.getLayerId(COUNTRIES_DATA_REF).tip().toString(),outLayer.getName().getLocalPart());
+            assertEquals(COUNTRIES_DATA_REF.getName(), outLayer.getName().getLocalPart());
             assertEquals("Europe-costlines" ,outLayer.getAlias());
             assertNotNull(outLayer.getFilter());
             assertEquals(STYLE_DATA_REF ,outLayer.getStyles().get(0));
@@ -179,7 +185,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
 
 
             final LayerConfig outLayer = layers.get(0);
-            assertEquals(Util.getLayerId(COUNTRIES_DATA_REF).tip().toString() ,outLayer.getName().getLocalPart());
+            assertEquals(COUNTRIES_DATA_REF.getName() ,outLayer.getName().getLocalPart());
             assertEquals("Europe-costlines" ,outLayer.getAlias());
             assertNotNull(outLayer.getFilter());
             assertEquals(STYLE_DATA_REF ,outLayer.getStyles().get(0));
@@ -225,7 +231,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
 
 
             final LayerConfig outLayer = layers.get(0);
-            assertEquals(Util.getLayerId(COUNTRIES_DATA_REF).tip().toString(),outLayer.getName().getLocalPart());
+            assertEquals(COUNTRIES_DATA_REF.getName(),outLayer.getName().getLocalPart());
             assertNull(outLayer.getAlias());
             assertNull(outLayer.getFilter());
             assertTrue(outLayer.getStyles().isEmpty());
@@ -284,7 +290,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
 
 
             final LayerConfig outLayer = layers.get(0);
-            assertEquals(Util.getLayerId(COUNTRIES_DATA_REF).tip().toString(),outLayer.getName().getLocalPart());
+            assertEquals(COUNTRIES_DATA_REF.getName(),outLayer.getName().getLocalPart());
             assertEquals("Europe-costlines" ,outLayer.getAlias());
             assertNotNull(outLayer.getFilter());
             assertEquals(STYLE_DATA_REF, outLayer.getStyles().get(0));

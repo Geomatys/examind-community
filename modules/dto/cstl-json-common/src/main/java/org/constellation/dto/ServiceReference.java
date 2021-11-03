@@ -7,41 +7,30 @@ import org.constellation.dto.service.Service;
 /**
  * @author Fabien Bernard (Geomatys).
  */
-public class ServiceReference implements Serializable {
+public class ServiceReference extends Identifiable implements Serializable {
 
     private static final long serialVersionUID = 7905763341389113756L;
 
+    private String identifier;
 
-    protected Integer id;
-
-    protected String identifier;
-
-    protected String type;
+    private String type;
 
     public ServiceReference() {
 
     }
 
     public ServiceReference(Integer id, String identifier, String type) {
-        this.id = id;
+        super(id);
         this.identifier = identifier;
         this.type = type;
     }
 
     public ServiceReference(Service service) {
+        super(service);
         if (service != null) {
-            this.id = service.getId();
             this.identifier = service.getIdentifier();
             this.type = service.getType();
         }
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     public String getIdentifier() {
@@ -62,17 +51,24 @@ public class ServiceReference implements Serializable {
 
     @Override
     public String toString() {
-        return "{id=" + id + " identifier=" + identifier + " type=" + type + "}";
+        StringBuilder sb = new StringBuilder(super.toString());
+        if (this.identifier != null) {
+            sb.append("identifier: ").append(identifier).append('\n');
+        }
+        if (this.type != null) {
+            sb.append("type: ").append(type).append('\n');
+        }
+        return sb.toString();
     }
+
     @Override
     public boolean equals(Object obj) {
         if (obj == this) {
             return true;
         }
-        if (obj instanceof ServiceReference) {
+        if (obj instanceof ServiceReference && super.equals(obj)) {
             ServiceReference that = (ServiceReference) obj;
-            return Objects.equals(this.id,         that.id) &&
-                   Objects.equals(this.identifier, that.identifier) &&
+            return Objects.equals(this.identifier, that.identifier) &&
                    Objects.equals(this.type,       that.type);
         }
         return false;
@@ -81,7 +77,7 @@ public class ServiceReference implements Serializable {
     @Override
     public int hashCode() {
         int hash = 3;
-        hash = 97 * hash + Objects.hashCode(this.id);
+        hash = 97 * hash + super.hashCode();
         hash = 97 * hash + Objects.hashCode(this.identifier);
         hash = 97 * hash + Objects.hashCode(this.type);
         return hash;

@@ -22,13 +22,11 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
 import javax.xml.bind.annotation.XmlRootElement;
-import org.constellation.dto.Identifiable;
+import org.constellation.dto.ServiceReference;
 
 @XmlRootElement
-public class Service extends Identifiable implements Serializable {
+public class Service extends ServiceReference implements Serializable {
 
-    private String identifier;
-    private String type;
     private Date date;
     private String config;
     private Integer owner;
@@ -41,31 +39,13 @@ public class Service extends Identifiable implements Serializable {
 
     public Service(Integer id, String identifier, String type, Date date,
             String config, Integer owner, String status, String versions, String impl) {
-        this.id = id;
-        this.identifier = identifier;
-        this.type = type;
+        super(id, identifier, type);
         this.date = date;
         this.config = config;
         this.owner = owner;
         this.status = status;
         this.versions = versions;
         this.impl = impl;
-    }
-
-    public String getIdentifier() {
-        return identifier;
-    }
-
-    public void setIdentifier(String identifier) {
-        this.identifier = identifier;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public Date getDate() {
@@ -127,10 +107,23 @@ public class Service extends Identifiable implements Serializable {
 
     @Override
     public String toString() {
-        return "ServiceDTO [id=" + id + ", identifier=" + identifier
-                + ", type=" + type + ", date=" + date
-                + ", config=" + config
-                + ", owner=" + owner + ", status=" + status + "]";
+        StringBuilder sb = new StringBuilder(super.toString());
+        if (this.config != null) {
+            sb.append("config: ").append(config).append('\n');
+        }
+        if (this.date != null) {
+            sb.append("date: ").append(date).append('\n');
+        }
+        if (this.status != null) {
+            sb.append("status: ").append(status).append('\n');
+        }
+        if (this.owner != null) {
+            sb.append("owner: ").append(owner).append('\n');
+        }
+        if (this.versions != null) {
+            sb.append("versions: ").append(versions).append('\n');
+        }
+        return sb.toString();
     }
 
     @Override
@@ -138,13 +131,10 @@ public class Service extends Identifiable implements Serializable {
         if (obj == this) {
             return true;
         }
-        if (obj instanceof Service) {
+        if (obj instanceof Service && super.equals(obj)) {
             Service that = (Service) obj;
-            return Objects.equals(this.id, that.id)
-                    && Objects.equals(this.config, that.config)
-                    && Objects.equals(this.identifier, that.identifier)
+            return     Objects.equals(this.config, that.config)
                     && Objects.equals(this.status, that.status)
-                    && Objects.equals(this.type, that.type)
                     && Objects.equals(this.owner, that.owner)
                     && Objects.equals(this.versions, that.versions)
                     && Objects.equals(this.date, that.date);
@@ -155,9 +145,7 @@ public class Service extends Identifiable implements Serializable {
     @Override
     public int hashCode() {
         int hash = 5;
-        hash = 67 * hash + this.id;
-        hash = 67 * hash + Objects.hashCode(this.identifier);
-        hash = 67 * hash + Objects.hashCode(this.type);
+        hash = 67 * hash + super.hashCode();
         hash = 67 * hash + Objects.hashCode(this.date);
         hash = 67 * hash + Objects.hashCode(this.config);
         hash = 67 * hash + Objects.hashCode(this.owner);

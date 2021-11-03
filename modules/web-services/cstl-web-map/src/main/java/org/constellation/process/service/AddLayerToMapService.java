@@ -23,7 +23,6 @@ import org.constellation.dto.service.config.wxs.DimensionDefinition;
 import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
 import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.process.AbstractCstlProcess;
-import org.constellation.util.DataReference;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.opengis.filter.Filter;
@@ -34,20 +33,17 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import org.apache.sis.parameter.Parameters;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.DataBrief;
+import org.constellation.dto.DataReference;
 import org.constellation.dto.StyleReference;
 import org.constellation.exception.ConstellationException;
 
 import static org.constellation.process.service.AddLayerToMapServiceDescriptor.*;
 import org.constellation.util.OGCFilterToDTOTransformer;
-import org.constellation.util.Util;
-import org.geotoolkit.util.NamesExt;
-import org.opengis.util.GenericName;
 
 /**
  * Process that add a new layer layerContext from a webMapService configuration.
@@ -72,19 +68,19 @@ public class AddLayerToMapService extends AbstractCstlProcess {
 
     public AddLayerToMapService (final String serviceType, final String serviceInstance,
                                  final DataReference layerRef, final String layerAlias,
-                                 final DataReference layerStyleRef, final Filter layerFilter,
+                                 final StyleReference layerStyleRef, final Filter layerFilter,
                                  final String layerDimension, final GetFeatureInfoCfg[] customGFI) {
         this(INSTANCE, toParameters(serviceType, serviceInstance, layerRef, layerAlias, layerStyleRef, layerFilter, layerDimension, customGFI));
     }
 
     public AddLayerToMapService (final String serviceType, final String serviceInstance,
-                                 final DataReference layerRef, final DataReference layerStyleRef) {
+                                 final DataReference layerRef, final StyleReference layerStyleRef) {
         this(INSTANCE, toParameters(serviceType, serviceInstance, layerRef, null, layerStyleRef, null, null, null));
     }
 
     private static ParameterValueGroup toParameters(final String serviceType, final String serviceInstance,
                                                     final DataReference layerRef, final String layerAlias,
-                                                    final DataReference layerStyleRef, final Filter layerFilter,
+                                                    final StyleReference layerStyleRef, final Filter layerFilter,
                                                     final String layerDimension, final GetFeatureInfoCfg[] customGFI){
         final Parameters params = Parameters.castOrWrap(INSTANCE.getInputDescriptor().createValue());
         params.getOrCreate(LAYER_REF).setValue(layerRef);
@@ -110,23 +106,16 @@ public class AddLayerToMapService extends AbstractCstlProcess {
         final String serviceType            = inputParameters.getValue(SERVICE_TYPE);
         final String serviceInstance        = inputParameters.getValue(SERVICE_INSTANCE);
 
-        //check layer reference
-        final String dataType = layerRef.getDataType();
-        if (dataType.equals(DataReference.PROVIDER_STYLE_TYPE) || dataType.equals(DataReference.SERVICE_TYPE)) {
-            throw new ProcessException("Layer Reference must be a from a layer provider.", this, null);
-        }
-
         //test alias
         if (layerAlias != null && layerAlias.isEmpty()) {
             throw new ProcessException("Layer alias can't be empty string.", this, null);
         }
 
         //extract provider identifier and layer name
-        final String providerID = layerRef.getProviderOrServiceId();
-        final Date dataVersion = layerRef.getDataVersion();
-        final GenericName layerName = Util.getLayerId(layerRef);
-        final String namespace = NamesExt.getNamespace(layerName);
-        final String name = layerName.tip().toString();
+        final Integer providerID = layerRef.getProviderId();
+        //final Date dataVersion = layerRef.getDataVersion(); no longer used
+        final String namespace = layerRef.getNamespace();
+        final String name = layerRef.getName();
         final QName layerQName = new QName(namespace, name);
 
         //create future new layer
@@ -165,10 +154,10 @@ public class AddLayerToMapService extends AbstractCstlProcess {
             newLayer.setAlias(layerAlias);
         }
 
-        //forward data version if defined.
+        /*forward data version if defined.
         if (dataVersion != null) {
             newLayer.setVersion(dataVersion.getTime());
-        }
+        }*/
 
         //custom GetFeatureInfo
         if (customGFI != null) {

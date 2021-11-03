@@ -30,11 +30,8 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Data extends Identifiable implements Serializable {
+public class Data extends DataReference implements Serializable {
 
-    private String name;
-    private String namespace;
-    private Integer providerId;
     private String type;
     private String subtype;
     private Boolean included;
@@ -66,10 +63,7 @@ public class Data extends Identifiable implements Serializable {
             Boolean rendered,
             String statsState,
             Boolean hidden) {
-        this.id = id;
-        this.name = name;
-        this.namespace = namespace;
-        this.providerId = providerId;
+        super(id, name, namespace, providerId);
         this.type = type;
         this.subtype = subtype;
         this.included = included;
@@ -84,11 +78,8 @@ public class Data extends Identifiable implements Serializable {
     }
 
     public Data(Data data) {
+        super(data);
         if (data != null) {
-            this.id = data.id;
-            this.name = data.name;
-            this.namespace = data.namespace;
-            this.providerId = data.providerId;
             this.type = data.type;
             this.subtype = data.subtype;
             this.included = data.included;
@@ -101,48 +92,6 @@ public class Data extends Identifiable implements Serializable {
             this.statsState = data.statsState;
             this.hidden = data.hidden;
         }
-    }
-
-    /**
-     * @return the name
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * @param name the name to set
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    /**
-     * @return the namespace
-     */
-    public String getNamespace() {
-        return namespace;
-    }
-
-    /**
-     * @param namespace the namespace to set
-     */
-    public void setNamespace(String namespace) {
-        this.namespace = namespace;
-    }
-
-    /**
-     * @return the provider
-     */
-    public Integer getProviderId() {
-        return providerId;
-    }
-
-    /**
-     * @param providerId the provider identifier to set
-     */
-    public void setProviderId(Integer providerId) {
-        this.providerId = providerId;
     }
 
     /**
@@ -302,15 +251,6 @@ public class Data extends Identifiable implements Serializable {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder(super.toString());
-        if (this.name != null) {
-            sb.append("name: ").append(name).append('\n');
-        }
-        if (this.namespace != null) {
-            sb.append("namespace: ").append(namespace).append('\n');
-        }
-        if (this.providerId != null) {
-            sb.append("providerId: ").append(providerId).append('\n');
-        }
         if (this.type != null) {
             sb.append("type: ").append(type).append('\n');
         }
@@ -354,10 +294,7 @@ public class Data extends Identifiable implements Serializable {
         }
         if (obj instanceof Data && super.equals(obj)) {
             Data that = (Data) obj;
-            return     Objects.equals(this.name, that.name)
-                    && Objects.equals(this.namespace, that.namespace)
-                    && Objects.equals(this.providerId, that.providerId)
-                    && Objects.equals(this.type, that.type)
+            return     Objects.equals(this.type, that.type)
                     && Objects.equals(this.subtype, that.subtype)
                     && Objects.equals(this.included, that.included)
                     && Objects.equals(this.sensorable, that.sensorable)
@@ -376,9 +313,6 @@ public class Data extends Identifiable implements Serializable {
     public int hashCode() {
         int hash = 7;
         hash = 71 * hash + super.hashCode();
-        hash = 71 * hash + Objects.hashCode(this.name);
-        hash = 71 * hash + Objects.hashCode(this.namespace);
-        hash = 71 * hash + Objects.hashCode(this.providerId);
         hash = 71 * hash + Objects.hashCode(this.type);
         hash = 71 * hash + Objects.hashCode(this.subtype);
         hash = 71 * hash + Objects.hashCode(this.included);
