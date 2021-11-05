@@ -24,6 +24,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 import org.constellation.ws.CstlServiceException;
+import org.geotoolkit.gml.xml.GMLXmlFactory;
+import org.opengis.temporal.TemporalObject;
 
 /**
  *
@@ -59,5 +61,21 @@ public class STSUtils {
         synchronized(ISO_8601_FORMATTER) {
             return ISO_8601_FORMATTER.format(d);
         }
+    }
+
+    public static TemporalObject parseTemporalLong(String to) {
+        int index = to.indexOf('/');
+        if (index != -1) {
+            Date begin = new Date(Long.parseLong(to.substring(0, index)));
+            Date end   = new Date(Long.parseLong(to.substring(index + 1)));
+            return GMLXmlFactory.createTimePeriod("3.2.1", begin, end);
+        } else {
+            Date d = new Date(Long.parseLong(to));
+            return GMLXmlFactory.createTimeInstant("3.2.1", d);
+        }
+    }
+
+    public static TemporalObject buildTemporalObj(Date to) {
+        return GMLXmlFactory.createTimeInstant("3.2.1", to);
     }
 }

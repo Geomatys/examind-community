@@ -1,0 +1,87 @@
+{
+    "value": [{
+            "description": "",
+            "unitOfMeasurement": {
+                "name": "m",
+                "symbol": "m",
+                "definition": "m"
+            },
+            "observationType": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
+            "observedArea": {
+                "type": "Point",
+                "coordinates": [42.38798858151254, -4.144984627896042]
+            },
+            "phenomenonTime": "2000-11-30T23:00:00Z/2012-12-21T23:00:00Z",
+            "resultTime": "2000-11-30T23:00:00Z/2012-12-21T23:00:00Z",
+            "@iot.id": "urn:ogc:object:observation:template:GEOM:12-2",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:12-2)",
+            "ObservedProperty": {
+                "name": "depth",
+                "definition": "urn:ogc:def:phenomenon:GEOM:depth",
+                "description": "the depth in water",
+                "@iot.id": "depth",
+                "@iot.selfLink": "http://localhost:9090/WS/sts/default/ObservedProperties(depth)",
+                "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/ObservedProperties(depth)/Datastreams",
+                "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/ObservedProperties(depth)/MultiDatastreams"
+            },
+            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:12-2)/Things",
+            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:12-2)/Sensors",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:12-2)/Observations"
+        }, {
+            "description": "",
+            "unitOfMeasurement": {
+                "name": "°C",
+                "symbol": "°C",
+                "definition": "°C"
+            },
+            "observationType": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
+            "observedArea": {
+                "type": "Point",
+                "coordinates": [42.38798858151254, -4.144984627896042]
+            },
+            "phenomenonTime": "2000-11-30T23:00:00Z/2012-12-21T23:00:00Z",
+            "resultTime": "2000-11-30T23:00:00Z/2012-12-21T23:00:00Z",
+            "@iot.id": "urn:ogc:object:observation:template:GEOM:12-3",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:12-3)",
+            "ObservedProperty": {
+                "name": "temperature",
+                "definition": "urn:ogc:def:phenomenon:GEOM:temperature",
+                "description": "the temperature in celcius degree",
+                "@iot.id": "temperature",
+                "@iot.selfLink": "http://localhost:9090/WS/sts/default/ObservedProperties(temperature)",
+                "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/ObservedProperties(temperature)/Datastreams",
+                "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/ObservedProperties(temperature)/MultiDatastreams"
+            },
+            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:12-3)/Things",
+            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:12-3)/Sensors",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:12-3)/Observations"
+        }, {
+            "description": "",
+            "unitOfMeasurement": {
+                "name": "msu",
+                "symbol": "msu",
+                "definition": "msu"
+            },
+            "observationType": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
+            "observedArea": {
+                "type": "Point",
+                "coordinates": [42.38798858151254, -4.144984627896042]
+            },
+            "phenomenonTime": "2000-11-30T23:00:00Z/2012-12-21T23:00:00Z",
+            "resultTime": "2000-11-30T23:00:00Z/2012-12-21T23:00:00Z",
+            "@iot.id": "urn:ogc:object:observation:template:GEOM:12-4",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:12-4)",
+            "ObservedProperty": {
+                "name": "salinity",
+                "definition": "urn:ogc:def:phenomenon:GEOM:salinity",
+                "description": "the salinity in water",
+                "@iot.id": "salinity",
+                "@iot.selfLink": "http://localhost:9090/WS/sts/default/ObservedProperties(salinity)",
+                "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/ObservedProperties(salinity)/Datastreams",
+                "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/ObservedProperties(salinity)/MultiDatastreams"
+            },
+            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:12-4)/Things",
+            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:12-4)/Sensors",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:12-4)/Observations"
+        }]
+}

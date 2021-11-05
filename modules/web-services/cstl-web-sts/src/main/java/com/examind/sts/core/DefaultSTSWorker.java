@@ -19,6 +19,8 @@
 
 package com.examind.sts.core;
 
+import com.examind.odata.ODataFilterParser;
+import com.examind.odata.ODataParseException;
 import com.examind.sensor.ws.SensorWorker;
 import static com.examind.sts.core.STSUtils.formatDate;
 import java.math.BigDecimal;
@@ -75,7 +77,6 @@ import org.geotoolkit.observation.xml.AbstractObservation;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.geotoolkit.sos.xml.ResponseModeType;
 import org.geotoolkit.sts.AbstractSTSRequest;
-//import org.geotoolkit.sts.ExpandOptions; replaced by temporary local class
 import org.geotoolkit.sts.GetCapabilities;
 import org.geotoolkit.sts.GetDatastreamById;
 import org.geotoolkit.sts.GetDatastreams;
@@ -314,9 +315,11 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         }
 
         if (req.getFilter() != null) {
-            OdataFilterParser parser = new OdataFilterParser();
-            filters.add(parser.parserFilter(req.getFilter()));
-
+            try {
+                filters.add(ODataFilterParser.parseFilter(req.getFilter()));
+            } catch (ODataParseException ex) {
+                throw new CstlServiceException(ex, INVALID_PARAMETER_VALUE, "FILTER");
+            }
         }
         if (applyPagination) {
             if (req.getTop() != null) {
@@ -1346,7 +1349,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             // for a historical location
             if (d != null) {
                 final List<Filter> filters = new ArrayList<>();
-                filters.add(ff.tequals(ff.property("time"), ff.literal(OdataFilterParser.buildTemporalObj(d))));
+                filters.add(ff.tequals(ff.property("time"), ff.literal(STSUtils.buildTemporalObj(d))));
                 final SimpleQuery subquery = buildExtraFilterQuery(req, true, filters);
                 Map<String,Map<Date, org.opengis.geometry.Geometry>> sensorHLocations = omProvider.getHistoricalLocation(subquery, new HashMap<>());
                 List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), null);
@@ -1620,7 +1623,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             final ExpandOptions exp = new ExpandOptions(req);
             final List<Filter> filters = new ArrayList<>();
             if (d != null) {
-                filters.add(ff.tequals(ff.property("time"), ff.literal(OdataFilterParser.buildTemporalObj(d))));
+                filters.add(ff.tequals(ff.property("time"), ff.literal(STSUtils.buildTemporalObj(d))));
             }
             if (req.getCount()) {
                 // could be optimized
@@ -1665,7 +1668,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                     final ExpandOptions exp = new ExpandOptions(req);
                     final SimpleQuery subquery = new SimpleQuery();
                     final ResourceId procFilter = ff.resourceId(sensorId);
-                    final TemporalOperator tFilter = ff.tequals(ff.property("time"), ff.literal(OdataFilterParser.parseTemporalLong(timeStr)));
+                    final TemporalOperator tFilter = ff.tequals(ff.property("time"), ff.literal(STSUtils.parseTemporalLong(timeStr)));
                     subquery.setFilter(ff.and(procFilter, tFilter));
                     Map<String,Map<Date, org.opengis.geometry.Geometry>> sensorHLocations = omProvider.getHistoricalLocation(subquery, new HashMap<>());
                     if (!sensorHLocations.isEmpty()) {
