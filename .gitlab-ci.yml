@@ -18,6 +18,7 @@ cache: &global_cache
 
 stages:
   - build
+  - test
   - quality
 #  - release
   - publish
@@ -37,6 +38,7 @@ after_script:
 
 include:
   - '.gitlab/CI/build.yml'
+  - '.gitlab/CI/test.yml'
   - '.gitlab/CI/quality.yml'
 #  - '.gitlab/CI/release.yml'
   - '.gitlab/CI/publish.yml'
