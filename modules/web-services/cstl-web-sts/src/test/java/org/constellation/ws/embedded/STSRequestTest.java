@@ -192,6 +192,24 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         compareJSON(expResult, result);
 
         /*
+         * select id name
+         */
+        getFoiUrl = new URL(getDefaultURL() + "/FeaturesOfInterest(station-001)?$select=id,name");
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/foi-sel.json");
+
+        compareJSON(expResult, result);
+
+        /*
+        * expand observations select ids
+        */
+        getFoiUrl = new URL(getDefaultURL() + "/FeaturesOfInterest(station-001)?$select=id,Observations/id&$expand=Observations");
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/foi-exp-sel.json");
+
+        compareJSON(expResult, result);
+
+        /*
         * FOI station-001 linked observations
         */
         getFoiUrl = new URL(getDefaultURL() + "/FeaturesOfInterest(station-001)/Observations");
@@ -265,6 +283,12 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         expResult = getStringFromFile("com/examind/sts/embedded/obs-exp.json");
         compareJSON(expResult, result);
 
+        getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:304-2-1)?$select=phenomenonTime,result");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obs-sel.json");
+        compareJSON(expResult, result);
+
         getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:304-2-1)/FeaturesOfInterest");
 
         result = getStringResponse(getFoiUrl) + "\n";
@@ -294,6 +318,12 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/obs2-exp.json");
+        compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:801-1)?$select=FeaturesOfInterest,result,selfLink");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obs2-sel.json");
         compareJSON(expResult, result);
 
         getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:801-3)");
@@ -392,6 +422,12 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         expResult = getStringFromFile("com/examind/sts/embedded/obsprop-exp.json");
         compareJSON(expResult, result);
 
+        getFoiUrl = new URL(getDefaultURL() + "/ObservedProperties(temperature)?$select=definition,name");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obsprop-sel.json");
+        compareJSON(expResult, result);
+
         getFoiUrl = new URL(getDefaultURL() + "/ObservedProperties(temperature)/Datastreams");
 
         result = getStringResponse(getFoiUrl) + "\n";
@@ -456,6 +492,12 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/ds-exp.json");
+        compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:8-3)?$select=observedArea,unitOfMeasurement");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-sel.json");
         compareJSON(expResult, result);
     }
 
@@ -551,6 +593,12 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/mds-obs-top.json");
         compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)?$select=resultTime,observationType,unitOfMeasurement");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-sel.json");
+        compareJSON(expResult, result);
     }
 
     @Test
@@ -637,6 +685,12 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         String result = getStringResponse(getFoiUrl) + "\n";
         String expResult = getStringFromFile("com/examind/sts/embedded/ss.json");
         compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Sensors(urn:ogc:object:sensor:GEOM:2)?$select=encodingType,MultiDatastreams");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ss-sel.json");
+        compareJSON(expResult, result);
     }
 
     @Test
@@ -716,7 +770,11 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         expResult = getStringFromFile("com/examind/sts/embedded/th-hloc-exp.json");
         compareJSON(expResult, result);
 
-        getFoiUrl = new URL(getDefaultURL() + "/Things(urn:ogc:object:sensor:GEOM:2)");
+        getFoiUrl = new URL(getDefaultURL() + "/Things(urn:ogc:object:sensor:GEOM:2)?$select=properties,description,HistoricalLocations");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/th-sel.json");
+        compareJSON(expResult, result);
 
         /*
         * Things with special id "test-1"
@@ -809,6 +867,12 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/loc-th.json");
+        compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Locations(urn:ogc:object:sensor:GEOM:2)?$select=location,encodingType");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/loc-sel.json");
         compareJSON(expResult, result);
 
         getFoiUrl = new URL(getDefaultURL() + "/Locations(urn:ogc:object:sensor:GEOM:2-977439600000)");
@@ -1050,6 +1114,12 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/hloc-exp-2.json");
+        compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/HistoricalLocations(urn:ogc:object:sensor:GEOM:2-975625200000)?$select=time,id");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/hloc-sel-2.json");
         compareJSON(expResult, result);
 
         getFoiUrl = new URL(getDefaultURL() + "/HistoricalLocations(urn:ogc:object:sensor:GEOM:2-975625200000)?$expand=Things,Locations/Things");

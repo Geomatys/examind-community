@@ -1,0 +1,7 @@
+{
+    "description": "",
+    "properties": {
+        "type": "profile"
+    },
+    "HistoricalLocations@iot.navigationLink": "http://localhost:9090/WS/sts/default/Things(urn:ogc:object:sensor:GEOM:2)/HistoricalLocations"
+}

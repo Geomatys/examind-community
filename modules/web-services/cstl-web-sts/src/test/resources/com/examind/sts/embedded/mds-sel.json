@@ -1,0 +1,13 @@
+{
+    "unitOfMeasurement": [{
+            "name": "m",
+            "symbol": "m",
+            "definition": "m"
+        }, {
+            "name": "°C",
+            "symbol": "°C",
+            "definition": "°C"
+        }],
+    "observationType": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+    "resultTime": "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z"
+}
