@@ -18,7 +18,6 @@
  */
 package org.constellation.ws.embedded;
 
-// J2SE dependencies
 import java.awt.image.BufferedImage;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -74,8 +73,6 @@ import org.geotoolkit.referencing.CRS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-// JUnit dependencies
-
 /**
  * A set of methods that request a Grizzly server which embeds a WCS service.
  *
@@ -95,6 +92,7 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
     private static final GenericName LAYER_TEST = NamesExt.create("SSTMDE200305");
     private static final GenericName LAYER_ALIAS = NamesExt.create("aliased");
     private static final GenericName LAYER_TEST2 = NamesExt.create("martinique");
+    private static final GenericName LAYER_NMSP = NamesExt.create("SST:SSTMDE200305");
 
     /**
      * URLs which will be tested on the server.
@@ -121,6 +119,11 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
                                       "crs=EPSG:4326&bbox=-180,-90,180,90&" +
                                       "coverage="+ LAYER_ALIAS;
 
+    private static final String WCS_GETCOVERAGE_NMSP ="request=GetCoverage&service=WCS&version=1.0.0&" +
+                                      "format=image/png&width=1024&height=512&" +
+                                      "crs=EPSG:4326&bbox=-180,-90,180,90&" +
+                                      "coverage="+ LAYER_NMSP;
+
     private static final String WCS_GETCOVERAGE_MATRIX ="request=GetCoverage&service=WCS&version=1.0.0&" +
                                       "format=matrix&width=1024&height=512&" +
                                       "crs=EPSG:4326&bbox=-180,-90,180,90&" +
@@ -136,11 +139,13 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
 
     private static final String WCS_GETCAPABILITIES2 ="request=GetCapabilities&service=WCS&version=1.0.0";
 
-    private static final String WCS_DESCRIBECOVERAGE ="request=DescribeCoverage&coverage=SSTMDE200305&service=wcs&version=1.0.0";
+    private static final String WCS_DESCRIBECOVERAGE ="request=DescribeCoverage&coverage=" + LAYER_TEST + "&service=wcs&version=1.0.0";
     private static final String WCS_DESCRIBECOVERAGE_ALIAS ="request=DescribeCoverage&coverage=" + LAYER_ALIAS + "&service=wcs&version=1.0.0";
     private static final String WCS_DESCRIBECOVERAGE_TIFF ="request=DescribeCoverage&coverage=martinique&service=wcs&version=1.0.0";
     
     private static final String WCS_DESCRIBECOVERAGE_201_PNG ="request=DescribeCoverage&coverageid=SSTMDE200305&service=wcs&version=2.0.1";
+    private static final String WCS_DESCRIBECOVERAGE_201_PNG_ALIAS ="request=DescribeCoverage&coverageid=aliased&service=wcs&version=2.0.1";
+    private static final String WCS_DESCRIBECOVERAGE_201_PNG_NMSP ="request=DescribeCoverage&coverageid=SST:SSTMDE200305&service=wcs&version=2.0.1";
     
     private static final String WCS_DESCRIBECOVERAGE_201_TIFF ="request=DescribeCoverage&coverageid=martinique&service=wcs&version=2.0.1";
 
@@ -191,6 +196,7 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
                 layerBusiness.add(did,  null,      null, "SSTMDE200305",  defId, null);
                 layerBusiness.add(did2, "aliased", null, "SSTMDE200305",  defId, null);
                 layerBusiness.add(did3, null,      null, "martinique",    defId, null);
+                layerBusiness.add(did,  null,      "SST", "SSTMDE200305",  defId, null);
 
                 Integer testId = serviceBusiness.create("wcs", "test", config, null, null);
                 layerBusiness.add(did,  null,      null, "SSTMDE200305",  testId, null);
@@ -292,7 +298,7 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
     public void testWCSGetCoverage() throws Exception {
         initLayerList();
         // Creates a valid GetCoverage url.
-        final URL getCoverageUrl;
+        URL getCoverageUrl;
         try {
             getCoverageUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE);
         } catch (MalformedURLException ex) {
@@ -302,6 +308,29 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
 
         // Try to get the coverage from the url.
         final BufferedImage image = getImageFromURL(getCoverageUrl, "image/png");
+
+        // Test on the returned image.
+        assertFalse (ImageTesting.isImageEmpty(image));
+        assertEquals(1024, image.getWidth());
+        assertEquals(512,  image.getHeight());
+        assertTrue  (ImageTesting.getNumColors(image) > 8);
+        }
+
+    @Test
+    @Order(order=2)
+    public void testWCSGetCoverageNmsp() throws Exception {
+        initLayerList();
+        // Creates a valid GetCoverage url.
+        URL getCoverageUrl;
+        try {
+            getCoverageUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_NMSP);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        // Try to get the coverage from the url.
+        BufferedImage image = getImageFromURL(getCoverageUrl, "image/png");
 
         // Test on the returned image.
         assertFalse (ImageTesting.isImageEmpty(image));
@@ -425,6 +454,7 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
         assertFalse(coverages.isEmpty());
         boolean layerTestFound = false;
         boolean layerAliasFound = false;
+        boolean layerNmspFound = false;
         for (CoverageOfferingBriefType coverage : coverages) {
             for (JAXBElement<String> elem : coverage.getRest()) {
                 if (elem.getValue().equals(LAYER_TEST.tip().toString())) {
@@ -443,6 +473,14 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
                     assertTrue(env.getPos().get(1).getValue().get(0) ==  180d);
                     assertTrue(env.getPos().get(1).getValue().get(1) ==   90d);
                 }
+                if (elem.getValue().equals(LAYER_NMSP.tip().toString())) {
+                    layerNmspFound = true;
+                    final LonLatEnvelopeType env = coverage.getLonLatEnvelope();
+                    assertTrue(env.getPos().get(0).getValue().get(0) == -180d);
+                    assertTrue(env.getPos().get(0).getValue().get(1) ==  -90d);
+                    assertTrue(env.getPos().get(1).getValue().get(0) ==  180d);
+                    assertTrue(env.getPos().get(1).getValue().get(1) ==   90d);
+                }
             }
         }
         if (layerTestFound == false) {
@@ -450,6 +488,9 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
         }
         if (layerAliasFound == false) {
             throw new AssertionError("The layer \""+ LAYER_ALIAS +"\" was not found in the returned GetCapabilities.");
+        }
+        if (layerNmspFound == false) {
+            throw new AssertionError("The layer \""+ LAYER_NMSP +"\" was not found in the returned GetCapabilities.");
         }
 
         Get get = (Get) responseCaps.getCapability().getRequest().getGetCapabilities().getDCP().get(0).getHTTP().getRealGetOrPost().get(0);
@@ -547,6 +588,30 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
         expResult = getStringFromFile("org/constellation/ws/embedded/v201/describeCoveragePNG.xml");
        
         domCompare(result, expResult);
+
+        try {
+            getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_DESCRIBECOVERAGE_201_PNG_ALIAS);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        result = getStringResponse(getCapsUrl);
+        expResult = getStringFromFile("org/constellation/ws/embedded/v201/describeCoveragePNG_ALIAS.xml");
+
+        domCompare(result, expResult);
+
+        try {
+            getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_DESCRIBECOVERAGE_201_PNG_NMSP);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        result = getStringResponse(getCapsUrl);
+        expResult = getStringFromFile("org/constellation/ws/embedded/v201/describeCoveragePNG_NMSP.xml");
+
+        domCompare(result, expResult);
         
         try {
             getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_DESCRIBECOVERAGE_201_TIFF);
@@ -577,7 +642,7 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
 
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.0.0", "1.1.1", "2.0.1");
-        instances.add(new Instance(1, "default", "Web Coverage Server", "Constellation Web Coverage Server maintained by geomatys.", "wcs", versions, 3, ServiceStatus.STARTED, "null/wcs/default"));
+        instances.add(new Instance(1, "default", "Web Coverage Server", "Constellation Web Coverage Server maintained by geomatys.", "wcs", versions, 4, ServiceStatus.STARTED, "null/wcs/default"));
         instances.add(new Instance(2, "test",    "Web Coverage Server", "Constellation Web Coverage Server maintained by geomatys.", "wcs", versions, 1, ServiceStatus.STARTED, "null/wcs/test"));
         InstanceReport expResult2 = new InstanceReport(instances);
         assertEquals(expResult2, obj);

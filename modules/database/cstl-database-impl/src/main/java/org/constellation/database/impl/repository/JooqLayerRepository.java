@@ -35,6 +35,8 @@ import org.constellation.exception.ConstellationPersistenceException;
 import org.constellation.repository.LayerRepository;
 import org.jooq.Condition;
 import org.jooq.Field;
+import org.jooq.Record;
+import org.jooq.Record1;
 import org.jooq.Select;
 import org.jooq.SelectConditionStep;
 import org.jooq.SelectLimitStep;
@@ -61,12 +63,18 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, or
         super(org.constellation.database.api.jooq.tables.pojos.Layer.class, LAYER);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public int deleteServiceLayer(Integer serviceId) {
         return dsl.delete(LAYER).where(LAYER.SERVICE.eq(serviceId)).execute();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public Integer create(Layer layer) {
@@ -76,7 +84,10 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, or
         newRecord.setConfig(layer.getConfig());
         newRecord.setData(layer.getDataId());
         newRecord.setName(layer.getName().getLocalPart());
-        newRecord.setNamespace(layer.getName().getNamespaceURI());
+        // QNAME namespace is never null
+        if (!layer.getName().getNamespaceURI().isEmpty()) {
+            newRecord.setNamespace(layer.getName().getNamespaceURI());
+        }
         newRecord.setService(layer.getService());
         newRecord.setTitle(layer.getTitle());
         newRecord.setDate(layer.getDate() != null ? layer.getDate().getTime() : null);
@@ -86,6 +97,9 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, or
         return null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public void update(Layer layer) {
@@ -97,23 +111,35 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, or
         set.execute();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public int delete(Integer layerId) {
         return dsl.delete(LAYER).where(LAYER.ID.eq(layerId)).execute();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public int deleteAll() {
         return dsl.delete(LAYER).execute();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Layer findById(Integer layerId) {
         return convertIntoDto(dsl.select().from(LAYER).where(LAYER.ID.eq(layerId)).fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean existsById(Integer id) {
         return dsl.selectCount().from(LAYER)
@@ -121,16 +147,25 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, or
                 .fetchOne(0, Integer.class) > 0;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Layer> findByServiceId(int serviceId) {
         return convertListToDto(dsl.select().from(LAYER).where(LAYER.SERVICE.eq(serviceId)).fetchInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Integer> findIdByServiceId(int serviceId) {
         return dsl.select(LAYER.ID).from(LAYER).where(LAYER.SERVICE.eq(serviceId)).fetchInto(Integer.class);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<QName> findNameByServiceId(int serviceId) {
         List<Map<String, Object>> test = dsl.select(LAYER.NAME, LAYER.NAMESPACE).from(LAYER).where(LAYER.SERVICE.eq(serviceId)).fetchMaps();
@@ -141,21 +176,41 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, or
         return result;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Integer> findByDataId(int dataId) {
         return dsl.select(LAYER.ID).from(LAYER).where(LAYER.DATA.eq(dataId)).fetchInto(Integer.class);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public Integer findIdByServiceIdAndLayerName(int serviceId, String layerName) {
-        return dsl.select(LAYER.ID).from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.NAME.eq(layerName)).fetchOneInto(Integer.class);
+    public Integer findIdByServiceIdAndLayerName(int serviceId, String layerName, boolean noNamespace) {
+        SelectConditionStep<Record1<Integer>> sel = dsl.select(LAYER.ID).from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.NAME.eq(layerName)).and(LAYER.ALIAS.isNull());
+        if (noNamespace) {
+            sel = sel.and(LAYER.NAMESPACE.isNull());
+        }
+        return sel.fetchOneInto(Integer.class);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public Layer findByServiceIdAndLayerName(int serviceId, String layerName) {
-        return convertIntoDto(dsl.select().from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.NAME.eq(layerName)).and(LAYER.ALIAS.isNull()).fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
+    public Layer findByServiceIdAndLayerName(int serviceId, String layerName, boolean noNamespace) {
+        SelectConditionStep<Record> sel = dsl.select().from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.NAME.eq(layerName)).and(LAYER.ALIAS.isNull());
+        if (noNamespace) {
+            sel = sel.and(LAYER.NAMESPACE.isNull());
+        }
+        return convertIntoDto(sel.fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Integer findIdByServiceIdAndLayerName(int serviceId, String layerName, String namespace) {
         if (namespace != null) {
@@ -165,46 +220,67 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, or
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Layer findByServiceIdAndLayerName(int serviceId, String layerName, String namespace) {
         if (namespace != null) {
             return convertIntoDto(dsl.select().from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.NAME.eq(layerName))
-                    .and(LAYER.NAMESPACE.eq(namespace)).and(LAYER.ALIAS.isNull()).fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
+                    .and(LAYER.NAMESPACE.eq(namespace)).fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
         } else {
             return convertIntoDto(dsl.select().from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.NAME.eq(layerName)).and(LAYER.NAMESPACE.isNull())
-                    .and(LAYER.ALIAS.isNull()).fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
+                    .fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Layer findByServiceIdAndAlias(int serviceId, String alias) {
         return convertIntoDto(dsl.select().from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.ALIAS.eq(alias))
                     .fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Integer findIdByServiceIdAndAlias(int serviceId, String alias) {
         return dsl.select(LAYER.ID).from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.ALIAS.eq(alias)).fetchOneInto(Integer.class);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public Layer findByServiceIdAndDataId(int serviceId, int dataId) {
-        return convertIntoDto(dsl.select().from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.DATA.eq(dataId))
-                .and(LAYER.ALIAS.isNull()).fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
+    public List<Layer> findByServiceIdAndDataId(int serviceId, int dataId) {
+        return convertListToDto(dsl.select().from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.DATA.eq(dataId))
+                .and(LAYER.ALIAS.isNull()).fetchInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Layer> getLayersByLinkedStyle(final int styleId) {
         return convertListToDto(dsl.select(LAYER.fields()).from(LAYER).join(STYLED_LAYER).onKey(STYLED_LAYER.LAYER).where(STYLED_LAYER.STYLE.eq(styleId))
                 .fetchInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Layer> findAll() {
         return convertListToDto(dsl.select().from(LAYER).fetchInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Map.Entry<Integer, List<Layer>> filterAndGet(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage) {
 

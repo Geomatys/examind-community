@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConfigurationException;
-import org.constellation.dto.DataBrief;
 import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.dto.service.config.wxs.LayerSummary;
 import org.constellation.dto.service.config.wxs.FilterAndDimension;

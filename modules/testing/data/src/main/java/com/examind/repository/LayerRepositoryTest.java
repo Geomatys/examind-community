@@ -158,7 +158,7 @@ public class LayerRepositoryTest extends AbstractRepositoryTest {
         Assert.assertNotNull(l);
         Assert.assertEquals(l2, l);
 
-        l = layerRepository.findByServiceIdAndLayerName(sid2, "testlayer3");
+        l = layerRepository.findByServiceIdAndLayerName(sid2, "testlayer3", false);
         Assert.assertNotNull(l);
         Assert.assertEquals(l3, l);
 

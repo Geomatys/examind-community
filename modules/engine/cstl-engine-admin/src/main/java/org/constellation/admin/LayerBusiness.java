@@ -112,13 +112,16 @@ public class LayerBusiness implements ILayerBusiness {
 
         if (service !=null) {
 
-            if (namespace != null && namespace.isEmpty()) {
+            final QName layerName;
+            if (namespace != null && !namespace.isEmpty()) {
                 // Prevents adding empty layer namespace, put null instead
-                namespace = null;
+                layerName = new QName(namespace, name);
+            } else {
+                layerName = new QName(name);
             }
 
             Layer layer = new Layer();
-            layer.setName(new QName(namespace, name));
+            layer.setName(layerName);
             layer.setAlias(alias);
             layer.setService(service.getId());
             layer.setDataId(dataId);
@@ -380,9 +383,14 @@ public class LayerBusiness implements ILayerBusiness {
             //2. search by alias
             layer = layerRepository.findByServiceIdAndAlias(serviceId, nameOrAlias);
 
-            //3. search by single name
+            //3. search by single name with no namespace
             if  (layer == null) {
-                layer = layerRepository.findByServiceIdAndLayerName(serviceId, nameOrAlias);
+                layer = layerRepository.findByServiceIdAndLayerName(serviceId, nameOrAlias, true);
+                
+                //4. search by single name (with ommited namespace)
+                if  (layer == null) {
+                    layer = layerRepository.findByServiceIdAndLayerName(serviceId, nameOrAlias, false);
+                }
             }
         }
 
