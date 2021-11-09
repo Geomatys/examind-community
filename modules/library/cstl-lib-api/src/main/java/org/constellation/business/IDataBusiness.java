@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 import javax.xml.namespace.QName;
 import org.constellation.dto.Data;
@@ -339,5 +340,15 @@ public interface IDataBusiness {
     SortedSet<Number> getDataElevations(final int dataId);
     
     SortedSet<DimensionRange> getDataDimensionRange(final int dataId);
+
+    /**
+     * Compute and store data informations into the datasource.
+     *
+     * @param dataId Data identifier.
+     * @param refresh if set to {@code false} the informations will not be updated if already recorded.
+     *
+     * @throws ConstellationException If the data can not be found, or instanciated.
+     */
+    void cacheDataInformation(int dataId, boolean refresh) throws ConstellationException;
 
 }

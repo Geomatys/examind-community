@@ -1139,6 +1139,52 @@ public class DataBusiness implements IDataBusiness {
         return dataRepository.getDataDimensionRange(dataId);
     }
 
+    @Override
+    public void cacheDataInformation(int dataId, boolean refresh) throws ConstellationException {
+        DataBrief db = getDataBrief(dataId, false, false);
+        if (db == null) {
+            throw new TargetNotFoundException("Unable to find a data with the id:" + dataId);
+        }
+        if (db.getCachedInfo() && !refresh) {
+            return;
+        }
+        Envelope env = null;
+        Set<Date> dates = null;
+        Set<Number> elevations = null;
+        Set<DimensionRange> dims = null;
+        try {
+            org.constellation.provider.Data providerData = DataProviders.getProviderData(db.getProviderId(), db.getNamespace(), db.getName());
+            if (providerData != null) {
+                env        = providerData.getEnvelope();
+                dates      = providerData.getAvailableTimes();
+                elevations = providerData.getAvailableElevations();
+                dims       = providerData.getSampleValueRanges();
+            }
+        } catch (Exception ex) {
+            LOGGER.log(Level.FINER, ex.getMessage(), ex);
+        }
+
+        // cache data informations in the database
+        if (env != null) {
+            String crs;
+            try {
+                crs = env.getCoordinateReferenceSystem().toWKT();
+                if (crs != null) {
+                    List<Double[]> coordinates = new ArrayList<>();
+                    for (int i = 0; i < env.getDimension(); i++) {
+                        coordinates.add(new Double[]{env.getMinimum(i), env.getMaximum(i)});
+                    }
+                    dataRepository.updateDataBBox(dataId, crs, coordinates);
+                    dataRepository.updateDataTimes(dataId, dates);
+                    dataRepository.updateDataElevations(dataId, elevations);
+                    dataRepository.updateDimensionRange(dataId, dims);
+                }
+            } catch (UnsupportedOperationException ex) {
+                LOGGER.log(Level.WARNING, "Error while serializing data CRS to WKT: {0}", ex.getMessage());
+            }
+        }
+    }
+
     @FunctionalInterface
     private interface MetadataFeeding {
         void apply(final org.apache.sis.storage.DataSet datasource, final MetadataFeeder target) throws Exception;

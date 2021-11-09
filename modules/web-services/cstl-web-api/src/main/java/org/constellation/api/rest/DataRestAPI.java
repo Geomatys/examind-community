@@ -874,4 +874,43 @@ public class DataRestAPI extends AbstractRestAPI{
         }
         return new ResponseEntity(result,OK);
     }
+
+    /**
+     * Compute and store data informations into the datasource.
+     *
+     * @param dataId Data identifier.
+     * @param refresh if set to {@code false} the informations will not be updated if already recorded.
+     * @return
+     */
+    @RequestMapping(value = "/datas/{dataId}/compute/info", method = GET)
+    public ResponseEntity computeDataInfo(@PathVariable("dataId") final int dataId, @RequestParam("refresh") final boolean refresh) {
+        try {
+            dataBusiness.cacheDataInformation(dataId, refresh);
+            return new ResponseEntity(OK);
+        } catch(Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
+    }
+
+    /**
+     * Compute and store all the data informations into the datasource.
+     *
+     * @param refresh if set to {@code false} the informations will not be updated if already recorded.
+     * @return
+     */
+    @RequestMapping(value = "/datas/compute/info", method = GET)
+    public ResponseEntity computeDatasInfo(@RequestParam("refresh") final boolean refresh) {
+        try {
+            for (Integer pid : providerBusiness.getProviderIdsAsInt()) {
+                for (Integer dataId : providerBusiness.getDataIdsFromProviderId(pid, null, true, false)) {
+                    dataBusiness.cacheDataInformation(dataId, refresh);
+                }
+            }
+            return new ResponseEntity(OK);
+        } catch(Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
+    }
 }

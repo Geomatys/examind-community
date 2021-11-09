@@ -49,6 +49,8 @@ import org.constellation.test.utils.TestEnvironment;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.opengis.geometry.Envelope;
 import org.opengis.metadata.Metadata;
 import org.opengis.metadata.citation.Party;
 import org.opengis.metadata.citation.Role;
@@ -193,6 +195,17 @@ public class DataBusinessTest extends org.constellation.test.SpringContextTest {
         Assert.assertTrue(db.getDataDescription() instanceof CoverageDataDescription);
         CoverageDataDescription desc = (CoverageDataDescription) db.getDataDescription();
         Assert.assertEquals(1, desc.getBands().size());
+
+        /**
+         * Test data info cache
+         */
+        Envelope env = dataBusiness.getEnvelope(db.getId());
+        Assert.assertNull(env);
+
+        dataBusiness.cacheDataInformation(db.getId(), false);
+
+        env = dataBusiness.getEnvelope(db.getId());
+        Assert.assertNotNull(env);
     }
 
     @Test
@@ -216,6 +229,17 @@ public class DataBusinessTest extends org.constellation.test.SpringContextTest {
         //expected.getValues().put("sis:geometry","sis:geometry");
         expected.getValues().put("the_geom","the_geom");
         Assert.assertEquals(expected, results);
+
+        /**
+         * Test data info cache
+         */
+        Envelope env = dataBusiness.getEnvelope(db.getId());
+        Assert.assertNull(env);
+
+        dataBusiness.cacheDataInformation(db.getId(), false);
+
+        env = dataBusiness.getEnvelope(db.getId());
+        Assert.assertNotNull(env);
     }
 
     @Test
