@@ -70,7 +70,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.constellation.exception.ConstellationStoreException;
 
 import static org.constellation.metadata.core.CSWConstants.CSW;
@@ -270,7 +269,7 @@ public class DefaultCatalogueHarvester extends CatalogueHarvester {
 
         //we request all the records for the best outputSchema supported
 
-            LOGGER.log(Level.INFO, "harvesting with outputSchema: {0}", bestDistantOuputSchema);
+            LOGGER.log(Level.FINE, "harvesting with outputSchema: {0}", bestDistantOuputSchema);
             startPosition    = 1;
 
             if (!specialCase1)
@@ -298,7 +297,7 @@ public class DefaultCatalogueHarvester extends CatalogueHarvester {
                 // if the service respond correctly  (CSW 2.0.2 and 2.0.0)
                 } else if (harvested instanceof GetRecordsResponse) {
                     succeed = true;
-                    LOGGER.log(Level.INFO, "Response of distant service:\n{0}", harvested.toString());
+                    LOGGER.log(Level.FINE, "Response of distant service:\n{0}", harvested.toString());
                     final GetRecordsResponse serviceResponse = (GetRecordsResponse) harvested;
                     final SearchResults results              = serviceResponse.getSearchResults();
                     final List<Object> records               = results.getAny();
@@ -326,7 +325,7 @@ public class DefaultCatalogueHarvester extends CatalogueHarvester {
                     moreResults = results.getNumberOfRecordsReturned() != 0;
                     if (moreResults) {
                         startPosition = startPosition + records.size();
-                        LOGGER.log(Level.INFO, "startPosition={0}", startPosition);
+                        LOGGER.log(Level.FINE, "startPosition={0}", startPosition);
                         getRecordRequest.setStartPosition(startPosition);
                     }
 
@@ -351,14 +350,14 @@ public class DefaultCatalogueHarvester extends CatalogueHarvester {
                     getRecordRequest.removeConstraint();
                     firstTry    = false;
                     secondTry   = true;
-                    LOGGER.info("trying with no constraint request");
+                    LOGGER.fine("trying with no constraint request");
 
                 //if we don't succeed agin we try with CQL constraint
                 } else if (secondTry && ! succeed) {
                     secondTry   = false;
                     moreResults = true;
                     getRecordRequest.setCQLConstraint("title NOT LIKE 'something'");
-                    LOGGER.info("trying with CQL constraint request");
+                    LOGGER.fine("trying with CQL constraint request");
                 }
             }
 
@@ -514,7 +513,7 @@ public class DefaultCatalogueHarvester extends CatalogueHarvester {
             report.append("No GetRecords operation find").append('\n');
         }
 
-        LOGGER.info(report.toString());
+        LOGGER.fine(report.toString());
         return request;
     }
 
@@ -552,7 +551,7 @@ public class DefaultCatalogueHarvester extends CatalogueHarvester {
         } else if (availableOutputSchema.contains("DublinCore")) {
             return "DublinCore";
         } else {
-            LOGGER.severe("unable to found a outputSchema!!!");
+            LOGGER.warning("unable to found a outputSchema!!!");
             return LegacyNamespaces.CSW;
         }
     }
@@ -601,9 +600,9 @@ public class DefaultCatalogueHarvester extends CatalogueHarvester {
                     xmlRequest = xmlRequest.replace("xmlns:dc=\"http://purl.org/dc/elements/1.1/\""     , "");
                     xmlRequest = xmlRequest.replace("xmlns:dc2=\"http://www.purl.org/dc/elements/1.1/\"", "");
                     xmlRequest = xmlRequest.replace("xmlns:dct2=\"http://www.purl.org/dc/terms/\""      , "");
-                    LOGGER.log(Level.INFO, "special obtained request: \n{0}", xmlRequest);
+                    LOGGER.log(Level.FINE, "special obtained request: \n{0}", xmlRequest);
                 }
-                LOGGER.log(Level.INFO, "sended:{0} to {1}", new Object[]{xmlRequest, sourceURL});
+                LOGGER.log(Level.FINE, "XML request sent:{0} to {1}", new Object[]{xmlRequest, sourceURL});
                 wr.write(xmlRequest);
                 wr.flush();
             }
@@ -637,7 +636,7 @@ public class DefaultCatalogueHarvester extends CatalogueHarvester {
                 encoding = temp.substring(0, temp.indexOf('"'));
             }
 
-            LOGGER.log(Level.INFO, "response encoding : {0}", encoding);
+            LOGGER.log(Level.FINE, "response encoding : {0}", encoding);
 
             /*
              * 4.4- Return string or unmarshalled object depending on if the MarshallerPool mpool is null
@@ -685,7 +684,7 @@ public class DefaultCatalogueHarvester extends CatalogueHarvester {
                 LOGGER.log(Level.WARNING, "The distant service does not respond correctly: unable to unmarshall response document.\ncause: {0}", ex.getMessage());
             }
         } catch (IOException ex) {
-            LOGGER.severe("The Distant service have made an error");
+            LOGGER.warning("The Distant service have made an error");
             return null;
         }
         return harvested;
@@ -756,7 +755,7 @@ public class DefaultCatalogueHarvester extends CatalogueHarvester {
                 final Object response = sendRequest(serverURL, request);
                 if (response instanceof GetRecordsResponse) {
 
-                    LOGGER.log(Level.INFO, "Response of distant service:\n{0}", response.toString());
+                    LOGGER.log(Level.FINE, "Response of distant service:\n{0}", response.toString());
                     final GetRecordsResponse serviceResponse = (GetRecordsResponse) response;
                     final SearchResults sResults = serviceResponse.getSearchResults();
 
@@ -783,7 +782,7 @@ public class DefaultCatalogueHarvester extends CatalogueHarvester {
             } catch (CstlServiceException ex) {
                 LOGGER.warning(ex.getMessage());
             } catch (IOException ex) {
-                LOGGER.log(Level.INFO, "IO exeception while distibuting the request: {0}", ex.getMessage());
+                LOGGER.log(Level.WARNING, "IO exeception while distibuting the request: {0}", ex.getMessage());
             }
 
             // TODO Handle when an exception occurs

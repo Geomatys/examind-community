@@ -14,6 +14,7 @@
         </encoder>
     </appender>
 
+    <logger name="org.constellation.database.configuration" level="WARN" />
     <logger name="org.constellation" level="INFO" />
     <logger name="com.examind" level="INFO" />
 

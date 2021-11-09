@@ -221,6 +221,7 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
             if (indexer != null) {
                 try {
                     for (String identifier : identifierList) {
+                        LOGGER.fine("Adding record:" + identifier + " to index");
                         final RecordInfo obj = store.getMetadataFromOriginalStore(identifier, MetadataType.NATIVE)
                                 .orElseThrow(() -> new ConfigurationException("Unable to find the metadata: " + identifier));
                         synchronized(indexer) {
@@ -618,6 +619,7 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
      *
      * @param serviceID the service identifier (form multiple CSW) default: ""
      * @param store the metadata reader of the specified sevrice.
+     * @param uuid unique identifier assigned to the indexer, so we can share it.
      *
      * @return A geotk Indexer.
      * @throws ConfigurationException
@@ -634,9 +636,10 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
                             store = getMetadataStore(serviceID);
                         }
                         indexer = indexHandler.getIndexer(config, store, serviceID);
+                        /* do not perform indexation as we only want to get the indexer
                         if (indexer.needCreation()) {
                             indexer.createIndex();
-                        }
+                        }*/
                         INDEXER_MAP.put(serviceID, indexer);
                         USED_INDEXER.put(serviceID, new HashSet<>());
                     } catch (Exception ex) {

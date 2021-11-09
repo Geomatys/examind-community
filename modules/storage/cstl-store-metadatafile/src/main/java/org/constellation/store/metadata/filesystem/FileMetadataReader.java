@@ -242,13 +242,13 @@ public class FileMetadataReader extends DomMetadataReader {
         if (dataDirectory != null) {
             try (Session session = source.createSession()) {
                 if (force || session.needAnalyze()) {
-                    LOGGER.info("Launching file system analyze");
+                    LOGGER.fine("Launching file system analyze");
                     session.setAutoCommit(false);
                     session.clear();
                     final long start = System.currentTimeMillis();
                     analyzeFileSystem(dataDirectory, session);
                     session.commit();
-                    LOGGER.log(Level.INFO, "fileSystem analyze done in :{0} ms", (System.currentTimeMillis() - start));
+                    LOGGER.log(Level.FINE, "fileSystem analyze done in :{0} ms", (System.currentTimeMillis() - start));
                 }
             } catch (SQLException ex) {
                 throw new MetadataIoException("SQL Exception while analyzing the file system", ex, NO_APPLICABLE_CODE);

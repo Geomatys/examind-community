@@ -439,7 +439,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
     @Timed
     public AbstractCapabilities getCapabilities(final GetCapabilities request) throws CstlServiceException {
         isWorking();
-        LOGGER.log(Level.INFO, "getCapabilities request processing\n");
+        LOGGER.log(Level.FINE, "getCapabilities request processing\n");
         final long startTime = System.currentTimeMillis();
 
         //we verify the base request attribute
@@ -631,7 +631,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         final AbstractCapabilities c = CswXmlFactory.createCapabilities(currentVersion, si, sp, om, null, fc);
 
         putCapabilitiesInCache(currentVersion, null, c);
-        LOGGER.log(Level.INFO, "GetCapabilities request processed in {0} ms", (System.currentTimeMillis() - startTime));
+        LOGGER.log(Level.FINE, "GetCapabilities request processed in {0} ms", (System.currentTimeMillis() - startTime));
         return (AbstractCapabilities) c.applySections(sections);
     }
 
@@ -650,7 +650,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
      *         an AcknowledgementType if the resultType is set to VALIDATE.
      */
     public Object getRecords(final GetRecordsRequest request) throws CstlServiceException {
-        LOGGER.log(Level.INFO, "GetRecords request processing\n");
+        LOGGER.log(Level.FINE, "GetRecords request processing\n");
         final long startTime = System.currentTimeMillis();
         verifyBaseRequest(request, true, false);
 
@@ -913,7 +913,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
             }
             response = CswXmlFactory.createGetRecordsResponse(request.getVersion().toString(), id, System.currentTimeMillis(), searchResults);
         }
-        LOGGER.log(Level.INFO, "GetRecords request processed in {0} ms", (System.currentTimeMillis() - startTime));
+        LOGGER.log(Level.FINE, "GetRecords request processed in {0} ms", (System.currentTimeMillis() - startTime));
         return response;
     }
 
@@ -981,7 +981,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
      * @return A GetRecordByIdResponse containing a list of records.
      */
     public GetRecordByIdResponse getRecordById(final GetRecordById request) throws CstlServiceException {
-        LOGGER.log(Level.INFO, "GetRecordById request processing\n");
+        LOGGER.log(Level.FINE, "GetRecordById request processing\n");
         final long startTime = System.currentTimeMillis();
         verifyBaseRequest(request, true, false);
 
@@ -1060,7 +1060,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         }
 
         response = CswXmlFactory.createGetRecordByIdResponse(version, records);
-        LOGGER.log(Level.INFO, "GetRecordById request processed in {0} ms", (System.currentTimeMillis() - startTime));
+        LOGGER.log(Level.FINE, "GetRecordById request processed in {0} ms", (System.currentTimeMillis() - startTime));
         return response;
     }
 
@@ -1090,7 +1090,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
      * Return one or more xsd schemas corresponding to the metadata records.
      */
     public DescribeRecordResponse describeRecord(final DescribeRecord request) throws CstlServiceException{
-        LOGGER.log(Level.INFO, "DescribeRecords request processing\n");
+        LOGGER.log(Level.FINE, "DescribeRecords request processing\n");
         final long startTime = System.currentTimeMillis();
 
         verifyBaseRequest(request, true, false);
@@ -1154,7 +1154,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
             components.add(component);
         }
 
-        LOGGER.log(Level.INFO, "DescribeRecords request processed in {0} ms", (System.currentTimeMillis() - startTime));
+        LOGGER.log(Level.FINE, "DescribeRecords request processed in {0} ms", (System.currentTimeMillis() - startTime));
         return CswXmlFactory.createDescribeRecordResponse(version, components);
     }
 
@@ -1164,7 +1164,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
      * a property of the metadata.
      */
     public GetDomainResponse getDomain(final GetDomain request) throws CstlServiceException{
-        LOGGER.log(Level.INFO, "GetDomain request processing\n");
+        LOGGER.log(Level.FINE, "GetDomain request processing\n");
         final long startTime = System.currentTimeMillis();
         verifyBaseRequest(request, true, false);
         final String currentVersion = request.getVersion().toString();
@@ -1243,7 +1243,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
             throw new CstlServiceException("One of propertyName or parameterName must be filled",
                                           MISSING_PARAMETER_VALUE, "parameterName, propertyName");
         }
-        LOGGER.log(Level.INFO, "GetDomain request processed in {0} ms", (System.currentTimeMillis() - startTime));
+        LOGGER.log(Level.FINE, "GetDomain request processed in {0} ms", (System.currentTimeMillis() - startTime));
 
         return CswXmlFactory.getDomainResponse(currentVersion, responseList);
     }
@@ -1252,7 +1252,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
      * A web service method allowing to Insert / update / delete record from the CSW.
      */
     public TransactionResponse transaction(final Transaction request) throws CstlServiceException {
-        LOGGER.log(Level.INFO, "Transaction request processing\n");
+        LOGGER.log(Level.FINE, "Transaction request processing\n");
 
         if (profile == DISCOVERY) {
             throw new CstlServiceException("This method is not supported by this mode of CSW",
@@ -1435,7 +1435,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         final TransactionSummary summary = CswXmlFactory.createTransactionSummary(version, totalInserted, totalUpdated, totalDeleted, requestID);
 
         final TransactionResponse response = CswXmlFactory.createTransactionResponse(version, summary, insertResults);
-        LOGGER.log(Level.INFO, "Transaction request processed in {0} ms", (System.currentTimeMillis() - startTime));
+        LOGGER.log(Level.FINE, "Transaction request processed in {0} ms", (System.currentTimeMillis() - startTime));
         return response;
     }
 
@@ -1443,7 +1443,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
      * TODO
      */
     public HarvestResponse harvest(final Harvest request) throws CstlServiceException {
-        LOGGER.log(Level.INFO, "Harvest request processing\n");
+        LOGGER.log(Level.FINE, "Harvest request processing\n");
         if (profile == DISCOVERY) {
             throw new CstlServiceException("This method is not supported by this mode of CSW",
                                           OPERATION_NOT_SUPPORTED, "Request");
@@ -1532,7 +1532,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
                     NO_APPLICABLE_CODE);
         }
 
-        LOGGER.log(Level.INFO, "Harvest operation finished");
+        LOGGER.log(Level.FINE, "Harvest operation finished");
         return response;
     }
 

@@ -119,8 +119,9 @@ public class MetadataStoreProvider extends IndexedNameDataProvider implements Me
 
     @Override
     protected synchronized void visit() {
-        store = createBaseStore();
+       final MetadataStore store = getMainStore();
         if (store != null) {
+            index.clear();
             Iterator<String> it = null;
             try {
                 it = store.getIdentifierIterator();
@@ -237,9 +238,9 @@ public class MetadataStoreProvider extends IndexedNameDataProvider implements Me
         boolean result = false;
         try {
             result = store.storeMetadata(obj);
-            reload();
+            visit();
         } catch (MetadataIoException ex) {
-            LOGGER.log(Level.INFO, "Unable to store a new sensor in provider:" + id, ex);
+            LOGGER.log(Level.INFO, "Unable to store a new metadata in provider:" + id, ex);
         }
         return result;
     }
@@ -250,9 +251,9 @@ public class MetadataStoreProvider extends IndexedNameDataProvider implements Me
         boolean result = false;
         try {
             result = store.replaceMetadata(metadataID, any);
-            reload();
+            visit();
         } catch (MetadataIoException ex) {
-            LOGGER.log(Level.INFO, "Unable to replace a sensor in provider:" + id, ex);
+            LOGGER.log(Level.INFO, "Unable to replace a metadata in provider:" + id, ex);
         }
         return result;
     }
@@ -263,9 +264,9 @@ public class MetadataStoreProvider extends IndexedNameDataProvider implements Me
         boolean result = false;
         try {
             result = store.updateMetadata(metadataID, properties);
-            reload();
+            visit();
         } catch (MetadataIoException ex) {
-            LOGGER.log(Level.INFO, "Unable to update a sensor in provider:" + id, ex);
+            LOGGER.log(Level.INFO, "Unable to update a metadata in provider:" + id, ex);
         }
         return result;
     }
@@ -277,7 +278,7 @@ public class MetadataStoreProvider extends IndexedNameDataProvider implements Me
         try {
             if (store != null) {
                 result = store.deleteMetadata(metadataID);
-                reload();
+                visit();
             }
         } catch (MetadataIoException ex) {
             LOGGER.log(Level.INFO, "Unable to delete a metadata in provider:" + id, ex);

@@ -68,6 +68,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
@@ -190,10 +191,8 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
                 config.putParameter("partial", "true");
                 Integer defId = serviceBusiness.create("csw", "default", config, null, null);
                 serviceBusiness.linkCSWAndProvider(defId, pr, false);
-                List<MetadataBrief> metadatas = metadataBusiness.getByProviderId(pr, null);
-                for (MetadataBrief m : metadatas) {
-                    metadataBusiness.linkMetadataIDToCSW(m.getMetadataId(), "default");
-                }
+                List<String> metadatas = metadataBusiness.getByProviderId(pr, null).stream().map(mb -> mb.getMetadataId()).collect(Collectors.toList());
+                metadataBusiness.linkMetadataIDsToCSW(metadatas, "default");
                 serviceBusiness.start(defId);
 
                 createDataset("meta1.xml", "42292_5p_19900609195600");

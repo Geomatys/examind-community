@@ -19,13 +19,8 @@
 package org.constellation.configuration;
 
 import java.io.File;
-import org.apache.sis.util.ArgumentChecks;
 import org.apache.sis.util.logging.Logging;
 
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import javax.naming.RefAddr;
-import javax.naming.Reference;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -146,14 +141,9 @@ public final class ConfigDirectory {
     /**
      * The default debugging logger.
      */
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.provider.configuration");
+    private static final Logger LOGGER = Logging.getLogger("org.constellation.configuration");
 
     private static Config config;
-
-    /**
-     * Specifies if the process is running on a Glassfish application server.
-     */
-    private static Boolean runningOnGlassfish = null;
 
     private ConfigDirectory() {
     }
@@ -162,7 +152,7 @@ public final class ConfigDirectory {
         if (Files.notExists(path)) {
             try {
                 Files.createDirectories(path);
-                LOGGER.log(Level.INFO, "{0} created.", path.toUri().toString());
+                LOGGER.log(Level.FINE, "{0} created.", path.toUri().toString());
             } catch (IOException e) {
                 throw new ConfigurationRuntimeException("Could not create: " + path.toString(), e);
             }
@@ -216,10 +206,9 @@ public final class ConfigDirectory {
 
     private static void deleteDir(Path folder) {
         if (Files.exists(folder)) {
-
             try {
                 deleteRecursively(folder);
-                LOGGER.log(Level.INFO, "{0} deleted.", folder.toString());
+                LOGGER.log(Level.FINE, "{0} deleted.", folder.toString());
             } catch (IOException e) {
                 LOGGER.log(Level.WARNING, e.getMessage(), e);
             }
@@ -260,69 +249,6 @@ public final class ConfigDirectory {
             Files.createDirectories(uploadDirectory);
         }
         return uploadDirectory;
-    }
-
-
-    /**
-     * Get the value for a property defined in the JNDI context chosen.
-     *
-     * @param propGroup
-     *            If you use Glassfish, you have to specify the name of the
-     *            resource that owns the property you wish to get. Otherwise you
-     *            should specify {@code null}
-     * @param propName
-     *            The name of the property to get.
-     * @return The property value defines in the context, or {@code null} if no
-     *         property of this name is defined in the resource given in
-     *         parameter.
-     * @throws NamingException
-     *             if an error occurs while initializing the context, or if an
-     *             empty value for propGroup has been passed while using a
-     *             Glassfish application server.
-     */
-    public static String getPropertyValue(final String propGroup, final String propName) throws NamingException {
-        final InitialContext ctx = new InitialContext();
-        if (runningOnGlassfish == null) {
-            runningOnGlassfish = (System.getProperty("domain.name") != null) ? true : false;
-        }
-        if (runningOnGlassfish) {
-            if (propGroup == null) {
-                throw new NamingException("The coverage property group is not specified.");
-            }
-            final Reference props = (Reference) getContextProperty(propGroup, ctx);
-            if (props == null) {
-                throw new NamingException("The coverage property group specified does not exist.");
-            }
-            final RefAddr permissionAddr = (RefAddr) props.get(propName);
-            if (permissionAddr != null) {
-                return (String) permissionAddr.getContent();
-            }
-            return null;
-        } else {
-            final javax.naming.Context envContext = (javax.naming.Context) ctx.lookup("java:/comp/env");
-            return (String) getContextProperty(propName, envContext);
-        }
-    }
-
-    /**
-     * Returns the context value for the key specified, or {@code null} if not
-     * found in this context.
-     *
-     * @param key
-     *            The key to search in the context.
-     * @param context
-     *            The context which to consider.
-     */
-    private static Object getContextProperty(final String key, final javax.naming.Context context) {
-        Object value = null;
-        try {
-            value = context.lookup(key);
-        } catch (NamingException n) {
-            // Do nothing, the key is not found in the context and the value is
-            // still null.
-        }
-
-        return value;
     }
 
     public static Path getConfigDirectory() {
