@@ -392,7 +392,7 @@ public class SOSworker extends SensorWorker {
      */
     public Capabilities getCapabilities(final GetCapabilities request) throws CstlServiceException {
         isWorking();
-        LOGGER.log(Level.INFO, "getCapabilities request processing\n");
+        LOGGER.log(Level.FINE, "getCapabilities request processing\n");
         final long start = System.currentTimeMillis();
 
         //we verify the base request attribute
@@ -583,7 +583,7 @@ public class SOSworker extends SensorWorker {
             final Capabilities temp = buildCapabilities(currentVersion, si, sp, om, getCurrentUpdateSequence(), fc, cont, Arrays.asList((Object)INSERTION_CAPABILITIES));
             c    = normalizeDocument(temp);
 
-            LOGGER.log(Level.INFO, "getCapabilities processed in {0} ms.\n", (System.currentTimeMillis() - start));
+            LOGGER.log(Level.FINE, "getCapabilities processed in {0} ms.\n", (System.currentTimeMillis() - start));
             putCapabilitiesInCache(currentVersion, null, c);
         } catch (ConstellationStoreException | ConfigurationException ex) {
             throw new CstlServiceException(ex);
@@ -640,7 +640,7 @@ public class SOSworker extends SensorWorker {
      * @return A sensor description
      */
     public Object describeSensor(final DescribeSensor request) throws CstlServiceException  {
-        LOGGER.log(Level.INFO, "DescribeSensor request processing\n");
+        LOGGER.log(Level.FINE, "DescribeSensor request processing\n");
         final long start = System.currentTimeMillis();
 
         // we get the form
@@ -694,14 +694,14 @@ public class SOSworker extends SensorWorker {
             throw new CstlServiceException("this sensor has no metadata SOS", INVALID_PARAMETER_VALUE, PROCEDURE);
         }
 
-        LOGGER.log(Level.INFO, "describeSensor processed in {0} ms.\n", (System.currentTimeMillis() - start));
+        LOGGER.log(Level.FINE, "describeSensor processed in {0} ms.\n", (System.currentTimeMillis() - start));
         return result;
     }
 
     public DeleteSensorResponse deleteSensor(final DeleteSensor request) throws CstlServiceException  {
         assertTransactionnal(DELETE_SENSOR);
 
-        LOGGER.log(Level.INFO, "DescribeSensor request processing\n");
+        LOGGER.log(Level.FINE, "DescribeSensor request processing\n");
         final long start = System.currentTimeMillis();
 
         // we get the form
@@ -724,7 +724,7 @@ public class SOSworker extends SensorWorker {
             throw new CstlServiceException(ex);
         }
         if (result) {
-            LOGGER.log(Level.INFO, "deleteSensor processed in {0} ms.\n", (System.currentTimeMillis() - start));
+            LOGGER.log(Level.FINE, "deleteSensor processed in {0} ms.\n", (System.currentTimeMillis() - start));
             return buildDeleteSensorResponse(currentVersion, sensorId);
         } else {
             throw new CstlServiceException("unable to delete sensor:" + sensorId);
@@ -732,7 +732,7 @@ public class SOSworker extends SensorWorker {
     }
 
     public Object getObservationById(final GetObservationById request) throws CstlServiceException {
-        LOGGER.log(Level.INFO, "getObservation request processing\n");
+        LOGGER.log(Level.FINE, "getObservation request processing\n");
         final long start = System.currentTimeMillis();
 
         //we verify the base request attribute
@@ -768,7 +768,7 @@ public class SOSworker extends SensorWorker {
             throw new CstlServiceException(ex);
         }
         final ObservationCollection response = buildGetObservationByIdResponse(currentVersion, "collection-1", null, observation);
-        LOGGER.log(Level.INFO, "getObservationById processed in {0}ms.\n", (System.currentTimeMillis() - start));
+        LOGGER.log(Level.FINE, "getObservationById processed in {0}ms.\n", (System.currentTimeMillis() - start));
         return response;
     }
 
@@ -779,7 +779,7 @@ public class SOSworker extends SensorWorker {
      * @param requestObservation a document specifying the parameter of the request.
      */
     public Object getObservation(final GetObservation requestObservation) throws CstlServiceException {
-        LOGGER.log(Level.INFO, "getObservation request processing\n");
+        LOGGER.log(Level.FINE, "getObservation request processing\n");
         final long start = System.currentTimeMillis();
 
         //we verify the base request attribute
@@ -902,7 +902,7 @@ public class SOSworker extends SensorWorker {
             final List<String> procedures = new ArrayList<>(requestObservation.getProcedure());
             for (String procedure : procedures) {
                 if (procedure != null) {
-                    LOGGER.log(Level.INFO, "process ID: {0}", procedure);
+                    LOGGER.log(Level.FINE, "process ID: {0}", procedure);
                     // CITE
                     if (procedure.isEmpty()) {
                         throw new CstlServiceException(" the procedure parameter is empty", MISSING_PARAMETER_VALUE, PROCEDURE);
@@ -1096,7 +1096,7 @@ public class SOSworker extends SensorWorker {
                         final Timer t = new Timer();
                         //we get the date and time for now
                         final Date d = new Date(System.currentTimeMillis() + templateValidTime);
-                        LOGGER.log(Level.INFO, "this template will be destroyed at:{0}", d.toString());
+                        LOGGER.log(Level.FINE, "this template will be destroyed at:{0}", d.toString());
                         t.schedule(new DestroyTemplateTask(temporaryTemplateId), d);
                         schreduledTask.add(t);
 
@@ -1132,7 +1132,7 @@ public class SOSworker extends SensorWorker {
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
-        LOGGER.log(Level.INFO, "getObservation processed in {0}ms.\n", (System.currentTimeMillis() - start));
+        LOGGER.log(Level.FINE, "getObservation processed in {0}ms.\n", (System.currentTimeMillis() - start));
         return response;
     }
 
@@ -1140,7 +1140,7 @@ public class SOSworker extends SensorWorker {
      * Web service operation
      */
     public GetResultResponse getResult(final GetResult request) throws CstlServiceException {
-        LOGGER.log(Level.INFO, "getResult request processing\n");
+        LOGGER.log(Level.FINE, "getResult request processing\n");
         final long start = System.currentTimeMillis();
 
         //we verify the base request attribute
@@ -1267,13 +1267,13 @@ public class SOSworker extends SensorWorker {
         }
         final String url = getServiceUrl().substring(0, getServiceUrl().length() -1);
         final GetResultResponse response = buildGetResultResponse(currentVersion, values, url + '/' + observationTemplateID);
-        LOGGER.log(Level.INFO, "GetResult processed in {0} ms", (System.currentTimeMillis() - start));
+        LOGGER.log(Level.FINE, "GetResult processed in {0} ms", (System.currentTimeMillis() - start));
         return response;
     }
 
     public AbstractFeature getFeatureOfInterest(final GetFeatureOfInterest request) throws CstlServiceException {
         verifyBaseRequest(request, true, false);
-        LOGGER.log(Level.INFO, "GetFeatureOfInterest request processing\n");
+        LOGGER.log(Level.FINE, "GetFeatureOfInterest request processing\n");
         final long start = System.currentTimeMillis();
         final String currentVersion = request.getVersion().toString();
 
@@ -1402,12 +1402,12 @@ public class SOSworker extends SensorWorker {
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         } finally {
-            LOGGER.log(Level.INFO, "GetFeatureOfInterest processed in {0}ms", (System.currentTimeMillis() - start));
+            LOGGER.log(Level.FINE, "GetFeatureOfInterest processed in {0}ms", (System.currentTimeMillis() - start));
         }
     }
 
     public TemporalPrimitive getFeatureOfInterestTime(final GetFeatureOfInterestTime request) throws CstlServiceException {
-        LOGGER.log(Level.INFO, "GetFeatureOfInterestTime request processing\n");
+        LOGGER.log(Level.FINE, "GetFeatureOfInterestTime request processing\n");
         final long start = System.currentTimeMillis();
         verifyBaseRequest(request, true, false);
         final String currentVersion = request.getVersion().toString();
@@ -1429,12 +1429,12 @@ public class SOSworker extends SensorWorker {
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
-        LOGGER.log(Level.INFO, "GetFeatureOfInterestTime processed in {0} ms", (System.currentTimeMillis() - start));
+        LOGGER.log(Level.FINE, "GetFeatureOfInterestTime processed in {0} ms", (System.currentTimeMillis() - start));
         return result;
     }
 
     public InsertResultTemplateResponse insertResultTemplate(final InsertResultTemplate request) throws CstlServiceException {
-        LOGGER.log(Level.INFO, "InsertResultTemplate request processing\n");
+        LOGGER.log(Level.FINE, "InsertResultTemplate request processing\n");
         final long start = System.currentTimeMillis();
         verifyBaseRequest(request, true, false);
         final String currentVersion = request.getVersion().toString();
@@ -1459,14 +1459,14 @@ public class SOSworker extends SensorWorker {
         resultTemplates.put(templateID, request.getTemplate());
 
         final InsertResultTemplateResponse result = buildInsertResultTemplateResponse(currentVersion, templateID);
-        LOGGER.log(Level.INFO, "InsertResultTemplate processed in {0} ms", (System.currentTimeMillis() - start));
+        LOGGER.log(Level.FINE, "InsertResultTemplate processed in {0} ms", (System.currentTimeMillis() - start));
         return result;
     }
 
     public InsertResultResponse insertResult(final InsertResult request) throws CstlServiceException {
         assertTransactionnal(INSERT_RESULT);
 
-        LOGGER.log(Level.INFO, "InsertResult request processing\n");
+        LOGGER.log(Level.FINE, "InsertResult request processing\n");
         final long start = System.currentTimeMillis();
         verifyBaseRequest(request, true, false);
         final String currentVersion = request.getVersion().toString();
@@ -1523,12 +1523,12 @@ public class SOSworker extends SensorWorker {
             throw new CstlServiceException(ex);
         }
         final InsertResultResponse result = buildInsertResultResponse(currentVersion);
-        LOGGER.log(Level.INFO, "InsertResult processed in {0} ms", (System.currentTimeMillis() - start));
+        LOGGER.log(Level.FINE, "InsertResult processed in {0} ms", (System.currentTimeMillis() - start));
         return result;
     }
 
     public GetResultTemplateResponse getResultTemplate(final GetResultTemplate request) throws CstlServiceException {
-        LOGGER.log(Level.INFO, "GetResultTemplate request processing\n");
+        LOGGER.log(Level.FINE, "GetResultTemplate request processing\n");
         final long start = System.currentTimeMillis();
         verifyBaseRequest(request, true, false);
         final String currentVersion = request.getVersion().toString();
@@ -1586,7 +1586,7 @@ public class SOSworker extends SensorWorker {
             throw new CstlServiceException(ex);
         }
         final GetResultTemplateResponse result = buildGetResultTemplateResponse(currentVersion, structure, encoding);
-        LOGGER.log(Level.INFO, "InsertResult processed in {0} ms", (System.currentTimeMillis() - start));
+        LOGGER.log(Level.FINE, "InsertResult processed in {0} ms", (System.currentTimeMillis() - start));
         return result;
     }
 
@@ -1609,7 +1609,7 @@ public class SOSworker extends SensorWorker {
     public InsertSensorResponse registerSensor(final InsertSensor request) throws CstlServiceException {
         assertTransactionnal(REGISTER_SENSOR);
 
-        LOGGER.log(Level.INFO, "registerSensor request processing\n");
+        LOGGER.log(Level.FINE, "registerSensor request processing\n");
         final long start = System.currentTimeMillis();
 
         //we verify the base request attribute
@@ -1674,12 +1674,12 @@ public class SOSworker extends SensorWorker {
             final String smlExtractedIdentifier = SensorMLUtilities.getSmlID(process);
             if (temp.getProcedure() != null) {
                 sensorId  = (Process) temp.getProcedure();
-                LOGGER.log(Level.INFO, "using specified sensor ID:{0}", new Object[]{sensorId});
+                LOGGER.log(Level.FINE, "using specified sensor ID:{0}", new Object[]{sensorId});
 
             } else if (!smlExtractedIdentifier.equals("unknow_identifier")){
                 sensorId  = (Process) SOSXmlFactory.buildProcess(currentVersion, smlExtractedIdentifier);
 
-                LOGGER.log(Level.INFO, "using extracted sensor ID:{0}", new Object[]{sensorId});
+                LOGGER.log(Level.FINE, "using extracted sensor ID:{0}", new Object[]{sensorId});
             } else {
                 sensorId = (Process) SOSXmlFactory.buildProcess(currentVersion, sensorBusiness.getNewSensorId(smlProviderID));
             }
@@ -1724,7 +1724,7 @@ public class SOSworker extends SensorWorker {
             throw new CstlServiceException(ex);
         }
 
-        LOGGER.log(Level.INFO, "registerSensor processed in {0}ms", (System.currentTimeMillis() - start));
+        LOGGER.log(Level.FINE, "registerSensor processed in {0}ms", (System.currentTimeMillis() - start));
         return buildInsertSensorResponse(currentVersion, sensorId.getHref(), assignedOffering);
     }
 
@@ -1737,7 +1737,7 @@ public class SOSworker extends SensorWorker {
     public InsertObservationResponse insertObservation(final InsertObservation request) throws CstlServiceException {
         assertTransactionnal(INSERT_OBSERVATION);
 
-        LOGGER.log(Level.INFO, "InsertObservation request processing\n");
+        LOGGER.log(Level.FINE, "InsertObservation request processing\n");
         final long start = System.currentTimeMillis();
 
         //we verify the base request attribute
@@ -1792,7 +1792,7 @@ public class SOSworker extends SensorWorker {
                             final ISODateParser parser = new ISODateParser();
                             final Date d = parser.parseToDate(timeInstant.getDate().toString());
                             final long t = System.currentTimeMillis() - d.getTime();
-                            LOGGER.log(Level.INFO, "gap between time of reception and time of sampling: {0} ms ({1})", new Object[]{t, TemporalUtilities.durationToString(t)});
+                            LOGGER.log(Level.FINE, "gap between time of reception and time of sampling: {0} ms ({1})", new Object[]{t, TemporalUtilities.durationToString(t)});
                         } catch (IllegalArgumentException ex) {
                             LOGGER.warning("unable to parse the samplingTime");
                         }
@@ -1813,7 +1813,7 @@ public class SOSworker extends SensorWorker {
                         if (obs.matchTemplate(template)) {
                             if (obs.getSamplingTime() != null && obs.getResult() != null) {
                                 id = omProvider.writeObservation(obs);
-                                LOGGER.log(Level.INFO, "new observation inserted: id = {0} for the sensor {1}", new Object[]{id, obs.getProcedure()});
+                                LOGGER.log(Level.FINE, "new observation inserted: id = {0} for the sensor {1}", new Object[]{id, obs.getProcedure()});
                             } else {
                                 throw new CstlServiceException("The observation sampling time and the result must be specify",
                                         MISSING_PARAMETER_VALUE, "samplingTime");
@@ -1828,7 +1828,7 @@ public class SOSworker extends SensorWorker {
                ids.add(id);
             }
 
-            LOGGER.log(Level.INFO, "insertObservation processed in {0} ms", (System.currentTimeMillis() - start));
+            LOGGER.log(Level.FINE, "insertObservation processed in {0} ms", (System.currentTimeMillis() - start));
 
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
@@ -2145,7 +2145,7 @@ public class SOSworker extends SensorWorker {
      * @throws CstlServiceException If the service does not succeed to store the offering in the datasource.
      */
     private void createOffering(final String version, final String offeringName, final ObservationTemplate template) throws ConstellationStoreException {
-       LOGGER.log(Level.INFO, "offering {0} not present, first build", offeringName);
+       LOGGER.log(Level.FINE, "offering {0} not present, first build", offeringName);
 
         //we add the template process
         final Process proc = (Process) template.getProcedure();
@@ -2248,7 +2248,7 @@ public class SOSworker extends SensorWorker {
         @Override
         public void run() {
             templates.remove(templateId);
-            LOGGER.log(Level.INFO, "template:{0} destroyed", templateId);
+            LOGGER.log(Level.FINE, "template:{0} destroyed", templateId);
         }
     }
 }

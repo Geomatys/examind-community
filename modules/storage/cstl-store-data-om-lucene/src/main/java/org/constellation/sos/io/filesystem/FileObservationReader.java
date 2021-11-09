@@ -74,7 +74,7 @@ public class FileObservationReader implements ObservationReader {
      /**
      * use for debugging purpose
      */
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.sos");
+    protected static final Logger LOGGER = Logging.getLogger("org.constellation.sos.io.filesystem");
 
     /**
      * The base for observation id.

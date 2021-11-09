@@ -19,7 +19,6 @@
 
 package org.constellation.sos.ws;
 
-import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;

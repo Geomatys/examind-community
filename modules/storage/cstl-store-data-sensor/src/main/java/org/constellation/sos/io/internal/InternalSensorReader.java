@@ -54,7 +54,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class InternalSensorReader implements SensorReader {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.sos.io.filesystem");
+    private static final Logger LOGGER = Logging.getLogger("org.constellation.sos.io.internal");
     
     /**
      * A JAXB unmarshaller used to unmarshall the xml files.

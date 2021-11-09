@@ -55,7 +55,7 @@ public abstract class GenericReader  {
     /**
      * use for debugging purpose
      */
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.sos");
+    protected static final Logger LOGGER = Logging.getLogger("org.constellation.generic");
 
     /**
      * A precompiled Statement requesting all The identifiers

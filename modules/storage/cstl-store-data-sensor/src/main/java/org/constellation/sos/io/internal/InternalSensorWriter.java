@@ -50,7 +50,7 @@ public class InternalSensorWriter implements SensorWriter {
     /**
      * use for debugging purpose
      */
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.sos");
+    protected static final Logger LOGGER = Logging.getLogger("org.constellation.sos.io.internal");
 
     @Autowired
     private IInternalSensorBusiness sensorBusiness;

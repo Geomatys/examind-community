@@ -143,16 +143,6 @@ public class ObservationStoreProviderTest {
         omPr = new ObservationStoreProvider("omSrc", pFactory, providerConfig);
     }
 
-    @PostConstruct
-    public void setUp() {
-        try {
-
-
-        } catch (Exception ex) {
-            Logging.getLogger("org.constellation.sos.ws").log(Level.SEVERE, null, ex);
-        }
-    }
-
     @AfterClass
     public static void tearDownClass() throws Exception {
         File derbyLog = new File("derby.log");

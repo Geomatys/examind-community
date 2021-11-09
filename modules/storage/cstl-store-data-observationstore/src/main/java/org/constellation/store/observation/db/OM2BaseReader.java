@@ -156,7 +156,7 @@ public class OM2BaseReader {
     /**
      * use for debugging purpose
      */
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.sos");
+    protected static final Logger LOGGER = Logging.getLogger("org.constellation.store.observation.db");
 
     protected static final CoordinateReferenceSystem defaultCRS;
     static {

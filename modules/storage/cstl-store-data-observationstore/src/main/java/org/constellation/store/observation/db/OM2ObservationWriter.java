@@ -1108,7 +1108,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     stmtObs.executeUpdate();
                 }
             } else {
-                LOGGER.info("No observation " + observationID + " exisitng. Unable to delete");
+                LOGGER.fine("No observation " + observationID + " exisitng. Unable to delete");
             }
         } catch (SQLException ex) {
             throw new DataStoreException("Error while inserting observation.", ex);

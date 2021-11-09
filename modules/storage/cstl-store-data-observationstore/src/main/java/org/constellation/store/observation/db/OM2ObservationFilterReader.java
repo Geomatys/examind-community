@@ -903,7 +903,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             if (firstFilter) {
                 return sqlRequest.replaceFirst("WHERE", "");
             }
-            LOGGER.info(sqlRequest.toString());
+            LOGGER.fine(sqlRequest.toString());
             ResultBuilder values;
             try(final Connection c = source.getConnection();
                 final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
@@ -1033,7 +1033,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             } else if (profile) {
                 sqlRequest.replaceFirst("m.*", "m.*, o.\"id\" as oid ");
             }
-            LOGGER.info(sqlRequest.toString());
+            LOGGER.fine(sqlRequest.toString());
             ResultBuilder values;
             try (final PreparedStatement pstmt    = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
                  final ResultSet rs = pstmt.executeQuery()) {
@@ -1236,7 +1236,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             } else {
                 sqlRequest.append(" GROUP BY step ORDER BY step");
             }
-            LOGGER.info(sqlRequest.toString());
+            LOGGER.fine(sqlRequest.toString());
             ResultBuilder values;
             try (final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
                  final ResultSet rs            = pstmt.executeQuery()) {
