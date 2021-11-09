@@ -14,6 +14,8 @@ maven-artifacts:
   stage: publish
   needs:
     - build
+    - "test:hsqldb"
+    - "test:postgresql"
   script:
     # Login to Docker repository
     - mkdir ~/.docker && echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
