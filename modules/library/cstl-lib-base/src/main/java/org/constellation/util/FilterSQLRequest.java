@@ -21,46 +21,69 @@ package org.constellation.util;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
-import org.geotoolkit.temporal.object.ISODateParser;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
 public class FilterSQLRequest {
-    
+
+    /**
+     * the SQL query to build.
+     */
     private StringBuilder sqlRequest;
+
+    /**
+     * A part of the sql query the be append or not at the end depending on a condition calculated at build time.
+     */
+    private StringBuilder conditionalRequest;
+    
     private final List<Param> params;
+
+    private final List<Param> conditionalParams;
     
     public FilterSQLRequest() {
-        this.sqlRequest = new StringBuilder();
-        this.params = new ArrayList<>();
+        this("", new ArrayList<>(), "", new ArrayList<>());
     }
     
     public FilterSQLRequest(String s) {
-        this.sqlRequest = new StringBuilder(s);
-        this.params = new ArrayList<>();
+        this(s, new ArrayList<>(), "", new ArrayList<>());
     }
     
-    private FilterSQLRequest(String s, List<Param> params) {
+    private FilterSQLRequest(String s, List<Param> params, String cs, List<Param> cparams) {
         this.sqlRequest = new StringBuilder(s);
+        this.conditionalRequest = new StringBuilder();
         this.params = params;
+        this.conditionalParams = cparams;
     }
     
     public FilterSQLRequest append(String s) {
-        this.sqlRequest.append(s);
+        return this.append(s, false);
+    }
+
+    public FilterSQLRequest append(String s, boolean conditional) {
+        if (conditional) {
+            this.conditionalRequest.append(s);
+        } else {
+            this.sqlRequest.append(s);
+        }
         return this;
     }
-    
     public FilterSQLRequest append(FilterSQLRequest s) {
+        return this.append(s, false);
+    }
+    
+    public FilterSQLRequest append(FilterSQLRequest s, boolean conditional) {
         this.sqlRequest.append(s.sqlRequest);
         this.params.addAll(s.params);
+        if (conditional) {
+            this.sqlRequest.append(s.conditionalRequest);
+            this.params.addAll(s.conditionalParams);
+        }
         return this;
     }
     
@@ -77,41 +100,79 @@ public class FilterSQLRequest {
     public int length() {
         return this.sqlRequest.length();
     }
-    
+
     public FilterSQLRequest appendValue(String value) {
-        this.sqlRequest.append(" ? ");
-        this.params.add(new Param(value, String.class));
+        return this.appendValue(value, false);
+    }
+
+    public FilterSQLRequest appendValue(String value, boolean conditional) {
+        if (conditional) {
+            this.conditionalRequest.append("?");
+            this.conditionalParams.add(new Param(value, String.class));
+        } else {
+            this.sqlRequest.append(" ? ");
+            this.params.add(new Param(value, String.class));
+        }
         return this;
     }
-    
+
     public FilterSQLRequest appendValue(int value) {
-        this.sqlRequest.append(" ? ");
-        this.params.add(new Param(value, Integer.class));
+        return this.appendValue(value, false);
+    }
+    
+    public FilterSQLRequest appendValue(int value, boolean conditional) {
+        if (conditional) {
+            this.conditionalRequest.append("?");
+            this.conditionalParams.add(new Param(value, Integer.class));
+        } else {
+            this.sqlRequest.append(" ? ");
+            this.params.add(new Param(value, Integer.class));
+        }
         return this;
     }
 
     public FilterSQLRequest appendValue(Timestamp value) {
-        this.sqlRequest.append("?");
-        this.params.add(new Param(value, Timestamp.class));
+        return this.appendValue(value, false);
+    }
+    
+    public FilterSQLRequest appendValue(Timestamp value, boolean conditional) {
+        if (conditional) {
+            this.conditionalRequest.append("?");
+            this.conditionalParams.add(new Param(value, Timestamp.class));
+        } else {
+            this.sqlRequest.append("?");
+            this.params.add(new Param(value, Timestamp.class));
+        }
         return this;
     }
     
     public boolean contains(String s) {
         return this.sqlRequest.toString().contains(s);
     }
-    
+
     public FilterSQLRequest appendObjectValue(Object value) {
-        this.sqlRequest.append("?");
+        return appendObjectValue(value, false);
+    }
+    
+    public FilterSQLRequest appendObjectValue(Object value, boolean conditional) {
+        List<Param> currentParams;
+        if (conditional) {
+            this.conditionalRequest.append("?");
+            currentParams = this.conditionalParams;
+        } else {
+            this.sqlRequest.append("?");
+            currentParams = this.params;
+        }
         if (value instanceof String) {
-            this.params.add(new Param(value, String.class));
+            currentParams.add(new Param(value, String.class));
         } else if (value instanceof Timestamp) {
-            this.params.add(new Param(value, Timestamp.class));
+            currentParams.add(new Param(value, Timestamp.class));
         } else if (value instanceof Integer) {
-            this.params.add(new Param(value, Integer.class));
+            currentParams.add(new Param(value, Integer.class));
         } else if (value instanceof Double) {
-            this.params.add(new Param(value, Double.class));
+            currentParams.add(new Param(value, Double.class));
         } else if (value instanceof Long) {
-            this.params.add(new Param(value, Long.class));
+            currentParams.add(new Param(value, Long.class));
         } else if (value != null) {
             throw new IllegalArgumentException(value.getClass().getSimpleName() + " is not supported in FilterSQLRequest");
         }
@@ -122,6 +183,11 @@ public class FilterSQLRequest {
         String s = this.sqlRequest.toString();
         s = StringUtils.replaceOnce(s, text, replacement);
         this.sqlRequest = new StringBuilder(s);
+
+        String cs = this.conditionalRequest.toString();
+        cs = StringUtils.replaceOnce(cs, text, replacement);
+        this.conditionalRequest = new StringBuilder(cs);
+
         return this;
     }
     
@@ -129,11 +195,16 @@ public class FilterSQLRequest {
         String s = this.sqlRequest.toString();
         s = s.replace(text, replacement);
         this.sqlRequest = new StringBuilder(s);
+
+        String cs = this.conditionalRequest.toString();
+        cs = cs.replace(text, replacement);
+        this.conditionalRequest = new StringBuilder(cs);
+
         return this;
     }
     
     public FilterSQLRequest clone() {
-        return new FilterSQLRequest(this.sqlRequest.toString(), this.params);
+        return new FilterSQLRequest(this.sqlRequest.toString(), this.params, this.conditionalRequest.toString(), this.conditionalParams);
     }
     
     public String getRequest() {

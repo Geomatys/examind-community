@@ -1,0 +1,6 @@
+{
+    "value": [{
+            "components": ["id", "phenomenonTime", "resultTime", "result"],
+            "dataArray": []
+        }]
+}

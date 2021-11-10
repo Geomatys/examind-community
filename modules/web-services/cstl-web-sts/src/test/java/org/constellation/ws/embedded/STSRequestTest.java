@@ -391,6 +391,42 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-2.json");
         compareJSON(expResult, result);
+
+        String filter = "(time ge 2007-05-01T10:59:00Z and time le 2007-05-01T12:59:00Z)".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:8-3)/Observations?$resultFormat=dataArray&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-4.json");
+        compareJSON(expResult, result);
+
+        /**
+         * empty response
+         */
+        filter = "(time ge 2000-05-01T10:59:00Z and time le 2000-05-01T12:59:00Z)".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:8-3)/Observations?$resultFormat=dataArray&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/empty-data-array.json");
+        compareJSON(expResult, result);
+
+        /**
+         * profile
+         */
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:9-1)/Observations?$resultFormat=dataArray");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-3.json");
+        compareJSON(expResult, result);
+
+        /**
+         * profile empty response
+         */
+        filter = "(time ge 2000-05-01T10:59:00Z and time le 2000-05-01T12:59:00Z)".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:9-1)/Observations?$resultFormat=dataArray&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/empty-data-array.json");
+        compareJSON(expResult, result);
     }
 
     @Test
@@ -1242,12 +1278,42 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-filter3.json");
         compareJSON(expResult, result);
-        
+
         filter = "(time ge 2007-05-01T08:59:00Z and time le 2007-05-01T19:59:00Z)".replace(" ", "%20");
         getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:3)/Observations?$resultFormat=dataArray&$filter=" + filter);
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-filter4.json");
+        compareJSON(expResult, result);
+
+        /**
+         * empty response
+         */
+        filter = "(time ge 2000-05-01T08:59:00Z and time le 2000-05-01T19:59:00Z)".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:3)/Observations?$resultFormat=dataArray&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/empty-data-array.json");
+        compareJSON(expResult, result);
+
+        /**
+         * profile
+         */
+        filter = "(time ge 2009-05-01T08:59:00Z and time le 2009-05-01T19:59:00Z)".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:9)/Observations?$resultFormat=dataArray&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-filter5.json");
+        compareJSON(expResult, result);
+
+        /**
+         * profile empty out filter
+         */
+        filter = "(time ge 2008-05-01T08:59:00Z and time le 2008-05-01T19:59:00Z)".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:9)/Observations?$resultFormat=dataArray&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/empty-data-array.json");
         compareJSON(expResult, result);
     }
 

@@ -35,6 +35,7 @@ import java.util.Map.Entry;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import javax.sql.DataSource;
 import org.apache.sis.geometry.GeneralEnvelope;
@@ -156,7 +157,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     firstFilter = false;
                 } else {
                     if (!"profile".equals(currentOMType)) {
-                        sqlMeasureRequest.append(" AND ( \"$time\"=").appendValue(position).append(") ");
+                        boolean conditional = (currentOMType == null);
+                        sqlMeasureRequest.append(" AND ( \"$time\"=", conditional).appendValue(position, conditional).append(") ", conditional);
                     }
                     obsJoin = true;
                 }
@@ -182,7 +184,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 } else {
                     sqlRequest.append(" \"time_begin\"<=").appendValue(position).append(")");
                     if (!"profile".equals(currentOMType)) {
-                        sqlMeasureRequest.append(" AND ( \"$time\"<=").appendValue(position).append(")");
+                        boolean conditional = (currentOMType == null);
+                        sqlMeasureRequest.append(" AND ( \"$time\"<=", conditional).appendValue(position, conditional).append(")", conditional);
                     }
                     obsJoin = true;
                 }
@@ -210,7 +213,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 } else {
                     sqlRequest.append("( \"time_end\">=").appendValue(position).append(") OR (\"time_end\" IS NULL AND \"time_begin\" >=").appendValue(position).append("))");
                     if (!"profile".equals(currentOMType)) {
-                        sqlMeasureRequest.append(" AND (\"$time\">=").appendValue(position).append(")");
+                        boolean conditional = (currentOMType == null);
+                        sqlMeasureRequest.append(" AND (\"$time\">=", conditional).appendValue(position, conditional).append(")", conditional);
                     }
                     obsJoin = true;
                 }
@@ -253,7 +257,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     sqlRequest.append(" (\"time_begin\"<=").appendValue(begin).append(" AND \"time_end\">=").appendValue(end).append("))");
 
                     if (!"profile".equals(currentOMType)) {
-                        sqlMeasureRequest.append(" AND ( \"$time\">=").appendValue(begin).append(" AND \"$time\"<= ").appendValue(end).append(")");
+                        boolean conditional = (currentOMType == null);
+                        sqlMeasureRequest.append(" AND ( \"$time\">=", conditional).appendValue(begin, conditional)
+                                         .append(" AND \"$time\"<= ", conditional).appendValue(end, conditional).append(")", conditional);
                     }
 
                     obsJoin = true;
@@ -524,7 +530,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     sqlMeasureRequest.replaceAll("$phen" + j, "\"" + fields.get(i).name + "\"");
                 }
                 final FilterSQLRequest measureRequest = new FilterSQLRequest("SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m WHERE \"id_observation\" = ");
-                measureRequest.appendValue(-1).append(sqlMeasureRequest).append("ORDER BY m.\"id\"");
+                measureRequest.appendValue(-1).append(sqlMeasureRequest, isTimeField).append("ORDER BY m.\"id\"");
 
                 int timeForProfileIndex = -1;
                 if (includeTimeForProfile && !isTimeField) {
@@ -627,6 +633,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                 nbValue = 0;
                             }
                         }
+                    } catch (SQLException ex) {
+                        LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", measureRequest.getRequest());
+                        throw new DataStoreException("the service has throw a SQL Exception.", ex);
                     }
 
                    /**
@@ -783,17 +792,21 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 if (start != null && end == null) {
                     time = buildTimeInstant(version, timeID, start);
                 } else if (start != null || end != null) {
-                    time = buildTimePeriod(version, timeID, start, end);
+                    if (Objects.equals(start, end)) {
+                        time = buildTimeInstant(version, timeID, start);
+                    } else {
+                        time = buildTimePeriod(version, timeID, start, end);
+                    }
                 }
 
                 /*
                  *  BUILD RESULT
                  */
                 final Field mainField = getMainField(procedure, c);
-                boolean isTimeField   = FieldType.TIME.equals(mainField.type);
+                boolean notProfile   = FieldType.TIME.equals(mainField.type);
 
                 List<FieldPhenomenon> fieldPhen = getPhenomenonFields(phen, fields, c);
-                if (isTimeField) {
+                if (notProfile) {
                     sqlMeasureRequest.replaceAll("$time", mainField.name);
                 }
                 while (sqlMeasureRequest.contains("${allphen")) {
@@ -813,7 +826,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 }
 
                 final FilterSQLRequest measureRequest = new FilterSQLRequest("SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m WHERE \"id_observation\" = ");
-                measureRequest.appendValue(oid).append(" ").append(sqlMeasureRequest);
+                measureRequest.appendValue(oid).append(" ").append(sqlMeasureRequest, notProfile);
                 measureRequest.append(" ORDER BY m.\"id\"");
 
                 /**
@@ -826,7 +839,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         final Integer rid = rs2.getInt("id");
                         if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
                             TemporalGeometricPrimitive measureTime;
-                            if (isTimeField) {
+                            if (notProfile) {
                                 final Date mt = dateFromTS(rs2.getTimestamp(mainField.name));
                                 measureTime = buildTimeInstant(version, "time-" + oid + '-' + rid, mt);
                             } else {

@@ -1,0 +1,13 @@
+{
+    "value": [{
+            "components": ["id", "phenomenonTime", "resultTime", "result"],
+            "dataArray": [
+                ["urn:ogc:object:observation:GEOM:901-1-1", "2009-05-01T11:47:00Z", "2009-05-01T11:47:00Z", 18.5], 
+                ["urn:ogc:object:observation:GEOM:901-1-2", "2009-05-01T11:47:00Z", "2009-05-01T11:47:00Z", 19.7], 
+                ["urn:ogc:object:observation:GEOM:901-1-3", "2009-05-01T11:47:00Z", "2009-05-01T11:47:00Z", 21.2], 
+                ["urn:ogc:object:observation:GEOM:901-1-4", "2009-05-01T11:47:00Z", "2009-05-01T11:47:00Z", 23.9],
+                ["urn:ogc:object:observation:GEOM:901-1-5", "2009-05-01T11:47:00Z", "2009-05-01T11:47:00Z", 22.2], 
+                ["urn:ogc:object:observation:GEOM:901-1-6", "2009-05-01T11:47:00Z", "2009-05-01T11:47:00Z", 18.4], 
+                ["urn:ogc:object:observation:GEOM:901-1-7", "2009-05-01T11:47:00Z", "2009-05-01T11:47:00Z", 17.1]]
+        }]
+}
