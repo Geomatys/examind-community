@@ -5,12 +5,19 @@
     - "test:hsqldb"
     - "test:postgresql"
 
-maven-artifacts:
+.maven-deploy:
   extends: .publish
-  only:
-    - tags
   script:
     - mvn package source:jar deploy -DskipTests -s $MAVEN_SETTINGS -DaltDeploymentRepository=$DEPLOY_SERVER
+
+maven-deploy-tag:
+  extends: .maven-deploy
+  only:
+    - tags
+
+maven-deploy-manually:
+  extends: .maven-deploy
+  when: manual
 
 .docker-push:
   extends: .publish
