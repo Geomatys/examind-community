@@ -587,7 +587,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
                 initialized = true;
             } catch (Exception ex) {
-                Logging.getLogger("org.constellation.ws.embedded").log(Level.SEVERE, null, ex);
+                LOGGER.log(Level.SEVERE, null, ex);
             }
         }
     }
@@ -612,7 +612,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 provider.removeAll();
             }
         } catch (Exception ex) {
-            Logging.getLogger("org.constellation.ws.embedded").log(Level.WARNING, ex.getMessage());
+            LOGGER.log(Level.WARNING, ex.getMessage());
         }
         ConfigDirectory.shutdownTestEnvironement("WMSRequestTest");
         stopServer();

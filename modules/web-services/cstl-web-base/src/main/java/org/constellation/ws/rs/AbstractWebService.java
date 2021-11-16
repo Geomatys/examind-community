@@ -308,8 +308,6 @@ public abstract class AbstractWebService implements WebService{
          */
         final String params = URLDecoder.decode(request, "UTF-8");
         final StringTokenizer tokens = new StringTokenizer(params, "&");
-        final StringBuilder log = new StringBuilder("request POST kvp: ");
-        log.append(params).append('\n');
         final Map<String, String[]> kvpMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         while (tokens.hasMoreTokens()) {
             final String token = tokens.nextToken().trim();
@@ -322,13 +320,11 @@ public abstract class AbstractWebService implements WebService{
                 final InputStream in = new ByteArrayInputStream(xml.getBytes());
                 return doPOSTXml(serviceId, in);
             }
-            log.append("put: ").append(paramName).append("=").append(paramValue).append('\n');
             kvpMap.put(paramName, new String[]{paramValue});
         }
         kvpMap.put("serviceId", new String[]{serviceId});
         postKvpParameters.set(kvpMap);
         try {
-            LOGGER.info(log.toString());
             return treatIncomingRequest(null).getResponseEntity(httpServletResponse);
         } finally {
             clearKvpMap();
@@ -518,25 +514,23 @@ public abstract class AbstractWebService implements WebService{
 
     /**
      * Extracts the value, for a parameter specified, from a query.
-     * If it is a mandatory one, and if it is {@code null}, it throws an exception.
-     * Otherwise returns {@code null} in the case of an optional parameter not found.
+     * returns {@code null} if not found.
      * The parameter is then parsed as integer.
      *
      * @param parameterName The name of the parameter.
-     * @param mandatory true if this parameter is mandatory, false if its optional.
       *
-     * @return the parameter, or {@code null} if not specified and not mandatory.
-     * @throws  CstlServiceException
+     * @return the parameter, or {@code null} if not found.
+     * @throws CstlServiceException If the parameter can not be parsed as an Integer.
      */
-    protected Integer parseOptionalIntegerParam(String paramName) throws CstlServiceException {
+    protected Integer parseOptionalIntegerParam(String parameterName) throws CstlServiceException {
         Integer result = null;
-        final String value = getParameter(paramName, false);
+        final String value = getParameter(parameterName, false);
         if (value != null) {
             try {
                 result = Integer.parseInt(value);
             } catch (NumberFormatException ex) {
-                throw new CstlServiceException("Unable to parse the integer " + paramName + " parameter" + value,
-                                                  INVALID_PARAMETER_VALUE, paramName);
+                throw new CstlServiceException("Unable to parse the integer " + parameterName + " parameter" + value,
+                                                  INVALID_PARAMETER_VALUE, parameterName);
             }
 
         }
@@ -565,7 +559,7 @@ public abstract class AbstractWebService implements WebService{
      * @param mandatory true if this parameter is mandatory, false if its optional.
       *
      * @return the parameter, or {@code null} if not specified and not mandatory.
-     * @throws CstlServiceException
+     * @throws CstlServiceException if the parameter is mandotory and missing.
      */
     protected String getParameter(final String parameterName, final boolean mandatory) throws CstlServiceException {
 

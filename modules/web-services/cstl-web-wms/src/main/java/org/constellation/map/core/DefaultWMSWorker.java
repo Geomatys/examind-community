@@ -1233,7 +1233,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         if (skeleton.getServiceConstraints()!=null) {
             final int layerLimit = skeleton.getServiceConstraints().getLayerLimit();
             if(layerLimit>0 && layerLimit<layerNames.size()) {
-                throw new CstlServiceException("Too many layers requested, limit is "+layerLimit);
+                throw new CstlServiceException("Too many layers requested, limit is "+layerLimit, INVALID_PARAMETER_VALUE);
             }
         }
         final List<LayerCache> layersCache;
