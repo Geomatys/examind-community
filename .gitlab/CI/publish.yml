@@ -5,7 +5,7 @@ maven-artifacts:
   only:
     - tags
   script:
-    - mvn package source:jar javadoc:jar deploy -s $MAVEN_SETTINGS -DaltDeploymentRepository=$DEPLOY_SERVER
+    - mvn package source:jar deploy -s $MAVEN_SETTINGS -DaltDeploymentRepository=$DEPLOY_SERVER
 
 .docker-push:
   variables:
