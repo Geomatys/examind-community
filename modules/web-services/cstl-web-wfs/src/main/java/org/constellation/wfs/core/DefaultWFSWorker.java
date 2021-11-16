@@ -286,7 +286,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             if (obj instanceof StoredQueries) {
                 StoredQueries candidate = (StoredQueries) obj;
                 this.storedQueries = candidate.getStoredQuery();
-            } else {
+            } else if (obj != null) {
                 LOGGER.log(Level.WARNING, "The storedQueries File does not contains proper object");
             }
         } catch (ConstellationException ex) {
@@ -349,7 +349,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
      */
     @Override
     public WFSCapabilities getCapabilities(final GetCapabilities request) throws CstlServiceException {
-        LOGGER.log(Level.INFO, "GetCapabilities request proccesing");
+        LOGGER.log(Level.FINE, "GetCapabilities request proccesing");
         final long start = System.currentTimeMillis();
 
         final String userLogin  = getUserLogin();
@@ -493,7 +493,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
         }
         final WFSCapabilities result = buildWFSCapabilities(currentVersion, getCurrentUpdateSequence(), si, sp, om, ftl, fc);
         putCapabilitiesInCache(currentVersion, null, result);
-        LOGGER.log(Level.INFO, "GetCapabilities treated in {0}ms", (System.currentTimeMillis() - start));
+        LOGGER.log(Level.FINE, "GetCapabilities treated in {0}ms", (System.currentTimeMillis() - start));
         return (WFSCapabilities) result.applySections(sections);
     }
 
@@ -541,7 +541,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
      */
     @Override
     public Object describeFeatureType(final DescribeFeatureType request) throws CstlServiceException {
-        LOGGER.log(Level.INFO, "DecribeFeatureType request proccesing");
+        LOGGER.log(Level.FINE, "DecribeFeatureType request proccesing");
         final long start = System.currentTimeMillis();
 
         // we verify the base attribute
@@ -717,7 +717,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             schema.addImport(new Import(location.getKey(), location.getValue()));
         }
 
-        LOGGER.log(Level.INFO, "DescribeFeatureType treated in {0}ms", (System.currentTimeMillis() - start));
+        LOGGER.log(Level.FINE, "DescribeFeatureType treated in {0}ms", (System.currentTimeMillis() - start));
         return schema;
     }
 
@@ -943,7 +943,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
      */
     @Override
     public Object getFeature(final GetFeature request) throws CstlServiceException {
-        LOGGER.log(Level.INFO, "GetFeature request proccesing");
+        LOGGER.log(Level.FINE, "GetFeature request proccesing");
         final long start = System.currentTimeMillis();
 
         // we verify the base attribute
@@ -1172,7 +1172,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             }
             return buildFeatureCollection(currentVersion, "collection-1", (int)nbMatched, calendar);
         }
-        LOGGER.log(Level.INFO, "GetFeature treated in {0}ms", (System.currentTimeMillis() - start));
+        LOGGER.log(Level.FINE, "GetFeature treated in {0}ms", (System.currentTimeMillis() - start));
 
         if(queries.size()==1 && queries.containsKey("urn:ogc:def:query:OGC-WFS::GetFeatureById")){
             return new FeatureSetWrapper(collections, schemaLocations, gmlVersion, currentVersion, (int)nbMatched,true);
@@ -1195,7 +1195,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 
     @Override
     public Object getPropertyValue(final GetPropertyValue request) throws CstlServiceException {
-        LOGGER.log(Level.INFO, "GetPropertyValue request processing\n");
+        LOGGER.log(Level.FINE, "GetPropertyValue request processing\n");
         final long startTime = System.currentTimeMillis();
         verifyBaseRequest(request, true, false);
 
@@ -1324,7 +1324,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             featureCollection = FeatureStoreUtilities.collection("collection-1", null);
         }
 
-        LOGGER.log(Level.INFO, "GetPropertyValue request processed in {0} ms", (System.currentTimeMillis() - startTime));
+        LOGGER.log(Level.FINE, "GetPropertyValue request processed in {0} ms", (System.currentTimeMillis() - startTime));
         if (request.getResultType() == ResultTypeType.HITS) {
             final XMLGregorianCalendar calendar;
             try {
@@ -1374,7 +1374,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
      */
     @Override
     public TransactionResponse transaction(final Transaction request) throws CstlServiceException {
-        LOGGER.log(Level.INFO, "Transaction request processing\n");
+        LOGGER.log(Level.FINE, "Transaction request processing\n");
         final long startTime = System.currentTimeMillis();
         if (!isTransactionnal) {
             throw new CstlServiceException("This method is not supported by this mode of WFS", OPERATION_NOT_SUPPORTED, "Request");
@@ -1864,7 +1864,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                                                                       totalReplaced,
                                                                       inserted,
                                                                       replaced);
-        LOGGER.log(Level.INFO, "Transaction request processed in {0} ms", (System.currentTimeMillis() - startTime));
+        LOGGER.log(Level.FINE, "Transaction request processed in {0} ms", (System.currentTimeMillis() - startTime));
 
         return response;
     }
@@ -1988,44 +1988,42 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
     private void verifyFilterProperty(final FeatureType ft, final Filter filter, final Map<String, GenericName> aliases) throws CstlServiceException {
         final Collection<String> filterProperties = new ArrayList<>();
         ListingPropertyVisitor.VISITOR.visit(filter, filterProperties);
-        if (filterProperties != null) {
-            for (String filterProperty : filterProperties) {
+        for (String filterProperty : filterProperties) {
 
-                if (filterProperty.startsWith("@")){
-                    //this property in an id property, we won't find it in the feature type
-                    //but it always exist on the features
-                    continue;
+            if (filterProperty.startsWith("@")){
+                //this property in an id property, we won't find it in the feature type
+                //but it always exist on the features
+                continue;
+            }
+
+            // look to remove featureType prefix
+            String ftName = "";
+            if (NamesExt.getNamespace(ft.getName()) != null) {
+                ftName = "{" + NamesExt.getNamespace(ft.getName()) + "}";
+            }
+            ftName = ftName + ft.getName().tip().toString();
+            if (filterProperty.startsWith(ftName)) {
+                filterProperty = filterProperty.substring(ftName.length());
+            }
+            if (aliases != null) {
+                for (String entry : aliases.keySet()) {
+                    if (filterProperty.startsWith(entry + "/")) {
+                        filterProperty =  filterProperty.substring(entry.length());
+                    }
                 }
-
-                // look to remove featureType prefix
-                String ftName = "";
+            }
+            final Binding pa = Bindings.getBinding(FeatureType.class, filterProperty);
+            if (pa == null || pa.get(ft, filterProperty, null) == null) {
+                String s = "";
                 if (NamesExt.getNamespace(ft.getName()) != null) {
-                    ftName = "{" + NamesExt.getNamespace(ft.getName()) + "}";
+                    s = "{" + NamesExt.getNamespace(ft.getName()) + "}";
                 }
-                ftName = ftName + ft.getName().tip().toString();
-                if (filterProperty.startsWith(ftName)) {
-                    filterProperty = filterProperty.substring(ftName.length());
-                }
-                if (aliases != null) {
-                    for (String entry : aliases.keySet()) {
-                        if (filterProperty.startsWith(entry + "/")) {
-                            filterProperty =  filterProperty.substring(entry.length());
-                        }
-                    }
-                }
-                final Binding pa = Bindings.getBinding(FeatureType.class, filterProperty);
-                if (pa == null || pa.get(ft, filterProperty, null) == null) {
-                    String s = "";
-                    if (NamesExt.getNamespace(ft.getName()) != null) {
-                        s = "{" + NamesExt.getNamespace(ft.getName()) + "}";
-                    }
-                    s = s + ft.getName().tip().toString();
-                    throw new CstlServiceException("The feature Type " + s + " has no such property: " + filterProperty, INVALID_PARAMETER_VALUE, "filter");
-                }
+                s = s + ft.getName().tip().toString();
+                throw new CstlServiceException("The feature Type " + s + " has no such property: " + filterProperty, INVALID_PARAMETER_VALUE, "filter");
             }
         }
 
-        if (!((Boolean) new IsValidSpatialFilterVisitor(ft).visit(filter))) {
+        if (!new IsValidSpatialFilterVisitor(ft).visit(filter)) {
             throw new CstlServiceException("The filter try to apply spatial operators on non-spatial property", INVALID_PARAMETER_VALUE, "filter");
         }
     }
@@ -2247,21 +2245,21 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 
     @Override
     public ListStoredQueriesResponse listStoredQueries(final ListStoredQueries request) throws CstlServiceException {
-        LOGGER.log(Level.INFO, "ListStoredQueries request processing\n");
+        LOGGER.log(Level.FINE, "ListStoredQueries request processing\n");
         final long startTime = System.currentTimeMillis();
         verifyBaseRequest(request, true, false);
 
         final String currentVersion = request.getVersion().toString();
 
         final ListStoredQueriesResponse response = buildListStoredQueriesResponse(currentVersion, storedQueries);
-        LOGGER.log(Level.INFO, "ListStoredQueries request processed in {0} ms", (System.currentTimeMillis() - startTime));
+        LOGGER.log(Level.FINE, "ListStoredQueries request processed in {0} ms", (System.currentTimeMillis() - startTime));
         return response;
 
     }
 
     @Override
     public DescribeStoredQueriesResponse describeStoredQueries(final DescribeStoredQueries request) throws CstlServiceException {
-        LOGGER.log(Level.INFO, "DescribeStoredQueries request processing\n");
+        LOGGER.log(Level.FINE, "DescribeStoredQueries request processing\n");
         final long startTime = System.currentTimeMillis();
         verifyBaseRequest(request, true, false);
         final String currentVersion = request.getVersion().toString();
@@ -2279,7 +2277,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             storedQueryList = storedQueries;
         }
         final DescribeStoredQueriesResponse response = buildDescribeStoredQueriesResponse(currentVersion, storedQueryList);
-        LOGGER.log(Level.INFO, "DescribeStoredQueries request processed in {0} ms", (System.currentTimeMillis() - startTime));
+        LOGGER.log(Level.FINE, "DescribeStoredQueries request processed in {0} ms", (System.currentTimeMillis() - startTime));
         return response;
     }
 
@@ -2294,7 +2292,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 
     @Override
     public CreateStoredQueryResponse createStoredQuery(final CreateStoredQuery request) throws CstlServiceException {
-        LOGGER.log(Level.INFO, "CreateStoredQuery request processing\n");
+        LOGGER.log(Level.FINE, "CreateStoredQuery request processing\n");
         final long startTime = System.currentTimeMillis();
         verifyBaseRequest(request, true, false);
         final String currentVersion  = request.getVersion().toString();
@@ -2317,13 +2315,13 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
         storedQueries();
 
         final CreateStoredQueryResponse response = buildCreateStoredQueryResponse(currentVersion, "OK");
-        LOGGER.log(Level.INFO, "CreateStoredQuery request processed in {0} ms", (System.currentTimeMillis() - startTime));
+        LOGGER.log(Level.FINE, "CreateStoredQuery request processed in {0} ms", (System.currentTimeMillis() - startTime));
         return response;
     }
 
     @Override
     public DropStoredQueryResponse dropStoredQuery(final DropStoredQuery request) throws CstlServiceException {
-        LOGGER.log(Level.INFO, "dropStoredQuery request processing\n");
+        LOGGER.log(Level.FINE, "dropStoredQuery request processing\n");
         final long startTime = System.currentTimeMillis();
         verifyBaseRequest(request, true, false);
         final String currentVersion  = request.getVersion().toString();
@@ -2342,7 +2340,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
         storedQueries();
 
         final DropStoredQueryResponse response = buildDropStoredQueryResponse(currentVersion, "OK");
-        LOGGER.log(Level.INFO, "dropStoredQuery request processed in {0} ms", (System.currentTimeMillis() - startTime));
+        LOGGER.log(Level.FINE, "dropStoredQuery request processed in {0} ms", (System.currentTimeMillis() - startTime));
         return response;
     }
 

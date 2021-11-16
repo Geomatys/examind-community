@@ -227,7 +227,7 @@ public class WFSService extends GridWebService<WFSWorker> {
                 } else {
                     outputFormat = requestOutputFormat;
                 }
-                LOGGER.log(Level.INFO, "outputFormat asked:{0}", requestOutputFormat);
+                LOGGER.log(Level.FINE, "outputFormat asked:{0}", requestOutputFormat);
 
                 return new ResponseObject(worker.describeFeatureType(model), outputFormat);
 
