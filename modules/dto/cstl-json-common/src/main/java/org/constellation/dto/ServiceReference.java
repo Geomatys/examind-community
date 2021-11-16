@@ -66,7 +66,10 @@ public class ServiceReference extends Identifiable implements Serializable {
         if (obj == this) {
             return true;
         }
-        if (obj instanceof ServiceReference && super.equals(obj)) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass() && super.equals(obj)) {
             ServiceReference that = (ServiceReference) obj;
             return Objects.equals(this.identifier, that.identifier) &&
                    Objects.equals(this.type,       that.type);

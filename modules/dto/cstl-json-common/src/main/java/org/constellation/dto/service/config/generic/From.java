@@ -127,15 +127,15 @@ public class From {
         return s.toString();
     }
 
-    /**
-     * Verify if this entry is identical to the specified object.
-     */
     @Override
     public boolean equals(final Object object) {
         if (object == this) {
             return true;
         }
-        if (object instanceof From) {
+        if (object == null) {
+            return false;
+        }
+        if (this.getClass() == object.getClass()) {
             final From that = (From) object;
 
             return Objects.equals(this.alias, that.alias) &&

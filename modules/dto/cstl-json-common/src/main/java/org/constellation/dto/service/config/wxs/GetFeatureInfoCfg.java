@@ -98,7 +98,13 @@ public class GetFeatureInfoCfg {
 
     @Override
     public boolean equals(final Object obj) {
-        if (obj instanceof GetFeatureInfoCfg) {
+         if (obj == this) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass()) {
             final GetFeatureInfoCfg that = (GetFeatureInfoCfg) obj;
             return Objects.equals(this.mimeType, that.mimeType) &&
                    Objects.equals(this.binding,  that.binding) &&

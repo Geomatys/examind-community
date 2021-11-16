@@ -116,7 +116,10 @@ public class DataReference extends Identifiable {
         if (obj == this) {
             return true;
         }
-        if (obj instanceof DataReference && super.equals(obj)) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass() && super.equals(obj)) {
             DataReference that = (DataReference) obj;
             return     Objects.equals(this.name, that.name)
                     && Objects.equals(this.namespace, that.namespace)

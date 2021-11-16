@@ -1990,7 +1990,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
         @Override
         public boolean equals(Object obj) {
-            if (obj instanceof TripleKey) {
+            if (obj == this) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (this.getClass() == obj.getClass()) {
                 TripleKey that = (TripleKey) obj;
                 return this.i == that.i &&
                        this.j == that.j &&

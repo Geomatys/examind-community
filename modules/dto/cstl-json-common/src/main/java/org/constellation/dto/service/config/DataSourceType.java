@@ -93,7 +93,10 @@ public class DataSourceType {
         if (obj == this) {
             return true;
         }
-        if (obj instanceof DataSourceType) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass()) {
             DataSourceType that = (DataSourceType)obj;
             return Objects.equals(this.name, that.name);
         }

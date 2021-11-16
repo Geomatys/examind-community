@@ -83,7 +83,10 @@ public class DataMCLayerDTO extends AbstractMCLayerDTO {
         if (obj == this) {
             return true;
         }
-        if (obj instanceof DataMCLayerDTO && super.equals(obj)) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass() && super.equals(obj)) {
             DataMCLayerDTO that = (DataMCLayerDTO) obj;
             return Objects.equals(this.styleId, that.styleId) &&
                    Objects.equals(this.styleName, that.styleName) &&

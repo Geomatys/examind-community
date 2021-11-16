@@ -70,7 +70,10 @@ public class MapContextLayersDTO extends MapContextDTO {
         if (obj == this) {
             return true;
         }
-        if (obj instanceof MapContextLayersDTO && super.equals(obj)) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass() && super.equals(obj)) {
             MapContextLayersDTO that = (MapContextLayersDTO) obj;
             return Objects.equals(this.layers, that.layers);
         }

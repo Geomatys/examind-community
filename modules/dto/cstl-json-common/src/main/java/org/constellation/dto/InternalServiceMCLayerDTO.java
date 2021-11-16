@@ -115,7 +115,10 @@ public class InternalServiceMCLayerDTO extends AbstractMCLayerDTO {
         if (obj == this) {
             return true;
         }
-        if (obj instanceof InternalServiceMCLayerDTO && super.equals(obj)) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass() && super.equals(obj)) {
             InternalServiceMCLayerDTO that = (InternalServiceMCLayerDTO) obj;
             return Objects.equals(this.layerId, that.layerId) &&
                    Objects.equals(this.styleId, that.styleId);

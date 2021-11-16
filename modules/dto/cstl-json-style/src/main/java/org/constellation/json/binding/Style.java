@@ -80,7 +80,10 @@ public final class Style implements StyleElement<MutableStyle> {
         if (obj == this) {
             return true;
         }
-        if (obj instanceof Style) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass()) {
             Style that = (Style) obj;
             return  Objects.equals(this.id, that.id) &&
                     Objects.equals(this.name, that.name) &&

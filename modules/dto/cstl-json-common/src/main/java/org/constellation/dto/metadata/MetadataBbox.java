@@ -119,7 +119,10 @@ public class MetadataBbox {
         if (obj == this) {
             return true;
         }
-        if (obj instanceof MetadataBbox) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass()) {
             MetadataBbox that = (MetadataBbox) obj;
             return Objects.equals(this.east, that.east) &&
                    Objects.equals(this.north, that.north) &&

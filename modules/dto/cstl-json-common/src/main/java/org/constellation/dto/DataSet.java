@@ -107,7 +107,10 @@ public class DataSet extends Identifiable implements Serializable {
         if (obj == this) {
             return true;
         }
-        if (obj instanceof DataSet) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass()) {
             DataSet that = (DataSet) obj;
             return Objects.equals(this.id, that.id)
                     && Objects.equals(this.identifier, that.identifier)

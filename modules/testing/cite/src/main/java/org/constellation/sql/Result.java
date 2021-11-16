@@ -19,6 +19,7 @@
 package org.constellation.sql;
 
 import java.util.Date;
+import java.util.Objects;
 
 
 /**
@@ -125,36 +126,30 @@ public final class Result {
     }
 
     @Override
-    public int hashCode() {
-        int hash = 5;
-        hash = 31 * hash + (this.id != null ? this.id.hashCode() : 0);
-        hash = 31 * hash + (this.directory != null ? this.directory.hashCode() : 0);
-        hash = 31 * hash + (this.passed ? 1 : 0);
-        hash = 31 * hash + (this.date != null ? this.date.hashCode() : 0);
-        return hash;
-    }
-
-    @Override
     public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
         if (obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
-            return false;
+        if (this.getClass() == obj.getClass()) {
+            final Result other = (Result) obj;
+            return Objects.equals(this.id, other.id) &&
+                   Objects.equals(this.directory, other.directory) &&
+                   Objects.equals(this.date, other.date) &&
+                   Objects.equals(this.passed, other.passed);
         }
-        final Result other = (Result) obj;
-        if ((this.id == null) ? (other.id != null) : !this.id.equals(other.id)) {
-            return false;
-        }
-        if ((this.directory == null) ? (other.directory != null) : !this.directory.equals(other.directory)) {
-            return false;
-        }
-        if (this.passed != other.passed) {
-            return false;
-        }
-        if ((this.date == null) ? (other.date != null) : !this.date.equals(other.date)) {
-            return false;
-        }
-        return true;
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 31 * hash + Objects.hashCode(this.id);
+        hash = 31 * hash + Objects.hashCode(this.directory);
+        hash = 31 * hash + (this.passed ? 1 : 0);
+        hash = 31 * hash + Objects.hashCode(this.date);
+        return hash;
     }
 }

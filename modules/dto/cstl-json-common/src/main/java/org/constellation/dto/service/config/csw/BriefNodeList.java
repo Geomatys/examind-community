@@ -76,7 +76,13 @@ public class BriefNodeList {
 
     @Override
     public boolean equals(final Object obj) {
-        if (obj instanceof BriefNodeList) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass()) {
             final BriefNodeList that = (BriefNodeList) obj;
             return Objects.equals(this.list, that.list);
         }

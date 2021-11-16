@@ -204,7 +204,10 @@ public class Sensor extends SensorReference implements Serializable {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof Sensor && super.equals(obj)) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass() && super.equals(obj)) {
             final Sensor that = (Sensor) obj;
             return Objects.equals(this.date, that.date) &&
                    Objects.equals(this.name, that.name) &&

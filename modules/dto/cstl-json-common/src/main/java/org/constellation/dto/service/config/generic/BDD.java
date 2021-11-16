@@ -144,7 +144,7 @@ public class BDD {
      * @return
      */
     public String getHostName() {
-        if (connectURL != null && connectURL.indexOf("://") != -1) {
+        if (connectURL != null && connectURL.contains("://")) {
             String hostName = connectURL.substring(connectURL.indexOf("://") + 3);
             if (hostName.indexOf(':') != -1) {
                 hostName        = hostName.substring(0, hostName.indexOf(':'));
@@ -248,7 +248,7 @@ public class BDD {
     /**
      * Creates a data source for the given classname using the reflection API.
      * This avoid direct dependency to a driver that we can not redistribute.
-     */
+    
     private Object createDataSourceByReflection(final String classname) throws SQLException {
         try {
             final Class<?> c = Class.forName(classname);
@@ -269,7 +269,7 @@ public class BDD {
             }
             throw new UndeclaredThrowableException(e);
         }
-    }
+    } */
 
     /**
      * Return a new connection to the database.
@@ -453,15 +453,15 @@ public class BDD {
         return s.toString();
     }
 
-    /**
-     * Verify if this entry is identical to the specified object.
-     */
     @Override
     public boolean equals(final Object object) {
         if (object == this) {
             return true;
         }
-        if (object instanceof BDD) {
+        if (object == null) {
+            return false;
+        }
+        if (this.getClass() == object.getClass()) {
             final BDD that = (BDD) object;
 
             return Objects.equals(this.className,  that.className)  &&

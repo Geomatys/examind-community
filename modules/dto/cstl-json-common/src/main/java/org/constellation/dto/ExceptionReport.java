@@ -66,7 +66,10 @@ public class ExceptionReport {
         if (obj == this) {
             return true;
         }
-        if (obj instanceof ExceptionReport) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass()) {
             final ExceptionReport that = (ExceptionReport) obj;
             return Objects.equals(this.code, that.code) &&
                    Objects.equals(this.message, that.message);

@@ -175,7 +175,10 @@ public class Queries {
         if (object == this) {
             return true;
         }
-        if (object instanceof Queries) {
+        if (object == null) {
+            return false;
+        }
+        if (this.getClass() == object.getClass()) {
             final Queries that = (Queries) object;
 
             return Objects.equals(this.main,       that.main)     &&

@@ -174,15 +174,15 @@ public class LeftJoin {
         return sb.toString();
      }
 
-    /**
-     * Verify if this entry is identical to the specified object.
-     */
     @Override
     public boolean equals(final Object object) {
         if (object == this) {
             return true;
         }
-        if (object instanceof LeftJoin) {
+        if (object == null) {
+            return false;
+        }
+        if (this.getClass() == object.getClass()) {
             final LeftJoin that = (LeftJoin) object;
 
             return Objects.equals(this.operator, that.operator) &&

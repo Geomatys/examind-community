@@ -141,7 +141,10 @@ public abstract class AbstractMCLayerDTO extends Identifiable implements Compara
         if (obj == this) {
             return true;
         }
-        if (obj instanceof AbstractMCLayerDTO && super.equals(obj)) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass() && super.equals(obj)) {
             AbstractMCLayerDTO that = (AbstractMCLayerDTO) obj;
             return Objects.equals(this.opacity, that.opacity) &&
                    Objects.equals(this.name, that.name) &&

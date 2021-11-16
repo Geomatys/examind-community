@@ -273,7 +273,10 @@ public class ValueNode {
         if (obj == this) {
             return true;
         }
-        if (obj instanceof ValueNode) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass()) {
             final ValueNode that = (ValueNode) obj;
             return Objects.equals(this.defaultValue,  that.defaultValue) &&
                    Objects.equals(this.name,          that.name) &&

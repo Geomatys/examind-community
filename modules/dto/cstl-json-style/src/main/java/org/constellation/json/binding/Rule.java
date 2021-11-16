@@ -120,7 +120,10 @@ public final class Rule implements StyleElement<MutableRule> {
         if (obj == this) {
             return true;
         }
-        if (obj instanceof Rule) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass()) {
             Rule that = (Rule) obj;
             return  Objects.equals(this.description, that.description) &&
                     Objects.equals(this.filter, that.filter) &&

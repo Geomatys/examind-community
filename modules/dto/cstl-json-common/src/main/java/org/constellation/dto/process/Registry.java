@@ -76,7 +76,10 @@ public class Registry {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof Registry) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass()) {
             final Registry that = (Registry) obj;
             return Objects.equals(this.name, that.name) &&
                    Objects.equals(this.processes, that.processes);

@@ -43,7 +43,10 @@ public class SensorReference extends Identifiable implements Serializable {
         if (obj == this) {
             return true;
         }
-        if (obj instanceof SensorReference && super.equals(obj)) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass() && super.equals(obj)) {
             SensorReference that = (SensorReference) obj;
             return Objects.equals(this.identifier, that.identifier);
         }

@@ -147,7 +147,13 @@ public class LayerContext extends AbstractConfigurationObject {
 
     @Override
     public boolean equals(final Object obj) {
-        if (obj instanceof LayerContext) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass()) {
             final LayerContext that = (LayerContext) obj;
             return Objects.equals(this.mainLayer, that.mainLayer) &&
                    Objects.equals(this.security, that.security) &&

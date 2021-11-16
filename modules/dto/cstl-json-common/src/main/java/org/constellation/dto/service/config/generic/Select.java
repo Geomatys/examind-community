@@ -148,7 +148,6 @@ public class Select {
         this.group = group;
     }
 
-
     @Override
     public String toString() {
         final StringBuilder s = new StringBuilder("[Select]");
@@ -162,15 +161,15 @@ public class Select {
         return s.toString();
     }
 
-    /**
-     * Verify if this entry is identical to the specified object.
-     */
     @Override
     public boolean equals(final Object object) {
         if (object == this) {
             return true;
         }
-        if (object instanceof Select) {
+        if (object == null) {
+            return false;
+        }
+        if (this.getClass() == object.getClass()) {
             final Select that = (Select) object;
 
             return Objects.equals(this.col,   that.col) &&

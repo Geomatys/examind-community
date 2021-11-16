@@ -131,8 +131,10 @@ public class AcknowlegementType {
         if (this == obj) {
             return true;
         }
-
-        if (obj instanceof AcknowlegementType) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass()) {
             final AcknowlegementType that = (AcknowlegementType) obj;
             return Objects.equals(this.message, that.message) &&
                    Objects.equals(this.status, that.status);

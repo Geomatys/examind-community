@@ -692,7 +692,10 @@ public class Query {
         if (object == this) {
             return true;
         }
-        if (object instanceof Query) {
+        if (object == null) {
+            return false;
+        }
+        if (this.getClass() == object.getClass()) {
             final Query that = (Query) object;
 
             return Objects.equals(this.from,    that.from) &&

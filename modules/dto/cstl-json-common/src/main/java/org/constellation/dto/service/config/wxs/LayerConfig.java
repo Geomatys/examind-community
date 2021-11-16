@@ -461,7 +461,13 @@ public class LayerConfig extends Layer {
 
     @Override
     public boolean equals(final Object obj) {
-        if (obj instanceof LayerConfig && super.equals(obj)) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass() && super.equals(obj)) {
             final LayerConfig that = (LayerConfig) obj;
             return Objects.equals(this.abstrac,      that.abstrac) &&
                    Objects.equals(this.attribution,  that.attribution) &&

@@ -55,11 +55,22 @@ public class TaskParameterWithOwnerName extends TaskParameter implements Seriali
         if (this == obj) {
             return true;
         }
-        if (obj instanceof TaskParameterWithOwnerName && super.equals(obj)) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass() && super.equals(obj)) {
             final TaskParameterWithOwnerName that = (TaskParameterWithOwnerName) obj;
             return Objects.equals(this.ownerName, that.ownerName);
         }
         return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 59 * hash + super.hashCode();
+        hash = 59 * hash + Objects.hashCode(this.ownerName);
+        return hash;
     }
 
 

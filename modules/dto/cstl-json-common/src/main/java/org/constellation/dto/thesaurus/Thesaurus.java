@@ -194,7 +194,10 @@ public class Thesaurus extends Identifiable implements Serializable {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof Thesaurus) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass()) {
             final Thesaurus that = (Thesaurus) obj;
             return Objects.equals(this.creationDate, that.creationDate) &&
                    Objects.equals(this.defaultLang, that.defaultLang) &&

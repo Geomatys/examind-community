@@ -58,15 +58,15 @@ public class Union {
         return "[Union]:" + query + '\n';
     }
 
-    /**
-     * Verify if this entry is identical to the specified object.
-     */
     @Override
     public boolean equals(final Object object) {
         if (object == this) {
             return true;
         }
-        if (object instanceof Union) {
+        if (object == null) {
+            return false;
+        }
+        if (this.getClass() == object.getClass()) {
             final Union that = (Union) object;
             return Objects.equals(this.query, that.query) ;
         }

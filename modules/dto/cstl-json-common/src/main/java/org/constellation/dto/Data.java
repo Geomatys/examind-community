@@ -292,7 +292,10 @@ public class Data extends DataReference implements Serializable {
         if (obj == this) {
             return true;
         }
-        if (obj instanceof Data && super.equals(obj)) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass() && super.equals(obj)) {
             Data that = (Data) obj;
             return     Objects.equals(this.type, that.type)
                     && Objects.equals(this.subtype, that.subtype)

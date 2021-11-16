@@ -599,7 +599,10 @@ public class Automatic extends AbstractConfigurationObject {
         if (object == this) {
             return true;
         }
-        if (object instanceof Automatic) {
+        if (object == null) {
+            return false;
+        }
+        if (this.getClass() == object.getClass()) {
             final Automatic that = (Automatic) object;
 
             return Objects.equals(this.bdd,              that.bdd)              &&

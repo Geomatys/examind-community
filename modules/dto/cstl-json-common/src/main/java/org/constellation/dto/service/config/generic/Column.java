@@ -116,7 +116,10 @@ public class Column {
         if (object == this) {
             return true;
         }
-        if (object instanceof Column) {
+        if (object == null) {
+            return false;
+        }
+        if (this.getClass() == object.getClass()) {
             final Column that = (Column) object;
 
             return Objects.equals(this.getSql(), that.getSql()) &&

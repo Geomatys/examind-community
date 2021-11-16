@@ -120,7 +120,10 @@ public class QueryList {
         if (object == this) {
             return true;
         }
-        if (object instanceof QueryList) {
+        if (object == null) {
+            return false;
+        }
+        if (this.getClass() == object.getClass()) {
             final QueryList that = (QueryList) object;
 
             return Objects.equals(this.query, that.query) ;

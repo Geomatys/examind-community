@@ -111,7 +111,13 @@ public class AttributionType {
 
     @Override
     public boolean equals(final Object obj) {
-        if (obj instanceof AttributionType) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass()) {
             final AttributionType that = (AttributionType) obj;
             return Objects.equals(this.logoURL,        that.logoURL) &&
                    Objects.equals(this.onlineResource, that.onlineResource) &&

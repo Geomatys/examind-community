@@ -67,8 +67,10 @@ public class StyleReference implements Serializable {
         if (this == obj) {
             return true;
         }
-
-        if (obj instanceof StyleReference) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass()) {
             final StyleReference that = (StyleReference) obj;
             return Objects.equals(this.id, that.id) &&
                    Objects.equals(this.providerId, that.providerId) &&

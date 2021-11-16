@@ -120,7 +120,13 @@ public class Reference {
 
     @Override
     public boolean equals(final Object obj) {
-        if (obj instanceof Reference) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass()) {
             final Reference that = (Reference) obj;
             return Objects.equals(this.authority, that.authority) &&
                    Objects.equals(this.href,      that.href) &&

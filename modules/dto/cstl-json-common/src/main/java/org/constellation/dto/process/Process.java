@@ -187,10 +187,13 @@ public class Process {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
+        if (obj == this) {
             return true;
         }
-        if (obj instanceof Process) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass()) {
             final Process that = (Process) obj;
             return Objects.equals(this.id, that.id) &&
                    Objects.equals(this.title, that.title) &&

@@ -125,7 +125,10 @@ public class Orderby {
         if (object == this) {
             return true;
         }
-        if (object instanceof Orderby) {
+        if (object == null) {
+            return false;
+        }
+        if (this.getClass() == object.getClass()) {
             final Orderby that = (Orderby) object;
 
             return Objects.equals(this.sens,  that.sens)  &&

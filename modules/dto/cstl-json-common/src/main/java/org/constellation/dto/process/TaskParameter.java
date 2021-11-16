@@ -186,7 +186,10 @@ public class TaskParameter extends Identifiable {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof TaskParameter) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass()) {
             final TaskParameter that = (TaskParameter) obj;
             return Objects.equals(this.date, that.date) &&
                    Objects.equals(this.id, that.id) &&

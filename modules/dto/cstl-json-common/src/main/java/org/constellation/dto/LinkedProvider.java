@@ -69,7 +69,13 @@ public class LinkedProvider {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof LinkedProvider) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass()) {
             LinkedProvider that = (LinkedProvider) obj;
             return Objects.equals(this.allEntry, that.allEntry) &&
                    Objects.equals(this.id,       that.id);

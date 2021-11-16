@@ -87,7 +87,11 @@ public class ParameterValues {
     public boolean equals(Object obj) {
         if (this == obj) {
             return true;
-        } else if (obj instanceof ParameterValues) {
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass()) {
             ParameterValues that = (ParameterValues) obj;
             return Objects.equals(this.values, that.values);
         }

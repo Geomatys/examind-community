@@ -75,45 +75,34 @@ public class DataProcessReference implements Serializable {
     
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
+        if (obj == this) {
             return true;
         }
         if (obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
-            return false;
+        if (this.getClass() == obj.getClass()) {
+            final DataProcessReference other = (DataProcessReference) obj;
+            return Objects.equals(this.id, other.id) &&
+                   Objects.equals(this.name, other.name) &&
+                   Objects.equals(this.namespace, other.namespace) &&
+                   Objects.equals(this.type, other.type) &&
+                   Objects.equals(this.provider, other.provider);
         }
-        final DataProcessReference other = (DataProcessReference) obj;
-        if (this.id != other.id) {
-            return false;
-        }
-        if (!Objects.equals(this.name, other.name)) {
-            return false;
-        }
-        if (!Objects.equals(this.namespace, other.namespace)) {
-            return false;
-        }
-        if (!Objects.equals(this.type, other.type)) {
-            return false;
-        }
-        if (!Objects.equals(this.provider, other.provider)) {
-            return false;
-        }
-        return true;
+        return false;
     }
 
     @Override
     public int hashCode() {
-        int result = id;
-        result = 31 * result + name.hashCode();
-        if (namespace != null) {
-            result = 31 * result + namespace.hashCode();
-        }
-        result = 31 * result + provider;
-        result = 31 * result + type.hashCode();
-        return result;
+        int hash = 3;
+        hash = 79 * hash + this.id;
+        hash = 79 * hash + Objects.hashCode(this.name);
+        hash = 79 * hash + Objects.hashCode(this.namespace);
+        hash = 79 * hash + Objects.hashCode(this.type);
+        hash = 79 * hash + this.provider;
+        return hash;
     }
+
 
     @Override
     public String toString() {

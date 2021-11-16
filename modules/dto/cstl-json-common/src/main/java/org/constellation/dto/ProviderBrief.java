@@ -112,7 +112,10 @@ public class ProviderBrief extends Identifiable implements Serializable {
         if (obj == this) {
             return true;
         }
-        if (obj instanceof ProviderBrief) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass()) {
             ProviderBrief that = (ProviderBrief) obj;
             return Objects.equals(this.id, that.id)
                     && Objects.equals(this.config, that.config)

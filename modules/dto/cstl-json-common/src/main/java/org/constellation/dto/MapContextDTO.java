@@ -241,7 +241,10 @@ public class MapContextDTO extends Identifiable implements Serializable{
         if (obj == this) {
             return true;
         }
-        if (obj instanceof MapContextDTO) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass()) {
             MapContextDTO that = (MapContextDTO) obj;
             return Objects.equals(this.id, that.id)
                     && Objects.equals(this.crs, that.crs)

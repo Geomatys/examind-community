@@ -462,7 +462,10 @@ public class Metadata extends Identifiable {
         if (obj == this) {
             return true;
         }
-        if (obj instanceof Metadata) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass()) {
             Metadata that = (Metadata) obj;
             return Objects.equals(this.id, that.id)
                     && Objects.equals(this.comment, that.comment)

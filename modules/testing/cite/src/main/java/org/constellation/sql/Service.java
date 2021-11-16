@@ -18,6 +18,8 @@
  */
 package org.constellation.sql;
 
+import java.util.Objects;
+
 
 /**
  * Representation of a record of the {@code Services} table.
@@ -63,29 +65,27 @@ public final class Service {
     }
 
     @Override
-    public int hashCode() {
-        int hash = 7;
-        hash = 53 * hash + (this.name != null ? this.name.hashCode() : 0);
-        hash = 53 * hash + (this.version != null ? this.version.hashCode() : 0);
-        return hash;
-    }
-
-    @Override
     public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
         if (obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
-            return false;
+        if (this.getClass() == obj.getClass()) {
+            final Service other = (Service) obj;
+            return Objects.equals(this.name, other.name) &&
+                   Objects.equals(this.version, other.version);
         }
-        final Service other = (Service) obj;
-        if ((this.name == null) ? (other.name != null) : !this.name.equals(other.name)) {
-            return false;
-        }
-        if ((this.version == null) ? (other.version != null) : !this.version.equals(other.version)) {
-            return false;
-        }
-        return true;
+        return false;
+    }
+    
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 53 * hash + Objects.hashCode(this.name);
+        hash = 53 * hash + Objects.hashCode(this.version);
+        return hash;
     }
 
 }

@@ -194,7 +194,10 @@ public class Instance {
         if (obj == this) {
             return true;
         }
-        if (obj instanceof Instance) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass()) {
             final Instance that = (Instance) obj;
             return Objects.equals(this.name,         that.name) &&
                    Objects.equals(this.identifier,   that.identifier) &&

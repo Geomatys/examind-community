@@ -68,7 +68,10 @@ public abstract class Identifiable {
         if (obj == this) {
             return true;
         }
-        if (obj instanceof Identifiable) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass()) {
             Identifiable that = (Identifiable) obj;
             return Objects.equals(this.id, that.id) ;
         }

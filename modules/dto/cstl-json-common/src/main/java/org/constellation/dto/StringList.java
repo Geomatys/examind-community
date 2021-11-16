@@ -71,7 +71,13 @@ public class StringList {
 
     @Override
     public boolean equals(final Object obj) {
-        if (obj instanceof StringList) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass()) {
             final StringList that = (StringList) obj;
             return Objects.equals(this.list, that.list);
         }

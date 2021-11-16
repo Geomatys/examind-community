@@ -203,7 +203,10 @@ public class Task implements Serializable {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof Task) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass()) {
             final Task that = (Task) obj;
             return Objects.equals(this.dateEnd, that.dateEnd) &&
                    Objects.equals(this.dateStart, that.dateStart) &&

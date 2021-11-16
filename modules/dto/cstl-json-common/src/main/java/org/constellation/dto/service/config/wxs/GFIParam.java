@@ -69,7 +69,13 @@ public class GFIParam {
 
     @Override
     public boolean equals(final Object obj) {
-        if (obj instanceof GFIParam) {
+         if (obj == this) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass()) {
             final GFIParam that = (GFIParam) obj;
             return Objects.equals(this.key, that.key) &&
                    Objects.equals(this.value,  that.value);

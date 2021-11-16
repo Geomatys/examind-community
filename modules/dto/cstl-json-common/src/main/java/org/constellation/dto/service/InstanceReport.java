@@ -87,7 +87,10 @@ public class InstanceReport {
         if (obj == this) {
             return true;
         }
-        if (obj instanceof InstanceReport) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass()) {
             final InstanceReport that = (InstanceReport) obj;
             return Objects.equals(this.instances, that.instances);
         }

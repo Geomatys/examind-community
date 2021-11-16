@@ -131,7 +131,10 @@ public class Service extends ServiceReference implements Serializable {
         if (obj == this) {
             return true;
         }
-        if (obj instanceof Service && super.equals(obj)) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass() && super.equals(obj)) {
             Service that = (Service) obj;
             return     Objects.equals(this.config, that.config)
                     && Objects.equals(this.status, that.status)

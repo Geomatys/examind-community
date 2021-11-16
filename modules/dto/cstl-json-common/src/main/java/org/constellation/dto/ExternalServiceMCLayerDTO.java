@@ -103,7 +103,10 @@ public class ExternalServiceMCLayerDTO extends AbstractMCLayerDTO {
         if (obj == this) {
             return true;
         }
-        if (obj instanceof ExternalServiceMCLayerDTO && super.equals(obj)) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass() && super.equals(obj)) {
             ExternalServiceMCLayerDTO that = (ExternalServiceMCLayerDTO) obj;
             return Objects.equals(this.externalLayer, that.externalLayer) &&
                    Objects.equals(this.externalLayerExtent, that.externalLayerExtent) &&

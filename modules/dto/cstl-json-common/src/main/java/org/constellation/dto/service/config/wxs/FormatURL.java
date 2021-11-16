@@ -209,7 +209,13 @@ public class FormatURL {
 
     @Override
     public boolean equals(final Object obj) {
-        if (obj instanceof FormatURL) {
+         if (obj == this) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() == obj.getClass()) {
             final FormatURL that = (FormatURL) obj;
             return Objects.equals(this.width,   that.width) &&
                    Objects.equals(this.type,     that.type) &&
