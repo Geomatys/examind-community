@@ -10,7 +10,7 @@ maven-artifacts:
   only:
     - tags
   script:
-    - mvn package source:jar deploy -s $MAVEN_SETTINGS -DaltDeploymentRepository=$DEPLOY_SERVER
+    - mvn package source:jar deploy -DskipTests -s $MAVEN_SETTINGS -DaltDeploymentRepository=$DEPLOY_SERVER
 
 .docker-push:
   extends: .publish
