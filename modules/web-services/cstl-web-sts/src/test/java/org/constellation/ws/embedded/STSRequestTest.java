@@ -635,6 +635,36 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/mds-sel.json");
         compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)?$expand=ObservedProperty");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-exp-obsprop.json");
+        compareJSON(expResult, result);
+
+        /**
+         * expanded and this one should have the same order
+         */
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/ObservedProperties");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-obsprop.json");
+        compareJSON(expResult, result);
+        
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:12)?$expand=ObservedProperty");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-exp-obsprop-2.json");
+        compareJSON(expResult, result);
+
+        /**
+         * expanded and this one should have the same order
+         */
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:12)/ObservedProperties");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-obsprop-2.json");
+        compareJSON(expResult, result);
     }
 
     @Test

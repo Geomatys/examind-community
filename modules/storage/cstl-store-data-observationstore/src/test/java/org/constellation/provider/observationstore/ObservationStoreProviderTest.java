@@ -379,9 +379,9 @@ public class ObservationStoreProviderTest {
         assertTrue(results.get(0) instanceof org.geotoolkit.swe.xml.v101.PhenomenonType);
         assertEquals("depth", getPhenomenonId(results.get(0)));
         assertTrue(results.get(1) instanceof org.geotoolkit.swe.xml.v101.PhenomenonType);
-        assertEquals("salinity", getPhenomenonId(results.get(1)));
+        assertEquals("temperature", getPhenomenonId(results.get(1)));
         assertTrue(results.get(2) instanceof org.geotoolkit.swe.xml.v101.PhenomenonType);
-        assertEquals("temperature", getPhenomenonId(results.get(2)));
+        assertEquals("salinity", getPhenomenonId(results.get(2)));
 
 
        /* 

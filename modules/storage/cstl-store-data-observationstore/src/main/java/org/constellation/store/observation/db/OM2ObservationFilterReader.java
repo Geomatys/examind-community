@@ -1506,7 +1506,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 sqlRequest.replaceFirst("WHERE", "");
             }
         }
-        sqlRequest.append(" ORDER BY \"id\"");
+        if (procDescJoin) {
+            sqlRequest.append(" ORDER BY \"order\"");
+        } else {
+            sqlRequest.append(" ORDER BY \"id\"");
+        }
         sqlRequest = appendPaginationToRequest(sqlRequest, hints);
         final List<Phenomenon> phenomenons = new ArrayList<>();
 

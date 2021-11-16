@@ -1,0 +1,41 @@
+{
+    "unitOfMeasurement": [{
+            "name": "m",
+            "symbol": "m",
+            "definition": "m"
+        }, {
+            "name": "°C",
+            "symbol": "°C",
+            "definition": "°C"
+        }],
+    "observationType": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+    "observedArea": {
+        "type": "Polygon",
+        "coordinates": [[[27.142098949519518, -3.404947100307331], [27.142098949519518, -3.4049470103064325], [27.142099023169745, -3.4049470103064325], [27.142099023169745, -3.404947100307331], [27.142098949519518, -3.404947100307331]]]
+    },
+    "phenomenonTime": "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
+    "resultTime": "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
+    "@iot.id": "urn:ogc:object:observation:template:GEOM:8",
+    "@iot.selfLink": "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)",
+    "ObservedProperty": [{
+            "name": "depth",
+            "definition": "urn:ogc:def:phenomenon:GEOM:depth",
+            "description": "the depth in water",
+            "@iot.id": "depth",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/ObservedProperties(depth)",
+            "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/ObservedProperties(depth)/Datastreams",
+            "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/ObservedProperties(depth)/MultiDatastreams"
+        }, {
+            "name": "temperature",
+            "definition": "urn:ogc:def:phenomenon:GEOM:temperature",
+            "description": "the temperature in celcius degree",
+            "@iot.id": "temperature",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/ObservedProperties(temperature)",
+            "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/ObservedProperties(temperature)/Datastreams",
+            "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/ObservedProperties(temperature)/MultiDatastreams"
+        }],
+    "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/Things",
+    "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/Sensors",
+    "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/Observations",
+    "multiObservationDataTypes": ["http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement", "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement"]
+}
