@@ -1,21 +1,22 @@
-maven-artifacts:
+.publish:
   stage: publish
   needs:
     - build
+    - "test:hsqldb"
+    - "test:postgresql"
+
+maven-artifacts:
+  extends: .publish
   only:
     - tags
   script:
     - mvn package source:jar deploy -s $MAVEN_SETTINGS -DaltDeploymentRepository=$DEPLOY_SERVER
 
 .docker-push:
+  extends: .publish
   variables:
     DOCKER_TAG:
   image: docker:latest
-  stage: publish
-  needs:
-    - build
-    - "test:hsqldb"
-    - "test:postgresql"
   script:
     # Login to Docker repository
     - mkdir ~/.docker && echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
