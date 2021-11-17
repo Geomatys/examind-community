@@ -82,7 +82,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import org.junit.BeforeClass;
 import org.opengis.util.GenericName;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.AcknowlegementType;
 import org.constellation.dto.service.Instance;
 import org.constellation.dto.service.InstanceReport;
@@ -107,6 +106,7 @@ import static org.junit.Assume.assumeNoException;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import static org.geotoolkit.image.io.XImageIO.getWriterByMIMEType;
 import static org.geotoolkit.image.io.XImageIO.isValidType;
+import org.geotoolkit.image.io.plugin.WorldFileImageWriter;
 
 /**
  * A set of methods that request a SpringBoot server which embeds a WMS service.
@@ -151,6 +151,11 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
     private static final String WMS_GETMAP = "request=GetMap&service=WMS&version=1.1.1&"
             + "format=image/png&width=1024&height=512&"
+            + "srs=EPSG:4326&bbox=-180,-90,180,90&"
+            + "layers=" + LAYER_TEST + "&styles=";
+
+    private static final String WMS_GETMAP_COV_JPEG = "request=GetMap&service=WMS&version=1.1.1&"
+            + "format=image/jpeg&width=1024&height=512&"
             + "srs=EPSG:4326&bbox=-180,-90,180,90&"
             + "layers=" + LAYER_TEST + "&styles=";
 
@@ -420,6 +425,11 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "&TRANSPARENT=true&LAYERS=martinique"
             + "&SLD_VERSION=1.1.0&WIDTH=256&HEIGHT=256&CRS=EPSG%3A3857&STYLES="
             + "&BBOX=-6887893.4928338025%2C1565430.3392804079%2C-6731350.458905761%2C1721973.3732084488";
+
+    private static final String WMS_GETMAP_TIFF_TO_JPEG = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image%2Fjpeg"
+            + "&TRANSPARENT=true&LAYERS=martinique"
+            + "&SLD_VERSION=1.1.0&WIDTH=256&HEIGHT=256&CRS=EPSG%3A3857&STYLES="
+            + "&BBOX=-6887893.4928338025%2C1565430.3392804079%2C-6731350.458905761%2C1721973.3732084488";
     
     private static final String WMS_GETMAP_SHAPE_POINT = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image%2Fpng&"
             + "TRANSPARENT=true&LAYERS=BuildingCenters&SLD_VERSION=1.1.0&WIDTH=256&HEIGHT=256&CRS=EPSG%3A3857&STYLES="
@@ -663,7 +673,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         }
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
-        final BufferedImage image = getImageFromURL(getMapUrl, "image/png");
+        BufferedImage image = getImageFromURL(getMapUrl, "image/png");
 
         // Test on the returned image.
         assertTrue(!(ImageTesting.isImageEmpty(image)));
@@ -688,6 +698,22 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         }
         obj = getStringResponse(getMapUrl);
         assertTrue("was " + obj, obj.contains("InvalidDimensionValue"));
+
+        try {
+            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_COV_JPEG);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        image = getImageFromURL(getMapUrl, "image/jpeg");
+
+        // Test on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(1024, image.getWidth());
+        assertEquals(512, image.getHeight());
+        assertTrue(ImageTesting.getNumColors(image) > 8);
     }
 
     @Test
@@ -820,7 +846,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     @Test
     @Order(order = 6)
     public void testWMSGetMapLakeBmp() throws Exception {
-
+        initLayerList();
+        
         // Creates a valid GetMap url.
         URL getMapUrl;
         try {
@@ -884,7 +911,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     @Test
     @Order(order = 8)
     public void testWMSGetMapLakePpm() throws Exception {
-
+        initLayerList();
+        
         // Creates a valid GetMap url.
         final URL getMapUrl;
         try {
@@ -1481,7 +1509,6 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
      * Ensures that a valid GetLegendGraphic request returns indeed a
      * {@link BufferedImage}.
      *
-     * @throws java.io.Exception
      */
     @Test
     public void testWMSGetLegendGraphic() throws Exception {
@@ -1773,7 +1800,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         initLayerList();
 
         // Creates a valid GetMap url.
-        final URL getMapUrl;
+        URL getMapUrl;
         try {
             getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_TIFF);
         } catch (MalformedURLException ex) {
@@ -1782,7 +1809,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         }
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
-        final BufferedImage image = getImageFromURL(getMapUrl, "image/png");
+        BufferedImage image = getImageFromURL(getMapUrl, "image/png");
 
         // Tests on the returned image.
         assertTrue(!(ImageTesting.isImageEmpty(image)));
@@ -1794,6 +1821,22 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         } else {
             assertEquals(sstChecksumGeo.longValue(), Commons.checksum(image));
         }
+
+        try {
+            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_TIFF_TO_JPEG);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        image = getImageFromURL(getMapUrl, "image/jpeg");
+
+        // Test on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(256, image.getWidth());
+        assertEquals(256, image.getHeight());
+        assertTrue(ImageTesting.getNumColors(image) > 8);
     }
     
     @Test

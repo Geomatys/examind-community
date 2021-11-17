@@ -41,6 +41,7 @@ import org.geotoolkit.display2d.GO2Hints;
 import org.geotoolkit.display2d.service.OutputDef;
 import org.geotoolkit.display2d.service.PortrayalExtension;
 import org.geotoolkit.factory.Hints;
+import org.geotoolkit.image.io.plugin.WorldFileImageWriter;
 
 /**
  *
@@ -373,15 +374,25 @@ public class WMSPortrayal {
         }
         if (odef.getSpi() == null) {
             final ServiceRegistry registry = IIORegistry.getDefaultInstance();
+            ImageWriterSpi fallback = null;
             for (final Iterator<ImageWriterSpi> it = registry.getServiceProviders(ImageWriterSpi.class, false); it.hasNext();) {
                 ImageWriterSpi spi = it.next();
                 final String classname = spi.getClass().getName();
                 if (!classname.startsWith("com.sun.media.")) {
                     if(ArraysExt.contains(spi.getMIMETypes(),mime)){
-                        odef.setSpi(spi);
-                        break;
+                        // we don't want to use WorldFileImageWriter writer unless there is no other choice
+                        // because they don't support OutputStream output
+                        if (spi instanceof  WorldFileImageWriter.Spi) {
+                            fallback = spi;
+                        } else {
+                            odef.setSpi(spi);
+                            break;
+                        }
                     }
                 }
+            }
+            if (odef.getSpi() == null) {
+                odef.setSpi(fallback);
             }
         }
         return odef;
