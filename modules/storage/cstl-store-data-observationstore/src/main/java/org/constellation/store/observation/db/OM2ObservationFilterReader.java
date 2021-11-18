@@ -305,6 +305,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         final List<Observation> observations = new ArrayList<>();
         final Map<String, Process> processMap = new HashMap<>();
 
+        LOGGER.fine(sqlRequest.getRequest());
         try (final Connection c            = source.getConnection();
              final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
              final ResultSet rs            = pstmt.executeQuery()) {
@@ -374,6 +375,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         final List<Observation> observations = new ArrayList<>();
         final Map<String, Process> processMap = new HashMap<>();
 
+        LOGGER.fine(sqlRequest.getRequest());
         try (final Connection c              = source.getConnection();
              final PreparedStatement pstmt   = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
              final ResultSet rs              = pstmt.executeQuery()) {
@@ -444,6 +446,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         final Map<String, Observation> observations = new LinkedHashMap<>();
         final Map<String, Process> processMap = new LinkedHashMap<>();
 
+        LOGGER.fine(sqlRequest.getRequest());
         try(final Connection c              = source.getConnection();
             final PreparedStatement pstmt   = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
             final ResultSet rs              = pstmt.executeQuery()) {
@@ -567,6 +570,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                      *  BUILD RESULT
                      */
                     measureRequest.setParamValue(0, oid);
+                    LOGGER.fine(measureRequest.getRequest());
                     try(final PreparedStatement stmt = measureRequest.fillParams(c.prepareStatement(measureRequest.getRequest()));
                         final ResultSet rs2 = stmt.executeQuery()) {
                         while (rs2.next()) {
@@ -660,6 +664,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                      */
                     Date lastTime = null;
                     measureRequest.setParamValue(0, oid);
+                    LOGGER.fine(measureRequest.toString());
                     try(final PreparedStatement stmt = measureRequest.fillParams(c.prepareStatement(measureRequest.getRequest()));
                         final ResultSet rs2 = stmt.executeQuery()) {
                         while (rs2.next()) {
@@ -750,6 +755,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
         final List<Observation> observations = new ArrayList<>();
         final Map<String, Process> processMap = new HashMap<>();
+        LOGGER.fine(sqlRequest.toString());
         try(final Connection c            = source.getConnection();
             final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
             final ResultSet rs            = pstmt.executeQuery()) {
@@ -832,7 +838,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 /**
                  * coherence verification
                  */
-
+                LOGGER.fine(measureRequest.toString());
                 try(final PreparedStatement stmt = measureRequest.fillParams(c.prepareStatement(measureRequest.getRequest()));
                     final ResultSet rs2 = stmt.executeQuery()) {
                     while (rs2.next()) {
@@ -1362,6 +1368,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 request.replaceFirst("SELECT m.*", "SELECT MIN(\"" + mainField.name + "\"), MAX(\"" + mainField.name + "\") ");
             }
         }
+        LOGGER.fine(request.toString());
         try (final PreparedStatement pstmt = request.fillParams(c.prepareStatement(request.getRequest()));
              final ResultSet rs = pstmt.executeQuery()) {
             Map<Object, long[]> results = new LinkedHashMap<>();
@@ -1437,7 +1444,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             }
         }
         sqlRequest = appendPaginationToRequest(sqlRequest, hints);
-
+        LOGGER.fine(sqlRequest.toString());
         final List<SamplingFeature> features = new ArrayList<>();
         try(final Connection c            = source.getConnection();
             final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
@@ -1513,7 +1520,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         }
         sqlRequest = appendPaginationToRequest(sqlRequest, hints);
         final List<Phenomenon> phenomenons = new ArrayList<>();
-
+        LOGGER.fine(sqlRequest.toString());
         try(final Connection c            = source.getConnection();
             final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
             final ResultSet rs            = pstmt.executeQuery()) {
@@ -1551,6 +1558,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             }
         }
         sqlRequest = appendPaginationToRequest(sqlRequest, hints);
+        LOGGER.fine(sqlRequest.toString());
         final List<Process> processes = new ArrayList<>();
         try(final Connection c            = source.getConnection();
             final PreparedStatement pstmt =  sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
@@ -1595,6 +1603,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         }
 
         Map<String, Geometry> locations = new LinkedHashMap<>();
+        LOGGER.fine(sqlRequest.toString());
         try(final Connection c            = source.getConnection();
             final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
             final ResultSet rs            = pstmt.executeQuery()) {
@@ -1660,6 +1669,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         if (envelopeFilter != null) {
             spaFilter = JTS.toGeometry(envelopeFilter);
         }
+        LOGGER.fine(sqlRequest.toString());
         Map<String, Map<Date, Geometry>> locations = new LinkedHashMap<>();
         try(final Connection c            = source.getConnection();
             final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
@@ -1797,6 +1807,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 }
             }
 
+            LOGGER.fine(sqlRequest.toString());
             Map<String, Map<TripleKey, List>> procedureCells = new HashMap<>();
             try(final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
                 final ResultSet rs = pstmt.executeQuery()) {
@@ -2066,7 +2077,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
             // calculate the first date and the time step for each procedure.
             final Map<Object, long[]> times = getMainFieldStep(stepRequest, DEFAULT_TIME_FIELD, c, nbCell);
-
+            LOGGER.fine(sqlRequest.toString());
             try(final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
                 final ResultSet rs = pstmt.executeQuery()) {
 
@@ -2187,6 +2198,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
         sqlRequest.append(" ORDER BY \"procedure\", \"time\"");
         sqlRequest = appendPaginationToRequest(sqlRequest, hints);
+        LOGGER.fine(sqlRequest.toString());
         Map<String, List<Date>> times = new LinkedHashMap<>();
         try(final Connection c            = source.getConnection();
             final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));

@@ -851,6 +851,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     public List<ObservationResult> filterResult(Map<String, Object> hints) throws DataStoreException {
         LOGGER.log(Level.FINER, "request:{0}", sqlRequest.toString());
         sqlRequest = appendPaginationToRequest(sqlRequest, hints);
+        LOGGER.fine(sqlRequest.toString());
         try (final Connection c                   = source.getConnection();
             final PreparedStatement pstmt         = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
             final ResultSet result                = pstmt.executeQuery()) {
@@ -873,7 +874,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         if (firstFilter) {
             sqlRequest = sqlRequest.replaceFirst("WHERE", "");
         }
-        LOGGER.log(Level.FINER, "request:{0}", sqlRequest.toString());
+        LOGGER.fine(sqlRequest.toString());
         try(final Connection c               = source.getConnection();
             final PreparedStatement pstmt    = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
             final ResultSet rs               = pstmt.executeQuery()) {
@@ -924,6 +925,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     if (MEASUREMENT_QNAME.equals(resultModel)) {
                         final Phenomenon phen = getPhenomenon("1.0.0", observedProperty, c);
                         List<FieldPhenomenon> fieldPhen = getPhenomenonFields(phen, fields, c);
+                        LOGGER.fine(sqlRequest);
                         try (final PreparedStatement stmt = c.prepareStatement(sqlRequest)) {
                             stmt.setInt(1, oid);
                             try (final ResultSet rs2 = stmt.executeQuery()) {
@@ -943,6 +945,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                         }
 
                     } else {
+                        LOGGER.fine(sqlRequest);
                         try (final PreparedStatement stmt = c.prepareStatement(sqlRequest)) {
                             stmt.setInt(1, oid);
                             try (final ResultSet rs2 = stmt.executeQuery()) {
@@ -991,6 +994,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             sqlRequest = appendPaginationToRequest(sqlRequest, hints);
         }
 
+        LOGGER.fine(sqlRequest.toString());
         List<String> locations            = new ArrayList<>();
         try(final Connection c            = source.getConnection();
             final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
@@ -1142,7 +1146,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
         final Set<String> results = new LinkedHashSet<>();
 
-        LOGGER.log(Level.FINER, "request:{0}", request);
+        LOGGER.fine(request.toString());
         try(final Connection c               = source.getConnection();
             final Statement currentStatement = c.createStatement();
             final ResultSet result           = currentStatement.executeQuery(request)) {
@@ -1178,7 +1182,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
         request = "SELECT COUNT(*) FROM (" + request + ") AS sub";
 
-        LOGGER.log(Level.FINER, "request:{0}", request);
+        LOGGER.fine(request);
         try(final Connection c               = source.getConnection();
             final Statement currentStatement = c.createStatement();
             final ResultSet result           = currentStatement.executeQuery(request)) {
@@ -1367,6 +1371,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     protected Phenomenon getGlobalCompositePhenomenon(String version, Connection c, String procedure) throws DataStoreException {
        String request = "SELECT DISTINCT(\"observed_property\") FROM \"" + schemaPrefix + "om\".\"observations\" o, \"" + schemaPrefix + "om\".\"components\" c "
                       + "WHERE \"procedure\"=? ";
+       LOGGER.fine(request);
        try(final PreparedStatement stmt = c.prepareStatement(request)) {//NOSONAR
             stmt.setString(1, procedure);
             try (final ResultSet rs   = stmt.executeQuery()) {
@@ -1408,6 +1413,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                       + "WHERE \"procedure\"=? "
                       + "AND NOT (\"order\"=1 AND \"field_type\"='Time') "
                       + "order by \"order\"";
+       LOGGER.fine(request);
        try(final PreparedStatement stmt = c.prepareStatement(request)) {//NOSONAR
             stmt.setString(1, procedure);
             try (final ResultSet rs   = stmt.executeQuery()) {
@@ -1443,6 +1449,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         if (foi != null) {
             request = request + " AND \"foi\"=?";
         }
+        LOGGER.fine(request);
         try(final PreparedStatement stmt = c.prepareStatement(request)) {//NOSONAR
             stmt.setString(1, procedure);
             int cpt = 2;
