@@ -158,7 +158,7 @@ import org.springframework.context.annotation.Scope;
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
-    private final Map<String, Object> defaultHints = new HashMap<>();
+    private final Map<String, Object> defaultHints = Collections.singletonMap("version", "2.0.0");
 
     private static final GeometryFactory JTS_GEOM_FACTORY = new GeometryFactory();
 
@@ -177,7 +177,6 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             }
             isTransactionnal = t;
         }
-        defaultHints.put("version", "2.0.0");
         started();
     }
 
@@ -362,7 +361,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 hints.put(DECIMATION_SIZE, req.getExtraFlag().get("decimation"));
             }
             if (decimation) {
-                Collection<String> sensorIds = omProvider.getProcedureNames(subquery, defaultHints);
+                Collection<String> sensorIds = omProvider.getProcedureNames(subquery, hints);
                 Map<String, List> resultArrays = new HashMap<>();
                 count = req.getCount() ? new BigDecimal(0) : null;
                 for (String sensorId : sensorIds) {
@@ -408,7 +407,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             ResourceId filter = ff.resourceId(req.getId());
             subquery.setFilter(filter);
             final RequestOptions exp = new RequestOptions(req);
-            List<org.opengis.observation.Observation> obs = omProvider.getObservations(subquery, MEASUREMENT_QNAME, "inline", null, defaultHints);
+            Map<String, Object> hints = new HashMap<>(defaultHints);
+            List<org.opengis.observation.Observation> obs = omProvider.getObservations(subquery, MEASUREMENT_QNAME, "inline", null, hints);
             if (obs.isEmpty()) {
                 return null;
             } else if (obs.size() > 1) {
@@ -1102,7 +1102,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             BinaryComparisonOperator pe2 = ff.equal(ff.property("observedProperty"), ff.literal(((org.geotoolkit.swe.xml.Phenomenon) template.getObservedProperty()).getId()));
             LogicalOperator and = ff.and(Arrays.asList(pe1, pe2));
             subquery.setFilter(and);
-            return omProvider.getObservations(subquery, MEASUREMENT_QNAME, "inline", null, defaultHints);
+            Map<String, Object> hints = new HashMap<>(defaultHints);
+            return omProvider.getObservations(subquery, MEASUREMENT_QNAME, "inline", null, hints);
         }
         return new ArrayList<>();
     }
@@ -1127,7 +1128,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             final SimpleQuery subquery = new SimpleQuery();
             BinaryComparisonOperator pe = ff.equal(ff.property("featureOfInterest"), ff.literal(sp.getId()));
             subquery.setFilter(pe);
-            return omProvider.getObservations(subquery, MEASUREMENT_QNAME, "inline", null, defaultHints);
+            Map<String, Object> hints = new HashMap<>(defaultHints);
+            return omProvider.getObservations(subquery, MEASUREMENT_QNAME, "inline", null, hints);
         }
         return new ArrayList<>();
     }
