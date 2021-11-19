@@ -120,6 +120,7 @@ import org.apache.sis.util.Version;
 import org.constellation.api.DataType;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
+import static org.constellation.map.core.WMSConstant.NO_TRANSPARENT_FORMAT;
 import org.geotoolkit.map.MapBuilder;
 import org.geotoolkit.ows.xml.OWSExceptionCode;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.CURRENT_UPDATE_SEQUENCE;
@@ -1269,7 +1270,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             /*
              * HACK we set anti-aliasing to false for gif
              */
-            if ("image/gif".equals(getMap.getFormat())) {
+            if (MimeType.IMAGE_GIF.equals(getMap.getFormat())) {
                 hints.put(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_OFF);
             }
             sdef.getHints().putAll(hints);
@@ -1298,7 +1299,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         // 3. CANVAS
         final Dimension canvasDimension = getMap.getSize();
         final Color background;
-        if (getMap.getTransparent() && !MimeType.IMAGE_JPEG.equalsIgnoreCase(getMap.getFormat())) {
+        if (getMap.getTransparent() && !NO_TRANSPARENT_FORMAT.contains(getMap.getFormat())) {
             background = null;
         } else {
             final Color color = getMap.getBackground();

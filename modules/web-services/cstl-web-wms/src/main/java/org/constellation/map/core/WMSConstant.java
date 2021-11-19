@@ -54,9 +54,11 @@ import org.opengis.util.NameFactory;
 import javax.xml.bind.JAXBElement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
+import org.constellation.ws.MimeType;
 
 /**
  *  WMS Constants
@@ -161,13 +163,32 @@ public final class WMSConstant {
 
     public static final String EXCEPTIONS_INIMAGE = "INIMAGE";
 
+    public static final List<String> SUPPORTED_IMAGE_FORMAT = Collections.unmodifiableList(Arrays.asList(MimeType.IMAGE_GIF,
+                                                                                                         MimeType.IMAGE_PNG,
+                                                                                                         MimeType.IMAGE_JPEG,
+                                                                                                         MimeType.IMAGE_BMP,
+                                                                                                         MimeType.IMAGE_TIFF,
+                                                                                                         MimeType.IMAGE_PPM));
+
+    public static final List<String> SUPPORTED_LEGEND_IMAGE_FORMAT = Collections.unmodifiableList(Arrays.asList(MimeType.IMAGE_GIF,
+                                                                                                         MimeType.IMAGE_PNG,
+                                                                                                         MimeType.IMAGE_JPEG,
+                                                                                                         MimeType.IMAGE_BMP,
+                                                                                                         MimeType.IMAGE_TIFF));
+
+    public static final List<String> NO_TRANSPARENT_FORMAT = Collections.unmodifiableList(Arrays.asList(MimeType.IMAGE_JPEG,
+                                                                                                         MimeType.IMAGE_BMP,
+                                                                                                         MimeType.IMAGE_PPM));
+
     private WMSConstant() {}
 
     public static Request createRequest130(final List<String> gfi_mimetypes){
+
         final DCPType dcp = new DCPType(new HTTP(new Get(new OnlineResource("someurl")), new Post(new OnlineResource("someurl"))));
 
-        final OperationType getCapabilities = new OperationType(Arrays.asList("text/xml", "application/vnd.ogc.wms_xml"), dcp);
-        final OperationType getMap          = new OperationType(Arrays.asList("image/gif","image/png","image/jpeg","image/bmp","image/tiff","image/x-portable-pixmap"), dcp);
+        final OperationType getCapabilities = new OperationType(Arrays.asList(MimeType.TEXT_XML, 
+                                                                              MimeType.APP_WMS_XML), dcp);
+        final OperationType getMap          = new OperationType(SUPPORTED_IMAGE_FORMAT, dcp);
         final OperationType getFeatureInfo  = new OperationType(gfi_mimetypes, dcp);
 
         final Request REQUEST_130 = new Request(getCapabilities, getMap, getFeatureInfo);
@@ -177,8 +198,8 @@ public final class WMSConstant {
          */
         ObjectFactory factory = new ObjectFactory();
 
-        final OperationType describeLayer    = new OperationType(Arrays.asList("text/xml"), dcp);
-        final OperationType getLegendGraphic = new OperationType(Arrays.asList("image/png","image/jpeg","image/gif","image/tiff"), dcp);
+        final OperationType describeLayer    = new OperationType(Arrays.asList(MimeType.TEXT_XML), dcp);
+        final OperationType getLegendGraphic = new OperationType(SUPPORTED_IMAGE_FORMAT, dcp);
 
         REQUEST_130.getExtendedOperation().add(factory.createDescribeLayer(describeLayer));
 
@@ -192,15 +213,16 @@ public final class WMSConstant {
         final org.geotoolkit.wms.xml.v111.HTTP http   = new org.geotoolkit.wms.xml.v111.HTTP(get, post);
         final org.geotoolkit.wms.xml.v111.DCPType dcp = new org.geotoolkit.wms.xml.v111.DCPType(http);
 
-        final GetCapabilities getCapabilities = new GetCapabilities(Arrays.asList("text/xml", "application/vnd.ogc.wms_xml"), dcp);
-        final GetMap getMap                   = new GetMap(Arrays.asList("image/gif","image/png","image/jpeg","image/bmp","image/tiff","image/x-portable-pixmap"), dcp);
+        final GetCapabilities getCapabilities = new GetCapabilities(Arrays.asList(MimeType.TEXT_XML,
+                                                                                  MimeType.APP_WMS_XML), dcp);
+        final GetMap getMap                   = new GetMap(SUPPORTED_IMAGE_FORMAT, dcp);
         final GetFeatureInfo getFeatureInfo   = new GetFeatureInfo(gfi_mimetypes, dcp);
 
          /*
          * Extended Operation
          */
-        final DescribeLayer describeLayer       = new DescribeLayer(Arrays.asList("text/xml"), dcp);
-        final GetLegendGraphic getLegendGraphic = new GetLegendGraphic(Arrays.asList("image/png","image/jpeg","image/gif","image/tiff"), dcp);
+        final DescribeLayer describeLayer       = new DescribeLayer(Arrays.asList(MimeType.TEXT_XML), dcp);
+        final GetLegendGraphic getLegendGraphic = new GetLegendGraphic(SUPPORTED_LEGEND_IMAGE_FORMAT, dcp);
 
         org.geotoolkit.wms.xml.v111.Request REQUEST_111 = new org.geotoolkit.wms.xml.v111.Request(getCapabilities, getMap, getFeatureInfo, describeLayer, getLegendGraphic, null, null);
         return REQUEST_111;

@@ -372,7 +372,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             = "HeIgHt=100&LaYeRs=JS2&FoRmAt=image/png&ReQuEsT=GetMap&StYlEs=&CrS=CRS:84&BbOx=-80.72487831115721,35.2553619492954,-80.70324897766113,35.27035945142482&VeRsIoN=1.3.0&WiDtH=100";
 
     private static final String WMS_GETMAP_BMP
-            = "HeIgHt=100&LaYeRs=Lakes&FoRmAt=image/bmp&ReQuEsT=GetMap&StYlEs=&CrS=CRS:84&BbOx=-0.0025,-0.0025,0.0025,0.0025&VeRsIoN=1.3.0&WiDtH=100";
+            = "HeIgHt=100&LaYeRs=Lakes&FoRmAt=image/bmp&ReQuEsT=GetMap&StYlEs=&CrS=CRS:84&BbOx=-0.0025,-0.0025,0.0025,0.0025&VeRsIoN=1.3.0&WiDtH=100&TRANSPARENT=${transparent}";
 
     private static final String WMS_GETMAP_JPEG
             = "HeIgHt=100&LaYeRs=Lakes&FoRmAt=image/jpeg&ReQuEsT=GetMap&StYlEs=&CrS=CRS:84&BbOx=-0.0025,-0.0025,0.0025,0.0025&VeRsIoN=1.3.0&WiDtH=100";
@@ -381,7 +381,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             = "HeIgHt=100&LaYeRs=Lakes&FoRmAt=image/bmp&ReQuEsT=GetMap&StYlEs=&SrS=CRS:84&BbOx=-0.0025,-0.0025,0.0025,0.0025&VeRsIoN=1.1.1&WiDtH=100";
 
     private static final String WMS_GETMAP_PPM
-            = "HeIgHt=100&LaYeRs=Lakes&FoRmAt=image/x-portable-pixmap&ReQuEsT=GetMap&StYlEs=&CrS=CRS:84&BbOx=-0.0025,-0.0025,0.0025,0.0025&VeRsIoN=1.3.0&WiDtH=100";
+            = "HeIgHt=100&LaYeRs=Lakes&FoRmAt=image/x-portable-pixmap&ReQuEsT=GetMap&StYlEs=&CrS=CRS:84&BbOx=-0.0025,-0.0025,0.0025,0.0025&VeRsIoN=1.3.0&WiDtH=100&TRANSPARENT=${transparent}";
 
     private static final String WMS_GETMAP_GIF
             = "HeIgHt=100&LaYeRs=Lakes&FoRmAt=image/gif&ReQuEsT=GetMap&StYlEs=&CrS=CRS:84&BbOx=-0.0025,-0.0025,0.0025,0.0025&VeRsIoN=1.3.0&WiDtH=100";
@@ -427,7 +427,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "&BBOX=-6887893.4928338025%2C1565430.3392804079%2C-6731350.458905761%2C1721973.3732084488";
 
     private static final String WMS_GETMAP_TIFF_TO_JPEG = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image%2Fjpeg"
-            + "&TRANSPARENT=true&LAYERS=martinique"
+            + "&TRANSPARENT=${transparent}&LAYERS=martinique"
             + "&SLD_VERSION=1.1.0&WIDTH=256&HEIGHT=256&CRS=EPSG%3A3857&STYLES="
             + "&BBOX=-6887893.4928338025%2C1565430.3392804079%2C-6731350.458905761%2C1721973.3732084488";
     
@@ -848,17 +848,34 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     public void testWMSGetMapLakeBmp() throws Exception {
         initLayerList();
         
-        // Creates a valid GetMap url.
+        // Creates a valid GetMap url. with transparent = FALSE
         URL getMapUrl;
         try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_BMP);
+            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_BMP.replace("${transparent}", "FALSE"));
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;
         }
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
-        final BufferedImage image = getImageFromURL(getMapUrl, "image/bmp");
+        BufferedImage image = getImageFromURL(getMapUrl, "image/bmp");
+
+        // Test on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(100, image.getWidth());
+        assertEquals(100, image.getHeight());
+        assertTrue(ImageTesting.getNumColors(image) > 2);
+
+         // Creates a valid GetMap url. with transparent = TRUE
+        try {
+            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_BMP.replace("${transparent}", "TRUE"));
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        image = getImageFromURL(getMapUrl, "image/bmp");
 
         // Test on the returned image.
         assertTrue(!(ImageTesting.isImageEmpty(image)));
@@ -913,17 +930,34 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     public void testWMSGetMapLakePpm() throws Exception {
         initLayerList();
         
-        // Creates a valid GetMap url.
-        final URL getMapUrl;
+        // Creates a valid GetMap url.  with transparent = FALSE
+        URL getMapUrl;
         try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_PPM);
+            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_PPM.replace("${transparent}", "FALSE"));
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;
         }
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
-        final BufferedImage image = getImageFromURL(getMapUrl, "image/x-portable-pixmap");
+        BufferedImage image = getImageFromURL(getMapUrl, "image/x-portable-pixmap");
+
+        // Test on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(100, image.getWidth());
+        assertEquals(100, image.getHeight());
+        assertTrue(ImageTesting.getNumColors(image) > 2);
+
+        // Creates a valid GetMap url.  with transparent = TRUE
+        try {
+            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_PPM.replace("${transparent}", "TRUE"));
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        image = getImageFromURL(getMapUrl, "image/x-portable-pixmap");
 
         // Test on the returned image.
         assertTrue(!(ImageTesting.isImageEmpty(image)));
@@ -1822,8 +1856,26 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             assertEquals(sstChecksumGeo.longValue(), Commons.checksum(image));
         }
 
+        // try JPEG with transparent = FALSE
         try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_TIFF_TO_JPEG);
+            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_TIFF_TO_JPEG.replace("${transparent}", "FALSE"));
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        image = getImageFromURL(getMapUrl, "image/jpeg");
+
+        // Test on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(256, image.getWidth());
+        assertEquals(256, image.getHeight());
+        assertTrue(ImageTesting.getNumColors(image) > 8);
+
+        // try JPEG with transparent = TRUE
+        try {
+            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_TIFF_TO_JPEG.replace("${transparent}", "TRUE"));
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;

@@ -46,6 +46,8 @@ public final class MimeType {
 
     public static final String IMAGE_TIFF      = "image/tiff";
 
+    public static final String IMAGE_PPM       = "image/x-portable-pixmap";
+
     public static final String NETCDF          = "application/x-netcdf";
 
     public static final String MATRIX          = "text/x-matrix";
