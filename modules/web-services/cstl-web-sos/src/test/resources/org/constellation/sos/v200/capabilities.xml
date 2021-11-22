@@ -1,5 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<sos:Capabilities xmlns:swe="http://www.opengis.net/swe/1.0" xmlns:mex="http://standards.iso.org/iso/19115/-3/mex/1.0" xmlns:gts="http://www.isotc211.org/2005/gts" xmlns:mrl="http://standards.iso.org/iso/19115/-3/mrl/1.0" xmlns:gco="http://standards.iso.org/iso/19115/-3/gco/1.0" xmlns:sml="http://www.opengis.net/sensorML/1.0" xmlns:srv="http://standards.iso.org/iso/19115/-3/srv/2.0" xmlns:sos="http://www.opengis.net/sos/2.0" xmlns:ns9="http://www.opengis.net/sos/1.0" xmlns:gex="http://standards.iso.org/iso/19115/-3/gex/1.0" xmlns:mmi="http://standards.iso.org/iso/19115/-3/mmi/1.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:mac="http://standards.iso.org/iso/19115/-3/mac/1.0" xmlns:gmi="http://standards.iso.org/iso/19115/-2/gmi/1.0" xmlns:mdt="http://standards.iso.org/iso/19115/-3/mdt/1.0" xmlns:mas="http://standards.iso.org/iso/19115/-3/mas/1.0" xmlns:om="http://www.opengis.net/om/1.0" xmlns:mcc="http://standards.iso.org/iso/19115/-3/mcc/1.0" xmlns:mdq="http://standards.iso.org/iso/19157/-2/mdq/1.0" xmlns:mri="http://standards.iso.org/iso/19115/-3/mri/1.0" xmlns:ogc="http://www.opengis.net/ogc" xmlns:mrd="http://standards.iso.org/iso/19115/-3/mrd/1.0" xmlns:ism="urn:us:gov:ic:ism:v2" xmlns:cit="http://standards.iso.org/iso/19115/-3/cit/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mco="http://standards.iso.org/iso/19115/-3/mco/1.0" xmlns:gmx="http://www.isotc211.org/2005/gmx" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:mrs="http://standards.iso.org/iso/19115/-3/mrs/1.0" xmlns:srv1="http://www.isotc211.org/2005/srv" xmlns:ns31="http://www.opengis.net/swe/1.0.1" xmlns:sa="http://www.opengis.net/sampling/1.0" xmlns:mpc="http://standards.iso.org/iso/19115/-3/mpc/1.0" xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:mrc="http://standards.iso.org/iso/19115/-3/mrc/1.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:lan="http://standards.iso.org/iso/19115/-3/lan/1.0" xmlns:msr="http://standards.iso.org/iso/19115/-3/msr/1.0" xmlns:ns39="http://www.opengis.net/gml" xmlns:gcx="http://standards.iso.org/iso/19115/-3/gcx/1.0" xmlns:mdb="http://standards.iso.org/iso/19115/-3/mdb/1.0" xmlns:ns42="http://www.opengis.net/fes/2.0" xmlns:ns43="http://www.opengis.net/swes/2.0" xmlns:ns44="http://www.opengis.net/om/2.0" xmlns:ns45="http://www.opengis.net/sampling/2.0" xmlns:ns46="http://www.opengis.net/samplingSpatial/2.0" xmlns:ns47="http://www.w3.org/2005/08/addressing" xmlns:ns48="http://www.opengis.net/swe/2.0" xmlns:ns49="http://docs.oasis-open.org/wsn/t-1" xmlns:ns50="http://www.opengis.net/gml/" xmlns:ns51="http://www.opengis.net/sensorML/1.0.1" version="2.0.0" updateSequence="1580808859600" xsi:schemaLocation="http://www.opengis.net/sos/2.0 http://schemas.opengis.net/sos/2.0/sos.xsd http://www.opengis.net/samplingSpatial/2.0 http://schemas.opengis.net/samplingSpatial/2.0/spatialSamplingFeature.xsd">
+<sos:Capabilities xmlns:swe="http://www.opengis.net/swe/1.0" 
+                  xmlns:sml="http://www.opengis.net/sensorML/1.0" 
+                  xmlns:sos="http://www.opengis.net/sos/2.0"
+                  xmlns:ows="http://www.opengis.net/ows/1.1" 
+                  xmlns:om="http://www.opengis.net/om/1.0"
+                  xmlns:ogc="http://www.opengis.net/ogc"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:xlink="http://www.w3.org/1999/xlink"
+                  xmlns:ns31="http://www.opengis.net/swe/1.0.1" 
+                  xmlns:sa="http://www.opengis.net/sampling/1.0" 
+                  xmlns:gml="http://www.opengis.net/gml/3.2" 
+                  xmlns:ns39="http://www.opengis.net/gml"
+                  xmlns:fes="http://www.opengis.net/fes/2.0" 
+                  xmlns:swes="http://www.opengis.net/swes/2.0" 
+                  xmlns:ns44="http://www.opengis.net/om/2.0"
+                  xmlns:ns45="http://www.opengis.net/sampling/2.0"
+                  xmlns:ns46="http://www.opengis.net/samplingSpatial/2.0" 
+                  xmlns:ns48="http://www.opengis.net/swe/2.0" 
+                  xmlns:ns50="http://www.opengis.net/gml/"
+                  xmlns:ns51="http://www.opengis.net/sensorML/1.0.1" version="2.0.0" updateSequence="1580808859600" xsi:schemaLocation="http://www.opengis.net/sos/2.0 http://schemas.opengis.net/sos/2.0/sos.xsd http://www.opengis.net/samplingSpatial/2.0 http://schemas.opengis.net/samplingSpatial/2.0/spatialSamplingFeature.xsd">
   <ows:ServiceIdentification>
     <ows:Title>Constellation SOS Server</ows:Title>
     <ows:Abstract>Constellation SOS Server</ows:Abstract>
@@ -214,6 +233,7 @@
           <ows:Value>offering-11</ows:Value>
           <ows:Value>offering-12</ows:Value>
           <ows:Value>offering-13</ows:Value>
+          <ows:Value>offering-14</ows:Value>
           <ows:Value>offering-2</ows:Value>
           <ows:Value>offering-3</ows:Value>
           <ows:Value>offering-4</ows:Value>
@@ -238,6 +258,7 @@
           <ows:Value>urn:ogc:object:sensor:GEOM:10</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:12</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:13</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:14</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:2</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:3</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:4</ows:Value>
@@ -392,124 +413,124 @@
     </sos:InsertionCapabilities>
   </sos:extension>
   <sos:filterCapabilities>
-    <ns42:Filter_Capabilities>
-      <ns42:Conformance>
-        <ns42:Constraint name="ImplementsQuery">
+    <fes:Filter_Capabilities>
+      <fes:Conformance>
+        <fes:Constraint name="ImplementsQuery">
           <ows:NoValues/>
           <ows:DefaultValue>false</ows:DefaultValue>
-        </ns42:Constraint>
-        <ns42:Constraint name="ImplementsAdHocQuery">
+        </fes:Constraint>
+        <fes:Constraint name="ImplementsAdHocQuery">
           <ows:NoValues/>
           <ows:DefaultValue>false</ows:DefaultValue>
-        </ns42:Constraint>
-        <ns42:Constraint name="ImplementsFunctions">
+        </fes:Constraint>
+        <fes:Constraint name="ImplementsFunctions">
           <ows:NoValues/>
           <ows:DefaultValue>false</ows:DefaultValue>
-        </ns42:Constraint>
-        <ns42:Constraint name="ImplementsMinStandardFilter">
+        </fes:Constraint>
+        <fes:Constraint name="ImplementsMinStandardFilter">
           <ows:NoValues/>
           <ows:DefaultValue>false</ows:DefaultValue>
-        </ns42:Constraint>
-        <ns42:Constraint name="ImplementsStandardFilter">
+        </fes:Constraint>
+        <fes:Constraint name="ImplementsStandardFilter">
           <ows:NoValues/>
           <ows:DefaultValue>false</ows:DefaultValue>
-        </ns42:Constraint>
-        <ns42:Constraint name="ImplementsMinSpatialFilter">
+        </fes:Constraint>
+        <fes:Constraint name="ImplementsMinSpatialFilter">
           <ows:NoValues/>
           <ows:DefaultValue>true</ows:DefaultValue>
-        </ns42:Constraint>
-        <ns42:Constraint name="ImplementsSpatialFilter">
+        </fes:Constraint>
+        <fes:Constraint name="ImplementsSpatialFilter">
           <ows:NoValues/>
           <ows:DefaultValue>true</ows:DefaultValue>
-        </ns42:Constraint>
-        <ns42:Constraint name="ImplementsMinTemporalFilter">
+        </fes:Constraint>
+        <fes:Constraint name="ImplementsMinTemporalFilter">
           <ows:NoValues/>
           <ows:DefaultValue>true</ows:DefaultValue>
-        </ns42:Constraint>
-        <ns42:Constraint name="ImplementsTemporalFilter">
+        </fes:Constraint>
+        <fes:Constraint name="ImplementsTemporalFilter">
           <ows:NoValues/>
           <ows:DefaultValue>true</ows:DefaultValue>
-        </ns42:Constraint>
-        <ns42:Constraint name="ImplementsVersionNav">
+        </fes:Constraint>
+        <fes:Constraint name="ImplementsVersionNav">
           <ows:NoValues/>
           <ows:DefaultValue>false</ows:DefaultValue>
-        </ns42:Constraint>
-        <ns42:Constraint name="ImplementsSorting">
+        </fes:Constraint>
+        <fes:Constraint name="ImplementsSorting">
           <ows:NoValues/>
           <ows:DefaultValue>false</ows:DefaultValue>
-        </ns42:Constraint>
-        <ns42:Constraint name="ImplementsExtendedOperators">
+        </fes:Constraint>
+        <fes:Constraint name="ImplementsExtendedOperators">
           <ows:NoValues/>
           <ows:DefaultValue>false</ows:DefaultValue>
-        </ns42:Constraint>
-      </ns42:Conformance>
-      <ns42:Scalar_Capabilities>
-        <ns42:LogicalOperators/>
-        <ns42:ComparisonOperators>
-          <ns42:ComparisonOperator name="PropertyIsBetween"/>
-          <ns42:ComparisonOperator name="PropertyIsEqualTo"/>
-          <ns42:ComparisonOperator name="PropertyIsGreaterThan"/>
-          <ns42:ComparisonOperator name="PropertyIsGreaterThanOrEqualTo"/>
-          <ns42:ComparisonOperator name="PropertyIsLessThan"/>
-          <ns42:ComparisonOperator name="PropertyIsLessThanOrEqualTo"/>
-          <ns42:ComparisonOperator name="PropertyIsLike"/>
-          <ns42:ComparisonOperator name="PropertyIsNotEqualTo"/>
-          <ns42:ComparisonOperator name="PropertyIsNull"/>
-        </ns42:ComparisonOperators>
-      </ns42:Scalar_Capabilities>
-      <ns42:Spatial_Capabilities>
-        <ns42:GeometryOperands>
-          <ns42:GeometryOperand name="ns39:Envelope"/>
-        </ns42:GeometryOperands>
-        <ns42:SpatialOperators>
-          <ns42:SpatialOperator name="BBOX"/>
-        </ns42:SpatialOperators>
-      </ns42:Spatial_Capabilities>
-      <ns42:Temporal_Capabilities>
-        <ns42:TemporalOperands>
-          <ns42:TemporalOperand name="ns39:TimeInstant"/>
-          <ns42:TemporalOperand name="ns39:TimePeriod"/>
-        </ns42:TemporalOperands>
-        <ns42:TemporalOperators>
-          <ns42:TemporalOperator name="During"/>
-          <ns42:TemporalOperator name="TEquals"/>
-          <ns42:TemporalOperator name="After"/>
-          <ns42:TemporalOperator name="Before"/>
-        </ns42:TemporalOperators>
-      </ns42:Temporal_Capabilities>
-    </ns42:Filter_Capabilities>
+        </fes:Constraint>
+      </fes:Conformance>
+      <fes:Scalar_Capabilities>
+        <fes:LogicalOperators/>
+        <fes:ComparisonOperators>
+          <fes:ComparisonOperator name="PropertyIsBetween"/>
+          <fes:ComparisonOperator name="PropertyIsEqualTo"/>
+          <fes:ComparisonOperator name="PropertyIsGreaterThan"/>
+          <fes:ComparisonOperator name="PropertyIsGreaterThanOrEqualTo"/>
+          <fes:ComparisonOperator name="PropertyIsLessThan"/>
+          <fes:ComparisonOperator name="PropertyIsLessThanOrEqualTo"/>
+          <fes:ComparisonOperator name="PropertyIsLike"/>
+          <fes:ComparisonOperator name="PropertyIsNotEqualTo"/>
+          <fes:ComparisonOperator name="PropertyIsNull"/>
+        </fes:ComparisonOperators>
+      </fes:Scalar_Capabilities>
+      <fes:Spatial_Capabilities>
+        <fes:GeometryOperands>
+          <fes:GeometryOperand name="ns39:Envelope"/>
+        </fes:GeometryOperands>
+        <fes:SpatialOperators>
+          <fes:SpatialOperator name="BBOX"/>
+        </fes:SpatialOperators>
+      </fes:Spatial_Capabilities>
+      <fes:Temporal_Capabilities>
+        <fes:TemporalOperands>
+          <fes:TemporalOperand name="ns39:TimeInstant"/>
+          <fes:TemporalOperand name="ns39:TimePeriod"/>
+        </fes:TemporalOperands>
+        <fes:TemporalOperators>
+          <fes:TemporalOperator name="During"/>
+          <fes:TemporalOperator name="TEquals"/>
+          <fes:TemporalOperator name="After"/>
+          <fes:TemporalOperator name="Before"/>
+        </fes:TemporalOperators>
+      </fes:Temporal_Capabilities>
+    </fes:Filter_Capabilities>
   </sos:filterCapabilities>
   <sos:contents>
     <sos:Contents>
-      <ns43:offering>
-        <sos:ObservationOffering ns43:id="offering-1">
-          <ns43:identifier>offering-1</ns43:identifier>
-          <ns43:name>offering-1</ns43:name>
-          <ns43:procedure>urn:ogc:object:sensor:GEOM:1</ns43:procedure>
-          <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</ns43:procedureDescriptionFormat>
-          <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</ns43:procedureDescriptionFormat>
+      <swes:offering>
+        <sos:ObservationOffering swes:id="offering-1">
+          <swes:identifier>offering-1</swes:identifier>
+          <swes:name>offering-1</swes:name>
+          <swes:procedure>urn:ogc:object:sensor:GEOM:1</swes:procedure>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</swes:procedureDescriptionFormat>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</swes:procedureDescriptionFormat>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
           <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
         </sos:ObservationOffering>
-      </ns43:offering>
-      <ns43:offering>
-        <sos:ObservationOffering ns43:id="offering-10">
-          <ns43:identifier>offering-10</ns43:identifier>
-          <ns43:name>offering-10</ns43:name>
-          <ns43:procedure>urn:ogc:object:sensor:GEOM:10</ns43:procedure>
-          <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</ns43:procedureDescriptionFormat>
-          <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</ns43:procedureDescriptionFormat>
-          <ns43:observableProperty>depth</ns43:observableProperty>
-          <ns43:relatedFeature>
-            <ns43:FeatureRelationship>
-              <ns43:target xlink:href="station-001"/>
-            </ns43:FeatureRelationship>
-          </ns43:relatedFeature>
-          <ns43:relatedFeature>
-            <ns43:FeatureRelationship>
-              <ns43:target xlink:href="station-002"/>
-            </ns43:FeatureRelationship>
-          </ns43:relatedFeature>
+      </swes:offering>
+      <swes:offering>
+        <sos:ObservationOffering swes:id="offering-10">
+          <swes:identifier>offering-10</swes:identifier>
+          <swes:name>offering-10</swes:name>
+          <swes:procedure>urn:ogc:object:sensor:GEOM:10</swes:procedure>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</swes:procedureDescriptionFormat>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</swes:procedureDescriptionFormat>
+          <swes:observableProperty>depth</swes:observableProperty>
+          <swes:relatedFeature>
+            <swes:FeatureRelationship>
+              <swes:target xlink:href="station-001"/>
+            </swes:FeatureRelationship>
+          </swes:relatedFeature>
+          <swes:relatedFeature>
+            <swes:FeatureRelationship>
+              <swes:target xlink:href="station-002"/>
+            </swes:FeatureRelationship>
+          </swes:relatedFeature>
           <sos:phenomenonTime>
             <gml:TimePeriod gml:id="time-offering-10">
               <gml:beginPosition>2009-05-01T13:47:00.000</gml:beginPosition>
@@ -519,20 +540,20 @@
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
           <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
         </sos:ObservationOffering>
-      </ns43:offering>
-      <ns43:offering>
-        <sos:ObservationOffering ns43:id="offering-11">
-          <ns43:identifier>offering-11</ns43:identifier>
-          <ns43:name>offering-11</ns43:name>
-          <ns43:procedure>urn:ogc:object:sensor:GEOM:test-id</ns43:procedure>
-          <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</ns43:procedureDescriptionFormat>
-          <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</ns43:procedureDescriptionFormat>
-          <ns43:observableProperty>depth</ns43:observableProperty>
-          <ns43:relatedFeature>
-            <ns43:FeatureRelationship>
-              <ns43:target xlink:href="station-001"/>
-            </ns43:FeatureRelationship>
-          </ns43:relatedFeature>
+      </swes:offering>
+      <swes:offering>
+        <sos:ObservationOffering swes:id="offering-11">
+          <swes:identifier>offering-11</swes:identifier>
+          <swes:name>offering-11</swes:name>
+          <swes:procedure>urn:ogc:object:sensor:GEOM:test-id</swes:procedure>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</swes:procedureDescriptionFormat>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</swes:procedureDescriptionFormat>
+          <swes:observableProperty>depth</swes:observableProperty>
+          <swes:relatedFeature>
+            <swes:FeatureRelationship>
+              <swes:target xlink:href="station-001"/>
+            </swes:FeatureRelationship>
+          </swes:relatedFeature>
           <sos:phenomenonTime>
             <gml:TimePeriod gml:id="time-offering-11">
               <gml:beginPosition>2009-05-01T13:47:00.000</gml:beginPosition>
@@ -542,23 +563,23 @@
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
           <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
         </sos:ObservationOffering>
-      </ns43:offering>
-      <ns43:offering>
-        <sos:ObservationOffering ns43:id="offering-12">
-          <ns43:identifier>offering-12</ns43:identifier>
-          <ns43:name>offering-12</ns43:name>
-          <ns43:procedure>urn:ogc:object:sensor:GEOM:12</ns43:procedure>
-          <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</ns43:procedureDescriptionFormat>
-          <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</ns43:procedureDescriptionFormat>
-          <ns43:observableProperty>aggregatePhenomenon-2</ns43:observableProperty>
-          <ns43:observableProperty>depth</ns43:observableProperty>
-          <ns43:observableProperty>salinity</ns43:observableProperty>
-          <ns43:observableProperty>temperature</ns43:observableProperty>
-          <ns43:relatedFeature>
-            <ns43:FeatureRelationship>
-              <ns43:target xlink:href="station-001"/>
-            </ns43:FeatureRelationship>
-          </ns43:relatedFeature>
+      </swes:offering>
+      <swes:offering>
+        <sos:ObservationOffering swes:id="offering-12">
+          <swes:identifier>offering-12</swes:identifier>
+          <swes:name>offering-12</swes:name>
+          <swes:procedure>urn:ogc:object:sensor:GEOM:12</swes:procedure>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</swes:procedureDescriptionFormat>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</swes:procedureDescriptionFormat>
+          <swes:observableProperty>aggregatePhenomenon-2</swes:observableProperty>
+          <swes:observableProperty>depth</swes:observableProperty>
+          <swes:observableProperty>salinity</swes:observableProperty>
+          <swes:observableProperty>temperature</swes:observableProperty>
+          <swes:relatedFeature>
+            <swes:FeatureRelationship>
+              <swes:target xlink:href="station-001"/>
+            </swes:FeatureRelationship>
+          </swes:relatedFeature>
           <sos:phenomenonTime>
             <gml:TimePeriod gml:id="time-offering-12">
               <gml:beginPosition>2000-12-01</gml:beginPosition>
@@ -568,69 +589,96 @@
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
           <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
         </sos:ObservationOffering>
-      </ns43:offering>
-      <ns43:offering>
-        <sos:ObservationOffering ns43:id="offering-13">
-          <ns43:identifier>offering-13</ns43:identifier>
-          <ns43:name>offering-13</ns43:name>
-          <ns43:procedure>urn:ogc:object:sensor:GEOM:13</ns43:procedure>
-          <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</ns43:procedureDescriptionFormat>
-          <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</ns43:procedureDescriptionFormat>
-          <ns43:observableProperty>aggregatePhenomenon</ns43:observableProperty>
-          <ns43:observableProperty>aggregatePhenomenon-2</ns43:observableProperty>
-          <ns43:observableProperty>depth</ns43:observableProperty>
-          <ns43:observableProperty>salinity</ns43:observableProperty>
-          <ns43:observableProperty>temperature</ns43:observableProperty>
-          <ns43:relatedFeature>
-            <ns43:FeatureRelationship>
-              <ns43:target xlink:href="station-002"/>
-            </ns43:FeatureRelationship>
-          </ns43:relatedFeature>
+      </swes:offering>
+      <swes:offering>
+        <sos:ObservationOffering swes:id="offering-13">
+          <swes:identifier>offering-13</swes:identifier>
+          <swes:name>offering-13</swes:name>
+          <swes:procedure>urn:ogc:object:sensor:GEOM:13</swes:procedure>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</swes:procedureDescriptionFormat>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</swes:procedureDescriptionFormat>
+          <swes:observableProperty>aggregatePhenomenon</swes:observableProperty>
+          <swes:observableProperty>aggregatePhenomenon-2</swes:observableProperty>
+          <swes:observableProperty>depth</swes:observableProperty>
+          <swes:observableProperty>salinity</swes:observableProperty>
+          <swes:observableProperty>temperature</swes:observableProperty>
+          <swes:relatedFeature>
+            <swes:FeatureRelationship>
+              <swes:target xlink:href="station-002"/>
+            </swes:FeatureRelationship>
+          </swes:relatedFeature>
           <sos:phenomenonTime>
             <gml:TimePeriod gml:id="time-offering-13">
               <gml:beginPosition>2000-01-01</gml:beginPosition>
-              <gml:endPosition>2001-01-01</gml:endPosition>
-            </gml:TimePeriod>
-          </sos:phenomenonTime>
-          <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
-          <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
-        </sos:ObservationOffering>
-      </ns43:offering>
-      <ns43:offering>
-        <sos:ObservationOffering ns43:id="offering-2">
-          <ns43:identifier>offering-2</ns43:identifier>
-          <ns43:name>offering-2</ns43:name>
-          <ns43:procedure>urn:ogc:object:sensor:GEOM:2</ns43:procedure>
-          <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</ns43:procedureDescriptionFormat>
-          <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</ns43:procedureDescriptionFormat>
-          <ns43:observableProperty>aggregatePhenomenon</ns43:observableProperty>
-          <ns43:observableProperty>depth</ns43:observableProperty>
-          <ns43:observableProperty>temperature</ns43:observableProperty>
-          <sos:phenomenonTime>
-            <gml:TimePeriod gml:id="time-offering-2">
-              <gml:beginPosition>2001-01-01</gml:beginPosition>
               <gml:endPosition indeterminatePosition="now"></gml:endPosition>
             </gml:TimePeriod>
           </sos:phenomenonTime>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
           <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
         </sos:ObservationOffering>
-      </ns43:offering>
-      <ns43:offering>
-        <sos:ObservationOffering ns43:id="offering-3">
-          <ns43:identifier>offering-3</ns43:identifier>
-          <ns43:name>offering-3</ns43:name>
-          <ns43:procedure>urn:ogc:object:sensor:GEOM:3</ns43:procedure>
-          <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</ns43:procedureDescriptionFormat>
-          <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</ns43:procedureDescriptionFormat>
-          <ns43:observableProperty>aggregatePhenomenon</ns43:observableProperty>
-          <ns43:observableProperty>depth</ns43:observableProperty>
-          <ns43:observableProperty>temperature</ns43:observableProperty>
-          <ns43:relatedFeature>
-            <ns43:FeatureRelationship>
-              <ns43:target xlink:href="station-001"/>
-            </ns43:FeatureRelationship>
-          </ns43:relatedFeature>
+      </swes:offering>
+      <swes:offering>
+        <sos:ObservationOffering swes:id="offering-14">
+          <swes:identifier>offering-14</swes:identifier>
+          <swes:name>offering-14</swes:name>
+          <swes:procedure>urn:ogc:object:sensor:GEOM:14</swes:procedure>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</swes:procedureDescriptionFormat>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</swes:procedureDescriptionFormat>
+          <swes:observableProperty>aggregatePhenomenon</swes:observableProperty>
+          <swes:observableProperty>aggregatePhenomenon-2</swes:observableProperty>
+          <swes:observableProperty>depth</swes:observableProperty>
+          <swes:observableProperty>salinity</swes:observableProperty>
+          <swes:observableProperty>temperature</swes:observableProperty>
+          <swes:relatedFeature>
+            <swes:FeatureRelationship>
+              <swes:target xlink:href="station-002"/>
+            </swes:FeatureRelationship>
+          </swes:relatedFeature>
+          <sos:phenomenonTime>
+            <gml:TimePeriod gml:id="time-offering-14">
+              <gml:beginPosition>2001-01-01</gml:beginPosition>
+              <gml:endPosition>2000-12-24</gml:endPosition>
+            </gml:TimePeriod>
+          </sos:phenomenonTime>
+          <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
+          <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
+        </sos:ObservationOffering>
+      </swes:offering>
+      <swes:offering>
+        <sos:ObservationOffering swes:id="offering-2">
+          <swes:identifier>offering-2</swes:identifier>
+          <swes:name>offering-2</swes:name>
+          <swes:procedure>urn:ogc:object:sensor:GEOM:2</swes:procedure>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</swes:procedureDescriptionFormat>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</swes:procedureDescriptionFormat>
+          <swes:observableProperty>aggregatePhenomenon</swes:observableProperty>
+          <swes:observableProperty>depth</swes:observableProperty>
+          <swes:observableProperty>temperature</swes:observableProperty>
+          <sos:phenomenonTime>
+            <gml:TimePeriod gml:id="time-offering-2">
+              <gml:beginPosition>2001-01-01</gml:beginPosition>
+              <gml:endPosition>2000-12-22</gml:endPosition>
+            </gml:TimePeriod>
+          </sos:phenomenonTime>
+          <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
+          <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
+        </sos:ObservationOffering>
+      </swes:offering>
+      <swes:offering>
+        <sos:ObservationOffering swes:id="offering-3">
+          <swes:identifier>offering-3</swes:identifier>
+          <swes:name>offering-3</swes:name>
+          <swes:procedure>urn:ogc:object:sensor:GEOM:3</swes:procedure>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</swes:procedureDescriptionFormat>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</swes:procedureDescriptionFormat>
+          <swes:observableProperty>aggregatePhenomenon</swes:observableProperty>
+          <swes:observableProperty>depth</swes:observableProperty>
+          <swes:observableProperty>temperature</swes:observableProperty>
+          <swes:relatedFeature>
+            <swes:FeatureRelationship>
+              <swes:target xlink:href="station-001"/>
+            </swes:FeatureRelationship>
+          </swes:relatedFeature>
           <sos:phenomenonTime>
             <gml:TimePeriod gml:id="time-offering-3">
               <gml:beginPosition>2007-05-01T02:59:00.000</gml:beginPosition>
@@ -640,22 +688,22 @@
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
           <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
         </sos:ObservationOffering>
-      </ns43:offering>
-      <ns43:offering>
-        <sos:ObservationOffering ns43:id="offering-4">
-          <ns43:identifier>offering-4</ns43:identifier>
-          <ns43:name>offering-4</ns43:name>
-          <ns43:procedure>urn:ogc:object:sensor:GEOM:4</ns43:procedure>
-          <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</ns43:procedureDescriptionFormat>
-          <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</ns43:procedureDescriptionFormat>
-          <ns43:observableProperty>aggregatePhenomenon</ns43:observableProperty>
-          <ns43:observableProperty>depth</ns43:observableProperty>
-          <ns43:observableProperty>temperature</ns43:observableProperty>
-          <ns43:relatedFeature>
-            <ns43:FeatureRelationship>
-              <ns43:target xlink:href="station-001"/>
-            </ns43:FeatureRelationship>
-          </ns43:relatedFeature>
+      </swes:offering>
+      <swes:offering>
+        <sos:ObservationOffering swes:id="offering-4">
+          <swes:identifier>offering-4</swes:identifier>
+          <swes:name>offering-4</swes:name>
+          <swes:procedure>urn:ogc:object:sensor:GEOM:4</swes:procedure>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</swes:procedureDescriptionFormat>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</swes:procedureDescriptionFormat>
+          <swes:observableProperty>aggregatePhenomenon</swes:observableProperty>
+          <swes:observableProperty>depth</swes:observableProperty>
+          <swes:observableProperty>temperature</swes:observableProperty>
+          <swes:relatedFeature>
+            <swes:FeatureRelationship>
+              <swes:target xlink:href="station-001"/>
+            </swes:FeatureRelationship>
+          </swes:relatedFeature>
           <sos:phenomenonTime>
             <gml:TimePeriod gml:id="time-offering-4">
               <gml:beginPosition>2007-05-01T12:59:00.000</gml:beginPosition>
@@ -665,22 +713,22 @@
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
           <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
         </sos:ObservationOffering>
-      </ns43:offering>
-      <ns43:offering>
-        <sos:ObservationOffering ns43:id="offering-5">
-          <ns43:identifier>offering-5</ns43:identifier>
-          <ns43:name>offering-5</ns43:name>
-          <ns43:procedure>urn:ogc:object:sensor:GEOM:test-1</ns43:procedure>
-          <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</ns43:procedureDescriptionFormat>
-          <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</ns43:procedureDescriptionFormat>
-          <ns43:observableProperty>aggregatePhenomenon</ns43:observableProperty>
-          <ns43:observableProperty>depth</ns43:observableProperty>
-          <ns43:observableProperty>temperature</ns43:observableProperty>
-          <ns43:relatedFeature>
-            <ns43:FeatureRelationship>
-              <ns43:target xlink:href="station-002"/>
-            </ns43:FeatureRelationship>
-          </ns43:relatedFeature>
+      </swes:offering>
+      <swes:offering>
+        <sos:ObservationOffering swes:id="offering-5">
+          <swes:identifier>offering-5</swes:identifier>
+          <swes:name>offering-5</swes:name>
+          <swes:procedure>urn:ogc:object:sensor:GEOM:test-1</swes:procedure>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</swes:procedureDescriptionFormat>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</swes:procedureDescriptionFormat>
+          <swes:observableProperty>aggregatePhenomenon</swes:observableProperty>
+          <swes:observableProperty>depth</swes:observableProperty>
+          <swes:observableProperty>temperature</swes:observableProperty>
+          <swes:relatedFeature>
+            <swes:FeatureRelationship>
+              <swes:target xlink:href="station-002"/>
+            </swes:FeatureRelationship>
+          </swes:relatedFeature>
           <sos:phenomenonTime>
             <gml:TimePeriod gml:id="time-offering-5">
               <gml:beginPosition>2007-05-01T12:59:00.000</gml:beginPosition>
@@ -690,45 +738,51 @@
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
           <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
         </sos:ObservationOffering>
-      </ns43:offering>
-      <ns43:offering>
-        <sos:ObservationOffering ns43:id="offering-6">
-          <ns43:identifier>offering-6</ns43:identifier>
-          <ns43:name>offering-6</ns43:name>
-          <ns43:procedure>urn:ogc:object:sensor:GEOM:6</ns43:procedure>
-          <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</ns43:procedureDescriptionFormat>
-          <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</ns43:procedureDescriptionFormat>
+      </swes:offering>
+      <swes:offering>
+        <sos:ObservationOffering swes:id="offering-6">
+          <swes:identifier>offering-6</swes:identifier>
+          <swes:name>offering-6</swes:name>
+          <swes:procedure>urn:ogc:object:sensor:GEOM:6</swes:procedure>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</swes:procedureDescriptionFormat>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</swes:procedureDescriptionFormat>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
           <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
         </sos:ObservationOffering>
-      </ns43:offering>
-      <ns43:offering>
-        <sos:ObservationOffering ns43:id="offering-7">
-          <ns43:identifier>offering-7</ns43:identifier>
-          <ns43:name>offering-7</ns43:name>
-          <ns43:procedure>urn:ogc:object:sensor:GEOM:7</ns43:procedure>
-          <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</ns43:procedureDescriptionFormat>
-          <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</ns43:procedureDescriptionFormat>
-          <ns43:observableProperty>temperature</ns43:observableProperty>
+      </swes:offering>
+      <swes:offering>
+        <sos:ObservationOffering swes:id="offering-7">
+          <swes:identifier>offering-7</swes:identifier>
+          <swes:name>offering-7</swes:name>
+          <swes:procedure>urn:ogc:object:sensor:GEOM:7</swes:procedure>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</swes:procedureDescriptionFormat>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</swes:procedureDescriptionFormat>
+          <swes:observableProperty>temperature</swes:observableProperty>
+          <sos:phenomenonTime>
+            <gml:TimePeriod gml:id="time-offering-7">
+              <gml:beginPosition>2007-05-01T16:59:00.000</gml:beginPosition>
+              <gml:endPosition indeterminatePosition="now"></gml:endPosition>
+            </gml:TimePeriod>
+          </sos:phenomenonTime>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
           <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
         </sos:ObservationOffering>
-      </ns43:offering>
-      <ns43:offering>
-        <sos:ObservationOffering ns43:id="offering-8">
-          <ns43:identifier>offering-8</ns43:identifier>
-          <ns43:name>offering-8</ns43:name>
-          <ns43:procedure>urn:ogc:object:sensor:GEOM:8</ns43:procedure>
-          <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</ns43:procedureDescriptionFormat>
-          <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</ns43:procedureDescriptionFormat>
-          <ns43:observableProperty>aggregatePhenomenon</ns43:observableProperty>
-          <ns43:observableProperty>depth</ns43:observableProperty>
-          <ns43:observableProperty>temperature</ns43:observableProperty>
-          <ns43:relatedFeature>
-            <ns43:FeatureRelationship>
-              <ns43:target xlink:href="station-006"/>
-            </ns43:FeatureRelationship>
-          </ns43:relatedFeature>
+      </swes:offering>
+      <swes:offering>
+        <sos:ObservationOffering swes:id="offering-8">
+          <swes:identifier>offering-8</swes:identifier>
+          <swes:name>offering-8</swes:name>
+          <swes:procedure>urn:ogc:object:sensor:GEOM:8</swes:procedure>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</swes:procedureDescriptionFormat>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</swes:procedureDescriptionFormat>
+          <swes:observableProperty>aggregatePhenomenon</swes:observableProperty>
+          <swes:observableProperty>depth</swes:observableProperty>
+          <swes:observableProperty>temperature</swes:observableProperty>
+          <swes:relatedFeature>
+            <swes:FeatureRelationship>
+              <swes:target xlink:href="station-006"/>
+            </swes:FeatureRelationship>
+          </swes:relatedFeature>
           <sos:phenomenonTime>
             <gml:TimePeriod gml:id="time-offering-8">
               <gml:beginPosition>2007-05-01T12:59:00.000</gml:beginPosition>
@@ -738,30 +792,30 @@
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
           <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
         </sos:ObservationOffering>
-      </ns43:offering>
-      <ns43:offering>
-        <sos:ObservationOffering ns43:id="offering-9">
-          <ns43:identifier>offering-9</ns43:identifier>
-          <ns43:name>offering-9</ns43:name>
-          <ns43:procedure>urn:ogc:object:sensor:GEOM:9</ns43:procedure>
-          <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</ns43:procedureDescriptionFormat>
-          <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</ns43:procedureDescriptionFormat>
-          <ns43:observableProperty>depth</ns43:observableProperty>
-          <ns43:relatedFeature>
-            <ns43:FeatureRelationship>
-              <ns43:target xlink:href="station-006"/>
-            </ns43:FeatureRelationship>
-          </ns43:relatedFeature>
+      </swes:offering>
+      <swes:offering>
+        <sos:ObservationOffering swes:id="offering-9">
+          <swes:identifier>offering-9</swes:identifier>
+          <swes:name>offering-9</swes:name>
+          <swes:procedure>urn:ogc:object:sensor:GEOM:9</swes:procedure>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</swes:procedureDescriptionFormat>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</swes:procedureDescriptionFormat>
+          <swes:observableProperty>depth</swes:observableProperty>
+          <swes:relatedFeature>
+            <swes:FeatureRelationship>
+              <swes:target xlink:href="station-006"/>
+            </swes:FeatureRelationship>
+          </swes:relatedFeature>
           <sos:phenomenonTime>
             <gml:TimePeriod gml:id="time-offering-9">
               <gml:beginPosition>2009-05-01T13:47:00.000</gml:beginPosition>
-              <gml:endPosition>2009-05-01T13:47:00.000</gml:endPosition>
+              <gml:endPosition indeterminatePosition="now"></gml:endPosition>
             </gml:TimePeriod>
           </sos:phenomenonTime>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
           <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
         </sos:ObservationOffering>
-      </ns43:offering>
+      </swes:offering>
     </sos:Contents>
   </sos:contents>
 </sos:Capabilities>

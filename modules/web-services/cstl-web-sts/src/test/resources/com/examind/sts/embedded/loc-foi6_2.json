@@ -1,122 +1,139 @@
 {
-  "value" : [ {
-    "name" : "urn:ogc:object:sensor:GEOM:10",
-    "description" : "",
-    "encodingType" : "application/vnd.geo+json",
-    "location" : {
-      "type" : "Feature",
-      "geometry" : {
-        "type" : "Point",
-        "type" : "Point",
-        "coordinates" : [ 42.38798858151254, -4.144984627896042 ]
-      },
-      "properties" : { }
-    },
-    "@iot.id" : "urn:ogc:object:sensor:GEOM:10",
-    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:10)",
-    "Things@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:10)/Things",
-    "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:10)/HistoricalLocations"
-  }, {
-    "name" : "urn:ogc:object:sensor:GEOM:13",
-    "description" : "",
-    "encodingType" : "application/vnd.geo+json",
-    "location" : {
-      "type" : "Feature",
-      "geometry" : {
-        "type" : "Point",
-        "type" : "Point",
-        "coordinates" : [ 40.0, -3.0 ]
-      },
-      "properties" : { }
-    },
-    "@iot.id" : "urn:ogc:object:sensor:GEOM:13",
-    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:13)",
-    "Things@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:13)/Things",
-    "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:13)/HistoricalLocations"
-  }, {
-    "name" : "urn:ogc:object:sensor:GEOM:2",
-    "description" : "",
-    "encodingType" : "application/vnd.geo+json",
-    "location" : {
-      "type" : "Feature",
-      "geometry" : {
-        "type" : "Point",
-        "type" : "Point",
-        "coordinates" : [ 42.00000000005154, -3.9999999934153996 ]
-      },
-      "properties" : { }
-    },
-    "@iot.id" : "urn:ogc:object:sensor:GEOM:2",
-    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:2)",
-    "Things@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:2)/Things",
-    "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:2)/HistoricalLocations"
-  }, {
-    "name" : "urn:ogc:object:sensor:GEOM:7",
-    "description" : "",
-    "encodingType" : "application/vnd.geo+json",
-    "location" : {
-      "type" : "Feature",
-      "geometry" : {
-        "type" : "Point",
-        "type" : "Point",
-        "coordinates" : [ 12.00000000309688, 20.00000000001678 ]
-      },
-      "properties" : { }
-    },
-    "@iot.id" : "urn:ogc:object:sensor:GEOM:7",
-    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:7)",
-    "Things@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:7)/Things",
-    "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:7)/HistoricalLocations"
-  }, {
-    "name" : "urn:ogc:object:sensor:GEOM:8",
-    "description" : "",
-    "encodingType" : "application/vnd.geo+json",
-    "location" : {
-      "type" : "Feature",
-      "geometry" : {
-        "type" : "Point",
-        "type" : "Point",
-        "coordinates" : [ 42.38798858151254, -4.144984627896042 ]
-      },
-      "properties" : { }
-    },
-    "@iot.id" : "urn:ogc:object:sensor:GEOM:8",
-    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:8)",
-    "Things@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:8)/Things",
-    "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:8)/HistoricalLocations"
-  }, {
-    "name" : "urn:ogc:object:sensor:GEOM:9",
-    "description" : "",
-    "encodingType" : "application/vnd.geo+json",
-    "location" : {
-      "type" : "Feature",
-      "geometry" : {
-        "type" : "Point",
-        "type" : "Point",
-        "coordinates" : [ 42.38798858151254, -4.144984627896042 ]
-      },
-      "properties" : { }
-    },
-    "@iot.id" : "urn:ogc:object:sensor:GEOM:9",
-    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:9)",
-    "Things@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:9)/Things",
-    "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:9)/HistoricalLocations"
-  }, {
-    "name" : "urn:ogc:object:sensor:GEOM:test-1",
-    "description" : "",
-    "encodingType" : "application/vnd.geo+json",
-    "location" : {
-      "type" : "Feature",
-      "geometry" : {
-        "type" : "Point",
-        "type" : "Point",
-        "coordinates" : [ 5.0, 10.0 ]
-      },
-      "properties" : { }
-    },
-    "@iot.id" : "urn:ogc:object:sensor:GEOM:test-1",
-    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:test-1)",
-    "Things@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:test-1)/Things",
-    "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:test-1)/HistoricalLocations"
-  } ]
+    "value": [{
+            "name": "urn:ogc:object:sensor:GEOM:10",
+            "description": "",
+            "encodingType": "application/vnd.geo+json",
+            "location": {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "type": "Point",
+                    "coordinates": [42.38798858151254, -4.144984627896042]
+                },
+                "properties": {}
+            },
+            "@iot.id": "urn:ogc:object:sensor:GEOM:10",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:10)",
+            "Things@iot.navigationLink": "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:10)/Things",
+            "HistoricalLocations@iot.navigationLink": "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:10)/HistoricalLocations"
+        }, {
+            "name": "urn:ogc:object:sensor:GEOM:13",
+            "description": "",
+            "encodingType": "application/vnd.geo+json",
+            "location": {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "type": "Point",
+                    "coordinates": [40.0, -3.0]
+                },
+                "properties": {}
+            },
+            "@iot.id": "urn:ogc:object:sensor:GEOM:13",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:13)",
+            "Things@iot.navigationLink": "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:13)/Things",
+            "HistoricalLocations@iot.navigationLink": "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:13)/HistoricalLocations"
+        }, {
+            "name": "urn:ogc:object:sensor:GEOM:14",
+            "description": "",
+            "encodingType": "application/vnd.geo+json",
+            "location": {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "type": "Point",
+                    "coordinates": [42.00000000005154, -3.9999999934153996]
+                },
+                "properties": {}
+            },
+            "@iot.id": "urn:ogc:object:sensor:GEOM:14",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:14)",
+            "Things@iot.navigationLink": "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:14)/Things",
+            "HistoricalLocations@iot.navigationLink": "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:14)/HistoricalLocations"
+        }, {
+            "name": "urn:ogc:object:sensor:GEOM:2",
+            "description": "",
+            "encodingType": "application/vnd.geo+json",
+            "location": {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "type": "Point",
+                    "coordinates": [42.00000000005154, -3.9999999934153996]
+                },
+                "properties": {}
+            },
+            "@iot.id": "urn:ogc:object:sensor:GEOM:2",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:2)",
+            "Things@iot.navigationLink": "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:2)/Things",
+            "HistoricalLocations@iot.navigationLink": "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:2)/HistoricalLocations"
+        }, {
+            "name": "urn:ogc:object:sensor:GEOM:7",
+            "description": "",
+            "encodingType": "application/vnd.geo+json",
+            "location": {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "type": "Point",
+                    "coordinates": [12.00000000309688, 20.00000000001678]
+                },
+                "properties": {}
+            },
+            "@iot.id": "urn:ogc:object:sensor:GEOM:7",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:7)",
+            "Things@iot.navigationLink": "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:7)/Things",
+            "HistoricalLocations@iot.navigationLink": "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:7)/HistoricalLocations"
+        }, {
+            "name": "urn:ogc:object:sensor:GEOM:8",
+            "description": "",
+            "encodingType": "application/vnd.geo+json",
+            "location": {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "type": "Point",
+                    "coordinates": [42.38798858151254, -4.144984627896042]
+                },
+                "properties": {}
+            },
+            "@iot.id": "urn:ogc:object:sensor:GEOM:8",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:8)",
+            "Things@iot.navigationLink": "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:8)/Things",
+            "HistoricalLocations@iot.navigationLink": "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:8)/HistoricalLocations"
+        }, {
+            "name": "urn:ogc:object:sensor:GEOM:9",
+            "description": "",
+            "encodingType": "application/vnd.geo+json",
+            "location": {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "type": "Point",
+                    "coordinates": [42.38798858151254, -4.144984627896042]
+                },
+                "properties": {}
+            },
+            "@iot.id": "urn:ogc:object:sensor:GEOM:9",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:9)",
+            "Things@iot.navigationLink": "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:9)/Things",
+            "HistoricalLocations@iot.navigationLink": "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:9)/HistoricalLocations"
+        }, {
+            "name": "urn:ogc:object:sensor:GEOM:test-1",
+            "description": "",
+            "encodingType": "application/vnd.geo+json",
+            "location": {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "type": "Point",
+                    "coordinates": [5.0, 10.0]
+                },
+                "properties": {}
+            },
+            "@iot.id": "urn:ogc:object:sensor:GEOM:test-1",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:test-1)",
+            "Things@iot.navigationLink": "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:test-1)/Things",
+            "HistoricalLocations@iot.navigationLink": "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:test-1)/HistoricalLocations"
+        }]
 }

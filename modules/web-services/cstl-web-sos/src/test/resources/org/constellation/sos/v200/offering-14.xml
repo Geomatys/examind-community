@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sos:ObservationOffering gml:id="offering-allSensor"
+                         xmlns:sos="http://www.opengis.net/sos/2.0"
+                         xmlns:swes="http://www.opengis.net/swes/2.0"
+                         xmlns:xlink="http://www.w3.org/1999/xlink"
+                         xmlns:swe="http://www.opengis.net/swe/1.0.1"
+                         xmlns:gml="http://www.opengis.net/gml"
+                         xmlns:om="http://www.opengis.net/om/1.0"
+                         swes:id="offering-12">
+    <swes:identifier>offering-14</swes:identifier>
+    <swes:name>offering-14</swes:name>
+    <swes:procedure>urn:ogc:object:sensor:GEOM:14</swes:procedure>
+    <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</swes:procedureDescriptionFormat>
+    <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</swes:procedureDescriptionFormat>
+    <swes:observableProperty>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon</swes:observableProperty>
+    <swes:observableProperty>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2</swes:observableProperty>
+    <swes:observableProperty>urn:ogc:def:phenomenon:GEOM:depth</swes:observableProperty>
+    <swes:observableProperty>urn:ogc:def:phenomenon:GEOM:salinity</swes:observableProperty>
+    <swes:observableProperty>urn:ogc:def:phenomenon:GEOM:temperature</swes:observableProperty>
+    <swes:relatedFeature>
+        <swes:FeatureRelationship>
+            <swes:target xlink:href="station-002"/>
+        </swes:FeatureRelationship>
+    </swes:relatedFeature>
+    <sos:phenomenonTime>
+        <gml:TimePeriod gml:id="time-offering-14">
+            <gml:beginPosition>2000-01-01</gml:beginPosition>
+            <gml:endPosition>2000-12-24</gml:endPosition>
+        </gml:TimePeriod>
+    </sos:phenomenonTime>
+    <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
+    <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
+</sos:ObservationOffering>

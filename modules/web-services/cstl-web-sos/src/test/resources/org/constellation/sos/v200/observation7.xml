@@ -13,7 +13,7 @@
     <om:phenomenonTime>
         <gml:TimePeriod gml:id="time-901">
             <gml:beginPosition>2009-05-01T13:47:00.0</gml:beginPosition>
-            <gml:endPosition>2009-05-01T13:47:00.0</gml:endPosition>
+            <gml:endPosition indeterminatePosition="now"></gml:endPosition>
         </gml:TimePeriod>
     </om:phenomenonTime>
     <om:resultTime/>

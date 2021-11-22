@@ -1,13 +1,13 @@
 {
-  "value" : [{
-  "components" : [ "id", "phenomenonTime", "resultTime", "result" ],
-  "dataArray" : [ [ "urn:ogc:object:sensor:GEOM:2-dec-0", "2000-12-31T23:00:00Z", "2000-12-31T23:00:00Z", [ 12, 18.5 ] ],
-                  [ "urn:ogc:object:sensor:GEOM:2-dec-1", "2000-12-31T23:00:00Z", "2000-12-31T23:00:00Z", [ 87, 23.9 ] ], 
-                  [ "urn:ogc:object:sensor:GEOM:2-dec-2", "2000-12-31T23:00:00Z", "2000-12-31T23:00:00Z", [ 96, 26.2 ] ], 
-                  [ "urn:ogc:object:sensor:GEOM:2-dec-3", "2000-12-31T23:00:00Z", "2000-12-31T23:00:00Z", [ 171, 26.2 ] ], 
-                  [ "urn:ogc:object:sensor:GEOM:2-dec-4", "2000-12-31T23:00:00Z", "2000-12-31T23:00:00Z", [ 192, 31.4 ] ], 
-                  [ "urn:ogc:object:sensor:GEOM:2-dec-5", "2000-12-31T23:00:00Z", "2000-12-31T23:00:00Z", [ 267, 31.4 ] ], 
-                  [ "urn:ogc:object:sensor:GEOM:2-dec-6", "2000-12-31T23:00:00Z", "2000-12-31T23:00:00Z", [ 384, 35.1 ] ], 
-                  [ "urn:ogc:object:sensor:GEOM:2-dec-7", "2000-12-31T23:00:00Z", "2000-12-31T23:00:00Z", [ 459, 35.1 ] ] ]
-} ]
+    "value" : [{
+            "components": ["id", "phenomenonTime", "resultTime", "result"],
+            "dataArray": [["urn:ogc:object:sensor:GEOM:2-dec-0", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", [12, 18.5]], 
+                          ["urn:ogc:object:sensor:GEOM:2-dec-1", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", [87, 23.9]], 
+                          ["urn:ogc:object:sensor:GEOM:2-dec-2", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", [96, 26.2]], 
+                          ["urn:ogc:object:sensor:GEOM:2-dec-3", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", [171, 26.2]], 
+                          ["urn:ogc:object:sensor:GEOM:2-dec-4", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", [192, 31.4]], 
+                          ["urn:ogc:object:sensor:GEOM:2-dec-5", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", [267, 31.4]], 
+                          ["urn:ogc:object:sensor:GEOM:2-dec-6", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", [384, 35.1]], 
+                          ["urn:ogc:object:sensor:GEOM:2-dec-7", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", [459, 35.1]]]
+        }]
 }

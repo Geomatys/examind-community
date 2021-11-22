@@ -791,7 +791,11 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                             time = buildTimeInstant(version, mib);
                         }
                     } else if (mib != null && mae != null) {
-                        time = buildTimePeriod(version, mib, mae);
+                        if (mab != null && mab.after(mae)) {
+                            time = buildTimePeriod(version, mib, mab);
+                        } else {
+                            time = buildTimePeriod(version, mib, mae);
+                        }
                     } else {
                         time = null;
                     }

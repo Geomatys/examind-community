@@ -89,6 +89,7 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
         writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-11.xml", "offering-11.xml", EPSG_VERSION);
         writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-12.xml", "offering-12.xml", EPSG_VERSION);
         writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-13.xml", "offering-13.xml", EPSG_VERSION);
+        writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-14.xml", "offering-14.xml", EPSG_VERSION);
 
         Path offeringV200Directory = offeringDirectory.resolve("2.0.0");
         Files.createDirectories(offeringV200Directory);

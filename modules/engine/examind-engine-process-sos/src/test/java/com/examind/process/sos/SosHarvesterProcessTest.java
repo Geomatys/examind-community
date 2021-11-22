@@ -159,6 +159,8 @@ public class SosHarvesterProcessTest {
 
     private static final String CONFIG_DIR_NAME = "SosHarvesterProcessTest" + UUID.randomUUID().toString();
 
+    private static final int ORIGIN_NB_SENSOR = 14;
+
     @BeforeClass
     public static void setUpClass() throws Exception {
 
@@ -287,7 +289,7 @@ public class SosHarvesterProcessTest {
 
         int prev = getNbOffering(worker, 0);
 
-        Assert.assertEquals(13, prev);
+        Assert.assertEquals(ORIGIN_NB_SENSOR, prev);
 
         String sensorId = "urn:sensor:1";
 
@@ -511,7 +513,7 @@ public class SosHarvesterProcessTest {
 
         int prev = getNbOffering(worker, 0);
 
-        Assert.assertEquals(13, prev);
+        Assert.assertEquals(ORIGIN_NB_SENSOR, prev);
 
         String sensorId = "urn:sensor:2";
 
@@ -629,7 +631,7 @@ public class SosHarvesterProcessTest {
 
         int prev = getNbOffering(worker, 0);
 
-        Assert.assertEquals(13, prev);
+        Assert.assertEquals(ORIGIN_NB_SENSOR, prev);
 
         String sensorId = "urn:sensor:3";
 
@@ -741,7 +743,7 @@ public class SosHarvesterProcessTest {
 
         int prev = getNbOffering(worker, 0);
 
-        Assert.assertEquals(13, prev);
+        Assert.assertEquals(ORIGIN_NB_SENSOR, prev);
 
         String sensorId = "urn:sensor:5";
 
@@ -853,7 +855,7 @@ public class SosHarvesterProcessTest {
 
         int prev = getNbOffering(worker, 0);
 
-        Assert.assertEquals(13, prev);
+        Assert.assertEquals(ORIGIN_NB_SENSOR, prev);
 
         String sensorId = "urn:sensor:dbf:1";
 
@@ -950,7 +952,7 @@ public class SosHarvesterProcessTest {
 
         int prev = getNbOffering(worker, 0);
 
-        Assert.assertEquals(13, prev);
+        Assert.assertEquals(ORIGIN_NB_SENSOR, prev);
 
         String sensorId = "urn:sensor:dbf:2";
 
@@ -1049,7 +1051,7 @@ public class SosHarvesterProcessTest {
 
         int prev = getNbOffering(sosWorker, 0);
 
-        Assert.assertEquals(13, prev);
+        Assert.assertEquals(ORIGIN_NB_SENSOR, prev);
 
         String datasetId = "SOS_DATA";
 
@@ -1239,7 +1241,7 @@ public class SosHarvesterProcessTest {
 
         int prev = getNbOffering(worker, 0);
 
-        Assert.assertEquals(13, prev);
+        Assert.assertEquals(ORIGIN_NB_SENSOR, prev);
 
         // ???
         String sensorId = "urn:sensor:bgdata";
@@ -1367,7 +1369,7 @@ public class SosHarvesterProcessTest {
 
         int prev = getNbOffering(worker, 0);
 
-        Assert.assertEquals(13, prev);
+        Assert.assertEquals(ORIGIN_NB_SENSOR, prev);
 
         String datasetId = "SOS_DATA";
 
@@ -1536,7 +1538,7 @@ public class SosHarvesterProcessTest {
 
         int prev = getNbOffering(sosWorker, 0);
 
-        Assert.assertEquals(13, prev);
+        Assert.assertEquals(ORIGIN_NB_SENSOR, prev);
 
         String datasetId = "SOS_DATA_2";
 
@@ -1761,7 +1763,7 @@ public class SosHarvesterProcessTest {
 
         int prev = getNbOffering(sosWorker, 0);
 
-        Assert.assertEquals(13, prev);
+        Assert.assertEquals(ORIGIN_NB_SENSOR, prev);
 
         String datasetId = "SOS_DATA_3";
 
@@ -2079,7 +2081,7 @@ public class SosHarvesterProcessTest {
 
         int prev = getNbOffering(sosWorker, 0);
 
-        Assert.assertEquals(13, prev);
+        Assert.assertEquals(ORIGIN_NB_SENSOR, prev);
 
         String datasetId = "SOS_DATA_3";
 
@@ -2239,7 +2241,7 @@ public class SosHarvesterProcessTest {
 
         int prev = getNbOffering(worker, 0);
 
-        Assert.assertEquals(13, prev);
+        Assert.assertEquals(ORIGIN_NB_SENSOR, prev);
 
         String sensorId = "urn:sensor:bgdata";
 
@@ -2367,7 +2369,7 @@ public class SosHarvesterProcessTest {
 
         int prev = getNbOffering(worker, 0);
 
-        Assert.assertEquals(13, prev);
+        Assert.assertEquals(ORIGIN_NB_SENSOR, prev);
 
         String sensorId = "urn:sensor:bgdata";
 
@@ -2494,7 +2496,7 @@ public class SosHarvesterProcessTest {
 
         int prev = getNbOffering(worker, 0);
 
-        Assert.assertEquals(13, prev);
+        Assert.assertEquals(ORIGIN_NB_SENSOR, prev);
 
         String datasetId = "SOS_DATA";
 

@@ -150,6 +150,7 @@
           <ows:Value>offering-11</ows:Value>
           <ows:Value>offering-12</ows:Value>
           <ows:Value>offering-13</ows:Value>
+          <ows:Value>offering-14</ows:Value>
           <ows:Value>offering-2</ows:Value>
           <ows:Value>offering-3</ows:Value>
           <ows:Value>offering-4</ows:Value>
@@ -174,6 +175,7 @@
           <ows:Value>urn:ogc:object:sensor:GEOM:10</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:12</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:13</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:14</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:2</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:3</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:4</ows:Value>
@@ -205,14 +207,14 @@
         </ows:AllowedValues>
       </ows:Parameter>
       <ows:Parameter name="result">
-          <ows:AllowedValues>
-              <ows:Value>result</ows:Value>
-          </ows:AllowedValues>
-          <ows:AnyValue/>
+        <ows:AllowedValues>
+          <ows:Value>result</ows:Value>
+        </ows:AllowedValues>
+        <ows:AnyValue/>
       </ows:Parameter>
       <ows:Parameter name="responseFormat">
-          <ows:AllowedValues>
-              <ows:Value>text/xml; subtype="om/1.0.0"</ows:Value>
+        <ows:AllowedValues>
+          <ows:Value>text/xml; subtype="om/1.0.0"</ows:Value>
         </ows:AllowedValues>
       </ows:Parameter>
       <ows:Parameter name="resultModel">
@@ -478,16 +480,16 @@
             <gml:name>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2</gml:name>
             <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
             <ns31:component>
-                <ns31:Phenomenon gml:id="temperature">
-                    <gml:description>the temperature in celcius degree</gml:description>
-                    <gml:name>urn:ogc:def:phenomenon:GEOM:temperature</gml:name>
-                </ns31:Phenomenon>
+              <ns31:Phenomenon gml:id="temperature">
+<gml:description>the temperature in celcius degree</gml:description>
+<gml:name>urn:ogc:def:phenomenon:GEOM:temperature</gml:name>
+              </ns31:Phenomenon>
             </ns31:component>
             <ns31:component>
-                <ns31:Phenomenon gml:id="salinity">
-                    <gml:description>the salinity in water</gml:description>
-                    <gml:name>urn:ogc:def:phenomenon:GEOM:salinity</gml:name>
-                </ns31:Phenomenon>
+              <ns31:Phenomenon gml:id="salinity">
+<gml:description>the salinity in water</gml:description>
+<gml:name>urn:ogc:def:phenomenon:GEOM:salinity</gml:name>
+              </ns31:Phenomenon>
             </ns31:component>
           </ns31:CompositePhenomenon>
         </sos:observedProperty>
@@ -509,17 +511,56 @@
         <sos:time>
           <gml:TimePeriod>
             <gml:beginPosition>2000-01-01</gml:beginPosition>
-            <gml:endPosition>2001-01-01</gml:endPosition>
+            <gml:endPosition indeterminatePosition="now"></gml:endPosition>
           </gml:TimePeriod>
         </sos:time>
         <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:13"/>
         <sos:observedProperty>
-            <ns31:CompositePhenomenon dimension="2" gml:id="aggregatePhenomenon">
-                <gml:description>the aggregation of temperature and depth phenomenons</gml:description>
-                <gml:name>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon</gml:name>
-                <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
-                <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
-            </ns31:CompositePhenomenon>
+          <ns31:CompositePhenomenon dimension="2" gml:id="aggregatePhenomenon">
+            <gml:description>the aggregation of temperature and depth phenomenons</gml:description>
+            <gml:name>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon</gml:name>
+            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
+            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
+          </ns31:CompositePhenomenon>
+        </sos:observedProperty>
+        <sos:observedProperty>
+          <ns31:CompositePhenomenon dimension="3" gml:id="aggregatePhenomenon-2">
+            <gml:description>the aggregation of temperature depth, and salinity phenomenons</gml:description>
+            <gml:name>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2</gml:name>
+            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
+            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
+            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:salinity"/>
+          </ns31:CompositePhenomenon>
+        </sos:observedProperty>
+        <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
+        <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:salinity"/>
+        <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
+        <sos:featureOfInterest xlink:href="station-002"/>
+        <sos:responseFormat>text/xml; subtype="om/1.0.0"</sos:responseFormat>
+        <sos:resultModel>om:Observation</sos:resultModel>
+        <sos:resultModel>om:Measurement</sos:resultModel>
+        <sos:responseMode>inline</sos:responseMode>
+        <sos:responseMode>resultTemplate</sos:responseMode>
+      </sos:ObservationOffering>
+      <sos:ObservationOffering gml:id="offering-14">
+        <gml:name>offering-14</gml:name>
+        <gml:boundedBy>
+          <gml:Null>not_bounded</gml:Null>
+        </gml:boundedBy>
+        <sos:time>
+          <gml:TimePeriod>
+            <gml:beginPosition>2001-01-01</gml:beginPosition>
+            <gml:endPosition>2000-12-24</gml:endPosition>
+          </gml:TimePeriod>
+        </sos:time>
+        <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:14"/>
+        <sos:observedProperty>
+          <ns31:CompositePhenomenon dimension="2" gml:id="aggregatePhenomenon">
+            <gml:description>the aggregation of temperature and depth phenomenons</gml:description>
+            <gml:name>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon</gml:name>
+            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
+            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
+          </ns31:CompositePhenomenon>
         </sos:observedProperty>
         <sos:observedProperty>
           <ns31:CompositePhenomenon dimension="3" gml:id="aggregatePhenomenon-2">
@@ -548,7 +589,7 @@
         <sos:time>
           <gml:TimePeriod>
             <gml:beginPosition>2001-01-01</gml:beginPosition>
-            <gml:endPosition indeterminatePosition="now"></gml:endPosition>
+            <gml:endPosition>2000-12-22</gml:endPosition>
           </gml:TimePeriod>
         </sos:time>
         <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:2"/>
@@ -673,7 +714,12 @@
         <gml:boundedBy>
           <gml:Null>not_bounded</gml:Null>
         </gml:boundedBy>
-        <sos:time/>
+        <sos:time>
+          <gml:TimePeriod>
+            <gml:beginPosition>2007-05-01T16:59:00.000</gml:beginPosition>
+            <gml:endPosition indeterminatePosition="now"></gml:endPosition>
+          </gml:TimePeriod>
+        </sos:time>
         <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:7"/>
         <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
         <sos:responseFormat>text/xml; subtype="om/1.0.0"</sos:responseFormat>
@@ -719,7 +765,7 @@
         <sos:time>
           <gml:TimePeriod>
             <gml:beginPosition>2009-05-01T13:47:00.000</gml:beginPosition>
-            <gml:endPosition>2009-05-01T13:47:00.000</gml:endPosition>
+            <gml:endPosition indeterminatePosition="now"></gml:endPosition>
           </gml:TimePeriod>
         </sos:time>
         <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:9"/>

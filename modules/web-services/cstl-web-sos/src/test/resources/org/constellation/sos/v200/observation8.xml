@@ -12,8 +12,8 @@
     <om:type xlink:href="http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation"/>
     <om:phenomenonTime>
         <gml:TimePeriod gml:id="time-201">
-            <gml:beginPosition>2001-01-01T00:00:00.0</gml:beginPosition>
-            <gml:endPosition>2001-01-01T00:00:00.0</gml:endPosition>
+            <gml:beginPosition>2000-12-01T00:00:00.0</gml:beginPosition>
+            <gml:endPosition indeterminatePosition="now"></gml:endPosition>
         </gml:TimePeriod>
     </om:phenomenonTime>
     <om:resultTime/>
@@ -36,7 +36,7 @@
         <swe:DataArray id="dataArray-2">
             <swe:elementCount>
                 <swe:Count>
-                    <swe:value>7</swe:value>
+                    <swe:value>9</swe:value>
                 </swe:Count>
             </swe:elementCount>
             <swe:elementType name="dataArray-2">
@@ -56,7 +56,7 @@
             <swe:encoding>
                 <swe:TextEncoding blockSeparator="@@" decimalSeparator="." tokenSeparator="," id="encoding-1"/>
             </swe:encoding>
-            <swe:values>12.0,18.5@@24.0,19.7@@48.0,21.2@@96.0,23.9@@192.0,26.2@@384.0,31.4@@768.0,35.1@@</swe:values>
+            <swe:values>12.0,18.5@@24.0,19.7@@48.0,21.2@@96.0,23.9@@192.0,26.2@@384.0,31.4@@768.0,35.1@@12.0,18.5@@12.0,18.5@@</swe:values>
         </swe:DataArray>
     </om:result>
 </om:OM_Observation>

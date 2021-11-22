@@ -216,7 +216,7 @@ public abstract class SOSWorkerTest {
 
         assertTrue(result.getContents() != null);
         assertTrue(result.getContents().getOfferings() != null);
-        assertEquals("nb offering!", 13, result.getContents().getOfferings().size());
+        assertEquals("nb offering!", 14, result.getContents().getOfferings().size());
 
         /*
          *  TEST 2 : full get capabilities
@@ -235,7 +235,7 @@ public abstract class SOSWorkerTest {
         assertTrue(result.getServiceProvider() != null);
         assertTrue(result.getContents() != null);
         assertTrue(result.getContents().getOfferings() != null);
-        assertEquals("nb offering!", 13, result.getContents().getOfferings().size());
+        assertEquals("nb offering!", 14, result.getContents().getOfferings().size());
         assertNotNull(result);
 
         /*
@@ -309,7 +309,7 @@ public abstract class SOSWorkerTest {
         assertTrue(result.getServiceProvider() == null);
         assertTrue(result.getContents() != null);
         assertTrue(result.getContents().getOfferings() != null);
-        assertEquals("nb offering!", 13, result.getContents().getOfferings().size());
+        assertEquals("nb offering!", 14, result.getContents().getOfferings().size());
         assertNotNull(result);
 
     }
