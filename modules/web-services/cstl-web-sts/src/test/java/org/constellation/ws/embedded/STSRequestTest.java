@@ -1254,6 +1254,54 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
     @Test
     @Order(order=22)
+    public void getHistoricalLocationsFilterTest() throws Exception {
+        initPool();
+
+        String filter = "Thing/Datastream/ObservedProperty/id eq 'temperature'".replace(" ", "%20");
+        URL getFoiUrl = new URL(getDefaultURL() + "/HistoricalLocations?$filter=" + filter);
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/hloc-temp.json");
+        compareJSON(expResult, result);
+
+        filter = "Thing/Datastream/ObservedProperty/id eq 'salinity'".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/HistoricalLocations?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/hloc-sali.json");
+        compareJSON(expResult, result);
+
+        filter = "Thing/Datastream/ObservedProperty/id eq 'temperature' or Thing/Datastream/ObservedProperty/id eq 'depth'".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/HistoricalLocations?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/hloc-temp-depth.json");
+        compareJSON(expResult, result);
+
+        filter = "Thing/Datastream/Observation/featureOfInterest/id eq 'station-006'".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/HistoricalLocations?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/hloc-foi6.json");
+        compareJSON(expResult, result);
+
+        filter = "Thing/Datastream/Observation/featureOfInterest/id eq 'station-006' or Thing/Datastream/Observation/featureOfInterest/id eq 'station-002'".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/HistoricalLocations?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/hloc-foi6_2.json");
+        compareJSON(expResult, result);
+
+        filter = "Thing/Datastream/ObservedProperty/id eq 'temperature' and Thing/Datastream/Observation/featureOfInterest/id eq 'station-006'".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/HistoricalLocations?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/hloc-temp-foi6.json");
+        compareJSON(expResult, result);
+    }
+
+    @Test
+    @Order(order=22)
     public void getHistoricalLocationPaginationTest() throws Exception {
         initPool();
         // Creates a valid GetFoi url.
