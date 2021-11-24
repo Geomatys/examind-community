@@ -61,7 +61,6 @@ import javax.imageio.spi.ImageWriterSpi;
 import javax.xml.bind.JAXBException;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
@@ -102,11 +101,9 @@ import org.geotoolkit.test.Commons;
 import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeNoException;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import static org.geotoolkit.image.io.XImageIO.getWriterByMIMEType;
 import static org.geotoolkit.image.io.XImageIO.isValidType;
-import org.geotoolkit.image.io.plugin.WorldFileImageWriter;
 
 /**
  * A set of methods that request a SpringBoot server which embeds a WMS service.
@@ -639,13 +636,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         initLayerList();
 
         // Creates an intentional wrong url, regarding the WMS version 1.1.1 standard
-        final URL wrongUrl;
-        try {
-            wrongUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_FALSE_REQUEST);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        final URL wrongUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_FALSE_REQUEST);
 
         // Try to marshall something from the response returned by the server.
         // The response should be a ServiceExceptionReport.
@@ -664,13 +655,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         initLayerList();
 
         // Creates a valid GetMap url.
-        URL getMapUrl;
-        try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP);
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         BufferedImage image = getImageFromURL(getMapUrl, "image/png");
@@ -681,31 +666,15 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertEquals(512, image.getHeight());
         assertTrue(ImageTesting.getNumColors(image) > 8);
 
-        try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_BAD_HEIGHT);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_BAD_HEIGHT);
         String obj = getStringResponse(getMapUrl);
         assertTrue("was " + obj, obj.contains("InvalidDimensionValue"));
 
-        try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_BAD_WIDTH);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_BAD_WIDTH);
         obj = getStringResponse(getMapUrl);
         assertTrue("was " + obj, obj.contains("InvalidDimensionValue"));
 
-        try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_COV_JPEG);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
-
+        getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_COV_JPEG);
         // Try to get a map from the url. The test is skipped in this method if it fails.
         image = getImageFromURL(getMapUrl, "image/jpeg");
 
@@ -723,13 +692,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         initLayerList();
 
         // Creates a valid GetMap url.
-        URL getMapUrl;
-        try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_ANTI_MERI_CROSS);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_ANTI_MERI_CROSS);
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         BufferedImage image = getImageFromURL(getMapUrl, "image/png");
@@ -741,12 +704,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertTrue(ImageTesting.getNumColors(image) > 8);
         //write(image, "image/png");
 
-        try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_ANTI_MERI_CROSS_MERC);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_ANTI_MERI_CROSS_MERC);
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         image = getImageFromURL(getMapUrl, "image/png");
@@ -768,13 +726,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     public void testWMSGetMapLakeGif() throws Exception {
         initLayerList();
         // Creates a valid GetMap url.
-        final URL getMapUrl;
-        try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_GIF);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        final URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_GIF);
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         final BufferedImage image = getImageFromURL(getMapUrl, "image/gif");
@@ -796,13 +748,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         initLayerList();
 
         // Creates a valid GetMap url.
-        final URL getMapUrl;
-        try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_GIF_TRANSPARENT);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        final URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_GIF_TRANSPARENT);
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         final BufferedImage image = getImageFromURL(getMapUrl, "image/gif");
@@ -821,13 +767,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     public void testWMSGetMapLakePng() throws Exception {
 
         // Creates a valid GetMap url.
-        final URL getMapUrl;
-        try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP2);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        final URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP2);
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         final BufferedImage image = getImageFromURL(getMapUrl, "image/png");
@@ -849,13 +789,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         initLayerList();
         
         // Creates a valid GetMap url. with transparent = FALSE
-        URL getMapUrl;
-        try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_BMP.replace("${transparent}", "FALSE"));
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_BMP.replace("${transparent}", "FALSE"));
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         BufferedImage image = getImageFromURL(getMapUrl, "image/bmp");
@@ -867,12 +801,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertTrue(ImageTesting.getNumColors(image) > 2);
 
          // Creates a valid GetMap url. with transparent = TRUE
-        try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_BMP.replace("${transparent}", "TRUE"));
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_BMP.replace("${transparent}", "TRUE"));
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         image = getImageFromURL(getMapUrl, "image/bmp");
@@ -884,12 +813,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertTrue(ImageTesting.getNumColors(image) > 2);
 
         // wms do not supported 1.1.1 request
-        try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/wms2?" + WMS_GETMAP_BMP_111);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/wms2?" + WMS_GETMAP_BMP_111);
         Object obj = unmarshallResponse(getMapUrl);
         assertTrue(obj instanceof ServiceExceptionReport);
     }
@@ -903,13 +827,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     public void testWMSGetMapLakeJpeg() throws Exception {
 
         // Creates a valid GetMap url.
-        final URL getMapUrl;
-        try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_JPEG);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        final URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_JPEG);
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         final BufferedImage image = getImageFromURL(getMapUrl, "image/jpeg");
@@ -931,13 +849,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         initLayerList();
         
         // Creates a valid GetMap url.  with transparent = FALSE
-        URL getMapUrl;
-        try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_PPM.replace("${transparent}", "FALSE"));
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_PPM.replace("${transparent}", "FALSE"));
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         BufferedImage image = getImageFromURL(getMapUrl, "image/x-portable-pixmap");
@@ -949,12 +861,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertTrue(ImageTesting.getNumColors(image) > 2);
 
         // Creates a valid GetMap url.  with transparent = TRUE
-        try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_PPM.replace("${transparent}", "TRUE"));
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_PPM.replace("${transparent}", "TRUE"));
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         image = getImageFromURL(getMapUrl, "image/x-portable-pixmap");
@@ -974,20 +881,13 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     public void testWMSGetMapLayerLimit() throws Exception {
 
         // Creates a valid GetMap url.
-        final URL getMapUrl;
-        try {
             final StringBuilder sb = new StringBuilder();
             sb.append("http://localhost:").append(getCurrentPort()).append("/WS/wms/default?" + WMS_GETMAP_LAYER_LIMIT);
             sb.append(LAYER_TEST);
             for (int i = 0; i < 120; i++) {
                 sb.append(',').append(LAYER_TEST);
             }
-            getMapUrl = new URL(sb.toString());
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
-
+        final URL getMapUrl = new URL(sb.toString());
         // Try to get a map from the url. The test is skipped in this method if it fails.
         try {
             final BufferedImage image = getImageFromURL(getMapUrl, "image/png");
@@ -1007,13 +907,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         initLayerList();
 
         // Creates a valid GetMap url.
-        final URL getMapUrl;
-        try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_GIF_UNVALID_LAYER);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        final URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_GIF_UNVALID_LAYER);
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         final BufferedImage image = getImageFromURL(getMapUrl, "image/gif");
@@ -1038,13 +932,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         initLayerList();
 
         // Creates a valid GetCapabilities url.
-        URL getCapsUrl;
-        try {
-            getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETCAPABILITIES);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        URL getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETCAPABILITIES);
 
         // Try to marshall something from the response returned by the server.
         // The response should be a WMT_MS_Capabilities.
@@ -1067,12 +955,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertEquals("http://localhost:" + getCurrentPort() + "/WS/wms/default?", currentUrl);
 
         // Creates a valid GetCapabilities url.
-        try {
-            getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/wms1?" + WMS_GETCAPABILITIES_WMS1_111);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/wms1?" + WMS_GETCAPABILITIES_WMS1_111);
         // Try to marshall something from the response returned by the server.
         // The response should be a WMT_MS_Capabilities.
         obj = unmarshallResponse(getCapsUrl);
@@ -1092,12 +975,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         assertEquals("http://localhost:" + getCurrentPort() + "/WS/wms/wms1?", currentUrl);
 
-        try {
-            getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETCAPABILITIES);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETCAPABILITIES);
 
         // Try to marshall something from the response returned by the server.
         // The response should be a WMT_MS_Capabilities.
@@ -1110,23 +988,13 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertEquals("http://localhost:" + getCurrentPort() + "/WS/wms/default?", currentUrl);
 
         // Creates a valid GetCapabilities url.
-        try {
-            getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/wms2?" + WMS_GETCAPABILITIES_WMS1_111);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/wms2?" + WMS_GETCAPABILITIES_WMS1_111);
         //the service WMS2 does not support 1.1.0 version
         obj = unmarshallResponse(getCapsUrl);
         assertTrue("was :" + obj.getClass().getName(), obj instanceof WMSCapabilities);
 
         // Creates a valid GetCapabilities url.
-        try {
-            getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/wms2?" + WMS_GETCAPABILITIES_WMS1);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/wms2?" + WMS_GETCAPABILITIES_WMS1);
         // Try to marshall something from the response returned by the server.
         // The response should be a WMT_MS_Capabilities.
         obj = unmarshallResponse(getCapsUrl);
@@ -1139,13 +1007,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         pool = WMSMarshallerPool.getInstance();
 
         // Creates a valid GetMap url.
-        URL getCapsUrl;
-        try {
-            getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/wms1?" + WMS_GETCAPABILITIES_WMS1);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        URL getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/wms1?" + WMS_GETCAPABILITIES_WMS1);
         // Try to marshall something from the response returned by the server.
         // The response should be a WMT_MS_Capabilities.
         Object obj = unmarshallResponse(getCapsUrl);
@@ -1162,12 +1024,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         assertEquals("this is the default english capabilities", responseCaps130.getService().getName());
 
-        try {
-            getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/wms1?" + WMS_GETCAPABILITIES_WMS1_ENG);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/wms1?" + WMS_GETCAPABILITIES_WMS1_ENG);
         // Try to marshall something from the response returned by the server.
         // The response should be a WMT_MS_Capabilities.
         obj = unmarshallResponse(getCapsUrl);
@@ -1180,12 +1037,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         assertEquals("this is the default english capabilities", responseCaps130.getService().getName());
 
-        try {
-            getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/wms1?" + WMS_GETCAPABILITIES_WMS1_FRE);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/wms1?" + WMS_GETCAPABILITIES_WMS1_FRE);
         // Try to marshall something from the response returned by the server.
         // The response should be a WMT_MS_Capabilities.
         obj = unmarshallResponse(getCapsUrl);
@@ -1211,13 +1063,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     public void testWMSGetFeatureInfoPlainCoveragePng() throws Exception {
         initLayerList();
         // Creates a valid GetFeatureInfo url.
-        URL gfi;
-        try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PLAIN_COV);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        URL gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PLAIN_COV);
 
         String expResult = "SSTMDE200305\n"
                 + "0;\n"
@@ -1228,12 +1074,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertNotNull(expResult);
         assertEquals(expResult, result);
 
-         try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PLAIN_COV_ALIAS);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PLAIN_COV_ALIAS);
 
         expResult = "SST\n"
                 + "0;\n"
@@ -1244,12 +1085,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertNotNull(expResult);
         assertEquals(expResult, result);
         
-        try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PLAIN_COV2);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PLAIN_COV2);
 
         expResult = "martinique\n" +
                     "0;1;2;\n" +
@@ -1271,13 +1107,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     public void testWMSGetFeatureInfoPlainShapePng() throws Exception {
         initLayerList();
         // Creates a valid GetFeatureInfo url.
-        final URL gfi;
-        try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PLAIN_FEAT);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        final URL gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PLAIN_FEAT);
 
         String expResult
                 = "Lakes\n"
@@ -1295,13 +1125,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     public void testWMSGetFeatureInfoPlainShapeGif() throws Exception {
         initLayerList();
         // Creates a valid GetFeatureInfo url.
-        final URL gfi;
-        try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PLAIN_FEAT2);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        final URL gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PLAIN_FEAT2);
 
         String expResult
                 = "BasicPolygons\n"
@@ -1319,13 +1143,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     public void testWMSGetFeatureInfoGMLGif() throws Exception {
         initLayerList();
         // Creates a valid GetFeatureInfo url.
-        URL gfi;
-        try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_GML_FEAT);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        URL gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_GML_FEAT);
 
         String expResult
                 = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
@@ -1348,12 +1166,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertNotNull(result);
         assertEquals(expResult, result);
 
-        try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_GML_COV);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_GML_COV);
 
         expResult = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                     "<msGMLOutput xmlns:gml=\"http://www.opengis.net/gml\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n" +
@@ -1377,12 +1190,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertNotNull(result);
         assertEquals(expResult, result);
         
-        try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_GML_COV2);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_GML_COV2);
 
         expResult = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                     "<msGMLOutput xmlns:gml=\"http://www.opengis.net/gml\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n" +
@@ -1406,12 +1214,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertNotNull(result);
         assertEquals(expResult, result);
 
-        try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_GML_COV_ALIAS);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_GML_COV_ALIAS);
 
         expResult = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                     "<msGMLOutput xmlns:gml=\"http://www.opengis.net/gml\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n" +
@@ -1440,13 +1243,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     public void testWMSGetFeatureInfoXMLGif() throws Exception {
         initLayerList();
         // Creates a valid GetFeatureInfo url.
-        URL gfi;
-        try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_XML_FEAT);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        URL gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_XML_FEAT);
 
         String expResult
                 =   "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
@@ -1469,12 +1266,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertNotNull(result);
         assertEquals(expResult, result);
 
-        try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_XML_COV);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_XML_COV);
 
         expResult = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                     "<FeatureInfo>\n" +
@@ -1491,12 +1283,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertNotNull(result);
         assertEquals(expResult, result);
 
-        try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_XML_COV_ALIAS);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_XML_COV_ALIAS);
 
         expResult = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                     "<FeatureInfo>\n" +
@@ -1513,13 +1300,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertNotNull(result);
         assertEquals(expResult, result);
         
-        
-        try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_XML_COV2);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_XML_COV2);
 
         expResult = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                     "<FeatureInfo>\n" +
@@ -1548,13 +1329,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     public void testWMSGetLegendGraphic() throws Exception {
         initLayerList();
         // Creates a valid GetLegendGraphic url.
-        final URL getLegendUrl;
-        try {
-            getLegendUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETLEGENDGRAPHIC);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        final URL getLegendUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETLEGENDGRAPHIC);
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         final BufferedImage image = getImageFromURL(getLegendUrl, "image/png");
@@ -1573,13 +1348,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     public void testWMSDescribeLayer() throws JAXBException, Exception {
 
         // Creates a valid DescribeLayer url.
-        final URL describeUrl;
-        try {
-            describeUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_DESCRIBELAYER);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        final URL describeUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_DESCRIBELAYER);
 
         // Try to marshall something from the response returned by the server.
         // The response should be a WMT_MS_Capabilities.
@@ -1602,13 +1371,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         initLayerList();
 
         // Creates a valid GetMap url.
-        final URL getMapUrl;
-        try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?");
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        final URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?");
 
         final Map<String, String> parameters = new HashMap<>();
         parameters.put("HeIgHt", "100");
@@ -1643,14 +1406,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         initLayerList();
 
         // Creates a valid GetMap url.
-        final URL getMap111Url, getMap130Url;
-        try {
-            getMap111Url = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_111_PROJ);
-            getMap130Url = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_130_PROJ);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        final URL getMap111Url = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_111_PROJ);
+        final URL getMap130Url = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_130_PROJ);;
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         final BufferedImage image111 = getImageFromURL(getMap111Url, "image/png");
@@ -1678,13 +1435,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     public void testCRSGeographique111() throws Exception {
 
         // Creates a valid GetMap url.
-        final URL getMapUrl;
-        try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_111_GEO);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        final URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_111_GEO);
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         final BufferedImage image = getImageFromURL(getMapUrl, "image/png");
@@ -1706,13 +1457,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         initLayerList();
 
         // Creates a valid GetMap url.
-        final URL getMapUrl;
-        try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_111_EPSG_4326);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        final URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_111_EPSG_4326);
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         final BufferedImage image = getImageFromURL(getMapUrl, "image/png");
@@ -1738,13 +1483,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     public void testGetMap130Epsg4326() throws Exception {
 
         // Creates a valid GetMap url.
-        final URL getMapUrl;
-        try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_130_EPSG_4326);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        final URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_130_EPSG_4326);
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         final BufferedImage image = getImageFromURL(getMapUrl, "image/png");
@@ -1769,13 +1508,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     public void testGetMap111Crs84() throws Exception {
 
         // Creates a valid GetMap url.
-        final URL getMapUrl;
-        try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_111_CRS_84);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        final URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_111_CRS_84);
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         final BufferedImage image = getImageFromURL(getMapUrl, "image/png");
@@ -1805,13 +1538,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         initLayerList();
         
         // Creates a valid GetMap url.
-        final URL getMapUrl;
-        try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_130_CRS_84);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        final URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_130_CRS_84);
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         final BufferedImage image = getImageFromURL(getMapUrl, "image/png");
@@ -1834,13 +1561,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         initLayerList();
 
         // Creates a valid GetMap url.
-        URL getMapUrl;
-        try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_TIFF);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_TIFF);
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         BufferedImage image = getImageFromURL(getMapUrl, "image/png");
@@ -1857,12 +1578,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         }
 
         // try JPEG with transparent = FALSE
-        try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_TIFF_TO_JPEG.replace("${transparent}", "FALSE"));
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_TIFF_TO_JPEG.replace("${transparent}", "FALSE"));
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         image = getImageFromURL(getMapUrl, "image/jpeg");
@@ -1874,12 +1590,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertTrue(ImageTesting.getNumColors(image) > 8);
 
         // try JPEG with transparent = TRUE
-        try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_TIFF_TO_JPEG.replace("${transparent}", "TRUE"));
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_TIFF_TO_JPEG.replace("${transparent}", "TRUE"));
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         image = getImageFromURL(getMapUrl, "image/jpeg");
@@ -1897,13 +1608,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         initLayerList();
 
         // Creates a valid GetMap url.
-        final URL getMapUrl;
-        try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_SHAPE_POINT);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        final URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_SHAPE_POINT);
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         final BufferedImage image = getImageFromURL(getMapUrl, "image/png");
@@ -1926,13 +1631,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         initLayerList();
 
         // Creates a valid GetMap url.
-        final URL getMapUrl;
-        try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_SHAPE_POLYGON);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        final URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_SHAPE_POLYGON);
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         final BufferedImage image = getImageFromURL(getMapUrl, "image/png");
@@ -1955,13 +1654,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         initLayerList();
 
         // Creates a valid GetMap url.
-        final URL getMapUrl;
-        try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_NETCDF);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        final URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_NETCDF);
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         final BufferedImage image = getImageFromURL(getMapUrl, "image/png");
@@ -1984,13 +1677,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         initLayerList();
 
         // Creates a valid GetMap url.
-        URL getMapUrl;
-        try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_JSON_FEATURE);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_JSON_FEATURE);
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         BufferedImage image = getImageFromURL(getMapUrl, "image/png");
@@ -2001,12 +1688,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertEquals(256, image.getHeight());
         assertTrue(ImageTesting.getNumColors(image) > 8);
         
-         try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_JSON_COLLECTION);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_JSON_COLLECTION);
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         image = getImageFromURL(getMapUrl, "image/png");
@@ -2023,13 +1705,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     public void testWMSGetFeatureInfoHTMLShape() throws Exception {
         initLayerList();
         // Creates a valid GetFeatureInfo url.
-        URL gfi;
-        try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_HTML_FEAT);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        URL gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_HTML_FEAT);
 
         String expResult
                 = "<html>\n"
@@ -2077,12 +1753,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertNotNull(result);
         assertEquals(expResult, result);
 
-        try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_HTML_COV);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_HTML_COV);
 
         expResult = "<html>\n" +
                     "    <head>\n" +
@@ -2124,12 +1795,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertNotNull(result);
         assertEquals(expResult, result);
         
-        try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_HTML_COV2);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_HTML_COV2);
 
         expResult = "<html>\n" +
                     "    <head>\n" +
@@ -2177,12 +1843,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertNotNull(result);
         assertEquals(expResult, result);
 
-        try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_HTML_COV_ALIAS);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_HTML_COV_ALIAS);
 
         expResult = "<html>\n" +
                     "    <head>\n" +
@@ -2230,13 +1891,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     public void testWMSGetFeatureInfoJSONShape() throws Exception {
         initLayerList();
         // Creates a valid GetFeatureInfo url.
-        final URL gfi;
-        try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_FEAT);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        final URL gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_FEAT);
 
         String result = getStringResponse(gfi);
         assertNotNull(result);
@@ -2263,13 +1918,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     public void testWMSGetFeatureInfoJSONProfileCoverage() throws Exception {
         initLayerList();
         // Creates a valid GetFeatureInfo url.
-        URL gfi;
-        try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PROFILE_COV);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        URL gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PROFILE_COV);
 
         String result = getStringResponse(gfi);
         assertNotNull(result);
@@ -2312,12 +1961,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertEquals("pt4 X property", 53.47, (double)points.get(4).get("x"), 1e-2);
         assertEquals("pt4 Y property", 0.0,    (double)points.get(4).get("y"), 1e-2);
         
-        try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PROFILE_COV_ALIAS);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PROFILE_COV_ALIAS);
         
         result = getStringResponse(gfi);
         assertNotNull(result);
@@ -2340,13 +1984,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     public void testWMSGetFeatureInfoJSONAlias() throws Exception {
         initLayerList();
         // Creates a valid GetFeatureInfo url.
-        URL gfi;
-        try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_FEAT_ALIAS);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        URL gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_FEAT_ALIAS);
 
         String expResult
                 = "[{\"type\":\"feature\",\"layer\":\"JS1\",\"feature\":{\"type\":\"feature\",\"envelope\":{\"lowerCorner\":[-80.72487831115721,35.2553619492954],\"upperCorner\":[-80.70324897766113,35.27035945142482]},\"name\":\"Plaza Road Park\",\"geometry\":\"POLYGON ((-80.72487831115721 35.26545403190955, -80.72135925292969 35.26727607954368, -80.71517944335938 35.26769654625573, -80.7125186920166 35.27035945142482, -80.70857048034668 35.268257165144064, -80.70479393005371 35.268397319259996, -80.70324897766113 35.26503355355979, -80.71088790893555 35.2553619492954, -80.71681022644043 35.2553619492954, -80.7150936126709 35.26054831539319, -80.71869850158691 35.26026797976481, -80.72032928466797 35.26061839914875, -80.72264671325684 35.26033806376283, -80.72487831115721 35.26545403190955))\",\"id\":\"feat-gs-001\"}}]";
@@ -2355,12 +1993,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertNotNull(result);
         assertEquals(expResult, result);
 
-        try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_FEAT_ALIAS2);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_FEAT_ALIAS2);
 
         expResult
                 = "[{\"type\":\"feature\",\"layer\":\"JS2\",\"feature\":{\"type\":\"feature\",\"envelope\":{\"lowerCorner\":[-80.72487831115721,35.2553619492954],\"upperCorner\":[-80.70324897766113,35.27035945142482]},\"name\":\"Plaza Road Park\",\"geometry\":\"POLYGON ((-80.72487831115721 35.26545403190955, -80.72135925292969 35.26727607954368, -80.71517944335938 35.26769654625573, -80.7125186920166 35.27035945142482, -80.70857048034668 35.268257165144064, -80.70479393005371 35.268397319259996, -80.70324897766113 35.26503355355979, -80.71088790893555 35.2553619492954, -80.71681022644043 35.2553619492954, -80.7150936126709 35.26054831539319, -80.71869850158691 35.26026797976481, -80.72032928466797 35.26061839914875, -80.72264671325684 35.26033806376283, -80.72487831115721 35.26545403190955))\",\"id\":\"feat-gs-001\"}}]";
@@ -2375,13 +2008,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     public void testWMSGetFeatureInfoJSONCoverage() throws Exception {
         initLayerList();
         // Creates a valid GetFeatureInfo url.
-        URL gfi;
-        try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_COV);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        URL gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_COV);
 
         String expResult
                 = "[{\"type\":\"coverage\",\"layer\":\"SSTMDE200305\",\"values\":[{\"name\":\"0\",\"value\":201.0,\"unit\":null}]}]";
@@ -2390,12 +2017,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertNotNull(result);
         assertEquals(expResult, result);
 
-        try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_COV_ALIAS);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_COV_ALIAS);
 
         expResult
                 = "[{\"type\":\"coverage\",\"layer\":\"SST\",\"values\":[{\"name\":\"0\",\"value\":201.0,\"unit\":null}]}]";
@@ -2404,12 +2026,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertNotNull(result);
         assertEquals(expResult, result);
         
-        try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_COV2);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_COV2);
 
         expResult
                 = "[{\"type\":\"coverage\",\"layer\":\"martinique\",\"values\":[{\"name\":\"0\",\"value\":63.0,\"unit\":null},{\"name\":\"1\",\"value\":92.0,\"unit\":null},{\"name\":\"2\",\"value\":132.0,\"unit\":null}]}]";
@@ -2425,13 +2042,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     public void testWMSGetMapALias() throws Exception {
         initLayerList();
         // Creates a valid GetMap url.
-        URL getMapUrl;
-        try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_ALIAS);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_ALIAS);
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         BufferedImage image = getImageFromURL(getMapUrl, "image/png");
@@ -2441,12 +2052,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertEquals(100, image.getWidth());
         assertEquals(100, image.getHeight());
 
-         try {
-            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_ALIAS2);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_ALIAS2);
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         image = getImageFromURL(getMapUrl, "image/png");
@@ -2468,13 +2074,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     public void testWMSGetLegendGraphicAlias() throws Exception {
         initLayerList();
         // Creates a valid GetLegendGraphic url.
-        URL getLegendUrl;
-        try {
-            getLegendUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETLEGENDGRAPHIC_ALIAS);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        URL getLegendUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETLEGENDGRAPHIC_ALIAS);
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         BufferedImage image = getImageFromURL(getLegendUrl, "image/png");
@@ -2484,12 +2084,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertEquals(200, image.getWidth());
         assertEquals(40, image.getHeight());
 
-        try {
-            getLegendUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETLEGENDGRAPHIC_ALIAS2);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        getLegendUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETLEGENDGRAPHIC_ALIAS2);
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         image = getImageFromURL(getLegendUrl, "image/png");
