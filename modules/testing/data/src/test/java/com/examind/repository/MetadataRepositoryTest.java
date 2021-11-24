@@ -29,7 +29,6 @@ import org.constellation.repository.MetadataRepository;
 import org.constellation.repository.ProviderRepository;
 import org.constellation.repository.ServiceRepository;
 import org.junit.Assert;
-import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -53,7 +52,6 @@ public class MetadataRepositoryTest extends AbstractRepositoryTest {
     @Autowired
     private ServiceRepository serviceRepository;
 
-    @Test
     public void crude() {
 
        //cleanup

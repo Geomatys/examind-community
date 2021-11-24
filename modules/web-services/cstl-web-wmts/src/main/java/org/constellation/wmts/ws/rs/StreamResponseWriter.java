@@ -83,7 +83,7 @@ public class StreamResponseWriter implements HttpMessageConverter<ImageTile>  {
         final MediaType responseMt = hom.getHeaders().getContentType();
         if (t.getImageReaderSpi() != null) {
             final String[] baseType = t.getImageReaderSpi().getMIMETypes();
-            final String mime = responseMt.getType()+"/"+responseMt.getSubtype();
+            final String mime = responseMt != null ? responseMt.getType()+"/"+responseMt.getSubtype() : "image/png";
             if(baseType !=null && Arrays.asList(baseType).contains(mime)) {
                 Object input = t.getInput();
                 //we can reuse the input directly
@@ -120,7 +120,7 @@ public class StreamResponseWriter implements HttpMessageConverter<ImageTile>  {
 
             final RenderedImage image = t.getImage();
             final ByteArrayOutputStream bo = new ByteArrayOutputStream();
-            ImageIO.write(image, responseMt.getSubtype(), bo);
+            ImageIO.write(image, responseMt != null ? responseMt.getSubtype() : "png", bo);
             bo.flush();
             stream = new ByteArrayInputStream(bo.toByteArray());
         }
@@ -130,9 +130,7 @@ public class StreamResponseWriter implements HttpMessageConverter<ImageTile>  {
         } catch (IOException ex) {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         } finally {
-            if(stream != null){
-                stream.close();
-            }
+            stream.close();
         }
     }
 }

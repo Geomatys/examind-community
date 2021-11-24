@@ -32,7 +32,6 @@ import org.constellation.repository.DatasetRepository;
 import org.constellation.repository.ProviderRepository;
 import org.constellation.repository.ServiceRepository;
 import org.junit.Assert;
-import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class LayerRepositoryTest extends AbstractRepositoryTest {
@@ -54,12 +53,10 @@ public class LayerRepositoryTest extends AbstractRepositoryTest {
 
     protected boolean supportSearch;
 
-    @Test
     public void all() {
         dump(layerRepository.findAll());
     }
 
-    @Test
     public void crud() {
         dataRepository.deleteAll();
         providerRepository.deleteAll();

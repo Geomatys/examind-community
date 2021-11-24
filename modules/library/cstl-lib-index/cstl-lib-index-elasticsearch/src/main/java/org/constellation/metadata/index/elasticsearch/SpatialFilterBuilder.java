@@ -636,16 +636,18 @@ public class SpatialFilterBuilder {
         return builder;
     }
 
+    private static final double DELTA = 0.01;
+    
     private static XContentBuilder addEnvelope(XContentBuilder builder, final Envelope env, boolean withPlugin) throws IOException {
         if (env.getDimension() < 2) {
             throw new IllegalArgumentException("Envelope must have at least 2 dimensions.");
         } else if (env.getDimension() > 2) {
             LOGGER.warning("More than 2 dimension in envelope will be ignored");
         }
-        final double minx = env.getMinimum(0);
-        final double maxx = env.getMaximum(0);
-        final double miny = env.getMinimum(1);
-        final double maxy = env.getMaximum(1);
+        double minx = env.getMinimum(0);
+        double maxx = env.getMaximum(0);
+        double miny = env.getMinimum(1);
+        double maxy = env.getMaximum(1);
         if (withPlugin) {
             builder.field("minx",         minx)
                    .field("maxx",         maxx)
@@ -657,21 +659,16 @@ public class SpatialFilterBuilder {
             // in the format [[minLon, maxLat], [maxLon, minLat]]:
 
             // Elasticsearch do not like "line/point" bbox
-            double delta = 0.01;
-            double ix = minx;
-            double ax = maxx;
-            double iy = miny;
-            double ay = maxy;
 
-            if (ix == ax) {
-                ax = ax + delta;
+            if (maxx - minx < DELTA) {
+                maxx = maxx + DELTA;
             }
-            if (iy == ay) {
-                ay = ay + delta;
+            if (maxy - miny < DELTA) {
+                maxy = maxy + DELTA;
             }
             builder.startObject("shape")
                    .field("type", "envelope")
-                   .field("coordinates", Arrays.asList(Arrays.asList(ix, ay), Arrays.asList(ax, iy)))
+                   .field("coordinates", Arrays.asList(Arrays.asList(minx, maxy), Arrays.asList(maxx, miny)))
                    .endObject();
         }
         return builder;

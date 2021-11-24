@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.List;
 import org.constellation.dto.CstlUser;
 import org.constellation.repository.UserRepository;
-import java.util.Optional;
 import org.constellation.dto.UserWithRole;
 import org.constellation.repository.DataRepository;
 import org.constellation.repository.DatasetRepository;
@@ -33,11 +32,8 @@ import org.constellation.repository.ServiceRepository;
 import org.constellation.repository.TaskParameterRepository;
 import org.constellation.repository.TaskRepository;
 import org.junit.Assert;
-import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
-@Transactional
 public class UserRepositoryTest extends AbstractRepositoryTest {
 
     @Autowired
@@ -67,8 +63,6 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
     @Autowired
     private TaskParameterRepository taskParamRepository;
 
-    @Test
-    @Transactional()
     public void crude() throws Throwable {
         // big cleanup
         taskRepository.deleteAll();

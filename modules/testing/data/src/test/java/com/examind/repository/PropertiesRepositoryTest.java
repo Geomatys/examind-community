@@ -23,7 +23,6 @@ import java.util.List;
 
 import org.constellation.repository.PropertyRepository;
 import org.junit.Assert;
-import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class PropertiesRepositoryTest extends AbstractRepositoryTest {
@@ -31,7 +30,6 @@ public class PropertiesRepositoryTest extends AbstractRepositoryTest {
     @Autowired
     private PropertyRepository propertyRepository;
 
-    @Test
     public void all() {
         dump(propertyRepository.findAll());
 
@@ -41,18 +39,15 @@ public class PropertiesRepositoryTest extends AbstractRepositoryTest {
         dump(propertyRepository.findIn(keys));
     }
 
-    @Test
     public void getValue() {
         String value = propertyRepository.getValue("test.notfound.property", "blurp");
         Assert.assertEquals("Default value is not matching", "blurp", value);
     }
 
-    @Test
     public void save() {
         propertyRepository.update("test", "value");
     }
 
-    @Test
     public void delete() {
         propertyRepository.delete("test");
     }

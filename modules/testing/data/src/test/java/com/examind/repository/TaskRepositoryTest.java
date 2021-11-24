@@ -24,7 +24,6 @@ import org.constellation.dto.CstlUser;
 import org.constellation.dto.process.Task;
 import org.constellation.repository.TaskParameterRepository;
 import org.junit.Assert;
-import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class TaskRepositoryTest extends AbstractRepositoryTest {
@@ -35,7 +34,6 @@ public class TaskRepositoryTest extends AbstractRepositoryTest {
     @Autowired
     private TaskParameterRepository taskParamRepository;
     
-    @Test
     public void crude() {
         taskRepository.deleteAll();
         taskParamRepository.deleteAll();

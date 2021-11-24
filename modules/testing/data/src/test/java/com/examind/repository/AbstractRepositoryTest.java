@@ -21,10 +21,7 @@ package com.examind.repository;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Result;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.List;
 import java.util.UUID;
@@ -37,8 +34,6 @@ import org.constellation.repository.UserRepository;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("classpath:/cstl/spring/test-no-hazelcast.xml")
 public abstract class AbstractRepositoryTest {
 
     protected final static Logger LOGGER = Logging.getLogger("com.examind.repository");

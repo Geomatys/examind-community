@@ -20,12 +20,17 @@ package org.constellation.database.impl.repository;
 
 import com.examind.repository.MapcontextRepositoryTest;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration("classpath:/cstl/spring/test-no-hazelcast.xml")
 public class JooqMapcontextRepositoryTestCase extends MapcontextRepositoryTest {
 
     @Test

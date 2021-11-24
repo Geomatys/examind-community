@@ -27,7 +27,6 @@ import org.constellation.repository.MetadataRepository;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
@@ -41,8 +40,6 @@ public class AttachmentRepositoryTest extends AbstractRepositoryTest {
     @Autowired
     private MetadataRepository metadataRepository;
 
-    @Test
-    @Transactional()
     public void crude() {
 
         metadataRepository.deleteAll();

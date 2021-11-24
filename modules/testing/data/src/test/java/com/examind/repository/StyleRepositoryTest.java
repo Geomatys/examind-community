@@ -33,7 +33,6 @@ import org.constellation.repository.ProviderRepository;
 import org.constellation.repository.ServiceRepository;
 import org.constellation.repository.StyleRepository;
 import org.junit.Assert;
-import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -60,7 +59,6 @@ public class StyleRepositoryTest extends AbstractRepositoryTest {
     @Autowired
     private DatasetRepository datasetRepository;
 
-    @Test
     public void crude() {
         dataRepository.deleteAll();
         datasetRepository.deleteAll();

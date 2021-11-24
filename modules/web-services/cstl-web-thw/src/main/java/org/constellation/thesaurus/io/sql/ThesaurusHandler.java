@@ -158,8 +158,8 @@ public class ThesaurusHandler implements IThesaurusHandler {
 
                             LOGGER.info("There is more than one concept matching.");
                             //we must decide which is the best concept, so we use the score
-                            ScoredConcept bestConcept = null;
-                            double bestScore    = 0.0;
+                            ScoredConcept bestConcept = matchingConcept.get(0);;
+                            double bestScore          = bestConcept.score;
                             for (ScoredConcept sc : matchingConcept) {
                                 if (sc.score > bestScore) {
                                     bestConcept = sc;
@@ -222,8 +222,8 @@ public class ThesaurusHandler implements IThesaurusHandler {
 
             // if there is more than one mapping for the term we must choose the best score
             } else {
-                double bestScore          = 0.0;
-                ScoredConcept bestConcept = null;
+                ScoredConcept bestConcept = termMatchingConcept.get(0);
+                double bestScore          = bestConcept.score;
                 for (ScoredConcept sc : termMatchingConcept) {
                     if (sc.score > bestScore) {
                         bestConcept = sc;

@@ -58,7 +58,6 @@ public class MapcontextRepositoryTest extends AbstractRepositoryTest {
     @Autowired
     private ServiceRepository serviceRepository;
 
-    @Test
     public void crude() {
 
         CstlUser owner = getOrCreateUser();

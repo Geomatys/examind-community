@@ -27,21 +27,17 @@ import org.constellation.dto.DataSourcePath;
 import org.constellation.dto.DataSourcePathComplete;
 import org.constellation.repository.DatasourceRepository;
 import org.junit.Assert;
-import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-@Transactional
 public class DatasourceRepositoryTest extends AbstractRepositoryTest {
 
     @Autowired
     private DatasourceRepository datasourceRepository;
 
-    @Test
     public void crude() {
 
         datasourceRepository.deleteAll();

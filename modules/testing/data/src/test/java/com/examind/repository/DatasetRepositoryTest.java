@@ -28,7 +28,6 @@ import org.constellation.repository.DataRepository;
 import org.constellation.repository.DatasetRepository;
 import org.constellation.repository.ProviderRepository;
 import org.junit.Assert;
-import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -46,7 +45,6 @@ public class DatasetRepositoryTest extends AbstractRepositoryTest {
     @Autowired
     private ProviderRepository providerRepository;
 
-    @Test
     public void crude() {
 
         dataRepository.deleteAll();

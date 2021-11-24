@@ -171,9 +171,6 @@ public class OGCFilterToDTOTransformer {
             final org.constellation.dto.Filter sf = visit(not.getOperands().get(0));
             return new org.constellation.dto.Filter(OGCJAXBStatics.FILTER_LOGIC_NOT, Arrays.asList(sf));
 
-        } else if (filter instanceof ResourceId) {
-            throw new IllegalArgumentException("Not parsed yet : " + filter);
-
         } else if (type == SpatialOperatorName.BBOX) {
             final BinarySpatialOperator bbox = (BinarySpatialOperator) filter;
 

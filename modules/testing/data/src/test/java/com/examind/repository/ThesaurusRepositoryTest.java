@@ -24,7 +24,6 @@ import org.constellation.dto.thesaurus.Thesaurus;
 import org.constellation.repository.ServiceRepository;
 import org.constellation.repository.ThesaurusRepository;
 import org.junit.Assert;
-import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -39,7 +38,6 @@ public class ThesaurusRepositoryTest extends AbstractRepositoryTest {
     @Autowired
     private ServiceRepository serviceRepository;
 
-    @Test
     public void crude() {
 
         CstlUser owner = getOrCreateUser();

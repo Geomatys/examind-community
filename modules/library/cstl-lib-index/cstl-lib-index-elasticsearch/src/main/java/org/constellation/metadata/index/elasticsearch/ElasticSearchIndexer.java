@@ -29,6 +29,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.util.NullArgumentException;
@@ -480,6 +481,8 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
         return false;
     }
 
+    private static final double DELTA = 0.01;
+
     protected Map generateMapEnvelopes(final String spatialAttribute, final String CRSNameCode, final List<Double> minx, final List<Double> maxx, final List<Double> miny, final List<Double> maxy) {
 
         final int nbEnv = minx.size();
@@ -487,13 +490,17 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
         final List<Map> envelopeList = new ArrayList<>();
 
         for (int e = 0; e < nbEnv; e++) {
-            if (!Double.isNaN(minx.get(e)) && !Double.isNaN(maxx.get(e)) && !Double.isNaN(miny.get(e)) && !Double.isNaN(maxy.get(e))) {
+            double ix = minx.get(e);
+            double ax = maxx.get(e);
+            double iy = miny.get(e);
+            double ay = maxy.get(e);
+            if (!Double.isNaN(ix) && !Double.isNaN(ax) && !Double.isNaN(iy) && !Double.isNaN(ay)) {
                 Map boxMap = new HashMap();
                 if (withPlugin) {
-                    boxMap.put("minx", ""+ minx.get(e));
-                    boxMap.put("maxx", ""+ maxx.get(e));
-                    boxMap.put("miny", ""+ miny.get(e));
-                    boxMap.put("maxy", ""+ maxy.get(e));
+                    boxMap.put("minx", ""+ ix);
+                    boxMap.put("maxx", ""+ ax);
+                    boxMap.put("miny", ""+ iy);
+                    boxMap.put("maxy", ""+ ay);
                     boxMap.put("crs",  CRSNameCode);
                 } else {
                     // TODO reproj for bas CRS
@@ -503,17 +510,12 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
                     // in the format [[minLon, maxLat], [maxLon, minLat]]:
 
                     // Elasticsearch do not like "line/point" bbox
-                    double delta = 0.01;
-                    double ix = minx.get(e);
-                    double ax = maxx.get(e);
-                    double iy = miny.get(e);
-                    double ay = maxy.get(e);
-
-                    if (ix == ax) {
-                        ax = ax + delta;
+                   
+                    if (ax -ix <  DELTA) {
+                        ax = ax + DELTA;
                     }
-                    if (iy == ay) {
-                        ay = ay + delta;
+                    if (ay - iy <  DELTA) {
+                        ay = ay + DELTA;
                     }
 
                     boxMap.put("coordinates", Arrays.asList(Arrays.asList(ix, ay), Arrays.asList(ax, iy)));

@@ -321,7 +321,7 @@ public abstract class AbstractWorker implements Worker {
      * {@inheritDoc }
      */
     @Override
-    public void setServiceUrl(final String serviceUrl) {
+    public synchronized void setServiceUrl(final String serviceUrl) {
         if (serviceUrl != null && serviceUrl.endsWith("/")) {
             this.serviceUrl = serviceUrl + specification.toString().toLowerCase() + '/' + id + '?';
         } else {

@@ -500,9 +500,6 @@ public abstract class AbstractFilterParser implements FilterParser {
                 if (ab instanceof Point || ab instanceof LineString || ab instanceof Polygon || ab instanceof Envelope) {
                     gmlGeometry = ab;
 
-                } else if (ab == null) {
-                   throw new IllegalArgumentException("null value in BinarySpatialOp type");
-
                 } else {
                     throw new IllegalArgumentException("unknow BinarySpatialOp type:" + ab.getClass().getSimpleName());
                 }

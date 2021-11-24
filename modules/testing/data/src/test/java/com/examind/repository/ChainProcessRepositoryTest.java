@@ -22,9 +22,7 @@ import java.util.List;
 import org.constellation.dto.process.ChainProcess;
 import org.constellation.repository.ChainProcessRepository;
 import org.junit.Assert;
-import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
@@ -35,8 +33,6 @@ public class ChainProcessRepositoryTest extends AbstractRepositoryTest {
     @Autowired
     private ChainProcessRepository chainProcessRepository;
 
-    @Test
-    @Transactional()
     public void crude() {
         chainProcessRepository.deleteAll();
         List<ChainProcess> all = chainProcessRepository.findAll();
@@ -66,7 +62,6 @@ public class ChainProcessRepositoryTest extends AbstractRepositoryTest {
         cp2 = chainProcessRepository.findOne("tes't", "'001'");
         Assert.assertNull(cp2);
 
-        
     }
 
 }

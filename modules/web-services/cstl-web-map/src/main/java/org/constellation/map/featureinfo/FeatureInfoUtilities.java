@@ -106,10 +106,11 @@ public final class FeatureInfoUtilities extends Static {
 
                         //Find supported mimetypes in FeatureInfoFormat
                         final FeatureInfoFormat tmpFormat = FeatureInfoUtilities.getFeatureInfoFormatFromConf(infoCfg);
-
-                        final List<String> supportedMime = tmpFormat.getSupportedMimeTypes();
-                        if (!(supportedMime.isEmpty()) && supportedMime.contains(mimeType)) {
-                            featureInfo = tmpFormat;
+                        if (tmpFormat != null) {
+                            final List<String> supportedMime = tmpFormat.getSupportedMimeTypes();
+                            if (!(supportedMime.isEmpty()) && supportedMime.contains(mimeType)) {
+                                featureInfo = tmpFormat;
+                            }
                         }
                     }
                 }

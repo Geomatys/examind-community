@@ -13,8 +13,8 @@
     <groupId>com.examind.community.storage.sql</groupId>
     <artifactId>exa-store-data-sql</artifactId>
     <packaging>jar</packaging>
-    <name>SQL datastore provider</name>
-    <description>Thin wrapper over Apache SIS SQL datastore to ease coniguration and usage</description>
+    <name>Provider : SQL datastore</name>
+    <description>Thin wrapper over Apache SIS SQL datastore to ease configuration and usage</description>
     <dependencies>
         <dependency>
             <groupId>org.apache.sis.storage</groupId>

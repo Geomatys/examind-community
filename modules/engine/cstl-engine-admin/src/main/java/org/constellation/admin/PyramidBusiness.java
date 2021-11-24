@@ -445,11 +445,13 @@ public class PyramidBusiness implements IPyramidBusiness {
                 //outside the original coverage area
                 GridGeometry gg = inRef.getGridGeometry();
                 RenderedImage img = readSmallImage(inRef, gg);
-
+                if (img == null) {
+                    return inRef;
+                }
+                final int dataType = img.getSampleModel().getDataType();
                 final List<SampleDimension> newDims = new ArrayList<>();
                 for (int i = 0; i < nbBand; i++) {
                     final SampleDimension sd = sampleDimensions.get(i);
-                    final int dataType = img.getSampleModel().getDataType();
                     NumberRange range;
                     switch (dataType) {
                         case DataBuffer.TYPE_BYTE : range = NumberRange.create(0, true, 255, true); break;

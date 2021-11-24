@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.logging.Level;
@@ -538,9 +539,8 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             if (bands != null) {
                 for (SampleDimension band : bands) {
                     final QuantityType quantity = new QuantityType();
-                    if (band.getUnits().isPresent()) {
-                        quantity.setUom(new UnitReference(band.getUnits().get().toString()));
-                    }
+                    band.getUnits().ifPresent(s -> quantity.setUom(new UnitReference(s.toString())));
+                   
                     // TODO select only one category => which one?
                     if (band.getCategories() != null) {
                         for (Category cat : band.getCategories()) {
@@ -1066,8 +1066,9 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         final GeneralEnvelope readEnv;
         final CoordinateReferenceSystem crs;
         try {
-            if (ref.getEnvelope().isPresent()) {
-                readEnv = new GeneralEnvelope(ref.getEnvelope().get());
+            Optional<Envelope> refEnv = ref.getEnvelope();
+            if (refEnv.isPresent()) {
+                readEnv = new GeneralEnvelope(refEnv.get());
                 crs = readEnv.getCoordinateReferenceSystem();
             } else {
                 final GridGeometry gridGeometry = ref.getGridGeometry();

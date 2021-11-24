@@ -698,12 +698,7 @@ public class ServiceBusiness implements IServiceBusiness {
     @Transactional
     public void linkCSWAndProvider(Integer serviceID, Integer providerID, boolean allEntry) {
         if (serviceID != null && providerID != null) {
-            if (serviceRepository.isLinkedMetadataProviderAndService(serviceID, providerID) == null) {
-                serviceRepository.linkMetadataProvider(serviceID, providerID, allEntry);
-            } else {
-                // update in case the mode "allEntry" has changed
-                serviceRepository.linkMetadataProvider(serviceID, providerID, allEntry);
-            }
+            serviceRepository.linkMetadataProvider(serviceID, providerID, allEntry);
         }
     }
 

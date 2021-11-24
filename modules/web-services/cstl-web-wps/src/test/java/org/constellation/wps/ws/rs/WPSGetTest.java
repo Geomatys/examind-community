@@ -383,11 +383,7 @@ public class WPSGetTest {
             WPSService.detectBoundingBox(processId, inputId, attributesMap);
             Assert.fail();
 
-            // Good processId, bad inputId
-            WPSService.detectBoundingBox(processId, inputId, attributesMap);
-            Assert.fail();
-        }
-        catch (CstlServiceException ex) {
+        } catch (CstlServiceException ex) {
         }
 
         // Bad processId, bad inputId and an attribute
@@ -877,8 +873,8 @@ public class WPSGetTest {
                             "@" + ENCODING + "=" + BASE_64 +
                             "@" + SCHEMA + "=" + SCHEMA_URL +
                             "@" + UOM + "=meters@asReference=true";
+            Map<String, Map> inputMap = extractDataFromKvpString(input);
             try {
-                Map<String, Map> inputMap = extractDataFromKvpString(input);
                 WPSService.extractRawResponseForm(WPSVersion.v100.getCode(), inputMap);
                 Assert.fail();
             }
@@ -909,9 +905,9 @@ public class WPSGetTest {
         // isRawData=false and an unkown attribute
         {
             String input = "urn:ogc:cstl:wps:test:output:result=@unknownattribute=unknownvalue";
+            Map<String, Map> inputMap = extractDataFromKvpString(input);
             try {
-                Map<String, Map> inputMap = extractDataFromKvpString(input);
-                 WPSService.extractDocumentResponseForm(WPSVersion.v100.getCode(), inputMap);
+                WPSService.extractDocumentResponseForm(WPSVersion.v100.getCode(), inputMap);
                 Assert.fail();
             }
             catch (CstlServiceException ex) {
@@ -922,7 +918,6 @@ public class WPSGetTest {
         {
             try {
                 Map<String, Map> inputMap = extractDataFromKvpString(null);
-                 WPSService.extractDocumentResponseForm(WPSVersion.v100.getCode(), inputMap);
                 Assert.fail();
             }
             catch (NullArgumentException ex) {
@@ -949,8 +944,8 @@ public class WPSGetTest {
                             "@" + ENCODING + "=" + BASE_64 +
                             "@" + SCHEMA + "=" + SCHEMA_URL +
                             "@" + UOM + "=meters@asReference=true";
+            Map<String, Map> inputMap = extractDataFromKvpString(input);
             try {
-                Map<String, Map> inputMap = extractDataFromKvpString(input);
                 WPSService.extractRawResponseForm(WPSVersion.v200.getCode(), inputMap);
                 Assert.fail();
             }
@@ -981,9 +976,9 @@ public class WPSGetTest {
         // isRawData=false and an unkown attribute
         {
             String input = "urn:ogc:cstl:wps:test:output:result=@unknownattribute=unknownvalue";
+            Map<String, Map> inputMap = extractDataFromKvpString(input);
             try {
-                Map<String, Map> inputMap = extractDataFromKvpString(input);
-                 WPSService.extractDocumentResponseForm(WPSVersion.v200.getCode(), inputMap);
+                WPSService.extractDocumentResponseForm(WPSVersion.v200.getCode(), inputMap);
                 Assert.fail();
             }
             catch (CstlServiceException ex) {
@@ -994,7 +989,6 @@ public class WPSGetTest {
         {
             try {
                 Map<String, Map> inputMap = extractDataFromKvpString(null);
-                 WPSService.extractDocumentResponseForm(WPSVersion.v200.getCode(), inputMap);
                 Assert.fail();
             }
             catch (NullArgumentException ex) {

@@ -1142,7 +1142,7 @@ public class STSService extends OGCWebService<STSWorker> {
         if (worker != null) {
             try {
                 AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETTHINGS, worker);
-                int pos = id.lastIndexOf('-');
+                int pos = id != null ? id.lastIndexOf('-') : -1;
                 if (pos != -1) {
                     String sensorId = id.substring(0, pos);
                     String timeStr = id.substring(pos + 1); // not neccesary for finding thing
@@ -1170,7 +1170,7 @@ public class STSService extends OGCWebService<STSWorker> {
         if (worker != null) {
             try {
                 AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETHISTORICALLOCATIONS, worker);
-                int pos = id.lastIndexOf('-');
+                int pos = id != null ? id.lastIndexOf('-') : -1;
 
                 // single historical location
                 if (pos != -1) {
@@ -1234,7 +1234,7 @@ public class STSService extends OGCWebService<STSWorker> {
         if (worker != null) {
             try {
                 AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETLOCATIONS, worker);
-                int pos = id.lastIndexOf('-');
+                int pos = id != null ? id.lastIndexOf('-') : -1;
                 if (pos != -1) {
                     String sensorId = id.substring(0, pos);
                     String timeStr = id.substring(pos + 1);

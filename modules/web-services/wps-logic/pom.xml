@@ -13,7 +13,7 @@
     <groupId>com.examind.community</groupId>
     <artifactId>wps-logic</artifactId>
     <packaging>jar</packaging>
-    <name>OGC WPS core</name>
+    <name>Web service : OGC WPS core</name>
     <description>Mandatory operations for a pure in-memory implementation of WPS service (No endpoint definition)</description>
 
     <dependencies>

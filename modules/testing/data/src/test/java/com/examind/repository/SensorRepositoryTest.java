@@ -26,9 +26,7 @@ import org.constellation.repository.ProviderRepository;
 import org.constellation.repository.SensorRepository;
 import org.constellation.repository.ServiceRepository;
 import org.junit.Assert;
-import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
@@ -48,8 +46,6 @@ public class SensorRepositoryTest extends AbstractRepositoryTest {
     @Autowired
     private ProviderRepository providerRepository;
     
-    @Test
-    @Transactional()
     public void crude() {
 
         dataRepository.deleteAll();

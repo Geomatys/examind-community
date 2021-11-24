@@ -36,7 +36,7 @@ import org.opengis.style.Style;
 
 /**
  *
- * @author Guilhem
+ * @author Guilhem Legal (Geomatys)
  */
 public class WMSUtilities {
 
@@ -47,18 +47,11 @@ public class WMSUtilities {
                                           throws PortrayalException
     {
 
-
-        MutableStyle mutableStyle = null;
-        if (style != null) {
-            mutableStyle = (MutableStyle) style;
-        }
-
-        if(!(mapItem instanceof MapLayer)){
-            //we can't render a glyph for a muli-layer
+        if (!(style instanceof MutableStyle) || !(mapItem instanceof MapLayer)) {
             return DefaultLegendService.portray(template, mapItem, dimension);
         }
-
-        final MapLayer maplayer = (MapLayer) mapItem;
+        final MutableStyle mutableStyle = (MutableStyle) style;
+        final MapLayer maplayer         = (MapLayer) mapItem;
 
         if (template == null) {
             if (dimension == null) {

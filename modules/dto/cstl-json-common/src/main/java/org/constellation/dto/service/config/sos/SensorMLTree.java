@@ -349,7 +349,7 @@ public class SensorMLTree {
             sb.append("parent=").append(parent.id).append("\n");
         }
         if (sml != null) {
-            sb.append("sml=").append(parent.id).append("\n");
+            sb.append("sml=").append(sml).append("\n");
         }
         if (children != null) {
             sb.append("children:");

@@ -25,7 +25,6 @@ import org.constellation.dto.ProviderBrief;
 import org.constellation.repository.DataRepository;
 import org.constellation.repository.ServiceRepository;
 import org.junit.Assert;
-import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class ProviderRepositoryTest extends AbstractRepositoryTest {
@@ -39,12 +38,10 @@ public class ProviderRepositoryTest extends AbstractRepositoryTest {
     @Autowired
     private ProviderRepository providerRepository;
 
-    @Test
     public void all() {
         dump(providerRepository.findAll());
     }
 
-    @Test
     public void crude() {
 
         dataRepository.deleteAll();

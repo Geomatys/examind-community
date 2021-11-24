@@ -182,7 +182,7 @@ final class DataStoreHandle implements AutoCloseable {
             local = parsedNames.get(0);
         } else if (parsedNames.size() == 2) {
             ns = parsedNames.get(0);
-            if (ns == "") ns = null;
+            if ("".equals(ns)) ns = null;
             local = parsedNames.get(1);
         } else throw new ConstellationException("Unsupported name format: Multiple namespaces in "+dataName);
         final org.constellation.dto.Data databaseData = dataBiz.findDataFromProvider(ns, local, providerName);
