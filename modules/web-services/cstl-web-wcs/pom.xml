@@ -32,6 +32,11 @@
             <groupId>org.geotoolkit</groupId>
             <artifactId>geotk-coverage-geotiff</artifactId>
         </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
 
         <!-- Test dependencies -->
         <dependency>
@@ -84,11 +89,6 @@
             <artifactId>cstl-engine-spring-security</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>javax.media</groupId>

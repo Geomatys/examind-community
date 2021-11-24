@@ -31,14 +31,10 @@
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Test dependencies -->
-        <dependency>
-            <groupId>org.opengis</groupId>
-            <artifactId>geoapi-conformance</artifactId>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>com.examind.community</groupId>
             <artifactId>cstl-database-impl</artifactId>
@@ -75,6 +71,7 @@
             <groupId>com.examind.community</groupId>
             <artifactId>cstl-test-data</artifactId>
             <version>${project.version}</version>
+            <type>test-jar</type>
             <scope>test</scope>
         </dependency>
         <dependency>

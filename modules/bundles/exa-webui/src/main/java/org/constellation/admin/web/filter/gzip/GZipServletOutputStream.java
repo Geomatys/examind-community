@@ -22,39 +22,62 @@ import javax.servlet.ServletOutputStream;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.logging.Logger;
+import javax.servlet.WriteListener;
+import org.apache.sis.util.logging.Logging;
 
 class GZipServletOutputStream extends ServletOutputStream {
-  private OutputStream stream;
 
-  public GZipServletOutputStream(OutputStream output)
-      throws IOException {
-    super();
-    this.stream = output;
-  }
+    private final OutputStream stream;
 
-  @Override
-  public void close() throws IOException {
-    this.stream.close();
-  }
+    private static final Logger LOGGER = Logging.getLogger("org.constellation.admin.web.filter.gzip");
 
-  @Override
-  public void flush() throws IOException {
-    this.stream.flush();
-  }
+    public GZipServletOutputStream(OutputStream output) throws IOException {
+        super();
+        this.stream = output;
+    }
 
-  @Override
-  public void write(byte b[]) throws IOException {
-    this.stream.write(b);
-  }
+    @Override
+    public void close() throws IOException {
+        this.stream.close();
+    }
 
-  @Override
-  public void write(byte b[], int off, int len) throws IOException {
-    this.stream.write(b, off, len);
-  }
+    @Override
+    public void flush() throws IOException {
+        this.stream.flush();
+    }
 
-  @Override
-  public void write(int b) throws IOException {
-    this.stream.write(b);
-  }
- 
+    @Override
+    public void write(byte b[]) throws IOException {
+        this.stream.write(b);
+    }
+
+    @Override
+    public void write(byte b[], int off, int len) throws IOException {
+        this.stream.write(b, off, len);
+    }
+
+    @Override
+    public void write(int b) throws IOException {
+        this.stream.write(b);
+    }
+
+    @Override
+    public boolean isReady() {
+        if (stream instanceof ServletOutputStream) {
+            return ((ServletOutputStream)stream).isReady();
+        }
+        LOGGER.finer("This stream implementation does not support is ready method");
+        return true;
+    }
+
+    @Override
+    public void setWriteListener(WriteListener listener) {
+        if (stream instanceof ServletOutputStream) {
+            ((ServletOutputStream)stream).setWriteListener(listener);
+        } else {
+            LOGGER.finer("This stream  implementation does not support write listener");
+        }
+    }
+
 }
