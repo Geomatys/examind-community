@@ -56,6 +56,7 @@ import org.opengis.util.GenericName;
 import static org.constellation.business.ClusterMessageConstant.*;
 import org.constellation.dto.StyleReference;
 import org.constellation.exception.ConstellationException;
+import org.springframework.lang.NonNull;
 
 /**
  * A super class for all the web service worker dealing with layers (WMS, WCS, WMTS, WFS, ...)
@@ -349,6 +350,23 @@ public abstract class LayerWorker extends AbstractWorker {
                     configuration);
         } else {
             throw new CstlServiceException("Unable to find  the Layer named:{" + NamesExt.getNamespace(nip.layerName) + '}' + nip.layerName.tip().toString() + " in the provider proxy", NO_APPLICABLE_CODE);
+        }
+    }
+
+    /**
+     * return a namespace prefixed identifier got a Layer.
+     *
+     * @param layer A layer cache.
+     * @return A identifier including a namespace.
+     */
+    protected static @NonNull String identifier(@NonNull LayerCache layer) {
+        final GenericName layerName = layer.getName();
+        final String namespace = NamesExt.getNamespace(layerName);
+        final String localName = layerName.tip().toString();
+        if (namespace == null) {
+            return localName;
+        } else {
+            return namespace + ':' + localName;
         }
     }
 }

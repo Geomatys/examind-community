@@ -394,7 +394,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             try {
                 inputGeoBox = layer.getGeographicBoundingBox();
             } catch (ConstellationStoreException ex) {
-                LOGGER.log(Level.WARNING, "Error retrieving bouding box values for the layer :"+ data.getName(), ex);
+                LOGGER.log(Level.WARNING, "Error retrieving bouding box values for the layer :"+ layer.getName(), ex);
             }
 
             if (inputGeoBox == null) {
@@ -564,7 +564,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
              * LegendUrl generation
              * TODO: Use a StringBuilder or two
              */
-            final String layerName      = layer.getName().toString();
+            final String layerName      = identifier(layer);
             final String beginLegendUrl = getServiceUrl() + "REQUEST=GetLegendGraphic&VERSION=1.1.1&FORMAT=";
             final String legendUrlGif   = beginLegendUrl + MimeType.IMAGE_GIF + "&LAYER=" + layerName;
             final String legendUrlPng   = beginLegendUrl + MimeType.IMAGE_PNG + "&LAYER=" + layerName;

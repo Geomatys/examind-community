@@ -282,7 +282,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                     LOGGER.log(Level.WARNING, "No data can be found for name : "+layer.getName());
                     continue;
                 }
-                final String name = layer.getName().tip().toString();
+                final String name = identifier(layer);
                 final Object origin = data.getOrigin();
                 if (!(data instanceof PyramidData)) {
                     //WMTS only handle PyramidalModel

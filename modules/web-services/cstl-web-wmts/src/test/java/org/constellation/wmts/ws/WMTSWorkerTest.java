@@ -252,4 +252,9 @@ public class WMTSWorkerTest {
         pool.recycle(marshaller);
     }
 
+    @Test
+    public void getTileTest() throws Exception {
+
+    }
+
 }

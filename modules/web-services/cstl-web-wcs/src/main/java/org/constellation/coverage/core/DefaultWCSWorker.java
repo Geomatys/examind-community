@@ -18,7 +18,6 @@
  */
 package org.constellation.coverage.core;
 
-// J2SE dependencies
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
@@ -152,7 +151,6 @@ import org.geotoolkit.swe.xml.v200.QuantityType;
 import org.geotoolkit.swe.xml.v200.UnitReference;
 import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.geotoolkit.temporal.util.TimeParser;
-import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.wcs.xml.Content;
 import org.geotoolkit.wcs.xml.CoverageInfo;
 import org.geotoolkit.wcs.xml.DescribeCoverage;
@@ -193,7 +191,6 @@ import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
-import org.springframework.lang.NonNull;
 
 /**
  * Worker for the WCS services in Constellation which services both the REST
@@ -294,23 +291,6 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             }
         }
         return WCSXmlFactory.createDescribeCoverageResponse(version, coverageOfferings);
-    }
-
-    /**
-     * return a namespace prefixed identifier got a Layer.
-     *
-     * @param layer A layer cache.
-     * @return A identifier including a namespace.
-     */
-    private @NonNull String identifier(@NonNull LayerCache layer) {
-        final GenericName layerName = layer.getName();
-        final String namespace = NamesExt.getNamespace(layerName);
-        final String localName = layerName.tip().toString();
-        if (namespace == null) {
-            return localName;
-        } else {
-            return namespace + ':' + localName;
-        }
     }
 
     /**
