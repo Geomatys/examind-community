@@ -43,6 +43,7 @@ import org.constellation.provider.DataProviders;
 import org.constellation.repository.DataRepository;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
+import org.geotoolkit.util.NamesExt;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -173,18 +174,10 @@ final class DataStoreHandle implements AutoCloseable {
      */
     private static int searchRelatedExamindData(final String providerName, final GenericName dataName) throws ConstellationException {
         final DataRepository dataBiz = SpringHelper.getBean(DataRepository.class);
-        final List<String> parsedNames = dataName.toFullyQualifiedName().getParsedNames().stream()
-                .map(name -> name.tip().toString())
-                .collect(Collectors.toList());
-        String ns = null, local = null;
-        if (parsedNames.isEmpty()) throw new ConstellationException("Invalid data name: "+dataName);
-        else if (parsedNames.size() == 1) {
-            local = parsedNames.get(0);
-        } else if (parsedNames.size() == 2) {
-            ns = parsedNames.get(0);
-            if ("".equals(ns)) ns = null;
-            local = parsedNames.get(1);
-        } else throw new ConstellationException("Unsupported name format: Multiple namespaces in "+dataName);
+        String ns = NamesExt.getNamespace(dataName);
+        String local = dataName.tip().toString();
+        if ("".equals(ns)) ns = null;
+        
         final org.constellation.dto.Data databaseData = dataBiz.findDataFromProvider(ns, local, providerName);
         if (databaseData == null || databaseData.getId() == null)
             throw new ConstellationException(String.format("No data found for name %s in provider %s", dataName, providerName));
