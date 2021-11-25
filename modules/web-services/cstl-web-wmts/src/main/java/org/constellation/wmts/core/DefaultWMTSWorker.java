@@ -274,7 +274,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
             // and the list of matrix set
             final HashMap<String, TileMatrixSet> tileSets = new HashMap<>();
 
-            final List<LayerCache> layers = getLayerCaches(userLogin);
+            final List<LayerCache> layers = getLayerCaches(userLogin, true);
 
             for (final LayerCache layer : layers) {
                 final Data data = layer.getData();

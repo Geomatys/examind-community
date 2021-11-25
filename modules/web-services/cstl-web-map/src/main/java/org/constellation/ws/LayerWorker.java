@@ -38,6 +38,7 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import javax.annotation.PreDestroy;
@@ -292,6 +293,10 @@ public abstract class LayerWorker extends AbstractWorker {
     }
 
     protected List<LayerCache> getLayerCaches(final String login) throws CstlServiceException {
+        return getLayerCaches(login, false);
+    }
+    
+    protected List<LayerCache> getLayerCaches(final String login, boolean sort) throws CstlServiceException {
         List<LayerCache> results = new ArrayList<>();
         try {
             List<NameInProvider> nips = layerBusiness.getLayerNames(getServiceId(), login);
@@ -301,6 +306,9 @@ public abstract class LayerWorker extends AbstractWorker {
                 } catch (CstlServiceException ex) {
                     LOGGER.log(Level.WARNING, ex.getMessage());
                 }
+            }
+            if (sort) {
+                Collections.sort(results, new LayerCacheComparator());
             }
             return results;
         } catch (ConfigurationException ex) {
