@@ -2279,6 +2279,14 @@ function Examind($http, url) {
                 data: params
             });
         },
+        
+        isAvailableAlias : function (serviceId, alias) {
+            return self.request({
+                method: 'GET',
+                url: 'MAP/' + serviceId + '/alias?value=' + alias,
+                headers: {'Accept': 'application/json'}
+            });
+        },
 
         /**
          * Extract WMTS layer info.

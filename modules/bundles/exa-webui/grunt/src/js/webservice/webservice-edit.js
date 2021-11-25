@@ -543,6 +543,7 @@ angular.module('cstl-webservice-edit', [
                 templateUrl: 'views/data/layerInfo.html',
                 controller: 'LayerInfoModalController',
                 resolve: {
+                    'serviceId':function(){return $scope.service.id;},
                     'serviceType':function(){return $scope.service.type;},
                     'serviceIdentifier':function(){return $scope.service.identifier;},
                     'selectedLayer':function(){return $scope.selected;}
@@ -749,13 +750,18 @@ angular.module('cstl-webservice-edit', [
         };
     })
     .controller('LayerInfoModalController', function($scope, $modalInstance,Examind,Growl,
-                                                     serviceType,serviceIdentifier,selectedLayer){
+                                                     serviceId,serviceType,serviceIdentifier,selectedLayer){
+        $scope.serviceId = serviceId;                 
         $scope.serviceType = serviceType;
         $scope.serviceIdentifier = serviceIdentifier;
         $scope.selectedLayer = selectedLayer;
         $scope.layerForm = {
             "alias": $scope.selectedLayer.alias,
             "title": $scope.selectedLayer.title
+        };
+
+        $scope.errors = {
+            nameErr: false
         };
 
         $scope.close = function() {
@@ -775,12 +781,35 @@ angular.module('cstl-webservice-edit', [
                 }
             );
         };
+        
+        $scope.checkAlias = function () {
+            if (!$scope.layerForm.alias || $scope.layerForm.alias === '') {
+                $scope.errors.nameErr = true;
+                return false;
+            }
+            if ($scope.layerForm.alias === $scope.selectedLayer.alias) {
+                $scope.errors.nameErr = false;
+                return true;
+            }
+            Examind.map.isAvailableAlias($scope.serviceId, $scope.layerForm.alias)
+                .then(function (response) {
+                    $scope.errors.nameErr = response.data === "false";
+                    return response.data === "true";
+                }, function (reason) {
+                    $scope.errors.nameErr = true;
+                    return false;
+                });
+        };
     })
     .controller('LayerInfoAddModalController', function($scope, $modalInstance,Examind,Growl,layer){
         $scope.layer = layer;
         $scope.layerForm = {
             "alias": layer.alias,
             "title": layer.title
+        };
+        
+        $scope.errors = {
+            nameErr: false
         };
 
         $scope.close = function() {
@@ -791,6 +820,21 @@ angular.module('cstl-webservice-edit', [
             $scope.layer.alias = $scope.layerForm.alias;
             $scope.layer.title = $scope.layerForm.title;
             $modalInstance.close();
+        };
+        
+        $scope.checkAlias = function () {
+            if (!$scope.layerForm.alias || $scope.layerForm.alias === '') {
+                $scope.errors.nameErr = true;
+                return false;
+            }
+            Examind.map.isAvailableAlias($scope.layer.service, $scope.layerForm.alias)
+                .then(function (response) {
+                    $scope.errors.nameErr = response.data === "false";
+                    return response.data === "true";
+                }, function (reason) {
+                    $scope.errors.nameErr = true;
+                    return false;
+                });
         };
     })
     .controller('EditCSWMetadataModalController', function($scope, $modalInstance, $controller,Growl,Examind,serviceId,recordId,type,template) {
@@ -1218,7 +1262,7 @@ angular.module('cstl-webservice-edit', [
                     var layer = {
                         name: value.name,
                         namespace: value.namespace,
-                        alias: null,
+                        alias: value.name,
                         service: $scope.service.id,
                         dataId: value.id,
                         date: null,

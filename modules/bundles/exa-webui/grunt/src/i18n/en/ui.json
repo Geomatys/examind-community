@@ -965,6 +965,7 @@
   "layer.listing.selected.edit.layer.info": "Edit layer info",
   "layer.listing.selected.edit.layer.name": "Layer title",
   "layer.listing.selected.edit.layer.alias": "Layer Alias",
+  "layer.listing.selected.edit.layer.alias.inuse": "Layer Alias already in use",
   "layer.listing.title": "Layers list",
   "layer.listing.modal.dataviewer": "Data Viewer",
   "md.iso.abstract": "Abstract",
