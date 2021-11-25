@@ -1,19 +1,23 @@
-test:hsqldb:
+.test:base:
   stage: test
   needs:
     - build
+  retry:
+    when: script_failure
+    max: 1
+
+test:hsqldb:
+  extends: .test:base
   script:
     - mvn install -ntp -Dtest.database.url="jdbc:hsqldb:mem:admin" -s $MAVEN_SETTINGS
 
 test:postgresql:
+  extends: .test:base
   variables:
     POSTGRES_DB: admin
     POSTGRES_USER: exa
     POSTGRES_PASSWORD: exa
   services:
     - name: postgres:13.4-alpine3.14
-  stage: test
-  needs:
-    - build
   script:
     - mvn install -ntp -Dtest.database.url="jdbc:postgresql://postgres:5432/admin?user=exa&password=exa" -s $MAVEN_SETTINGS
