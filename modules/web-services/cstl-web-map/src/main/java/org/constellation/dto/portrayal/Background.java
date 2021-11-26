@@ -77,7 +77,7 @@ public class Background implements Serializable {
         this.inset = new Inset(displayBackground.getBackgroundInsets());
         this.fillColor = DecorationUtils.colorToHex((Color)displayBackground.getBackgroundPaint());
         this.fillOpacity = DecorationUtils.getColorOpacity((Color)displayBackground.getBackgroundPaint());
-        this.round = Integer.valueOf(displayBackground.getRoundBorder()).floatValue();
+        this.round = (float) displayBackground.getRoundBorder();
     }
             
     public String getFillColor() {

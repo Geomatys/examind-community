@@ -61,7 +61,10 @@ public class NameInProvider {
         if (this == o) {
             return true;
         }
-        if (o instanceof NameInProvider) {
+        if (o == null) {
+            return false;
+        }
+        if (this.getClass() == o.getClass()) {
             NameInProvider that = (NameInProvider) o;
             return Objects.equals(this.layerId,     that.layerId) &&
                    Objects.equals(this.alias,       that.alias) &&

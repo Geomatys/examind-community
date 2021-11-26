@@ -79,7 +79,7 @@ public class PortrayalMessageConverter implements HttpMessageConverter<Portrayal
             OutputDef outdef = r.getOutputDef();
             if(outdef == null){
                 List<String> outFormats = outputMessage.getHeaders().get("Content-Type");
-                if (outFormats.isEmpty()) {
+                if (outFormats == null || outFormats.isEmpty()) {
                     // contentType here will be probably erroned (Spring issue)
                     outdef = new OutputDef(contentType.toString(), out);
                 } else {

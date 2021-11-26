@@ -108,7 +108,6 @@ public class StyleRepositoryTest extends AbstractRepositoryTest {
          */
         Style style1 = TestSamples.newStyle(owner.getId(), "style1");
         int stid1 = styleRepository.create(style1);
-        Assert.assertNotNull(stid1);
         style1.setId(stid1);
 
         Style s = styleRepository.findById(stid1);
@@ -120,7 +119,6 @@ public class StyleRepositoryTest extends AbstractRepositoryTest {
 
         Style style2 = TestSamples.newStyleQuote(owner.getId(), "style'; select *';1");
         int stid2 = styleRepository.create(style2);
-        Assert.assertNotNull(stid2);
         style2.setId(stid2);
 
         s = styleRepository.findById(stid2);

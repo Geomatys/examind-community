@@ -83,16 +83,12 @@ public class MetadataRepositoryTest extends AbstractRepositoryTest {
          * metadata insertion
          */
         int mid1 = metadataRepository.create(TestSamples.newMetadata(owner.getId(), "meta-1", did1, null, null));
-        Assert.assertNotNull(mid1);
 
         int mid2 = metadataRepository.create(TestSamples.newMetadata(owner.getId(), "meta-2", null, dsid, null));
-        Assert.assertNotNull(mid2);
 
         int mid3 = metadataRepository.create(TestSamples.newMetadata(owner.getId(), "meta-3", null, null, sid));
-        Assert.assertNotNull(mid3);
 
         int mid4 = metadataRepository.create(TestSamples.newMetadataQuote(owner.getId(), "meta'4"));
-        Assert.assertNotNull(mid4);
 
         Metadata m1 = metadataRepository.findById(mid1);
         Assert.assertNotNull(m1);

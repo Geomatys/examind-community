@@ -355,12 +355,14 @@ public class ProcedureTree {
         if (object == this) {
             return true;
         }
-
-        if (object instanceof ProcedureTree) {
+        if (object == null) {
+            return false;
+        }
+        if (this.getClass() == object.getClass()) {
             final ProcedureTree that = (ProcedureTree) object;
             return Objects.equals(this.id,           that.id)   &&
                    Objects.equals(this.dateEnd,      that.dateEnd)   &&
-                   Objects.equals(this.name,          that.name)   &&
+                   Objects.equals(this.name,         that.name)   &&
                    Objects.equals(this.description,  that.description)   &&
                    Objects.equals(this.dateStart,    that.dateStart)   &&
                    Objects.equals(this.minx,         that.minx)   &&

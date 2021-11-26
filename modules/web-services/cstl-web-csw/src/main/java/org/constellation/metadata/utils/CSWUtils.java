@@ -390,8 +390,10 @@ public class CSWUtils {
         if (!beginValues.isEmpty() && !endValues.isEmpty()) {
             Date start = parser.parseToDate(beginValues.get(0));
             Date end   = parser.parseToDate(endValues.get(0));
-            String content = ISO8601_FORMAT.format(start) + "/" + ISO8601_FORMAT.format(end);
-            entry.getAuthorOrCategoryOrContent().add(dcFactory.createDate(new SimpleLiteral(content)));
+            synchronized(ISO8601_FORMAT) {
+                String content = ISO8601_FORMAT.format(start) + "/" + ISO8601_FORMAT.format(end);
+                entry.getAuthorOrCategoryOrContent().add(dcFactory.createDate(new SimpleLiteral(content)));
+            }
         }
 
         // TODO source ?

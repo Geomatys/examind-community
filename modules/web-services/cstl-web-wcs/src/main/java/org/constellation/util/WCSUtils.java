@@ -173,17 +173,17 @@ public final class WCSUtils {
         //fill remaining range
         if(from != to){
             //no style for this range
-            steps.put(toLiteral(from), new ArrayList<Symbolizer>());
+            steps.put(toLiteral(from), new ArrayList<>());
         }
 
 
     }
 
     private static Literal toLiteral(Double limit){
-        if(limit == Double.NEGATIVE_INFINITY){
+        if (limit == Double.NEGATIVE_INFINITY) {
             return null;
         }else{
-            return FF.literal(limit.doubleValue());
+            return FF.literal(limit);
         }
     }
 

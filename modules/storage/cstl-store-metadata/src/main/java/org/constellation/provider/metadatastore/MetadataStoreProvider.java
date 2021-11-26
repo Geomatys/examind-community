@@ -169,6 +169,7 @@ public class MetadataStoreProvider extends IndexedNameDataProvider implements Me
             if (tmpStore == null) {//NOSONAR
                 throw new DataStoreException("Could not create metadata store for parameters : "+factoryconfig);
             } else if (!(tmpStore instanceof MetadataStore)) {
+                tmpStore.close();
                 throw new DataStoreException("Could not create metadata store for parameters : "+factoryconfig + " (not a metadata store)");
             }
             return (MetadataStore) tmpStore;

@@ -526,7 +526,6 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
      * @throws ConstellationException if something went wrong during the indexation.
      */
     private void synchroneIndexRefresh(final List<String> cswInstances, final boolean reloadFSStore) throws ConstellationException {
-        boolean deleted = false;
         String requestUUID = UUID.randomUUID().toString();
         for (String cswInstance : cswInstances) {
             final Automatic config = getServiceConfiguration(cswInstance);
@@ -543,14 +542,6 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
                 reloadFSProvider(store);
             }
         }
-
-        //if we have deleted something we restart the services
-        if (deleted) {
-            //restart(); TODO
-        } else {
-            LOGGER.log(Level.INFO, "there is no index to delete");
-        }
-
     }
 
     /**

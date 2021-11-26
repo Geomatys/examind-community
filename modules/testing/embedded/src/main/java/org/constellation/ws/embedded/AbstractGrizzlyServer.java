@@ -188,7 +188,10 @@ public abstract class AbstractGrizzlyServer {
             SpringApplication.exit(ctx);
             File f = new File("derby.log");
             if (f.exists()) {
-                f.delete();
+                boolean deleted = f.delete();
+                if (!deleted) {
+                    LOGGER.fine("Unable to remove derby log");
+                }
             }
             ctx = null;
         }
@@ -284,7 +287,7 @@ public abstract class AbstractGrizzlyServer {
         int resCode = 404;
         int cpt = 0;
         while (resCode == 404) {
-            Thread.sleep(1 * 2000);
+            Thread.sleep(1 * 2000L);
             HttpURLConnection conec = (HttpURLConnection) u.openConnection();
             try {
                 conec.connect();

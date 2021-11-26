@@ -57,7 +57,7 @@ public class QuotationInfo {
     private static final Logger LOGGER = Logging.getLogger("com.examind.wps");
 
     public QuotationInfo() {
-        final long defaultExpire = 1000*60*60*24*7;  // une semaine
+        final long defaultExpire = 1000*60*60*24*7L;  // une semaine
         expiration = Application.getLongProperty(AppProperty.EXA_QUOTATION_EXPIRE, defaultExpire);
     }
 

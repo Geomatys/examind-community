@@ -206,10 +206,7 @@ public class DataProfile implements Spliterator<DataProfile.DataPoint> {
             throw new BackingStoreException("Conversions between dataset grid and geographic space failed", ex);
         }
 
-        if (nextPoint == null) {
-            return false;
-        }
-
+        assert nextPoint != null : "nextPoint should not be null";
         lastPoint = nextPoint;
         action.accept(nextPoint);
 

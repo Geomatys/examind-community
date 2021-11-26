@@ -38,16 +38,16 @@ public class ChainProcessRepositoryTest extends AbstractRepositoryTest {
         List<ChainProcess> all = chainProcessRepository.findAll();
         Assert.assertTrue(all.isEmpty());
 
-        int cip = chainProcessRepository.create(TestSamples.newChainProcess());
+        Integer cip = chainProcessRepository.create(TestSamples.newChainProcess());
         Assert.assertNotNull(cip);
 
-        int i = chainProcessRepository.findId("test", "001");
+        Integer i = chainProcessRepository.findId("test", "001");
         Assert.assertEquals(cip, i);
 
         ChainProcess cp1 = chainProcessRepository.findOne("test", "001");
         Assert.assertNotNull(cp1);
 
-        int cip2 = chainProcessRepository.create(TestSamples.newChainProcessQuote());
+        Integer cip2 = chainProcessRepository.create(TestSamples.newChainProcessQuote());
         Assert.assertNotNull(cip2);
 
         ChainProcess cp2 = chainProcessRepository.findOne("tes't", "'001'");

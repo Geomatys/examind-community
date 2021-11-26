@@ -34,7 +34,6 @@ import org.constellation.repository.DataRepository;
 import org.constellation.repository.ProviderRepository;
 import org.constellation.repository.ServiceRepository;
 import org.junit.Assert;
-import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -82,7 +81,7 @@ public class MapcontextRepositoryTest extends AbstractRepositoryTest {
         
         Data db = dataRepository.findById(did1);
 
-        int mpid1 = mapcontextRepository.create(TestSamples.newMapcontext(owner, "mp", "desc"));
+        Integer mpid1 = mapcontextRepository.create(TestSamples.newMapcontext(owner, "mp", "desc"));
         Assert.assertNotNull(mpid1);
 
         MapContextDTO mp1 = mapcontextRepository.findById(mpid1);
@@ -105,7 +104,7 @@ public class MapcontextRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals(mpl.getName(), layers.get(0).getName());
         Assert.assertEquals(mpl, layers.get(0));
 
-        int mpid2 = mapcontextRepository.create(TestSamples.newMapcontext(owner, "mp';", "'; delete * from admin.mp;'"));
+        Integer mpid2 = mapcontextRepository.create(TestSamples.newMapcontext(owner, "mp';", "'; delete * from admin.mp;'"));
         Assert.assertNotNull(mpid2);
 
         MapContextDTO mp2 = mapcontextRepository.findById(mpid2);

@@ -46,11 +46,13 @@ public class ResourceData {
         if (o == this) {
             return true;
         }
-
-        if (o instanceof ResourceData) {
+        if (o == null) {
+            return false;
+        }
+        if (this.getClass() == o.getClass()) {
             ResourceData that = (ResourceData) o;
             return Objects.equals(this.name, that.name)
-                    && Objects.equals(this.type, that.type);
+                && Objects.equals(this.type, that.type);
         }
         return false;
     }

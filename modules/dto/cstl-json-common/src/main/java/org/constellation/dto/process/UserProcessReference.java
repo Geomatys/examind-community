@@ -78,7 +78,10 @@ public class UserProcessReference implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o instanceof UserProcessReference) {
+        if (o == null) {
+            return false;
+        }
+        if (this.getClass() == o.getClass()) {
             final UserProcessReference that = (UserProcessReference) o;
             return Objects.equals(this.id, that.id) &&
                    Objects.equals(this.identifier, that.identifier);

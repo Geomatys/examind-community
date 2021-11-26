@@ -173,7 +173,7 @@ public class AdminRestAPI extends AbstractRestAPI {
         }
     }
 
-    @RequestMapping("admin/rungc")
+    @RequestMapping(value = "admin/rungc", method = GET)
     public ResponseEntity runGC() {
         System.gc();
         return new ResponseEntity(NO_CONTENT);

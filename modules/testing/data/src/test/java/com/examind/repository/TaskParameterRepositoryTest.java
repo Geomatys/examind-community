@@ -47,13 +47,13 @@ public class TaskParameterRepositoryTest extends AbstractRepositoryTest {
         /**
          * Insertion
          */
-        int tpid1 = taskParamRepository.create(TestSamples.newTaskParameter(owner.getId(), "auth", "code"));
+        Integer tpid1 = taskParamRepository.create(TestSamples.newTaskParameter(owner.getId(), "auth", "code"));
         Assert.assertNotNull(tpid1);
 
         TaskParameter tp1 = taskParamRepository.get(tpid1);
         Assert.assertNotNull(tp1);
 
-        int tpid2 = taskParamRepository.create(TestSamples.newTaskParameterQuote(owner.getId(), "aut';h", "co';de"));
+        Integer tpid2 = taskParamRepository.create(TestSamples.newTaskParameterQuote(owner.getId(), "aut';h", "co';de"));
         Assert.assertNotNull(tpid2);
 
         TaskParameter tp2 = taskParamRepository.get(tpid2);

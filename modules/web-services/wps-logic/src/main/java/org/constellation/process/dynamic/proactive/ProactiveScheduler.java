@@ -149,12 +149,11 @@ public class ProactiveScheduler {
             // files = {'file': ('job.xml', job, 'application/xml')}
             //  res = requests.post("%s" % self.base_url, headers=headers, files=files)
             ResponseEntity<Identifier> res = restTemplate.postForEntity(prUrl + "rest/scheduler/submit", requestEntity, Identifier.class);
-
-            if (!res.getStatusCode().equals(HttpStatus.OK)) {
-                throw new ProActiveException("Failed to submit job:" + res.getBody());
+            Identifier assignedId = res.getBody();
+            if (!res.getStatusCode().equals(HttpStatus.OK) || assignedId == null) {
+                throw new ProActiveException("Failed to submit job:" + assignedId);
             }
-
-            return res.getBody().getId();
+            return assignedId.getId();
 
         } catch (HttpStatusCodeException ex) {
             LOGGER.warning(ex.getResponseBodyAsString());

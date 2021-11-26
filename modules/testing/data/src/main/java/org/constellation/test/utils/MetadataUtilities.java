@@ -72,6 +72,7 @@ import java.util.Collection;
 import java.util.Iterator;
 
 import org.apache.sis.metadata.iso.citation.DefaultResponsibleParty;
+import org.junit.Assert;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -296,11 +297,8 @@ public final class MetadataUtilities {
                 while (expSrcIt.hasNext()) {
                     Source expSrc = expSrcIt.next();
                     Source resSrc = resSrcIt.next();
-                    if (expSrc != null && resSrc == null) {
-                        assertTrue(false);
-                    } else if (expSrc == null && resSrc != null) {
-                        assertTrue(false);
-                    }
+                    Assert.assertNotNull(expSrc);
+                    Assert.assertNotNull(resSrc);
                     assertEquals(expSrc.getDescription(), resSrc.getDescription());
                     assertEquals(expSrc.getProcessedLevel(), resSrc.getProcessedLevel());
                     assertEquals(expSrc.getResolution(), resSrc.getResolution());

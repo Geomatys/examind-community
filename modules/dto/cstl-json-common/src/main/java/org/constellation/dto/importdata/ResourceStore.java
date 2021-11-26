@@ -53,8 +53,10 @@ public class ResourceStore {
         if (o == this) {
             return true;
         }
-
-        if (o instanceof ResourceStore) {
+        if (o == null) {
+            return false;
+        }
+        if (this.getClass() == o.getClass()) {
             ResourceStore that = (ResourceStore) o;
             return Objects.equals(this.id, that.id)
                     && Objects.equals(this.files, that.files)

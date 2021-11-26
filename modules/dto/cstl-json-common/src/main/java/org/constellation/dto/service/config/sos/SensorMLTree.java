@@ -315,8 +315,10 @@ public class SensorMLTree {
         if (object == this) {
             return true;
         }
-
-        if (object instanceof SensorMLTree) {
+        if (object == null) {
+            return false;
+        }
+        if (this.getClass() == object.getClass()) {
             final SensorMLTree that = (SensorMLTree) object;
             return Objects.equals(this.id,           that.id)   &&
                    Objects.equals(this.identifier,   that.identifier)   &&

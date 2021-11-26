@@ -133,6 +133,7 @@ public class SensorStoreProvider extends IndexedNameDataProvider implements Sens
             if (tmpStore == null) {//NOSONAR
                 throw new DataStoreException("Could not create sensor store for parameters : "+factoryconfig);
             } else if (!(tmpStore instanceof AbstractSensorStore)) {
+                tmpStore.close();
                 throw new DataStoreException("Could not create sensor store for parameters : "+factoryconfig + " (not a sensor store)");
             }
             return (AbstractSensorStore) tmpStore;

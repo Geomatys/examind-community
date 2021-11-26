@@ -319,7 +319,7 @@ public class SOSworker extends SensorWorker {
                 h = 1;
                 m = 0;
             }
-            templateValidTime = (h * 3600000) + (m * 60000);
+            templateValidTime = (h * 3600000L) + (m * 60000L);
 
             this.acceptedSensorMLFormats = sensorBusiness.getAcceptedSensorMLFormats(getServiceId());
 

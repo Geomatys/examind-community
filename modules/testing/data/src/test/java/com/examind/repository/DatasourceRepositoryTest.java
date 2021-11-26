@@ -48,7 +48,6 @@ public class DatasourceRepositoryTest extends AbstractRepositoryTest {
          * datasource insertion
          */
         int did = datasourceRepository.create(TestSamples.newDataSource());
-        Assert.assertNotNull(did);
         DataSourcePath dsPath = new DataSourcePath(did, "/", "fold", true, null, 0);
         Map<String, String> types = new HashMap<>();
         datasourceRepository.addAnalyzedPath(dsPath, types);
@@ -74,7 +73,6 @@ public class DatasourceRepositoryTest extends AbstractRepositoryTest {
         Assert.assertNotNull(ds1);
 
         int did2 = datasourceRepository.create(TestSamples.newDataSourceQuote());
-        Assert.assertNotNull(did);
 
         DataSource ds2 = datasourceRepository.findById(did2);
         Assert.assertNotNull(ds2);

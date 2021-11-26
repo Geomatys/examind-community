@@ -45,10 +45,10 @@ public class TaskRepositoryTest extends AbstractRepositoryTest {
         Assert.assertNotNull(owner);
         Assert.assertNotNull(owner.getId());
 
-        int tpid1 = taskParamRepository.create(TestSamples.newTaskParameter(owner.getId(), "auth", "code"));
+        Integer tpid1 = taskParamRepository.create(TestSamples.newTaskParameter(owner.getId(), "auth", "code"));
         Assert.assertNotNull(tpid1);
 
-        int tpid2 = taskParamRepository.create(TestSamples.newTaskParameterQuote(owner.getId(), "aut';h", "co';de"));
+        Integer tpid2 = taskParamRepository.create(TestSamples.newTaskParameterQuote(owner.getId(), "aut';h", "co';de"));
         Assert.assertNotNull(tpid2);
 
         String uuid1 = taskRepository.create(TestSamples.newTask(owner.getId(), "999-666", tpid1));
@@ -62,7 +62,7 @@ public class TaskRepositoryTest extends AbstractRepositoryTest {
 
         Task t2 = taskRepository.get(uuid2);
         Assert.assertNotNull(t2);
-        Assert.assertEquals(new Integer(tpid2), t2.getTaskParameterId());
+        Assert.assertEquals(tpid2, t2.getTaskParameterId());
 
         List<? extends Task> tasks = taskRepository.findRunningTasks();
         Assert.assertEquals(1, tasks.size());

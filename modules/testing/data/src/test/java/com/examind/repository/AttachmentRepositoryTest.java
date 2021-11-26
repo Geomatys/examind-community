@@ -56,10 +56,8 @@ public class AttachmentRepositoryTest extends AbstractRepositoryTest {
         Assert.assertNotNull(owner.getId());
 
         int mid = metadataRepository.create(TestSamples.newMetadata(owner.getId(), "meta-1", null, null, null));
-        Assert.assertNotNull(mid);
 
         int sid1 = attachmentRepository.create(TestSamples.newAttachment());
-        Assert.assertNotNull(sid1);
         Attachment s = attachmentRepository.findById(sid1);
         Assert.assertNotNull(s);
 
@@ -77,7 +75,6 @@ public class AttachmentRepositoryTest extends AbstractRepositoryTest {
 
 
         int sid2 = attachmentRepository.create(TestSamples.newAttachmentQuote());
-        Assert.assertNotNull(sid2);
         s = attachmentRepository.findById(sid2);
         Assert.assertNotNull(s);
 
