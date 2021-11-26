@@ -103,6 +103,9 @@ public class LayerBusiness implements ILayerBusiness {
      */
     private final Map<String, MapFactory> mapFactories = new HashMap<>();
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
     public Integer add(int dataId, String alias, String namespace, String name,
@@ -185,6 +188,9 @@ public class LayerBusiness implements ILayerBusiness {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
     public void remove(final Integer layerId) throws ConstellationException {
@@ -197,6 +203,9 @@ public class LayerBusiness implements ILayerBusiness {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
     public void removeForService(final Integer serviceId) throws ConstellationException {
@@ -211,6 +220,9 @@ public class LayerBusiness implements ILayerBusiness {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
     public void removeAll() throws ConstellationException {
@@ -226,14 +238,15 @@ public class LayerBusiness implements ILayerBusiness {
     }
 
     /**
-     * Remove an existing layer and send event to service hosting ths layer.
+     * Remove an existing layer and send event to service hosting this layer.
      * For pyramid layer generated from a data at publishing time, if no longer used by any service, 
      * the data will be removed (so as the files on disk).
      * 
-     * @param layerId
-     * @param serviceType
-     * @param serviceId
-     * @throws ConfigurationException
+     * @param layerId The layer identifier.
+     * @param serviceType The service type (redundant but almost always already calculated)
+     * @param serviceId The service identifier (redundant but almost always already calculated)
+     *
+     * @throws ConstellationException if a problem occurs during pyramid data removal.
      * @throws TargetNotFoundException if the layer does not exist.
      */
     protected void removeLayer(int layerId, String serviceType, String serviceId) throws ConstellationException {
@@ -281,6 +294,9 @@ public class LayerBusiness implements ILayerBusiness {
         return sumLayers;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<LayerConfig> getLayers(final Integer serviceId, final String login) throws ConfigurationException {
         final List<LayerConfig> response = new ArrayList<>();
@@ -301,6 +317,9 @@ public class LayerBusiness implements ILayerBusiness {
         return response;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<NameInProvider> getLayerNames(final Integer serviceId, final String login) throws ConfigurationException {
         serviceBusiness.ensureExistingInstance(serviceId);
@@ -329,6 +348,9 @@ public class LayerBusiness implements ILayerBusiness {
         return response;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Integer> getLayerIds(final Integer serviceId, final String login) throws ConfigurationException {
         final List<Integer> response = new ArrayList<>();
@@ -346,15 +368,7 @@ public class LayerBusiness implements ILayerBusiness {
     }
 
     /**
-     * Get a single layer from its identifier.
-     *
-     * @param LayerId  layer identifier
-     * @param login login for security check
-     *
-     * @return org.constellation.dto.service.config.wxs.Layer
-     *
-     * @throws ConfigurationException
-     * @throws TargetNotFoundException if the layer does not exist.
+     * {@inheritDoc}
      */
     @Override
     public LayerConfig getLayer(final Integer LayerId, final String login) throws ConfigurationException {
@@ -372,6 +386,9 @@ public class LayerBusiness implements ILayerBusiness {
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public NameInProvider getFullLayerName(final Integer serviceId, final String nameOrAlias,
                                                           final String namespace, final String login) throws ConfigurationException {
@@ -421,9 +438,11 @@ public class LayerBusiness implements ILayerBusiness {
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public NameInProvider getFullLayerName(final Integer serviceId, final Integer layerId, final String login) throws ConfigurationException {
-
         final Layer layer = layerRepository.findById(layerId);
         if (layer != null) {
             final GenericName layerName = NamesExt.create(layer.getName());
@@ -450,6 +469,9 @@ public class LayerBusiness implements ILayerBusiness {
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public FilterAndDimension getLayerFilterDimension(final Integer layerId) throws ConfigurationException {
 
@@ -465,6 +487,9 @@ public class LayerBusiness implements ILayerBusiness {
         return new FilterAndDimension();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<StyleReference> getLayerStyles(Integer layerId) throws ConfigurationException {
         if (layerId != null) {
@@ -479,7 +504,27 @@ public class LayerBusiness implements ILayerBusiness {
         return new AbstractMap.SimpleImmutableEntry<>(entry.getKey(), toLayerConfig(entry.getValue()));
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isAvailableAlias(Integer serviceId, String alias) {
+        Integer id = layerRepository.findIdByServiceIdAndAlias(serviceId, alias);
+        if (id == null) {
+            id = layerRepository.findIdByServiceIdAndLayerName(serviceId, alias, true);
+            return id == null;
+        }
+        return false;
+    }
 
+
+    /**
+     * Convert a list of {@link Layer} into a list of  {@link LayerConfig}.
+     *
+     * @param layers The layers to convert.
+     * @return A list of  {@link LayerConfig}
+     * @throws ConfigurationException If a layer is misconfigured.
+     */
     private List<LayerConfig> toLayerConfig(List<Layer> layers) throws ConfigurationException {
         List<LayerConfig> results = new ArrayList<>();
         for (Layer layer : layers) {
@@ -489,10 +534,10 @@ public class LayerBusiness implements ILayerBusiness {
     }
 
     /**
+     * Convert a {@link Layer} into a {@link LayerConfig}.
+     * @param layer The layer to convert.
      *
-     * @param layer
-     * @return
-     * @throws ConfigurationException
+     * @throws ConfigurationException If the layer is misconfigured.
      */
     private LayerConfig toLayerConfig(Layer layer) throws ConfigurationException {
         LayerConfig layerConfig = readLayerConfiguration(layer.getConfig());
@@ -568,7 +613,7 @@ public class LayerBusiness implements ILayerBusiness {
     /**
      * Select the good Map factory in the available ones in function of the dataSource type.
      *
-     * @param type
+     * @param impl implementation name.
      * @return
      */
     private synchronized MapFactory getMapFactory(final String impl) throws ConfigurationException {

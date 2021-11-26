@@ -31,7 +31,6 @@ import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.business.IStyleBusiness;
 import org.constellation.dto.*;
-import org.constellation.dto.metadata.User;
 import org.constellation.dto.portrayal.LayerStyleUpdate;
 import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.dto.service.config.wxs.LayerSummary;
@@ -71,6 +70,7 @@ import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  *
@@ -128,6 +128,24 @@ public class MapRestAPI {
     public ResponseEntity getLayer(final @PathVariable("id") Integer id) {
         try {
             return new ResponseEntity(layerBusiness.getLayer(id, securityManager.getCurrentUserLogin()), OK);
+        } catch(Exception ex){
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
+    }
+
+    /**
+     * Veifiy the availability of a layer alias.
+     *
+     * @param serviceId The service identifier.
+     * @param value The alias candidate.
+     *
+     * @return {@code true} if the alias is available.
+     */
+    @RequestMapping(value="/MAP/{serviceId}/alias", method = GET , produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity isAvailableAlias(final @PathVariable("serviceId") Integer serviceId,  @RequestParam(name="value") String value) {
+        try {
+            return new ResponseEntity(layerBusiness.isAvailableAlias(serviceId, value), OK);
         } catch(Exception ex){
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
