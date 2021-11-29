@@ -5,7 +5,7 @@
             xmlns:xlink="http://www.w3.org/1999/xlink"
             xmlns:csw="http://www.opengis.net/cat/csw/3.0">
     <dc:identifier>39727_22_19750113062500</dc:identifier>
-    <dct:modified>2009-01-26T13:21:45+02:00</dct:modified>
+    <dct:modified>2009-01-26T11:21:45Z</dct:modified>
     <ows:BoundingBox dimensions="2" crs="EPSG:4326">
         <ows:LowerCorner>-6.95 -4.967</ows:LowerCorner>
         <ows:UpperCorner>-6.95 -4.967</ows:UpperCorner>

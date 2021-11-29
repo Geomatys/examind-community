@@ -93,8 +93,8 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
      */
     private static final DateFormat FORMATTER;
     static {
-        FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
-        FORMATTER.setTimeZone(TimeZone.getTimeZone("GMT+2"));
+        FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
     private static final String GMD = "http://www.isotc211.org/2005/gmd";
@@ -166,13 +166,11 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
 
     private String formatDate(final String modValue) {
         try {
-            final Date d = TemporalUtilities.parseDate(modValue);
+            final Date d = TemporalUtilities.parseDateCal(modValue).getTime();
             String dateValue;
             synchronized (FORMATTER) {
                 dateValue = FORMATTER.format(d);
             }
-            dateValue = dateValue.substring(0, dateValue.length() - 2);
-            dateValue = dateValue + ":00";
             return dateValue;
         } catch (ParseException ex) {
             LOGGER.log(Level.WARNING, "unable to parse date: {0}", modValue);

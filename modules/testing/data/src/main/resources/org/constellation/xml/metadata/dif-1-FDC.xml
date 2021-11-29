@@ -8,8 +8,8 @@
     <subject xmlns="http://purl.org/dc/elements/1.1/">anc kw2</subject>
     <creator xmlns="http://purl.org/dc/elements/1.1/">Geom</creator>
     <creator xmlns="http://purl.org/dc/elements/1.1/">JP/JAXA/SAOC</creator>
-    <modified xmlns="http://purl.org/dc/terms/">2015-09-10T02:00:00+02:00</modified>
-    <date xmlns="http://purl.org/dc/elements/1.1/">2015-09-10T02:00:00+02:00</date>
+    <modified xmlns="http://purl.org/dc/terms/">2015-09-10T00:00:00Z</modified>
+    <date xmlns="http://purl.org/dc/elements/1.1/">2015-09-10T00:00:00Z</date>
     <abstract xmlns="http://purl.org/dc/terms/">some abstract</abstract>
     <references xmlns="http://purl.org/dc/elements/1.1/">https://gportal.jaxa.jp/</references>
     <BoundingBox crs="EPSG:4326" dimensions="2" xmlns="http://www.opengis.net/ows">

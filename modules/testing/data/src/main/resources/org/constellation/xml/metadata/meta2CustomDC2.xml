@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <csw:Record xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:ows="http://www.opengis.net/ows" xmlns:dct="http://purl.org/dc/terms/" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:csw="http://www.opengis.net/cat/csw/2.0.2">
         <dc:identifier>42292_9s_19900610041000</dc:identifier>
-        <dct:modified>2009-01-26T13:00:00+02:00</dct:modified>
+        <dct:modified>2009-01-26T11:00:00Z</dct:modified>
         <ows:BoundingBox dimensions="2" crs="EPSG:4326">
             <ows:LowerCorner>36.6 1.3667</ows:LowerCorner>
             <ows:UpperCorner>36.6 1.3667</ows:UpperCorner>
