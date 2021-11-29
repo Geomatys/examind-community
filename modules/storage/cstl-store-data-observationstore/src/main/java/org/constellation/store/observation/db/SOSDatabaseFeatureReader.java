@@ -16,10 +16,10 @@ import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.util.Util;
-import org.geotoolkit.storage.feature.FeatureReader;
 import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
 import org.geotoolkit.data.om.OMFeatureTypes;
 import org.geotoolkit.geometry.jts.JTS;
+import org.geotoolkit.util.collection.CloseableIterator;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -29,7 +29,7 @@ import org.opengis.util.FactoryException;
  *
  * @author Guilhem Legal (Geomatys)
  */
-class SOSDatabaseFeatureReader implements FeatureReader {
+class SOSDatabaseFeatureReader implements CloseableIterator<Feature> {
 
     private static final Logger LOGGER = Logging.getLogger("org.constellation.store.observation.db");
     protected final Connection cnx;
@@ -40,7 +40,7 @@ class SOSDatabaseFeatureReader implements FeatureReader {
     private CoordinateReferenceSystem crs;
 
     protected final String schemaPrefix;
-    
+
     @SuppressWarnings("squid:S2095")
     SOSDatabaseFeatureReader(Connection cnx, boolean isPostgres, final FeatureType type, final String schemaPrefix) throws SQLException, DataStoreException {
         this.type = type;
@@ -59,7 +59,6 @@ class SOSDatabaseFeatureReader implements FeatureReader {
 
     }
 
-    @Override
     public FeatureType getFeatureType() {
         return type;
     }

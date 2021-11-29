@@ -57,15 +57,14 @@ import org.apache.sis.util.logging.Logging;
 import static org.constellation.store.observation.db.OM2FeatureStoreFactory.SCHEMA_PREFIX;
 import static org.constellation.store.observation.db.OM2FeatureStoreFactory.SGBDTYPE;
 import org.constellation.util.Util;
-import org.geotoolkit.storage.feature.FeatureReader;
 import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
-import org.geotoolkit.storage.feature.FeatureWriter;
 import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.storage.feature.GenericNameIndex;
 import org.geotoolkit.jdbc.ManageableDataSource;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.util.NamesExt;
+import org.geotoolkit.util.collection.CloseableIterator;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.WKBReader;
 import org.locationtech.jts.io.WKBWriter;
@@ -225,7 +224,7 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
     ////////////////////////////////////////////////////////////////////////////
     // Feature Reader //////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
-    private class OMReader implements FeatureReader {
+    private class OMReader implements CloseableIterator<Feature> {
 
         protected final Connection cnx;
         private boolean firstCRS = true;
@@ -246,7 +245,6 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
             result = stmtAll.executeQuery();
         }
 
-        @Override
         public FeatureType getFeatureType() {
             return type;
         }
@@ -331,7 +329,7 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
         }
     }
 
-    private class OMWriter extends OMReader implements FeatureWriter {
+    private class OMWriter extends OMReader {
 
         protected Feature candidate = null;
 
@@ -368,10 +366,6 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
             }
         }
 
-        @Override
-        public void write() throws FeatureStoreRuntimeException {
-            throw new FeatureStoreRuntimeException("Not supported.");
-        }
     }
 
     private final class FeatureView extends AbstractFeatureSet implements StoreResource, WritableFeatureSet {

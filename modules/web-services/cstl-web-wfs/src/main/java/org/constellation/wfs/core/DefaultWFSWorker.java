@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -94,7 +95,6 @@ import org.constellation.ws.UnauthorizedException;
 import org.geotoolkit.storage.feature.FeatureStore;
 import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
 import org.geotoolkit.storage.feature.FeatureStoreUtilities;
-import org.geotoolkit.storage.feature.FeatureWriter;
 import org.geotoolkit.storage.memory.InMemoryFeatureSet;
 import org.geotoolkit.storage.feature.query.QueryBuilder;
 import org.geotoolkit.feature.FeatureExt;
@@ -1683,15 +1683,19 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     query.setFilter(cleanFilter);
                     totalUpdated = totalUpdated + (int) FeatureStoreUtilities.getCount(fs.subset(query)).intValue();
 
-                    try (FeatureWriter fw = ((FeatureStore)data.getStore()).getFeatureWriter(QueryBuilder.filtered(layer.getName().tip().toString(), filter))) {
-                        while (fw.hasNext()) {
-                            Feature feat = fw.next();
-                            for (Entry<String, Object> entry : values.entrySet()) {
-                                Binding pa = Bindings.getBinding(Feature.class, entry.getKey());
-                                pa.set(feat, entry.getKey(), entry.getValue());
+                    final FeatureSet origin = data.getOrigin();
+                    if (origin instanceof WritableFeatureSet) {
+                        final WritableFeatureSet wfs = (WritableFeatureSet) origin;
+                        wfs.replaceIf(filter, new UnaryOperator<Feature>() {
+                            @Override
+                            public Feature apply(Feature feat) {
+                                for (Entry<String, Object> entry : values.entrySet()) {
+                                    Binding pa = Bindings.getBinding(Feature.class, entry.getKey());
+                                    pa.set(feat, entry.getKey(), entry.getValue());
+                                }
+                                return feat;
                             }
-                            fw.write();
-                        }
+                        });
                     }
                 } catch (ConstellationStoreException | DataStoreException ex) {
                     throw new CstlServiceException(ex);

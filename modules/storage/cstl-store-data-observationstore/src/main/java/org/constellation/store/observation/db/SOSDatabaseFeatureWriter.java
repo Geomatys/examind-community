@@ -10,7 +10,6 @@ import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.feature.FeatureExt;
 import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
-import org.geotoolkit.storage.feature.FeatureWriter;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
 
@@ -18,7 +17,7 @@ import org.opengis.feature.FeatureType;
  *
  * @author Guilhem Legal (Geomatys)
  */
-class SOSDatabaseFeatureWriter extends SOSDatabaseFeatureReader implements FeatureWriter {
+class SOSDatabaseFeatureWriter extends SOSDatabaseFeatureReader {
 
     protected static final Logger LOGGER = Logging.getLogger("org.geotoolkit.data.om");
     // TODO WRITE private static final String SQL_WRITE_SAMPLING_POINT = "INSERT INTO \"" + schemaPrefix + "om\".\"sampling_features\" VALUES(?,?,?,?,?,?)";
@@ -56,8 +55,4 @@ class SOSDatabaseFeatureWriter extends SOSDatabaseFeatureReader implements Featu
         }
     }
 
-    @Override
-    public void write() throws FeatureStoreRuntimeException {
-        throw new FeatureStoreRuntimeException("Not supported.");
-    }
 }

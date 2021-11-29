@@ -126,7 +126,6 @@ public class FeatureSetWriter implements HttpMessageConverter<FeatureSetWrapper>
                         featureWriter.write(f, outputMessage.getBody(), t.getNbMatched());
                     } else {
                         //write an empty collection
-                        //featureWriter.write(FeatureStreams.emptyCollection(t.getFeatureCollection()), outputMessage.getBody(), t.getNbMatched());
                         featureWriter.write(t.getFeatureSet(), outputMessage.getBody(), t.getNbMatched());
                     }
 
