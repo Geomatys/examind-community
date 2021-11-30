@@ -130,7 +130,7 @@ public class WMSServiceTest {
                 datas.addAll(testResource.createProvider(TestResource.PNG, providerBusiness, null).datas);
 
                 // shapefiles
-                datas.addAll(testResource.createProvider(TestResource.WMS111_SHAPEFILES, providerBusiness, null).datas);
+                datas.addAll(testResource.createProviders(TestResource.WMS111_SHAPEFILES, providerBusiness, null).datas());
 
                 final LayerContext config = new LayerContext();
 

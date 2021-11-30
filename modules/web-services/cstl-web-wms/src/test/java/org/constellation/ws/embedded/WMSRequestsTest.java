@@ -502,7 +502,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
                 // shapefile datastore
                 final List<DataImport> shapeDatas = new ArrayList<>();
-                shapeDatas.addAll(testResource.createProvider(TestResource.WMS111_SHAPEFILES, providerBusiness, null).datas);
+                shapeDatas.addAll(testResource.createProviders(TestResource.WMS111_SHAPEFILES, providerBusiness, null).datas());
                 datas.addAll(shapeDatas);
 
                 // we add two times a new geojson provider in order to create 2 layer with same name but different alias

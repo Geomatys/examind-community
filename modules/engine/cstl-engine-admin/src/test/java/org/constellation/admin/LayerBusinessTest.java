@@ -19,6 +19,7 @@
 package org.constellation.admin;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -84,7 +85,7 @@ public class LayerBusinessTest {
     private static boolean initialized = false;
 
     private static int coveragePID;
-    private static int vectorPID;
+    private static List<Integer> vectorPIDs;
 
     @PostConstruct
     public void init() {
@@ -108,7 +109,7 @@ public class LayerBusinessTest {
                 coveragePID = testResource.createProvider(TestResource.PNG, providerBusiness, dsId).id;
 
                 // shapefile datastore
-                vectorPID = testResource.createProvider(TestResource.WMS111_SHAPEFILES, providerBusiness, dsId).id;
+                vectorPIDs = testResource.createProviders(TestResource.WMS111_SHAPEFILES, providerBusiness, dsId).pids();
 
                 initialized = true;
             } catch (Exception ex) {
@@ -150,7 +151,10 @@ public class LayerBusinessTest {
 
         Assert.assertNotNull(lid);
 
-        List<DataBrief> briefs = dataBusiness.getDataBriefsFromProviderId(vectorPID, null, true, false, null, null, false, true);
+        List<DataBrief> briefs = new ArrayList<>();
+        for (Integer vectorPID : vectorPIDs)  {
+            briefs.addAll(dataBusiness.getDataBriefsFromProviderId(vectorPID, null, true, false, null, null, false, true));
+        }
         Assert.assertEquals(12, briefs.size());
 
         for (DataBrief vdb : briefs) {

@@ -225,7 +225,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
                 gmlDatas.addAll(testResource.createProvider(TestResource.WFS110_AGGREGATE, providerBusiness, null).datas);
 
                 // Shapefiles
-                datas.addAll(testResource.createProvider(TestResource.WMS111_SHAPEFILES, providerBusiness, null).datas);
+                datas.addAll(testResource.createProviders(TestResource.WMS111_SHAPEFILES, providerBusiness, null).datas());
 
                 // O&M feature database
                 datas.addAll(testResource.createProvider(TestResource.OM2_FEATURE_DB, providerBusiness, null).datas);

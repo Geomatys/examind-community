@@ -75,7 +75,7 @@ public class DataProcessReferenceToResourceTest {
                 testResource.createProvider(TestEnvironment.TestResource.PNG, providerBusiness, null);
 
                 // shapefile datastore
-                nbVectorData = testResource.createProvider(TestEnvironment.TestResource.SHAPEFILES, providerBusiness, null).datas.size();
+                nbVectorData = testResource.createProviders(TestEnvironment.TestResource.SHAPEFILES, providerBusiness, null).datas().size();
 
                 initialized = true;
             } catch (IOException | ConstellationException ex) {

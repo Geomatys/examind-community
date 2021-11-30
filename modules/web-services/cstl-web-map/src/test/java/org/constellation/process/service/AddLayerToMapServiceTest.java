@@ -42,6 +42,7 @@ import org.constellation.dto.StyleReference;
 import org.constellation.exception.ConstellationException;
 import org.constellation.test.utils.TestEnvironment.DataImport;
 import org.constellation.test.utils.TestEnvironment.ProviderImport;
+import org.constellation.test.utils.TestEnvironment.ProvidersImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
@@ -63,27 +64,24 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
     private static final StyleReference STYLE_DATA_REF = new StyleReference(null, "redBlue", 1, "sld");
     private static final DefaultFilterFactory FF = FilterUtilities.FF;
 
-    private Integer providerId;
+    private List<Integer> providerIds;
 
     @Before
     public void createProvider() throws Exception {
 
         //setup data
         final TestResources testResource = initDataDirectory();
-        ProviderImport pi = testResource.createProvider(TestResource.SHAPEFILES, providerBusiness, null);
-        providerId = pi.id;
-        Integer dataId = null;
-        for (DataImport di : pi.datas) {
-            if ("Countries".equals(di.name)) {
-                dataId = di.id;
-            }
-        }
-        COUNTRIES_DATA_REF = new DataReference(dataId, "Countries", null, providerId);
+        final ProvidersImport pis = testResource.createProviders(TestResource.SHAPEFILES, providerBusiness, null);
+        final DataImport di = pis.findDataByName("Countries");
+        providerIds = pis.pids();
+        COUNTRIES_DATA_REF = new DataReference(di.id, "Countries", null, di.pid);
     }
 
     @After
     public void destroyProvider() throws ConstellationException {
-        providerBusiness.removeProvider(providerId);
+        for (Integer providerId : providerIds) {
+            providerBusiness.removeProvider(providerId);
+        }
     }
 
     @AfterClass

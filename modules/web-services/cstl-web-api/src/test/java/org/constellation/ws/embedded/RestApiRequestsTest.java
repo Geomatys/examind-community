@@ -55,7 +55,6 @@ import org.constellation.dto.PagedSearch;
 import org.constellation.dto.SensorReference;
 import org.constellation.dto.StatInfo;
 import org.constellation.provider.DefaultCoverageData;
-import org.constellation.test.utils.TestEnvironment.ProviderImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import org.geotoolkit.storage.coverage.ImageStatistics;
@@ -63,7 +62,7 @@ import org.junit.Assert;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 
 /**
- * A set of methods that request a Grizzly server which embeds a WMS service.
+ * A set of methods that request an embedded Examind service.
  *
  * @version $Id$
  *
@@ -75,8 +74,7 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
 
     private static boolean initialized = false;
 
-    private static Integer coveragePID;
-    private static Integer shapefilePID;
+    private static Integer coverageDID;
     private static Integer omPID;
 
     @BeforeClass
@@ -107,12 +105,7 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
                 final TestResources testResource = initDataDirectory();
 
                 // coverage file datastore
-                ProviderImport pi = testResource.createProvider(TestResource.PNG, providerBusiness, null);
-                coveragePID = pi.id;
-                Integer dataId = pi.datas.get(0).id;
-
-                // shapefile datastore
-                shapefilePID = testResource.createProvider(TestResource.WMS111_SHAPEFILES, providerBusiness, null).id;
+                coverageDID = testResource.createProvider(TestResource.PNG, providerBusiness, null).datas.get(0).id;
 
                 // observation-file datastore
                 omPID = testResource.createProvider(TestResource.OM_XML, providerBusiness, null).id;
@@ -135,7 +128,7 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
                 boolean computed = false;
                 int i = 0;
                 while (i<10 && !computed) {
-                    Data db = dataBusiness.getData(dataId);
+                    Data db = dataBusiness.getData(coverageDID);
                     computed = (db.getStatsState()!= null && (
                             STATE_COMPLETED.equals(db.getStatsState()) ||
                             STATE_ERROR.equals(db.getStatsState()) ||
@@ -190,11 +183,9 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
     public void getHistogramRequest() throws Exception {
 
         init();
-        Assert.assertNotNull("no coverage file provider found", coveragePID);
-        Integer dataId = getDataBusiness().getDataId(new QName("SSTMDE200305"), coveragePID);
-        Assert.assertNotNull("no SSTMDE200305 data found", dataId);
+        Assert.assertNotNull("no SSTMDE200305 data found", coverageDID);
 
-        final URL request = new URL("http://localhost:" + getCurrentPort() + "/API/internal/styles/histogram/" + dataId);
+        final URL request = new URL("http://localhost:" + getCurrentPort() + "/API/internal/styles/histogram/" + coverageDID);
 
         // get the statistics return by the server
         String s = getStringResponse(request);

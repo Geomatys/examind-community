@@ -55,6 +55,7 @@ import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.test.utils.TestEnvironment.DataImport;
 import org.constellation.test.utils.TestEnvironment.ProviderImport;
+import org.constellation.test.utils.TestEnvironment.ProvidersImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import org.constellation.util.QNameComparator;
@@ -116,7 +117,7 @@ public class WFS2WorkerTest {
     private static boolean initialized = false;
     private static MarshallerPool pool;
     private static WFSWorker worker ;
-    private static Integer providerShpId;
+    private static Integer NamedPlaceDataId;
 
     @Inject
     private IServiceBusiness serviceBusiness;
@@ -149,9 +150,9 @@ public class WFS2WorkerTest {
                 final List<DataImport> datas = new ArrayList<>();
 
                 // SHAPEFILE DATA
-                ProviderImport pi = testResource.createProvider(TestResource.WMS111_SHAPEFILES, providerBusiness, null);
-                providerShpId = pi.id;
-                datas.addAll(pi.datas);
+                ProvidersImport piImps = testResource.createProviders(TestResource.WMS111_SHAPEFILES, providerBusiness, null);
+                datas.addAll(piImps.datas());
+                NamedPlaceDataId = piImps.findDataByName("NamedPlaces").id;
 
                 // SOS DB DATA
                 datas.addAll(testResource.createProvider(TestResource.OM2_FEATURE_DB, providerBusiness, null).datas);
@@ -1321,9 +1322,9 @@ public class WFS2WorkerTest {
         final GenericName layerName = NamesExt.create("http://www.opengis.net/gml/3.2", "NamedPlaces");
         final GenericName dataName = NamesExt.create("NamedPlaces");
 
-        final DataProvider provider = DataProviders.getProvider(providerShpId);
+        final FeatureData data = (FeatureData) DataProviders.getProviderData(NamedPlaceDataId);
 
-        final FeatureType ft = ((FeatureData)provider.get(dataName)).getType();
+        final FeatureType ft = data.getType();
         final JAXPStreamFeatureReader fr = new JAXPStreamFeatureReader(NameOverride.wrap(ft, layerName));
         fr.getProperties().put(JAXPStreamFeatureReader.BINDING_PACKAGE, "GML");
         fr.getProperties().put(JAXPStreamFeatureReader.LONGITUDE_FIRST, false);

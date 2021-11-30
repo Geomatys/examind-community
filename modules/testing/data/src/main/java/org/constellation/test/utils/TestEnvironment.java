@@ -7,6 +7,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -15,6 +17,7 @@ import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.xml.bind.Unmarshaller;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStore;
@@ -63,11 +66,13 @@ public class TestEnvironment {
         public final int id;
         public final String namespace;
         public final String name;
+        public final int pid;
 
-        DataImport(int id, String namespace, String name) {
+        DataImport(int id, String namespace, String name, int pid) {
             this.id = id;
             this.namespace = namespace;
             this.name = name;
+            this.pid = pid;
         }
     }
     
@@ -78,10 +83,39 @@ public class TestEnvironment {
 
         ProviderImport(int id, int datasetId, List<DataImport> datas) {
             this.id = id;
-            this.datas = datas;
+            this.datas = Collections.unmodifiableList(datas);
             this.datasetId = datasetId;
         }
     }
+
+     public static class ProvidersImport {
+
+        public final List<ProviderImport> providers;
+
+        ProvidersImport(List<ProviderImport> providers) {
+            this.providers = Collections.unmodifiableList(providers);
+        }
+
+        public List<DataImport> datas() {
+            return providers.stream().flatMap(pi -> pi.datas.stream()).collect(Collectors.toList());
+        }
+
+        public List<Integer> pids() {
+            return providers.stream().map(pi -> pi.id).collect(Collectors.toList());
+        }
+
+        public DataImport findDataByName(String name) {
+            for (ProviderImport pi : providers) {
+                for (DataImport di : pi.datas) {
+                    if (di.name.equals(name)) {
+                        return di;
+                    }
+                }
+            }
+            return null;
+        }
+    }
+
     /*
         List of resources available
      */
@@ -92,7 +126,7 @@ public class TestEnvironment {
         /**
          * Full directory of images (needed for proper deployement of all the associated image files)
          */
-        public static final TestResource IMAGES = new TestResource("org/constellation/data/image", null, null);
+        public static final TestResource IMAGES = new TestResource("org/constellation/data/image");
         
         /**
          * Coverage file datastore with PNG file.
@@ -119,7 +153,7 @@ public class TestEnvironment {
          * - Record
          * - sea_water_temperature
          */
-        public static final TestResource NETCDF = new TestResource("org/constellation/netcdf/2005092200_sst_21-24.en.nc", TestEnvironment::createNCProvider, null);
+        public static final TestResource NETCDF = new TestResource("org/constellation/netcdf/2005092200_sst_21-24.en.nc", TestEnvironment::createNCProvider);
 
         public static final TestResource SQL_SCRIPTS = new TestResource("org/constellation/sql", null, null);
 
@@ -129,7 +163,7 @@ public class TestEnvironment {
          * data :
          *  - http://cite.opengeospatial.org/gmlsf : AggregateGeoFeature
          */
-        public static TestResource WFS110_AGGREGATE = new TestResource("org/constellation/ws/embedded/wfs110/aggregate", TestEnvironment::createAggregateProvider, null);
+        public static TestResource WFS110_AGGREGATE = new TestResource("org/constellation/ws/embedded/wfs110/aggregate", TestEnvironment::createAggregateProvider);
 
         /**
          * GML datastore.
@@ -137,7 +171,7 @@ public class TestEnvironment {
          * data :
          *  - http://cite.opengeospatial.org/gmlsf : EntitéGénérique
          */
-        public static final TestResource WFS110_ENTITY = new TestResource("org/constellation/ws/embedded/wfs110/entity", TestEnvironment::createEntityGenericGMLProvider, null);
+        public static final TestResource WFS110_ENTITY = new TestResource("org/constellation/ws/embedded/wfs110/entity", TestEnvironment::createEntityGenericGMLProvider);
 
         /**
          * GML datastore.
@@ -145,8 +179,8 @@ public class TestEnvironment {
          * data :
          *  - http://cite.opengeospatial.org/gmlsf : PrimitiveGeoFeature
          */
-        public static final TestResource WFS110_PRIMITIVE = new TestResource("org/constellation/ws/embedded/wfs110/primitive", TestEnvironment::createPrimitiveGMLProvider, null);
-        public static final TestResource WFS110_CITE_GMLSF0 = new TestResource("org/constellation/ws/embedded/wfs110/cite-gmlsf0.xsd", null, null);
+        public static final TestResource WFS110_PRIMITIVE = new TestResource("org/constellation/ws/embedded/wfs110/primitive", TestEnvironment::createPrimitiveGMLProvider);
+        public static final TestResource WFS110_CITE_GMLSF0 = new TestResource("org/constellation/ws/embedded/wfs110/cite-gmlsf0.xsd");
 
         /**
          * Multiple shapefiles.
@@ -165,10 +199,10 @@ public class TestEnvironment {
          * - MapNeatline
          * - Ponds
          */
-        public static final TestResource WMS111_SHAPEFILES = new TestResource("org/constellation/ws/embedded/wms111/shapefiles", TestEnvironment::createShapefileProvider, TestEnvironment::createShapefileStore);
-        public static final TestResource WMS111_STYLES = new TestResource("org/constellation/ws/embedded/wms111/styles", null, null);
+        public static final TestResource WMS111_SHAPEFILES = new TestResource("org/constellation/ws/embedded/wms111/shapefiles", TestEnvironment::createShapefileProvider, TestEnvironment::createShapefileStore, TestEnvironment::createShapefileProviders);
+        public static final TestResource WMS111_STYLES = new TestResource("org/constellation/ws/embedded/wms111/styles");
 
-        public static final TestResource SHAPEFILES = new TestResource("org/constellation/data/shapefiles", TestEnvironment::createShapefileProvider, TestEnvironment::createShapefileStore);
+        public static final TestResource SHAPEFILES = new TestResource("org/constellation/data/shapefiles", TestEnvironment::createShapefileProvider, TestEnvironment::createShapefileStore, TestEnvironment::createShapefileProviders);
 
         /**
          * Observation and mesurement provider.
@@ -176,20 +210,20 @@ public class TestEnvironment {
          * data :
          * - http://www.opengis.net/sampling/1.0 : SamplingPoint
          */
-        public static final TestResource OM2_FEATURE_DB = new TestResource(null, TestEnvironment::createOM2FeatureProvider, null);
-        public static final TestResource OM2_DB = new TestResource(null, TestEnvironment::createOM2DatabaseProvider, null);
-        public static final TestResource OM_XML = new TestResource("org/constellation/xml/sos/single-observations.xml", TestEnvironment::createOMFileProvider, null);
-        public static final TestResource OM_GENERIC_DB = new TestResource("org/constellation/xml/sos/generic-config.xml", TestEnvironment::createOMGenericDBProvider, null);
+        public static final TestResource OM2_FEATURE_DB = new TestResource(null, TestEnvironment::createOM2FeatureProvider);
+        public static final TestResource OM2_DB = new TestResource(null, TestEnvironment::createOM2DatabaseProvider);
+        public static final TestResource OM_XML = new TestResource("org/constellation/xml/sos/single-observations.xml", TestEnvironment::createOMFileProvider);
+        public static final TestResource OM_GENERIC_DB = new TestResource("org/constellation/xml/sos/generic-config.xml", TestEnvironment::createOMGenericDBProvider);
         public static final TestResource OM_LUCENE = new TestResource(null,  TestEnvironment::createOMLuceneProvider, null);
 
         // Sensor Providers
-        public static final TestResource SENSOR_FILE = new TestResource("org/constellation/xml/sml", TestEnvironment::createSensorFileProvider, null);
-        public static final TestResource SENSOR_INTERNAL = new TestResource(null, TestEnvironment::createSensorInternalProvider, null);
+        public static final TestResource SENSOR_FILE = new TestResource("org/constellation/xml/sml", TestEnvironment::createSensorFileProvider);
+        public static final TestResource SENSOR_INTERNAL = new TestResource(null, TestEnvironment::createSensorInternalProvider);
 
         // metadata providers
-        public static final TestResource METADATA_FILE = new TestResource(null, TestEnvironment::createMetadataFileProvider, null);
-        public static final TestResource METADATA_NETCDF = new TestResource(null, TestEnvironment::createMetadataNetCDFProvider, null);
-        public static final TestResource METADATA_INTERNAL = new TestResource(null, TestEnvironment::createMetadataInternalProvider, null);
+        public static final TestResource METADATA_FILE = new TestResource(null, TestEnvironment::createMetadataFileProvider);
+        public static final TestResource METADATA_NETCDF = new TestResource(null, TestEnvironment::createMetadataNetCDFProvider);
+        public static final TestResource METADATA_INTERNAL = new TestResource(null, TestEnvironment::createMetadataInternalProvider);
 
         /**
          * External Postgis feature database.
@@ -200,13 +234,13 @@ public class TestEnvironment {
          * - http://cite.opengeospatial.org/gmlsf2 : EntitéGénérique
          * - http://cite.opengeospatial.org/gmlsf2 : CustomSQLQuery
          */
-        public static final TestResource FEATURE_DATABASE = new TestResource(null, TestEnvironment::createFeatDBProvider, null);
+        public static final TestResource FEATURE_DATABASE = new TestResource(null, TestEnvironment::createFeatDBProvider);
 
         //xml files
-        public static final TestResource XML = new TestResource("org/constellation/xml", null, null);
-        public static final TestResource XML_METADATA = new TestResource("org/constellation/xml/metadata", null, null);
-        public static final TestResource XML_SML = new TestResource("org/constellation/xml/sml", null, null);
-        public static final TestResource XML_SOS = new TestResource("org/constellation/xml/sos", null, null);
+        public static final TestResource XML = new TestResource("org/constellation/xml");
+        public static final TestResource XML_METADATA = new TestResource("org/constellation/xml/metadata");
+        public static final TestResource XML_SML = new TestResource("org/constellation/xml/sml");
+        public static final TestResource XML_SOS = new TestResource("org/constellation/xml/sos");
 
         /**
          * GEOJSON file provider.
@@ -214,7 +248,7 @@ public class TestEnvironment {
          * data :
          * - feature
          */
-        public static final TestResource JSON_FEATURE = new TestResource("org/constellation/ws/embedded/json/feature.json", TestEnvironment::createGeoJsonProvider, null);
+        public static final TestResource JSON_FEATURE = new TestResource("org/constellation/ws/embedded/json/feature.json", TestEnvironment::createGeoJsonProvider);
 
          /**
          * GEOJSON file provider.
@@ -222,17 +256,31 @@ public class TestEnvironment {
          * data :
          * - featureCollection
          */
-        public static final TestResource JSON_FEATURE_COLLECTION = new TestResource("org/constellation/ws/embedded/json/featureCollection.json", TestEnvironment::createGeoJsonProvider, null);
+        public static final TestResource JSON_FEATURE_COLLECTION = new TestResource("org/constellation/ws/embedded/json/featureCollection.json", TestEnvironment::createGeoJsonProvider);
 
         protected final String path;
 
         private final BiFunction<IProviderBusiness, Path, Integer> createProvider;
+        private final BiFunction<IProviderBusiness, Path, List<Integer>> createProviders;
         private final Function<Path, DataStore> createStore;
 
+        public TestResource(String path) {
+            this(path, null, null, null);
+        }
+
+        public TestResource(String path, BiFunction<IProviderBusiness, Path, Integer> createProvider) {
+            this(path, createProvider, null, null);
+        }
+
         public TestResource(String path, BiFunction<IProviderBusiness, Path, Integer> createProvider, Function<Path, DataStore> createStore) {
+            this(path, createProvider, createStore, null);
+        }
+
+        public TestResource(String path, BiFunction<IProviderBusiness, Path, Integer> createProvider, Function<Path, DataStore> createStore, BiFunction<IProviderBusiness, Path, List<Integer>> createProviders) {
             this.path = path;
             this.createProvider = createProvider;
             this.createStore= createStore;
+            this.createProviders = createProviders;
             values.add(this);
         }
     }
@@ -316,9 +364,26 @@ public class TestEnvironment {
                int pid = dpr.createProvider(providerBusiness, datasetId);
                int dsId = providerBusiness.createOrUpdateData(pid, datasetId, true, false, null);
                List<DataImport> datas = providerBusiness.getDataBriefsFromProviderId(pid, null, true, false, false, false)
-                       .stream().map(db -> new DataImport(db.getId(), db.getNamespace(), db.getName()))
+                       .stream().map(db -> new DataImport(db.getId(), db.getNamespace(), db.getName(), pid))
                        .collect(Collectors.toList());
                return new ProviderImport(pid, dsId, datas);
+           }
+           throw new ConstellationRuntimeException("Missing test resource:" + tr.path);
+        }
+
+        public ProvidersImport createProviders(TestResource tr, IProviderBusiness providerBusiness, Integer datasetId) throws ConstellationException {
+            DeployedTestResource dpr = resources.get(tr);
+            if (dpr != null) {
+                List<ProviderImport> results = new ArrayList<>();
+                List<Integer> pids = dpr.createProviders(providerBusiness, datasetId);
+                for (Integer pid : pids) {
+                    int dsId = providerBusiness.createOrUpdateData(pid, datasetId, true, false, null);
+                    List<DataImport> datas = providerBusiness.getDataBriefsFromProviderId(pid, null, true, false, false, false)
+                            .stream().map(db -> new DataImport(db.getId(), db.getNamespace(), db.getName(), pid))
+                            .collect(Collectors.toList());
+                    results.add(new ProviderImport(pid, dsId, datas));
+                }
+                return new ProvidersImport(results);
            }
            throw new ConstellationRuntimeException("Missing test resource:" + tr.path);
         }
@@ -343,7 +408,7 @@ public class TestEnvironment {
                int pid = dpr.createProvider(providerBusiness, datasetId);
                int dsId = providerBusiness.createOrUpdateData(pid, datasetId, true, false, null);
                List<DataImport> datas = providerBusiness.getDataBriefsFromProviderId(pid, null, true, false, false, false)
-                       .stream().map(db -> new DataImport(db.getId(), db.getNamespace(), db.getName()))
+                       .stream().map(db -> new DataImport(db.getId(), db.getNamespace(), db.getName(), pid))
                        .collect(Collectors.toList());
                return new ProviderImport(pid, dsId, datas);
            }
@@ -370,6 +435,10 @@ public class TestEnvironment {
 
         public Integer createProvider(IProviderBusiness providerBusiness, Integer datasetId) {
             return tr.createProvider.apply(providerBusiness, dataDir);
+        }
+
+        public List<Integer> createProviders(IProviderBusiness providerBusiness, Integer datasetId) {
+            return tr.createProviders.apply(providerBusiness, dataDir);
         }
 
         public DataStore createStore() {
@@ -399,11 +468,30 @@ public class TestEnvironment {
             int pid = providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "computed-resource", source);
             int dsId = providerBusiness.createOrUpdateData(pid, datasetId, true, false, null);
             List<DataImport> datas = providerBusiness.getDataBriefsFromProviderId(pid, null, true, false, false, false)
-                       .stream().map(db -> new DataImport(db.getId(), db.getNamespace(), db.getName()))
+                       .stream().map(db -> new DataImport(db.getId(), db.getNamespace(), db.getName(), pid))
                        .collect(Collectors.toList());
             return new ProviderImport(pid, dsId, datas);
         } catch (Exception ex) {
             throw new ConstellationException(ex);
+        }
+    }
+
+    private static List<Integer> createShapefileProviders(IProviderBusiness providerBusiness, Path p) {
+        try {
+            if (Files.isDirectory(p)) {
+                try (Stream<Path> stream = Files.list(p)) {
+                    return stream
+                      .filter(file -> !Files.isDirectory(file))
+                      .filter(file -> IOUtilities.extension(file).equalsIgnoreCase("shp"))
+                      .map(file -> createShapefileProvider(providerBusiness, file))
+                      .collect(Collectors.toList());
+                }
+            } else {
+                return Arrays.asList(createShapefileProvider(providerBusiness, p));
+            }
+
+        } catch (Exception ex) {
+            throw new ConstellationRuntimeException(ex);
         }
     }
 
@@ -414,7 +502,7 @@ public class TestEnvironment {
             String providerIdentifier = "shapeSrc" + UUID.randomUUID().toString();
             source.parameter("id").setValue(providerIdentifier);
             final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) factory.getStoreDescriptor(), source);
-            final ParameterValueGroup config = choice.addGroup("ShapefileParametersFolder");
+            final ParameterValueGroup config = choice.addGroup("shapefile");
             config.parameter("path").setValue(p.toUri());
 
             return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "data-store", source);

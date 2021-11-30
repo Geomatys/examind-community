@@ -137,7 +137,7 @@ public class WFSWorkerTest {
                 /**
                  * SHAPEFILE DATA
                  */
-                datas.addAll(testResource.createProvider(TestResource.WMS111_SHAPEFILES, providerBusiness, null).datas);
+                datas.addAll(testResource.createProviders(TestResource.WMS111_SHAPEFILES, providerBusiness, null).datas());
 
                 /**
                  * SOS DB DATA

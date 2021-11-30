@@ -61,6 +61,7 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.exception.TargetNotFoundException;
+import org.constellation.repository.DataRepository;
 import org.constellation.repository.ProviderRepository;
 import org.constellation.util.ParamUtilities;
 import org.geotoolkit.feature.FeatureExt;
@@ -165,8 +166,8 @@ public final class DataProviders extends Static{
     /**
      * Get DataProvider from identifier.
      *
-     * @param providerId
-     * @return DataProvider
+     * @param providerId provider identifier.
+     * @return Never {@code null}.
      */
     public synchronized static DataProvider getProvider(final int providerId) throws ConfigurationException{
         DataProvider provider = CACHE.get(providerId);
@@ -219,6 +220,29 @@ public final class DataProviders extends Static{
         }
         try {
             return inProvider.get(namespace, name);
+        } catch (ConstellationStoreException ex) {
+            throw new ConfigurationException(ex.getMessage(), ex);
+        }
+    }
+
+    /**
+     * Return a {@link Data} in the specified Provider.
+     *
+     * @param dataId Data identifier.
+     *
+     * @return The matching {@link Data} or {@code null} if the data is not registered in the datasource.
+     *
+     * @throws TargetNotFoundException If the Data does not exist.
+     * @throws ConfigurationException If an error occur during the provider or data instanciation.
+     */
+    public synchronized static Data getProviderData(final int dataId) throws ConfigurationException {
+        final DataRepository repo = SpringHelper.getBean(DataRepository.class);
+        final org.constellation.dto.Data d = repo.findById(dataId);
+        if (d == null) throw new TargetNotFoundException("No Data for id " + dataId);
+
+        final DataProvider inProvider = DataProviders.getProvider(d.getProviderId());
+        try {
+            return inProvider.get(d.getNamespace(), d.getName());
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex.getMessage(), ex);
         }
