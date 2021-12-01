@@ -40,6 +40,7 @@ import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import static org.constellation.api.ProviderConstants.GENERIC_SHAPE_PROVIDER;
 import static org.constellation.api.ProviderConstants.GENERIC_TIF_PROVIDER;
+import org.constellation.api.ProviderType;
 import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IDataBusiness;
@@ -53,17 +54,13 @@ import org.constellation.configuration.Application;
 import org.constellation.dto.service.ServiceComplete;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConfigurationRuntimeException;
-import org.constellation.process.ExamindProcessFactory;
-import org.constellation.process.provider.CreateProviderDescriptor;
+import org.constellation.exception.ConstellationException;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.ws.IWSEngine;
 import org.constellation.ws.Worker;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.nio.ZipUtilities;
-import org.geotoolkit.process.ProcessDescriptor;
-import org.geotoolkit.process.ProcessException;
-import org.geotoolkit.process.ProcessFinder;
 import org.geotoolkit.style.DefaultExternalGraphic;
 import org.geotoolkit.style.DefaultGraphic;
 import org.geotoolkit.style.DefaultOnlineResource;
@@ -72,7 +69,6 @@ import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.style.MutableStyleFactory;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.style.GraphicalSymbol;
-import org.opengis.util.NoSuchIdentifierException;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
@@ -102,9 +98,6 @@ public class SetupBusiness {
 
     @Inject
     private IClusterBusiness clusterBusiness;
-
-    @Inject
-    private IDataBusiness dataBusiness;
 
     @Inject
     private IProviderBusiness providerBusiness;
@@ -320,65 +313,20 @@ public class SetupBusiness {
          * data editors.
          */
         private void initializeDefaultVectorData() {
-            final Path dst = dataDirectory.resolve("shapes");
-
-                final String featureStoreStr = "data-store";
-                Integer provider = providerBusiness.getIDFromIdentifier(GENERIC_SHAPE_PROVIDER);
-                if (provider == null) {
-                    // Acquire SHP provider service instance.
-                    DataProviderFactory shpService = null;
-                    for (final DataProviderFactory service : DataProviders.getFactories()) {
-                        if (service.getName().equals(featureStoreStr)) {
-                            shpService = service;
-                            break;
-                        }
-                    }
-                    if (shpService == null) {
-                        LOGGER.log(Level.WARNING, "SHP provider service not found.");
-                        return;
-                    }
-
-                final ParameterValueGroup source = Parameters.castOrWrap(shpService.getProviderDescriptor().createValue());
-                source.parameter("id").setValue(GENERIC_SHAPE_PROVIDER);
-                source.parameter("providerType").setValue("vector");
-                source.parameter("create_dataset").setValue(false);
-
-                final List<ParameterValueGroup> choices = source.groups("choice");
-                final ParameterValueGroup choice;
-                if (choices.isEmpty()) {
-                    choice = source.addGroup("choice");
-                } else {
-                    choice = choices.get(0);
-                }
-
-                final ParameterValueGroup shpConfig = choice.addGroup("ShapefileParametersFolder");
-                shpConfig.parameter("path").setValue(dst.toUri());
-
-                // Create SHP Folder provider.
+            // remove old legacy provider
+            Integer pid = providerBusiness.getIDFromIdentifier(GENERIC_SHAPE_PROVIDER);
+            if (pid != null) {
                 try {
-                    final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME,
-                            CreateProviderDescriptor.NAME);
-                    final ParameterValueGroup inputs = desc.getInputDescriptor().createValue();
-                    inputs.parameter(CreateProviderDescriptor.PROVIDER_TYPE_NAME).setValue(featureStoreStr);
-                    inputs.parameter(CreateProviderDescriptor.SOURCE_NAME).setValue(source);
-                    desc.createProcess(inputs).call();
-
-                    // set hidden true for this data
-                    final Integer p = providerBusiness.getIDFromIdentifier(GENERIC_SHAPE_PROVIDER);
-                    if (p != null) {
-                        final List<Integer> datas = providerBusiness.getDataIdsFromProviderId(p);
-                        for (final Integer dataId : datas) {
-                            dataBusiness.updateDataHidden(dataId, true);
-                        }
-                    }
-
-                } catch (NoSuchIdentifierException ignore) { // should never
-                                                             // happen
-                } catch (ProcessException ex) {
-                    LOGGER.log(Level.WARNING, "An error occurred when creating default SHP provider.", ex);
-                    return;
+                    providerBusiness.removeProvider(pid);
+                } catch (ConstellationException ex) {
+                    LOGGER.log(Level.WARNING, "Error while removing old default vector data provider", ex);
                 }
             }
+
+            final Path dst = dataDirectory.resolve("shapes");
+            createProvider(dst.resolve("CNTR_BN_60M_2006.shp"), GENERIC_SHAPE_PROVIDER + "-linestring", "vector", "shapefile");
+            createProvider(dst.resolve("CNTR_LB_2006.shp"),     GENERIC_SHAPE_PROVIDER + "-point",      "vector", "shapefile");
+            createProvider(dst.resolve("CNTR_RG_60M_2006.shp"), GENERIC_SHAPE_PROVIDER + "-polygon",    "vector", "shapefile");
         }
 
         /**
@@ -387,26 +335,29 @@ public class SetupBusiness {
          */
         private void initializeDefaultRasterData() {
             final Path dst = dataDirectory.resolve("raster");
-            final String coverageFileStr = "data-store";
+            createProvider(dst.resolve("cloudsgrey.tiff"), GENERIC_TIF_PROVIDER, "raster", "coverage-file");
+        }
 
-            if (providerBusiness.getIDFromIdentifier(GENERIC_TIF_PROVIDER) == null) {
-                // Acquire TIFF provider service instance.
-                DataProviderFactory tifService = null;
+
+        private void createProvider(final Path shapefile, String providerIdentifier, String dataType, String impl) {
+            Integer provider = providerBusiness.getIDFromIdentifier(providerIdentifier);
+            if (provider == null) {
+                // Acquire provider service instance.
+                DataProviderFactory storeService = null;
                 for (final DataProviderFactory service : DataProviders.getFactories()) {
-                    if (service.getName().equals(coverageFileStr)) {
-                        tifService = service;
+                    if (service.getName().equals("data-store")) {
+                        storeService = service;
                         break;
                     }
                 }
-                if (tifService == null) {
-                    LOGGER.log(Level.WARNING, "TIFF provider service not found.");
+                if (storeService == null) {
+                    LOGGER.log(Level.WARNING, "Provider service not found.");
                     return;
                 }
 
-                final ParameterValueGroup source = tifService.getProviderDescriptor().createValue();
-                source.parameter("id").setValue(GENERIC_TIF_PROVIDER);
-                source.parameter("providerType").setValue("raster");
-                source.parameter("create_dataset").setValue(false);
+                final ParameterValueGroup source = Parameters.castOrWrap(storeService.getProviderDescriptor().createValue());
+                source.parameter("id").setValue(providerIdentifier);
+                source.parameter("providerType").setValue(dataType);
 
                 final List<ParameterValueGroup> choices = source.groups("choice");
                 final ParameterValueGroup choice;
@@ -416,36 +367,18 @@ public class SetupBusiness {
                     choice = choices.get(0);
                 }
 
-                final ParameterValueGroup tifConfig = choice.addGroup("FileCoverageStoreParameters");
-                final Path dstTif = dst.resolve("cloudsgrey.tiff");
-                tifConfig.parameter("path").setValue(dstTif.toUri());
+                final ParameterValueGroup config = choice.addGroup(impl);
+                config.parameter("path").setValue(shapefile.toUri());
 
-                // Create SHP Folder provider.
+                // Create provider and generate data.
                 try {
-                    final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME,
-                            CreateProviderDescriptor.NAME);
-                    final ParameterValueGroup inputs = desc.getInputDescriptor().createValue();
-                    inputs.parameter(CreateProviderDescriptor.PROVIDER_TYPE_NAME).setValue(coverageFileStr);
-                    inputs.parameter(CreateProviderDescriptor.SOURCE_NAME).setValue(source);
-                    desc.createProcess(inputs).call();
-
-                    // set hidden true for this data
-                    final Integer p = providerBusiness.getIDFromIdentifier(GENERIC_TIF_PROVIDER);
-                    if (p != null) {
-                        final List<Integer> datas = providerBusiness.getDataIdsFromProviderId(p);
-                        for (final Integer dataId : datas) {
-                            dataBusiness.updateDataHidden(dataId, true);
-                        }
-                    }
-
-                } catch (NoSuchIdentifierException ignore) { // should never
-                    // happen
-                } catch (ProcessException ex) {
-                    LOGGER.log(Level.WARNING, "An error occurred when creating default TIFF provider.", ex);
+                    final Integer pid = providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "data-store", source);
+                    providerBusiness.createOrUpdateData(pid, null, false, true, null);
+                } catch (ConstellationException ex) {
+                    LOGGER.log(Level.WARNING, "An error occurred when creating default provider.", ex);
                 }
             }
         }
-
 
         /**
          * Initialize default properties values if not exist.

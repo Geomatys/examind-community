@@ -36,6 +36,9 @@ public class ProviderConstants {
      public static final List<String> DEFAULT_PROVIDERS = Arrays.asList(INTERNAL_SENSOR_PROVIDER,
                                                                         INTERNAL_METADATA_PROVIDER,
                                                                         GENERIC_SHAPE_PROVIDER,
+                                                                        GENERIC_SHAPE_PROVIDER + "-linestring",
+                                                                        GENERIC_SHAPE_PROVIDER + "-point",
+                                                                        GENERIC_SHAPE_PROVIDER + "-polygon",
                                                                         INTERNAL_MAP_CONTEXT_PROVIDER,
                                                                         GENERIC_TIF_PROVIDER);
 }
