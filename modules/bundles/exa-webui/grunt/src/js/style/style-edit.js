@@ -349,6 +349,59 @@ angular.module('cstl-style-edit', [
             $scope.wrap.orderreverse = !$scope.wrap.orderreverse;
         };
 
+        $scope.defaultData = {
+            "default_point" : null,
+            "default_line" : null,
+            "default_polygon" : null,
+            "default_raster" : null
+        };
+        
+        $scope.initDefaultStyles = function() {
+            var query = {
+                    "page": 1,
+                    "size": 10,
+                    "filters": [
+                        {
+                            "field": "hidden",
+                            "value": "true"
+                        },{
+                            "operator": "OR",
+                            "filters": [{
+                                    "field": "term",
+                                    "value": "CNTR_"
+                                },{
+                                    "field": "term",
+                                    "value": "cloudsgrey"
+                                }]
+                        }
+                    ]
+                };
+
+            Examind.datas.searchDatas(query).then(
+                function (response) {
+                    if (response.data.content) {
+                        response.data.content.forEach(
+                            function (data) {
+                                if ('CNTR_LB_2006' === data.name) {
+                                    $scope.defaultData.default_point = data.id;
+                                } else if ('CNTR_BN_60M_2006' === data.name) {
+                                    $scope.defaultData.default_line = data.id;
+                                } else if ('CNTR_RG_60M_2006' === data.name) {
+                                    $scope.defaultData.default_polygon = data.id;
+                                } else if ('cloudsgrey' === data.name) {
+                                    $scope.defaultData.default_raster = data.id;
+                                }
+                            });
+                    }
+                    initSldPage();
+                    
+                },
+                function() {
+                    Growl('error', 'Error', 'Errow whle searching for default data');
+                }
+            );
+        };
+        
         /**
          * The main init function called to prepare the sld editor when opening the modal.
          */
@@ -404,9 +457,8 @@ angular.module('cstl-style-edit', [
                     $scope.chooseType = true;
                     $scope.page.pageSld = 'views/style/raster.html';
                     $scope.dataType = 'coverage';
-                    $scope.providerId = 'generic_world_tif';
                     $scope.layerName = 'cloudsgrey';
-                    $scope.dataId = 4;
+                    $scope.dataId = $scope.defaultData.default_raster;
                 }else if(styleType &&
                          (styleType.toLowerCase() === 'vector' ||
                           styleType.toLowerCase() === 'feature-store' ||
@@ -415,9 +467,8 @@ angular.module('cstl-style-edit', [
                     $scope.chooseType = true;
                     $scope.page.pageSld = 'views/style/vectors.html';
                     $scope.dataType = 'vector';
-                    $scope.providerId = 'generic_shp';
                     $scope.layerName = 'CNTR_RG_60M_2006';
-                    $scope.dataId = 1;
+                    $scope.dataId = $scope.defaultData.default_polygon;
                 }
             }else {
                 //going to chooseType page
@@ -433,7 +484,8 @@ angular.module('cstl-style-edit', [
             }
         }
         //Call the initSldPage() function to determine which page we are going to open.
-        initSldPage();
+        //initSldPage();
+        $scope.initDefaultStyles();
 
         /**
          * Function to allow the user to go back to rules list using the breadcrumb after opening a rule.
@@ -1443,7 +1495,7 @@ angular.module('cstl-style-edit', [
                 $scope.optionsSLD.filters = $scope.optionsSLD.filters.slice(0,index+1);
             }
         };
-
+        
         /**
          * Called in chooseType.html and performs vector init default values.
          */
@@ -1451,9 +1503,8 @@ angular.module('cstl-style-edit', [
             $scope.chooseType = true;
             $scope.page.pageSld = 'views/style/vectors.html';
             $scope.dataType = 'vector';
-            $scope.providerId = 'generic_shp';
             $scope.layerName = 'CNTR_RG_60M_2006';
-            $scope.dataId = 3;
+            $scope.dataId =  $scope.defaultData.default_polygon;
             $scope.displayCurrentStyle('styledMapOL',null);
         };
 
@@ -1464,9 +1515,8 @@ angular.module('cstl-style-edit', [
             $scope.chooseType = true;
             $scope.page.pageSld = 'views/style/raster.html';
             $scope.dataType = 'coverage';
-            $scope.providerId = 'generic_world_tif';
             $scope.layerName = 'cloudsgrey';
-            $scope.dataId = 4;
+            $scope.dataId = $scope.defaultData.default_raster;
             $scope.displayCurrentStyle('styledMapOL',null);
         };
 
@@ -2222,7 +2272,7 @@ angular.module('cstl-style-edit', [
                     }
                     DataViewer.initMap(mapId);
                 });
-            }else {
+            } else {
                 if ($scope.newStyle.name === "") {
                     var timestamp=new Date().getTime();
                     $scope.newStyle.name = 'default-sld-'+timestamp;
@@ -2282,8 +2332,11 @@ angular.module('cstl-style-edit', [
                 };
                 if(angular.isDefined($scope.optionsSLD.temporaryStyleId)) {
                     Examind.styles.updateStyle($scope.optionsSLD.temporaryStyleId,$scope.newStyle).then(callback);
-                } else {
-                    Examind.styles.createStyle($scope.newStyle,'sld_temp').then(callback);
+                } else if (!$scope.tempStylePromise) {
+                    // do nothing if antoher callback is pending
+                    // to avoid to send multiple createStyle at the exact same time
+                   $scope.tempStylePromise = Examind.styles.createStyle($scope.newStyle,'sld_temp');
+                   $scope.tempStylePromise.then(callback);
                 }
             }
         };

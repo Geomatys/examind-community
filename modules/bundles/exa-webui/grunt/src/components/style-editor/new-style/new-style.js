@@ -50,6 +50,57 @@ function NewStyleController($scope, $translate, Growl, Examind, DataViewerServic
 
     // The boundingBox of the data layer to show in the new style map
     self.boundingBox = [];
+    
+    self.defaultData = {
+        "default_point" : null,
+        "default_line" : null,
+        "default_polygon" : null,
+        "default_raster" : null
+    };
+
+    self.initDefaultStyles = function() {
+        var query = {
+                "page": 1,
+                "size": 10,
+                "filters": [
+                    {
+                        "field": "hidden",
+                        "value": "true"
+                    },{
+                        "operator": "OR",
+                        "filters": [{
+                                "field": "term",
+                                "value": "CNTR_"
+                            },{
+                                "field": "term",
+                                "value": "cloudsgrey"
+                            }]
+                    }
+                ]
+            };
+
+        Examind.datas.searchDatas(query).then(
+            function (response) {
+                if (response.data.content) {
+                    response.data.content.forEach(
+                        function (data) {
+                            if ('CNTR_LB_2006' === data.name) {
+                                self.defaultData.default_point = data.id;
+                            } else if ('CNTR_BN_60M_2006' === data.name) {
+                                self.defaultData.default_line = data.id;
+                            } else if ('CNTR_RG_60M_2006' === data.name) {
+                                self.defaultData.default_polygon = data.id;
+                            } else if ('cloudsgrey' === data.name) {
+                                self.defaultData.default_raster = data.id;
+                            }
+                        });
+                }
+            },
+            function() {
+                Growl('error', 'Error', 'Errow whle searching for default data');
+            }
+        );
+    };
 
     /**
      * In the case of using the component to create new vector style without data
@@ -61,9 +112,8 @@ function NewStyleController($scope, $translate, Growl, Examind, DataViewerServic
 
         // The default data for new vector style
         self.selectedDataRef.dataLayer = {
-            id: 1,
+            id: self.defaultData.default_polygon,
             name: 'CNTR_RG_60M_2006',
-            provider: "generic_shp",
             type: "VECTOR"
         };
 
@@ -80,9 +130,8 @@ function NewStyleController($scope, $translate, Growl, Examind, DataViewerServic
 
         // The default data for new raster style
         self.selectedDataRef.dataLayer = {
-            id: 4,
+            id: self.defaultData.default_raster,
             name: 'cloudsgrey',
-            provider: "generic_world_tif",
             type: "COVERAGE"
         };
 
@@ -292,6 +341,8 @@ function NewStyleController($scope, $translate, Growl, Examind, DataViewerServic
     $scope.$on("$destroy", function () {
         self.deleteTemporaryStyle();
     });
+    
+    self.initDefaultStyles();
 
 }
 

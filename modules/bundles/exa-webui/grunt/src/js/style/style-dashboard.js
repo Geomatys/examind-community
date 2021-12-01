@@ -44,6 +44,57 @@ angular.module('cstl-style-dashboard', [
         self.selected = null;
 
         self.smallMode = false;
+        
+        self.defaultData = {
+            "default_point" : null,
+            "default_line" : null,
+            "default_polygon" : null,
+            "default_raster" : null
+        };
+        
+        self.initDefaultStyles = function() {
+            var query = {
+                    "page": 1,
+                    "size": 10,
+                    "filters": [
+                        {
+                            "field": "hidden",
+                            "value": "true"
+                        },{
+                            "operator": "OR",
+                            "filters": [{
+                                    "field": "term",
+                                    "value": "CNTR_"
+                                },{
+                                    "field": "term",
+                                    "value": "cloudsgrey"
+                                }]
+                        }
+                    ]
+                };
+
+            Examind.datas.searchDatas(query).then(
+                function (response) {
+                    if (response.data.content) {
+                        response.data.content.forEach(
+                            function (data) {
+                                if ('CNTR_LB_2006' === data.name) {
+                                    self.defaultData.default_point = data.id;
+                                } else if ('CNTR_BN_60M_2006' === data.name) {
+                                    self.defaultData.default_line = data.id;
+                                } else if ('CNTR_RG_60M_2006' === data.name) {
+                                    self.defaultData.default_polygon = data.id;
+                                } else if ('cloudsgrey' === data.name) {
+                                    self.defaultData.default_raster = data.id;
+                                }
+                            });
+                    }
+                },
+                function() {
+                    Growl('error', 'Error', 'Errow whle searching for default data');
+                }
+            );
+        };
 
         self.initStyleDashboard = function() {
             // Apply Paging features on the controller instance.
@@ -216,13 +267,11 @@ angular.module('cstl-style-dashboard', [
                         type:selectedStyle.type
                     };
                     if(selectedStyle.type && selectedStyle.type.toLowerCase() === 'vector'){
-                        dataToShow.provider = 'generic_shp';
                         dataToShow.name = 'CNTR_RG_60M_2006';
-                        dataToShow.dataId = 1;
+                        dataToShow.dataId = self.defaultData.default_polygon;
                     }else {
-                        dataToShow.provider = 'generic_world_tif';
                         dataToShow.name = 'cloudsgrey';
-                        dataToShow.dataId = 4;
+                        dataToShow.dataId = self.defaultData.default_raster;
                     }
                 }
                 if(dataToShow) {
@@ -276,6 +325,9 @@ angular.module('cstl-style-dashboard', [
         $scope.$on('update-style-data', function (evt, args) {
             self.selected.name = args;
         });
+        
+        
+        self.initDefaultStyles();
     })
 
     .controller('StyleImportModalController', function ($rootScope, $scope, $modalInstance,
