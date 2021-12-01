@@ -38,6 +38,8 @@ public interface StyleRepository extends AbstractRepository {
 
     Style findByNameAndProvider(final int providerId, String name);
 
+    Integer findIdByNameAndProvider(final int providerId, String name);
+
     Style findById(int id);
 
     List<Style> findByName(final String name);

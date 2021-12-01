@@ -80,6 +80,11 @@ public class JooqStyleRepository extends AbstractJooqRespository<StyleRecord, or
     }
 
     @Override
+    public Integer findIdByNameAndProvider(int providerId, String name) {
+        return dsl.select(STYLE.ID).from(STYLE).where(STYLE.NAME.eq(name)).and(STYLE.PROVIDER.eq(providerId)).fetchOneInto(Integer.class);
+    }
+
+    @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public void linkStyleToData(int styleId, int dataid) {
         StyledDataRecord link = dsl.select().from(STYLED_DATA)

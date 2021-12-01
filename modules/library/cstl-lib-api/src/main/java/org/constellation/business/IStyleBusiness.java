@@ -18,14 +18,12 @@
  */
 package org.constellation.business;
 
-import org.constellation.api.StyleType;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.StyleBrief;
 import org.constellation.exception.TargetNotFoundException;
 import org.constellation.dto.process.StyleProcessReference;
 import org.constellation.exception.ConstellationException;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -40,14 +38,12 @@ public interface IStyleBusiness {
 
     void deleteAll() throws ConfigurationException;
 
-    void writeStyle(String key, Integer id, StyleType styleType, org.opengis.style.Style style) throws IOException;
-
     /**
      * Gets and returns the {@link org.opengis.style.Style} that matches with the specified
      * identifier.
      *
-     * @param providerId The style provider identifier.
-     * @param styleName The style identifier.
+     * @param providerID The style provider identifier (sld or sld_temp).
+     * @param styleName The style name.
      *
      * @return the {@link org.opengis.style.Style} instance
      * @throws TargetNotFoundException If the style with the specified identifier can't be found.
@@ -57,8 +53,8 @@ public interface IStyleBusiness {
     /**
      * Find and return an id that matches with the specified provider id / style name.
      *
-     * @param providerId The style provider identifier.
-     * @param styleName The style identifier.
+     * @param providerId The style provider identifier (sld or sld_temp).
+     * @param styleName The style name.
      *
      * @return the {@link Style} instance.
      * @throws TargetNotFoundException If the style with the specified providerId and styleName can't be found.
@@ -78,7 +74,7 @@ public interface IStyleBusiness {
     /**
      * Flag that returns if style exists for given provider and style name.
      *
-     * @param providerId The style provider identifier.
+     * @param providerId The style provider identifier (sld or sld_temp).
      * @param styleName The style identifier.
      *
      * @return boolean
@@ -88,7 +84,7 @@ public interface IStyleBusiness {
     boolean existsStyle(final String providerId, final String styleName) throws TargetNotFoundException;
 
     /**
-     * Flag that returns if style exists for given identifier.
+     * Returns if style exists for given identifier.
      *
      * @param styleId The style identifier.
      * @return boolean
@@ -102,7 +98,7 @@ public interface IStyleBusiness {
     /**
      * Creates a new style into a style provider instance.
      *
-     * @param providerId The style provider identifier.
+     * @param providerId The style provider identifier (sld or sld_temp).
      * @param style The style body.
      * @return The assigned style id.
      *
@@ -114,22 +110,22 @@ public interface IStyleBusiness {
     /**
      * Returns the list of available styles as {@link StyleBrief} object.
      *
-     * @param category
+     * @param type Style type (VECTOR / COVERAGE)
      * @return a {@link List} of {@link StyleBrief} instances
      * @throws org.constellation.exception.ConstellationException
      */
-    List<StyleBrief> getAvailableStyles(String category) throws ConstellationException;
+    List<StyleBrief> getAvailableStyles(String type) throws ConstellationException;
 
     /**
      * Returns the list of available styles as {@link StyleBrief} object for the
      * style provider with the specified identifier.
      *
-     * @param providerId
-     * @param type
+     * @param providerId The style provider identifier (sld or sld_temp).
+     * @param type (VECTOR / COVERAGE)
      * @throws TargetNotFoundException if the style provider does not exist.
      * @return a {@link List} of {@link StyleBrief} instances
      */
-    List<StyleBrief> getAvailableStyles(String providerId, String category) throws ConstellationException;
+    List<StyleBrief> getAvailableStyles(String providerId, String type) throws ConstellationException;
 
     void updateStyle(int id, org.opengis.style.Style style) throws ConfigurationException;
 

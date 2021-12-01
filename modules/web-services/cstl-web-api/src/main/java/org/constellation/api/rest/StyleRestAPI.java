@@ -126,15 +126,11 @@ public final class StyleRestAPI extends AbstractRestAPI {
         try {
             final MutableStyle style = StyleUtilities.type(stylejson);
             boolean exists = styleBusiness.existsStyle(type, style.getName());
-            //in case of temp sld provider we need to delete first if style already exists
-            if(!"sld".equals(type) && exists) {
-                final Integer id = styleBusiness.getStyleId(type,style.getName());
-                styleBusiness.deleteStyle(id);
-                exists = false;
-            }
-            if(!exists) {
+
+            //in case of temp sld provider we always create it, the style will be recreated.
+            if ((!"sld".equals(type) && exists) || !exists) {
                 return new ResponseEntity(styleBusiness.createStyle(type, style),OK);
-            }else {
+            } else {
                 return new ErrorMessage(UNPROCESSABLE_ENTITY).i18N(I18nCodes.Style.ALREADY_EXIST).build();
             }
         } catch(Exception ex) {
