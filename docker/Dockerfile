@@ -1,4 +1,4 @@
-FROM tomcat:7-jre8
+FROM tomcat:7-jdk8
 
 LABEL maintainer "robin.gilh@geomatys.com"                                                                                                                                                                                                   
 LABEL description "Docker image of Examind Community"
