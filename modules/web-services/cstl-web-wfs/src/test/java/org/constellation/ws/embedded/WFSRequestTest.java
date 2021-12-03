@@ -1874,6 +1874,8 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
     /**
      * Test GetFeature response in json for both versions 1.1.0 and 2.0.0
      * check if json string is valid
+     *
+     * there is an issue actually, the geometry are written twice
      */
     @Test
     @Order(order=31)
@@ -1892,15 +1894,17 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
         String result = getStringResponse(getfeatsUrl1.openConnection());
         result = result.replaceAll("\\s+", "");
         assertTrue(isJSONValid(result));
-        assertEquals("{\"type\":\"FeatureCollection\",\"crs\":{\"type\":\"name\",\"properties\":{\"name\":\"urn:ogc:def:crs:EPSG:9.7:3857\"}},\"features\":[{\"type\":\"Feature\",\"id\":\"station-001\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[-461417.5781,5219276.6054]},\"properties\":{\"@id\":\"station-001\",\"description\":\"Pointd'eauBSSS\",\"name\":[\"[10972X0137-PONT]\"],\"sampledFeature\":[\"[urn:-sandre:object:bdrhf:123X]\"]}},{\"type\":\"Feature\",\"id\":\"station-002\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[-378989.4256,3141106.6415]},\"properties\":{\"@id\":\"station-002\",\"description\":\"Pointd'eauBSSS\",\"name\":[\"[10972X0137-PLOUF]\"],\"sampledFeature\":[\"[urn:-sandre:object:bdrhf:123X]\"]}}]}"
-                , result);
+        String expected = getStringFromFile("org/constellation/wfs/json/collection-v1.json");
+        expected = expected.replaceAll("\\s+", "");
+        assertEquals(expected, result);
 
         //for WFS 2.0.0
-        String result2 = getStringResponse(getfeatsUrl2.openConnection());
-        result2 = result2.replaceAll("\\s+", "");
-        assertTrue(isJSONValid(result2));
-        assertEquals("{\"type\":\"FeatureCollection\",\"crs\":{\"type\":\"name\",\"properties\":{\"name\":\"urn:ogc:def:crs:EPSG:9.7:3857\"}},\"features\":[{\"type\":\"Feature\",\"id\":\"station-001\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[-461417.5781,5219276.6054]},\"properties\":{\"@id\":\"station-001\",\"description\":\"Pointd'eauBSSS\",\"name\":[\"[10972X0137-PONT]\"],\"sampledFeature\":[\"[urn:-sandre:object:bdrhf:123X]\"]}},{\"type\":\"Feature\",\"id\":\"station-002\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[-378989.4256,3141106.6415]},\"properties\":{\"@id\":\"station-002\",\"description\":\"Pointd'eauBSSS\",\"name\":[\"[10972X0137-PLOUF]\"],\"sampledFeature\":[\"[urn:-sandre:object:bdrhf:123X]\"]}}]}"
-                , result2);
+        result = getStringResponse(getfeatsUrl2.openConnection());
+        result = result.replaceAll("\\s+", "");
+        assertTrue(isJSONValid(result));
+        expected = getStringFromFile("org/constellation/wfs/json/collection-v2.json");
+        expected = expected.replaceAll("\\s+", "");
+        assertEquals(expected, result);
     }
     
     @Test

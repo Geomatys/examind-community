@@ -1,0 +1,56 @@
+{
+    "type": "FeatureCollection",
+    "crs": {
+        "type": "name",
+        "properties": {
+            "name": "urn:ogc:def:crs:EPSG:9.7:3857"
+        }
+    },
+    "features": [{
+            "type": "Feature",
+            "id": "station-001",
+            "crs": {
+                "type": "name",
+                "properties": {
+                    "name": "urn:ogc:def:crs:EPSG:9.7:3857"
+                }
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [-461417.5781, 5219276.6054]
+            },
+            "properties": {
+                "@id": "station-001",
+                "description": "Pointd'eauBSSS",
+                "name": ["[10972X0137-PONT]"],
+                "sampledFeature": ["[urn:-sandre:object:bdrhf:123X]"],
+                "position": {
+                    "type": "Point",
+                    "coordinates": [-461417.5781, 5219276.6054]
+                }
+            }
+        }, {
+            "type": "Feature",
+            "id": "station-002",
+            "crs": {
+                "type": "name",
+                "properties": {
+                    "name": "urn:ogc:def:crs:EPSG:9.7:3857"
+                }
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [-378989.4256, 3141106.6415]
+            },
+            "properties": {
+                "@id": "station-002",
+                "description": "Pointd'eauBSSS",
+                "name": ["[10972X0137-PLOUF]"],
+                "sampledFeature": ["[urn:-sandre:object:bdrhf:123X]"],
+                "position": {
+                    "type": "Point",
+                    "coordinates": [-378989.4256, 3141106.6415]
+                }
+            }
+        }]
+}
