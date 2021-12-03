@@ -22,8 +22,6 @@ import org.opengis.util.GenericName;
 import org.geotoolkit.metadata.MetadataStore;
 
 import org.constellation.api.DataType;
-import org.constellation.dto.DataDescription;
-import org.constellation.dto.StatInfo;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.AbstractData;
 import org.constellation.provider.MetadataData;

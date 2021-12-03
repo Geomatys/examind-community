@@ -159,11 +159,11 @@ public class ProviderBusiness implements IProviderBusiness {
 
     @Override
     public void reload(String identifier) throws ConstellationException {
-        final Integer provider = providerRepository.findIdForIdentifier(identifier);
-        if (provider == null) {
+        final Integer providerId = providerRepository.findIdForIdentifier(identifier);
+        if (providerId == null) {
             throw new TargetNotFoundException("Provider " + identifier + " does not exist.");
         }
-        reload(provider);
+        reload(providerId);
     }
 
     @Override

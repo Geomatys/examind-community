@@ -40,9 +40,8 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.logging.Logging;
 
-import org.geotoolkit.util.DateRange;
-
 import org.constellation.api.ServiceDef.Query;
+import org.constellation.dto.DimensionRange;
 import org.constellation.dto.SimpleDataDescription;
 import org.constellation.dto.StatInfo;
 import org.constellation.exception.ConstellationStoreException;
@@ -103,10 +102,13 @@ public abstract class AbstractData<T extends Resource> implements Data<T> {
      * Subclasses are encouraged to provide more efficient implementation.
      */
     @Override
-    public DateRange getDateRange() throws ConstellationStoreException {
+    public SortedSet<Date> getDateRange() throws ConstellationStoreException {
         final SortedSet<Date> dates = getAvailableTimes();
         if (dates != null && !dates.isEmpty()) {
-            return new DateRange(dates.first(), dates.last());
+            final SortedSet<Date> result = new TreeSet<>();
+            result.add(dates.first());
+            result.add(dates.last());
+            return result;
         }
         return null;
     }
@@ -161,8 +163,24 @@ public abstract class AbstractData<T extends Resource> implements Data<T> {
      * {@inheritDoc}
      */
     @Override
-    public MeasurementRange<?>[] getSampleValueRanges() {
-        return new MeasurementRange<?>[0];
+    public SortedSet<DimensionRange> getSampleValueRanges() {
+        /*
+        FOR history, how to pass from geotk measurement to dimension
+
+        final MeasurementRange<?> firstRange = ranges[0];
+        final double minRange = firstRange.getMinDouble();
+        final double maxRange = firstRange.getMaxDouble();
+        final String defaut = minRange + "," + maxRange;
+        final Unit<?> u = firstRange.unit();
+        final String unit = (u != null) ? u.toString() : null;
+        String unitSymbol;
+        try {
+            unitSymbol = new org.apache.sis.measure.UnitFormat(Locale.UK).format(u);
+        } catch (IllegalArgumentException e) {
+            // Workaround for one more bug in javax.measure...
+            unitSymbol = unit;
+        }*/
+        return new TreeSet<>();
     }
 
     @Override

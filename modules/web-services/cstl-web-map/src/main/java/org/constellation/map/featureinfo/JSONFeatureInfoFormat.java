@@ -49,7 +49,6 @@ import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
-import org.geotoolkit.util.DateRange;
 
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -184,7 +183,7 @@ public class JSONFeatureInfoFormat extends AbstractFeatureInfoFormat {
              * costly. The layerPostgrid.getEnvelope() method is much cheaper, since it can
              * leverage the database index.
              */
-            DateRange dates = null;
+            SortedSet<Date> dates = null;
             if (layer != null) {
                 try {
                     dates = layer.getDateRange();
@@ -193,9 +192,10 @@ public class JSONFeatureInfoFormat extends AbstractFeatureInfoFormat {
                 }
             }
             if (dates != null && !(dates.isEmpty())) {
-                if (dates.getMaxValue() != null) {
-                    time = Collections.singletonList(dates.getMaxValue());
-                }
+                Date last = dates.last();
+                if (last != null) {
+                    time = Collections.singletonList(last);
+                 }
             }
         }
 

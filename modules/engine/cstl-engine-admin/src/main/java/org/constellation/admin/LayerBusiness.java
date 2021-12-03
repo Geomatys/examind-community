@@ -339,7 +339,7 @@ public class LayerBusiness implements ILayerBusiness {
             if (db != null) {
                 final GenericName dataName = NamesExt.create(db.getNamespace(), db.getName());
                 if (securityFilter.allowed(login, layer.getId())) {
-                    response.add(new NameInProvider(layer.getId(), layerName, db.getProviderId(), version, layer.getAlias(), dataName));
+                    response.add(new NameInProvider(layer.getId(), layerName, db.getProviderId(), version, layer.getAlias(), dataName, layer.getDataId()));
                 }
             } else {
                 LOGGER.warning("Unable to find a data (id = " + layer.getDataId() + ") for the layer:" + layerName);
@@ -423,7 +423,7 @@ public class LayerBusiness implements ILayerBusiness {
                 final Data db = dataRepository.findById(layer.getDataId());
                 if (db != null) {
                     final GenericName dataName = NamesExt.create(db.getNamespace(), db.getName());
-                    return new NameInProvider(layer.getId(), layerName, db.getProviderId(), version, layer.getAlias(), dataName);
+                    return new NameInProvider(layer.getId(), layerName, db.getProviderId(), version, layer.getAlias(), dataName, layer.getDataId());
                 } else {
                     throw new ConfigurationException("Unable to find a data (id = " + layer.getDataId() + ") for the layer:" + layerName);
                 }
@@ -456,7 +456,7 @@ public class LayerBusiness implements ILayerBusiness {
                 final Data db = dataRepository.findById(layer.getDataId());
                 if (db != null) {
                     final GenericName dataName = NamesExt.create(db.getNamespace(), db.getName());
-                    return new NameInProvider(layerId, layerName, db.getProviderId(), version, layer.getAlias(), dataName);
+                    return new NameInProvider(layerId, layerName, db.getProviderId(), version, layer.getAlias(), dataName, layer.getDataId());
                 } else {
                     throw new ConfigurationException("Unable to find a data (id = " + layer.getDataId() + ") for the layer:" + layerName);
                 }

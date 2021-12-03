@@ -163,7 +163,7 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
              * costly. The layerPostgrid.getEnvelope() method is much cheaper, since it can
              * leverage the database index.
              */
-            DateRange dates = null;
+            SortedSet<Date> dates = null;
             if (layer != null) {
                 try {
                     dates = layer.getDateRange();
@@ -172,8 +172,9 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
                 }
             }
             if (dates != null && !(dates.isEmpty())) {
-                if (dates.getMaxValue() != null) {
-                    time = Collections.singletonList(dates.getMaxValue());
+                Date last = dates.last();
+                if (last != null) {
+                    time = Collections.singletonList(last);
                 }
             }
         }

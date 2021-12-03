@@ -32,14 +32,12 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.logging.Level;
-import javax.measure.Unit;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.geometry.GeneralDirectPosition;
 import org.apache.sis.internal.feature.AttributeConvention;
-import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.DataType;
@@ -58,9 +56,9 @@ import org.geotoolkit.geometry.isoonjts.JTSUtils;
 import org.geotoolkit.geometry.jts.JTSEnvelope2D;
 import org.geotoolkit.internal.jaxb.ObjectFactory;
 import org.apache.sis.portrayal.MapLayer;
+import org.constellation.dto.DimensionRange;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
 import org.geotoolkit.referencing.ReferencingUtilities;
-import org.geotoolkit.util.DateRange;
 import org.geotoolkit.util.NamesExt;
 import org.locationtech.jts.geom.Geometry;
 import org.opengis.feature.AttributeType;
@@ -212,7 +210,7 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
              * costly. The layerPostgrid.getEnvelope() method is much cheaper, since it can
              * leverage the database index.
              */
-            DateRange dates = null;
+            SortedSet<Date> dates = null;
             if (layer != null) {
                 try {
                     dates = layer.getDateRange();
@@ -221,10 +219,11 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
                 }
             }
             if (dates != null && !(dates.isEmpty())) {
-                if (dates.getMaxValue() != null) {
+                Date last = dates.last();
+                if (last != null) {
                     final DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
                     df.setTimeZone(TimeZone.getTimeZone("UTC"));
-                    builder.append("\t\t<time>").append(df.format(dates.getMaxValue()))
+                    builder.append("\t\t<time>").append(df.format(last))
                             .append("</time>").append("\n");
                 }
             }
@@ -274,17 +273,22 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             builder.append("</variable>").append("\n");
         }
 
-        MeasurementRange[] ranges = null;
+        SortedSet<DimensionRange> ranges = null;
         if (layer != null) {
-            ranges = layer.getSampleValueRanges();
+            try {
+                ranges = layer.getSampleValueRanges();
+            } catch (ConstellationStoreException ex) {
+                LOGGER.log(Level.INFO, ex.getLocalizedMessage(), ex);
+                ranges = null;
+            }
         }
-        if (ranges != null && ranges.length > 0) {
-            final MeasurementRange range = ranges[0];
+        if (ranges != null && !ranges.isEmpty()) {
+            final DimensionRange range = ranges.first();
             if (range != null) {
-                final Unit unit = range.unit();
-                if (unit != null && !unit.toString().isEmpty()) {
-                    builder.append("\t\t<unit>").append(unit.toString())
-                            .append("</unit>").append("\n");
+                final String unit = range.getUnit();
+                if (unit != null && !unit.isEmpty()) {
+                    builder.append("\t\t<unit>").append(unit)
+                           .append("</unit>").append("\n");
                 }
             }
         }

@@ -342,7 +342,7 @@ public abstract class LayerWorker extends AbstractWorker {
                throw new CstlServiceException(ex);
             }
             return new LayerCache(
-                    nip.layerId,
+                    nip,
                     layerName,
                     data,
                     styles,

@@ -22,16 +22,16 @@ import java.util.Date;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.logging.Logger;
-import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.api.DataType;
 import org.constellation.api.ServiceDef;
+import org.constellation.dto.DimensionRange;
+import org.constellation.dto.NameInProvider;
 import org.constellation.dto.StyleReference;
 import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.Data;
-import org.geotoolkit.util.DateRange;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -46,14 +46,14 @@ public class LayerCache {
     
     private static final Logger LOGGER = Logging.getLogger("org.constellation.ws");
 
-    private final Integer id;
+    private final NameInProvider nip;
     private final GenericName name;
     private final List<StyleReference> styles;
     private final Data data;
     private final LayerConfig configuration;
 
-    public LayerCache(final Integer id, GenericName name, Data d, List<StyleReference> styles, final LayerConfig configuration) {
-        this.id = id;
+    public LayerCache(final NameInProvider nip, GenericName name, Data d, List<StyleReference> styles, final LayerConfig configuration) {
+        this.nip = nip;
         this.data = d;
         this.name = name;
         this.styles = styles;
@@ -61,7 +61,7 @@ public class LayerCache {
     }
 
     public Integer getId() {
-        return id;
+        return nip.layerId;
     }
 
     public GenericName getName() {
@@ -78,22 +78,6 @@ public class LayerCache {
 
     public LayerConfig getConfiguration() {
         return configuration;
-    }
-
-    public Date getFirstDate() throws ConstellationStoreException {
-        final DateRange dates = data.getDateRange();
-        if (dates != null) {
-            return dates.getMinValue();
-        }
-        return null;
-    }
-
-    public Date getLastDate() throws ConstellationStoreException {
-        final DateRange dates = data.getDateRange();
-        if (dates != null) {
-            return dates.getMaxValue();
-        }
-        return null;
     }
 
     public Envelope getEnvelope() throws ConstellationStoreException {
@@ -144,11 +128,11 @@ public class LayerCache {
         return data.getAvailableTimes();
     }
     
-    public DateRange getDateRange() throws ConstellationStoreException {
+    public SortedSet<Date> getDateRange() throws ConstellationStoreException {
         return data.getDateRange();
     }
     
-    public MeasurementRange<?>[] getSampleValueRanges() {
+    public SortedSet<DimensionRange> getSampleValueRanges() throws ConstellationStoreException {
         return data.getSampleValueRanges();
     }
 }

@@ -35,14 +35,12 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Named;
-import javax.measure.Unit;
 import javax.xml.bind.JAXBException;
 import org.apache.sis.cql.CQLException;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.internal.storage.query.SimpleQuery;
 import org.apache.sis.internal.util.UnmodifiableArrayList;
-import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.measure.Range;
 import org.apache.sis.measure.Units;
 import org.apache.sis.referencing.CRS;
@@ -79,7 +77,6 @@ import static org.constellation.map.core.WMSConstant.EXCEPTION_111_BLANK;
 import static org.constellation.map.core.WMSConstant.EXCEPTION_111_INIMAGE;
 import static org.constellation.map.core.WMSConstant.EXCEPTION_130_BLANK;
 import static org.constellation.map.core.WMSConstant.EXCEPTION_130_INIMAGE;
-import static org.constellation.map.core.WMSConstant.KEY_BBOX;
 import static org.constellation.map.core.WMSConstant.KEY_ELEVATION;
 import static org.constellation.map.core.WMSConstant.KEY_EXTRA_PARAMETERS;
 import static org.constellation.map.core.WMSConstant.KEY_LAYER;
@@ -120,6 +117,7 @@ import org.apache.sis.util.Version;
 import org.constellation.api.DataType;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
+import org.constellation.dto.DimensionRange;
 import static org.constellation.map.core.WMSConstant.NO_TRANSPARENT_FORMAT;
 import org.geotoolkit.map.MapBuilder;
 import org.geotoolkit.ows.xml.OWSExceptionCode;
@@ -481,29 +479,25 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             /*
              * Dimension: the dimension range
              */
-            final MeasurementRange<?>[] ranges = layer.getSampleValueRanges();
-            /* If the layer has only one sample dimension, then we can apply the dim_range
-             * parameter. Otherwise it can be a multiple sample dimensions layer, and we
-             * don't apply the dim_range.
-             */
-            if (ranges != null && ranges.length == 1 && ranges[0] != null) {
-                final MeasurementRange<?> firstRange = ranges[0];
-                final double minRange = firstRange.getMinDouble();
-                final double maxRange = firstRange.getMaxDouble();
-                final String defaut = minRange + "," + maxRange;
-                final Unit<?> u = firstRange.unit();
-                final String unit = (u != null) ? u.toString() : null;
-                String unitSymbol;
-                try {
-                    unitSymbol = new org.apache.sis.measure.UnitFormat(Locale.UK).format(u);
-                } catch (IllegalArgumentException e) {
-                    // Workaround for one more bug in javax.measure...
-                    unitSymbol = unit;
-                }
-                AbstractDimension dim = createDimension(queryVersion, minRange + "," + maxRange, "dim_range", unit,unitSymbol, defaut, null, null, null);
-                dimensions.add(dim);
-            }
-
+            try {
+               final SortedSet<DimensionRange> ranges = layer.getSampleValueRanges();
+               /* If the layer has only one sample dimension, then we can apply the dim_range
+                * parameter. Otherwise it can be a multiple sample dimensions layer, and we
+                * don't apply the dim_range.
+                */
+               if (ranges != null && ranges.size() == 1 && ranges.first() != null) {
+                   final DimensionRange firstRange = ranges.first();
+                   final double minRange = firstRange.getMin();
+                   final double maxRange = firstRange.getMax();
+                   final String defaut = minRange + "," + maxRange;
+                   final String unit = firstRange.getUnit();
+                   String unitSymbol = firstRange.getUnitsymbol();
+                   AbstractDimension dim = createDimension(queryVersion, minRange + "," + maxRange, "dim_range", unit, unitSymbol, defaut, null, null, null);
+                   dimensions.add(dim);
+               }
+           } catch (ConstellationStoreException ex) {
+               LOGGER.log(Level.WARNING, "Error retrieving range values for the layer :" + layer.getName(), ex);
+           }
             //-- execute only if it is a CoverageData
             Double nativeResolutionX = null;
             Double nativeResolutionY = null;
@@ -1367,9 +1361,10 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                  */
                 for (LayerCache layer : layers) {
                     try {
-                        final Date first = layer.getLastDate();
-                        if (first != null) {
-                            time[0] = time[1] = first;
+                        SortedSet<Date> dates = layer.getDateRange();
+                        final Date last = (dates != null && !dates.isEmpty()) ? dates.last() : null;
+                        if (last != null) {
+                            time[0] = time[1] = last;
                             break;
                         }
                     } catch(ConstellationStoreException ex) {

@@ -34,14 +34,16 @@ public class NameInProvider {
     public final String alias;
     public final Date dataVersion;
     public final GenericName dataName;
+    public final Integer dataId;
 
-    public NameInProvider(final Integer layerId, final GenericName name, final Integer providerID, final Date dataVersion, final String alias, final GenericName dataName) {
+    public NameInProvider(final Integer layerId, final GenericName name, final Integer providerID, final Date dataVersion, final String alias, final GenericName dataName, final Integer dataId) {
         this.layerId = layerId;
         this.layerName = name;
         this.providerID = providerID;
         this.dataVersion= dataVersion;
         this.alias = alias;
         this.dataName = dataName;
+        this.dataId = dataId;
     }
 
     @Override
@@ -53,6 +55,7 @@ public class NameInProvider {
         hash = 83 * hash + Objects.hashCode(this.alias);
         hash = 83 * hash + Objects.hashCode(this.dataVersion);
         hash = 83 * hash + Objects.hashCode(this.dataName);
+        hash = 83 * hash + Objects.hashCode(this.dataId);
         return hash;
     }
 
@@ -71,7 +74,8 @@ public class NameInProvider {
                    Objects.equals(this.dataVersion, that.dataVersion) &&
                    Objects.equals(this.layerName,   that.layerName) &&
                    Objects.equals(this.providerID,  that.providerID) &&
-                   Objects.equals(this.dataName,    that.dataName);
+                   Objects.equals(this.dataName,    that.dataName) &&
+                   Objects.equals(this.dataId,      that.dataId);
         }
         return false;
     }

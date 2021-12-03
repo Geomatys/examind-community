@@ -712,6 +712,7 @@ public final class DataProviders extends Static{
      * @param description the data description to update
      */
     public static void fillGeographicDescription(Envelope envelope, final DataDescription description) {
+        if (envelope == null) return;
         double[] lower, upper;
         try {
             GeneralEnvelope env = null;

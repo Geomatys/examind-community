@@ -30,7 +30,6 @@ import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.geometry.GeneralEnvelope;
-import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.measure.Units;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.portrayal.MapItem;
@@ -47,6 +46,7 @@ import org.apache.sis.util.Classes;
 import org.constellation.api.DataType;
 import org.constellation.api.ServiceDef;
 import org.constellation.dto.DataDescription;
+import org.constellation.dto.DimensionRange;
 import org.constellation.dto.StatInfo;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.repository.DataRepository;
@@ -56,10 +56,8 @@ import org.geotoolkit.storage.multires.ProgressiveResource;
 import org.geotoolkit.storage.multires.TileFormat;
 import org.geotoolkit.storage.multires.TileMatrix;
 import org.geotoolkit.storage.multires.TileMatrixSet;
-import org.geotoolkit.util.DateRange;
 import org.opengis.feature.FeatureType;
 import org.opengis.geometry.Envelope;
-import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.style.Style;
 import org.opengis.util.GenericName;
 
@@ -82,7 +80,7 @@ public interface Data<T extends Resource> {
      * @return The time range of this layer, or {@code null} if this information is not available.
      * @throws ConstellationStoreException If an error occurred while fetching the time range.
      */
-    DateRange getDateRange() throws ConstellationStoreException;
+    SortedSet<Date> getDateRange() throws ConstellationStoreException;
 
     /**
      * Returns the set of dates when such dimension is available. Note that this method may
@@ -113,7 +111,7 @@ public interface Data<T extends Resource> {
 
     /**
      */
-    MeasurementRange<?>[] getSampleValueRanges();
+    SortedSet<DimensionRange> getSampleValueRanges() throws ConstellationStoreException;
 
     /**
      * Returns {@code true} if the layer is queryable by the specified service.
