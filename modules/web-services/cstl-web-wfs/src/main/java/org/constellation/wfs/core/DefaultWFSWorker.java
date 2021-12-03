@@ -96,7 +96,6 @@ import org.geotoolkit.storage.feature.FeatureStore;
 import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
 import org.geotoolkit.storage.feature.FeatureStoreUtilities;
 import org.geotoolkit.storage.memory.InMemoryFeatureSet;
-import org.geotoolkit.storage.feature.query.QueryBuilder;
 import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.feature.FeatureTypeExt;
 import org.geotoolkit.feature.xml.Utils;
@@ -1081,7 +1080,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 try {
                     collection = origin.subset(subquery);
                     if (queryCRS != null) {
-                        final FeatureQuery reproject = QueryBuilder.reproject(collection.getType(), queryCRS);
+                        final FeatureQuery reproject = org.geotoolkit.storage.feature.query.Query.reproject(collection.getType(), queryCRS);
                         collection = collection.subset(reproject);
                     }
                 } catch (DataStoreException ex) {
@@ -1108,7 +1107,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                             final CoordinateReferenceSystem rcrs = CRS.forCode(defaultCRS);
                             final CoordinateReferenceSystem dataCrs = FeatureExt.getCRS(ft);
                             if (!Utilities.equalsIgnoreMetadata(rcrs, dataCrs)) {
-                                final FeatureQuery reproject = QueryBuilder.reproject(collection.getType(), CRS.forCode(defaultCRS));
+                                final FeatureQuery reproject = org.geotoolkit.storage.feature.query.Query.reproject(collection.getType(), CRS.forCode(defaultCRS));
                                 collection = collection.subset(reproject);
                             }
                         } catch (FactoryException|PropertyNotFoundException|IllegalStateException|DataStoreException ex) {
@@ -1292,7 +1291,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     FeatureSet col = origin.subset(subquery);
 
                     if (crs != null) {
-                        col = col.subset(QueryBuilder.reproject(col.getType(), crs));
+                        col = col.subset(org.geotoolkit.storage.feature.query.Query.reproject(col.getType(), crs));
                     }
 
                     col = NameOverride.wrap(col, typeName, NamesExt.create("id"));
@@ -1489,7 +1488,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                         final CoordinateReferenceSystem trueCrs = FeatureExt.getCRS(type);
                         if (trueCrs != null && !Utilities.equalsIgnoreMetadata(trueCrs, FeatureExt.getCRS(ft))) {
                             final FeatureSet collection = new InMemoryFeatureSet(type, featureCollection);
-                            final FeatureQuery reproject = QueryBuilder.reproject(collection.getType(), trueCrs);
+                            final FeatureQuery reproject = org.geotoolkit.storage.feature.query.Query.reproject(collection.getType(), trueCrs);
                             featureCollection = collection.subset(reproject).features(false).collect(Collectors.toList());
                         }
 
@@ -1809,7 +1808,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     // then add the new one
                     final CoordinateReferenceSystem trueCrs = FeatureExt.getCRS(ft);
                     if (trueCrs != null && !Utilities.equalsIgnoreMetadata(trueCrs, FeatureExt.getCRS(featureCollection.getType()))) {
-                        final FeatureQuery reproject = QueryBuilder.reproject(featureCollection.getType(), trueCrs);
+                        final FeatureQuery reproject = org.geotoolkit.storage.feature.query.Query.reproject(featureCollection.getType(), trueCrs);
                         featureCollection = featureCollection.subset(reproject);
                     }
 

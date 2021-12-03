@@ -87,7 +87,6 @@ import org.geotoolkit.ows.xml.v110.ServiceIdentification;
 import org.geotoolkit.ows.xml.v110.ServiceProvider;
 import org.geotoolkit.ows.xml.v110.WGS84BoundingBoxType;
 import org.geotoolkit.referencing.ReferencingUtilities;
-import org.geotoolkit.storage.coverage.CoverageUtilities;
 import org.geotoolkit.storage.coverage.ImageTile;
 import org.geotoolkit.storage.coverage.finder.StrictlyCoverageFinder;
 import org.geotoolkit.storage.multires.TiledResource;
@@ -342,7 +341,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
 
                     final List<BoundingBoxType> bboxList = new ArrayList<>();
                     for (org.geotoolkit.storage.multires.TileMatrixSet pyramid : pyramids) {
-                        final GeneralEnvelope pyramidEnv = CoverageUtilities.getPyramidEnvelope(pyramid);
+                        final Envelope pyramidEnv = pyramid.getEnvelope();
                         final int envXAxis = Math.max(0, CRSUtilities.firstHorizontalAxis(pyramid.getCoordinateReferenceSystem()));
                         final int envYAxis = xAxis + 1;
                         final BoundingBoxType bbox = new BoundingBoxType(

@@ -48,7 +48,6 @@ import org.apache.sis.storage.FeatureSet;
 
 import org.geotoolkit.storage.feature.FeatureStoreUtilities;
 import org.geotoolkit.storage.feature.query.Query;
-import org.geotoolkit.storage.feature.query.QueryBuilder;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.style.RandomStyleBuilder;
 import org.geotoolkit.util.NamesExt;
@@ -133,10 +132,10 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
     @Override
     public Envelope getEnvelope() throws ConstellationStoreException {
         try {
-            final QueryBuilder query = new QueryBuilder();
+            final Query query = new Query();
             query.setVersionDate(versionDate);
             query.setTypeName(name);
-            FeatureSet subfs = origin.subset(query.buildQuery());
+            FeatureSet subfs = origin.subset(query);
             return FeatureStoreUtilities.getEnvelope(subfs);
         } catch (Exception ex) {
             throw new ConstellationStoreException(ex);
@@ -165,11 +164,10 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
                     return dates;
                 }
 
-                final QueryBuilder builder = new QueryBuilder();
-                builder.setTypeName(name);
-                builder.setProperties(new String[]{dateStartField.getXPath()});
-                builder.setVersionDate(versionDate);
-                final Query query = builder.buildQuery();
+                final Query query = new Query();
+                query.setTypeName(name);
+                query.setProperties(new String[]{dateStartField.getXPath()});
+                query.setVersionDate(versionDate);
 
                 try (Stream<Feature> stream = origin.subset(query).features(false)) {
                     Iterator<Feature> features = stream.iterator();
@@ -211,11 +209,10 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
                     return elevations;
                 }
 
-                final QueryBuilder builder = new QueryBuilder();
-                builder.setTypeName(name);
-                builder.setProperties(new String[]{elevationStartField.getXPath()});
-                builder.setVersionDate(versionDate);
-                final Query query = builder.buildQuery();
+                final Query query = new Query();
+                query.setTypeName(name);
+                query.setProperties(new String[]{elevationStartField.getXPath()});
+                query.setVersionDate(versionDate);
 
                 try (Stream<Feature> stream = origin.subset(query).features(false)) {
                     Iterator<Feature> features = stream.iterator();
@@ -272,9 +269,6 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
             }
 
             // Geographic extent description.
-            final QueryBuilder queryBuilder = new QueryBuilder();
-            queryBuilder.setTypeName(getName());
-
             final Envelope envelope = getEnvelope();
             DataProviders.fillGeographicDescription(envelope, description);
 
@@ -288,10 +282,10 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
     public Object[] getPropertyValues(String property) throws ConstellationStoreException {
         try {
             // Visit collection.
-            final QueryBuilder qb = new QueryBuilder();
-            qb.setProperties(new String[]{property});
-            qb.setTypeName(getName());
-            try (Stream<Feature> stream = origin.subset(qb.buildQuery()).features(false)) {
+            final Query query = new Query();
+            query.setProperties(new String[]{property});
+            query.setTypeName(getName());
+            try (Stream<Feature> stream = origin.subset(query).features(false)) {
                 return stream
                         .map(f -> f.getPropertyValue(property))
                         .toArray();
