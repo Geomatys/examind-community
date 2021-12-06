@@ -13,10 +13,17 @@ import org.opengis.parameter.ParameterValueGroup;
 import java.io.IOException;
 import java.util.List;
 import org.apache.sis.parameter.ParameterBuilder;
+import org.apache.sis.util.ComparisonMode;
+import org.apache.sis.util.LenientComparable;
 import org.opengis.parameter.ParameterDescriptor;
 
 /**
  * @author Quentin Boileau (Geomatys)
+ * @author Guilhem Legal (Geomatys)
+ *
+ * Hack: we use LenientComparable#equals with comparisonMode.APPROXIMATE because of a bug in SIS DefaultParameterValue.equals
+ * that does not use deepEquals for comparing value (causing in issue to compare Double[]).
+ * restore basic assertEquals when the issue will be fixed in SIS.
  */
 public class ParamUtilitiesTest {
 
@@ -73,10 +80,12 @@ public class ParamUtilitiesTest {
             builder.addName("boolParam").setRequired(true).create(Boolean.class, true),
             builder.addName("objParam").setRequired(true).create(SimplePojo.class, null),
             builder.addName("intParam").setRequired(true).createBounded(0, 255, 0),
+            builder.addName("doubleArrayParam").setRequired(true).create(Double[].class, null),
             builder.addName("enumParam").setRequired(false).createEnumerated(SimpleEnum.class, SimpleEnum.values(), null),
             builder.addName("subgroup").createGroup(2, 5, subParam)
         };
 
+        Double[] dap = {2.1};
         DESCRITPTOR = builder.addName("group")
                 .setRequired(true)
                 .createGroup(params);
@@ -85,6 +94,7 @@ public class ParamUtilitiesTest {
         VALUE.parameter("boolParam").setValue(false);
         VALUE.parameter("enumParam").setValue(SimpleEnum.TWO);
         VALUE.parameter("intParam").setValue(55);
+        VALUE.parameter("doubleArrayParam").setValue(dap);
         VALUE.parameter("objParam").setValue(new SimplePojo(1,"constellation"));
 
         List<ParameterValueGroup> subgroups = VALUE.groups("subgroup");
@@ -106,7 +116,7 @@ public class ParamUtilitiesTest {
     public void testSerializeParameterGroupJSON() throws JsonProcessingException {
         String jsonValue = ParamUtilities.writeParameterJSON(VALUE);
         String expectedJSON = "{\"strParam\":[\"AString\"],\"boolParam\":[false],\"objParam\":[{\"id\":1,\"name\":\"constellation\"}]," +
-                "\"intParam\":[55],\"enumParam\":[\"TWO\"]," +
+                "\"intParam\":[55],\"doubleArrayParam\":[[2.1]],\"enumParam\":[\"TWO\"]," +
                 "\"subgroup\":[{\"doubleParam\":[0.5]},{\"doubleParam\":[55.74]},{\"doubleParam\":[66.1]}]}";
 
         Assert.assertNotNull(jsonValue);
@@ -136,16 +146,17 @@ public class ParamUtilitiesTest {
         ParameterValueGroup parameterValue = (ParameterValueGroup) ParamUtilities.readParameterJSON(serializedJSON, DESCRITPTOR);
 
         Assert.assertNotNull(parameterValue);
-        Assert.assertEquals(VALUE, parameterValue);
+        Assert.assertTrue(((LenientComparable)VALUE.parameter("doubleArrayParam")).equals(parameterValue.parameter("doubleArrayParam"), ComparisonMode.APPROXIMATE));
+        Assert.assertTrue(((LenientComparable)VALUE).equals(parameterValue, ComparisonMode.APPROXIMATE));
 
         // test without array for "mono-occurrence"
         String json = "{\"strParam\":\"AString\",\"boolParam\":false,\"objParam\":{\"id\":1,\"name\":\"constellation\"}," +
-                "\"intParam\":55,\"enumParam\":\"TWO\"," +
+                "\"intParam\":55,\"doubleArrayParam\":[[2.1]],\"enumParam\":\"TWO\"," +
                 "\"subgroup\":[{\"doubleParam\":0.5},{\"doubleParam\":55.74},{\"doubleParam\":66.1}]}";
         parameterValue = (ParameterValueGroup) ParamUtilities.readParameterJSON(json, DESCRITPTOR);
 
         Assert.assertNotNull(parameterValue);
-        Assert.assertEquals(VALUE, parameterValue);
+        Assert.assertTrue(((LenientComparable)VALUE).equals(parameterValue, ComparisonMode.APPROXIMATE));
     }
 
     @Test
@@ -218,6 +229,7 @@ public class ParamUtilitiesTest {
                 "{\"name\":\"boolParam\",\"minOccurs\":1,\"maxOccurs\":1,\"class\":\"java.lang.Boolean\",\"defaultValue\":true}," +
                 "{\"name\":\"objParam\",\"minOccurs\":1,\"maxOccurs\":1,\"class\":\"org.constellation.util.ParamUtilitiesTest.SimplePojo\"}," +
                 "{\"name\":\"intParam\",\"minOccurs\":1,\"maxOccurs\":1,\"class\":\"java.lang.Integer\",\"defaultValue\":0,\"restriction\":{\"minValue\":0,\"maxValue\":255}}," +
+                "{\"name\":\"doubleArrayParam\",\"minOccurs\":1,\"maxOccurs\":1,\"class\":\"java.lang.Double[]\"}," +
                 "{\"name\":\"enumParam\",\"minOccurs\":0,\"maxOccurs\":1,\"class\":\"org.constellation.util.ParamUtilitiesTest.SimpleEnum\",\"restriction\":{\"validValues\":[\"ONE\",\"TWO\",\"THREE\"]}}," +
                 "{\"name\":\"subgroup\",\"minOccurs\":2,\"maxOccurs\":5,\"descriptors\":[{\"name\":\"doubleParam\",\"minOccurs\":1,\"maxOccurs\":1,\"class\":\"java.lang.Double\",\"defaultValue\":10.5}]}]}";
 

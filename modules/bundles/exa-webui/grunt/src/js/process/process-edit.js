@@ -758,7 +758,11 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
                     var value = inputs[param];
                     var scopeParam = getParameterByName(parameters, param);
                     if (scopeParam.type === 'simple') {
-                        scopeParam.save = value;
+                        if (scopeParam.isArray) {
+                            scopeParam.save = value[0];
+                        } else {
+                            scopeParam.save = value;
+                        }
                     } else {
                         if (angular.isArray(value)) {
                             var nbOccurs = value.length;
@@ -795,7 +799,11 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
                 var param = parameters[i];
                 if (param.type === 'simple') {
                     valid = isValid(param);
-                    inputs[param.name] = param.save;
+                    if (param.isArray) {
+                        inputs[param.name] = [param.save];
+                    } else {
+                        inputs[param.name] = param.save;
+                    }
                 } else {
                     inputs[param.name] = [];
                     var nbOccurs = param.inputs.length;

@@ -21,3 +21,4 @@ com.examind.process.test.ProgressTestDescriptor
 com.examind.process.test.EchoDescriptor
 com.examind.process.test.NbFeatureDescriptor
 com.examind.process.test.NbBandDescriptor
+com.examind.process.test.MultipleTypeDescriptor
