@@ -666,6 +666,8 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
                         if (response.data && response.data.message) {
                             message = response.data.message;
                         }
+                        $scope.task.processAuthority = null;
+                        $scope.task.processCode = null;
                         Growl('error', 'Error', message);
                     });
             }
