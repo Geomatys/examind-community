@@ -2,7 +2,7 @@
  *    Constellation - An open source and standard compliant SDI
  *    http://www.constellation-sdi.org
  *
- * Copyright 2020 Geomatys.
+ * Copyright 2020-2021 Geomatys.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,32 +29,34 @@ import java.util.stream.StreamSupport;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridCoverage2D;
-import org.apache.sis.coverage.grid.GridCoverageBuilder;
 import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.image.PixelIterator;
 import org.apache.sis.image.WritablePixelIterator;
+import org.apache.sis.measure.Units;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.operation.transform.MathTransforms;
 import org.constellation.map.featureinfo.CoverageProfileInfoFormat.XY;
 import org.junit.Assert;
 import org.junit.Test;
-import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.CoordinateSequence;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.impl.PackedCoordinateSequenceFactory;
 import org.opengis.referencing.datum.PixelInCell;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
 
+import static java.lang.Double.NaN;
 import static org.constellation.map.featureinfo.CoverageProfileInfoFormat.ReductionMethod.*;
 import static org.constellation.map.featureinfo.CoverageProfileInfoFormat.reduce;
 
 /**
  *
  * @author Johann Sorel (Geomatys)
+ * @author Alexis Manin (Geomatys)
  */
 public class CoverageProfileInfoTest {
-
 
     @Test
     public void testDecimateSamplingCount() {
@@ -217,10 +219,10 @@ public class CoverageProfileInfoTest {
         points.add(new XY(0, 0));
         points.add(new XY(1, 1));
         points.add(new XY(3, 2));
-        points.add(new XY(4, Double.NaN));
+        points.add(new XY(4, NaN));
         points.add(new XY(7, 4));
         points.add(new XY(9, 5));
-        points.add(new XY(9.5, Double.NaN));
+        points.add(new XY(9.5, NaN));
         points.add(new XY(10, 7));
         points.add(new XY(12.2, 8));
         points.add(new XY(13.1, 9));
@@ -239,11 +241,11 @@ public class CoverageProfileInfoTest {
 
     @Test public void testProfileOnSubset() throws Exception {
         final GeometryFactory gf = new GeometryFactory();
-        final LineString line = gf.createLineString(new Coordinate[]{
-                new Coordinate(3, 4),
-                new Coordinate(4, 4),
-                new Coordinate(4, 5)
-        });
+        final LineString line = profile(
+                3, 4,
+                4, 4,
+                4, 5
+        );
         line.setUserData(CommonCRS.defaultGeographic());
         int px_3_4 = 8 * 4 + 3;
         int px_4_4 = 8 * 4 + 4;
@@ -278,10 +280,10 @@ public class CoverageProfileInfoTest {
 
     @Test public void testProfileWithReprojection() throws Exception {
         final GeometryFactory gf = new GeometryFactory();
-        final LineString line = gf.createLineString(new Coordinate[]{
-                new Coordinate(7, 6),
-                new Coordinate(6, 5)
-        });
+        final LineString line = profile(
+                7, 6,
+                6, 5
+        );
         line.setUserData(CommonCRS.WGS84.geographic());
         int px_6_7 = 8 * 7 + 6;
         int px_5_6 = 8 * 6 + 5;
@@ -293,6 +295,17 @@ public class CoverageProfileInfoTest {
                 px_5_6, // median from pixel border
                 px_5_6  // end
         );
+    }
+
+    @Test
+    public void nanRegionsShouldBePreserved() throws Exception {
+        final LineString profile = profile(
+                1, 1,
+                2, 1,
+                2, 2
+        );
+
+        assertProfileEquals(createNaNDataSource(), profile, NaN, NaN, NaN, NaN, NaN, NaN, NaN);
     }
 
     /**
@@ -319,11 +332,37 @@ public class CoverageProfileInfoTest {
                 MathTransforms.identity(2),
                 CommonCRS.defaultGeographic()
         );
+
         final SampleDimension sampleDim = new SampleDimension.Builder()
                 .setName("numbers")
                 .setBackground("no-data", -1)
                 .build();
+
         return new GridCoverage2D(domain, Collections.singletonList(sampleDim), values);
+    }
+
+    private static GridCoverage createNaNDataSource() {
+        final BufferedImage values = new BufferedImage(4, 4, BufferedImage.TYPE_BYTE_GRAY);
+
+        try (WritablePixelIterator it = new PixelIterator.Builder().createWritable(values)) {
+            while (it.next()) it.setSample(0, 2);
+        }
+
+        final GridGeometry domain = new GridGeometry(
+                new GridExtent(4, 4),
+                PixelInCell.CELL_CENTER,
+                MathTransforms.identity(2),
+                CommonCRS.defaultGeographic()
+        );
+
+        final SampleDimension sampleDim = new SampleDimension.Builder()
+                .setName("numbers")
+                .addQuantitative("values", 0, 1, 1, 0, Units.UNITY)
+                .setBackground("no-data", 2)
+                .build();
+
+        final GridCoverage2D data = new GridCoverage2D(domain, Collections.singletonList(sampleDim), values);
+        return data.forConvertedValues(true);
     }
 
     private static void assertProfileEquals(final GridCoverage source, final LineString line, final double... expectedValues) throws FactoryException, TransformException {
@@ -351,5 +390,12 @@ public class CoverageProfileInfoTest {
                         .toArray(),
                 1e-2
         );
+    }
+
+    private static LineString profile(double... ordinates) {
+        final CoordinateSequence coordinates = PackedCoordinateSequenceFactory.DOUBLE_FACTORY.create(ordinates, 2);
+        final LineString line = new GeometryFactory().createLineString(coordinates);
+        line.setUserData(CommonCRS.WGS84.geographic());
+        return line;
     }
 }
