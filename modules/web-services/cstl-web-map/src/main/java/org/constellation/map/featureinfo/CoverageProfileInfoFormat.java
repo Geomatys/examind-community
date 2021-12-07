@@ -567,36 +567,32 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
     }
 
     private static XY minReduction(List<XY> values) {
-        final DoubleBinaryOperator min = nanOp(Math::min);
-        final double[] reduced = values.stream()
-                .reduce(
-                        new double[]{ 0, 0, Double.NaN }, // 0: nb points ; 1: sum of X ; 2: minimal y
-                        (dd, xy) -> { dd[0]++        ; dd[1] += xy.x  ; dd[2] = min.applyAsDouble(dd[2], xy.y)  ; return dd; },
-                        (d1, d2) -> { d1[0] += d2[0] ; d1[1] += d2[1] ; d1[2] = min.applyAsDouble(d1[2], d2[2]) ; return d1; }
-                );
-        return new XY(reduced[1] / reduced[0], reduced[2]);
+        return reduce(values, Math::min, (value, count) -> value);
     }
 
     private static XY maxReduction(List<XY> values) {
-        final DoubleBinaryOperator max = nanOp(Math::max);
-        final double[] reduced = values.stream()
-                .reduce(
-                        new double[]{ 0, 0, Double.NEGATIVE_INFINITY }, // 0: nb points ; 1: sum of X ; 2: maximal y
-                        (dd, xy) -> { dd[0]++        ; dd[1] += xy.x  ; dd[2] = max.applyAsDouble(dd[2], xy.y)  ; return dd; },
-                        (d1, d2) -> { d1[0] += d2[0] ; d1[1] += d2[1] ; d1[2] = max.applyAsDouble(d1[2], d2[2]) ; return d1; }
-                );
-        return new XY(reduced[1] / reduced[0], reduced[2]);
+        return reduce(values, Math::max, (value, count) -> value);
     }
 
     private static XY avgReduction(List<XY> values) {
-        final DoubleBinaryOperator sum = nanOp((d1, d2) -> d1 + d2);
-        final double[] reduced = values.stream()
-                .reduce(
-                        new double[3], // 0: nb points ; 1: sum of X ; 2: sum of y
-                        (dd, xy) -> { dd[0]++        ; dd[1] += xy.x  ; dd[2] = sum.applyAsDouble(dd[2], xy.y)  ; return dd; },
-                        (d1, d2) -> { d1[0] += d2[0] ; d1[1] += d2[1] ; d1[2] = sum.applyAsDouble(d1[2], d2[2]) ; return d1; }
-                );
-        return new XY(reduced[1] / reduced[0], reduced[2] / reduced[0]);
+        return reduce(values, Double::sum, (value, count) -> value / count);
+    }
+
+    private static XY reduce(List<XY> values, DoubleBinaryOperator valueAccumulator, DoubleBinaryOperator finalizer) {
+        final DoubleBinaryOperator nanCompatibleAccumulator = nanOp(valueAccumulator);
+        XY reduction = new XY(values.get(0));
+
+        final int nbPts = values.size();
+        for (int i = 1 ; i < nbPts ; i++) {
+            final XY value = values.get(i);
+            reduction.x += value.x;
+            reduction.y = nanCompatibleAccumulator.applyAsDouble(reduction.y, value.y);
+        }
+
+        reduction.x /= nbPts;
+        reduction.y = finalizer.applyAsDouble(reduction.y, nbPts);
+
+        return reduction;
     }
 
     /**
@@ -882,6 +878,11 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
             this.y = y;
         }
 
+        public XY(XY toCopy) {
+            this.x = toCopy.x;
+            this.y = toCopy.y;
+        }
+
         public double getX() {
             return x;
         }
@@ -902,6 +903,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         public String toString() {
             return "[" + x +" " + y + "]";
         }
+
     }
 
     /**
