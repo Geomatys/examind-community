@@ -26,16 +26,31 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
             .put('java.lang.Boolean', {
                 templateUrl: 'views/tasks/editor/boolean.html'
             })
+             .put('boolean', {
+                templateUrl: 'views/tasks/editor/boolean.html'
+            })
             .put('java.lang.Double', {
+                templateUrl: 'views/tasks/editor/number.html'
+            })
+            .put('double', {
                 templateUrl: 'views/tasks/editor/number.html'
             })
             .put('java.lang.Integer', {
                 templateUrl: 'views/tasks/editor/number.html'
             })
+            .put('int', {
+                templateUrl: 'views/tasks/editor/number.html'
+            })
             .put('java.lang.Long', {
                 templateUrl: 'views/tasks/editor/number.html'
             })
+            .put('long', {
+                templateUrl: 'views/tasks/editor/number.html'
+            })
             .put('java.lang.Character', {
+                templateUrl: 'views/tasks/editor/string.html'
+            })
+            .put('char', {
                 templateUrl: 'views/tasks/editor/string.html'
             })
             .put('java.lang.String', {
@@ -45,6 +60,9 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
                 templateUrl: 'views/tasks/editor/url.html'
             })
             .put('java.io.File', {
+                templateUrl: 'views/tasks/editor/file.html'
+            })
+            .put('java.nio.file.Path', {
                 templateUrl: 'views/tasks/editor/file.html'
             })
             .put('org.constellation.dto.process.StyleProcessReference', {
