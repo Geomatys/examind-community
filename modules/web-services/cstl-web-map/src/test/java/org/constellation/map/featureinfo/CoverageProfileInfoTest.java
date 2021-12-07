@@ -48,6 +48,7 @@ import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
 
 import static java.lang.Double.NaN;
+import static org.constellation.map.featureinfo.CoverageProfileInfoFormat.NaNPropagation.*;
 import static org.constellation.map.featureinfo.CoverageProfileInfoFormat.ReductionMethod.*;
 import static org.constellation.map.featureinfo.CoverageProfileInfoFormat.reduce;
 
@@ -168,7 +169,7 @@ public class CoverageProfileInfoTest {
         /* First, we try a sampling count too high. There should be a trigger in the code to force sampling count
          * change, to get reduction windows of 3 elements.
          */
-        List<XY> reduced = reduce(points, 8, AVG);
+        List<XY> reduced = reduce(points, 8, AVG, ALL);
         // Returned distances should be the same whatever reduction method is used.
         double[] expectedMeanDistances = {
                 0, // First point preserved
@@ -187,14 +188,14 @@ public class CoverageProfileInfoTest {
         assertSeriesEquals("Distance means are wrong", expectedMeanDistances, reduced, XY::getX);
         assertSeriesEquals("Average values are wrong", expectedValues, reduced, XY::getY);
 
-        reduced = reduce(points, 8, MIN);
+        reduced = reduce(points, 8, MIN, ALL);
         assertSeriesEquals("Distance means are wrong", expectedMeanDistances, reduced, XY::getX);
         expectedValues[1] = 0;
         expectedValues[2] = 3;
         expectedValues[3] = 6;
         assertSeriesEquals("Min values are wrong", expectedValues, reduced, XY::getY);
 
-        reduced = reduce(points, 8, MAX);
+        reduced = reduce(points, 8, MAX, ALL);
         assertSeriesEquals("Distance means are wrong", expectedMeanDistances, reduced, XY::getX);
         expectedValues[1] = 2;
         expectedValues[2] = 5;
@@ -202,7 +203,7 @@ public class CoverageProfileInfoTest {
         assertSeriesEquals("Min values are wrong", expectedValues, reduced, XY::getY);
 
         // If queried sampling makes sense, ensure that reduction windows are well-sized
-        reduced = reduce(points, 2, MIN);
+        reduced = reduce(points, 2, MIN, ALL);
         expectedMeanDistances = new double[]{
                 0, // First point preserved
                 (0 + 1 + 3 + 4 + 7)          / 5d, // mean(lst[0..4])
@@ -227,7 +228,7 @@ public class CoverageProfileInfoTest {
         points.add(new XY(12.2, 8));
         points.add(new XY(13.1, 9));
 
-        List<XY> reduced = reduce(points, 2, MIN);
+        List<XY> reduced = reduce(points, 2, MIN, ALL);
         double[] expectedMeanDistances = {
                 0, // First point preserved
                 (0 + 1 + 3 + 4 + 7)          / 5d, // mean(lst[0..4])
@@ -306,6 +307,50 @@ public class CoverageProfileInfoTest {
         );
 
         assertProfileEquals(createNaNDataSource(), profile, NaN, NaN, NaN, NaN, NaN, NaN, NaN);
+    }
+
+    @Test
+    public void reductionShouldPreserveNaNBatches() throws Exception {
+        final List<XY> points = new ArrayList<>();
+        points.add(new XY(0, 0));
+        points.add(new XY(1, 1));
+        points.add(new XY(3, 2));
+        points.add(new XY(4,  NaN));
+        points.add(new XY(7,  NaN));
+        points.add(new XY(9,  NaN));
+        points.add(new XY(9.5, NaN));
+        points.add(new XY(10, 7));
+        points.add(new XY(12.2, 8));
+        points.add(new XY(13.1, 9));
+
+        List<XY> reduced = reduce(points, 3, MIN, ALL);
+        double[] expectedMeanDistances = {
+                0, // First point preserved
+                (0 + 1 + 3)       / 3d, // mean(lst[0..2])
+                (4 + 7 + 9)       / 3d, // mean(lst[3..5])
+                (9.5 + 10 + 12.2) / 3d, // mean(lst[6..8])
+                13.1 // Last point preserved
+        };
+        double[] expectedValues = {0, 0, NaN, 7, 9 };
+        assertSeriesEquals("Distance means are wrong", expectedMeanDistances, reduced, XY::getX);
+        assertSeriesEquals("Min values are wrong", expectedValues, reduced, XY::getY);
+    }
+
+    @Test
+    public void reduceWithNaNPropagation() {
+        final List<XY> points = new ArrayList<>();
+        points.add(new XY(0, 0));
+        points.add(new XY(1, 1));
+        points.add(new XY(2, 2));
+        points.add(new XY(3, NaN));
+        points.add(new XY(4, 4));
+        points.add(new XY(5, 5));
+
+        List<XY> reduced = reduce(points, 2, MIN, ANY);
+        double[] expectedMeanDistances = { 0, 1, 4, 5 };
+        double[] expectedValues = {0, 0, NaN, 5};
+        assertSeriesEquals("Distance means are wrong", expectedMeanDistances, reduced, XY::getX);
+        assertSeriesEquals("Min values are wrong", expectedValues, reduced, XY::getY);
     }
 
     /**

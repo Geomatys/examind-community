@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeSet;
@@ -90,11 +91,23 @@ import org.opengis.util.FactoryException;
  */
 public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
 
+    enum NaNPropagation {
+        /**
+         * A window whose values are <em>all</em> NaN values will result in a NaN value. Otherwise, NaN values are ignored.
+         */
+        ALL,
+        /**
+         * If a window of value contains <em>any</em> NaN value, it will be propagated.
+         */
+        ANY,
+    }
+
     private static final String MIME = "application/json; subtype=profile";
     private static final String PARAM_PROFILE = "profile";
     private static final String PARAM_NBPOINT = "samplingCount";
     private static final String PARAM_ALTITUDE = "alt";
     private static final String PARAM_REDUCER = "reducer";
+    private static final String PARAM_NAN_BEHAVIOR = "nanPropagation";
 
     private static final Map<Unit,List<Unit>> UNIT_GROUPS = new HashMap<>();
     static {
@@ -306,9 +319,11 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
             final GridCoverage coverage = readCoverage(resource, workEnv);
             Object parameters = ((org.geotoolkit.wms.xml.GetFeatureInfo) getFI).getParameters();
             ReductionMethod reducer = null;
+            NaNPropagation nanBehavior = NaNPropagation.ALL;
             if (parameters instanceof Map) {
                 String reduceParam = null;
-                Object cdt = ((Map) parameters).get(PARAM_REDUCER);
+                final Map<?, ?> paramMap = (Map) parameters;
+                Object cdt = paramMap.get(PARAM_REDUCER);
                 if (cdt instanceof String){
                     reduceParam = (String) cdt;
                 } else if (cdt instanceof String[]) {
@@ -317,8 +332,19 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
                 if (reduceParam != null) {
                     reducer = ReductionMethod.valueOf(reduceParam);
                 }
+
+                Object nanBehave = paramMap.get(PARAM_NAN_BEHAVIOR);
+                if (nanBehave instanceof String[]) {
+                    nanBehave = ((String[]) nanBehave)[0];
+                }
+                if (nanBehave instanceof String) {
+                    nanBehavior = NaNPropagation.valueOf(((String) nanBehave).toUpperCase(Locale.ROOT));
+                } else if (nanBehave instanceof NaNPropagation) {
+                    nanBehavior = (NaNPropagation) nanBehave;
+                }
             }
-            baseData = extractData(coverage, geom, samplingCount, reducer);
+
+            baseData = extractData(coverage, geom, samplingCount, reducer, nanBehavior);
 
         } catch (DataStoreException ex) {
             layer.message = ex.getMessage();
@@ -379,7 +405,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         }
     }
 
-    private ProfilData extractData(GridCoverage coverage, Geometry geom, Integer samplingCount, ReductionMethod reducer) throws TransformException, FactoryException {
+    private ProfilData extractData(GridCoverage coverage, Geometry geom, Integer samplingCount, ReductionMethod reducer, NaNPropagation nanBehavior) throws TransformException, FactoryException {
 
         final ProfilData pdata = new ProfilData();
 
@@ -535,7 +561,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
             });
         }
 
-        pdata.points = reduce(pdata.points, samplingCount == null ? pdata.points.size() : samplingCount, reducer);
+        pdata.points = reduce(pdata.points, samplingCount == null ? pdata.points.size() : samplingCount, reducer, nanBehavior);
 
         pdata.setUnit(bands[0].getUnit());
         pdata.min = stats.minimum();
@@ -553,52 +579,46 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
      * @return
      */
     static List<XY> reduce(List<XY> lst, int samplingCount) {
-        return reduce(lst, samplingCount, ReductionMethod.NEAREST);
+        return reduce(lst, samplingCount, ReductionMethod.NEAREST, NaNPropagation.ALL);
     }
 
-    static List<XY> reduce(List<XY> lst, int samplingCount, ReductionMethod reductionStrategy) {
+    static List<XY> reduce(List<XY> lst, int samplingCount, ReductionMethod reductionStrategy, NaNPropagation nanBehavior) {
         if (reductionStrategy == null) reductionStrategy = ReductionMethod.AVG;
         switch (reductionStrategy) {
             case NEAREST: return reduceNearest(lst, samplingCount);
-            case MIN    : return reduce(lst, samplingCount, CoverageProfileInfoFormat::minReduction);
-            case MAX    : return reduce(lst, samplingCount, CoverageProfileInfoFormat::maxReduction);
-            default     : return reduce(lst, samplingCount, CoverageProfileInfoFormat::avgReduction);
+            case MIN    : return reduce(lst, samplingCount, values -> reduce(values, Math::min, (value, count) -> value, nanBehavior));
+            case MAX    : return reduce(lst, samplingCount, values -> reduce(values, Math::max, (value, count) -> value, nanBehavior));
+            default     : return reduce(lst, samplingCount, values -> reduce(values, Double::sum, (value, count) -> value / count, nanBehavior));
         }
     }
 
-    private static XY minReduction(List<XY> values) {
-        return reduce(values, Math::min, (value, count) -> value);
-    }
-
-    private static XY maxReduction(List<XY> values) {
-        return reduce(values, Math::max, (value, count) -> value);
-    }
-
-    private static XY avgReduction(List<XY> values) {
-        return reduce(values, Double::sum, (value, count) -> value / count);
-    }
-
-    private static XY reduce(List<XY> values, DoubleBinaryOperator valueAccumulator, DoubleBinaryOperator finalizer) {
-        final DoubleBinaryOperator nanCompatibleAccumulator = nanOp(valueAccumulator);
+    private static XY reduce(List<XY> values, DoubleBinaryOperator valueAccumulator, DoubleBinaryOperator finalizer, NaNPropagation nanBehavior) {
+        if (nanBehavior == NaNPropagation.ALL) {
+            valueAccumulator = nanOp(valueAccumulator);
+        }
         XY reduction = new XY(values.get(0));
 
+        int nbNaN = Double.isNaN(reduction.y) ? 1 : 0;
         final int nbPts = values.size();
         for (int i = 1 ; i < nbPts ; i++) {
             final XY value = values.get(i);
             reduction.x += value.x;
-            reduction.y = nanCompatibleAccumulator.applyAsDouble(reduction.y, value.y);
+            reduction.y = valueAccumulator.applyAsDouble(reduction.y, value.y);
+            if (Double.isNaN(value.y)) nbNaN++;
         }
 
         reduction.x /= nbPts;
-        reduction.y = finalizer.applyAsDouble(reduction.y, nbPts);
+        if (nanBehavior == NaNPropagation.ALL && nbNaN >= nbPts) {
+            reduction.y = Double.NaN;
+        } else {
+            reduction.y = finalizer.applyAsDouble(reduction.y, nbPts);
+        }
 
         return reduction;
     }
 
     /**
-     * Decorate given double operation, but also ignore any NaN value present
-     * @param base
-     * @return
+     * Decorate given double operation, but also ignore any NaN value present.
      */
     private static DoubleBinaryOperator nanOp(DoubleBinaryOperator base) {
         return (d1, d2) -> Double.isNaN(d1) ? d2 : Double.isNaN(d2) ? d1 : base.applyAsDouble(d1, d2);
@@ -610,10 +630,6 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
      *     <li>First and last points are preserved</li>
      *     <li>Overlap behavior : to simplify algorithm, window management is approximative</li>
      * </ul>
-     * @param datasource
-     * @param samplingCount
-     * @param reducer
-     * @return
      */
     static List<XY> reduce(List<XY> datasource, int samplingCount, Function<List<XY>, XY> reducer) {
         final int sourceSize = datasource.size();
