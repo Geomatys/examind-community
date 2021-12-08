@@ -264,6 +264,12 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         expResult = getStringFromFile("com/examind/sts/embedded/foi-top2-ct.json");
         compareJSON(expResult, result);
 
+        getFoiUrl = new URL(getDefaultURL() + "/FeaturesOfInterest?$top=0&$count=true");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/empty-count.json");
+        expResult = expResult.replace("\"{count}\"", "6");
+        compareJSON(expResult, result);
     }
 
     @Test
@@ -372,6 +378,13 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/obs-top-ct3.json");
+        compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Observations?$top=0&$count=true");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/empty-count.json");
+        expResult = expResult.replace("\"{count}\"", "180");
         compareJSON(expResult, result);
     }
 
@@ -511,6 +524,13 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/obsprop-top2-ct.json");
         compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/ObservedProperties?$top=0&$count=true");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/empty-count.json");
+        expResult = expResult.replace("\"{count}\"", "3");
+        compareJSON(expResult, result);
     }
 
     @Test
@@ -584,6 +604,12 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         expResult = getStringFromFile("com/examind/sts/embedded/ds-top2-ct.json");
         compareJSON(expResult, result);
 
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams?$top=0&$count=true");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/empty-count.json");
+        expResult = expResult.replace("\"{count}\"", "21");
+        compareJSON(expResult, result);
     }
 
     @Test
@@ -739,6 +765,13 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/mds-time2-top-ct.json");
         compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams?$top=0&$count=true");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/empty-count.json");
+        expResult = expResult.replace("\"{count}\"", "12");
+        compareJSON(expResult, result);
     }
 
     @Test
@@ -792,6 +825,13 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/ss-top2-ct.json");
+        compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Sensors?$top=0&$count=true");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/empty-count.json");
+        expResult = expResult.replace("\"{count}\"", "14");
         compareJSON(expResult, result);
     }
 
@@ -916,6 +956,13 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/th-top2-ct.json");
         compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Things?$top=0&$count=true");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/empty-count.json");
+        expResult = expResult.replace("\"{count}\"", "14");
+        compareJSON(expResult, result);
     }
 
     @Test
@@ -1005,6 +1052,13 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/loc-top2-ct.json");
+        compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Locations?$top=0&$count=true");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/empty-count.json");
+        expResult = expResult.replace("\"{count}\"", "14");
         compareJSON(expResult, result);
     }
 
@@ -1151,11 +1205,25 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         expResult = getStringFromFile("com/examind/sts/embedded/hloc-all-exp2.json");
         compareJSON(expResult, result);
 
+        getFoiUrl = new URL(getDefaultURL() + "/HistoricalLocations?&$count=true");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/hloc-all-ct.json");
+        compareJSON(expResult, result);
+
         getFoiUrl = new URL(getDefaultURL() + "/HistoricalLocations?$expand=Things,Locations/Things");
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/hloc-all-exp.json");
         compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/HistoricalLocations?$top=0&$count=true");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/empty-count.json");
+        expResult = expResult.replace("\"{count}\"", "19");
+        compareJSON(expResult, result);
+
     }
 
     @Test
