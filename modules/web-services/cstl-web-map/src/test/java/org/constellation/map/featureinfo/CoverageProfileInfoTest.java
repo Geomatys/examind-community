@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.StreamSupport;
 import org.apache.sis.coverage.SampleDimension;
@@ -51,6 +52,8 @@ import static java.lang.Double.NaN;
 import static org.constellation.map.featureinfo.CoverageProfileInfoFormat.NaNPropagation.*;
 import static org.constellation.map.featureinfo.CoverageProfileInfoFormat.ReductionMethod.*;
 import static org.constellation.map.featureinfo.CoverageProfileInfoFormat.reduce;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -351,6 +354,25 @@ public class CoverageProfileInfoTest {
         double[] expectedValues = {0, 0, NaN, 5};
         assertSeriesEquals("Distance means are wrong", expectedMeanDistances, reduced, XY::getX);
         assertSeriesEquals("Min values are wrong", expectedValues, reduced, XY::getY);
+    }
+
+    @Test
+    public void profileNoIntersection() throws Exception {
+        final LineString line = profile(
+                2, -2,
+                -2, -2,
+                -3, 2
+        );
+        line.setUserData(CommonCRS.WGS84.geographic());
+        DataProfile profile = new DataProfile(createDatasource(0, 0), line);
+
+        Consumer<DataProfile.DataPoint> noValueExpected = pt -> Assert.assertNull(pt.value);
+        int i = 0, limit = 20;
+        while (profile.tryAdvance(noValueExpected) && i++ < limit) {
+            // Nothing. Assertion is in loop condition
+        }
+
+        assertFalse("Too many points returned", profile.tryAdvance(noValueExpected));
     }
 
     /**

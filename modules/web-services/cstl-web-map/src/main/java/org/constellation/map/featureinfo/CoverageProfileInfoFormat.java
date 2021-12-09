@@ -583,6 +583,9 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
     }
 
     static List<XY> reduce(List<XY> lst, int samplingCount, ReductionMethod reductionStrategy, NaNPropagation nanBehavior) {
+        // Reduction cannot be done with less than 4 points, so in this case, we directly return the input point list.
+        if (lst.size() < 4) return lst;
+
         if (reductionStrategy == null) reductionStrategy = ReductionMethod.AVG;
         switch (reductionStrategy) {
             case NEAREST: return reduceNearest(lst, samplingCount);
