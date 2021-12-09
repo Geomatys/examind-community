@@ -1254,10 +1254,8 @@ public class STSService extends OGCWebService<STSWorker> {
     }
 
     private String removeQuote(String s) {
-        if (s != null) {
-            if (s.charAt(0) == '\'' && s.charAt(s.length() -1) == '\'') {
-                s = s.substring(1, s.length() -1);
-            }
+        if (s.charAt(0) == '\'' && s.charAt(s.length() -1) == '\'') {
+            s = s.substring(1, s.length() -1);
         }
         return s;
     }
