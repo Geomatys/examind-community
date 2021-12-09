@@ -23,7 +23,7 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  *
- * @author Olivier (Geomatys)
+ * @author Olivier Nougier (Geomatys)
  */
 public interface TokenExtender {
     

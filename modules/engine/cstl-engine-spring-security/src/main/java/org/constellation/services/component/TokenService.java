@@ -31,7 +31,7 @@ import static org.constellation.token.TokenUtils.ACCESS_TOKEN;
 
 /**
  *
- * @author Olivier (Geomatys)
+ * @author Olivier Nougier (Geomatys)
  */
 public class TokenService implements TokenExtender {
 
@@ -51,7 +51,7 @@ public class TokenService implements TokenExtender {
     }
 
     public String getUserName(HttpServletRequest request) {
-        String token = extract(request, ACCESS_TOKEN);
+        String token = TokenUtils.extract(request, ACCESS_TOKEN);
         //FIXME We should use cache here.
         if (token != null && validate(token)) {
             return TokenUtils.getUserNameFromToken(token);
@@ -62,19 +62,5 @@ public class TokenService implements TokenExtender {
     @Override
     public String extend(String token, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         return TokenUtils.createToken(token, secret);
-    }
-
-    public String extract(HttpServletRequest request, String name) {
-        String value = TokenUtils.extractFromCookie(request, name);
-        if (value == null) {
-            boolean param = Application.getBooleanProperty(AppProperty.EXA_ENABLE_PARAM_TOKEN, false);
-            if (param) {
-                value = TokenUtils.extractFromHeaders(request, name);
-                if (value == null) {
-                    value = TokenUtils.extractFromQueryParameters(request, name);
-                }
-            }
-        }
-        return value;
     }
 }

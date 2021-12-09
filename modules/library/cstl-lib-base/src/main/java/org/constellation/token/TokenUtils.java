@@ -245,4 +245,18 @@ public class TokenUtils {
 
         return result;
     }
+
+    public static String extract(HttpServletRequest request, String name) {
+        String value = TokenUtils.extractFromCookie(request, name);
+        if (value == null) {
+            boolean param = Application.getBooleanProperty(AppProperty.EXA_ENABLE_PARAM_TOKEN, false);
+            if (param) {
+                value = TokenUtils.extractFromHeaders(request, name);
+                if (value == null) {
+                    value = TokenUtils.extractFromQueryParameters(request, name);
+                }
+            }
+        }
+        return value;
+    }
 }
