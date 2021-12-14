@@ -103,6 +103,8 @@ public class ElasticSearchClient {
 
     private final String id;
 
+    public static final String UNNAMED_FIELD = "UNNAMED_FIELD";
+
     private static final int socketTimeout = 180000;
 
     // Constructors ----------------------------------------------------------------
@@ -386,7 +388,11 @@ public class ElasticSearchClient {
         if (field != null) {
             aggBuilder = aggBuilder.field(field).size(Integer.MAX_VALUE);
         } else {
-            aggBuilder = aggBuilder.field(scriptField.getKey()).script(new Script(scriptField.getValue())).size(Integer.MAX_VALUE);
+            String fieldName = scriptField.getKey();
+            aggBuilder = aggBuilder.script(new Script(scriptField.getValue())).size(Integer.MAX_VALUE);
+            if (!fieldName.equals(UNNAMED_FIELD)) {
+                aggBuilder = aggBuilder.field(fieldName);
+            }
         }
         if (keySorted != null) {
             boolean asc = keySorted.ASC.equals(keySorted);
