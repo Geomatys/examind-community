@@ -19,6 +19,7 @@
 package org.constellation.ws.embedded;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.function.Consumer;
 import org.constellation.dto.service.config.Languages;
 import org.constellation.dto.service.config.Language;
 import org.constellation.configuration.ConfigDirectory;
@@ -32,6 +33,7 @@ import org.constellation.admin.SpringHelper;
 import org.constellation.dto.contact.AccessConstraint;
 import org.constellation.dto.contact.Contact;
 import org.constellation.dto.contact.Details;
+import org.constellation.map.featureinfo.CoverageProfileInfoFormat;
 import org.constellation.map.featureinfo.FeatureInfoUtilities;
 import org.constellation.test.ImageTesting;
 import org.constellation.test.utils.Order;
@@ -76,10 +78,13 @@ import java.util.logging.Level;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageOutputStream;
 
+import static java.lang.Double.NaN;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import org.junit.BeforeClass;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.util.GenericName;
 import org.constellation.dto.AcknowlegementType;
 import org.constellation.dto.service.Instance;
@@ -94,7 +99,6 @@ import org.constellation.test.utils.TestEnvironment.DataImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import org.constellation.test.utils.TestRunner;
-import static org.constellation.ws.embedded.AbstractGrizzlyServer.getImageFromURL;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.referencing.CRS;
 import org.geotoolkit.test.Commons;
@@ -281,12 +285,46 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "VeRsIoN=1.1.1&InFo_fOrMaT=application/json;%20subtype=profile&"
             + "X=60&StYlEs=&LaYeRs=" + LAYER_TEST + "&"
             + "SrS=EPSG:4326&WiDtH=200&HeIgHt=100&Y=60&PROFILE=LINESTRING(-61.132875680921%2014.81104016304,%20-60.973573923109%2014.673711061478,%20-60.946108102796%2014.706670045853,%20-60.915895700453%2014.610539674759,%20-60.882936716078%2014.48145031929)";
-    
+
     private static final String WMS_GETFEATUREINFO_PROFILE_COV_ALIAS = "QuErY_LaYeRs=" + COV_ALIAS + "&BbOx=0,-0.0020,0.0040,0&"
             + "FoRmAt=image/gif&ReQuEsT=GetFeatureInfo&"
             + "VeRsIoN=1.1.1&InFo_fOrMaT=application/json;%20subtype=profile&"
             + "X=60&StYlEs=&LaYeRs=" + LAYER_TEST + "&"
             + "SrS=EPSG:4326&WiDtH=200&HeIgHt=100&Y=60&PROFILE=LINESTRING(-61.132875680921%2014.81104016304,%20-60.973573923109%2014.673711061478,%20-60.946108102796%2014.706670045853,%20-60.915895700453%2014.610539674759,%20-60.882936716078%2014.48145031929)";
+
+    /**
+     * Asks for a profile intersecting regions without data available. The aim is to ensure that no-data values are
+     * returned as NaN to the client.
+     */
+    private static final String WMS_GETFEATUREINFO_PROFILE_NAN_ANY = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo"
+            + "&LAYERS=Band1&QUERY_LAYERS=Band1&StYlEs="
+            + "&FoRmAt=image/jpeg&INFO_FORMAT=application/json;%20subtype=profile"
+            + "&I=0&J=0&WiDtH=256&HeIgHt=256"
+            + "&CRS=CRS:84&BBOX=-1,-2,-1,2"
+            + "&PROFILE=LINESTRING(-1%20-2%2C-1%202)" // (-1 -2,-1 2)
+            + "&nanPropagation=any";
+    /**
+     * Asks for a profile intersecting regions without data available. The aim is to ensure that no-data values are
+     * returned as NaN to the client.
+     */
+    private static final String WMS_GETFEATUREINFO_PROFILE_NAN_SEGMENT = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo"
+            + "&LAYERS=Band1&QUERY_LAYERS=Band1&StYlEs="
+            + "&FoRmAt=image/jpeg&INFO_FORMAT=application/json;%20subtype=profile"
+            + "&I=0&J=0&WiDtH=256&HeIgHt=256"
+            + "&CRS=CRS:84&BBOX=-2,-2,2,2"
+            + "&PROFILE=LINESTRING(-1%200%2C0%200)" // (-1 0,0 0)
+            + "&nanPropagation=all";
+
+    /**
+     * Ask a transect (profile) around a local data. The queried line does not cross the queried layer, but its bbox
+     * does. In such case, the backend should detect disjoint domain, and return empty series.
+     */
+    private static final String WMS_GETFEATUREINFO_PROFILE_OUTSIDE = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo"
+            + "&LAYERS=martinique&QUERY_LAYERS=martinique&StYlEs="
+            + "&FoRmAt=image/jpeg&INFO_FORMAT=application/json;%20subtype=profile"
+            + "&I=0&J=0&WiDtH=256&HeIgHt=256"
+            + "&CRS=CRS:84&BBOX=-62%2C14%2C-61%2C16"
+            + "&PROFILE=LINESTRING(-62%2014%2C-62%2016%2C-61%2016)";
 
     private static final String WMS_GETFEATUREINFO_JSON_FEAT_ALIAS = "QuErY_LaYeRs=JS1&BbOx=-80.72487831115721,35.2553619492954,-80.70324897766113,35.27035945142482&"
             + "FoRmAt=image/gif&ReQuEsT=GetFeatureInfo&"
@@ -511,6 +549,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 
                 // netcdf datastore
                 datas.addAll(testResource.createProvider(TestResource.NETCDF, providerBusiness, null).datas);
+                datas.addAll(testResource.createProvider(TestResource.NETCDF_WITH_NAN, providerBusiness, null).datas);
 
                 final LayerContext config = new LayerContext();
                 config.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());
@@ -1980,6 +2019,62 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     }
 
     @Test
+    public void testWMSGetFeatureInfoProfileNaNAny() throws Exception {
+        final double[] expectedValues = {1, 1, 1, NaN, 2, 2, 2};
+        testProfile(WMS_GETFEATUREINFO_PROFILE_NAN_ANY, values -> assertArrayEquals(expectedValues, values, 1e-2));
+    }
+
+    @Test
+    public void testWMSGetFeatureInfoProfileNaNSegment() throws Exception {
+        final String request = WMS_GETFEATUREINFO_PROFILE_NAN_SEGMENT;
+
+        testProfile(request, values -> {
+            assertTrue("Result should not be empty", values.length > 2);
+            for (int i = 0 ; i < values.length ; i++) {
+                assertTrue("All values should be NaN. Offending index: "+i, Double.isNaN(values[i]));
+            }
+        });
+    }
+
+    private void testProfile(String request, Consumer<double[]> assertYValues) throws IOException {
+        // TODO: should be in a @BeforeEah method
+        initLayerList();
+
+        URL gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + request);
+        URLConnection c = gfi.openConnection();
+        String result = getStringResponse(c, 200);
+
+        assertNotNull(result);
+        LOGGER.fine(result);
+
+        final CoverageProfileInfoFormat.Profile profile = new ObjectMapper().readValue(result, CoverageProfileInfoFormat.Profile.class);
+        final List<CoverageProfileInfoFormat.XY> points = profile.layers.get(0).getData().get(0).points;
+        final double[] values = points.stream().mapToDouble(CoverageProfileInfoFormat.XY::getY)
+                .toArray();
+        assertYValues.accept(values);
+    }
+
+    /**
+     * Checks that no error happens when querying a profile outside validity domain of a data. Instead, an empty profile
+     * should be returned.
+     *
+     * @see #WMS_GETFEATUREINFO_PROFILE_OUTSIDE  related query string
+     */
+    @Test
+    public void testWMSGetFeatureInfoOutside() throws Exception {
+        initLayerList();
+        // Creates a valid GetFeatureInfo url.
+        URL gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PROFILE_OUTSIDE);
+        String result = getStringResponse(gfi);
+
+        LOGGER.fine(result);
+
+        final CoverageProfileInfoFormat.Profile profile = new ObjectMapper().readValue(result, CoverageProfileInfoFormat.Profile.class);
+        final List<CoverageProfileInfoFormat.XY> points = profile.layers.get(0).getData().get(0).points;
+        assertTrue(points.isEmpty());
+    }
+
+    @Test
     @Order(order = 28)
     public void testWMSGetFeatureInfoJSONAlias() throws Exception {
         initLayerList();
@@ -2139,7 +2234,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.3.0", "1.1.1");
         final List<String> versions2 = Arrays.asList("1.3.0");
-        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 22, ServiceStatus.STARTED, "null/wms/default"));
+        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 23, ServiceStatus.STARTED, "null/wms/default"));
         instances.add(new Instance(2, "wms1", "this is the default english capabilities", "Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.", "wms", versions, 1, ServiceStatus.STARTED, "null/wms/wms1"));
         instances.add(new Instance(3, "wms2", "wms2", null, "wms", versions2, 13, ServiceStatus.STARTED, "null/wms/wms2"));
         instances.add(new Instance(4, "wms3", "OGC:WMS", "Constellation Map Server", "wms", versions, 0, ServiceStatus.STOPPED, "null/wms/wms3"));
@@ -2197,7 +2292,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.3.0", "1.1.1");
         final List<String> versions2 = Arrays.asList("1.3.0");
-        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 22, ServiceStatus.STARTED, "null/wms/default"));
+        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 23, ServiceStatus.STARTED, "null/wms/default"));
         instances.add(new Instance(2, "wms1", "this is the default english capabilities", "Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.", "wms", versions, 1, ServiceStatus.STARTED, "null/wms/wms1"));
         instances.add(new Instance(3, "wms2", "wms2", null, "wms", versions2, 13, ServiceStatus.STARTED, "null/wms/wms2"));
         instances.add(new Instance(4, "wms3", "OGC:WMS", "Constellation Map Server", "wms", versions, 0, ServiceStatus.STARTED, "null/wms/wms3"));
@@ -2288,7 +2383,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.3.0", "1.1.1");
         final List<String> versions2 = Arrays.asList("1.3.0");
-        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 22, ServiceStatus.STARTED, "null/wms/default"));
+        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 23, ServiceStatus.STARTED, "null/wms/default"));
         instances.add(new Instance(2, "wms1", "this is the default english capabilities", "Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.", "wms", versions, 1, ServiceStatus.STARTED, "null/wms/wms1"));
         instances.add(new Instance(3, "wms2", "wms2", null, "wms", versions2, 13, ServiceStatus.STARTED, "null/wms/wms2"));
         instances.add(new Instance(4, "wms3", "OGC:WMS", "Constellation Map Server", "wms", versions, 0, ServiceStatus.STOPPED, "null/wms/wms3"));
@@ -2331,7 +2426,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.3.0", "1.1.1");
         final List<String> versions2 = Arrays.asList("1.3.0");
-        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 22, ServiceStatus.STARTED, "null/wms/default"));
+        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 23, ServiceStatus.STARTED, "null/wms/default"));
         instances.add(new Instance(2, "wms1", "this is the default english capabilities", "Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.", "wms", versions, 1, ServiceStatus.STARTED, "null/wms/wms1"));
         instances.add(new Instance(3, "wms2", "wms2", null, "wms", versions2, 13, ServiceStatus.STARTED, "null/wms/wms2"));
         InstanceReport expResult2 = new InstanceReport(instances);

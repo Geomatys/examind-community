@@ -161,6 +161,13 @@ public class TestEnvironment {
         public static final TestResource NETCDF = new TestResource("org/constellation/netcdf/2005092200_sst_21-24.en.nc", TestEnvironment::createNCProvider);
 
         /**
+         * NetCDF 3 dataset that contains two rows of fill-value. It is a 16x16 2D matrix centered on OGC:CRS::84 origin.
+         * It contains 7 rows of value 1.0, then two rows of no-data values, then 7 rows of value 2.0.
+         * Generated using Python library <a href="https://rasterio.readthedocs.io/en/latest/index.html">rasterio</a>.
+         */
+        public static final TestResource NETCDF_WITH_NAN = new TestResource("org/constellation/netcdf/with_nan.nc", TestEnvironment::createNCProvider);
+
+        /**
          * Coverage xml pyramid datastore.
          *
          * data : - haiti_01_pyramid
