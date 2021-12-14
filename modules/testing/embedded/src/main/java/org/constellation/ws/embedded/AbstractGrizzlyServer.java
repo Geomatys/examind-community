@@ -306,20 +306,27 @@ public abstract class AbstractGrizzlyServer {
     
     protected static String getStringResponse(final URLConnection conec, int expectedHttpCode) throws UnsupportedEncodingException, IOException {
         InputStream is;
-        if (((HttpURLConnection)conec).getResponseCode() == expectedHttpCode) {
+        int returnCode = ((HttpURLConnection)conec).getResponseCode();
+        if (returnCode == expectedHttpCode) {
             is = conec.getInputStream();
+        } else if (returnCode == 404) {
+            LOGGER.info("404 for url: " + conec.getURL());
+            is = null;
         } else {
             is = ((HttpURLConnection)conec).getErrorStream();
         }
-        final StringWriter sw     = new StringWriter();
-        final BufferedReader in   = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-        char [] buffer = new char[1024];
-        int size;
-        while ((size = in.read(buffer, 0, 1024)) > 0) {
-            sw.append(new String(buffer, 0, size));
+        if (is != null) {
+            final StringWriter sw     = new StringWriter();
+            final BufferedReader in   = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+            char [] buffer = new char[1024];
+            int size;
+            while ((size = in.read(buffer, 0, 1024)) > 0) {
+                sw.append(new String(buffer, 0, size));
+            }
+            String xmlResult = sw.toString();
+            return xmlResult;
         }
-        String xmlResult = sw.toString();
-        return xmlResult;
+        return null;
     }
 
     protected static String getStringResponse(final URL url) throws UnsupportedEncodingException, IOException {

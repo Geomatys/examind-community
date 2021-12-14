@@ -2211,6 +2211,22 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         if (firstFilter) {
             sqlRequest.replaceFirst("WHERE", "");
         }
+        if (obsJoin) {
+            String obsJoin = ", \"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"procedure\" = hl.\"procedure\" AND (";
+            // profile / single date ts
+            obsJoin = obsJoin + "(hl.\"time\" = o.\"time_begin\" AND o.\"time_end\" IS NULL)  OR ";
+            // period observation
+             obsJoin = obsJoin + "( o.\"time_end\" IS NOT NULL AND hl.\"time\" >= o.\"time_begin\" AND hl.\"time\" <= o.\"time_end\")) ";
+            if (firstFilter) {
+                sqlRequest.replaceFirst("WHERE", obsJoin);
+            } else {
+                sqlRequest.replaceFirst("WHERE", obsJoin + "AND ");
+            }
+        } else {
+            if (firstFilter) {
+                sqlRequest.replaceFirst("WHERE", "");
+            }
+        }
 
         sqlRequest.append(" ORDER BY \"procedure\", \"time\"");
         sqlRequest = appendPaginationToRequest(sqlRequest, hints);

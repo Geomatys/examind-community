@@ -1366,6 +1366,19 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/hloc-temp-foi6.json");
         compareJSON(expResult, result);
+
+        filter = "Datastream/ObservedProperty/id eq 'salinity'".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/Things(urn:ogc:object:sensor:GEOM:12)/HistoricalLocations?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/hloc-th-sali.json");
+        compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Things(urn:ogc:object:sensor:GEOM:12)/HistoricalLocations?$count=true&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/hloc-th-sali-ct.json");
+        compareJSON(expResult, result);
     }
 
     @Test
