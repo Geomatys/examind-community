@@ -956,6 +956,30 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
+    @RequestMapping(path = "MultiDatastreams({id:[^\\)]+})/Things", method = RequestMethod.GET)
+    public ResponseEntity getThingsForMultiDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
+        putServiceIdParam(serviceId);
+        id = removeQuote(id);
+        putParam("id", id);
+        final Worker worker = getWorker(serviceId);
+        if (worker != null) {
+            try {
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETTHINGS, worker);
+                request.getExtraFilter().put("observationId", id);
+                request.getExtraFlag().put("forMDS", "true");
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
+                return treatIncomingRequest(request).getResponseEntity(response);
+            } catch (IllegalArgumentException ex) {
+                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
+            } catch (CstlServiceException ex) {
+                return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
+            }
+        }
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
+    }
+
     @RequestMapping(path = "Sensors", method = RequestMethod.GET)
     public ResponseEntity getSensors(@PathVariable("serviceId") String serviceId, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
