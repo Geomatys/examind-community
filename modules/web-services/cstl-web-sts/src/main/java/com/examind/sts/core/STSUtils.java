@@ -58,6 +58,7 @@ public class STSUtils {
     }
 
     public static String formatDate(Date d) {
+        if (d == null) return null;
         synchronized(ISO_8601_FORMATTER) {
             return ISO_8601_FORMATTER.format(d);
         }

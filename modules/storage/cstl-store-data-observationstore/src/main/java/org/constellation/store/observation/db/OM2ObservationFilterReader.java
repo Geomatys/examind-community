@@ -619,7 +619,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                              * In "separated observation" mode we create an observation for each measure and don't merge it into a single obervation by procedure/foi.
                              */
                             if (separatedObs) {
-                                final TemporalGeometricPrimitive time = buildTimeInstant(version, timeID, lastTime);
+                                final TemporalGeometricPrimitive time = buildTimeInstant(version, timeID, lastTime != null ? lastTime : firstTime);
                                 final Object result = buildComplexResult(version, scal, nbValue, encoding, values, observations.size());
                                 final Process proc;
                                 if (processMap.containsKey(procedure)) {

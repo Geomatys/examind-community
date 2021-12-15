@@ -93,6 +93,7 @@ import org.geotoolkit.sts.GetThingById;
 import org.geotoolkit.sts.json.DataArrayResponse;
 import org.geotoolkit.sts.json.HistoricalLocation;
 import org.geotoolkit.sts.json.HistoricalLocationsResponse;
+import org.geotoolkit.sts.json.ObservationsResponse;
 import org.geotoolkit.sts.json.ObservedPropertiesResponse;
 import org.geotoolkit.sts.json.ObservedProperty;
 import org.geotoolkit.sts.json.Thing;
@@ -107,6 +108,10 @@ import org.opengis.observation.Observation;
 import org.opengis.observation.ObservationCollection;
 import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
+import org.opengis.temporal.IndeterminateValue;
+import org.opengis.temporal.Instant;
+import org.opengis.temporal.Period;
+import org.opengis.temporal.TemporalPosition;
 import org.opengis.util.NoSuchIdentifierException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -2451,9 +2456,23 @@ public class SosHarvesterProcessTest {
                     observedProperty = ((Phenomenon)obs.getObservedProperty()).getName().getCode();
                 }
             }
+            Assert.assertNotNull(obs.getSamplingTime());
+            Assert.assertTrue(obs.getSamplingTime() instanceof Period);
+            Period period = (Period) obs.getSamplingTime();
+            Assert.assertNotNull(period.getBeginning());
+            Assert.assertNotNull(period.getBeginning().getDate());
+            Assert.assertNotNull(period.getEnding());
+            Assert.assertNull(period.getEnding().getDate());
         }
         Assert.assertNotNull(observedProperty);
 
+        GetObservations stsGetObs = new GetObservations();
+        stsGetObs.getExtraFilter().put("procedure", sensorId);
+        stsGetObs.getExtraFlag().put("forMDS", "true");
+        ObservationsResponse obss = (ObservationsResponse) stsWorker.getObservations(stsGetObs);
+        for (org.geotoolkit.sts.json.Observation obs : obss.getValue()) {
+            Assert.assertNotNull(obs.getPhenomenonTime());
+        }
         /*
          * Verify an inserted profile
          */
