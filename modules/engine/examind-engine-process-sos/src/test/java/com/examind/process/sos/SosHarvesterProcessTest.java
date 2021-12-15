@@ -39,6 +39,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
+import javax.validation.constraints.AssertTrue;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import org.constellation.admin.WSEngine;
@@ -86,6 +87,8 @@ import org.geotoolkit.sos.xml.v200.GetObservationType;
 import org.geotoolkit.sos.xml.v200.GetResultResponseType;
 import org.geotoolkit.sos.xml.v200.GetResultType;
 import org.geotoolkit.sts.GetHistoricalLocations;
+import org.geotoolkit.sts.GetMultiDatastreamById;
+import org.geotoolkit.sts.GetMultiDatastreams;
 import org.geotoolkit.sts.GetObservations;
 import org.geotoolkit.sts.GetObservedProperties;
 import org.geotoolkit.sts.GetObservedPropertyById;
@@ -93,14 +96,18 @@ import org.geotoolkit.sts.GetThingById;
 import org.geotoolkit.sts.json.DataArrayResponse;
 import org.geotoolkit.sts.json.HistoricalLocation;
 import org.geotoolkit.sts.json.HistoricalLocationsResponse;
+import org.geotoolkit.sts.json.MultiDatastream;
+import org.geotoolkit.sts.json.MultiDatastreamsResponse;
 import org.geotoolkit.sts.json.ObservationsResponse;
 import org.geotoolkit.sts.json.ObservedPropertiesResponse;
 import org.geotoolkit.sts.json.ObservedProperty;
 import org.geotoolkit.sts.json.Thing;
+import org.geotoolkit.sts.json.UnitOfMeasure;
 import org.geotoolkit.swe.xml.Phenomenon;
 import org.geotoolkit.swe.xml.v200.DataArrayPropertyType;
 import org.junit.AfterClass;
 import org.junit.Assert;
+import static org.junit.Assert.assertTrue;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -2139,6 +2146,7 @@ public class SosHarvesterProcessTest {
         in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue("urn:surval:");
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(true);
         in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
+        in.parameter(SosHarvesterProcessDescriptor.UOM_COLUMN_NAME).setValue("PARAMETER_UNIT");
 
         ParameterValue s1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
         s1.setValue(new ServiceProcessReference(sc));
@@ -2205,7 +2213,22 @@ public class SosHarvesterProcessTest {
                 Assert.fail("Unexpected observed properties:" + op.getIotId());
             }
         }
+        MultiDatastream mds = stsWorker.getMultiDatastreamById(new GetMultiDatastreamById("urn:ogc:object:observation:template:GEOM:urn:surval:25049001"));
+        Assert.assertNotNull(mds);
 
+        assertTrue(mds.getUnitOfMeasurement() instanceof List);
+
+        List listUom = (List) mds.getUnitOfMeasurement();
+
+        Assert.assertEquals(3, listUom.size());
+
+        for (Object uomObj : listUom) {
+            assertTrue(uomObj instanceof UnitOfMeasure);
+            UnitOfMeasure uom = (UnitOfMeasure) uomObj;
+            String uomName = uom.getName();
+            Assert.assertNotNull(uomName);
+            Assert.assertTrue("sans unité".equals(uomName) || "l-1".equals(uomName));
+        }
         /*
         * Verify an inserted data
         */

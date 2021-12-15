@@ -64,6 +64,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
     private final Set<String> obsPropColumns;
     private final Set<String> obsPropNameColumns;
     private final String typeColumn;
+    private final String uomColumn;
 
     /**
      *
@@ -86,12 +87,13 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
     public CsvFlatObservationStore(final Path observationFile, final char separator, final char quotechar, final FeatureType featureType,
                                        final String mainColumn, final String dateColumn, final String dateTimeformat, final String longitudeColumn, final String latitudeColumn,
                                        final Set<String> obsPropFilterColumns, String observationType, String foiColumn, final String procedureId, final String procedureColumn, final String procedureNameColumn, final String procedureDescColumn, final String zColumn,
-                                       final boolean extractUom, final String valueColumn, final Set<String> obsPropColumns, final Set<String> obsPropNameColumns, final String typeColumn) throws DataStoreException, MalformedURLException {
+                                       final String uomColumn, final boolean extractUom, final String valueColumn, final Set<String> obsPropColumns, final Set<String> obsPropNameColumns, final String typeColumn) throws DataStoreException, MalformedURLException {
         super(observationFile, separator, quotechar, featureType, mainColumn, dateColumn, dateTimeformat, longitudeColumn, latitudeColumn, obsPropFilterColumns, observationType, foiColumn, procedureId, procedureColumn, procedureNameColumn, procedureDescColumn, zColumn, extractUom);
         this.valueColumn = valueColumn;
         this.obsPropColumns = obsPropColumns;
         this.obsPropNameColumns = obsPropNameColumns;
         this.typeColumn = typeColumn;
+        this.uomColumn = uomColumn;
 
         // special case for * measure columns
         if (obsPropFilterColumns.isEmpty()) {
@@ -186,6 +188,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 int procNameIndex = -1;
                 int procDescIndex = -1;
                 int valueColumnIndex = -1;
+                int uomColumnIndex = -1;
                 List<Integer> obsPropColumnIndexes = new ArrayList<>();
                 List<Integer> obsPropNameColumnIndexes = new ArrayList<>();
                 int typeColumnIndex = -1;
@@ -237,6 +240,9 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     }
                     if (header.equals(zColumn)) {
                         zIndex = i;
+                    }
+                    if (header.equals(uomColumn)) {
+                        uomColumnIndex = i;
                     }
                 }
 
@@ -369,6 +375,15 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
 
                     if (!observedPropertyName.isEmpty()) {
                         currentBlock.updateObservedPropertyName(observedProperty, observedPropertyName);
+                    }
+
+                    String observedPropertyUOM = null;
+                    if (uomColumnIndex != -1) {
+                        observedPropertyUOM = line[uomColumnIndex];
+                    }
+
+                    if (observedPropertyUOM != null) {
+                        currentBlock.updateObservedPropertyUOM(observedProperty, observedPropertyUOM);
                     }
 
                     // update temporal interval

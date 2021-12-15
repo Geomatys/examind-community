@@ -22,7 +22,6 @@ package com.examind.store.observation;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -46,7 +45,7 @@ public class MeasureBuilder {
      
     private final boolean isProfile;
      
-    private final Map<String, String> measureColumns = new LinkedHashMap<>();
+    private final Map<String, MeasureField> measureColumns = new LinkedHashMap<>();
 
     private final String mainColumn;
 
@@ -54,7 +53,7 @@ public class MeasureBuilder {
         this.isProfile = isProfile;
         // initialize description
         for (String mc : measureColumns) {
-            this.measureColumns.put(mc, mc);
+            this.measureColumns.put(mc, new MeasureField(mc));
         }
         this.mainColumn = mainColumn;
     }
@@ -97,15 +96,15 @@ public class MeasureBuilder {
         return result;
     }
 
-    public Map<String, String> getUsedMeasureColumns() {
+    public Map<String, MeasureField> getUsedMeasureColumns() {
         final Set<String> measureColumnFound = getMeasureFromMap();
 
         // On complète les champs de mesures seulement avec celles trouvées dans la donnée
-        Map<String, String> filteredMeasure = new LinkedHashMap<>();
+        Map<String, MeasureField> filteredMeasure = new LinkedHashMap<>();
         if (isProfile) {
-            filteredMeasure.put(mainColumn, mainColumn);
+            filteredMeasure.put(mainColumn, new MeasureField(mainColumn));
         }
-        for (Entry<String, String> m : measureColumns.entrySet()) {
+        for (Entry<String, MeasureField> m : measureColumns.entrySet()) {
             if (measureColumnFound.contains(m.getKey())) {
                 filteredMeasure.put(m.getKey(), m.getValue());
             }
@@ -114,8 +113,16 @@ public class MeasureBuilder {
     }
 
     public void updateObservedPropertyName(String observedProperty, String observedPropertyName) {
-        if (measureColumns.containsKey(observedProperty)) {
-            measureColumns.put(observedProperty, observedPropertyName);
+        MeasureField field = measureColumns.get(observedProperty);
+        if (field != null) {
+            field.label = observedPropertyName;
+        }
+    }
+
+    public void updateObservedPropertyUOM(String observedProperty, String uom) {
+        MeasureField field = measureColumns.get(observedProperty);
+        if (field != null) {
+            field.uom = uom;
         }
     }
      

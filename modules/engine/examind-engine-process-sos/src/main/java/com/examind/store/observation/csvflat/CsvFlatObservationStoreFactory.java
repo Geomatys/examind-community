@@ -58,7 +58,7 @@ public class CsvFlatObservationStoreFactory extends FileParsingObservationStoreF
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR
             = PARAM_BUILDER.addName(NAME).addName("ObservationCsvFlatFileParameters").createGroup(IDENTIFIER, NAMESPACE, CSVProvider.PATH, CSVProvider.SEPARATOR,
                     MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, OBSERVATION_TYPE,
-                    PROCEDURE_ID, PROCEDURE_COLUMN, PROCEDURE_NAME_COLUMN, PROCEDURE_DESC_COLUMN, Z_COLUMN, EXTRACT_UOM, RESULT_COLUMN, OBS_PROP_COLUMN, OBS_PROP_NAME_COLUMN, OBS_PROP_FILTER_COLUMN, TYPE_COLUMN, CHARQUOTE);
+                    PROCEDURE_ID, PROCEDURE_COLUMN, PROCEDURE_NAME_COLUMN, PROCEDURE_DESC_COLUMN, Z_COLUMN, UOM_COLUMN, EXTRACT_UOM, RESULT_COLUMN, OBS_PROP_COLUMN, OBS_PROP_NAME_COLUMN, OBS_PROP_FILTER_COLUMN, TYPE_COLUMN, CHARQUOTE);
 
     @Override
     public String getShortName() {
@@ -98,11 +98,13 @@ public class CsvFlatObservationStoreFactory extends FileParsingObservationStoreF
         final Set<String> obsPropColumns = getMultipleValues(params, OBS_PROP_COLUMN.getName().toString());
         final Set<String> obsPropNameColumns = getMultipleValues(params, OBS_PROP_NAME_COLUMN.getName().toString());
         final String typeColumn = (String) params.parameter(TYPE_COLUMN.getName().toString()).getValue();
+        final String uomColumn = (String) params.parameter(UOM_COLUMN.getName().toString()).getValue();
         try {
             return new CsvFlatObservationStore(Paths.get(uri),
                     separator, quotechar, readType(uri, separator, quotechar, dateColumn, longitudeColumn, latitudeColumn, obsPropFilterColumns),
                     mainColumn, dateColumn, dateFormat, longitudeColumn, latitudeColumn, obsPropFilterColumns, observationType,
-                    foiColumn, procedureId, procedureColumn, procedureNameColumn, procedureDescColumn, zColumn, extractUom, valueColumn, obsPropColumns, obsPropNameColumns, typeColumn);
+                    foiColumn, procedureId, procedureColumn, procedureNameColumn, procedureDescColumn, zColumn, uomColumn, extractUom, valueColumn,
+                    obsPropColumns, obsPropNameColumns, typeColumn);
         } catch (IOException ex) {
             LOGGER.log(Level.WARNING, "problem opening csv file", ex);
             throw new DataStoreException(ex);

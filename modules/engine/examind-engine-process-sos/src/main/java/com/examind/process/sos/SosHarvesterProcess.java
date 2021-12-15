@@ -166,6 +166,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             }
         }
 
+        final String uomColumn    = inputParameters.getValue(UOM_COLUMN);
+
         // prepare the results
         int nbFileInserted = 0;
         int nbObsInserted  = 0;
@@ -312,6 +314,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_NAME_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(ObsPropNameColumns));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.TYPE_COLUMN.getName().toString(), typeColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.Z_COLUMN.getName().toString(), zColumn);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.UOM_COLUMN.getName().toString(), uomColumn);
 
             try {
                 datasourceBusiness.computeDatasourceStores(dsId, false, storeId, true);

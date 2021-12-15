@@ -22,7 +22,6 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
@@ -58,7 +57,6 @@ import org.opengis.feature.IdentifiedType;
 import org.opengis.feature.Property;
 import org.opengis.metadata.Identifier;
 import org.opengis.parameter.GeneralParameterDescriptor;
-import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterNotFoundException;
@@ -162,6 +160,11 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
     
     public static final ParameterDescriptor<String> TYPE_COLUMN = PARAM_BUILDER
             .addName("type_column")
+            .setRequired(false)
+            .create(String.class, null);
+
+    public static final ParameterDescriptor<String> UOM_COLUMN = PARAM_BUILDER
+            .addName("uom_column")
             .setRequired(false)
             .create(String.class, null);
 

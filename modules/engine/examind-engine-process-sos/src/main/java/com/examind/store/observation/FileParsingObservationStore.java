@@ -252,7 +252,7 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
             Set<org.opengis.observation.Phenomenon> phenomenons, final Set<org.opengis.observation.sampling.SamplingFeature> samplingFeatures) {
 
         // On extrait les types de mesure trouvées dans la donnée
-        Map<String, String> filteredMeasure = ob.getUsedFields();
+        Map<String, MeasureField> filteredMeasure = ob.getUsedFields();
 
         if (filteredMeasure.isEmpty() ||
             ("Profile".equals(ob.observationType) && filteredMeasure.size() == 1)) {
@@ -262,10 +262,10 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
 
         final List<Field> fields = new ArrayList<>();
         int i = 1;
-        for (final Entry<String, String>  field : filteredMeasure.entrySet()) {
+        for (final Entry<String, MeasureField> field : filteredMeasure.entrySet()) {
             String name  = field.getKey();
-            String label = field.getValue();
-            String uom   = null;
+            String label = field.getValue().label != null ? field.getValue().label : name;
+            String uom   = field.getValue().uom;
             int b = name.indexOf('(');
             int o = name.indexOf(')');
 

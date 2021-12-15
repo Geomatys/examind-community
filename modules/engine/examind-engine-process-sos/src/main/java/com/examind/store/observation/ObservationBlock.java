@@ -86,7 +86,7 @@ public class ObservationBlock {
         return positions.historicalPositions.entrySet();
     }
 
-    public Map<String, String> getUsedFields() {
+    public Map<String, MeasureField> getUsedFields() {
         return cmb.getUsedMeasureColumns();
     }
 
@@ -104,6 +104,10 @@ public class ObservationBlock {
 
     public void updateObservedPropertyName(String observedProperty, String observedPropertyName) {
         cmb.updateObservedPropertyName(observedProperty, observedPropertyName);
+    }
+
+    public void updateObservedPropertyUOM(String observedProperty, String uom) {
+        cmb.updateObservedPropertyUOM(observedProperty, uom);
     }
 
     public static class Positions {

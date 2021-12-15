@@ -196,6 +196,14 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(false)
             .create(String.class, null);
 
+    public static final String UOM_COLUMN_NAME = "uom_column";
+    public static final String UOM_COLUMN_DESC = "Extracted uom column";
+    public static final ParameterDescriptor<String> UOM_COLUMN  = PARAM_BUILDER
+            .addName(UOM_COLUMN_NAME)
+            .setRemarks(UOM_COLUMN_DESC)
+            .setRequired(false)
+            .create(String.class, null);
+
     public static final String REMOVE_PREVIOUS_NAME = "remove_previous_integration";
     public static final String REMOVE_PREVIOUS_DESC = "remove previous integration";
     public static final ParameterDescriptor<Boolean> REMOVE_PREVIOUS = PARAM_BUILDER
@@ -284,7 +292,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
 
     public static final ParameterDescriptorGroup INPUT_DESC =
             PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, REMOTE_READ, SERVICE_ID, DATASET_IDENTIFIER, THING_ID, THING_COLUMN, THING_NAME_COLUMN, THING_DESC_COLUMN, OBS_TYPE,
-                    SEPARATOR, CHARQUOTE, MAIN_COLUMN, Z_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, REMOVE_PREVIOUS, EXTRACT_UOM,
+                    SEPARATOR, CHARQUOTE, MAIN_COLUMN, Z_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, UOM_COLUMN, EXTRACT_UOM, REMOVE_PREVIOUS,
                     STORE_ID, FORMAT, RESULT_COLUMN, OBS_PROP_COLUMN, OBS_PROP_NAME_COLUMN, OBS_PROP_COLUMNS_FILTER, TYPE_COLUMN);
 
     public static final String FILE_INSERTED_NAME = "files_inserted_count";
