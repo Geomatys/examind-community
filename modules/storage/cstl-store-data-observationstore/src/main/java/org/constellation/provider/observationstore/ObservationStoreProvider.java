@@ -868,12 +868,37 @@ public class ObservationStoreProvider extends IndexedNameDataProvider implements
         }
     }
 
+    /**
+     * temporary hack fixing an issue in geotk when asking for the OMEntity with key = 'historicalLocation'.
+     * TODO remove after the correction in org.geotoolkit.observation.model.OMEntity#fromName
+     * 
+     * @param hints
+     * @param key
+     * @return
+     */
+    private OMEntity fixedGetObjectTypeHint(Map<String, Object> hints, String key) {
+        if (hints != null && hints.containsKey(key)) {
+            Object value = hints.get(key);
+            if (value instanceof OMEntity) {
+                return (OMEntity) value;
+            } else if (value instanceof String) {
+                if ("historicalLocation".equals((String) value)) {
+                    return OMEntity.HISTORICAL_LOCATION;
+                }
+                return OMEntity.fromName((String) value);
+            } else {
+                throw new IllegalArgumentException("unexpected type for hints param:" + key);
+            }
+        }
+        return null;
+    }
+
     @Override
     public long getCount(Query q, Map<String, Object> hints) throws ConstellationStoreException {
         hints = new HashMap<>(hints);
         try {
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
-            final OMEntity objectType = getObjectTypeHint(hints, OBJECT_TYPE);
+            final OMEntity objectType = fixedGetObjectTypeHint(hints, OBJECT_TYPE);
             if (objectType == null) {
                 throw new ConstellationStoreException("Missing objectType parameter for getCount()");
             }

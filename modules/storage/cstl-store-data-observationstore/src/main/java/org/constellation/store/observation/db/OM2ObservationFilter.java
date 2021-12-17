@@ -1094,6 +1094,28 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         return request;
     }
 
+    private String getHistoricalLocationRequest(Map<String, Object> hints) {
+        sqlRequest = appendPaginationToRequest(sqlRequest, hints);
+        String request = sqlRequest.toString();
+        if (obsJoin) {
+            String obsJoin = ", \"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"procedure\" = hl.\"procedure\" AND (";
+            // profile / single date ts
+            obsJoin = obsJoin + "(hl.\"time\" = o.\"time_begin\" AND o.\"time_end\" IS NULL)  OR ";
+            // period observation
+             obsJoin = obsJoin + "( o.\"time_end\" IS NOT NULL AND hl.\"time\" >= o.\"time_begin\" AND hl.\"time\" <= o.\"time_end\")) ";
+            if (firstFilter) {
+                request = request.replaceFirst("WHERE", obsJoin);
+            } else {
+                request = request.replaceFirst("WHERE", obsJoin + "AND ");
+            }
+        } else {
+            if (firstFilter) {
+                request = request.replaceFirst("WHERE", "");
+            }
+        }
+        return request;
+    }
+
     private String getOfferingRequest(Map<String, Object> hints) {
         sqlRequest = appendPaginationToRequest(sqlRequest, hints);
         String request = sqlRequest.toString();
@@ -1173,10 +1195,10 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             case OBSERVED_PROPERTY:   request = getPhenomenonRequest(hints); break;
             case PROCEDURE:           request = getProcedureRequest(hints); break;
             case OFFERING:            request = getOfferingRequest(hints); break;
+            case HISTORICAL_LOCATION: request = getHistoricalLocationRequest(hints);break;
             case OBSERVATION:         return filterObservation(hints).size();
             case RESULT:              return filterResult(hints).size();
             case LOCATION:            return filterSensorLocations(hints).size();
-            case HISTORICAL_LOCATION: throw new DataStoreException("not implemented yet.");
             default: throw new DataStoreException("unexpected object type:" + objectType);
         }
 

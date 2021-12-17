@@ -80,6 +80,7 @@ public class CommonConstants {
     public static final String PROCEDURE = "procedure";
     public static final String SRS_NAME = "srsName";
     public static final String OBSERVATION = "observation";
+    public static final String HISTORICAL_LOCATION = "historicalLocation";
     public static final String FEATURE_OF_INTEREST = "featureOfInterest";
     public static final String OBSERVATION_ID = "observationId";
     public static final String OUTPUT_FORMAT = "outputFormat";

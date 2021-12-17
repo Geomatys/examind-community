@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import javax.inject.Named;
@@ -48,6 +47,7 @@ import static org.constellation.api.CommonConstants.FEATURE_OF_INTEREST;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBJECT_TYPE;
 import static org.constellation.api.CommonConstants.OBSERVATION;
+import static org.constellation.api.CommonConstants.HISTORICAL_LOCATION;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVED_PROPERTY;
 import static org.constellation.api.CommonConstants.PROCEDURE;
@@ -1655,10 +1655,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             if (req.getCount()) {
                 // could be optimized
                 final SimpleQuery subquery = buildExtraFilterQuery(req, false, filters);
-                Map<String, List<Date>> times = omProvider.getHistoricalTimes(subquery, new HashMap<>());
-                final AtomicInteger c = new AtomicInteger();
-                times.forEach((procedure, dates) -> c.addAndGet(dates.size()));
-                count = new BigDecimal(c.get());
+                hints.put(OBJECT_TYPE, HISTORICAL_LOCATION);
+                count = new BigDecimal(omProvider.getCount(subquery, hints));
             }
             final SimpleQuery subquery = buildExtraFilterQuery(req, true, filters);
             if (subquery.getLimit() != 0) {
