@@ -35,7 +35,7 @@ resources to operate a platform of sensors that feeds back information in real t
 ### Build from sources
 
 #### Requirements
-* **JDK 8+** from Oracle. Can be downloaded [here](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) for your platform.
+* **JDK 17+** from Oracle. Can be downloaded [here](https://www.oracle.com/java/technologies/downloads/#java17) for your platform.
 * **Maven 3.x** found [here](https://maven.apache.org/download.cgi)
 
 #### Procedure
@@ -77,7 +77,7 @@ you can authenticate with user = admin and password = admin.
 #### Requirements
 
 To run Examind, you'll need :
-* **JDK 8**. Can be downloaded [here](https://adoptopenjdk.net/) for your platform.
+* **JDK 17**. Can be downloaded [here](https://www.oracle.com/java/technologies/downloads/#java17) for your platform.
 * **PostgreSQL 9.x** (found [here](http://www.postgresql.org/download/)) with a database named `constellation` owned by role:password `cstl:admin`
 * **Apache Tomcat 7.0.47+** with support of websockets found [here](http://tomcat.apache.org/download-70.cgi)
 or
