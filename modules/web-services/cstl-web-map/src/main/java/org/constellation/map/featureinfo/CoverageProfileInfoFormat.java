@@ -43,6 +43,7 @@ import javax.measure.UnitConverter;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.DisjointExtentException;
 import org.apache.sis.coverage.grid.GridCoverage;
+import org.apache.sis.coverage.grid.GridCoverageProcessor;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.coverage.grid.GridRoundingMode;
 import org.apache.sis.geometry.Envelopes;
@@ -732,7 +733,16 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         }
 
         GridGeometry gg = resource.getGridGeometry().derive().rounding(GridRoundingMode.ENCLOSING).subgrid(workEnv).build();
-        return resource.read(gg).forConvertedValues(true);
+        GridCoverage data = resource.read(gg).forConvertedValues(true);
+        final GridGeometry grid = data.getGridGeometry();
+        // HACK: force 2D representation
+        if (grid.getDimension() > 2) {
+            final int[] subspace2d = grid.getExtent().getSubspaceDimensions(2);
+            final GridGeometry subGrid2d = grid.reduce(subspace2d);
+            return new GridCoverageProcessor().resample(data, subGrid2d);
+        } else {
+            return data;
+        }
     }
 
     public static class Band {
