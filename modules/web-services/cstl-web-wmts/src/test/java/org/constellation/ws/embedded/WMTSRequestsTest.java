@@ -26,6 +26,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
+import org.constellation.admin.SpringHelper;
+import org.constellation.business.IDataBusiness;
+import org.constellation.business.ILayerBusiness;
+import org.constellation.business.IProviderBusiness;
+import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.Instance;
 import org.constellation.dto.service.InstanceReport;
@@ -46,6 +51,8 @@ import static org.constellation.ws.embedded.AbstractGrizzlyServer.unmarshallJson
 import org.geotoolkit.wmts.xml.WMTSMarshallerPool;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -109,7 +116,34 @@ public class WMTSRequestsTest extends AbstractGrizzlyServer {
         ConfigDirectory.setupTestEnvironement("WMTSRequestTest");
         controllerConfiguration = WMTSControllerConfig.class;
     }
-    
+
+    // TODO: factorize
+    @AfterClass
+    public static void shutDown() {
+        try {
+            final ILayerBusiness layerBean = SpringHelper.getBean(ILayerBusiness.class);
+            if (layerBean != null) {
+                layerBean.removeAll();
+            }
+            final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
+            if (service != null) {
+                service.deleteAll();
+            }
+            final IDataBusiness dataBean = SpringHelper.getBean(IDataBusiness.class);
+            if (dataBean != null) {
+                dataBean.deleteAll();
+            }
+            final IProviderBusiness provider = SpringHelper.getBean(IProviderBusiness.class);
+            if (provider != null) {
+                provider.removeAll();
+            }
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage());
+        }
+        ConfigDirectory.shutdownTestEnvironement("WMTSRequestTest");
+        stopServer();
+    }
+
     @Test
     public void testGetCapabilities() throws Exception {
         initLayerList();
