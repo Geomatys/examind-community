@@ -162,6 +162,8 @@ public class WCSWorkerOutputTest {
                 Integer sid = serviceBusiness.create("wcs", "default", config, null, null);
                 layerBusiness.add(did,       null, null, "SSTMDE200305", sid, null);
                 layerBusiness.add(did2, "aliased", null, "SSTMDE200305", sid, null);
+                layerBusiness.add(did,  null,      "SST", "SSTMDE200305",  sid, null);
+
 
                 WORKER = new DefaultWCSWorker("default");
                 // Default instanciation of the worker' servlet context and uri context.
