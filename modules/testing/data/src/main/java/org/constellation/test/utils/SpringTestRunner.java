@@ -31,9 +31,7 @@ import java.util.List;
  *
  * @author Guilhem Legal (Geomatys)
  */
-
 public class SpringTestRunner extends SpringJUnit4ClassRunner {
-
 
     public SpringTestRunner(final Class klass) throws InitializationError {
         super(klass);
@@ -41,21 +39,19 @@ public class SpringTestRunner extends SpringJUnit4ClassRunner {
 
     @Override
     protected List<FrameworkMethod> computeTestMethods() {
-        List list = super.computeTestMethods();
-        List copy = new ArrayList(list);
-        Collections.sort(copy, new Comparator<FrameworkMethod>() {
-            @Override
-            public int compare(FrameworkMethod f1, FrameworkMethod f2) {
-                Order o1 = f1.getAnnotation(Order.class);
-                Order o2 = f2.getAnnotation(Order.class);
+        return copySortByOrder(super.computeTestMethods());
+    }
 
-                if (o1 == null || o2 == null) {
-                    return -1;
-                }
-                return o1.order() - o2.order();
-            }
-        });
-        return copy;
+    static List<FrameworkMethod> copySortByOrder(final List<FrameworkMethod> testMethods) {
+        final ArrayList<FrameworkMethod> defCopy = new ArrayList<>(testMethods);
+        Collections.sort(defCopy, Comparator.comparing(SpringTestRunner::orderOrHighCardinality));
+        return defCopy;
+    }
+
+    private static int orderOrHighCardinality(FrameworkMethod method) {
+        final Order methodOrder = method.getAnnotation(Order.class);
+        if (methodOrder == null) return Integer.MAX_VALUE;
+        else return methodOrder.order();
     }
 }
 
