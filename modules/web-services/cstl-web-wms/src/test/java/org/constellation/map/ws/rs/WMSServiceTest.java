@@ -30,11 +30,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.TreeMap;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import org.apache.sis.referencing.CRS;
 import org.constellation.admin.SpringHelper;
@@ -42,12 +40,10 @@ import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.exception.ConstellationException;
 import org.constellation.map.core.QueryContext;
-import org.constellation.test.utils.SpringTestRunner;
-import org.constellation.test.utils.TestEnvironment;
+import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.TestEnvironment.DataImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.ws.IWSEngine;
@@ -57,18 +53,9 @@ import org.geotoolkit.wms.xml.GetFeatureInfo;
 import org.geotoolkit.wms.xml.GetMap;
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
-
-import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -76,11 +63,7 @@ import static org.junit.Assert.assertEquals;
  *
  * @author Johann Sorel (Geomatys)
  */
-@RunWith(SpringTestRunner.class)
-@TestExecutionListeners({DependencyInjectionTestExecutionListener.class,DirtiesContextTestExecutionListener.class})
-@DirtiesContext(hierarchyMode = DirtiesContext.HierarchyMode.EXHAUSTIVE,classMode=DirtiesContext.ClassMode.AFTER_CLASS)
-@ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-context.xml"})
-public class WMSServiceTest {
+public class WMSServiceTest extends SpringContextTest {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.map.ws.rs");
 
@@ -101,18 +84,6 @@ public class WMSServiceTest {
     private static final Map<String, String[]> kvpMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     private static boolean initialized = false;
 
-    private static final String confDirName = "WMSServiceTest" + UUID.randomUUID().toString();
-
-    @BeforeClass
-    public static void start() {
-        ConfigDirectory.setupTestEnvironement(confDirName);
-    }
-
-    @AfterClass
-    public static void releas(){
-        SpringHelper.closeApplicationContext();
-    }
-
     @PostConstruct
     public void init() {
         if (!initialized) {
@@ -122,14 +93,13 @@ public class WMSServiceTest {
                 dataBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                final TestEnvironment.TestResources testResource = initDataDirectory();
                 final List<DataImport> datas = new ArrayList<>();
 
                 // coverage-file datastore
-                datas.addAll(testResource.createProvider(TestResource.PNG, providerBusiness, null).datas);
+                datas.addAll(testResources.createProvider(TestResource.PNG, providerBusiness, null).datas);
 
                 // shapefiles
-                datas.addAll(testResource.createProviders(TestResource.WMS111_SHAPEFILES, providerBusiness, null).datas());
+                datas.addAll(testResources.createProviders(TestResource.WMS111_SHAPEFILES, providerBusiness, null).datas());
 
                 final LayerContext config = new LayerContext();
 
@@ -155,11 +125,6 @@ public class WMSServiceTest {
         }
     }
 
-    @PreDestroy
-    public static void end(){
-        SpringHelper.closeApplicationContext();
-    }
-
     @AfterClass
     public static void finish() {
         service.destroy();
@@ -180,7 +145,6 @@ public class WMSServiceTest {
             if (provider != null) {
                 provider.removeAll();
             }
-            ConfigDirectory.shutdownTestEnvironement(confDirName);
         } catch (ConstellationException ex) {
             LOGGER.log(Level.WARNING, ex.getMessage());
         }

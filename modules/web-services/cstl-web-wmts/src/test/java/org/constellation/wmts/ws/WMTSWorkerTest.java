@@ -18,15 +18,14 @@
  */
 package org.constellation.wmts.ws;
 
+import org.constellation.test.SpringContextTest;
 import org.constellation.wmts.core.DefaultWMTSWorker;
 import org.constellation.wmts.core.WMTSWorker;
 import org.apache.sis.test.xml.DocumentComparator;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.business.IServiceBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.admin.SpringHelper;
 import org.constellation.dto.service.config.wxs.LayerContext;
-import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.ows.xml.v110.AcceptVersionsType;
@@ -34,12 +33,9 @@ import org.geotoolkit.ows.xml.v110.SectionsType;
 import org.geotoolkit.wmts.xml.WMTSMarshallerPool;
 import org.geotoolkit.wmts.xml.v100.Capabilities;
 import org.geotoolkit.wmts.xml.v100.GetCapabilities;
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.test.context.ContextConfiguration;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -53,29 +49,20 @@ import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.exception.ConstellationException;
 import org.constellation.test.utils.TestEnvironment;
-import org.constellation.test.utils.TestEnvironment.TestResources;
-import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
+import org.springframework.test.annotation.DirtiesContext;
+
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.VERSION_NEGOTIATION_FAILED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-import org.junit.BeforeClass;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
-
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-@RunWith(SpringTestRunner.class)
-@TestExecutionListeners({DependencyInjectionTestExecutionListener.class,DirtiesContextTestExecutionListener.class})
-@DirtiesContext(hierarchyMode = DirtiesContext.HierarchyMode.EXHAUSTIVE,classMode=DirtiesContext.ClassMode.AFTER_CLASS)
-@ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-context.xml"})
-public class WMTSWorkerTest {
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+public class WMTSWorkerTest extends SpringContextTest {
 
     @Inject
     private IServiceBusiness serviceBusiness;
@@ -92,13 +79,8 @@ public class WMTSWorkerTest {
     private static MarshallerPool pool;
     private static WMTSWorker worker ;
 
-    @BeforeClass
-    public static void initTestDir() {
-        ConfigDirectory.setupTestEnvironement("WMTSWorkerTest");
-    }
-
     @PostConstruct
-    public void setUpClass(){
+    public void setUpClass() {
         try {
 
             try {
@@ -112,9 +94,7 @@ public class WMTSWorkerTest {
 
             Integer sid = serviceBusiness.create("wmts", "default", new LayerContext(), null, null);
 
-            final TestResources testResource = initDataDirectory();
-
-            TestEnvironment.DataImport did  = testResource.createProvider(TestEnvironment.TestResource.XML_PYRAMID, providerBusiness, null).datas.get(0);
+            TestEnvironment.DataImport did  = testResources.createProvider(TestEnvironment.TestResource.XML_PYRAMID, providerBusiness, null).datas.get(0);
 
             // one layer with alias
             layerBusiness.add(did.id, "haiti", did.namespace, did.name, sid, null);
@@ -135,15 +115,6 @@ public class WMTSWorkerTest {
         if (service != null) {
             service.deleteAll();
         }
-        ConfigDirectory.shutdownTestEnvironement("WMTSWorkerTest");
-    }
-
-    @Before
-    public void setUp() throws Exception {
-    }
-
-    @After
-    public void tearDown() throws Exception {
     }
 
     /**
@@ -253,6 +224,7 @@ public class WMTSWorkerTest {
     }
 
     @Test
+    @Ignore("TODO: implement")
     public void getTileTest() throws Exception {
 
     }

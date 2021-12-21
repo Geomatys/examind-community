@@ -21,7 +21,7 @@ package org.constellation.coverage.ws;
 import org.constellation.coverage.core.WCSWorker;
 import org.constellation.coverage.core.DefaultWCSWorker;
 import org.constellation.exception.ConfigurationException;
-import org.constellation.test.utils.SpringTestRunner;
+import org.constellation.test.SpringContextTest;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.MimeType;
 import org.geotoolkit.gml.xml.v311.DirectPositionType;
@@ -47,8 +47,6 @@ import org.geotoolkit.wcs.xml.v100.SpatialSubsetType;
 import org.geotoolkit.wcs.xml.v100.TimeSequenceType;
 import org.geotoolkit.wcs.xml.v100.WCSCapabilitiesType;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.test.context.ContextConfiguration;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -67,11 +65,9 @@ import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.test.utils.TestEnvironment.ProviderImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
-import org.constellation.test.utils.TestEnvironment.TestResources;
 import org.junit.AfterClass;
 
 import static org.junit.Assert.assertEquals;
@@ -80,13 +76,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import org.junit.BeforeClass;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
-import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
-
 
 /**
  * Testing class for WCS requests.
@@ -96,11 +86,8 @@ import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
  *
  * @since 0.5
  */
-@RunWith(SpringTestRunner.class)
-@TestExecutionListeners({DependencyInjectionTestExecutionListener.class,DirtiesContextTestExecutionListener.class})
-@DirtiesContext(hierarchyMode = DirtiesContext.HierarchyMode.EXHAUSTIVE,classMode=DirtiesContext.ClassMode.AFTER_CLASS)
-@ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-context.xml"})
-public class WCSWorkerOutputTest {
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+public class WCSWorkerOutputTest extends SpringContextTest {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.coverage.ws");
     /**
@@ -121,11 +108,6 @@ public class WCSWorkerOutputTest {
     private static WCSWorker WORKER;
     private static boolean initialized = false;
 
-    @BeforeClass
-    public static void initTestDir() {
-        ConfigDirectory.setupTestEnvironement("WCSWorkerOutputTest");
-    }
-
     /**
      * Initialisation of the worker and the PostGRID data provider before launching
      * the different tests.
@@ -143,13 +125,11 @@ public class WCSWorkerOutputTest {
                 ImageIO.scanForPlugins();
                 org.geotoolkit.lang.Setup.initialize(null);
 
-                final TestResources testResource = initDataDirectory();
-
-                ProviderImport pi = testResource.createProvider(TestResource.PNG, providerBusiness, null);
+                ProviderImport pi = testResources.createProvider(TestResource.PNG, providerBusiness, null);
                 Integer did = pi.datas.get(0).id;
 
                 // second data for alias
-                pi = testResource.createProvider(TestResource.PNG, providerBusiness, null);
+                pi = testResources.createProvider(TestResource.PNG, providerBusiness, null);
                 Integer did2 = pi.datas.get(0).id;
 
                 final LayerContext config = new LayerContext();
@@ -164,8 +144,6 @@ public class WCSWorkerOutputTest {
                 // Default instanciation of the worker' servlet context and uri context.
                 WORKER.setServiceUrl("http://localhost:9090");
                 initialized = true;
-
-                
 
             } catch (Exception ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
@@ -196,7 +174,6 @@ public class WCSWorkerOutputTest {
         } catch (ConfigurationException ex) {
             Logger.getAnonymousLogger().log(Level.WARNING, ex.getMessage());
         }
-        ConfigDirectory.shutdownTestEnvironement("WCSWorkerOutputTest");
         File derbyLog = new File("derby.log");
         if (derbyLog.exists()) {
             derbyLog.delete();

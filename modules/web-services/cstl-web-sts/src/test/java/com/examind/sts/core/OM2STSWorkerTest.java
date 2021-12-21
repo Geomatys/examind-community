@@ -26,7 +26,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
@@ -34,13 +33,12 @@ import javax.inject.Inject;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IServiceBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.Sensor;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationRuntimeException;
+import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.Order;
-import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
@@ -80,24 +78,17 @@ import org.geotoolkit.sts.json.UnitOfMeasure;
 import org.geotoolkit.util.DeltaComparable;
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
 /**
+ * TODO: remove dirty context annotation once we've managed to sanitize Spring context management.
+ * All tests working with AbstractGrizzlyServer are a pain in the a**, and completely break Spring context cache logic.
  *
  * @author Guilhem Legal (Geomatys)
  */
-@TestExecutionListeners({DependencyInjectionTestExecutionListener.class,DirtiesContextTestExecutionListener.class})
-@DirtiesContext(hierarchyMode = DirtiesContext.HierarchyMode.EXHAUSTIVE,classMode=DirtiesContext.ClassMode.AFTER_CLASS)
-@ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-context.xml"})
-@RunWith(SpringTestRunner.class)
-public class OM2STSWorkerTest {
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+public class OM2STSWorkerTest extends SpringContextTest {
 
     @Inject
     protected IServiceBusiness serviceBusiness;
@@ -112,19 +103,11 @@ public class OM2STSWorkerTest {
 
     protected static final String URL = "http://test.geomatys.com";
 
-    private static final String CONFIG_DIR_NAME = "OM2STSWorkerTest" + UUID.randomUUID().toString();
-
     public static final Logger LOGGER = Logger.getLogger("com.examind.sts.core");
 
     public static final SimpleDateFormat ISO_8601_3_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
     static {
         ISO_8601_3_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
-    }
-
-
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-        ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
     }
 
     @PostConstruct
@@ -136,12 +119,10 @@ public class OM2STSWorkerTest {
                 serviceBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                final TestResources testResource = initDataDirectory();
+                Integer omPid  = testResources.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
+                Integer smlPid = testResources.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness, null).id;
 
-                Integer omPid  = testResource.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
-                Integer smlPid = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness, null).id;
-
-                testResource.generateSensors(sensorBusiness, omPid, smlPid);
+                testResources.generateSensors(sensorBusiness, omPid, smlPid);
 
                 //we write the configuration file
                 final SOSConfiguration configuration = new SOSConfiguration();
@@ -184,7 +165,6 @@ public class OM2STSWorkerTest {
             if (mappingFile.exists()) {
                 mappingFile.delete();
             }
-            ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, null, ex);
         }
