@@ -44,6 +44,7 @@ import static org.constellation.api.CommonConstants.RESPONSE_MODE;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IServiceBusiness;
+import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.MetadataUtilities;
 import org.constellation.util.Util;
 import org.constellation.ws.CstlServiceException;
@@ -108,22 +109,14 @@ import static org.junit.Assert.assertTrue;
 import org.opengis.observation.Observation;
 import org.opengis.observation.sampling.SamplingPoint;
 import org.opengis.temporal.TemporalPrimitive;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.util.StreamUtils;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-@TestExecutionListeners({DependencyInjectionTestExecutionListener.class,DirtiesContextTestExecutionListener.class})
-@DirtiesContext(hierarchyMode = DirtiesContext.HierarchyMode.EXHAUSTIVE,classMode=DirtiesContext.ClassMode.AFTER_CLASS)
-@ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-context.xml"})
-public abstract class SOSWorkerTest {
+public abstract class SOSWorkerTest extends SpringContextTest {
 
     protected static final Logger LOGGER = Logger.getLogger("org.constellation.sos.ws");
 

@@ -24,37 +24,23 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import javax.annotation.PostConstruct;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.test.utils.Order;
-import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.dto.Sensor;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationRuntimeException;
 import org.constellation.test.utils.TestEnvironment.TestResource;
-import org.constellation.test.utils.TestEnvironment.TestResources;
-import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 
 import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-@RunWith(SpringTestRunner.class)
 public class OM2SOSConfigurerTest extends SOSConfigurerTest {
 
-    private static final String CONFIG_DIR_NAME = "OM2SOSConfigurerTest" + UUID.randomUUID().toString();
-
     private static boolean initialized = false;
-
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-      ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
-    }
 
     @PostConstruct
     public void setUp() {
@@ -65,10 +51,8 @@ public class OM2SOSConfigurerTest extends SOSConfigurerTest {
                 serviceBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                final TestResources testResource = initDataDirectory();
-
-                Integer omPrId  = testResource.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
-                Integer senPrId = testResource.createProvider(TestResource.SENSOR_FILE, providerBusiness, null).id;
+                Integer omPrId  = testResources.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
+                Integer senPrId = testResources.createProvider(TestResource.SENSOR_FILE, providerBusiness, null).id;
 
                 //we write the configuration file
                 final SOSConfiguration configuration = new SOSConfiguration();
@@ -106,7 +90,6 @@ public class OM2SOSConfigurerTest extends SOSConfigurerTest {
             if (mappingFile.exists()) {
                 mappingFile.delete();
             }
-            ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, null, ex);
         }

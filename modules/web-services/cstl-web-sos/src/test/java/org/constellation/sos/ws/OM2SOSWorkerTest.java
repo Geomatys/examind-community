@@ -30,28 +30,17 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationRuntimeException;
 import org.constellation.sos.core.SOSworker;
 import org.constellation.test.utils.Order;
-import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.test.utils.TestEnvironment.TestResource;
-import org.constellation.test.utils.TestEnvironment.TestResources;
-import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-@RunWith(SpringTestRunner.class)
 public class OM2SOSWorkerTest extends SOSWorkerTest {
 
     private static boolean initialized = false;
-
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-        ConfigDirectory.setupTestEnvironement("OM2SOSWorkerTest");
-    }
 
     @PostConstruct
     public void setUp() {
@@ -62,12 +51,10 @@ public class OM2SOSWorkerTest extends SOSWorkerTest {
                 serviceBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                final TestResources testResource = initDataDirectory();
+                Integer omPid  = testResources.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
+                Integer smlPid = testResources.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness, null).id;
 
-                Integer omPid  = testResource.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
-                Integer smlPid = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness, null).id;
-
-                testResource.generateSensors(sensorBusiness, omPid, smlPid);
+                testResources.generateSensors(sensorBusiness, omPid, smlPid);
 
                 //we write the configuration file
                 final SOSConfiguration configuration = new SOSConfiguration();
@@ -116,7 +103,6 @@ public class OM2SOSWorkerTest extends SOSWorkerTest {
         if (mappingFile.exists()) {
             mappingFile.delete();
         }
-        ConfigDirectory.shutdownTestEnvironement("OM2SOSWorkerTest");
     }
 
 

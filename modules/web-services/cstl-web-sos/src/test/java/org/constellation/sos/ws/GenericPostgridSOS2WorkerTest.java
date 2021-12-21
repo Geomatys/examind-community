@@ -23,35 +23,22 @@ import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.sos.core.SOSworker;
 import org.constellation.test.utils.Order;
-import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.test.utils.TestEnvironment.TestResource;
-import org.constellation.test.utils.TestEnvironment.TestResources;
-import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
 @Ignore
-@RunWith(SpringTestRunner.class)
 public class GenericPostgridSOS2WorkerTest extends SOS2WorkerTest {
 
     private static boolean initialized = false;
-
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-        ConfigDirectory.setupTestEnvironement("GPGSOSWorkerTest");
-
-    }
 
     @PostConstruct
     public void setUp() {
@@ -62,9 +49,7 @@ public class GenericPostgridSOS2WorkerTest extends SOS2WorkerTest {
                 serviceBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                final TestResources testResource = initDataDirectory();
-
-                Integer omPid = testResource.createProvider(TestResource.OM_GENERIC_DB, providerBusiness, null).id;
+                Integer omPid = testResources.createProvider(TestResource.OM_GENERIC_DB, providerBusiness, null).id;
 
                 //we write the configuration file
                 final SOSConfiguration configuration = new SOSConfiguration();
@@ -103,7 +88,6 @@ public class GenericPostgridSOS2WorkerTest extends SOS2WorkerTest {
         if (mappingFile.exists()) {
             mappingFile.delete();
         }
-        ConfigDirectory.shutdownTestEnvironement("GPGSOSWorkerTest");
     }
 
     /**

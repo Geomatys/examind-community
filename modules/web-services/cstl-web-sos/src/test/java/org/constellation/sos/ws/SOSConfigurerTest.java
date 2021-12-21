@@ -33,24 +33,17 @@ import javax.inject.Inject;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IServiceBusiness;
+import org.constellation.test.SpringContextTest;
 import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.junit.Assert;
 import org.opengis.temporal.TemporalPrimitive;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-@TestExecutionListeners({DependencyInjectionTestExecutionListener.class,DirtiesContextTestExecutionListener.class})
-@DirtiesContext(hierarchyMode = DirtiesContext.HierarchyMode.EXHAUSTIVE,classMode=DirtiesContext.ClassMode.AFTER_CLASS)
-@ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-context.xml"})
-public abstract class SOSConfigurerTest {
+public abstract class SOSConfigurerTest extends SpringContextTest {
 
     protected static final Logger LOGGER = Logger.getLogger("org.constellation.sos.ws");
     @Inject

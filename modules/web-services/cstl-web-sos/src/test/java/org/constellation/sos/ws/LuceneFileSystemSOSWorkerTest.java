@@ -31,7 +31,6 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationRuntimeException;
 import org.constellation.sos.core.SOSworker;
 import org.constellation.test.utils.Order;
-import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
@@ -39,14 +38,12 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-
+import static org.constellation.test.utils.TestResourceUtils.writeDataFileEPSG;
 /**
  * Test a SOS service version 1 with an Lucene observation datasource / Filesystem SML datasource
  *
  * @author Guilhem Legal (Geomatys)
  */
-@RunWith(SpringTestRunner.class)
 public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
 
     private static boolean initialized = false;

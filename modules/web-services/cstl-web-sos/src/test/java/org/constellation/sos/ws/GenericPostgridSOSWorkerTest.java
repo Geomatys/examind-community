@@ -23,16 +23,12 @@ package org.constellation.sos.ws;
 import java.io.File;
 import java.util.logging.Level;
 import javax.annotation.PostConstruct;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.sos.core.SOSworker;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.test.utils.TestEnvironment.TestResource;
-import org.constellation.test.utils.TestEnvironment.TestResources;
-import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,12 +43,6 @@ public class GenericPostgridSOSWorkerTest extends SOSWorkerTest {
 
     private static boolean initialized = false;
 
-
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-        ConfigDirectory.setupTestEnvironement("GPGSOSWorkerTest");
-    }
-
     @PostConstruct
     public void setUp() {
         try {
@@ -62,9 +52,7 @@ public class GenericPostgridSOSWorkerTest extends SOSWorkerTest {
                 serviceBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                final TestResources testResource = initDataDirectory();
-
-                Integer pid = testResource.createProvider(TestResource.OM_GENERIC_DB, providerBusiness, null).id;
+                Integer pid = testResources.createProvider(TestResource.OM_GENERIC_DB, providerBusiness, null).id;
 
                 final SOSConfiguration configuration = new SOSConfiguration();
                 configuration.setProfile("discovery");
@@ -102,7 +90,6 @@ public class GenericPostgridSOSWorkerTest extends SOSWorkerTest {
             if (mappingFile.exists()) {
                 mappingFile.delete();
             }
-            ConfigDirectory.shutdownTestEnvironement("GPGSOSWorkerTest");
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }

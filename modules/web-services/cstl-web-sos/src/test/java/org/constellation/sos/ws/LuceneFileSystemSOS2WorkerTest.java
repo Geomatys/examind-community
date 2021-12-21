@@ -31,20 +31,17 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationRuntimeException;
 import org.constellation.sos.core.SOSworker;
 import org.constellation.test.utils.Order;
-import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-@RunWith(SpringTestRunner.class)
 public class LuceneFileSystemSOS2WorkerTest extends SOS2WorkerTest {
 
     private static boolean initialized = false;

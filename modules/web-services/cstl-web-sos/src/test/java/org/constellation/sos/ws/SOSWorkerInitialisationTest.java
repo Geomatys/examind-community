@@ -32,28 +32,18 @@ import javax.xml.bind.Marshaller;
 
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.admin.SpringHelper;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.business.IServiceBusiness;
 
 import org.constellation.dto.service.Service;
 import org.constellation.repository.ServiceRepository;
 import org.constellation.dto.service.config.generic.BDD;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
+import org.constellation.test.SpringContextTest;
 import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.sos.xml.SOSMarshallerPool;
 import org.geotoolkit.sos.xml.v100.GetCapabilities;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.context.ApplicationContext;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
@@ -63,14 +53,8 @@ import org.springframework.transaction.support.TransactionCallback;
  *
  * @author Guilhem Legal (Geomatys)
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@TestExecutionListeners({DependencyInjectionTestExecutionListener.class,DirtiesContextTestExecutionListener.class})
-@DirtiesContext(hierarchyMode = DirtiesContext.HierarchyMode.EXHAUSTIVE,classMode=DirtiesContext.ClassMode.AFTER_CLASS)
-@ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-context.xml"})
-public class SOSWorkerInitialisationTest {
+public class SOSWorkerInitialisationTest extends SpringContextTest {
 
-    @Inject
-    private ApplicationContext applicationContext;
     @Inject
     private IServiceBusiness serviceBusiness;
     @Inject
@@ -80,19 +64,8 @@ public class SOSWorkerInitialisationTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-        ConfigDirectory.setupTestEnvironement("SOSWorkerInitialisationTest");
         pool = SOSMarshallerPool.getInstance();
     }
-
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-        ConfigDirectory.shutdownTestEnvironement("SOSWorkerInitialisationTest");
-    }
-
-    @After
-    public void tearDown() throws Exception {
-    }
-
 
     /**
      * Tests the initialisation of the SOS worker with different configuration mistake

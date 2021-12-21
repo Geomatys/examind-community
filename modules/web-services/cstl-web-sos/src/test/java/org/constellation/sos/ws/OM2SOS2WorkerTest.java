@@ -30,34 +30,23 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationRuntimeException;
 import org.constellation.sos.core.SOSworker;
 import org.constellation.test.utils.Order;
-import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 /**
  * Test a SOS service version 2 with an OM2 observation datasource / Internal SML datasource
  *
  * @author Guilhem Legal (Geomatys)
  */
-@RunWith(SpringTestRunner.class)
 public class OM2SOS2WorkerTest extends SOS2WorkerTest {
 
     private static DefaultDataSource ds = null;
 
-    private static String url;
-
     private static boolean initialized = false;
-
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-        ConfigDirectory.setupTestEnvironement("OM2SOSWorkerTest2");
-    }
 
     @PostConstruct
     public void setUp() {
@@ -74,7 +63,7 @@ public class OM2SOS2WorkerTest extends SOS2WorkerTest {
                 Integer smlPid = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness, null).id;
 
                 testResource.generateSensors(sensorBusiness, omPid, smlPid);
-                
+
                 //we write the configuration file
                 final SOSConfiguration configuration = new SOSConfiguration();
                 configuration.setProfile("transactional");
@@ -124,7 +113,6 @@ public class OM2SOS2WorkerTest extends SOS2WorkerTest {
         if (ds != null) {
             ds.shutdown();
         }
-        ConfigDirectory.shutdownTestEnvironement("OM2SOSWorkerTest2");
     }
 
     /**

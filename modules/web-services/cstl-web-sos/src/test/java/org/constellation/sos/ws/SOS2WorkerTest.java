@@ -21,6 +21,7 @@ package org.constellation.sos.ws;
 
 import org.constellation.sos.core.SOSworker;
 import org.apache.sis.xml.MarshallerPool;
+import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.MetadataUtilities;
 import org.constellation.util.Util;
 import org.constellation.ws.CstlServiceException;
@@ -75,7 +76,6 @@ import org.geotoolkit.swes.xml.v200.DeleteSensorType;
 import org.geotoolkit.swes.xml.v200.DescribeSensorType;
 import org.geotoolkit.swes.xml.v200.InsertSensorResponseType;
 import org.geotoolkit.swes.xml.v200.InsertSensorType;
-import org.springframework.test.context.ContextConfiguration;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -113,20 +113,13 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.VERSION_NEGOTIATION_FAILED
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.util.StreamUtils;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-@TestExecutionListeners({DependencyInjectionTestExecutionListener.class,DirtiesContextTestExecutionListener.class})
-@DirtiesContext(hierarchyMode = DirtiesContext.HierarchyMode.EXHAUSTIVE,classMode=DirtiesContext.ClassMode.AFTER_CLASS)
-@ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-context.xml"})
-public abstract class SOS2WorkerTest {
+public abstract class SOS2WorkerTest extends SpringContextTest {
 
     protected static final Logger LOGGER = Logger.getLogger("org.constellation.sos.ws");
 
