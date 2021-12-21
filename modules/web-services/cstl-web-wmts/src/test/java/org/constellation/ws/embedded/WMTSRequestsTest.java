@@ -117,7 +117,7 @@ public class WMTSRequestsTest extends AbstractGrizzlyServer {
         controllerConfiguration = WMTSControllerConfig.class;
     }
 
-    // TODO: factorize
+    // TODO( factorize and improve closing strategy) 
     @AfterClass
     public static void shutDown() {
         try {
