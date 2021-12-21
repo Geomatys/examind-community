@@ -41,11 +41,8 @@ import org.constellation.dto.DataReference;
 import org.constellation.dto.StyleReference;
 import org.constellation.exception.ConstellationException;
 import org.constellation.test.utils.TestEnvironment.DataImport;
-import org.constellation.test.utils.TestEnvironment.ProviderImport;
 import org.constellation.test.utils.TestEnvironment.ProvidersImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
-import org.constellation.test.utils.TestEnvironment.TestResources;
-import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import org.geotoolkit.filter.FilterUtilities;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -68,10 +65,8 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
 
     @Before
     public void createProvider() throws Exception {
-
         //setup data
-        final TestResources testResource = initDataDirectory();
-        final ProvidersImport pis = testResource.createProviders(TestResource.SHAPEFILES, providerBusiness, null);
+        final ProvidersImport pis = testResources.createProviders(TestResource.SHAPEFILES, providerBusiness, null);
         final DataImport di = pis.findDataByName("Countries");
         providerIds = pis.pids();
         COUNTRIES_DATA_REF = new DataReference(di.id, "Countries", null, di.pid);

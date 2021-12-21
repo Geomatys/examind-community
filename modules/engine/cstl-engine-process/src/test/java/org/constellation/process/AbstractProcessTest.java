@@ -18,32 +18,21 @@
  */
 package org.constellation.process;
 
+import org.constellation.test.SpringContextTest;
+import org.constellation.test.utils.Order;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.opengis.util.NoSuchIdentifierException;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 import java.util.logging.Logger;
 
 import static org.junit.Assert.assertNotNull;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 /**
  * Abstract test base for all engine process tests.
  *
  * @author Quentin Boileau (Geomatys)
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@TestExecutionListeners({DependencyInjectionTestExecutionListener.class,DirtiesContextTestExecutionListener.class})
-@DirtiesContext(hierarchyMode = DirtiesContext.HierarchyMode.EXHAUSTIVE,classMode=ClassMode.AFTER_CLASS)
-@ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-context.xml"})
-public abstract class AbstractProcessTest {
+public abstract class AbstractProcessTest extends SpringContextTest {
 
     protected static final Logger LOGGER = Logger.getLogger("org.constellation.process");
     private final String factory = ExamindProcessFactory.NAME;
@@ -54,7 +43,8 @@ public abstract class AbstractProcessTest {
     }
 
     @Test
-    public void findProcessTest() throws NoSuchIdentifierException{
+    @Order(order = 1)
+    public void findProcessTest() throws NoSuchIdentifierException {
         final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(factory, process);
         assertNotNull(desc);
     }

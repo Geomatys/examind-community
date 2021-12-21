@@ -19,11 +19,9 @@
 package org.constellation.process.service;
 
 import org.constellation.business.ILayerBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.config.wxs.LayerContext;
 
-import java.nio.file.Path;
 import java.util.logging.Level;
 import org.constellation.exception.ConstellationException;
 
@@ -33,11 +31,8 @@ import org.constellation.exception.ConstellationException;
  */
 public abstract class AbstractMapServiceTest extends ServiceProcessTest {
 
-    protected Path workingDirectory;
-
     public AbstractMapServiceTest (final String str, final String serviceName, final Class workerClass) {
         super(str, serviceName, workerClass);
-        workingDirectory= ConfigDirectory.setupTestEnvironement(serviceName+"_"+str);
     }
 
     /** {@inheritDoc} */

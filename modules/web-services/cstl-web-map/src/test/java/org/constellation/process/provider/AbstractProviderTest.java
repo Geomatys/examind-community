@@ -33,11 +33,11 @@ import javax.annotation.PostConstruct;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
-import org.constellation.admin.SpringHelper;
 import org.constellation.api.ProviderType;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.exception.ConstellationException;
 import org.geotoolkit.nio.IOUtilities;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
@@ -49,6 +49,7 @@ public abstract class AbstractProviderTest extends AbstractProcessTest {
     // dataStore service
     protected static DataProviderFactory DATASTORE_SERVICE;
 
+    @Autowired
     protected IProviderBusiness providerBusiness;
 
     protected AbstractProviderTest(final String processName) {
@@ -58,12 +59,10 @@ public abstract class AbstractProviderTest extends AbstractProcessTest {
     @PostConstruct
     public void fillDatastoreService() {
         DATASTORE_SERVICE = DataProviders.getFactory("data-store");
-        providerBusiness = SpringHelper.getBean(IProviderBusiness.class);
     }
 
     @BeforeClass
     public static void initFolder() throws Exception {
-
         final File configDirectory = ConfigDirectory.setupTestEnvironement("ProcessProviderTest").toFile();
         final File providerDirectory = new File(configDirectory, "provider");
         providerDirectory.mkdir();

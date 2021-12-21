@@ -19,14 +19,11 @@
 package org.constellation.process.service;
 
 import org.constellation.business.IServiceBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.process.AbstractProcessTest;
 import org.constellation.util.ReflectionUtilities;
 import org.constellation.ws.Worker;
 import org.junit.AfterClass;
-import org.junit.BeforeClass;
 
-import java.util.UUID;
 import java.util.logging.Level;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IDataBusiness;
@@ -54,27 +51,19 @@ public abstract class ServiceProcessTest extends AbstractProcessTest {
     @Autowired
     protected IWSEngine engine;
 
-    private static String configName;
     protected static String serviceName;
-    private static Class workerClass;
+    private final Class workerClass;
 
     public ServiceProcessTest(final String str, final String serviceName, final Class workerClass) {
         super(str);
         ServiceProcessTest.serviceName     = serviceName;
-        ServiceProcessTest.workerClass     = workerClass;
-    }
-
-    @BeforeClass
-    public static void setEnvironement() {
-        configName = UUID.randomUUID().toString();
-        ConfigDirectory.setupTestEnvironement(configName);
+        this.workerClass = workerClass;
     }
 
     @AfterClass
     public static void destroyFolder() {
         final IWSEngine engine = SpringHelper.getBean(IWSEngine.class);
         engine.destroyInstances(serviceName);
-        ConfigDirectory.shutdownTestEnvironement(configName);
     }
 
     /**
