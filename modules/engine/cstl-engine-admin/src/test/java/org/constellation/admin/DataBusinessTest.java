@@ -33,6 +33,7 @@ import org.apache.sis.metadata.MetadataCopier;
 import org.apache.sis.metadata.iso.citation.DefaultOrganisation;
 import org.apache.sis.metadata.iso.citation.DefaultResponsibility;
 import org.apache.sis.storage.Resource;
+import org.apache.sis.util.logging.Logging;
 import org.constellation.api.StatisticState;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
@@ -48,30 +49,24 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviders;
 import org.constellation.test.utils.TestEnvironment.TestResource;
-import org.constellation.test.utils.TestEnvironment.TestResources;
-import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import org.constellation.test.utils.TestEnvironment;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.opengis.metadata.Metadata;
 import org.opengis.metadata.citation.Party;
 import org.opengis.metadata.citation.Role;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("classpath:/cstl/spring/test-context.xml")
-public class DataBusinessTest {
+public class DataBusinessTest extends org.constellation.test.SpringContextTest {
 
     public static final String GEOMATYS = "Geomatys";
+
     @Autowired
     private IDatasetBusiness datasetBusiness;
 
@@ -81,23 +76,18 @@ public class DataBusinessTest {
     @Autowired
     private IMetadataBusiness metadataBusiness;
 
-    @Inject
+    @Autowired
     protected IProviderBusiness providerBusiness;
 
     private static boolean initialized = false;
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
-    private static final String CONFIG_DIR_NAME = "DataBusinessTest" + UUID.randomUUID().toString();
+    private static final String CONFIG_DIR_NAME = "DataBusinessTest" + UUID.randomUUID();
 
     private static int coverage1DID;
     private static int coverage2DID;
     private static int vectorDID;
     private static int aggregatedDID;
-
-    @BeforeClass
-    public static void initTestDir() {
-        ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
-    }
 
     @AfterClass
     public static void tearDown() {
@@ -114,7 +104,6 @@ public class DataBusinessTest {
             if (dsBus != null) {
                 dsBus.removeAllDatasets();
             }
-            ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
         } catch (ConstellationException ex) {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
@@ -131,15 +120,14 @@ public class DataBusinessTest {
                 //Initialize geotoolkit
                 ImageIO.scanForPlugins();
                 org.geotoolkit.lang.Setup.initialize(null);
-                final TestResources testResource = initDataDirectory();
 
                 // dataset
                 int dsId = datasetBusiness.createDataset("DataBusinessTest", null, null);
 
                 // coverage-file datastores
-                coverage1DID = testResource.createProvider(TestResource.PNG, providerBusiness, dsId).datas.get(0).id;
-                coverage2DID = testResource.createProvider(TestResource.TIF, providerBusiness, dsId).datas.get(0).id;
-                vectorDID    = testResource.createProviders(TestResource.WMS111_SHAPEFILES, providerBusiness, dsId).findDataByName("BuildingCenters").id;
+                coverage1DID = testResources.createProvider(TestResource.PNG, providerBusiness, dsId).datas.get(0).id;
+                coverage2DID = testResources.createProvider(TestResource.TIF, providerBusiness, dsId).datas.get(0).id;
+                vectorDID    = testResources.createProviders(TestResource.WMS111_SHAPEFILES, providerBusiness, dsId).findDataByName("BuildingCenters").id;
 
                 List<Integer> dataIds = Arrays.asList(coverage1DID, coverage2DID);
                 aggregatedDID = TestEnvironment.createAggregateProvider(providerBusiness, "aggData", dataIds, dsId).datas.get(0).id;

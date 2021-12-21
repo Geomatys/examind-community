@@ -26,10 +26,7 @@ import org.constellation.dto.contact.Details;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -38,12 +35,11 @@ import java.util.logging.Logger;
 import org.constellation.configuration.ConfigDirectory;
 import org.junit.BeforeClass;
 
+import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.service.ServiceComplete;
 import org.constellation.exception.ConstellationException;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("classpath:/cstl/spring/test-context.xml")
-public class ServiceBusinessTest {
+public class ServiceBusinessTest extends org.constellation.test.SpringContextTest {
 
     @Autowired
     private IServiceBusiness serviceBusiness;

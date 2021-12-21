@@ -18,46 +18,34 @@
  */
 package org.constellation.admin;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.constellation.business.ISensorBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.Sensor;
 import org.constellation.exception.ConstellationException;
+import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.Order;
-import org.constellation.test.utils.SpringTestRunner;
 import org.geotoolkit.sml.xml.v101.ComponentType;
 import org.geotoolkit.sml.xml.v101.SensorML;
 import org.geotoolkit.sml.xml.v101.SensorML.Member;
 import org.geotoolkit.sml.xml.v101.SystemType;
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-@RunWith(SpringTestRunner.class)
-@ContextConfiguration("classpath:/cstl/spring/test-context.xml")
-public class SensorBusinessTest {
+public class SensorBusinessTest extends SpringContextTest {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
     @Autowired
     private ISensorBusiness sensorBusiness;
-
-    @BeforeClass
-    public static void initTestDir() throws IOException {
-        ConfigDirectory.setupTestEnvironement("SensorBusinessTest");
-    }
 
     @AfterClass
     public static void tearDown() {
@@ -66,7 +54,6 @@ public class SensorBusinessTest {
             if (dbus != null) {
                 dbus.deleteAll();
             }
-            ConfigDirectory.shutdownTestEnvironement("SensorBusinessTest");
         } catch (ConstellationException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }

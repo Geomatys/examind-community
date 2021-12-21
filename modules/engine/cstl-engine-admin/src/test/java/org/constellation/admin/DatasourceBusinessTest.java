@@ -18,66 +18,55 @@
  */
 package org.constellation.admin;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.PostConstruct;
 import org.apache.sis.storage.DataStoreProvider;
 import org.constellation.business.IDatasourceBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.DataCustomConfiguration;
 import org.constellation.dto.DataSource;
 import org.constellation.dto.DataSourceSelectedPath;
 import org.constellation.dto.ProviderConfiguration;
 import org.constellation.dto.importdata.ResourceStoreAnalysisV3;
-import org.constellation.exception.ConstellationException;
 import org.constellation.provider.DataProviders;
+import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.Order;
-import org.constellation.test.utils.SpringTestRunner;
+import org.constellation.test.utils.TestEnvironment;
 import org.geotoolkit.storage.DataStores;
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-@RunWith(SpringTestRunner.class)
-@ContextConfiguration("classpath:/cstl/spring/test-context.xml")
-public class DatasourceBusinessTest {
+public class DatasourceBusinessTest extends SpringContextTest {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
     @Autowired
     private IDatasourceBusiness datasourceBusiness;
 
-    private static Path rootDir;
+    @Autowired
+    private TestEnvironment.TestResources resources;
 
-    @BeforeClass
-    public static void initTestDir() throws IOException {
-        ConfigDirectory.setupTestEnvironement("DatasourceBusinessTest");
-        rootDir = initDataDirectory().outputDir;
+    private Path rootDir;
+
+    @PostConstruct
+    public void init() {
+        rootDir = resources.outputDir;
     }
 
     @AfterClass
-    public static void tearDown() {
-        try {
-            final IDatasourceBusiness dbus = SpringHelper.getBean(IDatasourceBusiness.class);
-            if (dbus != null) {
-                dbus.deleteAll();
-            }
-            ConfigDirectory.shutdownTestEnvironement("DatasourceBusinessTest");
-        } catch (ConstellationException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
+    public static void tearDown() throws Exception {
+        final IDatasourceBusiness dbus = SpringHelper.getBean(IDatasourceBusiness.class);
+        if (dbus != null) {
+            dbus.deleteAll();
         }
     }
 

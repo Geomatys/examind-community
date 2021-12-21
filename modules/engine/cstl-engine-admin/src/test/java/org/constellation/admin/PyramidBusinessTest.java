@@ -19,7 +19,6 @@
 package org.constellation.admin;
 
 import java.awt.image.RenderedImage;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -38,7 +37,6 @@ import org.constellation.business.IMapContextBusiness;
 import org.constellation.business.IProcessBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IPyramidBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.MapContextLayersDTO;
 import org.constellation.dto.TilingResult;
@@ -46,30 +44,23 @@ import org.constellation.dto.process.Task;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
+import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.Order;
-import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.test.utils.TestEnvironment;
-import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import org.geotoolkit.storage.multires.TiledResource;
 import org.geotoolkit.storage.multires.TileMatrixSet;
 import org.geotoolkit.util.NamesExt;
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.opengis.referencing.datum.PixelInCell;
 import org.opengis.util.GenericName;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-@RunWith(SpringTestRunner.class)
-@ContextConfiguration("classpath:/cstl/spring/test-context.xml")
-public class PyramidBusinessTest {
+public class PyramidBusinessTest extends SpringContextTest {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
@@ -92,16 +83,6 @@ public class PyramidBusinessTest {
     private static int coverage2PID;
     private static boolean initialized = false;
 
-    @BeforeClass
-    public static void initTestDir() throws IOException {
-        ConfigDirectory.setupTestEnvironement("PyramidBusinessTest");
-    }
-
-    @AfterClass
-    public static void tearDown() {
-        ConfigDirectory.shutdownTestEnvironement("PyramidBusinessTest");
-    }
-
     @PostConstruct
     public void init() {
         if (!initialized) {
@@ -114,11 +95,10 @@ public class PyramidBusinessTest {
                 //Initialize geotoolkit
                 ImageIO.scanForPlugins();
                 org.geotoolkit.lang.Setup.initialize(null);
-                final TestEnvironment.TestResources testResource = initDataDirectory();
 
                 // insert data
-                coverage1PID = testResource.createProvider(TestEnvironment.TestResource.TIF, providerBusiness, null).id;
-                coverage2PID = testResource.createProvider(TestEnvironment.TestResource.PNG, providerBusiness, null).id;
+                coverage1PID = testResources.createProvider(TestEnvironment.TestResource.TIF, providerBusiness, null).id;
+                coverage2PID = testResources.createProvider(TestEnvironment.TestResource.PNG, providerBusiness, null).id;
 
                 initialized = true;
             } catch (Exception ex) {

@@ -18,7 +18,6 @@
  */
 package org.constellation.admin;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -35,7 +34,6 @@ import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.contact.AccessConstraint;
 import org.constellation.dto.contact.Contact;
@@ -43,26 +41,20 @@ import org.constellation.dto.contact.Details;
 import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.exception.ConstellationException;
+import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.Order;
-import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-@RunWith(SpringTestRunner.class)
-@ContextConfiguration("classpath:/cstl/spring/test-context.xml")
-public class LayerBusinessTest {
+public class LayerBusinessTest extends SpringContextTest {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
@@ -99,27 +91,21 @@ public class LayerBusinessTest {
                 //Initialize geotoolkit
                 ImageIO.scanForPlugins();
                 org.geotoolkit.lang.Setup.initialize(null);
-                final TestResources testResource = initDataDirectory();
 
                 // dataset
                 int dsId = datasetBusiness.createDataset("DataBusinessTest", null, null);
 
                 // coverage-file datastore
-                coveragePID = testResource.createProvider(TestResource.PNG, providerBusiness, dsId).id;
+                coveragePID = testResources.createProvider(TestResource.PNG, providerBusiness, dsId).id;
 
                 // shapefile datastore
-                vectorPIDs = testResource.createProviders(TestResource.WMS111_SHAPEFILES, providerBusiness, dsId).pids();
+                vectorPIDs = testResources.createProviders(TestResource.WMS111_SHAPEFILES, providerBusiness, dsId).pids();
 
                 initialized = true;
             } catch (Exception ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
         }
-    }
-
-    @BeforeClass
-    public static void initTestDir() throws IOException {
-        ConfigDirectory.setupTestEnvironement("LayerBusinessTest");
     }
 
     @AfterClass
@@ -129,7 +115,6 @@ public class LayerBusinessTest {
             if (dbus != null) {
                 dbus.removeAll();
             }
-            ConfigDirectory.shutdownTestEnvironement("LayerBusinessTest");
         } catch (ConstellationException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }

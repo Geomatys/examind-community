@@ -25,27 +25,24 @@ import java.util.logging.Logger;
 import org.constellation.business.IMapContextBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.AbstractMCLayerDTO;
+import org.constellation.dto.MapContextDTO;
 import org.constellation.dto.MapContextLayersDTO;
 import org.constellation.dto.ParameterValues;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
+import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.Order;
-import org.constellation.test.utils.SpringTestRunner;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-@RunWith(SpringTestRunner.class)
-@ContextConfiguration("classpath:/cstl/spring/test-context.xml")
-public class MapContextBusinessTest {
+public class MapContextBusinessTest extends SpringContextTest {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
@@ -54,7 +51,6 @@ public class MapContextBusinessTest {
 
     @BeforeClass
     public static void initTestDir() throws Exception {
-        ConfigDirectory.setupTestEnvironement("MapContextBusinessTest");
         final IMapContextBusiness dbus = SpringHelper.getBean(IMapContextBusiness.class);
         if (dbus != null) {
             dbus.deleteAll();
@@ -67,11 +63,19 @@ public class MapContextBusinessTest {
             final IMapContextBusiness dbus = SpringHelper.getBean(IMapContextBusiness.class);
             if (dbus != null) {
                 dbus.deleteAll();
-            }
+            } else System.out.printf("%n%nMAP CONTEXT BUSINESS IS NULL%n%n");
             ConfigDirectory.shutdownTestEnvironement("MapContextBusinessTest");
         } catch (ConstellationException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
+    }
+
+    @Test
+    @Order(order = 0)
+    public void prepareFreshInstall() throws Exception {
+        mpBusiness.deleteAll();
+        final List<MapContextDTO> remaining = mpBusiness.getAllContexts();
+        Assert.assertTrue("No map context should be present", remaining.isEmpty());
     }
 
     @Test

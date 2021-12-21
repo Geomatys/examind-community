@@ -23,29 +23,20 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.constellation.business.IProcessBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.process.Task;
 import org.constellation.dto.process.TaskParameter;
-import org.constellation.exception.ConstellationException;
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  *
  * @author guilhem
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("classpath:/cstl/spring/test-context.xml")
-public class ProcessBusinessTest {
+public class ProcessBusinessTest extends org.constellation.test.SpringContextTest {
 
     private static final DateFormat TASK_DATE = new SimpleDateFormat("yyyy/MM/dd HH:mm");
 
@@ -54,21 +45,11 @@ public class ProcessBusinessTest {
     @Autowired
     private IProcessBusiness processBusiness;
 
-    @BeforeClass
-    public static void initTestDir() {
-        ConfigDirectory.setupTestEnvironement("ProcessBusinessTest");
-    }
-
     @AfterClass
-    public static void tearDown() {
-        try {
-            final IProcessBusiness dbus = SpringHelper.getBean(IProcessBusiness.class);
-            if (dbus != null) {
-                dbus.deleteAllTaskParameter();
-            }
-            ConfigDirectory.shutdownTestEnvironement("ProcessBusinessTest");
-        } catch (ConstellationException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
+    public static void tearDown() throws Exception {
+        final IProcessBusiness dbus = SpringHelper.getBean(IProcessBusiness.class);
+        if (dbus != null) {
+            dbus.deleteAllTaskParameter();
         }
     }
 

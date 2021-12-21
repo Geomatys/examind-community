@@ -4,17 +4,15 @@ import org.apache.sis.storage.Resource;
 import org.apache.sis.util.ObjectConverters;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IProviderBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.process.DataProcessReference;
 import org.constellation.exception.ConstellationException;
+import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.test.utils.TestEnvironment;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.util.Assert;
 
 import javax.annotation.PostConstruct;
@@ -29,8 +27,7 @@ import static org.junit.Assert.assertEquals;
 
 
 @RunWith(SpringTestRunner.class)
-@ContextConfiguration("classpath:/cstl/spring/test-context.xml")
-public class DataProcessReferenceToResourceTest {
+public class DataProcessReferenceToResourceTest extends SpringContextTest {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.converter");
 
@@ -47,39 +44,24 @@ public class DataProcessReferenceToResourceTest {
 
     private static boolean initialized = false;
 
-    @BeforeClass
-    public static void initTestDir() throws IOException {
-        ConfigDirectory.setupTestEnvironement("DataProcessReferenceToResourceTest");
-    }
-
-    @AfterClass
-    public static void tearDown() {
-        ConfigDirectory.shutdownTestEnvironement("DataProcessReferenceToResourceTest");
-    }
-
     @PostConstruct
-    public void init() {
+    public void init() throws Exception {
         if (!initialized) {
-            try {
-                dataBusiness.deleteAll();
-                providerBusiness.removeAll();
+            dataBusiness.deleteAll();
+            providerBusiness.removeAll();
 
-                //Initialize geotoolkit
-                ImageIO.scanForPlugins();
-                org.geotoolkit.lang.Setup.initialize(null);
-                final TestEnvironment.TestResources testResource = TestEnvironment.initDataDirectory();
+            //Initialize geotoolkit
+            ImageIO.scanForPlugins();
+            org.geotoolkit.lang.Setup.initialize(null);
 
-                // coverage-file datastore
-                testResource.createProvider(TestEnvironment.TestResource.TIF, providerBusiness, null);
-                testResource.createProvider(TestEnvironment.TestResource.PNG, providerBusiness, null);
+            // coverage-file datastore
+            testResources.createProvider(TestEnvironment.TestResource.TIF, providerBusiness, null);
+            testResources.createProvider(TestEnvironment.TestResource.PNG, providerBusiness, null);
 
-                // shapefile datastore
-                nbVectorData = testResource.createProviders(TestEnvironment.TestResource.SHAPEFILES, providerBusiness, null).datas().size();
+            // shapefile datastore
+            nbVectorData = testResources.createProviders(TestEnvironment.TestResource.SHAPEFILES, providerBusiness, null).datas().size();
 
-                initialized = true;
-            } catch (IOException | ConstellationException ex) {
-                LOGGER.log(Level.SEVERE, null, ex);
-            }
+            initialized = true;
         }
     }
 

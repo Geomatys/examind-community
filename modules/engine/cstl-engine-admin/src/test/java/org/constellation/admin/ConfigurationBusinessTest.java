@@ -3,32 +3,15 @@ package org.constellation.admin;
 import java.io.IOException;
 import java.nio.file.Files;
 import org.constellation.business.IConfigurationBusiness;
-import org.constellation.configuration.ConfigDirectory;
-import org.junit.AfterClass;
+import org.constellation.test.SpringContextTest;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("classpath:/cstl/spring/test-context.xml")
-public class ConfigurationBusinessTest {
+public class ConfigurationBusinessTest extends SpringContextTest {
 
     @Autowired
     private IConfigurationBusiness biz;
-
-    @BeforeClass
-    public static void initConfDirectory() {
-        ConfigDirectory.setupTestEnvironement(ConfigurationBusinessTest.class.getSimpleName());
-    }
-
-    @AfterClass
-    public static void deleteConfDirectory() {
-        ConfigDirectory.shutdownTestEnvironement(ConfigurationBusinessTest.class.getSimpleName());
-    }
 
     @Test
     public void cannotRemoveBadDirectory() throws IOException {
