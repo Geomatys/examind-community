@@ -342,20 +342,15 @@ public class MapContextBusiness implements IMapContextBusiness {
     }
 
     @Override
-    public void initializeDefaultMapContextData() {
+    public void initializeDefaultMapContextData() throws ConstellationException {
         if (providerBusiness.getIDFromIdentifier(INTERNAL_MAP_CONTEXT_PROVIDER) == null) {
-            try {
-               final DataProviderFactory factory = DataProviders.getFactory("mapcontext-provider");
-                final ParameterValueGroup source = factory.getProviderDescriptor().createValue();
-                source.parameter("id").setValue(INTERNAL_MAP_CONTEXT_PROVIDER);
-                final ParameterValueGroup config = source.addGroup("MapContextProvider");
+            final DataProviderFactory factory = DataProviders.getFactory("mapcontext-provider");
+            final ParameterValueGroup source = factory.getProviderDescriptor().createValue();
+            source.parameter("id").setValue(INTERNAL_MAP_CONTEXT_PROVIDER);
+            final ParameterValueGroup config = source.addGroup("MapContextProvider");
 
-                int pid = providerBusiness.storeProvider(INTERNAL_MAP_CONTEXT_PROVIDER, ProviderType.LAYER, "mapcontext-provider", source);
-                providerBusiness.createOrUpdateData(pid, null, false, true, null);
-
-            } catch (ConstellationException ex) {
-                LOGGER.log(Level.WARNING, "An error occurred when creating default map context provider.", ex);
-            }
+            int pid = providerBusiness.storeProvider(INTERNAL_MAP_CONTEXT_PROVIDER, ProviderType.LAYER, "mapcontext-provider", source);
+            providerBusiness.createOrUpdateData(pid, null, false, true, null);
         }
     }
 

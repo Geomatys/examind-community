@@ -163,7 +163,11 @@ public class SetupBusiness {
         }
 
         LOGGER.log(Level.INFO, "initializing map context data ...");
-        mapContextBusiness.initializeDefaultMapContextData();
+        try {
+            mapContextBusiness.initializeDefaultMapContextData();
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, "An error occurred when creating default map context provider.", ex);
+        }
 
         //check if data analysis is required
         boolean doAnalysis = Application.getBooleanProperty(AppProperty.DATA_AUTO_ANALYSE, Boolean.TRUE);
