@@ -19,12 +19,12 @@
 
 package com.examind.sensor.ws;
 
+import org.apache.sis.internal.feature.jts.JTS;
 import org.locationtech.jts.geom.Geometry;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.service.config.sos.SensorMLTree;
-import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.gml.GeometrytoJTS;
 import org.geotoolkit.gml.xml.AbstractFeature;
 import org.geotoolkit.gml.xml.AbstractGeometry;
@@ -301,6 +301,11 @@ public final class SensorUtils {
         return results;
     }
 
+    /**
+     * TODO: This method is duplicated because of inter-dependency problems. We should try to put that in a module with
+     * common dependencies, but we must be cautious to not force some dependencies (Ex: sensor XML bindings) on modules
+     * that should not need it.
+     */
     public static List<Geometry> getJTSGeometryFromSensor(final SensorMLTree sensor, final ObservationProvider omProvider) throws ConstellationStoreException, FactoryException, TransformException {
         if ("Component".equals(sensor.getType())) {
             final AbstractGeometry geom = (AbstractGeometry) omProvider.getSensorLocation(sensor.getIdentifier(), "2.0.0");

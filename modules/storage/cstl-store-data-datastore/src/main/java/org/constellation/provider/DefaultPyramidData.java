@@ -26,7 +26,6 @@ import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
 import org.constellation.exception.ConstellationStoreException;
-import org.geotoolkit.storage.multires.MultiResolutionModel;
 import org.geotoolkit.storage.multires.TiledResource;
 import org.geotoolkit.storage.multires.TileMatrixSet;
 import org.opengis.metadata.Identifier;

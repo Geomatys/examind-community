@@ -49,6 +49,7 @@ import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.IdentifiedObjects;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.event.StoreEvent;
 import org.apache.sis.storage.event.StoreListener;
 import org.apache.sis.util.Utilities;
@@ -77,6 +78,8 @@ import org.geotoolkit.internal.referencing.CRSUtilities;
 import org.constellation.provider.PyramidData;
 import org.geotoolkit.ows.xml.AbstractCapabilitiesCore;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.*;
+
+import org.geotoolkit.ows.xml.OWSExceptionCode;
 import org.geotoolkit.ows.xml.v110.AcceptFormatsType;
 import org.geotoolkit.ows.xml.v110.AcceptVersionsType;
 import org.geotoolkit.ows.xml.v110.BoundingBoxType;
@@ -741,6 +744,9 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                         INVALID_PARAMETER_VALUE, "layerName");
             }
 
+            final Resource origin = data.getOrigin();
+            if (origin == null) throw new CstlServiceException("Invalid layer: no resource associated", OPERATION_NOT_SUPPORTED);
+            else if (!(origin instanceof TiledResource)) throw new CstlServiceException("Invalid layer: not a tiled resource", OPERATION_NOT_SUPPORTED);
             org.geotoolkit.storage.multires.TileMatrixSet pyramid = null;
             for (org.geotoolkit.storage.multires.TileMatrixSet pr : TileMatrices.getTileMatrixSets((TiledResource) origin)) {
                 if (validPyramidNames.contains(pr.getIdentifier())) {

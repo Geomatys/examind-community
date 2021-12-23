@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import javax.inject.Named;
@@ -47,7 +48,6 @@ import static org.constellation.api.CommonConstants.FEATURE_OF_INTEREST;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBJECT_TYPE;
 import static org.constellation.api.CommonConstants.OBSERVATION;
-import static org.constellation.api.CommonConstants.HISTORICAL_LOCATION;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVED_PROPERTY;
 import static org.constellation.api.CommonConstants.PROCEDURE;
@@ -210,12 +210,12 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         BigDecimal count = null;
         String iotNextLink = null;
         try {
-            final SimpleQuery subquery = buildExtraFilterQuery(req, true);
+            final FeatureQuery subquery = buildExtraFilterQuery(req, true);
             if (req.getCount()) {
                 count = new BigDecimal(omProvider.getCount(subquery, new HashMap(Collections.singletonMap(OBJECT_TYPE, PROCEDURE))));
             }
             final RequestOptions exp = new RequestOptions(req);
-            if (subquery.getLimit() != 0) {
+            if (req.getTop() == null || req.getTop() > 0) {
                 List<Process> procs = omProvider.getProcedures(subquery, new HashMap<>());
 
                 List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), null);
@@ -306,11 +306,12 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         return null;
     }
 
-    private SimpleQuery buildExtraFilterQuery(AbstractSTSRequest req, boolean applyPagination) throws CstlServiceException {
+    private FeatureQuery buildExtraFilterQuery(AbstractSTSRequest req, boolean applyPagination) throws CstlServiceException {
         return buildExtraFilterQuery(req, applyPagination, new ArrayList<>());
     }
-    private SimpleQuery buildExtraFilterQuery(AbstractSTSRequest req, boolean applyPagination, List<Filter> filters) throws CstlServiceException {
-        final SimpleQuery subquery = new SimpleQuery();
+
+    private FeatureQuery buildExtraFilterQuery(AbstractSTSRequest req, boolean applyPagination, List<Filter> filters) throws CstlServiceException {
+        final FeatureQuery subquery = new FeatureQuery();
         if (!req.getExtraFilter().isEmpty()) {
             for (Entry<String, String> entry : req.getExtraFilter().entrySet()) {
                 filters.add(ff.equal(ff.property(entry.getKey()), ff.literal(entry.getValue())));
@@ -334,9 +335,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         }
 
         if (filters.size() == 1) {
-            subquery.setFilter(filters.get(0));
+            subquery.setSelection(filters.get(0));
         } else if (!filters.isEmpty()){
-            subquery.setFilter(ff.and(filters));
+            subquery.setSelection(ff.and(filters));
         }
         return subquery;
     }
@@ -346,7 +347,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         try {
             BigDecimal count = null;
             final boolean isDataArray = "dataArray".equals(req.getResultFormat());
-            final SimpleQuery subquery = buildExtraFilterQuery(req, true);
+            final FeatureQuery subquery = buildExtraFilterQuery(req, true);
             final QName model;
             final boolean forMds = req.getExtraFlag().containsKey("forMDS") && req.getExtraFlag().get("forMDS").equals("true");
             Map<String, Object> hints = new HashMap<>(defaultHints);
@@ -365,7 +366,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 hints.put(DECIMATION_SIZE, req.getExtraFlag().get("decimation"));
             }
             List<org.opengis.observation.Observation> sps;
-            if (subquery.getLimit() != 0) {
+            if (req.getTop() == null || req.getTop() > 0) {
                 if (decimation) {
                     Collection<String> sensorIds = omProvider.getProcedureNames(subquery, hints);
                     Map<String, List> resultArrays = new HashMap<>();
@@ -412,9 +413,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     @Override
     public Observation getObservationById(GetObservationById req) throws CstlServiceException {
         try {
-            final SimpleQuery subquery = new SimpleQuery();
+            final FeatureQuery subquery = new FeatureQuery();
             ResourceId filter = ff.resourceId(req.getId());
-            subquery.setFilter(filter);
+            subquery.setSelection(filter);
             final RequestOptions exp = new RequestOptions(req);
             Map<String, Object> hints = new HashMap<>(defaultHints);
             List<org.opengis.observation.Observation> obs = omProvider.getObservations(subquery, MEASUREMENT_QNAME, "inline", null, hints);
@@ -457,9 +458,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             if (exp.multiDatastreams.expanded) {
                 // perform only on first for performance purpose
                 if (template == null && aob.getProcedure().getHref() != null) {
-                    final SimpleQuery subquery = new SimpleQuery();
+                    final FeatureQuery subquery = new FeatureQuery();
                     BinaryComparisonOperator pe = ff.equal(ff.property("procedure"), ff.literal(aob.getProcedure().getHref()));
-                    subquery.setFilter(pe);
+                    subquery.setSelection(pe);
                     Map<String, Object> hints = new HashMap<>(defaultHints);
                     hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
                     hints.put(INCLUDE_TIME_IN_TEMPLATE, true);
@@ -537,9 +538,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         if (!fromMds) {
             if (exp.datastreams.expanded) {
                 if (obs.getProcedure().getHref() != null) {
-                    final SimpleQuery subquery = new SimpleQuery();
+                    final FeatureQuery subquery = new FeatureQuery();
                     ResourceId pe = ff.resourceId(obs.getName().getCode());
-                    subquery.setFilter(pe);
+                    subquery.setSelection(pe);
                     Map<String, Object> hints = new HashMap<>(defaultHints);
                     hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
                     hints.put(INCLUDE_TIME_IN_TEMPLATE, true);
@@ -556,9 +557,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         } else {
             if (exp.multiDatastreams.expanded) {
                 if (obs.getProcedure().getHref() != null) {
-                    final SimpleQuery subquery = new SimpleQuery();
+                    final FeatureQuery subquery = new FeatureQuery();
                     ResourceId pe = ff.resourceId(obs.getName().getCode());
-                    subquery.setFilter(pe);
+                    subquery.setSelection(pe);
                     Map<String, Object> hints = new HashMap<>(defaultHints);
                     hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
                     hints.put(INCLUDE_TIME_IN_TEMPLATE, true);
@@ -770,8 +771,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             Map<String, Object> hints = new HashMap<>(defaultHints);
             hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
             hints.put(INCLUDE_TIME_IN_TEMPLATE, true);
-            final SimpleQuery subquery = buildExtraFilterQuery(req, true);
-            if (subquery.getLimit() != 0) {
+            final FeatureQuery subquery = buildExtraFilterQuery(req, true);
+            if (req.getTop() == null || req.getTop() > 0) {
                 List<org.opengis.observation.Observation> templates = omProvider.getObservations(subquery, MEASUREMENT_QNAME, "resultTemplate", null, hints);
                 Map<String, GeoJSONGeometry> sensorArea = new HashMap<>();
                 for (org.opengis.observation.Observation template : templates) {
@@ -797,9 +798,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     @Override
     public Datastream getDatastreamById(GetDatastreamById req) throws CstlServiceException {
         try {
-            final SimpleQuery subquery = new SimpleQuery();
+            final FeatureQuery subquery = new FeatureQuery();
             ResourceId filter = ff.resourceId(req.getId());
-            subquery.setFilter(filter);
+            subquery.setSelection(filter);
             Map<String, Object> hints = new HashMap<>(defaultHints);
             hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
             hints.put(INCLUDE_TIME_IN_TEMPLATE, true);
@@ -920,7 +921,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         String iotNextLink = null;
         try {
             final RequestOptions exp = new RequestOptions(req);
-            final SimpleQuery subquery = buildExtraFilterQuery(req, true);
+            final FeatureQuery subquery = buildExtraFilterQuery(req, true);
             Map<String, Object> hints = new HashMap<>(defaultHints);
             hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
             hints.put(INCLUDE_TIME_IN_TEMPLATE, true);
@@ -930,7 +931,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 hints.put(RESULT_MODEL, OBSERVATION_QNAME);
                 count = new BigDecimal(omProvider.getCount(subquery, hints));
             }
-            if (subquery.getLimit() != 0) {
+            if (req.getTop() == null || req.getTop() > 0) {
                 List<org.opengis.observation.Observation> templates = omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", null, hints);
                 Map<String, GeoJSONGeometry> sensorArea = new HashMap<>();
                 for (org.opengis.observation.Observation template : templates) {
@@ -950,9 +951,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     @Override
     public MultiDatastream getMultiDatastreamById(GetMultiDatastreamById req) throws CstlServiceException {
         try {
-            final SimpleQuery subquery = new SimpleQuery();
+            final FeatureQuery subquery = new FeatureQuery();
             ResourceId filter = ff.resourceId(req.getId());
-            subquery.setFilter(filter);
+            subquery.setSelection(filter);
             Map<String, Object> hints = new HashMap<>(defaultHints);
             hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
             hints.put(INCLUDE_TIME_IN_TEMPLATE, true);
@@ -1110,11 +1111,11 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     private List<org.opengis.observation.Observation> getObservationsForDatastream(org.opengis.observation.Observation template) throws ConstellationStoreException {
         if (template.getProcedure() instanceof org.geotoolkit.observation.xml.Process) {
-            final SimpleQuery subquery = new SimpleQuery();
+            final FeatureQuery subquery = new FeatureQuery();
             BinaryComparisonOperator pe1 = ff.equal(ff.property("procedure"), ff.literal(((org.geotoolkit.observation.xml.Process) template.getProcedure()).getHref()));
             BinaryComparisonOperator pe2 = ff.equal(ff.property("observedProperty"), ff.literal(((org.geotoolkit.swe.xml.Phenomenon) template.getObservedProperty()).getId()));
             LogicalOperator and = ff.and(Arrays.asList(pe1, pe2));
-            subquery.setFilter(and);
+            subquery.setSelection(and);
             Map<String, Object> hints = new HashMap<>(defaultHints);
             return omProvider.getObservations(subquery, MEASUREMENT_QNAME, "inline", null, hints);
         }
@@ -1123,9 +1124,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     private List<org.opengis.observation.Observation> getObservationsForMultiDatastream(org.opengis.observation.Observation template) throws ConstellationStoreException {
         if (template.getProcedure() instanceof org.geotoolkit.observation.xml.Process) {
-            final SimpleQuery subquery = new SimpleQuery();
+            final FeatureQuery subquery = new FeatureQuery();
             BinaryComparisonOperator pe = ff.equal(ff.property("procedure"), ff.literal(((org.geotoolkit.observation.xml.Process) template.getProcedure()).getHref()));
-            subquery.setFilter(pe);
+            subquery.setSelection(pe);
             Map<String, Object> hints = new HashMap<>(defaultHints);
             hints.put(INCLUDE_ID_IN_DATABLOCK, true);
             hints.put("includeTimeForProfile", true);
@@ -1138,9 +1139,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     private List<org.opengis.observation.Observation> getObservationsForFeatureOfInterest(org.geotoolkit.sampling.xml.SamplingFeature sp) throws ConstellationStoreException {
         if (sp.getName() != null) {
-            final SimpleQuery subquery = new SimpleQuery();
+            final FeatureQuery subquery = new FeatureQuery();
             BinaryComparisonOperator pe = ff.equal(ff.property("featureOfInterest"), ff.literal(sp.getId()));
-            subquery.setFilter(pe);
+            subquery.setSelection(pe);
             Map<String, Object> hints = new HashMap<>(defaultHints);
             return omProvider.getObservations(subquery, MEASUREMENT_QNAME, "inline", null, hints);
         }
@@ -1159,12 +1160,12 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         BigDecimal count = null;
         try {
             final RequestOptions exp = new RequestOptions(req);
-            final SimpleQuery subquery = buildExtraFilterQuery(req, true);
+            final FeatureQuery subquery = buildExtraFilterQuery(req, true);
             Map<String, Object> hints = new HashMap<>();
             hints.put("version", "1.0.0");
             hints.put(NO_COMPOSITE_PHENOMENON, true);
             hints.put(OBJECT_TYPE, OBSERVED_PROPERTY);
-            if (subquery.getLimit() != 0) {
+            if (req.getTop() == null || req.getTop() > 0) {
                 Collection<org.opengis.observation.Phenomenon> sps = omProvider.getPhenomenon(subquery, hints);
                 for (org.opengis.observation.Phenomenon sp : sps) {
                     ObservedProperty result = buildPhenomenon(exp, (Phenomenon)sp);
@@ -1185,9 +1186,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     @Override
     public ObservedProperty getObservedPropertyById(GetObservedPropertyById req) throws CstlServiceException {
         try {
-            final SimpleQuery subquery = new SimpleQuery();
+            final FeatureQuery subquery = new FeatureQuery();
             ResourceId filter = ff.resourceId(req.getId());
-            subquery.setFilter(filter);
+            subquery.setSelection(filter);
             Collection<org.opengis.observation.Phenomenon> phens = omProvider.getPhenomenon(subquery, new HashMap<>());
             if (phens.isEmpty()) {
                 return null;
@@ -1247,51 +1248,37 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         return obsProp;
     }
 
-    private List<org.opengis.observation.Observation> getDatastreamForPhenomenon(String phenomenon) throws ConstellationStoreException {
-        final SimpleQuery subquery = new SimpleQuery();
-        BinaryComparisonOperator pe = ff.equal(ff.property("observedProperty"), ff.literal(phenomenon));
-        subquery.setFilter(pe);
-        Map<String, Object> hints = new HashMap<>(defaultHints);
+    private List<org.opengis.observation.Observation> getObservationsWherePropertyEqValue(String property, String value, HashMap<String, Object> hintTemplate, QName resultModel) throws ConstellationStoreException {
+        final FeatureQuery subquery = new FeatureQuery();
+        BinaryComparisonOperator pe = ff.equal(ff.property(property), ff.literal(value));
+        subquery.setSelection(pe);
+        Map<String, Object> hints = hintTemplate;
         hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
         hints.put(INCLUDE_TIME_IN_TEMPLATE, true);
-        return omProvider.getObservations(subquery, MEASUREMENT_QNAME, "resultTemplate", null, hints);
+        return omProvider.getObservations(subquery, resultModel, "resultTemplate", null, hints);
+    }
+
+    private List<org.opengis.observation.Observation> getDatastreamForPhenomenon(String phenomenon) throws ConstellationStoreException {
+        return getObservationsWherePropertyEqValue("observedProperty", phenomenon, new HashMap<>(defaultHints), MEASUREMENT_QNAME);
     }
 
     private List<org.opengis.observation.Observation> getMultiDatastreamForPhenomenon(String phenomenon) throws ConstellationStoreException {
-        final SimpleQuery subquery = new SimpleQuery();
-        BinaryComparisonOperator pe = ff.equal(ff.property("observedProperty"), ff.literal(phenomenon));
-        subquery.setFilter(pe);
-        Map<String, Object> hints = new HashMap<>(defaultHints);
-        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
-        hints.put(INCLUDE_TIME_IN_TEMPLATE, true);
-        return omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", null, hints);
+        return getObservationsWherePropertyEqValue("observedProperty", phenomenon, new HashMap<>(defaultHints), OBSERVATION_QNAME);
     }
 
 
     private List<org.opengis.observation.Observation> getDatastreamForSensor(String sensorId) throws ConstellationStoreException {
-        final SimpleQuery subquery = new SimpleQuery();
-        BinaryComparisonOperator pe = ff.equal(ff.property("procedure"), ff.literal(sensorId));
-        subquery.setFilter(pe);
-        Map<String, Object> hints = new HashMap<>(defaultHints);
-        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
-        hints.put(INCLUDE_TIME_IN_TEMPLATE, true);
-        return omProvider.getObservations(subquery, MEASUREMENT_QNAME, "resultTemplate", null, hints);
+        return getObservationsWherePropertyEqValue("procedure", sensorId, new HashMap<>(defaultHints), MEASUREMENT_QNAME);
     }
 
     private List<org.opengis.observation.Observation> getMultiDatastreamForSensor(String sensorId) throws ConstellationStoreException {
-        final SimpleQuery subquery = new SimpleQuery();
-        BinaryComparisonOperator pe = ff.equal(ff.property("procedure"), ff.literal(sensorId));
-        subquery.setFilter(pe);
-        Map<String, Object> hints = new HashMap<>(defaultHints);
-        hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
-        hints.put(INCLUDE_TIME_IN_TEMPLATE, true);
-        return omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", null, hints);
+        return getObservationsWherePropertyEqValue("procedure", sensorId, new HashMap<>(defaultHints), OBSERVATION_QNAME);
     }
 
     private  Map<Date, org.opengis.geometry.Geometry> getHistoricalLocationsForSensor(String sensorId) throws ConstellationStoreException {
-        final SimpleQuery subquery = new SimpleQuery();
+        final FeatureQuery subquery = new FeatureQuery();
         ResourceId filter = ff.resourceId(sensorId);
-        subquery.setFilter(filter);
+        subquery.setSelection(filter);
         Map<String,Map<Date, org.opengis.geometry.Geometry>> results = omProvider.getHistoricalLocation(subquery, new HashMap<>());
         if (results.containsKey(sensorId)) {
             return results.get(sensorId);
@@ -1301,9 +1288,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     private GeoJSONGeometry getObservedAreaForSensor(String sensorId, Map<String, GeoJSONGeometry> cached) throws ConstellationStoreException {
         if (!cached.containsKey(sensorId)) {
-            final SimpleQuery subquery = new SimpleQuery();
+            final FeatureQuery subquery = new FeatureQuery();
             BinaryComparisonOperator pe = ff.equal(ff.property("procedure"), ff.literal(sensorId));
-            subquery.setFilter(pe);
+            subquery.setSelection(pe);
             Map<String, Object> hints = new HashMap<>(defaultHints);
             List<SamplingFeature> features = omProvider.getFeatureOfInterest(subquery, hints);
             List<Geometry> geometries = features.stream().map(f -> getJTSGeometryFromFeatureOfInterest(f)).filter(Objects::nonNull).collect(Collectors.toList());
@@ -1374,7 +1361,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             if (d != null) {
                 final List<Filter> filters = new ArrayList<>();
                 filters.add(ff.tequals(ff.property("time"), ff.literal(STSUtils.buildTemporalObj(d))));
-                final SimpleQuery subquery = buildExtraFilterQuery(req, true, filters);
+                final FeatureQuery subquery = buildExtraFilterQuery(req, true, filters);
                 Map<String,Map<Date, org.opengis.geometry.Geometry>> sensorHLocations = omProvider.getHistoricalLocation(subquery, new HashMap<>());
                 List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), null);
                 for (Entry<String,Map<Date, org.opengis.geometry.Geometry>> entry : sensorHLocations.entrySet()) {
@@ -1391,11 +1378,11 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
             // latest sensor locations
             } else {
-                final SimpleQuery subquery = buildExtraFilterQuery(req, true);
+                final FeatureQuery subquery = buildExtraFilterQuery(req, true);
                 if (req.getCount()) {
                     count = new BigDecimal(omProvider.getCount(subquery, new HashMap(Collections.singletonMap(OBJECT_TYPE, LOCATION))));
                 }
-                if (subquery.getLimit() != 0) {
+                if (req.getTop() == null || req.getTop() > 0) {
                     Map<String, org.opengis.geometry.Geometry> locs = omProvider.getLocation(subquery, new HashMap<>());
                     List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), null);
                     for (Entry<String, org.opengis.geometry.Geometry> entry : locs.entrySet()) {
@@ -1431,11 +1418,11 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         String iotNextLink = null;
         final RequestOptions exp = new RequestOptions(req);
         try {
-            final SimpleQuery subquery = buildExtraFilterQuery(req, true);
+            final FeatureQuery subquery = buildExtraFilterQuery(req, true);
             if (req.getCount()) {
                 count = new BigDecimal(omProvider.getCount(subquery, new HashMap(Collections.singletonMap(OBJECT_TYPE, PROCEDURE))));
             }
-            if (subquery.getLimit() != 0) {
+            if (req.getTop() == null || req.getTop() > 0) {
                 List<Process> procs = omProvider.getProcedures(subquery, new HashMap<>());
 
                 List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), null);
@@ -1654,14 +1641,14 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             }
             if (req.getCount()) {
                 // could be optimized
-                final SimpleQuery subquery = buildExtraFilterQuery(req, false, filters);
+                final FeatureQuery subquery = buildExtraFilterQuery(req, false, filters);
                 Map<String, List<Date>> times = omProvider.getHistoricalTimes(subquery, new HashMap<>());
                 final AtomicInteger c = new AtomicInteger();
                 times.forEach((procedure, dates) -> c.addAndGet(dates.size()));
                 count = new BigDecimal(c.get());
             }
-            final SimpleQuery subquery = buildExtraFilterQuery(req, true, filters);
-            if (subquery.getLimit() != 0) {
+            final FeatureQuery subquery = buildExtraFilterQuery(req, true, filters);
+            if (req.getTop() == null || req.getTop() > 0) {
                 Map<String, Map<Date, org.opengis.geometry.Geometry>> hLocations = omProvider.getHistoricalLocation(subquery, hints);
                 List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), null);
                 for (Entry<String, Map<Date, org.opengis.geometry.Geometry>> entry : hLocations.entrySet()) {
@@ -1695,10 +1682,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                     String timeStr = hlid.substring(pos + 1);
 
                     final RequestOptions exp = new RequestOptions(req);
-                    final SimpleQuery subquery = new SimpleQuery();
+                    final FeatureQuery subquery = new FeatureQuery();
                     final ResourceId procFilter = ff.resourceId(sensorId);
                     final TemporalOperator tFilter = ff.tequals(ff.property("time"), ff.literal(STSUtils.parseTemporalLong(timeStr)));
-                    subquery.setFilter(ff.and(procFilter, tFilter));
+                    subquery.setSelection(ff.and(procFilter, tFilter));
                     Map<String,Map<Date, org.opengis.geometry.Geometry>> sensorHLocations = omProvider.getHistoricalLocation(subquery, new HashMap<>());
                     if (!sensorHLocations.isEmpty()) {
                         Map<Date, org.opengis.geometry.Geometry> hLocations = sensorHLocations.get(sensorId);
@@ -1738,11 +1725,11 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         String iotNextLink = null;
         try {
             final RequestOptions exp = new RequestOptions(req);
-            final SimpleQuery subquery = buildExtraFilterQuery(req, true);
+            final FeatureQuery subquery = buildExtraFilterQuery(req, true);
             if (req.getCount()) {
                 count = new BigDecimal(omProvider.getCount(subquery, new HashMap(Collections.singletonMap(OBJECT_TYPE, FEATURE_OF_INTEREST))));
             }
-            if (subquery.getLimit() != 0) {
+            if (req.getTop() == null || req.getTop() > 0) {
                 List<SamplingFeature> sps = omProvider.getFeatureOfInterest(subquery, new HashMap<>());
                 for (SamplingFeature sp : sps) {
                     FeatureOfInterest result = buildFeatureOfInterest(exp, (org.geotoolkit.sampling.xml.SamplingFeature)sp);
@@ -1829,7 +1816,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             Geometry jts = GeometrytoJTS.toJTS(locGeom);
             if (!Utilities.equalsIgnoreMetadata(geomCrs, crs)) {
                 try {
-                    jts = JTS.transform(jts, crs);
+                    jts = org.apache.sis.internal.feature.jts.JTS.transform(jts, crs);
                 } catch (TransformException ex) {
                     throw new ConstellationStoreException(ex);
                 }

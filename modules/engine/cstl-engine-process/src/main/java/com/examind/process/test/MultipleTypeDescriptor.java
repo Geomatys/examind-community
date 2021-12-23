@@ -21,7 +21,7 @@ package com.examind.process.test;
 import java.io.File;
 import java.nio.file.Path;
 import org.apache.sis.parameter.ParameterBuilder;
-import org.apache.sis.util.iso.SimpleInternationalString;
+import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.process.AbstractCstlProcessDescriptor;
 import org.constellation.process.ExamindProcessFactory;

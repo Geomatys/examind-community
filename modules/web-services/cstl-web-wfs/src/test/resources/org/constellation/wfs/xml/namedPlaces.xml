@@ -1,11 +1,11 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <gml:NamedPlaces gml:id="NamedPlaces.2" xmlns:gml="http://www.opengis.net/gml/3.2">
     <the_geom>
-        <gml:MultiSurface srsName="urn:ogc:def:crs:epsg::4326">
+        <gml:MultiSurface srsName="urn:ogc:def:crs:EPSG:9.9.1:4326">
             <gml:surfaceMember>
-                <gml:Polygon srsName="urn:ogc:def:crs:epsg::4326">
+                <gml:Polygon srsName="urn:ogc:def:crs:EPSG:9.9.1:4326">
                     <gml:exterior>
-                        <gml:LinearRing srsName="urn:ogc:def:crs:epsg::4326">
+                        <gml:LinearRing srsName="urn:ogc:def:crs:EPSG:9.9.1:4326">
                             <gml:posList>0.1 0.1 0.5 0.5 0.4 0.4 0.3 0.3 0.2 0.2 0.1 0.1</gml:posList>
                         </gml:LinearRing>
                     </gml:exterior>

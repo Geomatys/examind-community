@@ -1293,17 +1293,17 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         Long limit     = getLongHint(hints, PAGE_LIMIT);
         Long offset    = getLongHint(hints, PAGE_OFFSET);
         if (isPostgres) {
-            if (limit != null) {
+            if (limit != null && limit > 0) {
                 request.append(" LIMIT ").append(Long.toString(limit));
             }
-            if (offset != null) {
+            if (offset != null && offset > 0) {
                 request.append(" OFFSET ").append(Long.toString(offset));
             }
         } else {
-            if (offset != null) {
+            if (offset != null && offset > 0) {
                 request.append(" OFFSET ").append(Long.toString(offset)).append(" ROWS ");
             }
-            if (limit != null) {
+            if (limit != null && limit > 0) {
                 request.append(" fetch next ").append(Long.toString(limit)).append(" rows only");
             }
         }

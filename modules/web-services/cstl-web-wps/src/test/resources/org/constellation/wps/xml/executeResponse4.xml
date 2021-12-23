@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns12:Polygon srsDimension="2" srsName="urn:ogc:def:crs:EPSG:9.7:4326" xmlns:ns12="http://www.opengis.net/gml">
+<ns12:Polygon srsDimension="2" srsName="urn:ogc:def:crs:EPSG:9.9.1:4326" xmlns:ns12="http://www.opengis.net/gml">
     <ns12:exterior>
         <ns12:LinearRing>
             <ns12:posList>3.0 3.0 3.0 4.0 4.0 4.0 4.0 3.0 3.0 3.0</ns12:posList>

@@ -60,7 +60,7 @@ public class CrsAdjustFilterVisitor extends DuplicatingFilterVisitor{
                     if(geoCrs == null){
                         JTS.setCRS(geo, replacementCrs);
                     }else if(Utilities.equalsIgnoreMetadata(geoCrs, baseCrs)){
-                        geo = JTS.transform(geo, CRS.findOperation(baseCrs, replacementCrs, null).getMathTransform());
+                        geo = org.apache.sis.internal.feature.jts.JTS.transform(geo, CRS.findOperation(baseCrs, replacementCrs, null).getMathTransform());
                         JTS.setCRS(geo, replacementCrs);
                     }
                     obj = geo;

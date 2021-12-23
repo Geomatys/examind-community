@@ -13,7 +13,7 @@
                 xmlns:mml="http://www.w3.org/1998/Math/MathML"
                 xmlns:ns14="http://www.opengis.net/wps/2.0"
                 xmlns:ns15="http://www.opengis.net/ows/2.0"
-                srsName="urn:ogc:def:crs:EPSG:9.7:4326">
+                srsName="urn:ogc:def:crs:EPSG:9.9.1:4326">
   <gml:curveMember>
     <gml:LineString>
       <gml:posList>-0.631235 46.307557 -0.262215 46.577225</gml:posList>

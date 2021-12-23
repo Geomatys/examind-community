@@ -19,6 +19,7 @@
 
 package org.constellation.api.rest;
 
+import org.apache.sis.internal.feature.jts.JTS;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryCollection;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -74,7 +75,6 @@ import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.dto.service.Service;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.ObservationProvider;
-import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.gml.GeometrytoJTS;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.opengis.referencing.operation.MathTransform;
@@ -607,7 +607,8 @@ public class SensorRestAPI extends AbstractRestAPI {
     }
 
     /**
-     * TODO this methode is duplicated from SensorUtils
+     * TODO: Factorize with SensorUtils class once we've figured out how to properly arrange Sensor/Observation related
+     * dependencies in a non-invasive way.
      */
     public static List<Geometry> getJTSGeometryFromSensor(final SensorMLTree sensor, final ObservationProvider omProvider) throws ConstellationStoreException, FactoryException, TransformException {
         if ("Component".equals(sensor.getType())) {

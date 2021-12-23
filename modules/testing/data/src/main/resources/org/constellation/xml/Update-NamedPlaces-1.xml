@@ -9,9 +9,9 @@
         <wfs:Property>
             <wfs:Name>the_geom</wfs:Name>
             <wfs:Value>
-                <gml:MultiSurface srsName="urn:ogc:def:crs:epsg::4326">
+                <gml:MultiSurface srsName="urn:ogc:def:crs:EPSG:9.9.1:4326">
                 <gml:surfaceMember>
-                    <gml:Polygon srsName="urn:ogc:def:crs:epsg::4326">
+                    <gml:Polygon srsName="urn:ogc:def:crs:EPSG:9.9.1:4326">
                         <gml:exterior>
                             <gml:LinearRing>
                                 <gml:posList>0.0020 0.0024 0.0044 0.0024 0.0042 0.0024 0.0020 0.0024</gml:posList>

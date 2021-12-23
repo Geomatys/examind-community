@@ -3,7 +3,7 @@
     "crs": {
         "type": "name",
         "properties": {
-            "name": "urn:ogc:def:crs:EPSG:9.7:3857"
+            "name": "urn:ogc:def:crs:EPSG:9.9.1:3857"
         }
     },
     "features": [{
@@ -12,7 +12,7 @@
             "crs": {
                 "type": "name",
                 "properties": {
-                    "name": "urn:ogc:def:crs:EPSG:9.7:3857"
+                    "name": "urn:ogc:def:crs:EPSG:9.9.1:3857"
                 }
             },
             "geometry": {
@@ -35,7 +35,7 @@
             "crs": {
                 "type": "name",
                 "properties": {
-                    "name": "urn:ogc:def:crs:EPSG:9.7:3857"
+                    "name": "urn:ogc:def:crs:EPSG:9.9.1:3857"
                 }
             },
             "geometry": {
