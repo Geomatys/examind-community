@@ -168,7 +168,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
 
     /**
      * A map which contains the binding between capabilities tile matrix set identifiers and input
-     * {@link org.geotoolkit.coverage.Pyramid} ids. It's used only if we've got multiple pyramids with the same ID but
+     * {@link TileMatrixSet} ids. It's used only if we've got multiple pyramids with the same ID but
      * different matrix structure. Otherwise, we directly use pyramid ids as tile matrix set name.
      */
     private final HashMap<String, HashSet<String>> tmsIdBinding = new HashMap<>();
@@ -279,20 +279,18 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
             final List<LayerCache> layers = getLayerCaches(userLogin, true);
 
             for (final LayerCache layer : layers) {
-                final Data data = layer.getData();
-                if (data == null) {
-                    LOGGER.log(Level.WARNING, "No data can be found for name : "+layer.getName());
-                    continue;
-                }
                 final String name = identifier(layer);
-                final Object origin = data.getOrigin();
-                if (!(data instanceof PyramidData)) {
-                    //WMTS only handle PyramidalModel
-                    LOGGER.log(Level.WARNING, "Layer {0} has not a PyramidalModel origin. It will not be included in capabilities", name);
-                    continue;
-                }
-
                 try {
+                    final Data data = layer.getData();
+                    if (data == null) {
+                        LOGGER.log(Level.WARNING, "No data can be found for name : "+layer.getName());
+                        continue;
+                    }
+                    final Object origin = data.getOrigin();
+                    if (!(origin instanceof TiledResource)) {
+                        LOGGER.log(Level.WARNING, "Layer {0} is not tiled. It will not be included in capabilities", name);
+                        continue;
+                    }
                     final TiledResource pmodel = (TiledResource) origin;
                     final List<org.geotoolkit.storage.multires.TileMatrixSet> pyramids = TileMatrices.getTileMatrixSets(pmodel);
                     if (pyramids.isEmpty()) {
@@ -737,16 +735,9 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                         INVALID_PARAMETER_VALUE, "layerName");
             }
 
-            if (!(data instanceof PyramidData)) {
-                //WMTS only handle PyramidalCoverageReference
-                throw new CstlServiceException("Operation request contains an invalid parameter value, "
-                        + "invalid layer : " + layerName + " , layer is not a pyramid model " + layerName,
-                        INVALID_PARAMETER_VALUE, "layerName");
-            }
-
             final Resource origin = data.getOrigin();
-            if (origin == null) throw new CstlServiceException("Invalid layer: no resource associated", OPERATION_NOT_SUPPORTED);
-            else if (!(origin instanceof TiledResource)) throw new CstlServiceException("Invalid layer: not a tiled resource", OPERATION_NOT_SUPPORTED);
+            if (origin == null) throw new CstlServiceException("Invalid layer: no resource associated", INVALID_PARAMETER_VALUE, "layerName");
+            else if (!(origin instanceof TiledResource)) throw new CstlServiceException("Invalid layer: not a tiled resource", INVALID_PARAMETER_VALUE, "layerName");
             org.geotoolkit.storage.multires.TileMatrixSet pyramid = null;
             for (org.geotoolkit.storage.multires.TileMatrixSet pr : TileMatrices.getTileMatrixSets((TiledResource) origin)) {
                 if (validPyramidNames.contains(pr.getIdentifier())) {
