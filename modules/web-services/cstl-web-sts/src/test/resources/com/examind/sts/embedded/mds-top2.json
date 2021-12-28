@@ -21,11 +21,11 @@
             "phenomenonTime": "1999-12-31T23:00:00Z/2000-12-31T23:00:00Z",
             "resultTime": "1999-12-31T23:00:00Z/2000-12-31T23:00:00Z",
             "@iot.id": "urn:ogc:object:observation:template:GEOM:13",
-            "@iot.selfLink": "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:13)",
-            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:13)/Things",
-            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:13)/Sensors",
-            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:13)/ObservedProperties",
-            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:13)/Observations",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:13)",
+            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:13)/Things",
+            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:13)/Sensors",
+            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:13)/ObservedProperties",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:13)/Observations",
             "multiObservationDataTypes": ["http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement", "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement", "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement"]
         }, {
             "unitOfMeasurement": [{
@@ -49,12 +49,12 @@
             "phenomenonTime": "2000-11-30T23:00:00Z/2000-12-23T23:00:00Z",
             "resultTime": "2000-11-30T23:00:00Z/2000-12-23T23:00:00Z",
             "@iot.id": "urn:ogc:object:observation:template:GEOM:14",
-            "@iot.selfLink": "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:14)",
-            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:14)/Things",
-            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:14)/Sensors",
-            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:14)/ObservedProperties",
-            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:14)/Observations",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:14)",
+            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:14)/Things",
+            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:14)/Sensors",
+            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:14)/ObservedProperties",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:14)/Observations",
             "multiObservationDataTypes": ["http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement", "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement", "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement"]
         }],
-    "@iot.nextLink": "http://localhost:9090/WS/sts/default/MultiDatastreams?$skip=4&$top=2"
+    "@iot.nextLink": "http://localhost:9090/WS/sts/default/v1.1/MultiDatastreams?$skip=4&$top=2"
 }

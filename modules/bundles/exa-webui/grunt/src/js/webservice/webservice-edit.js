@@ -39,6 +39,8 @@ angular.module('cstl-webservice-edit', [
         $scope.tagText = '';
         $scope.type = $routeParams.type;
         $scope.cstlUrl = window.localStorage.getItem('cstlUrl');
+        
+        // default initialization. will be overidden later
         $scope.url = $scope.cstlUrl + "WS/" + $routeParams.type + "/" + $routeParams.id;
         $scope.urlBoxSize = Math.min($scope.url.length,100);
 
@@ -126,6 +128,11 @@ angular.module('cstl-webservice-edit', [
         $scope.initScope = function() {
             Examind.ogcServices.get($scope.type, $routeParams.id, $scope.getCurrentLang()).then(function (service) {
                 $scope.service = service.data;
+                
+                if ($scope.service.baseUrl) {
+                    $scope.url = $scope.service.baseUrl;
+                    $scope.urlBoxSize = Math.min($scope.url.length,100);
+                }
 
                 if ($scope.type === 'csw') {
                     Examind.ogcServices.getConfig("csw", $scope.service.identifier)

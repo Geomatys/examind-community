@@ -18,12 +18,19 @@
  */
 package com.examind.sts.configuration;
 
-import org.constellation.ogc.configuration.OGCConfigurer;
+import com.examind.sensor.configuration.SensorServiceConfigurer;
+import static com.examind.sts.core.STSConstants.STS_VERSION;
+import org.constellation.dto.service.ServiceComplete;
 
 /**
  *
- * @author guilhem
+ * @author Guilhem Legal (Geomatys)
  */
-public class STSConfigurer extends OGCConfigurer {
+public class STSConfigurer extends SensorServiceConfigurer {
 
+    @Override
+    protected String getServiceUrl(ServiceComplete service) {
+        String url = super.getServiceUrl(service);
+        return url + '/' + STS_VERSION;
+    }
 }

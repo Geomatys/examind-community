@@ -22,6 +22,7 @@ package com.examind.sts.core;
 import com.examind.odata.ODataFilterParser;
 import com.examind.odata.ODataParseException;
 import com.examind.sensor.ws.SensorWorker;
+import static com.examind.sts.core.STSConstants.STS_VERSION;
 import static com.examind.sts.core.STSUtils.formatDate;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -186,6 +187,18 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         return null;
     }
 
+    /**
+     * {@inheritDoc }
+     */
+    @Override
+    public synchronized void setServiceUrl(final String serviceBaseUrl) {
+        if (serviceBaseUrl != null) {
+            serviceUrl = serviceBaseUrl;
+            String separator = serviceUrl.endsWith("/") ? "" : "/";
+            serviceUrl = serviceUrl + separator + specification.toString().toLowerCase() + '/' + id + '/' + STS_VERSION + '?';
+        }
+    }
+
     @Override
     public STSCapabilities getCapabilities(GetCapabilities gc) {
         STSCapabilities result = new STSCapabilities();
@@ -270,7 +283,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         if (req.getExtraFlag().containsKey("orig-path")) {
             selfLink = getServiceUrl();
             path = req.getExtraFlag().get("orig-path");
-            selfLink = selfLink.substring(0, selfLink.length() - (6 + getId().length())) + path;
+            selfLink = selfLink.substring(0, selfLink.length() - (11 + getId().length())) + path;
         } else {
             selfLink = selfLink.substring(0, selfLink.length() - 1) + path;
         }

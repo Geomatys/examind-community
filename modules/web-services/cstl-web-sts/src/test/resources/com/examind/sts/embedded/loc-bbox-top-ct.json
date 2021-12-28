@@ -13,9 +13,9 @@
       "properties" : { }
     },
     "@iot.id" : "urn:ogc:object:sensor:GEOM:13",
-    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:13)",
-    "Things@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:13)/Things",
-    "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:13)/HistoricalLocations"
+    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:13)",
+    "Things@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:13)/Things",
+    "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:13)/HistoricalLocations"
   }, {
     "name" : "urn:ogc:object:sensor:GEOM:3",
     "description" : "",
@@ -30,10 +30,10 @@
       "properties" : { }
     },
     "@iot.id" : "urn:ogc:object:sensor:GEOM:3",
-    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:3)",
-    "Things@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:3)/Things",
-    "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:3)/HistoricalLocations"
+    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:3)",
+    "Things@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:3)/Things",
+    "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:3)/HistoricalLocations"
   } ],
-  "@iot.nextLink" : "http://localhost:9090/WS/sts/default/Locations?$skip=2&$top=2&$filter=st_contains(location, geography'POLYGON ((30 -3, 10 20, 20 40, 40 40, 30 -3))')&$count=true",
+  "@iot.nextLink" : "http://localhost:9090/WS/sts/default/v1.1/Locations?$skip=2&$top=2&$filter=st_contains(location, geography'POLYGON ((30 -3, 10 20, 20 40, 40 40, 30 -3))')&$count=true",
   "@iot.count" : 3
 }

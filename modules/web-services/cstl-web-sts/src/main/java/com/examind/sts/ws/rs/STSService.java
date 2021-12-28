@@ -78,7 +78,7 @@ import org.springframework.http.MediaType;
  * @author Guilhem Legal (Geomatys)
  */
 @Controller
-@RequestMapping("sts/{serviceId:.+}")
+@RequestMapping("sts/{serviceId:.+}/v1.1")
 public class STSService extends OGCWebService<STSWorker> {
 
     /**

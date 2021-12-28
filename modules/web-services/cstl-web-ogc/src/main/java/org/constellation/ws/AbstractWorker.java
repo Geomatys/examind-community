@@ -88,7 +88,7 @@ public abstract class AbstractWorker implements Worker {
     /**
      * Contains the service url used in capabilities document.
      */
-    private String serviceUrl = null;
+    protected String serviceUrl = null;
 
     /**
      * A map containing the Capabilities Object already loaded from file.
@@ -103,7 +103,7 @@ public abstract class AbstractWorker implements Worker {
     /**
      * The identifier of the worker.
      */
-    private final String id;
+    protected final String id;
 
     private final Integer serviceId;
 
@@ -321,11 +321,11 @@ public abstract class AbstractWorker implements Worker {
      * {@inheritDoc }
      */
     @Override
-    public synchronized void setServiceUrl(final String serviceUrl) {
-        if (serviceUrl != null && serviceUrl.endsWith("/")) {
-            this.serviceUrl = serviceUrl + specification.toString().toLowerCase() + '/' + id + '?';
-        } else {
-            this.serviceUrl = serviceUrl + '/' + specification.toString().toLowerCase() + '/' + id + '?';
+    public synchronized void setServiceUrl(final String serviceBaseUrl) {
+        if (serviceBaseUrl != null) {
+            serviceUrl = serviceBaseUrl;
+            String separator = serviceUrl.endsWith("/") ? "" : "/";
+            serviceUrl = serviceUrl + separator + specification.toString().toLowerCase() + '/' + id + '?';
         }
     }
 

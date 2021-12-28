@@ -4,18 +4,18 @@
     "name" : "urn:ogc:object:sensor:GEOM:12",
     "encodingType" : "http://www.opengis.net/doc/IS/SensorML/2.0",
     "@iot.id" : "urn:ogc:object:sensor:GEOM:12",
-    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Sensors(urn:ogc:object:sensor:GEOM:12)",
-    "Datastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Sensors(urn:ogc:object:sensor:GEOM:12)/Datastreams",
-    "MultiDatastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Sensors(urn:ogc:object:sensor:GEOM:12)/MultiDatastreams"
+    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/v1.1/Sensors(urn:ogc:object:sensor:GEOM:12)",
+    "Datastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/Sensors(urn:ogc:object:sensor:GEOM:12)/Datastreams",
+    "MultiDatastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/Sensors(urn:ogc:object:sensor:GEOM:12)/MultiDatastreams"
   }, {
     "description" : "",
     "name" : "urn:ogc:object:sensor:GEOM:13",
     "encodingType" : "http://www.opengis.net/doc/IS/SensorML/2.0",
     "@iot.id" : "urn:ogc:object:sensor:GEOM:13",
-    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Sensors(urn:ogc:object:sensor:GEOM:13)",
-    "Datastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Sensors(urn:ogc:object:sensor:GEOM:13)/Datastreams",
-    "MultiDatastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Sensors(urn:ogc:object:sensor:GEOM:13)/MultiDatastreams"
+    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/v1.1/Sensors(urn:ogc:object:sensor:GEOM:13)",
+    "Datastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/Sensors(urn:ogc:object:sensor:GEOM:13)/Datastreams",
+    "MultiDatastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/Sensors(urn:ogc:object:sensor:GEOM:13)/MultiDatastreams"
   } ],
   "@iot.count" : 14,
-  "@iot.nextLink" : "http://localhost:9090/WS/sts/default/Sensors?$skip=4&$top=2&$count=true"
+  "@iot.nextLink" : "http://localhost:9090/WS/sts/default/v1.1/Sensors?$skip=4&$top=2&$count=true"
 }

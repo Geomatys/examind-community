@@ -4,7 +4,7 @@
     <artifactId>exa-webui</artifactId>
     <packaging>war</packaging>
     <description></description>
-    <name>War : WebUI</name>
+    <name>War : Community WebUI</name>
 
     <parent>
         <groupId>com.examind.community</groupId>

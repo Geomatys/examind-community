@@ -4,17 +4,17 @@
     "name" : "GEOM 1",
     "encodingType" : "http://www.opengis.net/doc/IS/SensorML/2.0",
     "@iot.id" : "urn:ogc:object:sensor:GEOM:1",
-    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Sensors(urn:ogc:object:sensor:GEOM:1)",
-    "Datastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Sensors(urn:ogc:object:sensor:GEOM:1)/Datastreams",
-    "MultiDatastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Sensors(urn:ogc:object:sensor:GEOM:1)/MultiDatastreams"
+    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/v1.1/Sensors(urn:ogc:object:sensor:GEOM:1)",
+    "Datastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/Sensors(urn:ogc:object:sensor:GEOM:1)/Datastreams",
+    "MultiDatastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/Sensors(urn:ogc:object:sensor:GEOM:1)/MultiDatastreams"
   }, {
     "description" : "",
     "name" : "urn:ogc:object:sensor:GEOM:10",
     "encodingType" : "http://www.opengis.net/doc/IS/SensorML/2.0",
     "@iot.id" : "urn:ogc:object:sensor:GEOM:10",
-    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Sensors(urn:ogc:object:sensor:GEOM:10)",
-    "Datastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Sensors(urn:ogc:object:sensor:GEOM:10)/Datastreams",
-    "MultiDatastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Sensors(urn:ogc:object:sensor:GEOM:10)/MultiDatastreams"
+    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/v1.1/Sensors(urn:ogc:object:sensor:GEOM:10)",
+    "Datastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/Sensors(urn:ogc:object:sensor:GEOM:10)/Datastreams",
+    "MultiDatastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/Sensors(urn:ogc:object:sensor:GEOM:10)/MultiDatastreams"
   } ],
-  "@iot.nextLink" : "http://localhost:9090/WS/sts/default/Sensors?$skip=2&$top=2"
+  "@iot.nextLink" : "http://localhost:9090/WS/sts/default/v1.1/Sensors?$skip=2&$top=2"
 }

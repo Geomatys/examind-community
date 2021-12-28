@@ -12,7 +12,7 @@
     "properties" : { }
   },
   "@iot.id" : "urn:ogc:object:sensor:GEOM:2",
-  "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:2)",
-  "Things@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:2)/Things",
-  "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:2)/HistoricalLocations"
+  "@iot.selfLink" : "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:2)",
+  "Things@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:2)/Things",
+  "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:2)/HistoricalLocations"
 }

@@ -6,6 +6,6 @@
 
    <context:component-scan base-package="com.examind.sts.component, com.examind.sts.core"  />
 
-   <bean name="STSConfigurer" class="com.examind.sensor.configuration.SensorServiceConfigurer" scope="prototype" />
+   <bean name="STSConfigurer" class="com.examind.sts.configuration.STSConfigurer" scope="prototype" />
 
 </beans>

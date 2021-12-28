@@ -4,9 +4,9 @@
     "definition" : "urn:ogc:def:phenomenon:GEOM:salinity",
     "description" : "the salinity in water",
     "@iot.id" : "salinity",
-    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/ObservedProperties(salinity)",
-    "Datastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/ObservedProperties(salinity)/Datastreams",
-    "MultiDatastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/ObservedProperties(salinity)/MultiDatastreams"
+    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(salinity)",
+    "Datastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(salinity)/Datastreams",
+    "MultiDatastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(salinity)/MultiDatastreams"
   } ],
-  "@iot.nextLink" : "http://localhost:9090/WS/sts/default/ObservedProperties?$skip=2&$top=1"
+  "@iot.nextLink" : "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties?$skip=2&$top=1"
 }

@@ -56,7 +56,7 @@ public abstract class OGCConfigurer extends ServiceConfigurer implements IOGCCon
         return i;
     }
 
-    private String getServiceUrl(ServiceComplete service) {
+    protected String getServiceUrl(ServiceComplete service) {
         String result = Application.getProperty(AppProperty.CSTL_SERVICE_URL);
         if (result == null) {
             String cstlURL = Application.getProperty(AppProperty.CSTL_URL);
@@ -77,6 +77,7 @@ public abstract class OGCConfigurer extends ServiceConfigurer implements IOGCCon
      * @param spec
      * @return the {@link Instance} list
      */
+    @Override
     public List<Instance> getInstances(final String spec, String lang) {
         final List<Instance> instances = new ArrayList<>();
         final Map<Integer, ServiceStatus> statusMap = serviceBusiness.getStatus(spec);

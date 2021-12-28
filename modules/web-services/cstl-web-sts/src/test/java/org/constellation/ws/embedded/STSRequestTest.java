@@ -77,11 +77,11 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     private static boolean initialized = false;
 
     private static String getDefaultURL() {
-        return "http://localhost:" +  getCurrentPort() + "/WS/sts/default";
+        return "http://localhost:" +  getCurrentPort() + "/WS/sts/default/v1.1";
     }
 
     private static String getTestURL() {
-        return "http://localhost:" +  getCurrentPort() + "/WS/sts/test";
+        return "http://localhost:" +  getCurrentPort() + "/WS/sts/test/v1.1";
     }
 
     @BeforeClass
@@ -1655,8 +1655,8 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.0.0");
-        instances.add(new Instance(1, "default", "Examind STS Server", "Examind STS Server", "sts", versions, 14, ServiceStatus.STARTED, "null/sts/default"));
-        instances.add(new Instance(2, "test",    "Examind STS Server", "Examind STS Server", "sts", versions, 14, ServiceStatus.STARTED, "null/sts/test"));
+        instances.add(new Instance(1, "default", "Examind STS Server", "Examind STS Server", "sts", versions, 14, ServiceStatus.STARTED, "null/sts/default/v1.1"));
+        instances.add(new Instance(2, "test",    "Examind STS Server", "Examind STS Server", "sts", versions, 14, ServiceStatus.STARTED, "null/sts/test/v1.1"));
         InstanceReport expResult2 = new InstanceReport(instances);
         assertEquals(expResult2, obj);
 

@@ -14,11 +14,11 @@
             "phenomenonTime": "2000-11-30T23:00:00Z/2000-12-23T23:00:00Z",
             "resultTime": "2000-11-30T23:00:00Z/2000-12-23T23:00:00Z",
             "@iot.id": "urn:ogc:object:observation:template:GEOM:14-2",
-            "@iot.selfLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:14-2)",
-            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:14-2)/Things",
-            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:14-2)/Sensors",
-            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:14-2)/ObservedProperties",
-            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:14-2)/Observations"
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:14-2)",
+            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:14-2)/Things",
+            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:14-2)/Sensors",
+            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:14-2)/ObservedProperties",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:14-2)/Observations"
         }, {
             "description": "",
             "unitOfMeasurement": {
@@ -34,11 +34,11 @@
             "phenomenonTime": "2000-12-21T23:00:00Z/2000-12-23T23:00:00Z",
             "resultTime": "2000-12-21T23:00:00Z/2000-12-23T23:00:00Z",
             "@iot.id": "urn:ogc:object:observation:template:GEOM:14-3",
-            "@iot.selfLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:14-3)",
-            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:14-3)/Things",
-            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:14-3)/Sensors",
-            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:14-3)/ObservedProperties",
-            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:14-3)/Observations"
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:14-3)",
+            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:14-3)/Things",
+            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:14-3)/Sensors",
+            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:14-3)/ObservedProperties",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:14-3)/Observations"
         }, {
             "description": "",
             "unitOfMeasurement": {
@@ -54,11 +54,11 @@
             "phenomenonTime": "2000-11-30T23:00:00Z/2000-12-21T23:00:00Z",
             "resultTime": "2000-11-30T23:00:00Z/2000-12-21T23:00:00Z",
             "@iot.id": "urn:ogc:object:observation:template:GEOM:2-1",
-            "@iot.selfLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-1)",
-            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-1)/Things",
-            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-1)/Sensors",
-            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-1)/ObservedProperties",
-            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-1)/Observations"
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:2-1)",
+            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:2-1)/Things",
+            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:2-1)/Sensors",
+            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:2-1)/ObservedProperties",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:2-1)/Observations"
         }, {
             "description": "",
             "unitOfMeasurement": {
@@ -74,11 +74,11 @@
             "phenomenonTime": "2000-11-30T23:00:00Z/2000-12-21T23:00:00Z",
             "resultTime": "2000-11-30T23:00:00Z/2000-12-21T23:00:00Z",
             "@iot.id": "urn:ogc:object:observation:template:GEOM:2-2",
-            "@iot.selfLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-2)",
-            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-2)/Things",
-            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-2)/Sensors",
-            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-2)/ObservedProperties",
-            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-2)/Observations"
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:2-2)",
+            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:2-2)/Things",
+            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:2-2)/Sensors",
+            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:2-2)/ObservedProperties",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:2-2)/Observations"
         }, {
             "description": "",
             "unitOfMeasurement": {
@@ -94,11 +94,11 @@
             "phenomenonTime": "2007-05-01T00:59:00Z/2007-05-01T19:59:00Z",
             "resultTime": "2007-05-01T00:59:00Z/2007-05-01T19:59:00Z",
             "@iot.id": "urn:ogc:object:observation:template:GEOM:3-2",
-            "@iot.selfLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:3-2)",
-            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:3-2)/Things",
-            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:3-2)/Sensors",
-            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:3-2)/ObservedProperties",
-            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:3-2)/Observations"
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:3-2)",
+            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:3-2)/Things",
+            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:3-2)/Sensors",
+            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:3-2)/ObservedProperties",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:3-2)/Observations"
         }, {
             "description": "",
             "unitOfMeasurement": {
@@ -114,11 +114,11 @@
             "phenomenonTime": "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
             "resultTime": "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
             "@iot.id": "urn:ogc:object:observation:template:GEOM:4-2",
-            "@iot.selfLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:4-2)",
-            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:4-2)/Things",
-            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:4-2)/Sensors",
-            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:4-2)/ObservedProperties",
-            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:4-2)/Observations"
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:4-2)",
+            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:4-2)/Things",
+            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:4-2)/Sensors",
+            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:4-2)/ObservedProperties",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:4-2)/Observations"
         }, {
             "description": "",
             "unitOfMeasurement": {
@@ -134,11 +134,11 @@
             "phenomenonTime": "2007-05-01T14:59:00Z",
             "resultTime": "2007-05-01T14:59:00Z",
             "@iot.id": "urn:ogc:object:observation:template:GEOM:7-2",
-            "@iot.selfLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:7-2)",
-            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:7-2)/Things",
-            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:7-2)/Sensors",
-            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:7-2)/ObservedProperties",
-            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:7-2)/Observations"
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:7-2)",
+            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:7-2)/Things",
+            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:7-2)/Sensors",
+            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:7-2)/ObservedProperties",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:7-2)/Observations"
         }, {
             "description": "",
             "unitOfMeasurement": {
@@ -154,11 +154,11 @@
             "phenomenonTime": "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
             "resultTime": "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
             "@iot.id": "urn:ogc:object:observation:template:GEOM:8-2",
-            "@iot.selfLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:8-2)",
-            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:8-2)/Things",
-            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:8-2)/Sensors",
-            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:8-2)/ObservedProperties",
-            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:8-2)/Observations"
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:8-2)",
+            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:8-2)/Things",
+            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:8-2)/Sensors",
+            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:8-2)/ObservedProperties",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:8-2)/Observations"
         }, {
             "description": "",
             "unitOfMeasurement": {
@@ -174,11 +174,11 @@
             "phenomenonTime": "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
             "resultTime": "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
             "@iot.id": "urn:ogc:object:observation:template:GEOM:8-3",
-            "@iot.selfLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:8-3)",
-            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:8-3)/Things",
-            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:8-3)/Sensors",
-            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:8-3)/ObservedProperties",
-            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:8-3)/Observations"
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:8-3)",
+            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:8-3)/Things",
+            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:8-3)/Sensors",
+            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:8-3)/ObservedProperties",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:8-3)/Observations"
         }, {
             "description": "",
             "unitOfMeasurement": {
@@ -194,11 +194,11 @@
             "phenomenonTime": "2009-05-01T11:47:00Z",
             "resultTime": "2009-05-01T11:47:00Z",
             "@iot.id": "urn:ogc:object:observation:template:GEOM:9-1",
-            "@iot.selfLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:9-1)",
-            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:9-1)/Things",
-            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:9-1)/Sensors",
-            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:9-1)/ObservedProperties",
-            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:9-1)/Observations"
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:9-1)",
+            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:9-1)/Things",
+            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:9-1)/Sensors",
+            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:9-1)/ObservedProperties",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:9-1)/Observations"
         }, {
             "description": "",
             "unitOfMeasurement": {
@@ -214,11 +214,11 @@
             "phenomenonTime": "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
             "resultTime": "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
             "@iot.id": "urn:ogc:object:observation:template:GEOM:test-1-2",
-            "@iot.selfLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-2)",
-            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-2)/Things",
-            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-2)/Sensors",
-            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-2)/ObservedProperties",
-            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-2)/Observations"
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-2)",
+            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-2)/Things",
+            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-2)/Sensors",
+            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-2)/ObservedProperties",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-2)/Observations"
         }, {
             "description": "",
             "unitOfMeasurement": {
@@ -234,11 +234,11 @@
             "phenomenonTime": "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
             "resultTime": "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
             "@iot.id": "urn:ogc:object:observation:template:GEOM:test-1-3",
-            "@iot.selfLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-3)",
-            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-3)/Things",
-            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-3)/Sensors",
-            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-3)/ObservedProperties",
-            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-3)/Observations"
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-3)",
+            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-3)/Things",
+            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-3)/Sensors",
+            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-3)/ObservedProperties",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-3)/Observations"
         }, {
             "description": "",
             "unitOfMeasurement": {
@@ -254,10 +254,10 @@
             "phenomenonTime": "2009-05-01T11:47:00Z/2009-05-01T12:03:00Z",
             "resultTime": "2009-05-01T11:47:00Z/2009-05-01T12:03:00Z",
             "@iot.id": "urn:ogc:object:observation:template:GEOM:test-id-2",
-            "@iot.selfLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-id-2)",
-            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-id-2)/Things",
-            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-id-2)/Sensors",
-            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-id-2)/ObservedProperties",
-            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:test-id-2)/Observations"
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:test-id-2)",
+            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:test-id-2)/Things",
+            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:test-id-2)/Sensors",
+            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:test-id-2)/ObservedProperties",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:test-id-2)/Observations"
         }]
 }

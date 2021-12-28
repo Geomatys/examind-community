@@ -28,6 +28,8 @@ public final class STSConstants {
 
     private STSConstants() {}
 
+    public static final String STS_VERSION    = "v1.1";
+
     public static final String ORDERBY       = "$orderby";
     public static final String SELECT        = "$select";
     public static final String EXPAND        = "$expand";
