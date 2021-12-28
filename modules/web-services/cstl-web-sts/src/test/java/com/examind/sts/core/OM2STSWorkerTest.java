@@ -2108,6 +2108,14 @@ public class OM2STSWorkerTest {
         expesult.addLink("FeaturesOfInterest", "http://test.geomatys.com/sts/default/v1.1/FeaturesOfInterest");
         expesult.addLink("HistoricalLocations", "http://test.geomatys.com/sts/default/v1.1/HistoricalLocations");
 
+        List<String> conformance = Arrays.asList("http://www.opengis.net/spec/iot_sensing/1.1/req/datamodel",
+                                                 "http://www.opengis.net/spec/iot_sensing/1.1/req/resource-path/resource-path-to-entities",
+                                                 "http://www.opengis.net/spec/iot_sensing/1.1/req/request-data",
+                                                 "http://www.opengis.net/spec/iot_sensing/1.1/req/data-array/data-array",
+                                                 "http://www.opengis.net/spec/iot_sensing/1.1/req/multi-datastream",
+                                                 "https://geomatys.com/examind/extensions/Decimation.html"); // TODO use a real link to a hosted html page explaining the extension
+        expesult.addServerSetting("conformance", conformance);
+
         Assert.assertEquals(expesult, result);
     }
 

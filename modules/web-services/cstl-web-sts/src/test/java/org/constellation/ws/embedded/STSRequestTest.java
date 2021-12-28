@@ -169,6 +169,17 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         stopServer();
     }
 
+    @Test
+    @Order(order=1)
+    public void landingPageTest() throws Exception {
+        initPool();
+        URL getFoiUrl = new URL(getDefaultURL());
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/root.json");
+
+        compareJSON(expResult, result);
+    }
 
     @Test
     @Order(order=1)

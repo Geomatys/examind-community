@@ -28,7 +28,8 @@ public final class STSConstants {
 
     private STSConstants() {}
 
-    public static final String STS_VERSION    = "v1.1";
+    public static final String STS_VERSION   = "v1.1";
+    public static final String STS_DEC_EXT   = "https://geomatys.com/examind/extensions/Decimation.html"; // TODO use a real link to a hosted html page explaining the extension
 
     public static final String ORDERBY       = "$orderby";
     public static final String SELECT        = "$select";

@@ -1,0 +1,40 @@
+{
+    "value": [{
+            "name": "Things",
+            "url": "http://localhost:9090/WS/sts/default/v1.1/Things"
+        }, {
+            "name": "Locations",
+            "url": "http://localhost:9090/WS/sts/default/v1.1/Locations"
+        }, {
+            "name": "Datastreams",
+            "url": "http://localhost:9090/WS/sts/default/v1.1/Datastreams"
+        }, {
+            "name": "MultiDatastreams",
+            "url": "http://localhost:9090/WS/sts/default/v1.1/MultiDatastreams"
+        }, {
+            "name": "Sensors",
+            "url": "http://localhost:9090/WS/sts/default/v1.1/Sensors"
+        }, {
+            "name": "Observations",
+            "url": "http://localhost:9090/WS/sts/default/v1.1/Observations"
+        }, {
+            "name": "ObservedProperties",
+            "url": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties"
+        }, {
+            "name": "FeaturesOfInterest",
+            "url": "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest"
+        }, {
+            "name": "HistoricalLocations",
+            "url": "http://localhost:9090/WS/sts/default/v1.1/HistoricalLocations"
+        }],
+    "serverSettings": {
+        "conformance": [
+            "http://www.opengis.net/spec/iot_sensing/1.1/req/datamodel", 
+            "http://www.opengis.net/spec/iot_sensing/1.1/req/resource-path/resource-path-to-entities", 
+            "http://www.opengis.net/spec/iot_sensing/1.1/req/request-data", 
+            "http://www.opengis.net/spec/iot_sensing/1.1/req/data-array/data-array", 
+            "http://www.opengis.net/spec/iot_sensing/1.1/req/multi-datastream", 
+            "https://geomatys.com/examind/extensions/Decimation.html"
+        ]
+    }
+}

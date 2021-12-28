@@ -22,6 +22,7 @@ package com.examind.sts.core;
 import com.examind.odata.ODataFilterParser;
 import com.examind.odata.ODataParseException;
 import com.examind.sensor.ws.SensorWorker;
+import static com.examind.sts.core.STSConstants.STS_DEC_EXT;
 import static com.examind.sts.core.STSConstants.STS_VERSION;
 import static com.examind.sts.core.STSUtils.formatDate;
 import java.math.BigDecimal;
@@ -214,6 +215,14 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         result.addLink("ObservedProperties", selfLink + "/ObservedProperties");
         result.addLink("FeaturesOfInterest", selfLink + "/FeaturesOfInterest");
         result.addLink("HistoricalLocations", selfLink + "/HistoricalLocations");
+
+        List<String> conformance = Arrays.asList("http://www.opengis.net/spec/iot_sensing/1.1/req/datamodel",
+                                                 "http://www.opengis.net/spec/iot_sensing/1.1/req/resource-path/resource-path-to-entities",
+                                                 "http://www.opengis.net/spec/iot_sensing/1.1/req/request-data",
+                                                 "http://www.opengis.net/spec/iot_sensing/1.1/req/data-array/data-array",
+                                                 "http://www.opengis.net/spec/iot_sensing/1.1/req/multi-datastream",
+                                                 STS_DEC_EXT); 
+        result.addServerSetting("conformance", conformance);
         return result;
     }
 
