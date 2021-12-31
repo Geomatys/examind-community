@@ -320,6 +320,9 @@ public class OM2BaseReader {
                                 name = phenID.substring(phenomenonIdBase.length());
                             }
                         }
+                        if (name == null) {
+                            name = phenID;
+                        }
                         return buildPhenomenon(version, phenID, name, definition, description);
                     }
                 }
