@@ -59,7 +59,6 @@ import org.constellation.api.ServiceDef;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.dto.contact.Details;
-import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.security.SecurityManagerHolder;
@@ -240,20 +239,19 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             if (req.getTop() == null || req.getTop() > 0) {
                 List<Process> procs = omProvider.getProcedures(subquery, new HashMap<>());
 
-                List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), null);
                 for (Process proc : procs) {
                     String sensorId = ((org.geotoolkit.observation.xml.Process)proc).getHref();
                     org.constellation.dto.Sensor s = null;
-                    if (sensorIds.contains(sensorId)) {
-                        s = sensorBusiness.getSensor(sensorId);
+                    // TODO here if the provider is not "all" linked, there will be issues in the paging
+                    if (sensorBusiness.isLinkedSensor(getServiceId(), sensorId)) {
+                        Thing thing = buildThing(exp, sensorId, null, (org.geotoolkit.observation.xml.Process) proc);
+                        things.add(thing);
                     }
-                    Thing thing = buildThing(exp, sensorId, s, (org.geotoolkit.observation.xml.Process) proc);
-                    things.add(thing);
                 }
             }
             iotNextLink = computePaginationNextLink(req, count != null ? count.intValue() : null, "/Things");
             
-        } catch (ConfigurationException | ConstellationStoreException ex) {
+        } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
         return new ThingsResponse().value(things).iotCount(count).iotNextLink(iotNextLink);
@@ -264,12 +262,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         try {
             if (req.getId() != null) {
                 final RequestOptions exp = new RequestOptions(req);
-                org.constellation.dto.Sensor s = sensorBusiness.getSensor(req.getId());
                 Process proc = getProcess(req.getId(), "2.0.0");
-                if (s == null) {
+                if (sensorBusiness.isLinkedSensor(getServiceId(), req.getId())) {
                     return buildThing(exp, req.getId(), null, (org.geotoolkit.observation.xml.Process) proc);
-                } else  if (sensorBusiness.isLinkedSensor(getServiceId(), s.getIdentifier())) {
-                    return buildThing(exp, req.getId(), s, (org.geotoolkit.observation.xml.Process) proc);
                 }
             }
             return null;
@@ -847,9 +842,13 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         String selfLink = getServiceUrl();
         selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Datastreams(" + obs.getName().getCode() + ")";
 
+        org.constellation.dto.Sensor s = null;
         String sensorID = null;
         if (obs.getProcedure() != null && obs.getProcedure().getHref() != null) {
             sensorID = obs.getProcedure().getHref();
+            if (exp.sensors.expanded || exp.things.expanded) {
+                 s = sensorBusiness.getSensor(sensorID);
+            }
         }
 
         Datastream datastream = new Datastream();
@@ -877,7 +876,6 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
         if (exp.sensors.expanded) {
             if (sensorID != null) {
-                org.constellation.dto.Sensor s = sensorBusiness.getSensor(sensorID);
                 datastream.setSensor(buildSensor(exp, sensorID, s));
             }
         } else if (exp.sensors.selected) {
@@ -886,7 +884,6 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
         if (exp.things.expanded) {
             if (sensorID != null) {
-                org.constellation.dto.Sensor s = sensorBusiness.getSensor(sensorID);
                 datastream.setThing(buildThing(exp, sensorID, s, obs.getProcedure()));
             }
         } else if (exp.things.selected) {
@@ -1000,9 +997,13 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         String selfLink = getServiceUrl();
         selfLink = selfLink.substring(0, selfLink.length() - 1) + "/MultiDatastreams(" + obs.getName().getCode() + ")";
 
+        org.constellation.dto.Sensor s = null;
         String sensorID = null;
         if (obs.getProcedure() != null && obs.getProcedure().getHref() != null) {
             sensorID = obs.getProcedure().getHref();
+            if (exp.sensors.expanded || exp.things.expanded) {
+                 s = sensorBusiness.getSensor(sensorID);
+            }
         }
 
         MultiDatastream datastream = new MultiDatastream();
@@ -1054,7 +1055,6 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
          if (exp.sensors.expanded) {
             if (sensorID != null) {
-                org.constellation.dto.Sensor s = sensorBusiness.getSensor(sensorID);
                 datastream.setSensor(buildSensor(exp, sensorID, s));
             }
         } else if (exp.sensors.selected) {
@@ -1063,7 +1063,6 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
         if (exp.things.expanded) {
             if (sensorID != null) {
-                org.constellation.dto.Sensor s = sensorBusiness.getSensor(sensorID);
                 datastream.setThing(buildThing(exp, sensorID, s, obs.getProcedure()));
             }
         } else if (exp.things.selected) {
@@ -1385,16 +1384,14 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 filters.add(ff.tequals(ff.property("time"), ff.literal(STSUtils.buildTemporalObj(d))));
                 final FeatureQuery subquery = buildExtraFilterQuery(req, true, filters);
                 Map<String,Map<Date, org.opengis.geometry.Geometry>> sensorHLocations = omProvider.getHistoricalLocation(subquery, new HashMap<>());
-                List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), null);
                 for (Entry<String,Map<Date, org.opengis.geometry.Geometry>> entry : sensorHLocations.entrySet()) {
                     String sensorId = entry.getKey();
-                    org.constellation.dto.Sensor s = null;
-                    if (sensorIds.contains(sensorId)) {
-                        s = sensorBusiness.getSensor(sensorId);
-                    }
-                    if (entry.getValue().containsKey(d)) {
-                        Location location = buildLocation(exp, sensorId, s, d, (AbstractGeometry) entry.getValue().get(d));
-                        locations.add(location);
+                    // TODO here if the provider is not "all" linked, there will be issues in the paging
+                    if (sensorBusiness.isLinkedSensor(getServiceId(), sensorId)) {
+                        if (entry.getValue().containsKey(d)) {
+                            Location location = buildLocation(exp, sensorId, null, d, (AbstractGeometry) entry.getValue().get(d));
+                            locations.add(location);
+                        }
                     }
                 }
 
@@ -1406,22 +1403,20 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 }
                 if (req.getTop() == null || req.getTop() > 0) {
                     Map<String, org.opengis.geometry.Geometry> locs = omProvider.getLocation(subquery, new HashMap<>());
-                    List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), null);
                     for (Entry<String, org.opengis.geometry.Geometry> entry : locs.entrySet()) {
                         String sensorId = entry.getKey();
-                        org.constellation.dto.Sensor s = null;
-                        if (sensorIds.contains(sensorId)) {
-                            s = sensorBusiness.getSensor(sensorId);
+                        // TODO here if the provider is not "all" linked, there will be issues in the paging
+                        if (sensorBusiness.isLinkedSensor(getServiceId(), sensorId)) {
+                            Location location = buildLocation(exp, sensorId, null, null, (AbstractGeometry) entry.getValue());
+                            locations.add(location);
                         }
-                        Location location = buildLocation(exp, sensorId, s, null, (AbstractGeometry) entry.getValue());
-                        locations.add(location);
                     }
                 }
             }
 
             iotNextLink = computePaginationNextLink(req, count != null ? count.intValue() : null, "/Locations");
 
-        } catch (ConfigurationException | ConstellationStoreException ex) {
+        } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
         return new LocationsResponse().value(locations).iotCount(count).iotNextLink(iotNextLink);
@@ -1447,20 +1442,18 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             if (req.getTop() == null || req.getTop() > 0) {
                 List<Process> procs = omProvider.getProcedures(subquery, new HashMap<>());
 
-                List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), null);
                 for (Process proc : procs) {
                     String sensorId = ((org.geotoolkit.observation.xml.Process)proc).getHref();
-                    org.constellation.dto.Sensor s = null;
-                    if (sensorIds.contains(sensorId)) {
-                        s = sensorBusiness.getSensor(sensorId);
+                    // TODO here if the provider is not "all" linked, there will be issues in the paging
+                    if (sensorBusiness.isLinkedSensor(getServiceId(), sensorId)) {
+                        Sensor sensor = buildSensor(exp, sensorId, null);
+                        sensors.add(sensor);
                     }
-                    Sensor sensor = buildSensor(exp, sensorId, s);
-                    sensors.add(sensor);
                 }
             }
             iotNextLink = computePaginationNextLink(req, count != null ? count.intValue() : null, "/Sensors");
 
-        } catch (ConfigurationException | ConstellationStoreException ex) {
+        } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
         return new SensorsResponse(sensors).iotCount(count).iotNextLink(iotNextLink);
@@ -1471,11 +1464,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         try {
             if (req.getId() != null) {
                 final RequestOptions exp = new RequestOptions(req);
-                org.constellation.dto.Sensor s = sensorBusiness.getSensor(req.getId());
-                if (s == null) {
+                if (sensorBusiness.isLinkedSensor(getServiceId(), req.getId())) {
                     return buildSensor(exp, req.getId(), null);
-                } else  if (sensorBusiness.isLinkedSensor(getServiceId(), s.getIdentifier())) {
-                    return buildSensor(exp, req.getId(), s);
                 }
             }
             return null;
@@ -1484,9 +1474,13 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         }
     }
 
-
     private Sensor buildSensor(RequestOptions exp, String sensorID, org.constellation.dto.Sensor s) throws ConstellationStoreException {
         exp = exp.subLevel("Sensors");
+
+        if (s == null) {
+            s = sensorBusiness.getSensor(sensorID);
+        }
+
         String selfLink = getServiceUrl();
         selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Sensors("+ sensorID+ ")";
 
@@ -1501,7 +1495,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 }
                 metadataLink = metadataLink + "/API/sensors/" + s.getId() + "/metadata/download";
             }
-            description = s.getDescription();
+            if (s.getDescription() != null) {
+                description = s.getDescription();
+            }
             name = s.getName();
         }
 
@@ -1539,6 +1535,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         String selfLink = getServiceUrl();
         selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Things("+ sensorID+ ")";
 
+        if (s == null) {
+            s = sensorBusiness.getSensor(sensorID);
+        }
         Thing thing = new Thing();
         if (exp.isSelected("properties") && s != null && s.getOmType() != null) {
             Map<String, String> properties = new HashMap<>();
@@ -1600,9 +1599,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
                 // try to find a sensor location
                 if (sensorBusiness.isLinkedSensor(getServiceId(), locId)) {
-                    final String sensorId = locId;
-                    final org.constellation.dto.Sensor s = sensorBusiness.getSensor(sensorId);
-                    return buildLocation(exp, req.getId(), s, null, null);
+                    return buildLocation(exp, locId, null, null, null);
 
                 // try to find a historical location
                 } else {
@@ -1615,8 +1612,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                             if (sensorBusiness.isLinkedSensor(getServiceId(), sensorId)) {
                                 Map<Date, org.opengis.geometry.Geometry> hLocations = getHistoricalLocationsForSensor(sensorId);
                                 if (hLocations.containsKey(d)) {
-                                    org.constellation.dto.Sensor s = sensorBusiness.getSensor(sensorId);
-                                    return buildLocation(exp, sensorId, s, d, (AbstractGeometry) hLocations.get(d));
+                                    return buildLocation(exp, sensorId, null, d, (AbstractGeometry) hLocations.get(d));
                                 }
                             }
                             return null;
@@ -1672,22 +1668,23 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             final FeatureQuery subquery = buildExtraFilterQuery(req, true, filters);
             if (req.getTop() == null || req.getTop() > 0) {
                 Map<String, Map<Date, org.opengis.geometry.Geometry>> hLocations = omProvider.getHistoricalLocation(subquery, hints);
-                List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), null);
                 for (Entry<String, Map<Date, org.opengis.geometry.Geometry>> entry : hLocations.entrySet()) {
                     String sensorId = entry.getKey();
                     org.constellation.dto.Sensor s = null;
-                    if (sensorIds.contains(sensorId)) {
+                    // TODO here if the provider is not "all" linked, there will be issues in the paging
+                    if (sensorBusiness.isLinkedSensor(getServiceId(), sensorId)) {
                         s = sensorBusiness.getSensor(sensorId);
-                    }
-                    for (Entry<Date, org.opengis.geometry.Geometry> hLocation : entry.getValue().entrySet()) {
-                        HistoricalLocation location = buildHistoricalLocation(exp, sensorId, s, hLocation.getKey(), (AbstractGeometry) hLocation.getValue());
-                        locations.add(location);
+                    
+                        for (Entry<Date, org.opengis.geometry.Geometry> hLocation : entry.getValue().entrySet()) {
+                            HistoricalLocation location = buildHistoricalLocation(exp, sensorId, s, hLocation.getKey(), (AbstractGeometry) hLocation.getValue());
+                            locations.add(location);
+                        }
                     }
                 }
             }
             iotNextLink = computePaginationNextLink(req, count != null ? count.intValue() : null, "/HistoricalLocations");
 
-        } catch (ConfigurationException | ConstellationStoreException ex) {
+        } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
         return new HistoricalLocationsResponse().value(locations).iotCount(count).iotNextLink(iotNextLink);
@@ -1715,11 +1712,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                             Date d = new Date(Long.parseLong(timeStr));
                             org.opengis.geometry.Geometry geom = hLocations.get(d);
                             if (geom != null) {
-                                org.constellation.dto.Sensor s = sensorBusiness.getSensor(sensorId);
-                                if (s == null) {
+                                if (sensorBusiness.isLinkedSensor(getServiceId(), sensorId)) {
                                     return buildHistoricalLocation(exp, sensorId, null, d, (AbstractGeometry) geom);
-                                } else  if (sensorBusiness.isLinkedSensor(getServiceId(), s.getIdentifier())) {
-                                    return buildHistoricalLocation(exp, s.getIdentifier(), s, d, (AbstractGeometry) geom);
                                 }
                             }
                         } catch (NumberFormatException ex) {
@@ -1783,6 +1777,11 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     private Location buildLocation(RequestOptions exp, String sensorID, org.constellation.dto.Sensor s, Date d, AbstractGeometry historicalGeom) throws ConstellationStoreException {
         exp = exp.subLevel("Locations");
+
+        if (s == null && exp.things.expanded) {
+            s = sensorBusiness.getSensor(sensorID);
+        }
+
         String selfLink = getServiceUrl();
         final String locID;
         final String description = "";
@@ -1849,8 +1848,14 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         }
     }
 
+    
     private HistoricalLocation buildHistoricalLocation(RequestOptions exp, String sensorID, org.constellation.dto.Sensor s, Date d, AbstractGeometry geomS) throws ConstellationStoreException {
         exp = exp.subLevel("HistoricalLocations");
+
+        if (s == null && (exp.things.expanded || exp.locations.expanded)) {
+            s = sensorBusiness.getSensor(sensorID);
+        }
+
         String hlid = sensorID + "-" + d.getTime();
         String selfLink = getServiceUrl();
         selfLink = selfLink.substring(0, selfLink.length() - 1) + "/HistoricalLocations(" + hlid + ")";

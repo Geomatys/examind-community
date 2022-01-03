@@ -39,7 +39,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
-import javax.validation.constraints.AssertTrue;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import org.constellation.admin.WSEngine;
@@ -88,7 +87,6 @@ import org.geotoolkit.sos.xml.v200.GetResultResponseType;
 import org.geotoolkit.sos.xml.v200.GetResultType;
 import org.geotoolkit.sts.GetHistoricalLocations;
 import org.geotoolkit.sts.GetMultiDatastreamById;
-import org.geotoolkit.sts.GetMultiDatastreams;
 import org.geotoolkit.sts.GetObservations;
 import org.geotoolkit.sts.GetObservedProperties;
 import org.geotoolkit.sts.GetObservedPropertyById;
@@ -97,7 +95,6 @@ import org.geotoolkit.sts.json.DataArrayResponse;
 import org.geotoolkit.sts.json.HistoricalLocation;
 import org.geotoolkit.sts.json.HistoricalLocationsResponse;
 import org.geotoolkit.sts.json.MultiDatastream;
-import org.geotoolkit.sts.json.MultiDatastreamsResponse;
 import org.geotoolkit.sts.json.ObservationsResponse;
 import org.geotoolkit.sts.json.ObservedPropertiesResponse;
 import org.geotoolkit.sts.json.ObservedProperty;
@@ -115,10 +112,7 @@ import org.opengis.observation.Observation;
 import org.opengis.observation.ObservationCollection;
 import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.temporal.IndeterminateValue;
-import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
-import org.opengis.temporal.TemporalPosition;
 import org.opengis.util.NoSuchIdentifierException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -1052,8 +1046,11 @@ public class SosHarvesterProcessTest {
 
         ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
         Assert.assertNotNull(sc);
+        ServiceComplete sc2 = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
+        Assert.assertNotNull(sc2);
 
         sensorServBusiness.removeAllSensors(sc.getId());
+        sensorServBusiness.removeAllSensors(sc2.getId());
 
         SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
         sosWorker.setServiceUrl("http://localhost/examind/");
@@ -1092,7 +1089,13 @@ public class SosHarvesterProcessTest {
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
         in.parameter(SosHarvesterProcessDescriptor.THING_COLUMN_NAME).setValue("PLATFORM");
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(false);
-        in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
+        
+        ParameterValue scval1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
+        scval1.setValue(new ServiceProcessReference(sc));
+        in.values().add(scval1);
+        ParameterValue scval2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
+        scval2.setValue(new ServiceProcessReference(sc2));
+        in.values().add(scval2);
 
         org.geotoolkit.process.Process proc = desc.createProcess(in);
         proc.call();
@@ -1104,6 +1107,10 @@ public class SosHarvesterProcessTest {
         Assert.assertNotNull(sensorBusiness.getSensor("p001"));
         Assert.assertNotNull(sensorBusiness.getSensor("p002"));
         Assert.assertNotNull(sensorBusiness.getSensor("p003"));
+
+         // verify that the sensor is linked to the services
+        Assert.assertTrue(sensorBusiness.isLinkedSensor(sc.getId(), "p001"));
+        Assert.assertTrue(sensorBusiness.isLinkedSensor(sc2.getId(), "p001"));
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
@@ -1242,6 +1249,8 @@ public class SosHarvesterProcessTest {
 
         ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
         Assert.assertNotNull(sc);
+        ServiceComplete sc2 = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
+        Assert.assertNotNull(sc2);
 
         sensorServBusiness.removeAllSensors(sc.getId());
 
@@ -1292,7 +1301,13 @@ public class SosHarvesterProcessTest {
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Profile");
         in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue(sensorId);
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(true);
-        in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
+        
+        ParameterValue scval1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
+        scval1.setValue(new ServiceProcessReference(sc));
+        in.values().add(scval1);
+        ParameterValue scval2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
+        scval2.setValue(new ServiceProcessReference(sc2));
+        in.values().add(scval2);
 
         org.geotoolkit.process.Process proc = desc.createProcess(in);
         proc.call();
@@ -1539,8 +1554,11 @@ public class SosHarvesterProcessTest {
 
         ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
         Assert.assertNotNull(sc);
+        ServiceComplete sc2 = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
+        Assert.assertNotNull(sc2);
 
         sensorServBusiness.removeAllSensors(sc.getId());
+        sensorServBusiness.removeAllSensors(sc2.getId());
 
         SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
         sosWorker.setServiceUrl("http://localhost/examind/");
@@ -1584,7 +1602,13 @@ public class SosHarvesterProcessTest {
         in.parameter(SosHarvesterProcessDescriptor.THING_COLUMN_NAME).setValue("platform_code");
         in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue("urn:template:");
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(true);
-        in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
+
+        ParameterValue scval1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
+        scval1.setValue(new ServiceProcessReference(sc));
+        in.values().add(scval1);
+        ParameterValue scval2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
+        scval2.setValue(new ServiceProcessReference(sc2));
+        in.values().add(scval2);
 
         org.geotoolkit.process.Process proc = desc.createProcess(in);
         proc.call();
@@ -2284,6 +2308,9 @@ public class SosHarvesterProcessTest {
                 "   service:",
                 "      identifier: default",
                 "      type: sos",
+                "   service2:",
+                "      identifier: default",
+                "      type: sts",
                 "dataset_identifier: "+datasetId,
                 "thing_id: "+sensorId,
                 "#thing_column: test string",
@@ -2412,6 +2439,9 @@ public class SosHarvesterProcessTest {
                 "   service:",
                 "      identifier: default",
                 "      type: sos",
+                "   service2:",
+                "      identifier: default",
+                "      type: sts",
                 "dataset_identifier: "+datasetId,
                 "thing_id: "+sensorId,
                 "#thing_column: test string",

@@ -11,7 +11,6 @@
                         "type": "Feature",
                         "geometry": {
                             "type": "Point",
-                            "type": "Point",
                             "coordinates": [42.38798858151254, -4.144984627896042]
                         },
                         "properties": {}
@@ -49,7 +48,6 @@
                     "location": {
                         "type": "Feature",
                         "geometry": {
-                            "type": "Point",
                             "type": "Point",
                             "coordinates": [10.0, 10.0]
                         },
@@ -89,7 +87,6 @@
                         "type": "Feature",
                         "geometry": {
                             "type": "Point",
-                            "type": "Point",
                             "coordinates": [10.0, 10.0]
                         },
                         "properties": {}
@@ -127,7 +124,6 @@
                     "location": {
                         "type": "Feature",
                         "geometry": {
-                            "type": "Point",
                             "type": "Point",
                             "coordinates": [10.0, 10.0]
                         },
@@ -167,7 +163,6 @@
                         "type": "Feature",
                         "geometry": {
                             "type": "Point",
-                            "type": "Point",
                             "coordinates": [40.0, -3.0]
                         },
                         "properties": {}
@@ -205,7 +200,6 @@
                     "location": {
                         "type": "Feature",
                         "geometry": {
-                            "type": "Point",
                             "type": "Point",
                             "coordinates": [13.000000001902016, 22.000000000075165]
                         },
@@ -245,7 +239,6 @@
                         "type": "Feature",
                         "geometry": {
                             "type": "Point",
-                            "type": "Point",
                             "coordinates": [14.000000000889084, 22.00000000003949]
                         },
                         "properties": {}
@@ -283,7 +276,6 @@
                     "location": {
                         "type": "Feature",
                         "geometry": {
-                            "type": "Point",
                             "type": "Point",
                             "coordinates": [11.000000004394957, 18.99999999995756]
                         },
@@ -323,7 +315,6 @@
                         "type": "Feature",
                         "geometry": {
                             "type": "Point",
-                            "type": "Point",
                             "coordinates": [11.000000004394957, 18.99999999995756]
                         },
                         "properties": {}
@@ -361,7 +352,6 @@
                     "location": {
                         "type": "Feature",
                         "geometry": {
-                            "type": "Point",
                             "type": "Point",
                             "coordinates": [13.000000001902016, 22.000000000075165]
                         },
@@ -407,7 +397,6 @@
                         "type": "Feature",
                         "geometry": {
                             "type": "Point",
-                            "type": "Point",
                             "coordinates": [14.000000000889084, 22.00000000003949]
                         },
                         "properties": {}
@@ -451,7 +440,6 @@
                     "location": {
                         "type": "Feature",
                         "geometry": {
-                            "type": "Point",
                             "type": "Point",
                             "coordinates": [11.000000004394957, 18.99999999995756]
                         },
@@ -497,7 +485,6 @@
                         "type": "Feature",
                         "geometry": {
                             "type": "Point",
-                            "type": "Point",
                             "coordinates": [40.0, -3.0]
                         },
                         "properties": {}
@@ -535,7 +522,6 @@
                     "location": {
                         "type": "Feature",
                         "geometry": {
-                            "type": "Point",
                             "type": "Point",
                             "coordinates": [10.0, 10.0]
                         },
@@ -575,7 +561,6 @@
                         "type": "Feature",
                         "geometry": {
                             "type": "Point",
-                            "type": "Point",
                             "coordinates": [12.00000000309688, 20.00000000001678]
                         },
                         "properties": {}
@@ -614,7 +599,6 @@
                         "type": "Feature",
                         "geometry": {
                             "type": "Point",
-                            "type": "Point",
                             "coordinates": [42.38798858151254, -4.144984627896042]
                         },
                         "properties": {}
@@ -624,6 +608,9 @@
                     "Things": [{
                             "name": "Sensor 8",
                             "description": "",
+                            "properties": {
+                                "type": "timeseries"
+                            },
                             "@iot.id": "urn:ogc:object:sensor:GEOM:8",
                             "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:8)",
                             "HistoricalLocations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:8)/HistoricalLocations",
@@ -635,6 +622,9 @@
             "Thing": {
                 "name": "Sensor 8",
                 "description": "",
+                "properties": {
+                    "type": "timeseries"
+                },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:8",
                 "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:8)",
                 "HistoricalLocations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:8)/HistoricalLocations",
@@ -652,7 +642,6 @@
                     "location": {
                         "type": "Feature",
                         "geometry": {
-                            "type": "Point",
                             "type": "Point",
                             "coordinates": [42.38798858151254, -4.144984627896042]
                         },
@@ -691,7 +680,6 @@
                     "location": {
                         "type": "Feature",
                         "geometry": {
-                            "type": "Point",
                             "type": "Point",
                             "coordinates": [5.0, 10.0]
                         },
@@ -736,7 +724,6 @@
                     "location": {
                         "type": "Feature",
                         "geometry": {
-                            "type": "Point",
                             "type": "Point",
                             "coordinates": [42.38798858151254, -4.144984627896042]
                         },

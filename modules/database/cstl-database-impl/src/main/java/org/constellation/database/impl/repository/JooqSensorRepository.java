@@ -239,24 +239,23 @@ public class JooqSensorRepository extends AbstractJooqRespository<SensorRecord, 
 
     @Override
     public boolean isLinkedSensorToService(int sensorID, int servID) {
-         // look for sensor individually linked to the service.
-        boolean linked = dsl.selectCount().from(SENSOR_X_SOS)
-                .where(SENSOR_X_SOS.SENSOR_ID.eq(sensorID))
-                .and(SENSOR_X_SOS.SOS_ID.eq(servID))
-                .fetchOne(0, Integer.class) > 0;
-
-        if (linked) {
-            return true;
-        }
-
         // look for sensor in a fully linked sensor provider.
-        return dsl.selectCount()
+        boolean allLinked = dsl.selectCount()
                      .from(SENSOR, PROVIDER_X_SOS)
                      .where(SENSOR.ID.eq(sensorID))
                      .and(SENSOR.PROVIDER_ID.eq(PROVIDER_X_SOS.PROVIDER_ID))
                      .and(PROVIDER_X_SOS.SOS_ID.eq(servID))
                      .and(PROVIDER_X_SOS.ALL_SENSOR.eq(true))
                     .fetchOneInto(Integer.class) > 0;
+        if (allLinked) {
+            return true;
+        }
+
+        // look for sensor individually linked to the service.
+         return dsl.selectCount().from(SENSOR_X_SOS)
+                .where(SENSOR_X_SOS.SENSOR_ID.eq(sensorID))
+                .and(SENSOR_X_SOS.SOS_ID.eq(servID))
+                .fetchOne(0, Integer.class) > 0;
     }
     
     @Override

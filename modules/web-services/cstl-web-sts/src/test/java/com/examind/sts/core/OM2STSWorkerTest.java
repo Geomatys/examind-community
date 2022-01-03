@@ -22,6 +22,8 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -40,6 +42,8 @@ import org.constellation.dto.Sensor;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationRuntimeException;
+import org.constellation.provider.DataProviders;
+import org.constellation.provider.ObservationProvider;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.test.utils.TestEnvironment.TestResource;
@@ -140,7 +144,9 @@ public class OM2STSWorkerTest {
 
                 final TestResources testResource = initDataDirectory();
 
-                Integer pid = testResource.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
+                Integer omId = testResource.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
+                ObservationProvider omProv = (ObservationProvider) DataProviders.getProvider(omId);
+                Collection<String> procs   = omProv.getProcedureNames(null, new HashMap<>());
 
                 //we write the configuration file
                 final SOSConfiguration configuration = new SOSConfiguration();
@@ -148,25 +154,31 @@ public class OM2STSWorkerTest {
                 configuration.getParameters().put("transactionSecurized", "false");
 
                 Integer sid = serviceBusiness.create("sts", "default", configuration, null, null);
-                serviceBusiness.linkServiceAndProvider(sid, pid);
+                serviceBusiness.linkServiceAndProvider(sid, omId);
 
-                pid = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness, null).id;
+                Integer smlId = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness, null).id;
 
+                // default sensor initialisation
+                for (String proc : procs) {
+                    sensorBusiness.create(proc, proc, null, "system", null, null, null, Long.MIN_VALUE, smlId);
+                }
+
+                // complete some sensor with sml
                 Object sml = unmarshallSensorResource("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ1.xml", sensorBusiness);
-                sensorBusiness.create("urn:ogc:object:sensor:GEOM:1", "GEOM 1", "GEOM 1", "system", "timeseries", null, sml, Long.MIN_VALUE, pid);
+                updateSensor("urn:ogc:object:sensor:GEOM:1", "GEOM 1", "system", "timeseries", sml);
 
                 sml = unmarshallSensorResource("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ2.xml", sensorBusiness);
-                sensorBusiness.create("urn:ogc:object:sensor:GEOM:2", "GEOM 2", "GEOM 2", "component", "profile", null, sml, Long.MIN_VALUE, pid);
+                updateSensor("urn:ogc:object:sensor:GEOM:2", "GEOM 2", "component", "profile", sml);
 
                 sml = unmarshallSensorResource("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµtest-1.xml", sensorBusiness);
-                sensorBusiness.create("urn:ogc:object:sensor:GEOM:test-1", "test 1", "test 1", "system", "timeseries", null, sml, Long.MIN_VALUE, pid);
+                updateSensor("urn:ogc:object:sensor:GEOM:test-1", "test 1", "system", "timeseries", sml);
 
                 sml = unmarshallSensorResource("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ8.xml", sensorBusiness);
-                sensorBusiness.create("urn:ogc:object:sensor:GEOM:8", "GEOM 8", "GEOM 8", "system", "timeseries", null, sml, Long.MIN_VALUE, pid);
+                updateSensor("urn:ogc:object:sensor:GEOM:8", "GEOM 8", "system", "timeseries", sml);
 
-                serviceBusiness.linkServiceAndProvider(sid, pid);
+                serviceBusiness.linkServiceAndProvider(sid, smlId);
 
-                List<Sensor> sensors = sensorBusiness.getByProviderId(pid);
+                List<Sensor> sensors = sensorBusiness.getByProviderId(smlId);
                 sensors.stream().forEach((sensor) -> {
                     try {
                         sensorBusiness.addSensorToService(sid, sensor.getId());
@@ -182,6 +194,16 @@ public class OM2STSWorkerTest {
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
+    }
+
+    private void updateSensor(String sensorId, String name, String smlType, String omType, Object sml) throws ConfigurationException {
+        Sensor s = sensorBusiness.getSensor(sensorId);
+        s.setName(name);
+        s.setDescription(name);
+        s.setType(smlType);
+        s.setOmType(omType);
+        sensorBusiness.update(s);
+        sensorBusiness.updateSensorMetadata(sensorId, sml);
     }
 
     @AfterClass
