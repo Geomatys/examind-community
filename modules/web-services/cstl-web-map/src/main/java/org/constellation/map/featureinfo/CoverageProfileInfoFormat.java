@@ -25,6 +25,7 @@ import java.awt.Rectangle;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -563,6 +564,13 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         }
 
         pdata.points = reduce(pdata.points, samplingCount == null ? pdata.points.size() : samplingCount, reducer, nanBehavior);
+
+        /* TODO: debug point order. Sorting operation should not be needed, as points should already be returned in
+         * order of distance from trajectory start point. However, some reports have stated that in specific case, the
+         * order is broken. By safety, we add a manual sort here as last operation, but it adds a performance drawback.
+         * Further investigation should be done to determine if this is really necessary.
+         */
+        Collections.sort(pdata.points, Comparator.comparing(value -> value.x));
 
         pdata.setUnit(bands[0].getUnit());
         pdata.min = stats.minimum();
