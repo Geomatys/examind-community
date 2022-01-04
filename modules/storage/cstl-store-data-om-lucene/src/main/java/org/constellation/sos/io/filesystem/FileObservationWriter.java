@@ -118,12 +118,14 @@ public class FileObservationWriter implements ObservationWriter {
 
     @Override
     public String writeObservationTemplate(final ObservationTemplate template) throws DataStoreException {
+        String version = getVersionFromObj(template.getObservation());
         final Observation observation = template.getObservation();
         if (observation == null) {
             return null;
         }
+        Path obsTDir = observationTemplateDirectory.resolve(version);
         String fileName = observation.getName().getCode().replace(':', 'µ');
-        final Path observationFile = observationTemplateDirectory.resolve(fileName + FILE_EXTENSION);
+        final Path observationFile = obsTDir.resolve(fileName + FILE_EXTENSION);
         return writeObservationToFile(observation, observationFile);
     }
 
@@ -132,15 +134,18 @@ public class FileObservationWriter implements ObservationWriter {
      */
     @Override
     public String writeObservation(final Observation observation) throws DataStoreException {
+        String version = getVersionFromObj(observation);
         final Path observationFile;
         if (observation instanceof AbstractObservation && observation.getName() == null) {
-            ((AbstractObservation)observation).setName(getNewObservationId());
+            ((AbstractObservation)observation).setName(getNewObservationId(version));
         }
         String fileName = observation.getName().getCode().replace(':', 'µ');
         if (observation.getName().getCode().startsWith(observationTemplateIdBase)) {
-            observationFile = observationTemplateDirectory.resolve(fileName + FILE_EXTENSION);
+            Path obsTDir = observationTemplateDirectory.resolve(version);
+            observationFile = obsTDir.resolve(fileName + FILE_EXTENSION);
         } else {
-            observationFile = observationDirectory.resolve(fileName + FILE_EXTENSION);
+            Path obsDir = observationDirectory.resolve(version);
+            observationFile = obsDir.resolve(fileName + FILE_EXTENSION);
         }
         return writeObservationToFile(observation, observationFile);
     }
@@ -172,15 +177,16 @@ public class FileObservationWriter implements ObservationWriter {
         }
     }
 
-    private Identifier getNewObservationId() throws DataStoreException {
+    private Identifier getNewObservationId(String version) throws DataStoreException {
         String obsID = null;
         boolean exist = true;
         try {
-            long i = IOUtilities.listChildren(observationDirectory).size();
+            Path obsDir = observationDirectory.resolve(version);
+            long i = IOUtilities.listChildren(obsDir).size();
             while (exist) {
                 obsID = observationIdBase + i;
                 String fileName = obsID.replace(':', 'µ');
-                final Path newFile = observationDirectory.resolve(fileName);
+                final Path newFile = obsDir.resolve(fileName);
                 exist = Files.exists(newFile);
                 i++;
             }
@@ -188,6 +194,19 @@ public class FileObservationWriter implements ObservationWriter {
         } catch (IOException ex) {
             throw new DataStoreException(ex.getMessage(), ex);
         }
+    }
+
+    private String getVersionFromObj(Object obs) {
+        if (obs instanceof org.geotoolkit.observation.xml.v200.OMObservationType) {
+            return "2.0.0";
+        }
+        if (obs instanceof org.geotoolkit.swes.xml.v200.AbstractOfferingType) {
+            return "2.0.0";
+        }
+        if (obs instanceof org.geotoolkit.samplingspatial.xml.v200.SFSpatialSamplingFeatureType) {
+            return "2.0.0";
+        }
+        return "1.0.0";
     }
 
     /**
@@ -205,17 +224,21 @@ public class FileObservationWriter implements ObservationWriter {
 
     @Override
     public void removeObservation(final String observationID) throws DataStoreException {
-        final Path observationFile;
+        final Path observationFileV100;
+        final Path observationFileV200;
         String fileName = observationID.replace(':', 'µ');
         if (observationID.startsWith(observationTemplateIdBase)) {
-            observationFile = observationTemplateDirectory.resolve(fileName + FILE_EXTENSION);
+            observationFileV100 = observationTemplateDirectory.resolve("1.0.0").resolve(fileName + FILE_EXTENSION);
+            observationFileV200 = observationTemplateDirectory.resolve("2.0.0").resolve(fileName + FILE_EXTENSION);
         } else {
-            observationFile = observationDirectory.resolve(fileName + FILE_EXTENSION);
+            observationFileV100 = observationDirectory.resolve("1.0.0").resolve(fileName + FILE_EXTENSION);
+            observationFileV200 = observationDirectory.resolve("2.0.0").resolve(fileName + FILE_EXTENSION);
         }
         try {
-            Files.deleteIfExists(observationFile);
+            Files.deleteIfExists(observationFileV100);
+            Files.deleteIfExists(observationFileV200);
         } catch (IOException e) {
-            LOGGER.log(Level.WARNING, "unable to find t he fiel to delete:"+ observationFile.toString(), e);
+            LOGGER.log(Level.WARNING, "unable to find the file to delete observation: "+ observationID, e);
         }
     }
 
@@ -263,8 +286,10 @@ public class FileObservationWriter implements ObservationWriter {
         } catch (IOException ex) {
             throw new DataStoreException("IO exception creating foi directory  "+foiDirectory.toString(), ex);
         }
+        String version = getVersionFromObj(foi);
+        final Path foiDir = foiDirectory.resolve(version);
         String fileName = foi.getId().replace(':', 'µ');
-        final Path foiFile = foiDirectory.resolve(fileName + FILE_EXTENSION);
+        final Path foiFile = foiDir.resolve(fileName + FILE_EXTENSION);
         writeObject(foiFile, foi, "foi");
     }
 
@@ -295,8 +320,10 @@ public class FileObservationWriter implements ObservationWriter {
         } catch (IOException ex) {
             throw new DataStoreException("IO exception creating offering directory  "+offeringDirectory.toString(), ex);
         }
+        String version = getVersionFromObj(offering);
+        final Path offDir = offeringDirectory.resolve(version);
         String fileName = offering.getId().replace(':', 'µ');
-        final Path offeringFile = offeringDirectory.resolve(fileName + FILE_EXTENSION);
+        final Path offeringFile = offDir.resolve(fileName + FILE_EXTENSION);
         writeObject(offeringFile, offering, "foi");
         return offering.getId();
     }

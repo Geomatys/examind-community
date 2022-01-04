@@ -8,7 +8,7 @@
                          xmlns:om="http://www.opengis.net/om/1.0"
                          swes:id="offering-2">>
     <swes:name>offering-2</swes:name>
-    <swes:procedure>urn:ogc:object:sensor:GEOM:4</swes:procedure>
+    <swes:procedure>urn:ogc:object:sensor:GEOM:2</swes:procedure>
     <swes:observedProperty>urn:ogc:def:phenomenon:GEOM:resultComponents</swes:observedProperty>
     <swes:observedProperty>urn:ogc:def:phenomenon:GEOM:depth</swes:observedProperty>
     <swes:observedProperty>rn:ogc:def:phenomenon:GEOM:temperature</swes:observedProperty>

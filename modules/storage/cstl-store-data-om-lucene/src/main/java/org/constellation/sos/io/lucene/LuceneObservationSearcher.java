@@ -202,7 +202,7 @@ public class LuceneObservationSearcher extends LuceneIndexSearcher {
             }
 
             // if we have some subQueries we execute it separely and merge the result
-            if (spatialQuery.getSubQueries().size() > 0) {
+            if (!spatialQuery.getSubQueries().isEmpty()) {
                 final SpatialQuery sub        = spatialQuery.getSubQueries().get(0);
                 final List<ObservationResult> subResults = doResultSearch(sub);
                 for (ObservationResult r : results) {
@@ -247,6 +247,6 @@ public class LuceneObservationSearcher extends LuceneIndexSearcher {
         } catch (IllegalArgumentException ex) {
             LOGGER.log(logLevel, "unable  to parse the timestamp");
         }
-        return new ObservationResult(d.get("id"), begin, end);
+        return new ObservationResultExt(d.get("id"), begin, end);
     }
 }

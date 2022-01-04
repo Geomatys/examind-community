@@ -137,7 +137,7 @@ public class FileObservationReader implements ObservationReader {
         String sensorType   = (String) hints.get(SENSOR_TYPE);
         String version      = (String) hints.get(SOS_VERSION);
         switch (entityType) {
-            case FEATURE_OF_INTEREST: return getFeatureOfInterestNames();
+            case FEATURE_OF_INTEREST: return getFeatureOfInterestNames(version);
             case OBSERVED_PROPERTY:   return getPhenomenonNames();
             case PROCEDURE:           return getProcedureNames(sensorType);
             case LOCATION:            throw new DataStoreException("not implemented yet.");
@@ -183,7 +183,7 @@ public class FileObservationReader implements ObservationReader {
         String sensorType   = (String) hints.get(SENSOR_TYPE);
         String version      = (String) hints.get(SOS_VERSION);
         switch (entityType) {
-            case FEATURE_OF_INTEREST: return getFeatureOfInterestNames().contains(identifier);
+            case FEATURE_OF_INTEREST: return getFeatureOfInterestNames(version).contains(identifier);
             case OBSERVED_PROPERTY:   return existPhenomenon(identifier);
             case PROCEDURE:           return existProcedure(identifier);
             case LOCATION:            throw new DataStoreException("not implemented yet.");
@@ -340,18 +340,22 @@ public class FileObservationReader implements ObservationReader {
         return Files.exists(phenomenonFile);
     }
 
-    private Collection<String> getFeatureOfInterestNames() throws DataStoreException {
+    private Collection<String> getFeatureOfInterestNames(String version) throws DataStoreException {
+        version = version == null ? "2.0.0" : version;
         final List<String> foiNames = new ArrayList<>();
         if (Files.isDirectory(foiDirectory)) {
-            try (DirectoryStream<Path> stream = Files.newDirectoryStream(foiDirectory)) {
-                for (Path foiFile : stream) {
-                    String foiName = foiFile.getFileName().toString();
-                    foiName = foiName.replace('µ', ':');
-                    foiName = foiName.substring(0, foiName.indexOf(FILE_EXTENSION));
-                    foiNames.add(foiName);
+            Path dir = foiDirectory.resolve(version);
+            if (Files.isDirectory(dir)) {
+                try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
+                    for (Path foiFile : stream) {
+                        String foiName = foiFile.getFileName().toString();
+                        foiName = foiName.replace('µ', ':');
+                        foiName = foiName.substring(0, foiName.indexOf(FILE_EXTENSION));
+                        foiNames.add(foiName);
+                    }
+                } catch (IOException e) {
+                    throw new DataStoreException("Error during foi directory scanning", e);
                 }
-            } catch (IOException e) {
-                throw new DataStoreException("Error during foi directory scanning", e);
             }
         }
         return foiNames;
@@ -363,23 +367,26 @@ public class FileObservationReader implements ObservationReader {
     @Override
     public SamplingFeature getFeatureOfInterest(final String samplingFeatureName, final String version) throws DataStoreException {
         String fileName = samplingFeatureName.replace(':', 'µ');
-        final Path samplingFeatureFile =foiDirectory.resolve(fileName + FILE_EXTENSION);
-        if (Files.exists(samplingFeatureFile)) {
-            try (InputStream is = Files.newInputStream(samplingFeatureFile)) {
-                final Unmarshaller unmarshaller = MARSHALLER_POOL.acquireUnmarshaller();
-                Object obj = unmarshaller.unmarshal(is);
-                MARSHALLER_POOL.recycle(unmarshaller);
-                if (obj instanceof JAXBElement) {
-                    obj = ((JAXBElement)obj).getValue();
+        Path foiVersDirectory = foiDirectory.resolve(version);
+        if (Files.isDirectory(foiVersDirectory)) {
+            final Path samplingFeatureFile = foiVersDirectory.resolve(fileName + FILE_EXTENSION);
+            if (Files.exists(samplingFeatureFile)) {
+                try (InputStream is = Files.newInputStream(samplingFeatureFile)) {
+                    final Unmarshaller unmarshaller = MARSHALLER_POOL.acquireUnmarshaller();
+                    Object obj = unmarshaller.unmarshal(is);
+                    MARSHALLER_POOL.recycle(unmarshaller);
+                    if (obj instanceof JAXBElement) {
+                        obj = ((JAXBElement)obj).getValue();
+                    }
+                    if (obj instanceof SamplingFeature) {
+                        return (SamplingFeature) obj;
+                    }
+                    throw new DataStoreException("The file " + samplingFeatureFile + " does not contains an foi Object.");
+                } catch (JAXBException ex) {
+                    throw new DataStoreException("Unable to unmarshall The file " + samplingFeatureFile, ex);
+                } catch (IOException ex) {
+                    throw new DataStoreException("Unable to read The file " + samplingFeatureFile, ex);
                 }
-                if (obj instanceof SamplingFeature) {
-                    return (SamplingFeature) obj;
-                }
-                throw new DataStoreException("The file " + samplingFeatureFile + " does not contains an foi Object.");
-            } catch (JAXBException ex) {
-                throw new DataStoreException("Unable to unmarshall The file " + samplingFeatureFile, ex);
-            } catch (IOException ex) {
-                throw new DataStoreException("Unable to read The file " + samplingFeatureFile, ex);
             }
         }
         return null;
@@ -390,30 +397,35 @@ public class FileObservationReader implements ObservationReader {
      */
     @Override
     public Observation getObservation(final String identifier, final QName resultModel, final ResponseModeType mode, final String version) throws DataStoreException {
-        String fileName = identifier.replace(':', 'µ');
-        Path observationFile = observationDirectory.resolve(fileName + FILE_EXTENSION);
-        if (!Files.exists(observationFile)) {
-            observationFile = observationTemplateDirectory.resolve(fileName + FILE_EXTENSION);
-        }
-        if (Files.exists(observationFile)) {
-            try (InputStream is = Files.newInputStream(observationFile)) {
-                final Unmarshaller unmarshaller = MARSHALLER_POOL.acquireUnmarshaller();
-                Object obj = unmarshaller.unmarshal(is);
-                MARSHALLER_POOL.recycle(unmarshaller);
-                if (obj instanceof JAXBElement) {
-                    obj = ((JAXBElement)obj).getValue();
-                }
-                if (obj instanceof Observation) {
-                    return (Observation) obj;
-                }
-                throw new DataStoreException("The file " + observationFile + " does not contains an observation Object.");
-            } catch (JAXBException ex) {
-                throw new DataStoreException("Unable to unmarshall The file " + observationFile, ex);
-            } catch (IOException ex) {
-                throw new DataStoreException("Unable to read The file " + observationFile, ex);
+        Path obsDir  = observationDirectory.resolve(version);
+        Path obsTDir = observationTemplateDirectory.resolve(version);
+        if (Files.isDirectory(obsDir)) {
+            String fileName = identifier.replace(':', 'µ');
+            Path observationFile = obsDir.resolve(fileName + FILE_EXTENSION);
+            if (!Files.exists(observationFile)) {
+                observationFile = obsTDir.resolve(fileName + FILE_EXTENSION);
             }
+            if (Files.exists(observationFile)) {
+                try (InputStream is = Files.newInputStream(observationFile)) {
+                    final Unmarshaller unmarshaller = MARSHALLER_POOL.acquireUnmarshaller();
+                    Object obj = unmarshaller.unmarshal(is);
+                    MARSHALLER_POOL.recycle(unmarshaller);
+                    if (obj instanceof JAXBElement) {
+                        obj = ((JAXBElement)obj).getValue();
+                    }
+                    if (obj instanceof Observation) {
+                        return (Observation) obj;
+                    }
+                    throw new DataStoreException("The file " + observationFile + " does not contains an observation Object.");
+                } catch (JAXBException ex) {
+                    throw new DataStoreException("Unable to unmarshall The file " + observationFile, ex);
+                } catch (IOException ex) {
+                    throw new DataStoreException("Unable to read The file " + observationFile, ex);
+                }
+            }
+            throw new DataStoreException("The file " + observationFile + " does not exist");
         }
-        throw new DataStoreException("The file " + observationFile + " does not exist");
+        throw new DataStoreException("The directory " + obsDir + " does not exist");
     }
 
     /**
@@ -421,30 +433,34 @@ public class FileObservationReader implements ObservationReader {
      */
     @Override
     public Object getResult(final String identifier, final QName resultModel, final String version) throws DataStoreException {
-        String fileName = identifier.replace(':', 'µ');
-        final Path anyResultFile = observationDirectory.resolve(fileName + FILE_EXTENSION);
-        if (Files.exists(anyResultFile)) {
+        Path obsDir = observationDirectory.resolve(version);
+        if (Files.isDirectory(obsDir)) {
+            String fileName = identifier.replace(':', 'µ');
+            final Path anyResultFile = obsDir.resolve(fileName + FILE_EXTENSION);
+            if (Files.exists(anyResultFile)) {
 
-            try (InputStream is = Files.newInputStream(anyResultFile)) {
-                final Unmarshaller unmarshaller = MARSHALLER_POOL.acquireUnmarshaller();
-                Object obj = unmarshaller.unmarshal(is);
-                MARSHALLER_POOL.recycle(unmarshaller);
-                if (obj instanceof JAXBElement) {
-                    obj = ((JAXBElement)obj).getValue();
+                try (InputStream is = Files.newInputStream(anyResultFile)) {
+                    final Unmarshaller unmarshaller = MARSHALLER_POOL.acquireUnmarshaller();
+                    Object obj = unmarshaller.unmarshal(is);
+                    MARSHALLER_POOL.recycle(unmarshaller);
+                    if (obj instanceof JAXBElement) {
+                        obj = ((JAXBElement)obj).getValue();
+                    }
+                    if (obj instanceof Observation) {
+                        final Observation obs = (Observation) obj;
+                        final DataArrayProperty arrayP = (DataArrayProperty) obs.getResult();
+                        return arrayP.getDataArray();
+                    }
+                    throw new DataStoreException("The file " + anyResultFile + " does not contains an observation Object.");
+                } catch (JAXBException ex) {
+                    throw new DataStoreException("Unable to unmarshall The file " + anyResultFile, ex);
+                } catch (IOException ex) {
+                    throw new DataStoreException("Unable to read The file " + anyResultFile, ex);
                 }
-                if (obj instanceof Observation) {
-                    final Observation obs = (Observation) obj;
-                    final DataArrayProperty arrayP = (DataArrayProperty) obs.getResult();
-                    return arrayP.getDataArray();
-                }
-                throw new DataStoreException("The file " + anyResultFile + " does not contains an observation Object.");
-            } catch (JAXBException ex) {
-                throw new DataStoreException("Unable to unmarshall The file " + anyResultFile, ex);
-            } catch (IOException ex) {
-                throw new DataStoreException("Unable to read The file " + anyResultFile, ex);
             }
+            throw new DataStoreException("The file " + anyResultFile + " does not exist");
         }
-        throw new DataStoreException("The file " + anyResultFile + " does not exist");
+        throw new DataStoreException("The directory " + obsDir + " does not exist");
     }
 
     /**
@@ -568,7 +584,8 @@ public class FileObservationReader implements ObservationReader {
 
     @Override
     public Observation getTemplateForProcedure(String procedure, String version) throws DataStoreException {
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(observationTemplateDirectory)) {
+        Path obsTDir = observationTemplateDirectory.resolve(version);
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(obsTDir)) {
             for (Path templateFile : stream) {
                 try (InputStream is = Files.newInputStream(templateFile)){
                     final Unmarshaller unmarshaller = MARSHALLER_POOL.acquireUnmarshaller();

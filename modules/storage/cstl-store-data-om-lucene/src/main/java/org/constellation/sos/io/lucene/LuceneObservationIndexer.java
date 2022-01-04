@@ -57,6 +57,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.geotoolkit.sampling.xml.SamplingFeature;
 import org.geotoolkit.sos.xml.ObservationOffering;
 import org.geotoolkit.swe.xml.PhenomenonProperty;
@@ -71,13 +72,16 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
     private Path offeringDirectoryv200;
     private Path offeringDirectoryv100;
 
-    private Path observationDirectory;
+    private Path observationDirectoryv200;
+    private Path observationDirectoryv100;
 
-    private Path foiDirectory;
+    private Path foiDirectoryV100;
+    private Path foiDirectoryV200;
 
     private Path phenDirectory;
 
-    private Path observationTemplateDirectory;
+    private Path observationTemplateDirectoryv100;
+    private Path observationTemplateDirectoryv200;
 
     private boolean template = false;
 
@@ -93,23 +97,46 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
         super(serviceID, configDirectory, new WhitespaceAnalyzer());
         if (Files.isDirectory(dataDirectory)) {
             try {
-                observationDirectory = dataDirectory.resolve("observations");
+                Path observationDirectory = dataDirectory.resolve("observations");
                 if (!Files.exists(observationDirectory)) {
                     Files.createDirectories(observationDirectory);
                 }
-
+                observationDirectoryv200 = observationDirectory.resolve("2.0.0");
+                if (!Files.exists(observationDirectoryv200)) {
+                    Files.createDirectories(observationDirectoryv200);
+                }
+                observationDirectoryv100 = observationDirectory.resolve("1.0.0");
+                if (!Files.exists(observationDirectoryv100)) {
+                    Files.createDirectories(observationDirectoryv100);
+                }
                 phenDirectory = dataDirectory.resolve("phenomenons");
                 if (!Files.exists(phenDirectory)) {
                     Files.createDirectories(phenDirectory);
                 }
 
-                observationTemplateDirectory = dataDirectory.resolve("observationTemplates");
+                Path observationTemplateDirectory = dataDirectory.resolve("observationTemplates");
                 if (!Files.exists(observationTemplateDirectory)) {
                     Files.createDirectories(observationTemplateDirectory);
                 }
-                foiDirectory = dataDirectory.resolve("features");
+                observationTemplateDirectoryv200 = observationTemplateDirectory.resolve("2.0.0");
+                if (!Files.exists(observationTemplateDirectoryv200)) {
+                    Files.createDirectories(observationTemplateDirectoryv200);
+                }
+                observationTemplateDirectoryv100 = observationTemplateDirectory.resolve("1.0.0");
+                if (!Files.exists(observationTemplateDirectoryv100)) {
+                    Files.createDirectories(observationTemplateDirectoryv100);
+                }
+                Path foiDirectory = dataDirectory.resolve("features");
                 if (!Files.exists(foiDirectory)) {
                     Files.createDirectories(foiDirectory);
+                }
+                foiDirectoryV200 = foiDirectory.resolve("2.0.0");
+                if (!Files.exists(foiDirectoryV200)) {
+                    Files.createDirectories(foiDirectoryV200);
+                }
+                foiDirectoryV100 = foiDirectory.resolve("1.0.0");
+                if (!Files.exists(foiDirectoryV100)) {
+                    Files.createDirectories(foiDirectoryV100);
                 }
                 Path offeringParentDirectory = dataDirectory.resolve("offerings");
                 if (!Files.exists(offeringParentDirectory)) {
@@ -182,11 +209,13 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
             try (IndexWriter writer = new IndexWriter(new SimpleFSDirectory(getFileDirectory()), conf)) {
                 Map<String, ObjAndOffering> procs = new HashMap<>();
                 // getting the objects list and index avery item in the IndexWriter.
-                nbObservation = indexDirectory(observationDirectory, nbObservation, unmarshaller, writer, "observation", procs);
+                nbObservation = indexDirectory(observationDirectoryv100, nbObservation, unmarshaller, writer, "observation", procs);
+                nbObservation = indexDirectory(observationDirectoryv200, nbObservation, unmarshaller, writer, "observation", procs);
                 template = true;
-                nbTemplate = indexDirectory(observationTemplateDirectory, nbTemplate, unmarshaller, writer, "template", procs);
+                nbTemplate = indexDirectory(observationTemplateDirectoryv100, nbTemplate, unmarshaller, writer, "template", procs);
+                nbTemplate = indexDirectory(observationTemplateDirectoryv200, nbTemplate, unmarshaller, writer, "template", procs);
                 template = false;
-                nbfoi = indexDirectory(foiDirectory, nbfoi, unmarshaller, writer, "foi", procs);
+                nbfoi = indexDirectory(foiDirectoryV100, nbfoi, unmarshaller, writer, "foi", procs);
                 nbPhen = indexDirectory(phenDirectory, nbPhen, unmarshaller, writer, "phenomenon", procs);
                 indexDirectory(offeringDirectoryv200, 0, unmarshaller, writer, "offering", procs);
                 indexDirectory(offeringDirectoryv100, 0, unmarshaller, writer, "offering", procs);
@@ -409,6 +438,13 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
             throw new IllegalArgumentException("Unepxected object type to index");
         }
 
+        /* debug
+        StringBuilder sb = new StringBuilder("{\n");
+        for (IndexableField field : doc.getFields()) {
+            sb.append(field.name()).append(": ").append(field.stringValue()).append('\n');
+        }
+        sb.append("}");
+        Logger.getLogger("org.constellation.sos.io.lucene").info("index DOC:" + sb);*/
         return doc;
     }
 

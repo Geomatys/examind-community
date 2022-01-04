@@ -23,6 +23,8 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -147,13 +149,14 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
         if (ResponseModeType.OUT_OF_BAND.equals(responseMode)) {
             throw new ObservationStoreException("Out of band response mode has not been implemented yet", NO_APPLICABLE_CODE, RESPONSE_MODE);
         }
-        final List<ObservationResult> results = filterResult(hints);
-        final StringBuilder datablock         = new StringBuilder();
+        final String version                 = getVersionFromHints(hints);
+        final Set<ObservationResult> results = new LinkedHashSet<>(filterResult(hints));
+        final StringBuilder datablock        = new StringBuilder();
 
         for (ObservationResult result: results) {
             final Timestamp tBegin = result.beginTime;
             final Timestamp tEnd   = result.endTime;
-            final Object r         =  reader.getResult(result.resultID, resultModel, "2.0.0");
+            final Object r         =  reader.getResult(result.resultID, resultModel, version);
             if (r instanceof DataArray || r instanceof DataArrayProperty) {
                 final DataArray array;
                 if (r instanceof DataArrayProperty) {

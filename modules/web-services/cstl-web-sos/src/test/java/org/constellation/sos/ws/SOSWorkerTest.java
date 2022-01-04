@@ -1510,7 +1510,7 @@ public abstract class SOSWorkerTest {
         MeasurementType measResult =  (MeasurementType) result.getMember().iterator().next();
         assertTrue(measResult != null);
 
-        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/observationTemplate-7.xml");
+        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v100/observationTemplate-7.xml");
 
         ObservationType expResult = (ObservationType)obj.getValue();
 
@@ -1603,7 +1603,7 @@ public abstract class SOSWorkerTest {
                                       ResponseModeType.RESULT_TEMPLATE,
                                       null);
         ObservationCollectionType result = (ObservationCollectionType) worker.getObservation(request);
-        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/observationTemplate-8.xml");
+        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v100/observationTemplate-8.xml");
 
         ObservationType expResult = (ObservationType)obj.getValue();
 
@@ -2435,7 +2435,7 @@ public abstract class SOSWorkerTest {
         /**
          * Test 2 we register a system sensor with an imcomplete Observation template
          */
-        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/observationTemplate-6.xml");
+        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v100/observationTemplate-6.xml");
         ObservationType obsTemplate = (ObservationType)obj.getValue();
 
         obsTemplate.setProcedure((ProcessType)null);
@@ -2469,7 +2469,7 @@ public abstract class SOSWorkerTest {
 
         sensorDescription.getMember().get(0).getRealProcess().setId("urn:ogc:object:sensor:GEOM:66");
 
-        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/observationTemplate-6.xml");
+        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v100/observationTemplate-6.xml");
 
         ObservationType obsTemplate = (ObservationType)obj.getValue();
 

@@ -14,7 +14,7 @@
             <swe:component>
                 <swe:Phenomenon gml:id="temperature">
                     <gml:name>urn:ogc:def:phenomenon:GEOM:temperature</gml:name>
-                </swe:Phenomenon>>
+                </swe:Phenomenon>
             </swe:component>
         </swe:CompositePhenomenon>
     </om:observedProperty>

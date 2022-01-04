@@ -6,9 +6,9 @@
                          xmlns:swe="http://www.opengis.net/swe/1.0.1"
                          xmlns:gml="http://www.opengis.net/gml"
                          xmlns:om="http://www.opengis.net/om/1.0"
-                         swes:id="offering-5">>
-    <swes:name>offering-5</swes:name>
-    <swes:procedure>urn:ogc:object:sensor:GEOM:test-1</swes:procedure>
+                         swes:id="offering-4">>
+    <swes:name>offering-4</swes:name>
+    <swes:procedure>urn:ogc:object:sensor:GEOM:4</swes:procedure>
     <swes:observedProperty>urn:ogc:def:phenomenon:GEOM:resultComponents</swes:observedProperty>
     <swes:observedProperty>urn:ogc:def:phenomenon:GEOM:depth</swes:observedProperty>
     <swes:observedProperty>rn:ogc:def:phenomenon:GEOM:temperature</swes:observedProperty>
