@@ -20,10 +20,14 @@
 package org.constellation.sos.ws;
 
 import java.io.File;
+import java.util.List;
 import java.util.logging.Level;
 import javax.annotation.PostConstruct;
 import org.constellation.configuration.ConfigDirectory;
+import org.constellation.dto.Sensor;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
+import org.constellation.exception.ConfigurationException;
+import org.constellation.exception.ConstellationRuntimeException;
 import org.constellation.sos.core.SOSworker;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
@@ -37,6 +41,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
+ * Test a SOS service version 2 with an OM2 observation datasource / Internal SML datasource
  *
  * @author Guilhem Legal (Geomatys)
  */
@@ -65,19 +70,31 @@ public class OM2SOS2WorkerTest extends SOS2WorkerTest {
 
                 final TestResources testResource = initDataDirectory();
 
-                Integer pid = testResource.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
+                Integer omPid  = testResource.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
+                Integer smlPid = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness, null).id;
 
+                testResource.generateSensors(sensorBusiness, omPid, smlPid);
+                
                 //we write the configuration file
                 final SOSConfiguration configuration = new SOSConfiguration();
                 configuration.setProfile("transactional");
                 configuration.getParameters().put("transactionSecurized", "false");
 
                 Integer sid = serviceBusiness.create("sos", "default", configuration, null, null);
-                serviceBusiness.linkServiceAndProvider(sid, pid);
+                serviceBusiness.linkServiceAndProvider(sid, omPid);
+                serviceBusiness.linkServiceAndProvider(sid, smlPid);
+
+                List<Sensor> sensors = sensorBusiness.getByProviderId(smlPid);
+                sensors.stream().forEach((sensor) -> {
+                    try {
+                        sensorBusiness.addSensorToService(sid, sensor.getId());
+                    } catch (ConfigurationException ex) {
+                       throw new ConstellationRuntimeException(ex);
+                    }
+                });
 
                 init();
-                worker = new SOSworker("default");
-                worker.setServiceUrl(URL);
+                initWorker();
                 initialized = true;
             }
         } catch (Exception ex) {
@@ -283,13 +300,74 @@ public class OM2SOS2WorkerTest extends SOS2WorkerTest {
     }
 
     /**
-     * Tests the destroy method
+     * Tests the DescribeSensor method
      *
      * @throws java.lang.Exception
      */
     @Test
     @Override
     @Order(order=16)
+    public void DescribeSensorErrorTest() throws Exception {
+       super.DescribeSensorErrorTest();
+    }
+
+    /**
+     * Tests the DescribeSensor method
+     *
+     * @throws java.lang.Exception
+     */
+    @Test
+    @Override
+    @Order(order=17)
+    public void DescribeSensorTest() throws Exception {
+       super.DescribeSensorTest();
+    }
+
+
+    /**
+     * Tests the RegisterSensor method
+     *
+     * @throws java.lang.Exception
+     */
+    @Test
+    @Override
+    @Order(order=18)
+    public void RegisterSensorErrorTest() throws Exception {
+        super.RegisterSensorErrorTest();
+    }
+
+    /**
+     * Tests the RegisterSensor method
+     *
+     * @throws java.lang.Exception
+     */
+    @Test
+    @Override
+    @Order(order=19)
+    public void RegisterSensorTest() throws Exception {
+        super.RegisterSensorTest();
+    }
+
+    /**
+     * Tests the RegisterSensor method
+     *
+     * @throws java.lang.Exception
+     */
+    @Test
+    @Override
+    @Order(order=20)
+    public void DeleteSensorTest() throws Exception {
+        super.DeleteSensorTest();
+    }
+
+    /**
+     * Tests the destroy method
+     *
+     * @throws java.lang.Exception
+     */
+    @Test
+    @Override
+    @Order(order=21)
     public void destroyTest() throws Exception {
         super.destroyTest();
     }

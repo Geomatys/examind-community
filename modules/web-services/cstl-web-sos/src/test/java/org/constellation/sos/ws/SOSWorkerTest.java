@@ -2467,22 +2467,26 @@ public abstract class SOSWorkerTest {
          */
         AbstractSensorML sensorDescription = (AbstractSensorML) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ1.xml");
 
+        sensorDescription.getMember().get(0).getRealProcess().setId("urn:ogc:object:sensor:GEOM:66");
+
         JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/observationTemplate-6.xml");
 
         ObservationType obsTemplate = (ObservationType)obj.getValue();
+
+        obsTemplate.setProcedure("urn:ogc:object:sensor:GEOM:66");
 
         RegisterSensor request = new RegisterSensor("1.0.0", sensorDescription, new ObservationTemplate(obsTemplate));
 
         InsertSensorResponse response = worker.registerSensor(request);
 
-        assertEquals("urn:ogc:object:sensor:GEOM:6", response.getAssignedProcedure());
+        assertEquals("urn:ogc:object:sensor:GEOM:66", response.getAssignedProcedure());
 
         assertNull(response.getAssignedOffering());
 
         /**
          * we verify that the sensor is well registered
          */
-        DescribeSensor DSrequest  = new DescribeSensor("1.0.0","SOS","urn:ogc:object:sensor:GEOM:6", "text/xml;subtype=\"SensorML/1.0.0\"");
+        DescribeSensor DSrequest  = new DescribeSensor("1.0.0","SOS","urn:ogc:object:sensor:GEOM:66", "text/xml;subtype=\"SensorML/1.0.0\"");
         AbstractSensorML absResult = (AbstractSensorML) worker.describeSensor(DSrequest);
 
 

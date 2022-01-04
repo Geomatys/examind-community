@@ -20,10 +20,14 @@
 package org.constellation.sos.ws;
 
 import java.io.File;
+import java.util.List;
 import java.util.logging.Level;
 import javax.annotation.PostConstruct;
 import org.constellation.configuration.ConfigDirectory;
+import org.constellation.dto.Sensor;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
+import org.constellation.exception.ConfigurationException;
+import org.constellation.exception.ConstellationRuntimeException;
 import org.constellation.sos.core.SOSworker;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
@@ -60,7 +64,10 @@ public class OM2SOSWorkerTest extends SOSWorkerTest {
 
                 final TestResources testResource = initDataDirectory();
 
-                Integer pid = testResource.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
+                Integer omPid  = testResource.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
+                Integer smlPid = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness, null).id;
+
+                testResource.generateSensors(sensorBusiness, omPid, smlPid);
 
                 //we write the configuration file
                 final SOSConfiguration configuration = new SOSConfiguration();
@@ -68,11 +75,20 @@ public class OM2SOSWorkerTest extends SOSWorkerTest {
                 configuration.getParameters().put("transactionSecurized", "false");
 
                 Integer sid = serviceBusiness.create("sos", "default", configuration, null, null);
-                serviceBusiness.linkServiceAndProvider(sid, pid);
+                serviceBusiness.linkServiceAndProvider(sid, omPid);
+                serviceBusiness.linkServiceAndProvider(sid, smlPid);
+
+                List<Sensor> sensors = sensorBusiness.getByProviderId(smlPid);
+                sensors.stream().forEach((sensor) -> {
+                    try {
+                        sensorBusiness.addSensorToService(sid, sensor.getId());
+                    } catch (ConfigurationException ex) {
+                       throw new ConstellationRuntimeException(ex);
+                    }
+                });
 
                 init();
-                worker = new SOSworker("default");
-                worker.setServiceUrl(URL);
+                initWorker();
                 initialized = true;
             }
 
@@ -265,6 +281,56 @@ public class OM2SOSWorkerTest extends SOSWorkerTest {
     public void GetObservationSamplingCurveSinglePhenomenonTest() throws Exception {
         super.GetObservationSamplingCurveSinglePhenomenonTest();
     }
+
+    /**
+     * Tests the DescribeSensor method
+     *
+     * @throws java.lang.Exception
+     */
+    @Test
+    @Override
+    @Order(order=14)
+    public void DescribeSensorErrorTest() throws Exception {
+       super.DescribeSensorErrorTest();
+    }
+
+    /**
+     * Tests the DescribeSensor method
+     *
+     * @throws java.lang.Exception
+     */
+    @Test
+    @Override
+    @Order(order=15)
+    public void DescribeSensorTest() throws Exception {
+       super.DescribeSensorTest();
+    }
+
+    /**
+     * Tests the RegisterSensor method
+     *
+     * @throws java.lang.Exception
+     */
+    @Test
+    @Override
+    @Order(order=16)
+    public void RegisterSensorErrorTest() throws Exception {
+        super.RegisterSensorErrorTest();
+    }
+
+    /**
+     * Tests the RegisterSensor method
+     *
+     * @throws java.lang.Exception
+     */
+    @Test
+    @Override
+    @Order(order=17)
+    public void RegisterSensorTest() throws Exception {
+        super.RegisterSensorTest();
+    }
+
+
     /**
      * Tests the destroy method
      *
@@ -272,7 +338,7 @@ public class OM2SOSWorkerTest extends SOSWorkerTest {
      */
     @Test
     @Override
-    @Order(order=14)
+    @Order(order=18)
     public void destroyTest() throws Exception {
         super.destroyTest();
     }

@@ -1,8 +1,8 @@
-INSERT INTO "om"."observed_properties" VALUES ('depth',                 1, 'depth',                 'urn:ogc:def:phenomenon:GEOM:depth',                 'the depth in water');
-INSERT INTO "om"."observed_properties" VALUES ('temperature',           1, 'temperature',           'urn:ogc:def:phenomenon:GEOM:temperature',           'the temperature in celcius degree');
-INSERT INTO "om"."observed_properties" VALUES ('aggregatePhenomenon',   1, 'aggregatePhenomenon',   'urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon',   'the aggregation of temperature and depth phenomenons');
-INSERT INTO "om"."observed_properties" VALUES ('salinity',              1, 'salinity',              'urn:ogc:def:phenomenon:GEOM:salinity',              'the salinity in water');
-INSERT INTO "om"."observed_properties" VALUES ('aggregatePhenomenon-2', 1, 'aggregatePhenomenon-2', 'urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2', 'the aggregation of temperature depth, and salinity phenomenons');
+INSERT INTO "om"."observed_properties" VALUES ('depth',                 0, 'depth',                 'urn:ogc:def:phenomenon:GEOM:depth',                 'the depth in water');
+INSERT INTO "om"."observed_properties" VALUES ('temperature',           0, 'temperature',           'urn:ogc:def:phenomenon:GEOM:temperature',           'the temperature in celcius degree');
+INSERT INTO "om"."observed_properties" VALUES ('aggregatePhenomenon',   0, 'aggregatePhenomenon',   'urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon',   'the aggregation of temperature and depth phenomenons');
+INSERT INTO "om"."observed_properties" VALUES ('salinity',              0, 'salinity',              'urn:ogc:def:phenomenon:GEOM:salinity',              'the salinity in water');
+INSERT INTO "om"."observed_properties" VALUES ('aggregatePhenomenon-2', 0, 'aggregatePhenomenon-2', 'urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2', 'the aggregation of temperature depth, and salinity phenomenons');
 
 -- v100 --
 INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('aggregatePhenomenon', 'depth', 0);

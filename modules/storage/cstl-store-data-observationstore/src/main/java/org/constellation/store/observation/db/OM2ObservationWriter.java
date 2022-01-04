@@ -899,7 +899,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     public synchronized void recordProcedureLocation(final String physicalID, final AbstractGeometry position) throws DataStoreException {
         if (position != null) {
             try(final Connection c     = source.getConnection();
-                PreparedStatement ps   = c.prepareStatement("UPDATE \"" + schemaPrefix + "om\".\"procedures\" SET \"shape\"=?, \"crs\"=? WHERE id=?")) {//NOSONAR
+                PreparedStatement ps   = c.prepareStatement("UPDATE \"" + schemaPrefix + "om\".\"procedures\" SET \"shape\"=?, \"crs\"=? WHERE \"id\"=?")) {//NOSONAR
                 ps.setString(3, physicalID);
                 Geometry pt = GeometrytoJTS.toJTS(position, false);
                 int srid = pt.getSRID();
