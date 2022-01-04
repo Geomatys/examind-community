@@ -137,10 +137,8 @@ public class SensorServiceBusiness {
                 }
             }
             return true;
-        } catch (JAXBException ex) {
+        } catch (ConstellationException ex) {
             LOGGER.log(Level.WARNING, "Exception while unmarshalling imported file", ex);
-        } catch (IOException ex) {
-            throw new ConfigurationException(ex);
         }
         return false;
     }

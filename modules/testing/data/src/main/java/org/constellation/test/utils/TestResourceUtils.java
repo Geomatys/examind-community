@@ -26,7 +26,9 @@ import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import javax.xml.bind.JAXBException;
 import org.constellation.business.ISensorBusiness;
+import org.constellation.exception.ConstellationException;
 import org.constellation.util.Util;
 import org.geotoolkit.nio.IOUtilities;
 
@@ -36,18 +38,19 @@ import org.geotoolkit.nio.IOUtilities;
  */
 public class TestResourceUtils {
 
-     public static Object unmarshallSensorResource(String resourceName, ISensorBusiness sensorBusiness) throws Exception {
+    public static Object unmarshallSensorResource(String resourceName, ISensorBusiness sensorBusiness) throws ConstellationException {
         StringWriter fw = new StringWriter();
-        InputStream in = Util.getResourceAsStream(resourceName);
+        try (InputStream in = Util.getResourceAsStream(resourceName)) {
+            byte[] buffer = new byte[1024];
+            int size;
 
-        byte[] buffer = new byte[1024];
-        int size;
-
-        while ((size = in.read(buffer, 0, 1024)) > 0) {
-            fw.write(new String(buffer, 0, size));
+            while ((size = in.read(buffer, 0, 1024)) > 0) {
+                fw.write(new String(buffer, 0, size));
+            }
+            return sensorBusiness.unmarshallSensor(fw.toString());
+        } catch (IOException ex) {
+            throw new ConstellationException(ex);
         }
-        in.close();
-        return sensorBusiness.unmarshallSensor(fw.toString());
     }
 
     public static void writeResourceDataFile(Path dataDirectory, String resourceName, String identifier) throws IOException {

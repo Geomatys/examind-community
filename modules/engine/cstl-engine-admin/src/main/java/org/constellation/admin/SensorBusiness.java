@@ -370,7 +370,7 @@ public class SensorBusiness implements ISensorBusiness {
                             sensorMetadata =  unmarshallSensor((String) sensorMetadata);
                         }
                         ((SensorProvider)provider).writeSensor(sensor.getIdentifier(), sensorMetadata);
-                    } catch (ConstellationStoreException | JAXBException | IOException ex) {
+                    } catch (ConstellationException ex) {
                         throw new ConfigurationException(ex);
                     }
                 } else {
@@ -402,7 +402,7 @@ public class SensorBusiness implements ISensorBusiness {
     }
 
     @Override
-    public Object unmarshallSensor(final java.nio.file.Path f) throws JAXBException, IOException {
+    public Object unmarshallSensor(final java.nio.file.Path f) throws ConstellationException {
         try (InputStream stream = Files.newInputStream(f)) {
             final Unmarshaller um = SensorMLMarshallerPool.getInstance().acquireUnmarshaller();
             Object obj = um.unmarshal(stream);
@@ -411,27 +411,37 @@ public class SensorBusiness implements ISensorBusiness {
                 obj = ((JAXBElement) obj).getValue();
             }
             return  obj;
+        } catch (JAXBException | IOException ex) {
+            throw new ConstellationException(ex);
         }
     }
 
     @Override
-    public Object unmarshallSensor(final String xml) throws JAXBException, IOException {
-        final Unmarshaller um = SensorMLMarshallerPool.getInstance().acquireUnmarshaller();
-        Object obj = um.unmarshal(new StringReader(xml));
-        SensorMLMarshallerPool.getInstance().recycle(um);
-        if (obj instanceof JAXBElement) {
-            obj = ((JAXBElement) obj).getValue();
+    public Object unmarshallSensor(final String xml) throws ConstellationException {
+        try {
+            final Unmarshaller um = SensorMLMarshallerPool.getInstance().acquireUnmarshaller();
+            Object obj = um.unmarshal(new StringReader(xml));
+            SensorMLMarshallerPool.getInstance().recycle(um);
+            if (obj instanceof JAXBElement) {
+                obj = ((JAXBElement) obj).getValue();
+            }
+            return obj;
+        } catch (JAXBException ex) {
+            throw new ConstellationException(ex);
         }
-        return obj;
     }
 
     @Override
-    public String marshallSensor(Object sensorMetadata) throws JAXBException, IOException {
-        final Marshaller m = SensorMLMarshallerPool.getInstance().acquireMarshaller();
-        final StringWriter sw = new StringWriter();
-        m.marshal(sensorMetadata, sw);
-        SensorMLMarshallerPool.getInstance().recycle(m);
-        return sw.toString();
+    public String marshallSensor(Object sensorMetadata) throws ConstellationException {
+        try {
+            final Marshaller m = SensorMLMarshallerPool.getInstance().acquireMarshaller();
+            final StringWriter sw = new StringWriter();
+            m.marshal(sensorMetadata, sw);
+            SensorMLMarshallerPool.getInstance().recycle(m);
+            return sw.toString();
+        } catch (JAXBException ex) {
+            throw new ConstellationException(ex);
+        }
     }
 
     /**

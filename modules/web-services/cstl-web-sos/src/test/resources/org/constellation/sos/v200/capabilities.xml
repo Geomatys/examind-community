@@ -390,9 +390,20 @@
       </ows:Parameter>
       <ows:Parameter name="procedure">
         <ows:AllowedValues>
-          <ows:Value>urn:ogc:object:sensor:SunSpot:0014.4F01.0000.261A</ows:Value>
-          <ows:Value>urn:ogc:object:sensor:SunSpot:0014.4F01.0000.2626</ows:Value>
-          <ows:Value>urn:ogc:object:sensor:SunSpot:2</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:1</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:10</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:12</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:13</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:14</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:2</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:3</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:4</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:6</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:7</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:8</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:9</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:test-1</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:test-id</ows:Value>
         </ows:AllowedValues>
       </ows:Parameter>
     </ows:Operation>

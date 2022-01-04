@@ -18,11 +18,9 @@
  */
 package org.constellation.business;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.TargetNotFoundException;
@@ -89,11 +87,11 @@ public interface ISensorBusiness {
 
     Integer getDefaultInternalProviderID() throws ConfigurationException;
 
-    Object unmarshallSensor(final java.nio.file.Path f) throws JAXBException, IOException;
+    Object unmarshallSensor(final java.nio.file.Path f) throws ConstellationException;
 
-    Object unmarshallSensor(final String xml) throws JAXBException, IOException;
+    Object unmarshallSensor(final String xml) throws ConstellationException;
 
-    String marshallSensor(final Object sensorMetadata) throws JAXBException, IOException;
+    String marshallSensor(final Object sensorMetadata) throws ConstellationException;
 
     String getNewSensorId(final Integer providerID) throws ConfigurationException;
 

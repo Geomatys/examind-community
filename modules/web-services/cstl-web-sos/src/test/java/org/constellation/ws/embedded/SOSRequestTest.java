@@ -57,15 +57,18 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import static org.constellation.api.ServiceConstants.*;
+import org.constellation.dto.Sensor;
 import org.constellation.dto.service.Instance;
 import org.constellation.dto.service.InstanceReport;
 import org.constellation.dto.service.ServiceStatus;
+import org.constellation.exception.ConfigurationException;
+import org.constellation.exception.ConstellationRuntimeException;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
-import static org.constellation.test.utils.TestResourceUtils.unmarshallSensorResource;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.getCurrentPort;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.unmarshallJsonResponse;
+import static org.junit.Assert.assertFalse;
 
 /**
  *
@@ -80,10 +83,6 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
 
     private static String getDefaultURL() {
         return "http://localhost:" +  getCurrentPort() + "/WS/sos/default?";
-    }
-
-    private static String getTestURL() {
-        return "http://localhost:" +  getCurrentPort() + "/WS/sos/test?";
     }
 
     @BeforeClass
@@ -109,43 +108,29 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
 
                 final TestResources testResource = initDataDirectory();
 
-                Integer providerSEN  = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness, null).id;
-                Integer providerSEND = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness, null).id;
-                Integer providerSENT = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness, null).id;
+                Integer omPid   = testResource.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
+                Integer smlPid  = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness, null).id;
 
-                Object sml = unmarshallSensorResource("org/constellation/embedded/test/urn-ogc-object-sensor-SunSpot-0014.4F01.0000.261A.xml", sensorBusiness);
-                int senId1 = sensorBusiness.create("urn:ogc:object:sensor:SunSpot:0014.4F01.0000.261A", "SunSpot 261A", "SunSpot 261A", "system", null, null, sml, Long.MIN_VALUE, providerSEN);
-
-                sml = unmarshallSensorResource("org/constellation/embedded/test/urn-ogc-object-sensor-SunSpot-0014.4F01.0000.2626.xml", sensorBusiness);
-                int senId2 = sensorBusiness.create("urn:ogc:object:sensor:SunSpot:0014.4F01.0000.2626", "SunSpot 2626", "SunSpot 2626", "system", null, null, sml, Long.MIN_VALUE, providerSEN);
-
-                sml = unmarshallSensorResource("org/constellation/embedded/test/urn-ogc-object-sensor-SunSpot-2.xml", sensorBusiness);
-                int senId3 = sensorBusiness.create("urn:ogc:object:sensor:SunSpot:2", "system", "SunSpot 2", "SunSpot 2", null, null, sml, Long.MIN_VALUE, providerSEN);
-
-                Integer providerOMD = testResource.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
-                Integer providerOMT = testResource.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
-
+                testResource.generateSensors(sensorBusiness, omPid, smlPid);
+                
                 final SOSConfiguration sosconf = new SOSConfiguration();
                 sosconf.setProfile("transactional");
 
-                Integer defId = serviceBusiness.create("sos", "default", sosconf, null, null);
-                serviceBusiness.linkServiceAndProvider(defId, providerSEND);
-                serviceBusiness.linkServiceAndProvider(defId, providerOMD);
-                sensorBusiness.addSensorToService(defId, senId1);
-                sensorBusiness.addSensorToService(defId, senId2);
-                sensorBusiness.addSensorToService(defId, senId3);
+                Integer sid = serviceBusiness.create("sos", "default", sosconf, null, null);
+                serviceBusiness.linkServiceAndProvider(sid, omPid);
+                serviceBusiness.linkServiceAndProvider(sid, smlPid);
 
-                Integer testId =serviceBusiness.create("sos", "test", sosconf, null, null);
-                serviceBusiness.linkServiceAndProvider(testId, providerSENT);
-                serviceBusiness.linkServiceAndProvider(testId, providerOMT);
-                sensorBusiness.addSensorToService(testId, senId1);
-                sensorBusiness.addSensorToService(testId, senId2);
-                sensorBusiness.addSensorToService(testId, senId3);
+                List<Sensor> sensors = sensorBusiness.getByProviderId(smlPid);
+                sensors.stream().forEach((sensor) -> {
+                    try {
+                        sensorBusiness.addSensorToService(sid, sensor.getId());
+                    } catch (ConfigurationException ex) {
+                       throw new ConstellationRuntimeException(ex);
+                    }
+                });
 
-                serviceBusiness.start(defId);
-                serviceBusiness.start(testId);
+                serviceBusiness.start(sid);
 
-                // Get the list of layers
                 pool = SOSMarshallerPool.getInstance();
                 initialized = true;
             } catch (Exception ex) {
@@ -225,23 +210,9 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
         Operation op = c.getOperationsMetadata().getOperation(GET_OBSERVATION);
 
         assertTrue(op != null);
-        assertTrue(op.getDCP().size() > 0);
+        assertFalse(op.getDCP().isEmpty());
 
         assertEquals(op.getDCP().get(0).getHTTP().getGetOrPost().get(0).getHref(), getDefaultURL());
-
-        // Creates a valid GetCapabilties url.
-        getCapsUrl = new URL(getTestURL() + "request=GetCapabilities&service=SOS&version=1.0.0");
-
-        // Try to marshall something from the response returned by the server.
-        // The response should be a Capabilities.
-        obj = unmarshallResponse(getCapsUrl);
-        assertTrue("was:" + obj, obj instanceof Capabilities);
-
-        c = (Capabilities) obj;
-
-        op = c.getOperationsMetadata().getOperation(GET_OBSERVATION);
-
-        assertEquals(op.getDCP().get(0).getHTTP().getGetOrPost().get(0).getHref(), getTestURL());
 
         // Creates a valid GetCapabilties url.
         getCapsUrl = new URL(getDefaultURL()+ "request=GetCapabilities&service=SOS&version=1.0.0");
@@ -288,23 +259,9 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
         Operation op = c.getOperationsMetadata().getOperation(GET_OBSERVATION);
 
         assertTrue(op != null);
-        assertTrue(op.getDCP().size() > 0);
+        assertFalse(op.getDCP().isEmpty());
 
         assertEquals(op.getDCP().get(0).getHTTP().getGetOrPost().get(0).getHref(), getDefaultURL());
-
-        // Creates a valid GetCapabilties url.
-        getCapsUrl = new URL(getTestURL() + "request=GetCapabilities&service=SOS&version=2.0.0");
-
-        // Try to marshall something from the response returned by the server.
-        // The response should be a Capabilities.
-        obj = unmarshallResponse(getCapsUrl);
-        assertTrue("was:" + obj, obj instanceof CapabilitiesType);
-
-        c = (CapabilitiesType) obj;
-
-        op = c.getOperationsMetadata().getOperation(GET_OBSERVATION);
-
-        assertEquals(op.getDCP().get(0).getHTTP().getGetOrPost().get(0).getHref(), getTestURL());
 
         // Creates a valid GetCapabilties url.
         getCapsUrl = new URL(getDefaultURL()+ "request=GetCapabilities&service=SOS&version=2.0.0");
@@ -336,7 +293,7 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
         // for a POST request
         URLConnection conec = getCapsUrl.openConnection();
 
-        final DescribeSensor request = new DescribeSensor("1.0.0","SOS","urn:ogc:object:sensor:SunSpot:0014.4F01.0000.261A", "text/xml;subtype=\"SensorML/1.0.1\"");
+        final DescribeSensor request = new DescribeSensor("1.0.0","SOS","urn:ogc:object:sensor:GEOM:1", "text/xml;subtype=\"SensorML/1.0.1\"");
 
         postRequestObject(conec, request);
         Object obj = unmarshallResponse(conec);
@@ -469,7 +426,6 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.0.0", "2.0.0");
         instances.add(new Instance(1, "default", "Constellation SOS Server", "Constellation SOS Server", "sos", versions, 14, ServiceStatus.STARTED, "null/sos/default"));
-        instances.add(new Instance(2, "test",    "Constellation SOS Server", "Constellation SOS Server", "sos", versions, 14, ServiceStatus.STARTED, "null/sos/test"));
         InstanceReport expResult2 = new InstanceReport(instances);
         assertEquals(expResult2, obj);
 

@@ -73,6 +73,7 @@ import org.geotoolkit.sml.xml.AbstractSensorML;
 import org.geotoolkit.sml.xml.SensorMLUtilities;
 import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.dto.service.Service;
+import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.ObservationProvider;
 import org.geotoolkit.gml.GeometrytoJTS;
@@ -379,7 +380,7 @@ public class SensorRestAPI extends AbstractRestAPI {
      * @return list of Sensor
      * @throws JAXBException
      */
-    private List<Sensor> proceedToImportSensor(final String path) throws JAXBException, IOException, ConfigurationException {
+    private List<Sensor> proceedToImportSensor(final String path) throws JAXBException, IOException, ConstellationException {
         final List<Sensor> sensorsImported = new ArrayList<>();
         final Path imported  = IOUtilities.toPath(path);
         final Integer providerID           = sensorBusiness.getDefaultInternalProviderID();
@@ -406,7 +407,7 @@ public class SensorRestAPI extends AbstractRestAPI {
                             sensorsImported.add(sensorBusiness.getSensor(sid));
                             parents.put(sensorID, children);
                         }
-                    } catch (ConfigurationException | JAXBException e) {
+                    } catch (ConstellationException e) {
                         throw new IOException(e.getMessage() , e);
                     }
                     return FileVisitResult.CONTINUE;

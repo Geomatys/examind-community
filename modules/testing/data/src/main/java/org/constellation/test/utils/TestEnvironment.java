@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -24,14 +25,19 @@ import org.apache.sis.storage.DataStore;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.ProviderType;
 import org.constellation.business.IProviderBusiness;
+import org.constellation.business.ISensorBusiness;
+import org.constellation.dto.Sensor;
 import org.constellation.dto.service.config.generic.Automatic;
+import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationRuntimeException;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.DataProviders;
+import org.constellation.provider.ObservationProvider;
 import org.constellation.provider.ProviderParameters;
 import static org.constellation.provider.ProviderParameters.getOrCreate;
+import static org.constellation.test.utils.TestResourceUtils.unmarshallSensorResource;
 import org.constellation.util.Util;
 import org.geotoolkit.coverage.worldfile.FileCoverageProvider;
 import org.geotoolkit.data.shapefile.ShapefileFolderProvider;
@@ -393,6 +399,37 @@ public class TestEnvironment {
                 return new ProvidersImport(results);
            }
            throw new ConstellationRuntimeException("Missing test resource:" + tr.path);
+        }
+
+        public void generateSensors(ISensorBusiness sensorBusiness, int omProviderId, int smlProviderId) throws ConstellationException {
+           ObservationProvider omProv = (ObservationProvider) DataProviders.getProvider(omProviderId);
+           Collection<String> procs   = omProv.getProcedureNames(null, new HashMap<>());
+
+           // default sensor initialisation from the sensor present in the OM provider
+            for (String proc : procs) {
+                sensorBusiness.create(proc, proc, null, "system", null, null, null, Long.MIN_VALUE, smlProviderId);
+            }
+
+            // complete some sensor with sml
+            createOrUpdateSensor("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ1.xml", "urn:ogc:object:sensor:GEOM:1", "GEOM 1", "system", "timeseries", smlProviderId, sensorBusiness);
+            createOrUpdateSensor("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ2.xml", "urn:ogc:object:sensor:GEOM:2", "GEOM 2", "component", "profile", smlProviderId, sensorBusiness);
+            createOrUpdateSensor("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµtest-1.xml", "urn:ogc:object:sensor:GEOM:test-1", "test 1", "system", "timeseries", smlProviderId, sensorBusiness);
+            createOrUpdateSensor("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ8.xml", "urn:ogc:object:sensor:GEOM:8", "GEOM 8", "system", "timeseries", smlProviderId, sensorBusiness);
+        }
+
+        private void createOrUpdateSensor(String fileName, String sensorId, String name, String smlType, String omType, int smlProviderId, ISensorBusiness sensorBusiness) throws ConstellationException {
+            Object sml = unmarshallSensorResource(fileName, sensorBusiness);
+            Sensor s = sensorBusiness.getSensor(sensorId);
+            if (s != null) {
+                s.setName(name);
+                s.setDescription(name);
+                s.setType(smlType);
+                s.setOmType(omType);
+                sensorBusiness.update(s);
+                sensorBusiness.updateSensorMetadata(sensorId, sml);
+            } else {
+                sensorBusiness.create(sensorId, sensorId, null, "system", null, null, null, Long.MIN_VALUE, smlProviderId);
+            }
         }
 
         /**

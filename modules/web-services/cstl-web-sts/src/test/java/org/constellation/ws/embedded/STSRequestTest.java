@@ -27,8 +27,6 @@ import java.io.File;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -48,13 +46,10 @@ import org.constellation.dto.service.ServiceStatus;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationRuntimeException;
-import org.constellation.provider.DataProviders;
-import org.constellation.provider.ObservationProvider;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
-import static org.constellation.test.utils.TestResourceUtils.unmarshallSensorResource;
 import org.constellation.test.utils.TestRunner;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.getCurrentPort;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.unmarshallJsonResponse;
@@ -109,37 +104,18 @@ public class STSRequestTest extends AbstractGrizzlyServer {
                 }
                 final TestResources testResource = initDataDirectory();
 
-                Integer providerOMD = testResource.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
-                ObservationProvider omProv = (ObservationProvider) DataProviders.getProvider(providerOMD);
-                Collection<String> procs   = omProv.getProcedureNames(null, new HashMap<>());
+                Integer omPid   = testResource.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
+                Integer smlPid  = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness, null).id;
 
-                Integer providerSEN  = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness, null).id;
-
-                // default sensor initialisation
-                for (String proc : procs) {
-                    sensorBusiness.create(proc, proc, null, "system", null, null, null, Long.MIN_VALUE, providerSEN);
-                }
-
-                // complete some sensor with sml
-                Object sml = unmarshallSensorResource("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ1.xml", sensorBusiness);
-                updateSensor("urn:ogc:object:sensor:GEOM:1", "GEOM 1", "system", "timeseries", sml);
-
-                sml = unmarshallSensorResource("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ2.xml", sensorBusiness);
-                updateSensor("urn:ogc:object:sensor:GEOM:2", "GEOM 2", "component", "profile", sml);
-
-                sml = unmarshallSensorResource("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµtest-1.xml", sensorBusiness);
-                updateSensor("urn:ogc:object:sensor:GEOM:test-1", "test 1", "system", "timeseries", sml);
-
-                sml = unmarshallSensorResource("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ8.xml", sensorBusiness);
-                updateSensor("urn:ogc:object:sensor:GEOM:8", "GEOM 8", "system", "timeseries", sml);
+                testResource.generateSensors(sensorBusiness, omPid, smlPid);
 
                 final SOSConfiguration sosconf = new SOSConfiguration();
                 sosconf.setProfile("transactional");
 
                 Integer defId = serviceBusiness.create("sts", "default", sosconf, null, null);
-                serviceBusiness.linkServiceAndProvider(defId, providerSEN);
-                serviceBusiness.linkServiceAndProvider(defId, providerOMD);
-                List<Sensor> sensors = sensorBusiness.getByProviderId(providerSEN);
+                serviceBusiness.linkServiceAndProvider(defId, smlPid);
+                serviceBusiness.linkServiceAndProvider(defId, omPid);
+                List<Sensor> sensors = sensorBusiness.getByProviderId(smlPid);
                 sensors.stream().forEach((sensor) -> {
                     try {
                         sensorBusiness.addSensorToService(defId, sensor.getId());
@@ -155,16 +131,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
                 LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
             }
         }
-    }
-
-    private void updateSensor(String sensorId, String name, String smlType, String omType, Object sml) throws ConfigurationException {
-        Sensor s = sensorBusiness.getSensor(sensorId);
-        s.setName(name);
-        s.setDescription(name);
-        s.setType(smlType);
-        s.setOmType(omType);
-        sensorBusiness.update(s);
-        sensorBusiness.updateSensorMetadata(sensorId, sml);
     }
 
     @AfterClass
