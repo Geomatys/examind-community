@@ -28,7 +28,6 @@ import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.dto.Sensor;
 import org.constellation.dto.service.config.generic.Automatic;
-import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationRuntimeException;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
@@ -38,7 +37,6 @@ import org.constellation.provider.ObservationProvider;
 import org.constellation.provider.ProviderParameters;
 import static org.constellation.provider.ProviderParameters.getOrCreate;
 import static org.constellation.test.utils.TestResourceUtils.unmarshallSensorResource;
-import static org.constellation.test.utils.TestResourceUtils.writeDataFileEPSG;
 import org.constellation.util.Util;
 import org.geotoolkit.coverage.worldfile.FileCoverageProvider;
 import org.geotoolkit.data.shapefile.ShapefileFolderProvider;
@@ -226,9 +224,9 @@ public class TestEnvironment {
          */
         public static final TestResource OM2_FEATURE_DB = new TestResource(null, TestEnvironment::createOM2FeatureProvider);
         public static final TestResource OM2_DB = new TestResource(null, TestEnvironment::createOM2DatabaseProvider);
-        public static final TestResource OM_XML = new TestResource("org/constellation/xml/sos/single-observations.xml", TestEnvironment::createOMFileProvider);
-        public static final TestResource OM_GENERIC_DB = new TestResource("org/constellation/xml/sos/generic-config.xml", TestEnvironment::createOMGenericDBProvider);
-        public static final TestResource OM_LUCENE = new TestResource(null,  TestEnvironment::createOMLuceneProvider, null);
+        public static final TestResource OM_XML = new TestResource("org/constellation/xml/sos/omfile/single-observations.xml", TestEnvironment::createOMFileProvider);
+        public static final TestResource OM_GENERIC_DB = new TestResource("org/constellation/xml/sos/config/generic-config.xml", TestEnvironment::createOMGenericDBProvider);
+        public static final TestResource OM_LUCENE = new TestResource("org/constellation/xml/sos",  TestEnvironment::createOMLuceneProvider, null);
 
         // Sensor Providers
         public static final TestResource SENSOR_FILE = new TestResource("org/constellation/xml/sml", TestEnvironment::createSensorFileProvider);
@@ -838,11 +836,12 @@ public class TestEnvironment {
         try {
             final String providerIdentifier = "omLucneSrc-" + UUID.randomUUID().toString();
 
-            Path configDir     = p;
+            Path configDir     = Files.createTempDirectory(providerIdentifier);
             Path SOSDirectory  = configDir.resolve("SOS");
             Path instDirectory = SOSDirectory.resolve("default");
 
-            createOMLuceneDataFile(instDirectory);
+            TestResourceUtils.copyEPSG(p, instDirectory);
+            //createOMLuceneDataFile(instDirectory);
 
             final DataProviderFactory omFactory = DataProviders.getFactory("observation-store");
             final ParameterValueGroup source    = omFactory.getProviderDescriptor().createValue();
@@ -947,143 +946,5 @@ public class TestEnvironment {
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
         }
-    }
-
-    private static Path createOMLuceneDataFile(Path instDirectory) throws IOException {
-
-        //we write the data files
-        Path offeringDirectory = instDirectory.resolve("offerings");
-        Files.createDirectories(offeringDirectory);
-
-        Path offeringV100Directory = offeringDirectory.resolve("1.0.0");
-        Files.createDirectories(offeringV100Directory);
-        //writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-1.xml", "offering-allSensor.xml", EPSG_VERSION);
-        writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-1.xml", "offering-1.xml", EPSG_VERSION);
-        writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-2.xml", "offering-2.xml", EPSG_VERSION);
-        writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-3.xml", "offering-3.xml", EPSG_VERSION);
-        writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-4.xml", "offering-4.xml", EPSG_VERSION);
-        writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-5.xml", "offering-5.xml", EPSG_VERSION);
-        writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-6.xml", "offering-6.xml", EPSG_VERSION);
-        writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-7.xml", "offering-7.xml", EPSG_VERSION);
-        writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-8.xml", "offering-8.xml", EPSG_VERSION);
-        writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-9.xml", "offering-9.xml", EPSG_VERSION);
-        writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-10.xml", "offering-10.xml", EPSG_VERSION);
-        writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-11.xml", "offering-11.xml", EPSG_VERSION);
-        writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-12.xml", "offering-12.xml", EPSG_VERSION);
-        writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-13.xml", "offering-13.xml", EPSG_VERSION);
-        writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-14.xml", "offering-14.xml", EPSG_VERSION);
-
-        Path offeringV200Directory = offeringDirectory.resolve("2.0.0");
-        Files.createDirectories(offeringV200Directory);
-        writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-1.xml", "offering-1.xml", EPSG_VERSION);
-        writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-2.xml", "offering-2.xml", EPSG_VERSION);
-        writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-3.xml", "offering-3.xml", EPSG_VERSION);
-        writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-4.xml", "offering-4.xml", EPSG_VERSION);
-        writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-5.xml", "offering-5.xml", EPSG_VERSION);
-        writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-6.xml", "offering-6.xml", EPSG_VERSION);
-        writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-7.xml", "offering-7.xml", EPSG_VERSION);
-        writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-8.xml", "offering-8.xml", EPSG_VERSION);
-        writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-9.xml", "offering-9.xml", EPSG_VERSION);
-        writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-10.xml", "offering-10.xml", EPSG_VERSION);
-        writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-11.xml", "offering-11.xml", EPSG_VERSION);
-        writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-12.xml", "offering-12.xml", EPSG_VERSION);
-        writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-13.xml", "offering-13.xml", EPSG_VERSION);
-        writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-14.xml", "offering-14.xml", EPSG_VERSION);
-
-        Path phenomenonDirectory = instDirectory.resolve("phenomenons");
-        Files.createDirectories(phenomenonDirectory);
-        writeDataFileEPSG(phenomenonDirectory, "org/constellation/sos/phenomenon-depth.xml", "depth.xml", EPSG_VERSION);
-        writeDataFileEPSG(phenomenonDirectory, "org/constellation/sos/phenomenon-temp.xml",  "temperature.xml", EPSG_VERSION);
-        writeDataFileEPSG(phenomenonDirectory, "org/constellation/sos/phenomenon-sal.xml",  "salinity.xml", EPSG_VERSION);
-        writeDataFileEPSG(phenomenonDirectory, "org/constellation/sos/phenomenon-depth-temp.xml",  "aggregatePhenomenon.xml", EPSG_VERSION);
-        writeDataFileEPSG(phenomenonDirectory, "org/constellation/sos/phenomenon-depth-temp-sal.xml",  "aggregatePhenomenon-2.xml", EPSG_VERSION);
-
-        Path featureDirectory = instDirectory.resolve("features");
-        Files.createDirectories(featureDirectory);
-        Path featureV200Directory = featureDirectory.resolve("2.0.0");
-        Files.createDirectories(featureV200Directory);
-        writeDataFileEPSG(featureV200Directory, "org/constellation/sos/v200/feature1.xml", "station-001.xml", EPSG_VERSION);
-        writeDataFileEPSG(featureV200Directory, "org/constellation/sos/v200/feature2.xml", "station-002.xml", EPSG_VERSION);
-        writeDataFileEPSG(featureV200Directory, "org/constellation/sos/v200/feature3.xml", "station-006.xml", EPSG_VERSION);
-
-        Path featureV100Directory = featureDirectory.resolve("1.0.0");
-        Files.createDirectories(featureV100Directory);
-        writeDataFileEPSG(featureV100Directory, "org/constellation/sos/v100/feature1.xml", "station-001.xml", EPSG_VERSION);
-        writeDataFileEPSG(featureV100Directory, "org/constellation/sos/v100/feature2.xml", "station-002.xml", EPSG_VERSION);
-        writeDataFileEPSG(featureV100Directory, "org/constellation/sos/v100/feature3.xml", "station-006.xml", EPSG_VERSION);
-
-        Path observationsDirectory = instDirectory.resolve("observations");
-        Files.createDirectories(observationsDirectory);
-        Path obsV200Directory = observationsDirectory.resolve("2.0.0");
-        Files.createDirectories(obsV200Directory);
-        writeDataFileEPSG(obsV200Directory, "org/constellation/sos/v200/observation1.xml", "urn:ogc:object:observation:GEOM:304.xml", EPSG_VERSION);
-        writeDataFileEPSG(obsV200Directory, "org/constellation/sos/v200/observation2.xml", "urn:ogc:object:observation:GEOM:305.xml", EPSG_VERSION);
-        writeDataFileEPSG(obsV200Directory, "org/constellation/sos/v200/observation3.xml", "urn:ogc:object:observation:GEOM:406.xml", EPSG_VERSION);
-        writeDataFileEPSG(obsV200Directory, "org/constellation/sos/v200/observation4.xml", "urn:ogc:object:observation:GEOM:307.xml", EPSG_VERSION);
-        writeDataFileEPSG(obsV200Directory, "org/constellation/sos/v200/observation5.xml", "urn:ogc:object:observation:GEOM:507.xml", EPSG_VERSION);
-        writeDataFileEPSG(obsV200Directory, "org/constellation/sos/v200/observation6.xml", "urn:ogc:object:observation:GEOM:801.xml", EPSG_VERSION);
-        writeDataFileEPSG(obsV200Directory, "org/constellation/sos/v200/observation7.xml", "urn:ogc:object:observation:GEOM:901.xml", EPSG_VERSION);
-
-        Path obsV100Directory = observationsDirectory.resolve("1.0.0");
-        Files.createDirectories(obsV100Directory);
-        writeDataFileEPSG(obsV100Directory, "org/constellation/sos/v100/observation1.xml", "urn:ogc:object:observation:GEOM:304.xml", EPSG_VERSION);
-        writeDataFileEPSG(obsV100Directory, "org/constellation/sos/v100/observation2.xml", "urn:ogc:object:observation:GEOM:305.xml", EPSG_VERSION);
-        writeDataFileEPSG(obsV100Directory, "org/constellation/sos/v100/observation3.xml", "urn:ogc:object:observation:GEOM:406.xml", EPSG_VERSION);
-        writeDataFileEPSG(obsV100Directory, "org/constellation/sos/v100/observation4.xml", "urn:ogc:object:observation:GEOM:307.xml", EPSG_VERSION);
-        writeDataFileEPSG(obsV100Directory, "org/constellation/sos/v100/observation5.xml", "urn:ogc:object:observation:GEOM:507.xml", EPSG_VERSION);
-        writeDataFileEPSG(obsV100Directory, "org/constellation/sos/v100/observation6.xml", "urn:ogc:object:observation:GEOM:801.xml", EPSG_VERSION);
-        writeDataFileEPSG(obsV100Directory, "org/constellation/sos/v100/measure1.xml",     "urn:ogc:object:observation:GEOM:901-1-1.xml", EPSG_VERSION);
-        writeDataFileEPSG(obsV100Directory, "org/constellation/sos/v100/measure2.xml",     "urn:ogc:object:observation:GEOM:901-1-2.xml", EPSG_VERSION);
-        writeDataFileEPSG(obsV100Directory, "org/constellation/sos/v100/measure3.xml",     "urn:ogc:object:observation:GEOM:901-1-3.xml", EPSG_VERSION);
-        writeDataFileEPSG(obsV100Directory, "org/constellation/sos/v100/measure4.xml",     "urn:ogc:object:observation:GEOM:901-1-4.xml", EPSG_VERSION);
-        writeDataFileEPSG(obsV100Directory, "org/constellation/sos/v100/measure5.xml",     "urn:ogc:object:observation:GEOM:901-1-5.xml", EPSG_VERSION);
-        writeDataFileEPSG(obsV100Directory, "org/constellation/sos/v100/measure6.xml",     "urn:ogc:object:observation:GEOM:901-1-6.xml", EPSG_VERSION);
-        writeDataFileEPSG(obsV100Directory, "org/constellation/sos/v100/measure7.xml",     "urn:ogc:object:observation:GEOM:901-1-7.xml", EPSG_VERSION);
-
-        Path observationTemplatesDirectory = instDirectory.resolve("observationTemplates");
-        Files.createDirectories(observationTemplatesDirectory);
-        Path obsTV200Directory = observationTemplatesDirectory.resolve("2.0.0");
-        Files.createDirectories(obsTV200Directory);
-        writeDataFileEPSG(obsTV200Directory, "org/constellation/sos/v200/observationTemplate-3.xml", "urn:ogc:object:observation:template:GEOM:3.xml", EPSG_VERSION);
-        writeDataFileEPSG(obsTV200Directory, "org/constellation/sos/v200/observationTemplate-4.xml", "urn:ogc:object:observation:template:GEOM:4.xml", EPSG_VERSION);
-        writeDataFileEPSG(obsTV200Directory, "org/constellation/sos/v200/observationTemplate-5.xml", "urn:ogc:object:observation:template:GEOM:test-1.xml", EPSG_VERSION);
-        writeDataFileEPSG(obsTV200Directory, "org/constellation/sos/v200/observationTemplate-6.xml", "urn:ogc:object:observation:template:GEOM:6.xml", EPSG_VERSION);
-        //writeDataFileEPSG(obsTV200Directory, "org/constellation/sos/v200/observationTemplate-7.xml", "urn:ogc:object:observation:template:GEOM:7.xml", EPSG_VERSION);
-        writeDataFileEPSG(obsTV200Directory, "org/constellation/sos/v200/observationTemplate-8.xml", "urn:ogc:object:observation:template:GEOM:8.xml", EPSG_VERSION);
-
-        Path obsTV100Directory = observationTemplatesDirectory.resolve("1.0.0");
-        Files.createDirectories(obsTV100Directory);
-        writeDataFileEPSG(obsTV100Directory, "org/constellation/sos/v100/observationTemplate-3.xml", "urn:ogc:object:observation:template:GEOM:3.xml", EPSG_VERSION);
-        writeDataFileEPSG(obsTV100Directory, "org/constellation/sos/v100/observationTemplate-4.xml", "urn:ogc:object:observation:template:GEOM:4.xml", EPSG_VERSION);
-        writeDataFileEPSG(obsTV100Directory, "org/constellation/sos/v100/observationTemplate-5.xml", "urn:ogc:object:observation:template:GEOM:test-1.xml", EPSG_VERSION);
-        writeDataFileEPSG(obsTV100Directory, "org/constellation/sos/v100/observationTemplate-6.xml", "urn:ogc:object:observation:template:GEOM:6.xml", EPSG_VERSION);
-        writeDataFileEPSG(obsTV100Directory, "org/constellation/sos/v100/observationTemplate-7.xml", "urn:ogc:object:observation:template:GEOM:7-2.xml", EPSG_VERSION);
-        writeDataFileEPSG(obsTV100Directory, "org/constellation/sos/v100/observationTemplate-8.xml", "urn:ogc:object:observation:template:GEOM:8.xml", EPSG_VERSION);
-
-
-        Path sensorDirectory = instDirectory.resolve("sensors");
-        Files.createDirectories(sensorDirectory);
-        Path sensor1         = sensorDirectory.resolve("urnµogcµobjectµsensorµGEOMµ1.xml");
-        Files.createFile(sensor1);
-        Path sensor2         = sensorDirectory.resolve("urnµogcµobjectµsensorµGEOMµ2.xml");
-        Files.createFile(sensor2);
-        Path sensor3         = sensorDirectory.resolve("urnµogcµobjectµsensorµGEOMµ3.xml");
-        Files.createFile(sensor3);
-        Path sensor4         = sensorDirectory.resolve("urnµogcµobjectµsensorµGEOMµ4.xml");
-        Files.createFile(sensor4);
-        Path sensor5         = sensorDirectory.resolve("urnµogcµobjectµsensorµGEOMµtest-1.xml");
-        Files.createFile(sensor5);
-        Path sensor6         = sensorDirectory.resolve("urnµogcµobjectµsensorµGEOMµ6.xml");
-        Files.createFile(sensor6);
-        Path sensor7         = sensorDirectory.resolve("urnµogcµobjectµsensorµGEOMµ7.xml");
-        Files.createFile(sensor7);
-        Path sensor8         = sensorDirectory.resolve("urnµogcµobjectµsensorµGEOMµ8.xml");
-        Files.createFile(sensor8);
-        Path sensor9         = sensorDirectory.resolve("urnµogcµobjectµsensorµGEOMµ9.xml");
-        Files.createFile(sensor9);
-        Path sensor10        = sensorDirectory.resolve("urnµogcµobjectµsensorµGEOMµ10.xml");
-        Files.createFile(sensor10);
-
-        return instDirectory;
     }
 }

@@ -21,9 +21,9 @@ package org.constellation.sos.io.lucene;
 import java.nio.file.Path;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +40,7 @@ import static org.geotoolkit.observation.ObservationReader.SOS_VERSION;
 import org.geotoolkit.observation.ObservationResult;
 import org.geotoolkit.observation.ObservationStoreException;
 import static org.geotoolkit.observation.OMUtils.getVersionFromHints;
+import org.geotoolkit.observation.xml.ObservationComparator;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import org.geotoolkit.sos.xml.ResponseModeType;
 import static org.geotoolkit.sos.xml.ResponseModeType.RESULT_TEMPLATE;
@@ -77,10 +78,14 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
     public List<Observation> getObservations(Map<String, Object> hints) throws DataStoreException {
         final String version                 = getVersionFromHints(hints);
         final List<Observation> observations = new ArrayList<>();
-        final Set<String> oid                = getIdentifiers(hints);
-        for (String foid : oid) {
-            final Observation obs = reader.getObservation(foid, resultModel, responseMode, version);
-
+        final Set<String> oids               = getIdentifiers(hints);
+        for (String oid : oids) {
+            final Observation obs = reader.getObservation(oid, resultModel, responseMode, version);
+            observations.add(obs);
+        }
+        Collections.sort(observations, new ObservationComparator());
+        final List<Observation> results = new ArrayList<>();
+        for (Observation obs : observations) {
             if (!RESULT_TEMPLATE.equals(responseMode)) {
                 // parse result values to eliminate wrong results
                 if (obs.getSamplingTime() instanceof Period) {
@@ -105,9 +110,9 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
                     }
                 }
             }
-            observations.add(obs);
+            results.add(obs);
         }
-        return observations;
+        return results;
     }
 
     @Override

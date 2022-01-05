@@ -71,7 +71,7 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
 
                 final TestResources testResource = initDataDirectory();
 
-                Integer omPid  = testResource.createProviderWithPath(TestResource.OM_LUCENE, configDir, providerBusiness, null).id;
+                Integer omPid  = testResource.createProvider(TestResource.OM_LUCENE, providerBusiness, null).id;
                 Integer smlPid = testResource.createProvider(TestResource.SENSOR_FILE, providerBusiness, null).id;
 
                 final SOSConfiguration configuration = new SOSConfiguration();

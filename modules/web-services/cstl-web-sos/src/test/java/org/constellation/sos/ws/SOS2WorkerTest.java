@@ -580,7 +580,7 @@ public abstract class SOS2WorkerTest {
 
         GetObservationResponseType result = (GetObservationResponseType) worker.getObservation(request);
 
-        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/sos/v200/observation3.xml");
+        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/xml/sos/observations/2.0.0/urnµogcµobjectµobservationµGEOMµ406.xml");
 
         OMObservationType expResult = (OMObservationType)obj.getValue();
 
@@ -665,7 +665,7 @@ public abstract class SOS2WorkerTest {
 
         result = (GetObservationResponseType) worker.getObservation(request);
 
-        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/sos/v200/observation3.xml");
+        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/xml/sos/observations/2.0.0/urnµogcµobjectµobservationµGEOMµ406.xml");
 
         expResult = (OMObservationType)obj.getValue();
 
@@ -702,7 +702,7 @@ public abstract class SOS2WorkerTest {
 
         result = (GetObservationResponseType) worker.getObservation(request);
 
-        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/sos/v200/observation3.xml");
+        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/xml/sos/observations/2.0.0/urnµogcµobjectµobservationµGEOMµ406.xml");
 
         expResult = (OMObservationType)obj.getValue();
 
@@ -856,7 +856,7 @@ public abstract class SOS2WorkerTest {
 
         result = (GetObservationResponseType) worker.getObservation(request);
 
-        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/sos/v200/observation3.xml");
+        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/xml/sos/observations/2.0.0/urnµogcµobjectµobservationµGEOMµ406.xml");
 
         expResult = (OMObservationType)obj.getValue();
         assertEquals(1, result.getMember().size());
@@ -896,7 +896,7 @@ public abstract class SOS2WorkerTest {
 
         result = (GetObservationResponseType) worker.getObservation(request);
 
-        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/sos/v200/observation5.xml");
+        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/xml/sos/observations/2.0.0/urnµogcµobjectµobservationµGEOMµ507.xml");
 
         expResult = (OMObservationType)obj.getValue();
         assertEquals(1, result.getMember().size());
@@ -943,7 +943,7 @@ public abstract class SOS2WorkerTest {
 
         result = (GetObservationResponseType) worker.getObservation(request);
 
-        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/sos/v200/observation5.xml");
+        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/xml/sos/observations/2.0.0/urnµogcµobjectµobservationµGEOMµ507.xml");
 
         expResult = (OMObservationType)obj.getValue();
         assertEquals(1, result.getMember().size());
@@ -1000,7 +1000,7 @@ public abstract class SOS2WorkerTest {
 
         result = (GetObservationResponseType) worker.getObservation(request);
 
-        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/sos/v200/observation3.xml");
+        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/xml/sos/observations/2.0.0/urnµogcµobjectµobservationµGEOMµ406.xml");
 
         expResult = (OMObservationType)obj.getValue();
 
@@ -1069,7 +1069,7 @@ public abstract class SOS2WorkerTest {
         assertEquals(1, result.getMember().size());
         OMObservationType obsResult = (OMObservationType) result.getMember().iterator().next();
 
-        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/sos/v200/observation6.xml");
+        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/xml/sos/observations/2.0.0/urnµogcµobjectµobservationµGEOMµ801.xml");
         OMObservationType expResult = (OMObservationType)obj.getValue();
 
         assertTrue(obsResult.getFeatureOfInterest() instanceof SFSpatialSamplingFeatureType);
@@ -1116,7 +1116,7 @@ public abstract class SOS2WorkerTest {
         final Iterator it = result.getMember().iterator();
         obsResult = (OMObservationType) it.next();
 
-        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v200/observation6.xml");
+        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sos/observations/2.0.0/urnµogcµobjectµobservationµGEOMµ801.xml");
         expResult = (OMObservationType)obj.getValue();
 
         assertEquals(expResult.getFeatureOfInterest(), obsResult.getFeatureOfInterest());
@@ -1133,7 +1133,7 @@ public abstract class SOS2WorkerTest {
         assertEquals(expResult, obsResult);
 
         obsResult = (OMObservationType) it.next();
-        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v200/observation7.xml");
+        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sos/observations/2.0.0/urnµogcµobjectµobservationµGEOMµ901.xml");
         expResult = (OMObservationType)obj.getValue();
 
         expResult.getPropertyFeatureOfInterest().setToHref();
@@ -1219,7 +1219,7 @@ public abstract class SOS2WorkerTest {
 
         final OMObservationType result = (OMObservationType) response.getMember().get(0);
 
-        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v200/observation1.xml");
+        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sos/observations/2.0.0/urnµogcµobjectµobservationµGEOMµ304.xml");
         OMObservationType expResult = (OMObservationType)obj.getValue();
 
         assertProcedureEquals(expResult.getProcedure(), result.getProcedure());
@@ -1304,7 +1304,7 @@ public abstract class SOS2WorkerTest {
 
         sensorDescription.getMember().get(0).getRealProcess().setId("urn:ogc:object:sensor:GEOM:66");
 
-        /*JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/observationTemplate-6.xml"));
+        /*JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sos/urnµogcµobjectµobservationµtemplateµGEOMµ6.xml"));
 
         OMObservationType obsTemplate = (OMObservationType)obj.getValue();*/
 
@@ -1419,7 +1419,7 @@ public abstract class SOS2WorkerTest {
         /**
          * Test 1 : getFeatureOfInterest with featureID filter
          */
-        SFSpatialSamplingFeatureType expResult = ((JAXBElement<SFSpatialSamplingFeatureType>) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v200/feature1.xml")).getValue();
+        SFSpatialSamplingFeatureType expResult = ((JAXBElement<SFSpatialSamplingFeatureType>) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sos/features/2.0.0/station-001.xml")).getValue();
 
         GetFeatureOfInterestType request = new GetFeatureOfInterestType("2.0.0", "SOS", "station-001");
 
@@ -1432,7 +1432,7 @@ public abstract class SOS2WorkerTest {
         /**
          * Test 2 : getFeatureOfInterest with featureID filter (SamplingCurve)
          */
-        SFSpatialSamplingFeatureType expResultC = ((JAXBElement<SFSpatialSamplingFeatureType>) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v200/feature3.xml")).getValue();
+        SFSpatialSamplingFeatureType expResultC = ((JAXBElement<SFSpatialSamplingFeatureType>) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sos/features/2.0.0/station-006.xml")).getValue();
 
         request = new GetFeatureOfInterestType("2.0.0", "SOS", "station-006");
 
@@ -1562,7 +1562,7 @@ public abstract class SOS2WorkerTest {
                                       "depth");
         GetResultTemplateResponseType obsCollResult = (GetResultTemplateResponseType) worker.getResultTemplate(GOrequest);
 
-        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v200/observationTemplate-4.xml");
+        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sos/observationTemplates/2.0.0/urnµogcµobjectµobservationµtemplateµGEOMµ4.xml");
 
         OMObservationType templateExpResult = (OMObservationType)obj.getValue();
 
@@ -1746,7 +1746,7 @@ public abstract class SOS2WorkerTest {
         assertEquals(expResult.getResultValues(), result.getResultValues());
         assertEquals(expResult, result);
 
-        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v200/observationTemplate-3.xml");
+        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sos/observationTemplates/2.0.0/urnµogcµobjectµobservationµtemplateµGEOMµ3.xml");
 
         OMObservationType template = (OMObservationType)obj.getValue();
 
@@ -1785,7 +1785,7 @@ public abstract class SOS2WorkerTest {
     public void insertResultTest() throws Exception {
         Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
 
-        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v200/observationTemplate-3.xml");
+        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sos/observationTemplates/2.0.0/urnµogcµobjectµobservationµtemplateµGEOMµ3.xml");
 
         OMObservationType template = (OMObservationType)obj.getValue();
 
@@ -1824,7 +1824,7 @@ public abstract class SOS2WorkerTest {
 
         GetObservationResponseType resultGO = (GetObservationResponseType) worker.getObservation(requestGO);
 
-        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v200/observation4.xml");
+        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sos/observations/2.0.0/urnµogcµobjectµobservationµGEOMµ307.xml");
 
         OMObservationType expResult = (OMObservationType)obj.getValue();
 
