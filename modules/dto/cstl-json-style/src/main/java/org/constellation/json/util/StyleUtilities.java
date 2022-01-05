@@ -26,10 +26,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.measure.Unit;
 import org.apache.sis.cql.CQLException;
+import org.apache.sis.measure.Units;
 import org.apache.sis.util.ObjectConverters;
 import org.apache.sis.util.Static;
 import org.constellation.json.binding.ChannelSelection;
@@ -251,5 +254,15 @@ public final class StyleUtilities extends Static {
      */
     public static boolean isAssignableToPoint(final Class<?> clazz) {
         return Point.class.isAssignableFrom(clazz) || MultiPoint.class.isAssignableFrom(clazz);
+    }
+
+    public static Optional<String> stringify(Unit<?> unit) {
+        if (unit == null) return Optional.empty();
+        final String symbol = unit.getSymbol();
+        if (symbol == null) {
+            LOGGER.warning("Unit has no symbol and cannot be expressed as a String");
+            return Optional.empty();
+        }
+        return Optional.of(symbol);
     }
 }

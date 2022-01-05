@@ -1,0 +1,12 @@
+{
+  "@symbol": "TextSymbolizer",
+  "labelPlacement": {
+    "anchor": {
+      "x": "xxx",
+      "y": "yyyy"
+    }
+  },
+  "label": "identifier",
+  "unit": "m",
+  "geometry": "ST_Centroid(sis:geometry)"
+}

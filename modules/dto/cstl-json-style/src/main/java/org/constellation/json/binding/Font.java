@@ -19,6 +19,8 @@
 
 package org.constellation.json.binding;
 
+import java.util.Objects;
+import java.util.StringJoiner;
 import org.constellation.json.util.StyleUtilities;
 import org.opengis.filter.Expression;
 
@@ -119,5 +121,36 @@ public final class Font implements StyleElement<org.opengis.style.Font> {
                 literal(this.italic ? "italic" : "normal"),
                 literal(this.bold ? "bold" : "normal"),
                 parseExpression(this.size));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Font font = (Font) o;
+
+        if (bold != font.bold) return false;
+        if (italic != font.italic) return false;
+        if (!Objects.equals(size, font.size)) return false;
+        return Objects.equals(family, font.family);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = size != null ? size.hashCode() : 0;
+        result = 31 * result + (bold ? 1 : 0);
+        result = 31 * result + (italic ? 1 : 0);
+        result = 31 * result + (family != null ? family.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", Font.class.getSimpleName() + "[", "]")
+                .add("size='" + size + "'")
+                .add("bold=" + bold)
+                .add("italic=" + italic)
+                .toString();
     }
 }

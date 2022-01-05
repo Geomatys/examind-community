@@ -19,6 +19,7 @@
 
 package org.constellation.json.binding;
 
+import java.util.Objects;
 import org.constellation.json.util.StyleUtilities;
 import org.opengis.filter.Expression;
 
@@ -76,5 +77,28 @@ public final class Fill implements StyleElement<org.opengis.style.Fill> {
     @Override
     public org.opengis.style.Fill toType() {
         return SF.fill(literal(color), parseExpression(opacity));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Fill fill = (Fill) o;
+
+        return Objects.equals(color, fill.color)
+                && Objects.equals(opacity, fill.opacity);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = color != null ? color.hashCode() : 0;
+        result = 31 * result + (opacity != null ? opacity.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "Fill[opacity='"+opacity+"', color='"+color+"']";
     }
 }

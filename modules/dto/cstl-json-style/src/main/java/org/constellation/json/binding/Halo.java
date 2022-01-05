@@ -19,6 +19,9 @@
 
 package org.constellation.json.binding;
 
+import java.util.Objects;
+import java.util.StringJoiner;
+
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import static org.constellation.json.util.StyleFactories.SF;
 import static org.constellation.json.util.StyleUtilities.literal;
@@ -74,4 +77,32 @@ public class Halo implements StyleElement<org.opengis.style.Halo>{
         return SF.halo(type(fill), literal(radius));
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Halo halo = (Halo) o;
+
+        return Double.compare(halo.radius, radius) == 0
+                && Objects.equals(fill, halo.fill);
+    }
+
+    @Override
+    public int hashCode() {
+        int result;
+        long temp;
+        temp = Double.doubleToLongBits(radius);
+        result = (int) (temp ^ (temp >>> 32));
+        result = 31 * result + (fill != null ? fill.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", Halo.class.getSimpleName() + "[", "]")
+                .add("radius=" + radius)
+                .add("fill=" + fill)
+                .toString();
+    }
 }
