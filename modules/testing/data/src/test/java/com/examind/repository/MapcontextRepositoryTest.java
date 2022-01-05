@@ -32,6 +32,7 @@ import org.constellation.repository.LayerRepository;
 import org.constellation.repository.MapContextRepository;
 import org.constellation.repository.DataRepository;
 import org.constellation.repository.ProviderRepository;
+import org.constellation.repository.SensorRepository;
 import org.constellation.repository.ServiceRepository;
 import org.junit.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class MapcontextRepositoryTest extends AbstractRepositoryTest {
 
+    @Autowired
+    private SensorRepository sensorRepository;
+    
     @Autowired
     private MapContextRepository mapcontextRepository;
 
@@ -63,6 +67,7 @@ public class MapcontextRepositoryTest extends AbstractRepositoryTest {
         Assert.assertNotNull(owner);
         Assert.assertNotNull(owner.getId());
 
+        sensorRepository.deleteAll();
         layerRepository.deleteAll();
         dataRepository.deleteAll();
         providerRepository.deleteAll();

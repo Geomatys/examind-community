@@ -28,6 +28,7 @@ import org.constellation.repository.DatasetRepository;
 import org.constellation.repository.LayerRepository;
 import org.constellation.repository.MapContextRepository;
 import org.constellation.repository.ProviderRepository;
+import org.constellation.repository.SensorRepository;
 import org.constellation.repository.ServiceRepository;
 import org.constellation.repository.TaskParameterRepository;
 import org.constellation.repository.TaskRepository;
@@ -37,7 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class UserRepositoryTest extends AbstractRepositoryTest {
 
     @Autowired
-    private UserRepository userRepository;
+    private SensorRepository sensorRepository;
 
     @Autowired
     private MapContextRepository mapcontextRepository;
@@ -65,6 +66,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
 
     public void crude() throws Throwable {
         // big cleanup
+        sensorRepository.deleteAll();
         taskRepository.deleteAll();
         taskParamRepository.deleteAll();
         mapcontextRepository.deleteAll();

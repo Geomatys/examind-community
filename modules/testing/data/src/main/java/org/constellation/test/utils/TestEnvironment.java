@@ -865,13 +865,16 @@ public class TestEnvironment {
     private static Integer createSensorFileProvider(IProviderBusiness providerBusiness, Path p) {
         try {
             final String providerIdentifier = "sensorFileSrc-" + UUID.randomUUID().toString();
+
+            Path tmpDir = Files.createTempDirectory(providerIdentifier);
+            IOUtilities.copy(p, tmpDir);
             final DataProviderFactory factory = DataProviders.getFactory("sensor-store");
             final ParameterValueGroup source = factory.getProviderDescriptor().createValue();
             source.parameter("id").setValue(providerIdentifier);
 
             final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) factory.getStoreDescriptor(), source);
             final ParameterValueGroup config = choice.addGroup("filesensor");
-            config.parameter("data_directory").setValue(p.toUri());
+            config.parameter("data_directory").setValue(tmpDir.toUri());
 
             return providerBusiness.storeProvider(providerIdentifier, ProviderType.SENSOR, "sensor-store", source);
         } catch (Exception ex) {

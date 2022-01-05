@@ -30,11 +30,15 @@ import org.constellation.dto.Layer;
 import org.constellation.repository.DataRepository;
 import org.constellation.repository.DatasetRepository;
 import org.constellation.repository.ProviderRepository;
+import org.constellation.repository.SensorRepository;
 import org.constellation.repository.ServiceRepository;
 import org.junit.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class LayerRepositoryTest extends AbstractRepositoryTest {
+
+    @Autowired
+    private SensorRepository sensorRepository;
 
     @Autowired
     private ServiceRepository serviceRepository;
@@ -58,6 +62,7 @@ public class LayerRepositoryTest extends AbstractRepositoryTest {
     }
 
     public void crud() {
+        sensorRepository.deleteAll();
         dataRepository.deleteAll();
         providerRepository.deleteAll();
         datasetRepository.deleteAll();

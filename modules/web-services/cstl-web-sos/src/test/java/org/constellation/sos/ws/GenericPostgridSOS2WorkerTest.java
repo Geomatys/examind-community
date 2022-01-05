@@ -20,7 +20,6 @@
 package org.constellation.sos.ws;
 
 import java.io.File;
-import java.sql.Connection;
 import java.util.logging.Level;
 import javax.annotation.PostConstruct;
 import org.apache.sis.util.logging.Logging;
@@ -32,9 +31,6 @@ import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
-import org.constellation.util.Util;
-import org.geotoolkit.internal.sql.DefaultDataSource;
-import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -49,22 +45,10 @@ import org.junit.runner.RunWith;
 @RunWith(SpringTestRunner.class)
 public class GenericPostgridSOS2WorkerTest extends SOS2WorkerTest {
 
-    private static DefaultDataSource ds = null;
-
     private static boolean initialized = false;
-
-    private static String url;
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-        url = "jdbc:derby:memory:GPGTest2;create=true";
-        ds = new DefaultDataSource(url);
-
-        Connection con = ds.getConnection();
-        DerbySqlScriptRunner sr = new DerbySqlScriptRunner(con);
-        sr.run(Util.getResourceAsStream("org/constellation/om2/structure_observations.sql"));
-        sr.run(Util.getResourceAsStream("org/constellation/sql/sos-data-om2.sql"));
-
         ConfigDirectory.setupTestEnvironement("GPGSOSWorkerTest");
 
     }
@@ -91,8 +75,7 @@ public class GenericPostgridSOS2WorkerTest extends SOS2WorkerTest {
                 serviceBusiness.linkServiceAndProvider(sid, omPid);
 
                 init();
-                worker = new SOSworker("default");
-                worker.setServiceUrl(URL);
+                initWorker();
                 initialized = true;
 
             }
@@ -119,9 +102,6 @@ public class GenericPostgridSOS2WorkerTest extends SOS2WorkerTest {
         File mappingFile = new File("mapping.properties");
         if (mappingFile.exists()) {
             mappingFile.delete();
-        }
-        if (ds != null) {
-            ds.shutdown();
         }
         ConfigDirectory.shutdownTestEnvironement("GPGSOSWorkerTest");
     }

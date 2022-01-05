@@ -51,7 +51,6 @@ public class GenericPostgridSOSWorkerTest extends SOSWorkerTest {
     @BeforeClass
     public static void setUpClass() throws Exception {
         ConfigDirectory.setupTestEnvironement("GPGSOSWorkerTest");
-
     }
 
     @PostConstruct
@@ -75,8 +74,7 @@ public class GenericPostgridSOSWorkerTest extends SOSWorkerTest {
                 serviceBusiness.linkServiceAndProvider(sid, pid);
 
                 init();
-                worker = new SOSworker("default");
-                worker.setServiceUrl(URL);
+                initWorker();
                 initialized = true;
             }
         } catch (Exception ex) {

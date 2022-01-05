@@ -20,12 +20,15 @@
 package org.constellation.sos.ws;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import javax.annotation.PostConstruct;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.configuration.ConfigDirectory;
+import org.constellation.dto.Sensor;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
+import org.constellation.exception.ConfigurationException;
+import org.constellation.exception.ConstellationRuntimeException;
 import org.constellation.sos.core.SOSworker;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
@@ -37,7 +40,9 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 /**
+ * Test a SOS service version 1 with an Lucene observation datasource / Filesystem SML datasource
  *
  * @author Guilhem Legal (Geomatys)
  */
@@ -62,25 +67,36 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
                 // clean up
                 serviceBusiness.deleteAll();
                 providerBusiness.removeAll();
+                sensorBusiness.deleteAll();
 
                 final TestResources testResource = initDataDirectory();
 
-                Integer pid = testResource.createProviderWithPath(TestResource.OM_LUCENE, configDir, providerBusiness, null).id;
+                Integer omPid  = testResource.createProviderWithPath(TestResource.OM_LUCENE, configDir, providerBusiness, null).id;
+                Integer smlPid = testResource.createProvider(TestResource.SENSOR_FILE, providerBusiness, null).id;
 
                 final SOSConfiguration configuration = new SOSConfiguration();
                 configuration.setProfile("transactional");
                 configuration.getParameters().put("transactionSecurized", "false");
 
                 Integer sid = serviceBusiness.create("sos", "default", configuration, null, null);
-                serviceBusiness.linkServiceAndProvider(sid, pid);
+                serviceBusiness.linkServiceAndProvider(sid, omPid);
+                serviceBusiness.linkServiceAndProvider(sid, smlPid);
+
+                List<Sensor> sensors = sensorBusiness.getByProviderId(smlPid);
+                sensors.stream().forEach((sensor) -> {
+                    try {
+                        sensorBusiness.addSensorToService(sid, sensor.getId());
+                    } catch (ConfigurationException ex) {
+                       throw new ConstellationRuntimeException(ex);
+                    }
+                });
 
                 init();
-                worker = new SOSworker("default");
-                worker.setServiceUrl(URL);
+                initWorker();
                 initialized = true;
             }
         } catch (Exception ex) {
-            Logging.getLogger("org.constellation.sos.ws").log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
     }
 
@@ -259,6 +275,54 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
         super.GetFeatureOfInterestTimeTest();
     }
 
+    /**
+     * Tests the DescribeSensor method
+     *
+     * @throws java.lang.Exception
+     */
+    @Test
+    @Override
+    @Order(order=14)
+    public void DescribeSensorErrorTest() throws Exception {
+       super.DescribeSensorErrorTest();
+    }
+
+    /**
+     * Tests the DescribeSensor method
+     *
+     * @throws java.lang.Exception
+     */
+    @Test
+    @Override
+    @Order(order=15)
+    public void DescribeSensorTest() throws Exception {
+       super.DescribeSensorTest();
+    }
+
+    /**
+     * Tests the RegisterSensor method
+     *
+     * @throws java.lang.Exception
+     */
+    @Test
+    @Override
+    @Order(order=16)
+    public void RegisterSensorErrorTest() throws Exception {
+        super.RegisterSensorErrorTest();
+    }
+
+    /**
+     * Tests the RegisterSensor method
+     *
+     * @throws java.lang.Exception
+     */
+    @Test
+    @Override
+    @Order(order=17)
+    public void RegisterSensorTest() throws Exception {
+        super.RegisterSensorTest();
+    }
+
 
     /**
      * Tests the destroy method
@@ -267,7 +331,7 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
      */
     @Test
     @Override
-    @Order(order=14)
+    @Order(order=18)
     public void destroyTest() throws Exception {
         super.destroyTest();
     }

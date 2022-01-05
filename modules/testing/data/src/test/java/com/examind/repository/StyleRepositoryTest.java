@@ -30,6 +30,7 @@ import org.constellation.repository.DataRepository;
 import org.constellation.repository.DatasetRepository;
 import org.constellation.repository.LayerRepository;
 import org.constellation.repository.ProviderRepository;
+import org.constellation.repository.SensorRepository;
 import org.constellation.repository.ServiceRepository;
 import org.constellation.repository.StyleRepository;
 import org.junit.Assert;
@@ -41,6 +42,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class StyleRepositoryTest extends AbstractRepositoryTest {
 
+    @Autowired
+    private SensorRepository sensorRepository;
+    
     @Autowired
     private StyleRepository styleRepository;
 
@@ -60,6 +64,8 @@ public class StyleRepositoryTest extends AbstractRepositoryTest {
     private DatasetRepository datasetRepository;
 
     public void crude() {
+
+        sensorRepository.deleteAll();
         dataRepository.deleteAll();
         datasetRepository.deleteAll();
         providerRepository.deleteAll();

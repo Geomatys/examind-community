@@ -256,6 +256,11 @@ public class FileObservationWriter implements ObservationWriter {
 
         try (OutputStream outputStream = Files.newOutputStream(target, CREATE, WRITE, TRUNCATE_EXISTING)) {
             final Marshaller marshaller = MARSHALLER_POOL.acquireMarshaller();
+            // TODO remove this piece of code when ObservationOfferingType will have @xmlRootElement
+            if (object instanceof  org.geotoolkit.sos.xml.v200.ObservationOfferingType) {
+                 org.geotoolkit.sos.xml.v200.ObjectFactory f = new  org.geotoolkit.sos.xml.v200.ObjectFactory();
+                object = f.createObservationOffering((org.geotoolkit.sos.xml.v200.ObservationOfferingType)object);
+            }
             marshaller.marshal(object, outputStream);
             MARSHALLER_POOL.recycle(marshaller);
         } catch (JAXBException ex) {
@@ -273,9 +278,11 @@ public class FileObservationWriter implements ObservationWriter {
         } catch (IOException ex) {
             throw new DataStoreException("IO exception creating phenomenon directory  "+phenomenonDirectory.toString(), ex);
         }
-        String fileName = phenomenon.getName().getCode().replace(':', 'µ');
+        String fileName = phenomenon.getId().replace(':', 'µ');
         final Path phenomenonFile = phenomenonDirectory.resolve(fileName + FILE_EXTENSION);
-        writeObject(phenomenonFile, phenomenon, "phenomenon");
+        if (!Files.exists(phenomenonFile)) {
+            writeObject(phenomenonFile, phenomenon, "phenomenon");
+        }
     }
 
     private void writeFeatureOfInterest(final SamplingFeature foi) throws DataStoreException {

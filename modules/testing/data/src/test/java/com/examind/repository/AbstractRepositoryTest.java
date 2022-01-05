@@ -42,7 +42,7 @@ public abstract class AbstractRepositoryTest {
     DSLContext create;
 
     @Autowired
-    private UserRepository userRepository;
+    protected UserRepository userRepository;
 
     private static final String configDir;
     static {
