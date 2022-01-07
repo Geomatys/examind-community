@@ -88,6 +88,15 @@ public interface ILayerBusiness {
     List<LayerConfig> getLayers(Integer serviceId, String userLogin) throws ConfigurationException;
 
     /**
+     * Return the layer number for the specifed service.
+     * This list is not filtered on the user security rights.
+     *
+     * @param serviceId Service identifier.
+     *
+     */
+    int getLayerCount(Integer serviceId);
+
+    /**
      * Return all the layer's names for the specifed service.
      * This list is filtered on the user security rights.
      *

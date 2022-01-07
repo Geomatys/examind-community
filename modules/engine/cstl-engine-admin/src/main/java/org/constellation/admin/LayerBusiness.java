@@ -321,6 +321,14 @@ public class LayerBusiness implements ILayerBusiness {
      * {@inheritDoc}
      */
     @Override
+    public int getLayerCount(Integer serviceId) {
+        return layerRepository.countByServiceId(serviceId);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public List<NameInProvider> getLayerNames(final Integer serviceId, final String login) throws ConfigurationException {
         serviceBusiness.ensureExistingInstance(serviceId);
 
@@ -548,6 +556,7 @@ public class LayerBusiness implements ILayerBusiness {
         layerConfig.setId(layer.getId());
 
         // override with table values (TODO remove)
+        layerConfig.setName(layer.getName());
         layerConfig.setAlias(layer.getAlias());
         layerConfig.setDate(layer.getDate());
         layerConfig.setOwnerId(layer.getOwnerId());

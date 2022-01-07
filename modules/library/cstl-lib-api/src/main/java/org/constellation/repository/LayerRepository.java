@@ -50,6 +50,14 @@ public interface LayerRepository extends AbstractRepository {
     List<Layer> findByServiceId(int serviceId);
 
     /**
+     * Return the layers count for the specified service.
+     *
+     * @param serviceId The service identifier.
+     * @return The number of layers in the service.
+     */
+    int countByServiceId(Integer serviceId);
+
+    /**
      * Return all the layers identifiers for the specified service.
      *
      * @param serviceId The service identifier.

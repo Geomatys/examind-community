@@ -46,7 +46,7 @@ public class MapConfigurer extends OGCConfigurer {
     @Override
     public Instance getInstance(Integer serviceId, String lang) throws ConfigurationException {
         final Instance instance = super.getInstance(serviceId, lang);
-        instance.setLayersNumber(layerBusiness.getLayers(serviceId, null).size());
+        instance.setLayersNumber(layerBusiness.getLayerCount(serviceId));
         return instance;
     }
 }

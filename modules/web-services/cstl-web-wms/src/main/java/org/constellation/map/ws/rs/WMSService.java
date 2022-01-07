@@ -116,6 +116,7 @@ import static org.constellation.map.core.WMSConstant.KEY_TRANSPARENT;
 import static org.constellation.map.core.WMSConstant.KEY_WIDTH;
 import static org.constellation.map.core.WMSConstant.KEY_WMTVER;
 import static org.constellation.map.core.WMSConstant.MAP;
+import static org.constellation.util.Util.parseLayerNameList;
 import org.constellation.ws.rs.ResponseObject;
 import static org.geotoolkit.client.RequestsUtilities.toDouble;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_CRS;
@@ -403,8 +404,7 @@ public class WMSService extends GridWebService<WMSWorker> {
         final String strQueryLayers = getParameter(KEY_QUERY_LAYERS, true);
               String infoFormat  = getParameter(KEY_INFO_FORMAT, false);
         final String strFeatureCount = getParameter(KEY_FEATURE_COUNT, false);
-        final List<String> queryLayers = StringUtilities.toStringList(strQueryLayers);
-        final List<GenericName> namedQueryableLayers = parseNamespaceLayerList(queryLayers);
+        final List<GenericName> namedQueryableLayers = parseLayerNameList(strQueryLayers);
         if (infoFormat == null) {
             infoFormat = MimeType.TEXT_XML;
         }
@@ -428,20 +428,6 @@ public class WMSService extends GridWebService<WMSWorker> {
             featureCount = RequestsUtilities.toInt(strFeatureCount);
         }
         return new GetFeatureInfo(getMap, x, y, namedQueryableLayers, infoFormat, featureCount);
-    }
-
-    /**
-     * Return a List of named Layer (namespace : name) from a string list.
-     *
-     * @param layerNames
-     * @return
-     */
-    private List<GenericName> parseNamespaceLayerList(List<String> layerNames) {
-        final List<GenericName> result = new ArrayList<>();
-        for (String layerName : layerNames) {
-            result.add(Util.parseLayerName(layerName));
-        }
-        return result;
     }
 
     /**
@@ -607,7 +593,7 @@ public class WMSService extends GridWebService<WMSWorker> {
             throw new CstlServiceException("Invalid format specified.", INVALID_FORMAT, KEY_FORMAT.toLowerCase());
         }
         final List<String> layers  = StringUtilities.toStringList(strLayers);
-        final List<GenericName> namedLayers  = parseNamespaceLayerList(layers);
+        final List<GenericName> namedLayers  = parseLayerNameList(layers);
         final List<String> styles = StringUtilities.toStringList(strStyles);
         MutableStyledLayerDescriptor sld = null;
         final Double elevation;

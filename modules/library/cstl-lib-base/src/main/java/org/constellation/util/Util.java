@@ -46,6 +46,7 @@ import org.constellation.dto.StyleReference;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.util.NamesExt;
+import org.geotoolkit.util.StringUtilities;
 import org.opengis.util.GenericName;
 
 /**
@@ -103,15 +104,49 @@ public final class Util {
     }
 
     /**
-     * Parse a String to instantiate a named Layer (namespace : name).
-     * @param layerName
-     * @return
+     * Return a List of named Layer  ({namespace}name ,namespace : name or just name) from a comma separated string.
+     *
+     * @param layerNamesStr A comma separated layer name string.
+     *
+     * @return A list of GenericName.
+     */
+    public static List<GenericName> parseLayerNameList(String layerNamesStr) {
+        List<String> layerNames = StringUtilities.toStringList(layerNamesStr);
+        return parseLayerNameList(layerNames);
+    }
+
+    /**
+     * Return a List of named Layer ({namespace}name ,namespace : name or just name) from a string list.
+     *
+     * @param layerNames A list of layer name.
+     * @return A list of GenericName.
+     */
+    public static List<GenericName> parseLayerNameList(List<String> layerNames) {
+        final List<GenericName> result = new ArrayList<>();
+        for (String layerName : layerNames) {
+            result.add(Util.parseLayerName(layerName));
+        }
+        return result;
+    }
+
+    /**
+     * Parse a String on the form ({namespace}name ,namespace : name or just name).
+     *
+     * @param layerName A String on the form ({namespace}name ,namespace : name or just name).
+     * @return  A list of GenericName.
      */
     public static GenericName parseLayerName(final String layerName) {
+        if (layerName == null) return null;
         final GenericName name;
-        if (layerName != null && layerName.lastIndexOf(':') != -1) {
-            final String namespace = layerName.substring(0, layerName.lastIndexOf(':'));
-            final String localPart = layerName.substring(layerName.lastIndexOf(':') + 1);
+        if (layerName.startsWith("{") && layerName.contains("}")) {
+            int nmspEnd = layerName.indexOf('}');
+            final String namespace = layerName.substring(1, nmspEnd);
+            final String localPart = layerName.substring(nmspEnd + 1);
+            name = NamesExt.create(namespace, localPart);
+        } else if (layerName.contains(":")) {
+            int nmspEnd = layerName.lastIndexOf(':');
+            final String namespace = layerName.substring(0, nmspEnd);
+            final String localPart = layerName.substring(nmspEnd+ 1);
             name = NamesExt.create(namespace, localPart);
         } else {
             name = NamesExt.create(layerName);

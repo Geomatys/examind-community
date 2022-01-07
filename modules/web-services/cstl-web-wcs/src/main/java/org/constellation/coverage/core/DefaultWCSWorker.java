@@ -118,6 +118,7 @@ import org.geotoolkit.gmlcov.xml.v100.AbstractDiscreteCoverageType;
 import org.geotoolkit.gmlcov.xml.v100.ObjectFactory;
 import org.geotoolkit.image.io.metadata.SpatialMetadata;
 import org.apache.sis.portrayal.MapLayers;
+import org.constellation.util.Util;
 import org.geotoolkit.ows.xml.AbstractCapabilitiesCore;
 import org.geotoolkit.ows.xml.AbstractOperationsMetadata;
 import org.geotoolkit.ows.xml.AbstractServiceIdentification;
@@ -261,7 +262,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         final List<CoverageInfo> coverageOfferings = new ArrayList<>();
         for (String coverage : request.getIdentifier()) {
 
-            final GenericName name = parseCoverageName(coverage);
+            final GenericName name = Util.parseLayerName(coverage);
             final LayerCache layer = getLayerCache(userLogin, name);
             if (layer.getDataType().equals(DataType.VECTOR)) {
                 throw new CstlServiceException("The requested layer is vectorial. WCS is not able to handle it.",
@@ -780,7 +781,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             throw new CstlServiceException("You must specify the parameter: COVERAGE", INVALID_PARAMETER_VALUE,
                     KEY_COVERAGE.toLowerCase());
         }
-        final GenericName tmpName = parseCoverageName(request.getCoverage());
+        final GenericName tmpName = Util.parseLayerName(request.getCoverage());
         final LayerCache layer = getLayerCache(userLogin, tmpName);
         if (!layer.isQueryable(ServiceDef.Query.WCS_ALL) || layer.getDataType().equals(DataType.VECTOR)) {
             throw new CstlServiceException("You are not allowed to request the layer \"" +

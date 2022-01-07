@@ -159,6 +159,15 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, co
      * {@inheritDoc}
      */
     @Override
+    public int countByServiceId(Integer serviceId) {
+        if (serviceId == null) return 0;
+        return dsl.selectCount().from(LAYER).where(LAYER.SERVICE.eq(serviceId)).fetchOne(0, Integer.class);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public List<Integer> findIdByServiceId(int serviceId) {
         return dsl.select(LAYER.ID).from(LAYER).where(LAYER.SERVICE.eq(serviceId)).fetchInto(Integer.class);
     }

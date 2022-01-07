@@ -259,23 +259,6 @@ public abstract class LayerWorker extends AbstractWorker {
         return layerContext;
     }
 
-    /**
-     * Parse a Name from a string.
-     * @param layerName
-     * @return
-     */
-    protected GenericName parseCoverageName(final String layerName) {
-        final GenericName namedLayerName;
-        if (layerName != null && layerName.lastIndexOf(':') != -1) {
-            final String namespace = layerName.substring(0, layerName.lastIndexOf(':'));
-            final String localPart = layerName.substring(layerName.lastIndexOf(':') + 1);
-            namedLayerName = NamesExt.create(namespace, localPart);
-        } else {
-            namedLayerName = NamesExt.create(layerName);
-        }
-        return namedLayerName;
-    }
-
     private Data getData(NameInProvider nip){
         try {
             final DataProvider provider = DataProviders.getProvider(nip.providerID);
