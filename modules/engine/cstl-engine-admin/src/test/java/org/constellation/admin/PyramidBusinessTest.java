@@ -91,7 +91,6 @@ public class PyramidBusinessTest {
 
     private static int coverage1PID;
     private static int coverage2PID;
-    private static int vectorPID;
     private static boolean initialized = false;
 
     @BeforeClass
@@ -121,7 +120,6 @@ public class PyramidBusinessTest {
                 // insert data
                 coverage1PID = testResource.createProvider(TestEnvironment.TestResource.TIF, providerBusiness, null).id;
                 coverage2PID = testResource.createProvider(TestEnvironment.TestResource.PNG, providerBusiness, null).id;
-                vectorPID    = testResource.createProvider(TestEnvironment.TestResource.SHAPEFILES, providerBusiness, null).id;
 
                 initialized = true;
             } catch (Exception ex) {
