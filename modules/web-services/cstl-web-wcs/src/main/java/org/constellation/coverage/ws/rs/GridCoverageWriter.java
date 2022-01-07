@@ -41,6 +41,7 @@ import org.apache.sis.referencing.CRS;
 import org.constellation.util.WCSUtils;
 import org.geotoolkit.image.io.plugin.TiffImageWriteParam;
 import org.geotoolkit.internal.coverage.CoverageUtilities;
+import org.geotoolkit.nio.IOUtilities;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.datum.PixelInCell;
 import org.springframework.http.HttpInputMessage;
@@ -80,8 +81,9 @@ public class GridCoverageWriter implements HttpMessageConverter<GeotiffResponse>
 
     @Override
     public void write(GeotiffResponse entry, MediaType contentType, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
+        File f = null;
         try {
-            final File f = writeInFile(entry);
+            f = writeInFile(entry);
             byte[] buf = new byte[8192];
             try (FileInputStream is = new FileInputStream(f);
                     OutputStream out = outputMessage.getBody()) {
@@ -95,6 +97,8 @@ public class GridCoverageWriter implements HttpMessageConverter<GeotiffResponse>
             throw ex;
         } catch (Exception ex) {
             throw new HttpMessageNotWritableException("Error while writing coverage", ex);
+        } finally {
+            if (f != null) IOUtilities.deleteSilently(f.toPath());
         }
     }
 
