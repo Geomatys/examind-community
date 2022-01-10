@@ -40,6 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Named;
@@ -335,7 +336,11 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
     }
 
     private void storedQueries() {
-        serviceBusiness.setExtraConfiguration("WFS", getId(), "StoredQueries.xml", new StoredQueries(storedQueries), getMarshallerPool());
+        try {
+            serviceBusiness.setExtraConfiguration("WFS", getId(), "StoredQueries.xml", new StoredQueries(storedQueries), getMarshallerPool());
+        } catch (ConstellationException ex) {
+            LOGGER.log(Level.WARNING, "Error while writing stored queries", ex);
+        }
     }
 
     @Override

@@ -721,11 +721,4 @@ public abstract class AbstractWebService implements WebService{
         }
         return result;
     }
-
-    /**
-     * Return the Marshaller pool for configuration request
-     * @return
-     */
-    protected abstract MarshallerPool getConfigurationPool();
-
 }

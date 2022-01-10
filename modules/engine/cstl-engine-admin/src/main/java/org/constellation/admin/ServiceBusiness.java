@@ -23,18 +23,12 @@ import org.constellation.exception.TargetNotFoundException;
 import org.constellation.dto.service.ServiceStatus;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringReader;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.sis.xml.MarshallerPool;
@@ -133,7 +127,7 @@ public class ServiceBusiness implements IServiceBusiness {
             }
         }
 
-        final String config = getStringFromObject(configuration, GenericDatabaseMarshallerPool.getInstance());
+        final String config = Util.writeConfigurationObject(configuration);
         final Service service = new Service();
         service.setConfig(config);
         service.setDate(new Date());
@@ -148,17 +142,13 @@ public class ServiceBusiness implements IServiceBusiness {
         // TODO metadata-Iso
 
         if (details == null) {
-            final InputStream in = Util
-                    .getResourceAsStream("org/constellation/xml/" + service.getType().toUpperCase() + "Capabilities.xml");
+            final InputStream in = Util.getResourceAsStream("org/constellation/xml/" + service.getType().toUpperCase() + "Capabilities.xml");
             if (in != null) {
-                try {
-                    final Unmarshaller u = GenericDatabaseMarshallerPool.getInstance().acquireUnmarshaller();
-                    details = (Details) u.unmarshal(in);
+                try (InputStream in2 = in) {
+                    details = Util.readConfigurationObject(in2, Details.class);
                     details.setIdentifier(service.getIdentifier());
                     details.setLang("eng"); // default value
-                    GenericDatabaseMarshallerPool.getInstance().recycle(u);
-                    in.close();
-                } catch (JAXBException | IOException ex) {
+                } catch (IOException ex) {
                     throw new ConfigurationException(ex);
                 }
             } else {
@@ -336,7 +326,7 @@ public class ServiceBusiness implements IServiceBusiness {
         final Service service = serviceRepository.findByIdentifierAndType(identifier, serviceType);
         if (service == null) throw new ConfigurationException("Service " + serviceType + ':' + identifier + " not found.");
 
-        service.setConfig(getStringFromObject(configuration, GenericDatabaseMarshallerPool.getInstance()));
+        service.setConfig(Util.writeConfigurationObject(configuration));
         if (details != null) {
             setInstanceDetails(serviceType, identifier, details, details.getLang(), true);
         } else {
@@ -356,14 +346,9 @@ public class ServiceBusiness implements IServiceBusiness {
         if (identifier == null || identifier.isEmpty()) {
             throw new ConfigurationException("Service instance identifier can't be null or empty.");
         }
-        try {
-            final Service service = serviceRepository.findByIdentifierAndType(identifier, serviceType);
-            if (service != null) {
-                final String confXml = service.getConfig();
-                return getObjectFromString(confXml, GenericDatabaseMarshallerPool.getInstance());
-            }
-        } catch (JAXBException ex) {
-            throw new ConfigurationException("The configuration object is malformed or null.", ex);
+        final Service service = serviceRepository.findByIdentifierAndType(identifier, serviceType);
+        if (service != null) {
+            return Util.readConfigurationObject(service.getConfig(), Object.class);
         }
         return null;
     }
@@ -373,14 +358,9 @@ public class ServiceBusiness implements IServiceBusiness {
      */
     @Override
     public Object getConfiguration(final int id) throws ConfigurationException {
-        try {
-            final Service service = serviceRepository.findById(id);
-            if (service != null) {
-                final String confXml = service.getConfig();
-                return getObjectFromString(confXml, GenericDatabaseMarshallerPool.getInstance());
-            }
-        } catch (JAXBException ex) {
-            throw new ConfigurationException(ex.getMessage(), ex);
+        final Service service = serviceRepository.findById(id);
+        if (service != null) {
+            return Util.readConfigurationObject(service.getConfig(), Object.class);
         }
         return null;
     }
@@ -397,7 +377,7 @@ public class ServiceBusiness implements IServiceBusiness {
         try {
             final Service service = serviceRepository.findByIdentifierAndType(identifier, serviceType);
             if (service != null) {
-                final String confXml = getStringFromObject(config, GenericDatabaseMarshallerPool.getInstance());
+                final String confXml = Util.writeConfigurationObject(config);
                 service.setConfig(confXml);
                 serviceRepository.update(service);
             }
@@ -418,7 +398,7 @@ public class ServiceBusiness implements IServiceBusiness {
         try {
             final Service service = serviceRepository.findById(id);
             if (service != null) {
-                final String confXml = getStringFromObject(config, GenericDatabaseMarshallerPool.getInstance());
+                final String confXml = Util.writeConfigurationObject(config);
                 service.setConfig(confXml);
                 serviceRepository.update(service);
             }
@@ -431,8 +411,7 @@ public class ServiceBusiness implements IServiceBusiness {
      * {@inheritDoc}
      */
     @Override
-    public Object getExtraConfiguration(final String serviceType, final String identifier, final String fileName)
-            throws ConfigurationException {
+    public Object getExtraConfiguration(final String serviceType, final String identifier, final String fileName) throws ConfigurationException {
         return getExtraConfiguration(serviceType, identifier, fileName, GenericDatabaseMarshallerPool.getInstance());
     }
 
@@ -442,16 +421,12 @@ public class ServiceBusiness implements IServiceBusiness {
     @Override
     public Object getExtraConfiguration(final String serviceType, final String identifier, final String fileName, final MarshallerPool pool)
             throws ConfigurationException {
-        try {
-            final Integer service = serviceRepository.findIdByIdentifierAndType(identifier, serviceType);
-            if (service != null) {
-                final String content = serviceRepository.getExtraConfig(service, fileName);
-                if (content != null) {
-                    return getObjectFromString(content, pool);
-                }
+        final Integer service = serviceRepository.findIdByIdentifierAndType(identifier, serviceType);
+        if (service != null) {
+            final String content = serviceRepository.getExtraConfig(service, fileName);
+            if (content != null) {
+                return Util.readConfigurationObject(content, Object.class, pool);
             }
-        } catch (JAXBException ex) {
-            throw new ConfigurationException(ex.getMessage(), ex);
         }
         return null;
     }
@@ -462,10 +437,10 @@ public class ServiceBusiness implements IServiceBusiness {
     @Override
     @Transactional
     public void setExtraConfiguration(final String serviceType, final String identifier, final String fileName, final Object config,
-            final MarshallerPool pool) {
+            final MarshallerPool pool) throws ConstellationException {
         final Integer serviceId = serviceRepository.findIdByIdentifierAndType(identifier, serviceType);
         if (serviceId != null) {
-            final String content = getStringFromObject(config, pool);
+            final String content = Util.writeConfigurationObject(config, pool);
             serviceRepository.updateExtraFile(serviceId, fileName, content);
         }
     }
@@ -549,26 +524,31 @@ public class ServiceBusiness implements IServiceBusiness {
         return getInstanceDetails(id, language);
     }
 
+    /**
+     * Return the service description in the requested language.
+     * if the requested language is not available, we return the default one.
+     *
+     * @param serviceId Service identifier.
+     * @param language Request language or {@code null} to get the default one.
+     *
+     * @return A service description.
+     * @throws ConfigurationException if the XML object reading fail.
+     */
     private Details getInstanceDetails(final int serviceId, String language) throws ConfigurationException {
-        try {
-            String details;
-            if (language == null) {
-                details = serviceRepository.getServiceDetailsForDefaultLang(serviceId);
+        String details;
+        if (language == null) {
+            details = serviceRepository.getServiceDetailsForDefaultLang(serviceId);
+        } else {
+            if (serviceRepository.getServiceDefinedLanguage(serviceId).contains(language)) {
+                details = serviceRepository.getServiceDetails(serviceId, language);
             } else {
-                // if the service description is not available in the requested language, we return the default one.
-                if (serviceRepository.getServiceDefinedLanguage(serviceId).contains(language)) {
-                    details = serviceRepository.getServiceDetails(serviceId, language);
-                } else {
-                    details = serviceRepository.getServiceDetailsForDefaultLang(serviceId);
-                }
+                details = serviceRepository.getServiceDetailsForDefaultLang(serviceId);
             }
-            if (details != null) {
-                return (Details) getObjectFromString(details, GenericDatabaseMarshallerPool.getInstance());
-            }
-            return null;
-        } catch (JAXBException ex) {
-            throw new ConfigurationException(ex);
         }
+        if (details != null) {
+            return Util.readConfigurationObject(details, Details.class);
+        }
+        return null;
     }
 
     /**
@@ -583,7 +563,7 @@ public class ServiceBusiness implements IServiceBusiness {
             throw new TargetNotFoundException(serviceType + " service instance with identifier \"" + identifier
                     + "\" not found. There is not configuration in the database.");
         }
-        final String xml = getStringFromObject(details, GenericDatabaseMarshallerPool.getInstance());
+        final String xml = Util.writeConfigurationObject(details);
         serviceRepository.createOrUpdateServiceDetails(id, language, xml, default_);
     }
 
@@ -608,34 +588,6 @@ public class ServiceBusiness implements IServiceBusiness {
             throw new TargetNotFoundException(id + " service instance not found.");
         }
     }
-
-    private static String getStringFromObject(final Object obj, final MarshallerPool pool) {
-        String config = null;
-        if (obj != null) {
-            try {
-                final StringWriter sw = new StringWriter();
-                final Marshaller m = pool.acquireMarshaller();
-                m.marshal(obj, sw);
-                pool.recycle(m);
-                config = sw.toString();
-            } catch (JAXBException e) {
-                throw new ConstellationPersistenceException(e);
-            }
-        }
-        return config;
-    }
-
-    private static Object getObjectFromString(final String xml, final MarshallerPool pool) throws JAXBException {
-        if (xml != null) {
-            final Unmarshaller u = pool.acquireUnmarshaller();
-            final Object config = u.unmarshal(new StringReader(xml));
-            pool.recycle(u);
-            return config;
-        }
-        return null;
-    }
-
-
 
     @Override
     public List<ServiceComplete> getAllServices(String lang) throws ConstellationException {

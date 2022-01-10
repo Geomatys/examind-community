@@ -261,7 +261,7 @@ public interface IServiceBusiness {
      * @param fileName The file name of extra configuration object.
      *
      */
-    void setExtraConfiguration(String serviceType, String identifier, String fileName, Object config, MarshallerPool pool);
+    void setExtraConfiguration(String serviceType, String identifier, String fileName, Object config, MarshallerPool pool) throws ConstellationException;
 
     /**
      * Return the service specific implementation.

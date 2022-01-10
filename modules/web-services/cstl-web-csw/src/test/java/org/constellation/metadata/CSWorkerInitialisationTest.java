@@ -151,7 +151,7 @@ public class CSWorkerInitialisationTest {
 
         } catch (CstlServiceException ex) {
             assertEquals(NO_APPLICABLE_CODE, ex.getExceptionCode());
-            assertEquals("The service is not running.\nCause:The configuration object is malformed or null.", ex.getMessage());
+            assertEquals("The service is not running.\nCause:The configuration object is malformed.", ex.getMessage());
             exceptionLaunched = true;
         }
 

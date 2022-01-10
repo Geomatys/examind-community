@@ -21,6 +21,8 @@ package org.constellation.util;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -33,6 +35,9 @@ import java.util.List;
 import java.util.TimeZone;
 
 import java.util.logging.Logger;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLInputFactory;
@@ -41,8 +46,11 @@ import javax.xml.stream.XMLStreamReader;
 
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.util.logging.Logging;
+import org.apache.sis.xml.MarshallerPool;
 import org.constellation.dto.StyleBrief;
 import org.constellation.dto.StyleReference;
+import org.constellation.exception.ConfigurationException;
+import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.util.NamesExt;
@@ -267,4 +275,88 @@ public final class Util {
     public static boolean containsForbiddenCharacter(String s) {
         return s.contains("'") || s.contains("/") || s.contains("--") || s.contains("\"") || s.contains("*");
     }
+
+    /**
+     * Marshall a configuration object into a String using the specified MarshallerPool
+     *
+     * @param obj An examind configuratin object.
+     * @param pool he MarshallerPool used to marshall the object.
+     * @return A XML string representation of the object
+     */
+    public static String writeConfigurationObject(final Object obj, MarshallerPool pool) throws ConfigurationException {
+        String config = null;
+        if (obj != null) {
+            try {
+                final StringWriter sw = new StringWriter();
+                final Marshaller m = pool.acquireMarshaller();
+                m.marshal(obj, sw);
+                pool.recycle(m);
+                config = sw.toString();
+            } catch (JAXBException e) {
+                throw new ConfigurationException(e);
+            }
+        }
+        return config;
+    }
+
+    /**
+     * Marshall a configuration object into a String using the {@link GenericDatabaseMarshallerPool}.
+     * 
+     * @param obj An examind configuratin object.
+     * @return A XML string representation of the object
+     */
+    public static String writeConfigurationObject(final Object obj) throws ConfigurationException {
+        return writeConfigurationObject(obj, GenericDatabaseMarshallerPool.getInstance());
+    }
+
+    /**
+     * Read a configuration object into a String using the {@link GenericDatabaseMarshallerPool}.
+     *
+     * @param <T>
+     * @param xml
+     * @param type
+     * @return
+     * @throws ConfigurationException
+     */
+    public static <T> T readConfigurationObject(final String xml, Class<T> type, MarshallerPool pool) throws ConfigurationException {
+        try {
+            if (xml != null) {
+                final Unmarshaller u = pool.acquireUnmarshaller();
+                final Object config = u.unmarshal(new StringReader(xml));
+                pool.recycle(u);
+                return (T) config;
+            }
+            return null;
+        } catch (JAXBException ex) {
+            throw new ConfigurationException("The configuration object is malformed.", ex);
+        }
+    }
+
+    public static <T> T readConfigurationObject(final String xml, Class<T> type) throws ConfigurationException {
+        return readConfigurationObject(xml, type, GenericDatabaseMarshallerPool.getInstance());
+    }
+
+    /**
+     * Read a configuration object into a String using the {@link GenericDatabaseMarshallerPool}.
+     *
+     * @param <T>
+     * @param xml
+     * @param type
+     * @return
+     * @throws ConfigurationException
+     */
+    public static <T> T readConfigurationObject(final InputStream xml, Class<T> type) throws ConfigurationException {
+        try {
+            if (xml != null) {
+                final Unmarshaller u = GenericDatabaseMarshallerPool.getInstance().acquireUnmarshaller();
+                final Object config = u.unmarshal(xml);
+                GenericDatabaseMarshallerPool.getInstance().recycle(u);
+                return (T) config;
+            }
+            return null;
+        } catch (JAXBException ex) {
+            throw new ConfigurationException("The configuration object is malformed.",ex);
+        }
+    }
+
 }

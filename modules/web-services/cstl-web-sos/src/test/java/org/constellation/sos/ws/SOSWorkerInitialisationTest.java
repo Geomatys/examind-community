@@ -165,7 +165,7 @@ public class SOSWorkerInitialisationTest {
 
         } catch(CstlServiceException ex) {
             assertEquals(ex.getExceptionCode(), NO_APPLICABLE_CODE);
-            assertEquals("The service is not running.\nCause:The configuration object is malformed or null.", ex.getMessage());
+            assertEquals("The service is not running.\nCause:The configuration object is malformed.", ex.getMessage());
 
             exceptionLaunched = true;
         }

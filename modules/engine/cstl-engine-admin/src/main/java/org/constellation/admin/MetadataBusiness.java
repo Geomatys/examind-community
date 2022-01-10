@@ -107,7 +107,6 @@ import org.constellation.dto.metadata.RootObj;
 import org.constellation.exception.ConstellationException;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.exception.ConstellationStoreException;
-import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.constellation.metadata.utils.Utils;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
@@ -146,6 +145,7 @@ import static org.constellation.business.ClusterMessageConstant.*;
 import org.constellation.dto.LinkedProvider;
 import org.constellation.exception.NotRunningServiceException;
 import org.constellation.exception.TargetNotFoundException;
+import org.constellation.util.Util;
 
 /**
  * Business facade for metadata.
@@ -541,7 +541,7 @@ public class MetadataBusiness implements IMetadataBusiness {
     public boolean isLinkedMetadataToCSW(final String metadataID, final String cswID) throws ConfigurationException {
         final Service service = serviceRepository.findByIdentifierAndType(cswID, "csw");
         if (service != null) {
-            final Automatic config = getCSWConfig(service);
+            final Automatic config = Util.readConfigurationObject(service.getConfig(), Automatic.class);
             final boolean partial = config.getBooleanParameter(CSW_CONFIG_PARTIAL, false);
             return isLinkedMetadataToCSW(metadataID, cswID, partial, true, false);
         } else {
@@ -592,7 +592,7 @@ public class MetadataBusiness implements IMetadataBusiness {
     public void linkMetadataIDsToCSW(final List<String> metadataIds, final String cswIdentifier)  throws ConstellationException {
         final Service service = serviceRepository.findByIdentifierAndType(cswIdentifier, "csw");
         if (service != null) {
-            final Automatic config = getCSWConfig(service);
+            final Automatic config = Util.readConfigurationObject(service.getConfig(), Automatic.class);
             final boolean partial = config.getBooleanParameter(CSW_CONFIG_PARTIAL, false);
 
             // link between metadata and service are only use for partial CSW service.
@@ -616,18 +616,6 @@ public class MetadataBusiness implements IMetadataBusiness {
         }
     }
 
-    private Automatic getCSWConfig(final Service service) throws ConfigurationException {
-        try {
-            final Unmarshaller um = GenericDatabaseMarshallerPool.getInstance().acquireUnmarshaller();
-            final Automatic config = (Automatic) um.unmarshal(new StringReader(service.getConfig()));
-            GenericDatabaseMarshallerPool.getInstance().recycle(um);
-            return config;
-        } catch (JAXBException ex) {
-            throw new ConfigurationException("Error while reading CSW configuration", ex);
-        }
-
-    }
-
     /**
      * {@inheritDoc}
      */
@@ -645,7 +633,7 @@ public class MetadataBusiness implements IMetadataBusiness {
     public void unlinkMetadataIDsToCSW(final List<String> metadataIds, final String cswIdentifier) throws ConstellationException {
         final Service service = serviceRepository.findByIdentifierAndType(cswIdentifier, "csw");
         if (service != null) {
-            final Automatic config = getCSWConfig(service);
+            final Automatic config = Util.readConfigurationObject(service.getConfig(), Automatic.class);
             final boolean partial = config.getBooleanParameter(CSW_CONFIG_PARTIAL, false);
             if (partial) {
                 List<String> idToremove = new ArrayList<>();
@@ -1087,7 +1075,7 @@ public class MetadataBusiness implements IMetadataBusiness {
         for (Service service : services) {
 
             // read config to determine CSW type
-            final Automatic conf = getCSWConfig(service);
+            final Automatic conf = Util.readConfigurationObject(service.getConfig(), Automatic.class);
             boolean partial = conf.getBooleanParameter(CSW_CONFIG_PARTIAL, false);
             boolean onlyPublished = conf.getBooleanParameter(CSW_CONFIG_ONLY_PUBLISHED, false);
 

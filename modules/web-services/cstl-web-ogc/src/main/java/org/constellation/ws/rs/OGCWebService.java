@@ -26,11 +26,9 @@ import javax.inject.Inject;
 import javax.xml.bind.JAXBElement;
 import javax.xml.validation.Schema;
 import org.apache.sis.util.iso.Types;
-import org.apache.sis.xml.MarshallerPool;
 import org.constellation.admin.SpringHelper;
 import org.constellation.api.ServiceDef;
 import org.constellation.api.ServiceDef.Specification;
-import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.IWSEngine;
 import org.constellation.ws.Worker;
@@ -301,13 +299,4 @@ public abstract class OGCWebService<W extends Worker> extends AbstractWebService
         LOGGER.log(Level.INFO, "Shutting down the REST {0} service facade.", serviceName);
         wsengine.destroyInstances(serviceName);
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected MarshallerPool getConfigurationPool() {
-        return GenericDatabaseMarshallerPool.getInstance();
-    }
-
 }

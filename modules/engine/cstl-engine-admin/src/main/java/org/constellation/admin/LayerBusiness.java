@@ -20,8 +20,6 @@
 package org.constellation.admin;
 
 import com.examind.map.factory.DefaultMapFactory;
-import java.io.StringReader;
-import java.io.StringWriter;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Date;
@@ -32,9 +30,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.business.ClusterMessage;
@@ -56,12 +51,11 @@ import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.dto.service.config.wxs.LayerSummary;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
-import org.constellation.exception.ConstellationPersistenceException;
 import org.constellation.exception.TargetNotFoundException;
-import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.constellation.repository.DataRepository;
 import org.constellation.repository.LayerRepository;
 import org.constellation.repository.StyleRepository;
+import org.constellation.util.Util;
 import org.constellation.ws.LayerSecurityFilter;
 import org.constellation.ws.MapFactory;
 import org.geotoolkit.util.NamesExt;
@@ -133,7 +127,7 @@ public class LayerBusiness implements ILayerBusiness {
             if(user.isPresent()) {
                 layer.setOwnerId(user.get().getId());
             }
-            final String configXml = writeLayerConfiguration(config);
+            final String configXml = Util.writeConfigurationObject(config);
             layer.setConfig(configXml);
 
             int layerID = layerRepository.create(layer);
@@ -485,7 +479,7 @@ public class LayerBusiness implements ILayerBusiness {
 
         Layer layer = layerRepository.findById(layerId);
         if (layer != null) {
-            LayerConfig layerConfig = readLayerConfiguration(layer.getConfig());
+            LayerConfig layerConfig = Util.readConfigurationObject(layer.getConfig(), LayerConfig.class);
             if (layerConfig != null) {
                 return new FilterAndDimension(layerConfig.getFilter(), layerConfig.getDimensions());
             }
@@ -548,7 +542,7 @@ public class LayerBusiness implements ILayerBusiness {
      * @throws ConfigurationException If the layer is misconfigured.
      */
     private LayerConfig toLayerConfig(Layer layer) throws ConfigurationException {
-        LayerConfig layerConfig = readLayerConfiguration(layer.getConfig());
+        LayerConfig layerConfig = Util.readConfigurationObject(layer.getConfig(), LayerConfig.class);
         if (layerConfig == null) {
             layerConfig = new LayerConfig(layer.getId(), layer.getName());
             layerConfig.setTitle(layer.getTitle());
@@ -587,36 +581,6 @@ public class LayerBusiness implements ILayerBusiness {
         final MapFactory mapfactory = getMapFactory(servImpl != null ? servImpl : "default"); // backward compatibility
         return mapfactory.getSecurityFilter();
 
-    }
-
-    private LayerConfig readLayerConfiguration(final String xml) throws ConfigurationException {
-        try {
-            if (xml != null) {
-                final Unmarshaller u = GenericDatabaseMarshallerPool.getInstance().acquireUnmarshaller();
-                final Object config = u.unmarshal(new StringReader(xml));
-                GenericDatabaseMarshallerPool.getInstance().recycle(u);
-                return (LayerConfig) config;
-            }
-            return null;
-        } catch (JAXBException ex) {
-            throw new ConfigurationException(ex);
-        }
-    }
-
-    private String writeLayerConfiguration(final LayerConfig obj) {
-        String config = null;
-        if (obj != null) {
-            try {
-                final StringWriter sw = new StringWriter();
-                final Marshaller m = GenericDatabaseMarshallerPool.getInstance().acquireMarshaller();
-                m.marshal(obj, sw);
-                GenericDatabaseMarshallerPool.getInstance().recycle(m);
-                config = sw.toString();
-            } catch (JAXBException e) {
-                throw new ConstellationPersistenceException(e);
-            }
-        }
-        return config;
     }
 
     /**
