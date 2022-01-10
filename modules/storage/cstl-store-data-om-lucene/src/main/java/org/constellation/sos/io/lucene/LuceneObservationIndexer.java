@@ -437,14 +437,6 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
         } else {
             throw new IllegalArgumentException("Unepxected object type to index");
         }
-
-        /* debug
-        StringBuilder sb = new StringBuilder("{\n");
-        for (IndexableField field : doc.getFields()) {
-            sb.append(field.name()).append(": ").append(field.stringValue()).append('\n');
-        }
-        sb.append("}");
-        Logger.getLogger("org.constellation.sos.io.lucene").info("index DOC:" + sb);*/
         return doc;
     }
 
