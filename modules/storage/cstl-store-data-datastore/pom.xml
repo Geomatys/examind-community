@@ -76,6 +76,7 @@
             <groupId>com.examind.community</groupId>
             <artifactId>cstl-test-data</artifactId>
             <version>${project.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
