@@ -29,17 +29,6 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.examind.community</groupId>
-            <artifactId>cstl-lib-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.sis.core</groupId>
-            <artifactId>sis-metadata</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.jooq</groupId>
             <artifactId>jooq</artifactId>
             <version>${jooq.version}</version>
@@ -168,6 +157,16 @@
                                 <groupId>org.postgresql</groupId>
                                 <artifactId>postgresql</artifactId>
                                 <version>${postgresql.version}</version>
+                            </dependency>
+                            <dependency>
+                                <groupId>jakarta.xml.bind</groupId>
+                                <artifactId>jakarta.xml.bind-api</artifactId>
+                                <version>2.3.3</version>
+                            </dependency>
+                            <dependency>
+                                <groupId>org.glassfish.jaxb</groupId>
+                                <artifactId>jaxb-runtime</artifactId>
+                                <version>2.3.3</version>
                             </dependency>
                         </dependencies>
 
