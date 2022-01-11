@@ -61,7 +61,7 @@
         <jaxb.version>2.2.7</jaxb.version>
         <jettison.version>1.3</jettison.version>
         <joda.version>2.2</joda.version>
-        <jooq.version>3.5.3</jooq.version>
+        <jooq.version>3.14.15</jooq.version>
         <jsp-api.version>2.2</jsp-api.version>
         <logback.version>1.2.0</logback.version>
         <maven-plugin-api.version>2.0.9</maven-plugin-api.version>

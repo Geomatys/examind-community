@@ -254,13 +254,7 @@ public class JooqUserRepository extends
     @Override
     public List<UserWithRole> search(String search, int size, int page, String sortFieldName, String order, List<String> fields) {
         //prepare sort
-        SortField<?> sortField = null;
-        if (sortFieldName != null && !sortFieldName.isEmpty()) {
-            Field<?> field = getFieldFromString(sortFieldName);
-            if (field != null) {
-                sortField = field.sort(SortOrder.valueOf(order));
-            }
-        }
+        
         List<Field<?>> tableFields;
         if (fields == null || fields.isEmpty()) {
             tableFields = new ArrayList<>(Arrays.asList(CSTL_USER.fields()));
@@ -274,13 +268,23 @@ public class JooqUserRepository extends
                 }
             }
         }
-        Map<CstlUserRecord, Result<Record>> result = dsl.select(tableFields).from(CSTL_USER)
+        SelectConditionStep<Record> baseQuery = dsl.select(tableFields).from(CSTL_USER)
                 .leftOuterJoin(USER_X_ROLE).on(CSTL_USER.ID.eq(USER_X_ROLE.USER_ID))
-                .where(CSTL_USER.LOGIN.like(getLikePattern(search)))
-                .orderBy(sortField)
-                .limit(size)
-                .offset((page - 1) * size)
-                .fetchGroups(CSTL_USER);
+                .where(CSTL_USER.LOGIN.like(getLikePattern(search)));
+
+        // JOOQ does not support orderBy(null)
+        SelectLimitStep query = baseQuery;
+        if (sortFieldName != null && !sortFieldName.isEmpty()) {
+            Field<?> field = getFieldFromString(sortFieldName);
+            if (field != null) {
+                SortField<?> sortField = field.sort(SortOrder.valueOf(order));
+                query = baseQuery.orderBy(sortField);
+            }
+        }
+        Map<CstlUserRecord, Result<Record>> result =
+                query.limit(size)
+                     .offset((page - 1) * size)
+                     .fetchGroups(CSTL_USER);
 
         return mapUserWithRole(result, tableFields.contains(Tables.USER_X_ROLE.ROLE));
     }

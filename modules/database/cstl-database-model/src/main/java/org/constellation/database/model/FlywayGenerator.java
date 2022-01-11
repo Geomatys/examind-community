@@ -42,7 +42,6 @@ public class FlywayGenerator {
         String databaseURL = args[0];
         String user = args[1];
         String password = args[2];
-        String update = args[3];
 
         try {
             Class.forName("org.postgresql.Driver");
@@ -52,23 +51,7 @@ public class FlywayGenerator {
 
         final HikariConfig config = createHikariConfig("constellation-generator", null, databaseURL, user, password);
         try (final HikariDataSource dataSource = new HikariDataSource(config)) {
-
-            //Clean database before apply liquidbase scripts
-            final String schemaExist = "SELECT schema_name FROM information_schema.schemata WHERE schema_name = 'admin';";
-            try (Connection conn = dataSource.getConnection();
-                 Statement stmt = conn.createStatement();
-                 ResultSet rs = stmt.executeQuery(schemaExist)) {
-                if (rs.next()) {
-                    LOGGER.info("Admin schema already exist, drop it.");
-                    stmt.execute("DROP SCHEMA admin CASCADE;");
-                    stmt.execute("DROP SCHEMA th_base CASCADE;");
-                    stmt.execute("DROP TABLE IF EXISTS public.databasechangelog CASCADE;");
-                    stmt.execute("DROP TABLE IF EXISTS public.databasechangeloglock CASCADE;");
-                }
-            }
-
             final Flyway flyway = FlywayUtils.createFlywayConfig(dataSource, true);
-            flyway.clean();
             flyway.migrate();
         }
     }
@@ -76,14 +59,11 @@ public class FlywayGenerator {
     public static HikariConfig createHikariConfig(String poolName, Integer maxPoolSize, String dbUrl, String userName, String password) {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(dbUrl);
-
         config.setUsername(userName);
         config.setPassword(password);
-
         if (poolName != null) {
             config.setPoolName(poolName);
         }
-
         if (maxPoolSize != null) {
             config.setMaximumPoolSize(maxPoolSize);
         }

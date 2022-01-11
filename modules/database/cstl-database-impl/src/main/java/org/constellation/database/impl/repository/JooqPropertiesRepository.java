@@ -61,13 +61,6 @@ public class JooqPropertiesRepository extends AbstractJooqRespository<PropertyRe
     }
 
     @Override
-    public Map<String, String> findIn(List<String> keys) {
-        SelectQuery<PropertyRecord> selectQuery = dsl.selectQuery(PROPERTY);
-        selectQuery.addConditions(PROPERTY.NAME.in(keys));
-        return toMap(mapResult(selectQuery));
-    }
-
-    @Override
     @Transactional
     public void update(String key, String value) {
         final Entry old = findOne(key);

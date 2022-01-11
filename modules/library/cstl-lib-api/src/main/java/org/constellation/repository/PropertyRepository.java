@@ -18,15 +18,12 @@
  */
 package org.constellation.repository;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 public interface PropertyRepository {
 
     Entry<String, String> findOne(String key);
-
-    Map<String, String> findIn(List<String> keys);
 
     void update(String key, String value);
 

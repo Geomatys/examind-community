@@ -24,36 +24,19 @@
 
   <bean id="exceptionTranslator" class="org.constellation.database.configuration.CstlExceptionTranslator" />
   
-  <!-- Invoking an internal, package-private constructor for the example Implement your own Configuration for more reliable 
-    behaviour -->
-  <bean id="config" class="org.jooq.impl.DefaultConfiguration">
-    <constructor-arg index="0" ref="connectionProvider" />
-    <constructor-arg index="1">
-      <null />
-    </constructor-arg>
-    <constructor-arg index="2">
-      <null />
-    </constructor-arg>
-    <constructor-arg index="3">
-      <list>
-        <bean class="org.jooq.impl.DefaultExecuteListenerProvider">
-          <constructor-arg index="0" ref="exceptionTranslator" />
-        </bean>
-      </list>
-    </constructor-arg>
-    <constructor-arg index="4">
-      <null />
-    </constructor-arg>
-    <constructor-arg index="5">
-      <ref bean="dialect" />
-    </constructor-arg>
-    <constructor-arg index="6">
-      <ref bean="jooq-setting" />
-    </constructor-arg>
-    <constructor-arg index="7">
-      <null />
-    </constructor-arg>
-  </bean>
+  <!-- Invoking an internal, package-private constructor for the example Implement your own Configuration for more reliable behaviour -->
+    <bean class="org.jooq.impl.DefaultConfiguration" name="config">
+        <property name="SQLDialect" ref="dialect"/>
+        <property name="connectionProvider" ref="connectionProvider" />
+        <property name="executeListenerProvider">
+            <array>
+                <bean class="org.jooq.impl.DefaultExecuteListenerProvider">
+                    <constructor-arg index="0" ref="exceptionTranslator"/>
+                </bean>
+            </array>
+        </property>
+         <property name="settings" ref="jooq-setting"/>
+    </bean>
 
   <!-- Configure the DSL object, optionally overriding jOOQ Exceptions with Spring Exceptions -->
   <bean id="dsl" class="org.jooq.impl.DefaultDSLContext">

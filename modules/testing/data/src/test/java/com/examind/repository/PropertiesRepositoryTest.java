@@ -18,8 +18,6 @@
  */
 package com.examind.repository;
 
-import java.util.ArrayList;
-import java.util.List;
 
 import org.constellation.repository.PropertyRepository;
 import org.junit.Assert;
@@ -32,11 +30,6 @@ public class PropertiesRepositoryTest extends AbstractRepositoryTest {
 
     public void all() {
         dump(propertyRepository.findAll());
-
-        List<String> keys = new ArrayList<String>();
-        keys.add("test");
-
-        dump(propertyRepository.findIn(keys));
     }
 
     public void getValue() {

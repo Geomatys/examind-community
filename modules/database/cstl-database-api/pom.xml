@@ -15,10 +15,11 @@
     <description>Contain repository interfaces and JOOQ generated POJO/DAO</description>
 
     <!-- Database configuration used to run JOOQ generation plugin -->
+    <!-- The database must be empty -->
     <properties>
-        <jdbc.url>jdbc:postgresql://localhost:5432/cstl-test</jdbc.url>
-        <jdbc.user>cstl</jdbc.user>
-        <jdbc.passwd>admin</jdbc.passwd>
+        <jdbc.url>jdbc:postgresql://localhost:5432/exa-generate</jdbc.url>
+        <jdbc.user>examind</jdbc.user>
+        <jdbc.passwd>examind</jdbc.passwd>
         <generate.folder>src/main/generated</generate.folder>
     </properties>
 
@@ -158,16 +159,6 @@
                                 <artifactId>postgresql</artifactId>
                                 <version>${postgresql.version}</version>
                             </dependency>
-                            <dependency>
-                                <groupId>jakarta.xml.bind</groupId>
-                                <artifactId>jakarta.xml.bind-api</artifactId>
-                                <version>2.3.3</version>
-                            </dependency>
-                            <dependency>
-                                <groupId>org.glassfish.jaxb</groupId>
-                                <artifactId>jaxb-runtime</artifactId>
-                                <version>2.3.3</version>
-                            </dependency>
                         </dependencies>
 
                         <!-- Specify the plugin configuration. The configuration format is the
@@ -184,9 +175,9 @@
 
                             <!-- Generator parameters -->
                             <generator>
-                                <name>org.jooq.util.DefaultGenerator</name>
+                                <name>org.jooq.codegen.JavaGenerator</name>
                                 <database>
-                                    <name>org.jooq.util.postgres.PostgresDatabase</name>
+                                    <name>org.jooq.meta.postgres.PostgresDatabase</name>
                                     <includes>.*</includes>
                                     <excludes></excludes>
                                     <inputSchema>admin</inputSchema>
