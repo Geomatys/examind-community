@@ -23,11 +23,16 @@ import java.util.List;
 import org.geotoolkit.observation.model.Field;
 
 /**
- *
+ * @deprecated use {@link org.geotoolkit.observation.OMUtils}
  * @author Guilhem Legal (Geomatys)
  */
+@Deprecated
 public class OM2Utils {
 
+    /**
+     * @deprecated use {@link org.geotoolkit.observation.OMUtils#reOrderFields(java.util.List, java.util.List) }
+     */
+    @Deprecated
     public static List<Field> reOrderFields(List<Field> procedureFields, List<Field> subset) {
         List<Field> result = new ArrayList();
         for (Field pField : procedureFields) {

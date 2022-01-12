@@ -30,10 +30,6 @@
         </dependency>
         <dependency>
             <groupId>org.geotoolkit</groupId>
-            <artifactId>geotk-xml-om</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.geotoolkit</groupId>
             <artifactId>geotk-feature-geojson</artifactId>
         </dependency>
         <dependency>
@@ -42,24 +38,12 @@
         </dependency>
         <dependency>
             <groupId>org.geotoolkit</groupId>
-            <artifactId>geotk-feature-shapefile</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.geotoolkit</groupId>
             <artifactId>geotk-jaxp-gml</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.geotoolkit</groupId>
-            <artifactId>geotk-feature-om</artifactId>
         </dependency>
         <dependency>
             <groupId>org.geotoolkit</groupId>
             <artifactId>geotk-feature</artifactId>
         </dependency>
-        <!--dependency>
-            <groupId>org.codehaus.woodstox</groupId>
-            <artifactId>woodstox-core-lgpl</artifactId>
-        </dependency-->
 
         <!-- Test dependencies -->
         <dependency>
