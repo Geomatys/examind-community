@@ -182,6 +182,7 @@
                                     <excludes></excludes>
                                     <inputSchema>admin</inputSchema>
                                     <!-- Custom type to avoid the shrink of CLOB metadata column -->
+                                    <!-- from jooq update to 3.14.15 it also avoid some cast issue with hsql db -->
                                     <customTypes>
                                         <customType>
                                             <name>CustomString</name>
@@ -193,6 +194,14 @@
                                         <forcedType>
                                             <name>CustomString</name>
                                             <expression>.*\.METADATA_ISO.*</expression>
+                                        </forcedType>
+                                        <forcedType>
+                                            <name>CustomString</name>
+                                            <expression>.*\.PATH.*</expression>
+                                        </forcedType>
+                                        <forcedType>
+                                            <name>CustomString</name>
+                                            <expression>.*TASK_PARAMETER\.TYPE.*</expression>
                                         </forcedType>
                                     </forcedTypes>
                                 </database>

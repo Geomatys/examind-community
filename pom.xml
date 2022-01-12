@@ -50,7 +50,7 @@
         <dockerfile-maven-plugin.version>1.4.10</dockerfile-maven-plugin.version>
         <elasticsearch.version>7.6.1</elasticsearch.version>
         <hazelcast.version>3.5.4</hazelcast.version>
-        <hsql.version>2.5.0</hsql.version>
+        <hsql.version>2.6.1</hsql.version>
         <httpclient.version>4.5.10</httpclient.version><!-- neccesary for json style build ucar related issue -->
         <jackson.version>2.10.3</jackson.version>
         <javax.annotation-api.version>1.2</javax.annotation-api.version>

@@ -27,6 +27,7 @@ import com.examind.database.api.jooq.tables.records.TaskParameterRecord;
 import java.util.Arrays;
 import java.util.List;
 
+import org.constellation.database.model.jooq.util.StringBinding;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
 import org.jooq.Identity;
@@ -113,7 +114,7 @@ public class TaskParameter extends TableImpl<TaskParameterRecord> {
     /**
      * The column <code>admin.task_parameter.type</code>.
      */
-    public final TableField<TaskParameterRecord, String> TYPE = createField(DSL.name("type"), SQLDataType.CLOB, this, "");
+    public final TableField<TaskParameterRecord, String> TYPE = createField(DSL.name("type"), SQLDataType.CLOB, this, "", new StringBinding());
 
     private TaskParameter(Name alias, Table<TaskParameterRecord> aliased) {
         this(alias, aliased, null);

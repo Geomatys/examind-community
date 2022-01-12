@@ -26,6 +26,7 @@ import com.examind.database.api.jooq.tables.records.DatasourceSelectedPathRecord
 import java.util.Arrays;
 import java.util.List;
 
+import org.constellation.database.model.jooq.util.StringBinding;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
 import org.jooq.Name;
@@ -70,7 +71,7 @@ public class DatasourceSelectedPath extends TableImpl<DatasourceSelectedPathReco
     /**
      * The column <code>admin.datasource_selected_path.path</code>.
      */
-    public final TableField<DatasourceSelectedPathRecord, String> PATH = createField(DSL.name("path"), SQLDataType.VARCHAR(1000).nullable(false), this, "");
+    public final TableField<DatasourceSelectedPathRecord, String> PATH = createField(DSL.name("path"), SQLDataType.VARCHAR(1000).nullable(false), this, "", new StringBinding());
 
     /**
      * The column <code>admin.datasource_selected_path.status</code>.

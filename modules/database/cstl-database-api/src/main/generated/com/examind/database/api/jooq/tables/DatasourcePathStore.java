@@ -26,6 +26,7 @@ import com.examind.database.api.jooq.tables.records.DatasourcePathStoreRecord;
 import java.util.Arrays;
 import java.util.List;
 
+import org.constellation.database.model.jooq.util.StringBinding;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
 import org.jooq.Name;
@@ -70,7 +71,7 @@ public class DatasourcePathStore extends TableImpl<DatasourcePathStoreRecord> {
     /**
      * The column <code>admin.datasource_path_store.path</code>.
      */
-    public final TableField<DatasourcePathStoreRecord, String> PATH = createField(DSL.name("path"), SQLDataType.CLOB.nullable(false), this, "");
+    public final TableField<DatasourcePathStoreRecord, String> PATH = createField(DSL.name("path"), SQLDataType.CLOB.nullable(false), this, "", new StringBinding());
 
     /**
      * The column <code>admin.datasource_path_store.store</code>.
