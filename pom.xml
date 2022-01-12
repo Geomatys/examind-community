@@ -1129,13 +1129,6 @@
 
     <repositories>
         <repository>
-            <id>geotoolkit</id>
-            <url>http://maven.geotoolkit.org/</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-        <repository>
             <id>springsource</id>
             <name>Spring Repository</name>
             <url>https://repo.spring.io/libs-milestone/</url>
@@ -1154,11 +1147,6 @@
         </repository>
     </repositories>
     <pluginRepositories>
-        <pluginRepository>
-            <id>geotoolkit.plugins</id>
-            <name>Geotoolkit.org repository</name>
-            <url>http://maven.geotoolkit.org</url>
-        </pluginRepository>
         <pluginRepository>
             <id>geomatys.plugins</id>
             <name>Geomatys public repository</name>
