@@ -211,7 +211,7 @@
                                     <records>true</records>
                                     <fluentSetters>true</fluentSetters>
                                     <validationAnnotations>true</validationAnnotations>
-                                    <daos>true</daos>
+                                    <daos>false</daos>
                                 </generate>
                                 <target>
                                     <packageName>com.examind.database.api.jooq</packageName>
