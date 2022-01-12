@@ -175,7 +175,7 @@
 
                             <!-- Generator parameters -->
                             <generator>
-                                <name>org.jooq.codegen.JavaGenerator</name>
+                                <name>com.examind.database.ExaJooqGenerator</name>
                                 <database>
                                     <name>org.jooq.meta.postgres.PostgresDatabase</name>
                                     <includes>.*</includes>
