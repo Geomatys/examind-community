@@ -39,7 +39,7 @@ services :
          CSTL_URL: "http://localhost:8080/examind"
          CSTL_HOME: /var/examind/
          CATALINA_OPTS: "-Xms1G -Xmx4G -Dfile.encoding=UTF-8"
-         JPDA_ADDRESS: 8000
+         JPDA_ADDRESS: "*:8000"
          JPDA_TRANSPORT: dt_socket
          CSTL_TOKEN_LIFE: 30
        entrypoint: catalina.sh jpda run

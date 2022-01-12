@@ -92,7 +92,6 @@
                                 <copy todir="${project.basedir}/../../../docker/mount/examind/tomcat/webapps/examind">
                                     <fileset dir="${project.basedir}/target/examind"/>
                                 </copy>
-
                             </tasks>
                         </configuration>
                         <goals>
