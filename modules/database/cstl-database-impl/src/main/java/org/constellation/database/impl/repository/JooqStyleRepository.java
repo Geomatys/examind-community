@@ -1,8 +1,8 @@
 package org.constellation.database.impl.repository;
 
-import org.constellation.database.api.jooq.tables.records.StyleRecord;
-import org.constellation.database.api.jooq.tables.records.StyledDataRecord;
-import org.constellation.database.api.jooq.tables.records.StyledLayerRecord;
+import com.examind.database.api.jooq.tables.records.StyleRecord;
+import com.examind.database.api.jooq.tables.records.StyledDataRecord;
+import com.examind.database.api.jooq.tables.records.StyledLayerRecord;
 import org.constellation.dto.Style;
 import org.constellation.dto.StyleReference;
 import org.constellation.repository.StyleRepository;
@@ -15,11 +15,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.Map.Entry;
 
-import static org.constellation.database.api.jooq.Tables.*;
+import static com.examind.database.api.jooq.Tables.*;
 
 @Component
 @DependsOn("database-initer")
-public class JooqStyleRepository extends AbstractJooqRespository<StyleRecord, org.constellation.database.api.jooq.tables.pojos.Style> implements StyleRepository {
+public class JooqStyleRepository extends AbstractJooqRespository<StyleRecord, com.examind.database.api.jooq.tables.pojos.Style> implements StyleRepository {
 
     private static final Field[] REFERENCE_FIELDS = new Field[]{
             STYLE.ID.as("id"),
@@ -28,28 +28,28 @@ public class JooqStyleRepository extends AbstractJooqRespository<StyleRecord, or
 
 
     public JooqStyleRepository() {
-        super(org.constellation.database.api.jooq.tables.pojos.Style.class, STYLE);
+        super(com.examind.database.api.jooq.tables.pojos.Style.class, STYLE);
     }
 
     @Override
     public List<Style> findByData(Integer dataId) {
         return convertStyleListToDto(dsl.select(STYLE.fields()).from(STYLE).join(STYLED_DATA).onKey()
-                .where(STYLED_DATA.DATA.eq(dataId)).fetchInto(org.constellation.database.api.jooq.tables.pojos.Style.class));
+                .where(STYLED_DATA.DATA.eq(dataId)).fetchInto(com.examind.database.api.jooq.tables.pojos.Style.class));
     }
 
     @Override
     public List<Style> findByType(String type) {
-        return convertStyleListToDto(dsl.select().from(STYLE).where(STYLE.TYPE.eq(type)).fetchInto(org.constellation.database.api.jooq.tables.pojos.Style.class));
+        return convertStyleListToDto(dsl.select().from(STYLE).where(STYLE.TYPE.eq(type)).fetchInto(com.examind.database.api.jooq.tables.pojos.Style.class));
     }
 
     @Override
     public List<Style> findByTypeAndProvider(final int providerId, String type) {
-        return convertStyleListToDto(dsl.select().from(STYLE).where(STYLE.TYPE.eq(type)).and(STYLE.PROVIDER.eq(providerId)).fetchInto(org.constellation.database.api.jooq.tables.pojos.Style.class));
+        return convertStyleListToDto(dsl.select().from(STYLE).where(STYLE.TYPE.eq(type)).and(STYLE.PROVIDER.eq(providerId)).fetchInto(com.examind.database.api.jooq.tables.pojos.Style.class));
     }
 
     @Override
     public List<Style> findByProvider(final int providerId) {
-        return convertStyleListToDto(dsl.select().from(STYLE).where(STYLE.PROVIDER.eq(providerId)).fetchInto(org.constellation.database.api.jooq.tables.pojos.Style.class));
+        return convertStyleListToDto(dsl.select().from(STYLE).where(STYLE.PROVIDER.eq(providerId)).fetchInto(com.examind.database.api.jooq.tables.pojos.Style.class));
     }
 
     @Override
@@ -60,23 +60,23 @@ public class JooqStyleRepository extends AbstractJooqRespository<StyleRecord, or
                         .join(STYLED_LAYER).onKey()
                         .where(STYLED_LAYER.LAYER.eq(layerId))
                         .orderBy(STYLED_LAYER.IS_DEFAULT)
-                        .fetchInto(org.constellation.database.api.jooq.tables.pojos.Style.class)
+                        .fetchInto(com.examind.database.api.jooq.tables.pojos.Style.class)
         );
     }
 
     @Override
     public Style findById(int id) {
-        return convertToDto(dsl.select().from(STYLE).where(STYLE.ID.eq(id)).fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Style.class));
+        return convertToDto(dsl.select().from(STYLE).where(STYLE.ID.eq(id)).fetchOneInto(com.examind.database.api.jooq.tables.pojos.Style.class));
     }
 
     @Override
     public List<Style> findByName(String name) {
-        return convertStyleListToDto(dsl.select().from(STYLE).where(STYLE.NAME.eq(name)).fetchInto(org.constellation.database.api.jooq.tables.pojos.Style.class));
+        return convertStyleListToDto(dsl.select().from(STYLE).where(STYLE.NAME.eq(name)).fetchInto(com.examind.database.api.jooq.tables.pojos.Style.class));
     }
 
     @Override
     public Style findByNameAndProvider(int providerId, String name) {
-        return convertToDto(dsl.select().from(STYLE).where(STYLE.NAME.eq(name)).and(STYLE.PROVIDER.eq(providerId)).fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Style.class));
+        return convertToDto(dsl.select().from(STYLE).where(STYLE.NAME.eq(name)).and(STYLE.PROVIDER.eq(providerId)).fetchOneInto(com.examind.database.api.jooq.tables.pojos.Style.class));
     }
 
     @Override
@@ -297,11 +297,11 @@ public class JooqStyleRepository extends AbstractJooqRespository<StyleRecord, or
         if(query == null) { //means there are no sorting and no filters
             final int count = dsl.selectCount().from(STYLE).fetchOne(0,int.class);
             result = new AbstractMap.SimpleImmutableEntry<>(count,
-                    convertStyleListToDto(dsl.select(fields).from(STYLE).limit(rowsPerPage).offset((pageNumber - 1) * rowsPerPage).fetchInto(org.constellation.database.api.jooq.tables.pojos.Style.class)));
+                    convertStyleListToDto(dsl.select(fields).from(STYLE).limit(rowsPerPage).offset((pageNumber - 1) * rowsPerPage).fetchInto(com.examind.database.api.jooq.tables.pojos.Style.class)));
         }else {
             final int count = dsl.fetchCount(query);
             result = new AbstractMap.SimpleImmutableEntry<>(count,
-                    convertStyleListToDto(((SelectLimitStep) query).limit(rowsPerPage).offset((pageNumber - 1) * rowsPerPage).fetchInto(org.constellation.database.api.jooq.tables.pojos.Style.class)));
+                    convertStyleListToDto(((SelectLimitStep) query).limit(rowsPerPage).offset((pageNumber - 1) * rowsPerPage).fetchInto(com.examind.database.api.jooq.tables.pojos.Style.class)));
         }
         return result;
     }
@@ -348,18 +348,18 @@ public class JooqStyleRepository extends AbstractJooqRespository<StyleRecord, or
 
     @Override
     public List<Style> findAll() {
-        return convertStyleListToDto(dsl.select().from(STYLE).fetchInto(org.constellation.database.api.jooq.tables.pojos.Style.class));
+        return convertStyleListToDto(dsl.select().from(STYLE).fetchInto(com.examind.database.api.jooq.tables.pojos.Style.class));
     }
 
-    public static List<Style> convertStyleListToDto(List<org.constellation.database.api.jooq.tables.pojos.Style> daos) {
+    public static List<Style> convertStyleListToDto(List<com.examind.database.api.jooq.tables.pojos.Style> daos) {
         List<Style> dtos = new ArrayList<>();
-        for (org.constellation.database.api.jooq.tables.pojos.Style dao : daos) {
+        for (com.examind.database.api.jooq.tables.pojos.Style dao : daos) {
             dtos.add(convertToDto(dao));
         }
         return dtos;
     }
 
-    public static Style convertToDto(org.constellation.database.api.jooq.tables.pojos.Style dao) {
+    public static Style convertToDto(com.examind.database.api.jooq.tables.pojos.Style dao) {
         if (dao != null) {
             Style p = new Style();
             p.setBody(dao.getBody());

@@ -18,12 +18,12 @@
  */
 package org.constellation.database.impl.repository;
 
-import static org.constellation.database.api.jooq.Tables.STYLED_LAYER;
+import static com.examind.database.api.jooq.Tables.STYLED_LAYER;
 
 import java.util.List;
 
-import org.constellation.database.api.jooq.tables.pojos.StyledLayer;
-import org.constellation.database.api.jooq.tables.records.StyledLayerRecord;
+import com.examind.database.api.jooq.tables.pojos.StyledLayer;
+import com.examind.database.api.jooq.tables.records.StyledLayerRecord;
 import org.constellation.repository.StyledLayerRepository;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;

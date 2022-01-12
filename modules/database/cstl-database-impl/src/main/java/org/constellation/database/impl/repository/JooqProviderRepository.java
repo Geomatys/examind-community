@@ -19,18 +19,18 @@
 package org.constellation.database.impl.repository;
 
 import java.util.ArrayList;
-import static org.constellation.database.api.jooq.Tables.DATA;
-import static org.constellation.database.api.jooq.Tables.PROVIDER;
+import static com.examind.database.api.jooq.Tables.DATA;
+import static com.examind.database.api.jooq.Tables.PROVIDER;
 
 import java.util.List;
-import static org.constellation.database.api.jooq.Tables.INTERNAL_METADATA;
-import static org.constellation.database.api.jooq.Tables.METADATA;
-import static org.constellation.database.api.jooq.Tables.PROVIDER_X_SOS;
-import static org.constellation.database.api.jooq.Tables.PROVIDER_X_CSW;
-import static org.constellation.database.api.jooq.Tables.SENSOR;
+import static com.examind.database.api.jooq.Tables.INTERNAL_METADATA;
+import static com.examind.database.api.jooq.Tables.METADATA;
+import static com.examind.database.api.jooq.Tables.PROVIDER_X_SOS;
+import static com.examind.database.api.jooq.Tables.PROVIDER_X_CSW;
+import static com.examind.database.api.jooq.Tables.SENSOR;
 
-import org.constellation.database.api.jooq.tables.pojos.Provider;
-import org.constellation.database.api.jooq.tables.records.ProviderRecord;
+import com.examind.database.api.jooq.tables.pojos.Provider;
+import com.examind.database.api.jooq.tables.records.ProviderRecord;
 import org.constellation.repository.ProviderRepository;
 import org.constellation.dto.ProviderBrief;
 import org.jooq.UpdateConditionStep;
@@ -44,9 +44,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class JooqProviderRepository extends AbstractJooqRespository<ProviderRecord, Provider> implements
         ProviderRepository {
 
-    private final org.constellation.database.api.jooq.tables.Provider provider = PROVIDER.as("p");
+    private final com.examind.database.api.jooq.tables.Provider provider = PROVIDER.as("p");
 
-    private final org.constellation.database.api.jooq.tables.Data data = DATA.as("d");
+    private final com.examind.database.api.jooq.tables.Data data = DATA.as("d");
 
     public JooqProviderRepository() {
         super(Provider.class, PROVIDER);

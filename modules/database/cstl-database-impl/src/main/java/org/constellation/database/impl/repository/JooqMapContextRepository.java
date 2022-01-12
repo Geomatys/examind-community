@@ -19,8 +19,8 @@
 package org.constellation.database.impl.repository;
 
 
-import static org.constellation.database.api.jooq.Tables.MAPCONTEXT;
-import static org.constellation.database.api.jooq.Tables.MAPCONTEXT_STYLED_LAYER;
+import static com.examind.database.api.jooq.Tables.MAPCONTEXT;
+import static com.examind.database.api.jooq.Tables.MAPCONTEXT_STYLED_LAYER;
 
 import java.util.List;
 import java.util.AbstractMap;
@@ -33,12 +33,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.namespace.QName;
 import org.apache.sis.util.logging.Logging;
-import static org.constellation.database.api.jooq.Tables.CSTL_USER;
+import static com.examind.database.api.jooq.Tables.CSTL_USER;
 
-import org.constellation.database.api.jooq.tables.pojos.Mapcontext;
-import org.constellation.database.api.jooq.tables.pojos.MapcontextStyledLayer;
-import org.constellation.database.api.jooq.tables.records.MapcontextRecord;
-import org.constellation.database.api.jooq.tables.records.MapcontextStyledLayerRecord;
+import com.examind.database.api.jooq.tables.pojos.Mapcontext;
+import com.examind.database.api.jooq.tables.pojos.MapcontextStyledLayer;
+import com.examind.database.api.jooq.tables.records.MapcontextRecord;
+import com.examind.database.api.jooq.tables.records.MapcontextStyledLayerRecord;
 import org.constellation.dto.AbstractMCLayerDTO;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.Data;

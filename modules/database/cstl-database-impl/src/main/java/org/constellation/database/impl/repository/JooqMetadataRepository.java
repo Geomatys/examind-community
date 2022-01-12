@@ -19,10 +19,10 @@
 package org.constellation.database.impl.repository;
 
 import java.util.AbstractMap;
-import static org.constellation.database.api.jooq.Tables.METADATA;
-import static org.constellation.database.api.jooq.Tables.METADATA_BBOX;
-import static org.constellation.database.api.jooq.Tables.METADATA_X_CSW;
-import static org.constellation.database.api.jooq.Tables.INTERNAL_METADATA;
+import static com.examind.database.api.jooq.Tables.METADATA;
+import static com.examind.database.api.jooq.Tables.METADATA_BBOX;
+import static com.examind.database.api.jooq.Tables.METADATA_X_CSW;
+import static com.examind.database.api.jooq.Tables.INTERNAL_METADATA;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,15 +31,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import static org.constellation.database.api.jooq.Tables.SERVICE;
+import static com.examind.database.api.jooq.Tables.SERVICE;
 
 import org.constellation.dto.metadata.MetadataComplete;
 import org.constellation.dto.metadata.Metadata;
 import org.constellation.dto.metadata.MetadataBbox;
-import org.constellation.database.api.jooq.tables.pojos.MetadataXCsw;
-import org.constellation.database.api.jooq.tables.records.MetadataBboxRecord;
-import org.constellation.database.api.jooq.tables.records.MetadataRecord;
-import org.constellation.database.api.jooq.tables.records.MetadataXCswRecord;
+import com.examind.database.api.jooq.tables.pojos.MetadataXCsw;
+import com.examind.database.api.jooq.tables.records.MetadataBboxRecord;
+import com.examind.database.api.jooq.tables.records.MetadataRecord;
+import com.examind.database.api.jooq.tables.records.MetadataXCswRecord;
 import org.constellation.repository.MetadataRepository;
 import org.jooq.AggregateFunction;
 import org.jooq.Condition;
@@ -64,10 +64,10 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Component
 @DependsOn("database-initer")
-public class JooqMetadataRepository extends AbstractJooqRespository<MetadataRecord, org.constellation.database.api.jooq.tables.pojos.Metadata> implements MetadataRepository {
+public class JooqMetadataRepository extends AbstractJooqRespository<MetadataRecord, com.examind.database.api.jooq.tables.pojos.Metadata> implements MetadataRepository {
 
     public JooqMetadataRepository() {
-        super(org.constellation.database.api.jooq.tables.pojos.Metadata.class, METADATA);
+        super(com.examind.database.api.jooq.tables.pojos.Metadata.class, METADATA);
     }
 
     @Override
@@ -174,42 +174,42 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
 
     @Override
     public List<Metadata> findAll() {
-        return convertListToDto(dsl.select().from(METADATA).fetchInto(org.constellation.database.api.jooq.tables.pojos.Metadata.class));
+        return convertListToDto(dsl.select().from(METADATA).fetchInto(com.examind.database.api.jooq.tables.pojos.Metadata.class));
     }
 
     @Override
     public Metadata findByMetadataId(String metadataId) {
         return convertToDto(
-                dsl.select().from(METADATA).where(METADATA.METADATA_ID.eq(metadataId)).fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Metadata.class));
+                dsl.select().from(METADATA).where(METADATA.METADATA_ID.eq(metadataId)).fetchOneInto(com.examind.database.api.jooq.tables.pojos.Metadata.class));
     }
 
     @Override
     public Metadata findById(int id) {
         return convertToDto(
-                dsl.select().from(METADATA).where(METADATA.ID.eq(id)).fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Metadata.class));
+                dsl.select().from(METADATA).where(METADATA.ID.eq(id)).fetchOneInto(com.examind.database.api.jooq.tables.pojos.Metadata.class));
     }
 
     @Override
     public List<Metadata> findByDataId(int dataId) {
-        return convertListToDto(dsl.select().from(METADATA).where(METADATA.DATA_ID.eq(dataId)).fetchInto(org.constellation.database.api.jooq.tables.pojos.Metadata.class));
+        return convertListToDto(dsl.select().from(METADATA).where(METADATA.DATA_ID.eq(dataId)).fetchInto(com.examind.database.api.jooq.tables.pojos.Metadata.class));
     }
 
     @Override
     public Metadata findByDatasetId(int datasetId) {
         return convertToDto(
-            dsl.select().from(METADATA).where(METADATA.DATASET_ID.eq(datasetId)).fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Metadata.class));
+            dsl.select().from(METADATA).where(METADATA.DATASET_ID.eq(datasetId)).fetchOneInto(com.examind.database.api.jooq.tables.pojos.Metadata.class));
     }
 
     @Override
     public Metadata findByServiceId(int serviceId) {
         return convertToDto(
-            dsl.select().from(METADATA).where(METADATA.SERVICE_ID.eq(serviceId)).fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Metadata.class));
+            dsl.select().from(METADATA).where(METADATA.SERVICE_ID.eq(serviceId)).fetchOneInto(com.examind.database.api.jooq.tables.pojos.Metadata.class));
     }
 
     @Override
     public Metadata findByMapContextId(int mapContextId) {
         return convertToDto(
-            dsl.select().from(METADATA).where(METADATA.MAP_CONTEXT_ID.eq(mapContextId)).fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Metadata.class));
+            dsl.select().from(METADATA).where(METADATA.MAP_CONTEXT_ID.eq(mapContextId)).fetchOneInto(com.examind.database.api.jooq.tables.pojos.Metadata.class));
     }
 
     @Override
@@ -240,7 +240,7 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
         return convertListToDto(dsl.select(METADATA.fields()).from(METADATA, METADATA_X_CSW)
                   .where(METADATA_X_CSW.METADATA_ID.eq(METADATA.ID))
                   .and(METADATA_X_CSW.CSW_ID.eq(id))
-                  .fetchInto(org.constellation.database.api.jooq.tables.pojos.Metadata.class));
+                  .fetchInto(com.examind.database.api.jooq.tables.pojos.Metadata.class));
     }
 
     @Override
@@ -435,7 +435,7 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
     public List<Metadata> findAll(final boolean includeService, final boolean onlyPublished) {
         SelectJoinStep<Record> query =  dsl.select(METADATA.fields()).from(METADATA);
         if (includeService && !onlyPublished) {
-            return convertListToDto(query.fetchInto(org.constellation.database.api.jooq.tables.pojos.Metadata.class));
+            return convertListToDto(query.fetchInto(com.examind.database.api.jooq.tables.pojos.Metadata.class));
         }
         SelectConditionStep<Record> filterQuery = null;
         if (!includeService) {
@@ -448,7 +448,7 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
                 filterQuery = filterQuery.and(METADATA.IS_PUBLISHED.eq(Boolean.TRUE));
             }
         }
-        return convertListToDto(filterQuery.fetchInto(org.constellation.database.api.jooq.tables.pojos.Metadata.class));
+        return convertListToDto(filterQuery.fetchInto(com.examind.database.api.jooq.tables.pojos.Metadata.class));
     }
 
     @Override
@@ -457,7 +457,7 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
         if (type != null) {
             filterQuery = filterQuery.and(METADATA.TYPE.eq(type));
         }
-        return convertListToDto(filterQuery.fetchInto(org.constellation.database.api.jooq.tables.pojos.Metadata.class));
+        return convertListToDto(filterQuery.fetchInto(com.examind.database.api.jooq.tables.pojos.Metadata.class));
     }
 
     @Override
@@ -614,14 +614,14 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
                     convertListToDto(dsl.select(fields)
                                         .from(METADATA)
                                         .limit(rowsPerPage).offset((pageNumber - 1) * rowsPerPage)
-                                        .fetchInto(org.constellation.database.api.jooq.tables.pojos.Metadata.class)));
+                                        .fetchInto(com.examind.database.api.jooq.tables.pojos.Metadata.class)));
         }else {
             final int count = dsl.fetchCount(query);
             result = new AbstractMap.SimpleImmutableEntry<>(count,
                     convertListToDto(((SelectLimitStep) query)
                                        .limit(rowsPerPage)
                                        .offset((pageNumber - 1) * rowsPerPage)
-                                       .fetchInto(org.constellation.database.api.jooq.tables.pojos.Metadata.class)));
+                                       .fetchInto(com.examind.database.api.jooq.tables.pojos.Metadata.class)));
         }
         return result;
     }
@@ -782,7 +782,7 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
         return convertListToDtoBbox(dsl.select()
                                        .from(METADATA_BBOX)
                                        .where(METADATA_BBOX.METADATA_ID.eq(id))
-                                       .fetchInto(org.constellation.database.api.jooq.tables.pojos.MetadataBbox.class));
+                                       .fetchInto(com.examind.database.api.jooq.tables.pojos.MetadataBbox.class));
     }
 
     @Override
@@ -975,7 +975,7 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
         dsl.update(METADATA).set(METADATA.DATASET_ID, nullInt).where(METADATA.ID.eq(metadataID)).execute();
     }
 
-    private Metadata convertToDto(org.constellation.database.api.jooq.tables.pojos.Metadata dao) {
+    private Metadata convertToDto(com.examind.database.api.jooq.tables.pojos.Metadata dao) {
         if (dao != null) {
             return new Metadata(dao.getId(),
                     dao.getMetadataId(),
@@ -1005,15 +1005,15 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
         return null;
     }
 
-    private List<Metadata> convertListToDto(List<org.constellation.database.api.jooq.tables.pojos.Metadata> daos) {
+    private List<Metadata> convertListToDto(List<com.examind.database.api.jooq.tables.pojos.Metadata> daos) {
         List<Metadata> results = new ArrayList<>();
-        for (org.constellation.database.api.jooq.tables.pojos.Metadata dao : daos) {
+        for (com.examind.database.api.jooq.tables.pojos.Metadata dao : daos) {
             results.add(convertToDto(dao));
         }
         return results;
     }
 
-    private MetadataBbox convertToDto(org.constellation.database.api.jooq.tables.pojos.MetadataBbox dao) {
+    private MetadataBbox convertToDto(com.examind.database.api.jooq.tables.pojos.MetadataBbox dao) {
         if (dao != null) {
             return new MetadataBbox(dao.getMetadataId(),
                     dao.getEast(),
@@ -1024,9 +1024,9 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
         return null;
     }
 
-    private List<MetadataBbox> convertListToDtoBbox(List<org.constellation.database.api.jooq.tables.pojos.MetadataBbox> daos) {
+    private List<MetadataBbox> convertListToDtoBbox(List<com.examind.database.api.jooq.tables.pojos.MetadataBbox> daos) {
         List<MetadataBbox> results = new ArrayList<>();
-        for (org.constellation.database.api.jooq.tables.pojos.MetadataBbox dao : daos) {
+        for (com.examind.database.api.jooq.tables.pojos.MetadataBbox dao : daos) {
             results.add(convertToDto(dao));
         }
         return results;

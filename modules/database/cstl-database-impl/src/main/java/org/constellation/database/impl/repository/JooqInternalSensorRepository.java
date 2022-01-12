@@ -20,8 +20,8 @@ package org.constellation.database.impl.repository;
 
 import java.util.List;
 import org.constellation.dto.InternalSensor;
-import static org.constellation.database.api.jooq.tables.InternalSensor.INTERNAL_SENSOR;
-import org.constellation.database.api.jooq.tables.records.InternalSensorRecord;
+import static com.examind.database.api.jooq.tables.InternalSensor.INTERNAL_SENSOR;
+import com.examind.database.api.jooq.tables.records.InternalSensorRecord;
 import org.constellation.repository.InternalSensorRepository;
 import org.jooq.Select;
 import org.jooq.UpdateSetFirstStep;
@@ -36,10 +36,10 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Component
 @DependsOn("database-initer")
-public class JooqInternalSensorRepository extends AbstractJooqRespository<InternalSensorRecord, org.constellation.database.api.jooq.tables.pojos.InternalSensor>  implements InternalSensorRepository {
+public class JooqInternalSensorRepository extends AbstractJooqRespository<InternalSensorRecord, com.examind.database.api.jooq.tables.pojos.InternalSensor>  implements InternalSensorRepository {
 
     public JooqInternalSensorRepository() {
-        super(org.constellation.database.api.jooq.tables.pojos.InternalSensor.class, INTERNAL_SENSOR);
+        super(com.examind.database.api.jooq.tables.pojos.InternalSensor.class, INTERNAL_SENSOR);
     }
 
     @Override

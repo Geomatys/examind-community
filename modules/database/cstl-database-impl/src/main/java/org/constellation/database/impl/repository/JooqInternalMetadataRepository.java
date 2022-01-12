@@ -19,9 +19,9 @@
 package org.constellation.database.impl.repository;
 
 import java.util.List;
-import static org.constellation.database.api.jooq.Tables.INTERNAL_METADATA;
+import static com.examind.database.api.jooq.Tables.INTERNAL_METADATA;
 import org.constellation.dto.metadata.InternalMetadata;
-import org.constellation.database.api.jooq.tables.records.InternalMetadataRecord;
+import com.examind.database.api.jooq.tables.records.InternalMetadataRecord;
 import org.constellation.repository.InternalMetadataRepository;
 import org.jooq.Select;
 import org.jooq.UpdateSetFirstStep;
@@ -36,10 +36,10 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Component
 @DependsOn("database-initer")
-public class JooqInternalMetadataRepository extends AbstractJooqRespository<InternalMetadataRecord, org.constellation.database.api.jooq.tables.pojos.InternalMetadata> implements InternalMetadataRepository {
+public class JooqInternalMetadataRepository extends AbstractJooqRespository<InternalMetadataRecord, com.examind.database.api.jooq.tables.pojos.InternalMetadata> implements InternalMetadataRepository {
 
     public JooqInternalMetadataRepository() {
-        super(org.constellation.database.api.jooq.tables.pojos.InternalMetadata.class, INTERNAL_METADATA);
+        super(com.examind.database.api.jooq.tables.pojos.InternalMetadata.class, INTERNAL_METADATA);
     }
 
     @Override
@@ -47,7 +47,7 @@ public class JooqInternalMetadataRepository extends AbstractJooqRespository<Inte
         return convertToDto(dsl.select()
                                .from(INTERNAL_METADATA)
                                .where(INTERNAL_METADATA.METADATA_ID.eq(metadataId))
-                               .fetchOneInto(org.constellation.database.api.jooq.tables.pojos.InternalMetadata.class));
+                               .fetchOneInto(com.examind.database.api.jooq.tables.pojos.InternalMetadata.class));
     }
 
     @Override
@@ -106,7 +106,7 @@ public class JooqInternalMetadataRepository extends AbstractJooqRespository<Inte
         return dsl.delete(INTERNAL_METADATA).where(INTERNAL_METADATA.METADATA_ID.eq(metadataId)).execute();
     }
 
-    private InternalMetadata convertToDto(org.constellation.database.api.jooq.tables.pojos.InternalMetadata dao) {
+    private InternalMetadata convertToDto(com.examind.database.api.jooq.tables.pojos.InternalMetadata dao) {
         if (dao != null) {
             return new InternalMetadata(dao.getId(),
                     dao.getMetadataId(),

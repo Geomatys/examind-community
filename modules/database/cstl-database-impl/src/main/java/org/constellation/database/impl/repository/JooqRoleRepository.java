@@ -2,12 +2,12 @@ package org.constellation.database.impl.repository;
 
 import java.util.List;
 import org.constellation.dto.Role;
-import org.constellation.database.api.jooq.tables.records.RoleRecord;
+import com.examind.database.api.jooq.tables.records.RoleRecord;
 import org.constellation.repository.RoleRepository;
 import org.springframework.stereotype.Component;
 
 
-import static org.constellation.database.api.jooq.Tables.ROLE;
+import static com.examind.database.api.jooq.Tables.ROLE;
 import org.springframework.context.annotation.DependsOn;
 
 /**

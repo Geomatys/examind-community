@@ -205,7 +205,7 @@
                                     <daos>true</daos>
                                 </generate>
                                 <target>
-                                    <packageName>org.constellation.database.api.jooq</packageName>
+                                    <packageName>com.examind.database.api.jooq</packageName>
                                     <directory>${generate.folder}</directory>
                                 </target>
                             </generator>

@@ -22,9 +22,9 @@ import java.util.ArrayList;
 
 import java.util.List;
 
-import org.constellation.database.api.jooq.Tables;
+import com.examind.database.api.jooq.Tables;
 import org.constellation.dto.process.Task;
-import org.constellation.database.api.jooq.tables.records.TaskRecord;
+import com.examind.database.api.jooq.tables.records.TaskRecord;
 import org.constellation.repository.TaskRepository;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
@@ -38,10 +38,10 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Component
 @DependsOn("database-initer")
-public class JooqTaskRepository extends AbstractJooqRespository<TaskRecord, org.constellation.database.api.jooq.tables.pojos.Task> implements TaskRepository {
+public class JooqTaskRepository extends AbstractJooqRespository<TaskRecord, com.examind.database.api.jooq.tables.pojos.Task> implements TaskRepository {
 
     public JooqTaskRepository() {
-        super(org.constellation.database.api.jooq.tables.pojos.Task.class, Tables.TASK);
+        super(com.examind.database.api.jooq.tables.pojos.Task.class, Tables.TASK);
     }
 
 
@@ -59,7 +59,7 @@ public class JooqTaskRepository extends AbstractJooqRespository<TaskRecord, org.
 
     @Override
     public Task get(String uuid) {
-        return convertToDto(dsl.select().from(Tables.TASK).where(Tables.TASK.IDENTIFIER.eq(uuid)).fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Task.class));
+        return convertToDto(dsl.select().from(Tables.TASK).where(Tables.TASK.IDENTIFIER.eq(uuid)).fetchOneInto(com.examind.database.api.jooq.tables.pojos.Task.class));
     }
 
     @Override
@@ -82,7 +82,7 @@ public class JooqTaskRepository extends AbstractJooqRespository<TaskRecord, org.
     public List<Task> findRunningTasks() {
         return convertTaskListToDto(dsl.select().from(Tables.TASK)
                 .where(Tables.TASK.DATE_END.isNull())
-                .fetchInto(org.constellation.database.api.jooq.tables.pojos.Task.class));
+                .fetchInto(com.examind.database.api.jooq.tables.pojos.Task.class));
     }
 
     @Override
@@ -91,7 +91,7 @@ public class JooqTaskRepository extends AbstractJooqRespository<TaskRecord, org.
                 .where(Tables.TASK.DATE_END.isNull().and(Tables.TASK.TASK_PARAMETER_ID.eq(id)))
                 .orderBy(Tables.TASK.DATE_END.desc())
                 .limit(limit).offset(offset)
-                .fetchInto(org.constellation.database.api.jooq.tables.pojos.Task.class));
+                .fetchInto(com.examind.database.api.jooq.tables.pojos.Task.class));
     }
 
     @Override
@@ -101,13 +101,13 @@ public class JooqTaskRepository extends AbstractJooqRespository<TaskRecord, org.
                 .andNot(Tables.TASK.DATE_END.isNull())
                 .orderBy(Tables.TASK.DATE_END.desc())
                 .limit(limit).offset(offset)
-                .fetchInto(org.constellation.database.api.jooq.tables.pojos.Task.class));
+                .fetchInto(com.examind.database.api.jooq.tables.pojos.Task.class));
     }
 
 
     @Override
     public List<Task> findAll() {
-        return convertTaskListToDto(dsl.select().from(Tables.TASK).fetchInto(org.constellation.database.api.jooq.tables.pojos.Task.class));
+        return convertTaskListToDto(dsl.select().from(Tables.TASK).fetchInto(com.examind.database.api.jooq.tables.pojos.Task.class));
     }
 
     @Override
@@ -120,15 +120,15 @@ public class JooqTaskRepository extends AbstractJooqRespository<TaskRecord, org.
         return dsl.delete(Tables.TASK).execute();
     }
 
-    private List<Task> convertTaskListToDto(List<org.constellation.database.api.jooq.tables.pojos.Task> daos) {
+    private List<Task> convertTaskListToDto(List<com.examind.database.api.jooq.tables.pojos.Task> daos) {
         List<org.constellation.dto.process.Task> results = new ArrayList<>();
-        for (org.constellation.database.api.jooq.tables.pojos.Task dao : daos) {
+        for (com.examind.database.api.jooq.tables.pojos.Task dao : daos) {
             results.add(convertToDto(dao));
         }
         return results;
     }
 
-    private Task convertToDto(org.constellation.database.api.jooq.tables.pojos.Task dao) {
+    private Task convertToDto(com.examind.database.api.jooq.tables.pojos.Task dao) {
         if (dao != null) {
             Task dto = new Task();
             dto.setDateEnd(dao.getDateEnd());
@@ -146,9 +146,9 @@ public class JooqTaskRepository extends AbstractJooqRespository<TaskRecord, org.
         return null;
     }
 
-    private org.constellation.database.api.jooq.tables.pojos.Task convertToDao(Task dto) {
+    private com.examind.database.api.jooq.tables.pojos.Task convertToDao(Task dto) {
         if (dto != null) {
-            org.constellation.database.api.jooq.tables.pojos.Task dao = new org.constellation.database.api.jooq.tables.pojos.Task();
+            com.examind.database.api.jooq.tables.pojos.Task dao = new com.examind.database.api.jooq.tables.pojos.Task();
             dao.setDateEnd(dto.getDateEnd());
             dao.setDateStart(dto.getDateStart());
             dao.setIdentifier(dto.getIdentifier());

@@ -20,12 +20,12 @@
 package org.constellation.database.impl.repository;
 
 import java.util.ArrayList;
-import static org.constellation.database.api.jooq.Tables.CHAIN_PROCESS;
+import static com.examind.database.api.jooq.Tables.CHAIN_PROCESS;
 
 import java.util.List;
 
 import org.constellation.dto.process.ChainProcess;
-import org.constellation.database.api.jooq.tables.records.ChainProcessRecord;
+import com.examind.database.api.jooq.tables.records.ChainProcessRecord;
 import org.constellation.repository.ChainProcessRepository;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
@@ -38,15 +38,15 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Component
 @DependsOn("database-initer")
-public class JooqChainProcessRepository extends AbstractJooqRespository<ChainProcessRecord, org.constellation.database.api.jooq.tables.pojos.ChainProcess> implements ChainProcessRepository {
+public class JooqChainProcessRepository extends AbstractJooqRespository<ChainProcessRecord, com.examind.database.api.jooq.tables.pojos.ChainProcess> implements ChainProcessRepository {
 
     public JooqChainProcessRepository() {
-        super(org.constellation.database.api.jooq.tables.pojos.ChainProcess.class, CHAIN_PROCESS);
+        super(com.examind.database.api.jooq.tables.pojos.ChainProcess.class, CHAIN_PROCESS);
     }
 
     @Override
     public List<ChainProcess> findAll() {
-        return convertListToDto(dsl.select().from(CHAIN_PROCESS).fetchInto(org.constellation.database.api.jooq.tables.pojos.ChainProcess.class));
+        return convertListToDto(dsl.select().from(CHAIN_PROCESS).fetchInto(com.examind.database.api.jooq.tables.pojos.ChainProcess.class));
     }
 
     @Override
@@ -89,7 +89,7 @@ public class JooqChainProcessRepository extends AbstractJooqRespository<ChainPro
                                .from(CHAIN_PROCESS)
                                .where(CHAIN_PROCESS.AUTH.eq(auth))
                                .and(CHAIN_PROCESS.CODE.eq(code))
-                               .fetchOneInto(org.constellation.database.api.jooq.tables.pojos.ChainProcess.class));
+                               .fetchOneInto(com.examind.database.api.jooq.tables.pojos.ChainProcess.class));
     }
 
     @Override
@@ -97,15 +97,15 @@ public class JooqChainProcessRepository extends AbstractJooqRespository<ChainPro
         return dsl.select(CHAIN_PROCESS.ID).from(CHAIN_PROCESS).where(CHAIN_PROCESS.AUTH.eq(auth)).and(CHAIN_PROCESS.CODE.eq(code)).fetchOneInto(Integer.class);
     }
 
-    private List<ChainProcess> convertListToDto(List<org.constellation.database.api.jooq.tables.pojos.ChainProcess> daos) {
+    private List<ChainProcess> convertListToDto(List<com.examind.database.api.jooq.tables.pojos.ChainProcess> daos) {
         List<ChainProcess> results = new ArrayList<>();
-        for (org.constellation.database.api.jooq.tables.pojos.ChainProcess dao : daos) {
+        for (com.examind.database.api.jooq.tables.pojos.ChainProcess dao : daos) {
             results.add(convertToDto(dao));
         }
         return results;
     }
 
-    private ChainProcess convertToDto(org.constellation.database.api.jooq.tables.pojos.ChainProcess dao) {
+    private ChainProcess convertToDto(com.examind.database.api.jooq.tables.pojos.ChainProcess dao) {
         if (dao != null) {
             ChainProcess dto = new ChainProcess();
             dto.setAuth(dao.getAuth());
@@ -117,9 +117,9 @@ public class JooqChainProcessRepository extends AbstractJooqRespository<ChainPro
         return null;
     }
 
-    private org.constellation.database.api.jooq.tables.pojos.ChainProcess convertToDao(ChainProcess dto) {
+    private com.examind.database.api.jooq.tables.pojos.ChainProcess convertToDao(ChainProcess dto) {
         if (dto != null) {
-            org.constellation.database.api.jooq.tables.pojos.ChainProcess dao = new org.constellation.database.api.jooq.tables.pojos.ChainProcess();
+            com.examind.database.api.jooq.tables.pojos.ChainProcess dao = new com.examind.database.api.jooq.tables.pojos.ChainProcess();
             dao.setAuth(dto.getAuth());
             dao.setCode(dto.getCode());
             dao.setConfig(dto.getConfig());

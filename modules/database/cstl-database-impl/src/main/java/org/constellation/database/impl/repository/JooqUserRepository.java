@@ -20,8 +20,8 @@ package org.constellation.database.impl.repository;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import static org.constellation.database.api.jooq.Tables.CSTL_USER;
-import static org.constellation.database.api.jooq.Tables.USER_X_ROLE;
+import static com.examind.database.api.jooq.Tables.CSTL_USER;
+import static com.examind.database.api.jooq.Tables.USER_X_ROLE;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,11 +35,11 @@ import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.UserWithRole;
 import org.constellation.dto.CstlUser;
 
-import org.constellation.database.api.jooq.Tables;
-import static org.constellation.database.api.jooq.Tables.ROLE;
-import org.constellation.database.api.jooq.tables.records.CstlUserRecord;
-import org.constellation.database.api.jooq.tables.records.RoleRecord;
-import org.constellation.database.api.jooq.tables.records.UserXRoleRecord;
+import com.examind.database.api.jooq.Tables;
+import static com.examind.database.api.jooq.Tables.ROLE;
+import com.examind.database.api.jooq.tables.records.CstlUserRecord;
+import com.examind.database.api.jooq.tables.records.RoleRecord;
+import com.examind.database.api.jooq.tables.records.UserXRoleRecord;
 import org.constellation.repository.UserRepository;
 import org.jooq.*;
 import org.jooq.Record;
@@ -51,13 +51,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Component("cstlUserRepository")
 @DependsOn("database-initer")
 public class JooqUserRepository extends
-        AbstractJooqRespository<CstlUserRecord, org.constellation.database.api.jooq.tables.pojos.CstlUser> implements
+        AbstractJooqRespository<CstlUserRecord, com.examind.database.api.jooq.tables.pojos.CstlUser> implements
         UserRepository {
 
     private final static Logger LOGGER = Logging.getLogger("org.constellation.database.impl.repository");
 
     public JooqUserRepository() {
-        super(org.constellation.database.api.jooq.tables.pojos.CstlUser.class, CSTL_USER);
+        super(com.examind.database.api.jooq.tables.pojos.CstlUser.class, CSTL_USER);
     }
 
     @Override
@@ -175,7 +175,7 @@ public class JooqUserRepository extends
     public List<CstlUser> findAll() {
         return convertListToDto(dsl.select()
                                    .from(CSTL_USER)
-                                   .fetchInto(org.constellation.database.api.jooq.tables.pojos.CstlUser.class));
+                                   .fetchInto(com.examind.database.api.jooq.tables.pojos.CstlUser.class));
     }
 
     @Override
@@ -186,7 +186,7 @@ public class JooqUserRepository extends
         return Optional.ofNullable(convertToDto(dsl.select()
                                                    .from(CSTL_USER)
                                                    .where(CSTL_USER.LOGIN.eq(login))
-                                                   .fetchOneInto(org.constellation.database.api.jooq.tables.pojos.CstlUser.class)));
+                                                   .fetchOneInto(com.examind.database.api.jooq.tables.pojos.CstlUser.class)));
     }
 
     @Override
@@ -197,7 +197,7 @@ public class JooqUserRepository extends
         return Optional.ofNullable(convertToDto(dsl.select()
                                                    .from(CSTL_USER)
                                                    .where(CSTL_USER.ID.eq(id))
-                                                   .fetchOneInto(org.constellation.database.api.jooq.tables.pojos.CstlUser.class)));
+                                                   .fetchOneInto(com.examind.database.api.jooq.tables.pojos.CstlUser.class)));
     }
 
     @Override
@@ -208,7 +208,7 @@ public class JooqUserRepository extends
         return Optional.ofNullable(convertToDto(dsl.select()
                                                    .from(CSTL_USER)
                                                    .where(CSTL_USER.EMAIL.eq(email))
-                                                   .fetchOneInto(org.constellation.database.api.jooq.tables.pojos.CstlUser.class)));
+                                                   .fetchOneInto(com.examind.database.api.jooq.tables.pojos.CstlUser.class)));
     }
 
     @Override
@@ -395,7 +395,7 @@ public class JooqUserRepository extends
         return "%" + foo + "%";
     }
 
-    private CstlUser convertToDto(org.constellation.database.api.jooq.tables.pojos.CstlUser dao) {
+    private CstlUser convertToDto(com.examind.database.api.jooq.tables.pojos.CstlUser dao) {
         if (dao != null) {
             return new CstlUser(dao.getId(),
                     dao.getLogin(),
@@ -419,9 +419,9 @@ public class JooqUserRepository extends
         return null;
     }
 
-    private List<CstlUser> convertListToDto(List<org.constellation.database.api.jooq.tables.pojos.CstlUser> daos) {
+    private List<CstlUser> convertListToDto(List<com.examind.database.api.jooq.tables.pojos.CstlUser> daos) {
         List<CstlUser> results = new ArrayList<>();
-        for (org.constellation.database.api.jooq.tables.pojos.CstlUser dao : daos) {
+        for (com.examind.database.api.jooq.tables.pojos.CstlUser dao : daos) {
             results.add(convertToDto(dao));
         }
         return results;

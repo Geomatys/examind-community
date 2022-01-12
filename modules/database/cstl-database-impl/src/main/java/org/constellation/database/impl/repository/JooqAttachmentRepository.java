@@ -3,23 +3,23 @@ package org.constellation.database.impl.repository;
 import java.util.ArrayList;
 import java.util.List;
 import org.constellation.dto.metadata.Attachment;
-import org.constellation.database.api.jooq.tables.records.AttachmentRecord;
-import org.constellation.database.api.jooq.tables.records.MetadataXAttachmentRecord;
+import com.examind.database.api.jooq.tables.records.AttachmentRecord;
+import com.examind.database.api.jooq.tables.records.MetadataXAttachmentRecord;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.constellation.database.api.jooq.Tables.ATTACHMENT;
-import static org.constellation.database.api.jooq.Tables.METADATA_X_ATTACHMENT;
+import static com.examind.database.api.jooq.Tables.ATTACHMENT;
+import static com.examind.database.api.jooq.Tables.METADATA_X_ATTACHMENT;
 import org.constellation.repository.AttachmentRepository;
 import org.springframework.context.annotation.DependsOn;
 
 @Component
 @DependsOn("database-initer")
-public class JooqAttachmentRepository extends AbstractJooqRespository<AttachmentRecord, org.constellation.database.api.jooq.tables.pojos.Attachment> implements AttachmentRepository {
+public class JooqAttachmentRepository extends AbstractJooqRespository<AttachmentRecord, com.examind.database.api.jooq.tables.pojos.Attachment> implements AttachmentRepository {
 
     public JooqAttachmentRepository() {
-        super(org.constellation.database.api.jooq.tables.pojos.Attachment.class, ATTACHMENT);
+        super(com.examind.database.api.jooq.tables.pojos.Attachment.class, ATTACHMENT);
     }
 
     @Override
@@ -62,7 +62,7 @@ public class JooqAttachmentRepository extends AbstractJooqRespository<Attachment
         return convertToAttachmentDto(dsl.select()
                                          .from(ATTACHMENT)
                                          .where(ATTACHMENT.ID.eq(id))
-                                         .fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Attachment.class));
+                                         .fetchOneInto(com.examind.database.api.jooq.tables.pojos.Attachment.class));
     }
 
     @Override
@@ -71,7 +71,7 @@ public class JooqAttachmentRepository extends AbstractJooqRespository<Attachment
         dsl.select()
            .from(ATTACHMENT)
            .where(ATTACHMENT.FILENAME.eq(fileName))
-           .fetchInto(org.constellation.database.api.jooq.tables.pojos.Attachment.class));
+           .fetchInto(com.examind.database.api.jooq.tables.pojos.Attachment.class));
 
     }
 
@@ -80,7 +80,7 @@ public class JooqAttachmentRepository extends AbstractJooqRespository<Attachment
         return convertToAttachmentDtos(
         dsl.select()
            .from(ATTACHMENT)
-           .fetchInto(org.constellation.database.api.jooq.tables.pojos.Attachment.class));
+           .fetchInto(com.examind.database.api.jooq.tables.pojos.Attachment.class));
     }
 
     @Override
@@ -129,16 +129,16 @@ public class JooqAttachmentRepository extends AbstractJooqRespository<Attachment
         }
     }
 
-    private org.constellation.dto.metadata.Attachment convertToAttachmentDto(final org.constellation.database.api.jooq.tables.pojos.Attachment md) {
+    private org.constellation.dto.metadata.Attachment convertToAttachmentDto(final com.examind.database.api.jooq.tables.pojos.Attachment md) {
         if (md != null) {
             return new org.constellation.dto.metadata.Attachment(md.getId(), md.getContent(), md.getUri(), md.getFilename());
         }
         return null;
     }
 
-    private List<org.constellation.dto.metadata.Attachment> convertToAttachmentDtos(final List<org.constellation.database.api.jooq.tables.pojos.Attachment> mds) {
+    private List<org.constellation.dto.metadata.Attachment> convertToAttachmentDtos(final List<com.examind.database.api.jooq.tables.pojos.Attachment> mds) {
         final List<org.constellation.dto.metadata.Attachment> results = new ArrayList<>();
-        for (org.constellation.database.api.jooq.tables.pojos.Attachment md: mds) {
+        for (com.examind.database.api.jooq.tables.pojos.Attachment md: mds) {
             results.add(convertToAttachmentDto(md));
         }
         return results;

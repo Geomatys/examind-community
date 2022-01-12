@@ -3,7 +3,7 @@ package org.constellation.database.impl.repository;
 import java.util.ArrayList;
 import java.util.Date;
 import org.constellation.dto.Sensor;
-import org.constellation.database.api.jooq.tables.records.SensorRecord;
+import com.examind.database.api.jooq.tables.records.SensorRecord;
 import org.constellation.dto.SensorReference;
 import org.constellation.repository.SensorRepository;
 import org.jooq.Field;
@@ -12,18 +12,18 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import static org.constellation.database.api.jooq.Tables.DATA;
-import static org.constellation.database.api.jooq.Tables.SENSOR;
-import static org.constellation.database.api.jooq.Tables.SENSORED_DATA;
-import static org.constellation.database.api.jooq.Tables.SENSOR_X_SOS;
-import static org.constellation.database.api.jooq.Tables.PROVIDER_X_SOS;
+import static com.examind.database.api.jooq.Tables.DATA;
+import static com.examind.database.api.jooq.Tables.SENSOR;
+import static com.examind.database.api.jooq.Tables.SENSORED_DATA;
+import static com.examind.database.api.jooq.Tables.SENSOR_X_SOS;
+import static com.examind.database.api.jooq.Tables.PROVIDER_X_SOS;
 import org.jooq.Condition;
 import org.jooq.SelectConditionStep;
 import org.springframework.context.annotation.DependsOn;
 
 @Component
 @DependsOn("database-initer")
-public class JooqSensorRepository extends AbstractJooqRespository<SensorRecord, org.constellation.database.api.jooq.tables.pojos.Sensor> implements SensorRepository {
+public class JooqSensorRepository extends AbstractJooqRespository<SensorRecord, com.examind.database.api.jooq.tables.pojos.Sensor> implements SensorRepository {
 
     private static final Field[] REFERENCE_FIELDS = new Field[]{
             SENSOR.ID.as("id"),
@@ -31,7 +31,7 @@ public class JooqSensorRepository extends AbstractJooqRespository<SensorRecord, 
 
 
     public JooqSensorRepository() {
-        super(org.constellation.database.api.jooq.tables.pojos.Sensor.class, SENSOR);
+        super(com.examind.database.api.jooq.tables.pojos.Sensor.class, SENSOR);
     }
 
     @Override
@@ -62,7 +62,7 @@ public class JooqSensorRepository extends AbstractJooqRespository<SensorRecord, 
 
     @Override
     public Sensor findByIdentifier(String identifier) {
-        return convertIntoSensorDto(dsl.select().from(SENSOR).where(SENSOR.IDENTIFIER.eq(identifier)).fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Sensor.class));
+        return convertIntoSensorDto(dsl.select().from(SENSOR).where(SENSOR.IDENTIFIER.eq(identifier)).fetchOneInto(com.examind.database.api.jooq.tables.pojos.Sensor.class));
     }
 
     @Override
@@ -72,22 +72,22 @@ public class JooqSensorRepository extends AbstractJooqRespository<SensorRecord, 
 
     @Override
     public Sensor findById(Integer id) {
-        return convertIntoSensorDto(dsl.select().from(SENSOR).where(SENSOR.ID.eq(id)).fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Sensor.class));
+        return convertIntoSensorDto(dsl.select().from(SENSOR).where(SENSOR.ID.eq(id)).fetchOneInto(com.examind.database.api.jooq.tables.pojos.Sensor.class));
     }
 
     @Override
     public List<Sensor> getChildren(String parent) {
-        return convertIntoSensorDto(dsl.select().from(SENSOR).where(SENSOR.PARENT.eq(parent)).fetchInto(org.constellation.database.api.jooq.tables.pojos.Sensor.class));
+        return convertIntoSensorDto(dsl.select().from(SENSOR).where(SENSOR.PARENT.eq(parent)).fetchInto(com.examind.database.api.jooq.tables.pojos.Sensor.class));
     }
 
     @Override
     public List<Sensor> findAll() {
-        return convertIntoSensorDto(dsl.select().from(SENSOR).fetchInto(org.constellation.database.api.jooq.tables.pojos.Sensor.class));
+        return convertIntoSensorDto(dsl.select().from(SENSOR).fetchInto(com.examind.database.api.jooq.tables.pojos.Sensor.class));
     }
 
     @Override
     public List<Sensor> findByProviderId(int providerId) {
-        return convertIntoSensorDto(dsl.select().from(SENSOR).where(SENSOR.PROVIDER_ID.eq(providerId)).fetchInto(org.constellation.database.api.jooq.tables.pojos.Sensor.class));
+        return convertIntoSensorDto(dsl.select().from(SENSOR).where(SENSOR.PROVIDER_ID.eq(providerId)).fetchInto(com.examind.database.api.jooq.tables.pojos.Sensor.class));
     }
 
     @Override
@@ -111,7 +111,7 @@ public class JooqSensorRepository extends AbstractJooqRespository<SensorRecord, 
             if (typeFilter != null) {
                 step = step.and(SENSOR.TYPE.eq(sensorType));
             }
-            results.addAll(convertIntoSensorDto(step.fetchInto(org.constellation.database.api.jooq.tables.pojos.Sensor.class)));
+            results.addAll(convertIntoSensorDto(step.fetchInto(com.examind.database.api.jooq.tables.pojos.Sensor.class)));
         }
 
         // look for individually linked sensors.
@@ -121,7 +121,7 @@ public class JooqSensorRepository extends AbstractJooqRespository<SensorRecord, 
         if (typeFilter != null) {
             step = step.and(SENSOR.TYPE.eq(sensorType));
         }
-        results.addAll(convertIntoSensorDto(step.fetchInto(org.constellation.database.api.jooq.tables.pojos.Sensor.class)));
+        results.addAll(convertIntoSensorDto(step.fetchInto(com.examind.database.api.jooq.tables.pojos.Sensor.class)));
 
         return results;
     }
@@ -325,15 +325,15 @@ public class JooqSensorRepository extends AbstractJooqRespository<SensorRecord, 
         return results;
     }
 
-    private List<Sensor> convertIntoSensorDto(final List<org.constellation.database.api.jooq.tables.pojos.Sensor> sensors) {
+    private List<Sensor> convertIntoSensorDto(final List<com.examind.database.api.jooq.tables.pojos.Sensor> sensors) {
         List<Sensor> results = new ArrayList<>();
-        for (org.constellation.database.api.jooq.tables.pojos.Sensor sensor : sensors) {
+        for (com.examind.database.api.jooq.tables.pojos.Sensor sensor : sensors) {
             results.add(convertIntoSensorDto(sensor));
         }
         return results;
     }
 
-    private Sensor convertIntoSensorDto(final org.constellation.database.api.jooq.tables.pojos.Sensor sensor) {
+    private Sensor convertIntoSensorDto(final com.examind.database.api.jooq.tables.pojos.Sensor sensor) {
         if (sensor != null) {
             final Sensor sensorDTO = new Sensor();
             sensorDTO.setOwner(sensor.getOwner());

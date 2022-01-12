@@ -20,15 +20,15 @@ package org.constellation.database.impl.repository;
 
 import java.util.AbstractMap;
 import java.util.HashMap;
-import static org.constellation.database.api.jooq.Tables.PROPERTY;
+import static com.examind.database.api.jooq.Tables.PROPERTY;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.constellation.database.api.jooq.Tables;
-import org.constellation.database.api.jooq.tables.pojos.Property;
-import org.constellation.database.api.jooq.tables.records.PropertyRecord;
+import com.examind.database.api.jooq.Tables;
+import com.examind.database.api.jooq.tables.pojos.Property;
+import com.examind.database.api.jooq.tables.records.PropertyRecord;
 import org.constellation.repository.PropertyRepository;
 import org.jooq.DeleteConditionStep;
 import org.jooq.Record1;

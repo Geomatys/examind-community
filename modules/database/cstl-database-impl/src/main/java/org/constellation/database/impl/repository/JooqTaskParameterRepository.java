@@ -22,9 +22,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.constellation.database.api.jooq.Tables;
+import com.examind.database.api.jooq.Tables;
 import org.constellation.dto.process.TaskParameter;
-import org.constellation.database.api.jooq.tables.records.TaskParameterRecord;
+import com.examind.database.api.jooq.tables.records.TaskParameterRecord;
 import org.constellation.repository.TaskParameterRepository;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
@@ -38,10 +38,10 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Component
 @DependsOn("database-initer")
-public class JooqTaskParameterRepository extends AbstractJooqRespository<TaskParameterRecord, org.constellation.database.api.jooq.tables.pojos.TaskParameter> implements TaskParameterRepository {
+public class JooqTaskParameterRepository extends AbstractJooqRespository<TaskParameterRecord, com.examind.database.api.jooq.tables.pojos.TaskParameter> implements TaskParameterRepository {
 
     public JooqTaskParameterRepository() {
-        super(org.constellation.database.api.jooq.tables.pojos.TaskParameter.class, Tables.TASK_PARAMETER);
+        super(com.examind.database.api.jooq.tables.pojos.TaskParameter.class, Tables.TASK_PARAMETER);
     }
 
     @Override
@@ -49,7 +49,7 @@ public class JooqTaskParameterRepository extends AbstractJooqRespository<TaskPar
         return convertTaskParamListToDto(dsl.select()
                                             .from(Tables.TASK_PARAMETER)
                                             .where(Tables.TASK_PARAMETER.TYPE.eq(type))
-                                            .fetchInto( org.constellation.database.api.jooq.tables.pojos.TaskParameter.class));
+                                            .fetchInto( com.examind.database.api.jooq.tables.pojos.TaskParameter.class));
     }
 
     @Override
@@ -59,7 +59,7 @@ public class JooqTaskParameterRepository extends AbstractJooqRespository<TaskPar
                                             .where(Tables.TASK_PARAMETER.NAME.eq(name)
                                             .and(Tables.TASK_PARAMETER.PROCESS_AUTHORITY.eq(authority))
                                             .and(Tables.TASK_PARAMETER.PROCESS_CODE.eq(code)))
-                                            .fetchInto(org.constellation.database.api.jooq.tables.pojos.TaskParameter.class));
+                                            .fetchInto(com.examind.database.api.jooq.tables.pojos.TaskParameter.class));
     }
 
     @Override
@@ -76,7 +76,7 @@ public class JooqTaskParameterRepository extends AbstractJooqRespository<TaskPar
         return convertToDto(dsl.select()
                                .from(Tables.TASK_PARAMETER)
                                .where(Tables.TASK_PARAMETER.ID.eq(uuid))
-                               .fetchOneInto(org.constellation.database.api.jooq.tables.pojos.TaskParameter.class));
+                               .fetchOneInto(com.examind.database.api.jooq.tables.pojos.TaskParameter.class));
     }
 
     @Override
@@ -119,17 +119,17 @@ public class JooqTaskParameterRepository extends AbstractJooqRespository<TaskPar
         return convertTaskParamListToDto(dsl.select()
                                             .from(Tables.TASK_PARAMETER)
                                             .where(Tables.TASK_PARAMETER.TRIGGER.isNotNull())
-                                            .fetchInto(org.constellation.database.api.jooq.tables.pojos.TaskParameter.class));
+                                            .fetchInto(com.examind.database.api.jooq.tables.pojos.TaskParameter.class));
     }
 
     @Override
     public List<TaskParameter> findAll() {
         return convertTaskParamListToDto(dsl.select()
                                             .from(Tables.TASK_PARAMETER)
-                                            .fetchInto(org.constellation.database.api.jooq.tables.pojos.TaskParameter.class));
+                                            .fetchInto(com.examind.database.api.jooq.tables.pojos.TaskParameter.class));
     }
 
-    private TaskParameter convertToDto(org.constellation.database.api.jooq.tables.pojos.TaskParameter dao) {
+    private TaskParameter convertToDto(com.examind.database.api.jooq.tables.pojos.TaskParameter dao) {
         if (dao != null) {
             TaskParameter dto = new TaskParameter();
             dto.setDate(dao.getDate());
@@ -147,9 +147,9 @@ public class JooqTaskParameterRepository extends AbstractJooqRespository<TaskPar
         return null;
     }
 
-    private org.constellation.database.api.jooq.tables.pojos.TaskParameter convertToDao(TaskParameter dto) {
+    private com.examind.database.api.jooq.tables.pojos.TaskParameter convertToDao(TaskParameter dto) {
         if (dto != null) {
-            org.constellation.database.api.jooq.tables.pojos.TaskParameter dao = new org.constellation.database.api.jooq.tables.pojos.TaskParameter();
+            com.examind.database.api.jooq.tables.pojos.TaskParameter dao = new com.examind.database.api.jooq.tables.pojos.TaskParameter();
             dao.setDate(dto.getDate());
             dao.setId(dto.getId());
             dao.setInputs(dto.getInputs());
@@ -165,9 +165,9 @@ public class JooqTaskParameterRepository extends AbstractJooqRespository<TaskPar
         return null;
     }
 
-    private List<TaskParameter> convertTaskParamListToDto(List<? extends org.constellation.database.api.jooq.tables.pojos.TaskParameter> daos) {
+    private List<TaskParameter> convertTaskParamListToDto(List<? extends com.examind.database.api.jooq.tables.pojos.TaskParameter> daos) {
         List<TaskParameter> results = new ArrayList<>();
-        for (org.constellation.database.api.jooq.tables.pojos.TaskParameter dao : daos) {
+        for (com.examind.database.api.jooq.tables.pojos.TaskParameter dao : daos) {
             results.add(convertToDto(dao));
         }
         return results;

@@ -22,13 +22,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import org.constellation.dto.thesaurus.Thesaurus;
-import org.constellation.database.api.jooq.tables.records.ThesaurusRecord;
+import com.examind.database.api.jooq.tables.records.ThesaurusRecord;
 import org.constellation.repository.ThesaurusRepository;
 import org.springframework.stereotype.Component;
-import static org.constellation.database.api.jooq.Tables.THESAURUS;
-import static org.constellation.database.api.jooq.Tables.THESAURUS_LANGUAGE;
-import static org.constellation.database.api.jooq.Tables.THESAURUS_X_SERVICE;
-import org.constellation.database.api.jooq.tables.records.ThesaurusLanguageRecord;
+import static com.examind.database.api.jooq.Tables.THESAURUS;
+import static com.examind.database.api.jooq.Tables.THESAURUS_LANGUAGE;
+import static com.examind.database.api.jooq.Tables.THESAURUS_X_SERVICE;
+import com.examind.database.api.jooq.tables.records.ThesaurusLanguageRecord;
 import org.jooq.Record;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.transaction.annotation.Propagation;
@@ -40,10 +40,10 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Component
 @DependsOn("database-initer")
-public class JooqThesaurusRepository extends AbstractJooqRespository<ThesaurusRecord, org.constellation.database.api.jooq.tables.pojos.Thesaurus> implements ThesaurusRepository {
+public class JooqThesaurusRepository extends AbstractJooqRespository<ThesaurusRecord, com.examind.database.api.jooq.tables.pojos.Thesaurus> implements ThesaurusRepository {
 
     public JooqThesaurusRepository() {
-        super(org.constellation.database.api.jooq.tables.pojos.Thesaurus.class, THESAURUS);
+        super(com.examind.database.api.jooq.tables.pojos.Thesaurus.class, THESAURUS);
     }
 
     @Override
@@ -62,7 +62,7 @@ public class JooqThesaurusRepository extends AbstractJooqRespository<ThesaurusRe
 
         updateLanguages(record.getId(), thesaurus.getLangs());
 
-        return record.into(org.constellation.database.api.jooq.tables.pojos.Thesaurus.class).getId();
+        return record.into(com.examind.database.api.jooq.tables.pojos.Thesaurus.class).getId();
     }
 
     private void updateLanguages(int thesaurusID, List<String> language) {
@@ -87,7 +87,7 @@ public class JooqThesaurusRepository extends AbstractJooqRespository<ThesaurusRe
     public Thesaurus getByUri(String uri) {
         final Record one = dsl.select().from(THESAURUS).where(THESAURUS.URI.eq(uri)).fetchOne();
         if (one == null) return null;
-        final Thesaurus th = convertToDto(one.into(org.constellation.database.api.jooq.tables.pojos.Thesaurus.class));
+        final Thesaurus th = convertToDto(one.into(com.examind.database.api.jooq.tables.pojos.Thesaurus.class));
         th.setLangs(getLanguages(th.getId()));
         return th;
     }
@@ -96,7 +96,7 @@ public class JooqThesaurusRepository extends AbstractJooqRespository<ThesaurusRe
     public Thesaurus getByName(String name) {
         final Record one = dsl.select().from(THESAURUS).where(THESAURUS.NAME.eq(name)).fetchOne();
         if (one == null) return null;
-        final Thesaurus th = convertToDto(one.into(org.constellation.database.api.jooq.tables.pojos.Thesaurus.class));
+        final Thesaurus th = convertToDto(one.into(com.examind.database.api.jooq.tables.pojos.Thesaurus.class));
         th.setLangs(getLanguages(th.getId()));
         return th;
     }
@@ -105,7 +105,7 @@ public class JooqThesaurusRepository extends AbstractJooqRespository<ThesaurusRe
     public Thesaurus get(int id) {
         Record one = dsl.select().from(THESAURUS).where(THESAURUS.ID.eq(id)).fetchOne();
         if (one == null) return null;
-        final Thesaurus th = convertToDto(one.into(org.constellation.database.api.jooq.tables.pojos.Thesaurus.class));
+        final Thesaurus th = convertToDto(one.into(com.examind.database.api.jooq.tables.pojos.Thesaurus.class));
         th.setLangs(getLanguages(th.getId()));
         return th;
     }
@@ -182,17 +182,17 @@ public class JooqThesaurusRepository extends AbstractJooqRespository<ThesaurusRe
 
 
     public List<Thesaurus> findAll() {
-        return convertListToDto(dsl.select().from(THESAURUS).fetchInto(org.constellation.database.api.jooq.tables.pojos.Thesaurus.class));
+        return convertListToDto(dsl.select().from(THESAURUS).fetchInto(com.examind.database.api.jooq.tables.pojos.Thesaurus.class));
     }
 
-    private List<Thesaurus> convertListToDto(List<org.constellation.database.api.jooq.tables.pojos.Thesaurus> daos) {
+    private List<Thesaurus> convertListToDto(List<com.examind.database.api.jooq.tables.pojos.Thesaurus> daos) {
         List<Thesaurus> results = new ArrayList<>();
-        for (org.constellation.database.api.jooq.tables.pojos.Thesaurus dao : daos) {
+        for (com.examind.database.api.jooq.tables.pojos.Thesaurus dao : daos) {
             results.add(convertToDto(dao));
         }
         return results;
     }
-    public Thesaurus convertToDto(org.constellation.database.api.jooq.tables.pojos.Thesaurus dao) {
+    public Thesaurus convertToDto(com.examind.database.api.jooq.tables.pojos.Thesaurus dao) {
         if (dao != null) {
             return new Thesaurus(
                     dao.getId(),
@@ -209,9 +209,9 @@ public class JooqThesaurusRepository extends AbstractJooqRespository<ThesaurusRe
         return null;
     }
 
-    public org.constellation.database.api.jooq.tables.pojos.Thesaurus convertToDao(Thesaurus dto) {
+    public com.examind.database.api.jooq.tables.pojos.Thesaurus convertToDao(Thesaurus dto) {
         if (dto != null) {
-            return new org.constellation.database.api.jooq.tables.pojos.Thesaurus(
+            return new com.examind.database.api.jooq.tables.pojos.Thesaurus(
                     dto.getId(),
                     dto.getUri(),
                     dto.getName(),
