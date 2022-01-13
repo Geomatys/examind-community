@@ -207,6 +207,11 @@
              <version>${javax.annotation-api.version}</version>
          </dependency>
 
+         <dependency>
+             <groupId>org.glassfish.jaxb</groupId>
+             <artifactId>jaxb-runtime</artifactId>
+             <scope>compile</scope>
+         </dependency>
         <dependency>
             <groupId>org.opengis</groupId>
             <artifactId>geoapi-pending</artifactId>
@@ -392,17 +397,6 @@
                <groupId>com.ryantenney.metrics</groupId>
                <artifactId>metrics-spring</artifactId>
                <version>${metrics-spring.version}</version>
-            </dependency>
-            <!-- JAXB  -->
-            <dependency>
-                <groupId>com.sun.xml.bind</groupId>
-                <artifactId>jaxb-impl</artifactId>
-                <version>${jaxb.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>javax.xml.bind</groupId>
-                <artifactId>jaxb-api</artifactId>
-                <version>${jaxb.version}</version>
             </dependency>
             <!-- Jackson -->
             <dependency>

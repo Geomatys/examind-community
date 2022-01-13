@@ -19,19 +19,15 @@
 
 package org.constellation.metadata.ws.rs.provider;
 
-import com.sun.xml.bind.marshaller.DataWriter;
 import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.XML;
-import org.constellation.jaxb.CstlXMLSerializer;
 import org.constellation.jaxb.MarshallWarnings;
-import org.constellation.metadata.utils.SerializerResponse;
 import org.geotoolkit.csw.xml.CSWMarshallerPool;
 import org.geotoolkit.csw.xml.CSWResponse;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
@@ -84,32 +80,12 @@ public class CSWResponseWriter implements HttpMessageConverter<Object> {
         try {
             final Marshaller m = CSWMarshallerPool.getInstance().acquireMarshaller();
             m.setProperty(XML.CONVERTER, warnings);
-            if (t instanceof SerializerResponse) {
-                final SerializerResponse response   = (SerializerResponse) t;
-                final CstlXMLSerializer serializer  = response.getSerializer();
-                final Object objResponse            = unwrapInternalGetRecordByIdResponse(response.getResponse());
-
-                if (objResponse instanceof Node) {
-                    new NodeWriter().write((Node) objResponse, contentType, outputMessage);
-                } else {
-                    m.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, getSchemaLocation(objResponse));
-                    if (serializer != null) {
-                        DataWriter writer = new DataWriter(new OutputStreamWriter(outputMessage.getBody()), "UTF-8");
-                        writer.setIndentStep("   ");
-                        serializer.setContentHandler(writer);
-                        m.marshal(objResponse, serializer);
-                    } else  {
-                        m.marshal(objResponse, outputMessage.getBody());
-                    }
-                }
+            t = unwrapInternalGetRecordByIdResponse(t);
+            if (t instanceof Node) {
+                new NodeWriter().write((Node) t, contentType, outputMessage);
             } else {
-                t = unwrapInternalGetRecordByIdResponse(t);
-                if (t instanceof Node) {
-                    new NodeWriter().write((Node) t, contentType, outputMessage);
-                } else {
-                    m.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, getSchemaLocation(t));
-                    m.marshal(t, outputMessage.getBody());
-                }
+                m.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, getSchemaLocation(t));
+                m.marshal(t, outputMessage.getBody());
             }
             CSWMarshallerPool.getInstance().recycle(m);
 

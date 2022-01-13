@@ -21,17 +21,14 @@ package org.constellation.metadata.ws.rs;
 import org.apache.sis.internal.xml.LegacyNamespaces;
 import org.constellation.api.ServiceDef;
 import org.constellation.api.ServiceDef.Specification;
-import org.constellation.jaxb.CstlXMLSerializer;
 import org.constellation.metadata.core.CSWworker;
 import org.constellation.metadata.utils.CSWUtils;
-import org.constellation.metadata.utils.SerializerResponse;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.MimeType;
 import org.constellation.ws.UnauthorizedException;
 import org.constellation.ws.WebServiceUtilities;
 import org.constellation.ws.Worker;
 import org.constellation.ws.rs.OGCWebService;
-import org.geotoolkit.csw.xml.CSWResponse;
 import org.geotoolkit.csw.xml.CswXmlFactory;
 import org.geotoolkit.csw.xml.DescribeRecord;
 import org.geotoolkit.csw.xml.DistributedSearch;
@@ -142,13 +139,6 @@ public class CSWService extends OGCWebService<CSWworker> {
     }
 
     /**
-     * This method has to be overridden by child classes.
-     */
-    protected CstlXMLSerializer getXMLSerializer() {
-        return null;
-    }
-
-    /**
      * {@inheritDoc}
      */
     @Override
@@ -180,18 +170,14 @@ public class CSWService extends OGCWebService<CSWworker> {
 
                 final GetRecordsRequest gr = (GetRecordsRequest)request;
                 final String outputFormat  = CSWUtils.getOutputFormat(gr);
-                // we pass the serializer to the messageBodyWriter
-                final SerializerResponse response = new SerializerResponse((CSWResponse) worker.getRecords(gr), getXMLSerializer());
-                return new ResponseObject(response, outputFormat);
+                return new ResponseObject(worker.getRecords(gr), outputFormat);
             }
 
             if (request instanceof GetRecordById) {
 
                 final GetRecordById grbi = (GetRecordById)request;
                 final String outputFormat  = CSWUtils.getOutputFormat(grbi);
-                // we pass the serializer to the messageBodyWriter
-                final SerializerResponse response = new SerializerResponse((CSWResponse) worker.getRecordById(grbi), getXMLSerializer());
-                return new ResponseObject(response, outputFormat);
+                return new ResponseObject(worker.getRecordById(grbi), outputFormat);
             }
 
             if (request instanceof DescribeRecord) {
