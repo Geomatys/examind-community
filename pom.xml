@@ -52,7 +52,7 @@
         <hazelcast.version>3.5.4</hazelcast.version>
         <hsql.version>2.6.1</hsql.version>
         <httpclient.version>4.5.10</httpclient.version><!-- neccesary for json style build ucar related issue -->
-        <jackson.version>2.10.3</jackson.version>
+        <jackson.version>2.12.1</jackson.version>
         <javax.annotation-api.version>1.2</javax.annotation-api.version>
         <javax.el.version>2.2</javax.el.version>
         <javax.inject.version>2.3.0-b10</javax.inject.version>
@@ -63,7 +63,7 @@
         <joda.version>2.2</joda.version>
         <jooq.version>3.14.15</jooq.version>
         <jsp-api.version>2.2</jsp-api.version>
-        <logback.version>1.2.0</logback.version>
+        <logback.version>1.2.10</logback.version>
         <maven-plugin-api.version>2.0.9</maven-plugin-api.version>
         <metrics-spring.version>3.0.0-RC2</metrics-spring.version>
         <postgresql.version>42.2.2</postgresql.version>
