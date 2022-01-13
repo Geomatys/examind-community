@@ -32,17 +32,14 @@
         <dependency>
             <groupId>org.jooq</groupId>
             <artifactId>jooq</artifactId>
-            <version>${jooq.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jooq</groupId>
             <artifactId>jooq-meta</artifactId>
-            <version>${jooq.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jooq</groupId>
             <artifactId>jooq-codegen</artifactId>
-            <version>${jooq.version}</version>
         </dependency>
 
         <dependency>
@@ -139,7 +136,6 @@
                         <!-- Specify the maven code generator plugin -->
                         <groupId>org.jooq</groupId>
                         <artifactId>jooq-codegen-maven</artifactId>
-                        <version>${jooq.version}</version>
 
                         <!-- The plugin should hook into the generate goal -->
                         <executions>

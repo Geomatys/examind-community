@@ -31,11 +31,6 @@
                     <artifactId>derby</artifactId>
                     <scope>test</scope>
                 </dependency>
-                <dependency>
-                    <groupId>org.apache.derby</groupId>
-                    <artifactId>derbyLocale_fr</artifactId>
-                    <scope>test</scope>
-                </dependency>
             </dependencies>
         </profile>
         <profile>
@@ -346,12 +341,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
-            <version>${spring.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
         </dependency>
         <dependency>
             <groupId>commons-collections</groupId>

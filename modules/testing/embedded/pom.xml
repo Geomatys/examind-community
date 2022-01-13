@@ -83,9 +83,12 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
         </dependency>
+        <!-- TODO: verify if we really need Derby. Especially for unit tests, the EPSG database should be deployed in
+        administration database, which is either PostgreSQL or HSQLDB -->
         <dependency>
             <groupId>org.apache.derby</groupId>
             <artifactId>derby</artifactId>
+            <scope>runtime</scope>
         </dependency>
         <!-- For testing static methods -->
         <dependency>
