@@ -18,7 +18,7 @@
  */
 package org.constellation.admin.conf;
 
-import org.apache.commons.lang.CharEncoding;
+import java.nio.charset.StandardCharsets;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -100,7 +100,7 @@ public class DispatcherServletConfiguration extends WebMvcConfigurerAdapter {
         log.finer("Loading MessageSources");
         ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
         messageSource.setBasename("/WEB-INF/messages/messages");
-        messageSource.setDefaultEncoding(CharEncoding.UTF_8);
+        messageSource.setDefaultEncoding(StandardCharsets.UTF_8.name());
         if ("true".equals(env.getProperty("message.reloading.enabled"))) {
             messageSource.setCacheSeconds(1);
         }
