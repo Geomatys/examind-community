@@ -80,7 +80,7 @@
         <repository>
             <id>sonatype-releases</id>
             <name>Sonatype Releases Repository</name>
-            <url>http://oss.sonatype.org/content/repositories/releases/</url>
+            <url>https://oss.sonatype.org/content/repositories/releases/</url>
         </repository>
     </repositories>
     <prerequisites>
