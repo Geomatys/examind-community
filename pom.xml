@@ -45,7 +45,6 @@
         <commons-email.version>1.2</commons-email.version>
         <commons-fileupload.version>1.3.3</commons-fileupload.version>
         <elasticsearch.version>7.6.1</elasticsearch.version>
-        <hazelcast.version>3.5.4</hazelcast.version>
         <httpclient.version>4.5.10</httpclient.version><!-- neccesary for json style build ucar related issue -->
         <javax.annotation-api.version>1.2</javax.annotation-api.version>
         <javax.inject.version>2.3.0-b10</javax.inject.version>
@@ -349,13 +348,6 @@
                <version>${metrics-spring.version}</version>
             </dependency>
 
-            <!-- hazelcast -->
-            <dependency>
-                <groupId>com.hazelcast</groupId>
-                <artifactId>hazelcast</artifactId>
-                <version>${hazelcast.version}</version>
-            </dependency>
-            
             <dependency>
                 <groupId>org.apache.sis.core</groupId>
                 <artifactId>sis-portrayal</artifactId>
