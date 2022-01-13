@@ -737,6 +737,7 @@
                 <version>1.1.2</version>
             </dependency>
 
+            <!-- TODO: try to update in the future -->
             <dependency>
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-core</artifactId>
@@ -748,11 +749,6 @@
                 <artifactId>guava</artifactId>
                 <!-- Sync with the version used by UCAR NetCDF -->
                 <version>30.1-jre</version>
-            </dependency>
-            <dependency>
-                <groupId>org.modelmapper</groupId>
-                <artifactId>modelmapper</artifactId>
-                <version>0.7.4</version>
             </dependency>
             <dependency>
                 <groupId>javax.media</groupId>
