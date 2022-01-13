@@ -103,7 +103,6 @@
             <plugin>
               <groupId>com.spotify</groupId>
               <artifactId>dockerfile-maven-plugin</artifactId>
-              <version>${dockerfile-maven-plugin.version}</version>
               <configuration>
                 <repository>images.geomatys.com/examind/examind-community</repository>
                 <tag>${docker.tag}</tag>
