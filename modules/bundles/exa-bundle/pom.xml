@@ -88,9 +88,11 @@
                         <phase>package</phase>
                         <configuration>
                             <tasks>
-                                <delete file="${project.basedir}/../../../docker/mount/examind/tomcat/webapps/examind.war"/>
-                                <copy file="${project.basedir}/target/examind.war"
-                                      todir="${project.basedir}/../../../docker/mount/examind/tomcat/webapps/"/>
+                                <delete dir="${project.basedir}/../../../docker/mount/examind/tomcat/webapps/examind" includeEmptyDirs="true"/>
+                                <copy todir="${project.basedir}/../../../docker/mount/examind/tomcat/webapps/examind">
+                                    <fileset dir="${project.basedir}/target/examind"/>
+                                </copy>
+
                             </tasks>
                         </configuration>
                         <goals>
