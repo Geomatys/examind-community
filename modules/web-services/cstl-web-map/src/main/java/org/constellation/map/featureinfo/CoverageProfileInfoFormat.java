@@ -35,9 +35,11 @@ import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import javax.measure.Unit;
 import javax.measure.UnitConverter;
@@ -86,6 +88,7 @@ import org.opengis.referencing.datum.PixelInCell;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
+import org.springframework.lang.Nullable;
 
 /**
  * TODO: toSourceCorner/toSourceCenter
@@ -104,12 +107,42 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         ANY,
     }
 
+    enum NaNCleanup {
+        /**
+         * No post-treatment is done to reduce the number of returned NaN values.
+         */
+        NONE,
+        /**
+         * When we find a series of more than two contiguous NaN value, remove all intermediate measures to keep only
+         * the two extremum ones. It allow to keep the information that only a single value (NaN) is found in a
+         * specified range, but allow to make room for more important information (measure variation) in the line
+         * sampling.
+         *
+         * TODO: generalize that to any contiguous range of equivalent values: i.e make a proper signal filter.
+         */
+        CONTINUOUS
+    }
+
+    enum OutOfBounds {
+        /**
+         * Any measure outside data domain will be filtered out/removed from output. This means that potentially long
+         * gaps can appear in data profile.
+         */
+        IGNORE,
+        /**
+         * Any measure outside data domain will be considered a NaN (fill-value). This is the default behaviour.
+         */
+        NAN
+    }
+
     private static final String MIME = "application/json; subtype=profile";
     private static final String PARAM_PROFILE = "profile";
     private static final String PARAM_NBPOINT = "samplingCount";
     private static final String PARAM_ALTITUDE = "alt";
     private static final String PARAM_REDUCER = "reducer";
     private static final String PARAM_NAN_BEHAVIOR = "nanPropagation";
+    private static final String PARAM_NAN_CLEANUP = "nanCleanup";
+    private static final String PARAM_OUT_OF_BOUNDS = "outOfBounds";
 
     private static final Map<Unit,List<Unit>> UNIT_GROUPS = new HashMap<>();
     static {
@@ -142,24 +175,19 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
             Object parameters = ((org.geotoolkit.wms.xml.GetFeatureInfo) getFI).getParameters();
             if (parameters instanceof Map) {
                 Object cdt = ((Map) parameters).get(PARAM_PROFILE);
-                if (cdt instanceof String){
-                    geomStr = (String) cdt;
-                } else if (cdt instanceof String[]) {
-                    geomStr = ((String[]) cdt)[0];
-                }
+                geomStr = toStringValue(cdt);
 
                 Object cdt2 = ((Map) parameters).get(PARAM_NBPOINT);
-                if (cdt2 instanceof String[]) {
-                    cdt2 = ((String[]) cdt2)[0];
-                }
-                if (cdt2 instanceof String) {
-                    try {
-                        samplingCount = Double.valueOf((String) cdt2).intValue();
-                    } catch (NumberFormatException ex) {
-                        throw new PortrayalException(ex.getMessage(), ex);
+                if (cdt2 instanceof Number) samplingCount = ((Number) cdt2).intValue();
+                else {
+                    final String strNbPts = toStringValue(cdt2);
+                    if (strNbPts != null) {
+                        try {
+                            samplingCount = Double.valueOf(strNbPts).intValue();
+                        } catch (NumberFormatException ex) {
+                            throw new PortrayalException(ex.getMessage(), ex);
+                        }
                     }
-                } else if (cdt2 instanceof Number) {
-                    samplingCount = ((Number) cdt2).intValue();
                 }
             }
         }
@@ -257,11 +285,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
                     Object parameters = ((org.geotoolkit.wms.xml.GetFeatureInfo) getFI).getParameters();
                     if (parameters instanceof Map) {
                         Object cdt = ((Map) parameters).get(PARAM_ALTITUDE);
-                        if (cdt instanceof String){
-                            altStr = (String) cdt;
-                        } else if (cdt instanceof String[]) {
-                            altStr = ((String[]) cdt)[0];
-                        }
+                        altStr = toStringValue(cdt);
                     }
                 }
 
@@ -322,31 +346,28 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
             Object parameters = ((org.geotoolkit.wms.xml.GetFeatureInfo) getFI).getParameters();
             ReductionMethod reducer = null;
             NaNPropagation nanBehavior = NaNPropagation.ALL;
+            OutOfBounds outOfBounds = OutOfBounds.NAN;
+            NaNCleanup nanCleanup = NaNCleanup.CONTINUOUS;
             if (parameters instanceof Map) {
-                String reduceParam = null;
                 final Map<?, ?> paramMap = (Map) parameters;
-                Object cdt = paramMap.get(PARAM_REDUCER);
-                if (cdt instanceof String){
-                    reduceParam = (String) cdt;
-                } else if (cdt instanceof String[]) {
-                    reduceParam = ((String[]) cdt)[0];
-                }
+                String reduceParam = toStringValue(paramMap.get(PARAM_REDUCER));
                 if (reduceParam != null) {
                     reducer = ReductionMethod.valueOf(reduceParam);
                 }
 
-                Object nanBehave = paramMap.get(PARAM_NAN_BEHAVIOR);
-                if (nanBehave instanceof String[]) {
-                    nanBehave = ((String[]) nanBehave)[0];
-                }
-                if (nanBehave instanceof String) {
-                    nanBehavior = NaNPropagation.valueOf(((String) nanBehave).toUpperCase(Locale.ROOT));
-                } else if (nanBehave instanceof NaNPropagation) {
-                    nanBehavior = (NaNPropagation) nanBehave;
-                }
+                NaNPropagation nanBehave = toEnumValue(NaNPropagation.class, paramMap.get(PARAM_NAN_BEHAVIOR));
+                if (nanBehave != null) nanBehavior = nanBehave;
+
+                OutOfBounds oob = toEnumValue(OutOfBounds.class, paramMap.get(PARAM_OUT_OF_BOUNDS));
+                if (oob != null) outOfBounds = oob;
+
+                NaNCleanup nc = toEnumValue(NaNCleanup.class, paramMap.get(PARAM_NAN_CLEANUP));
+                if (nc != null) nanCleanup = nc;
             }
 
-            baseData = extractData(coverage, geom, samplingCount, reducer, nanBehavior);
+            final ProfileConfiguration conf = new ProfileConfiguration(nanBehavior, nanCleanup, outOfBounds, samplingCount, reducer);
+
+            baseData = extractData(coverage, geom, conf);
 
         } catch (DataStoreException ex) {
             layer.message = ex.getMessage();
@@ -407,7 +428,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         }
     }
 
-    private ProfilData extractData(GridCoverage coverage, Geometry geom, Integer samplingCount, ReductionMethod reducer, NaNPropagation nanBehavior) throws TransformException, FactoryException {
+    private ProfilData extractData(GridCoverage coverage, Geometry geom, ProfileConfiguration config) throws TransformException, FactoryException {
 
         final ProfilData pdata = new ProfilData();
 
@@ -469,16 +490,25 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
 
         final Statistics stats = new Statistics("");
 
+
+        Stream<DataProfile.DataPoint> pointStream = StreamSupport.stream(dp, false);
+        if (config.outOfBounds == OutOfBounds.IGNORE) {
+            pointStream = pointStream.filter(point -> point.value != null);
+        } else if (config.outOfBounds == OutOfBounds.NAN) {
+            final UnaryOperator<DataProfile.DataPoint> replaceNullWithNaN = point -> {
+                if (point.value != null) return point;
+                final DataProfile.DataPoint newPoint = new DataProfile.DataPoint(point.geoLocation, point.gridLocation, point.distanceFromPrevious);
+                newPoint.value = new double[] { Double.NaN };
+                return newPoint;
+            };
+            pointStream = pointStream.map(replaceNullWithNaN);
+        }
+
         if (isPoint) {
-            StreamSupport.stream(dp, false).forEach(new Consumer<DataProfile.DataPoint>() {
+            pointStream.forEach(new Consumer<DataProfile.DataPoint>() {
                 @Override
                 public void accept(DataProfile.DataPoint t) {
                     Object value = t.value;
-
-                    // due to NPE if we click outside the data domain see jira issue SDMS-313
-                    if (value == null) {
-                        return;
-                    }
 
                     //unpack first band
                     value = Array.get(value, 0);
@@ -539,31 +569,29 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
 
         } else {
             double[] d = new double[1];
-            StreamSupport.stream(dp, false).forEach(new Consumer<DataProfile.DataPoint>() {
+            pointStream.forEach(new Consumer<DataProfile.DataPoint>() {
                 @Override
                 public void accept(DataProfile.DataPoint t) {
                     Object value = t.value;
                     d[0] += t.distanceFromPrevious / 1000.0;
-                    if (value != null) {
-                        final double distancekm = d[0];
+                    final double distancekm = d[0];
 
-                        //unpack first band
+                    //unpack first band
+                    value = Array.get(value, 0);
+
+                    //pick first value
+                    while (value.getClass().isArray()) {
                         value = Array.get(value, 0);
-
-                        //pick first value
-                        while (value.getClass().isArray()) {
-                            value = Array.get(value, 0);
-                        }
-
-                        double num = ((Number)value).doubleValue();
-                        stats.accept(num);
-                        pdata.points.add(new XY(distancekm, num));
                     }
+
+                    double num = ((Number)value).doubleValue();
+                    stats.accept(num);
+                    pdata.points.add(new XY(distancekm, num));
                 }
             });
         }
 
-        pdata.points = reduce(pdata.points, samplingCount == null ? pdata.points.size() : samplingCount, reducer, nanBehavior);
+        pdata.points = reduce(pdata.points, config.samplingCount == null ? pdata.points.size() : config.samplingCount, config.reductionMethod, config.nanPropagation);
 
         /* TODO: debug point order. Sorting operation should not be needed, as points should already be returned in
          * order of distance from trajectory start point. However, some reports have stated that in specific case, the
@@ -572,10 +600,51 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
          */
         Collections.sort(pdata.points, Comparator.comparing(value -> value.x));
 
+        // TODO: this would be more efficient before reduction, because it could potentially eliminate a lot of no-data
+        // points before sampling, which means sampling points could be focused on areas filled with data. However, to
+        // be properly done, we should propagate information of NaN ranges to reduction algorithm, so it would know that
+        // 2 consecutive NaN values represent an irreductible gap that must not be reduced/sampled (otherwise it would
+        // disappear, be melted in a reduction window).
+        if (config.naNCleanup == NaNCleanup.CONTINUOUS && !pdata.points.isEmpty()) {
+            pdata.points = cleanupNans(pdata.points);
+        }
+
         pdata.setUnit(bands[0].getUnit());
         pdata.min = stats.minimum();
         pdata.max = stats.maximum();
         return pdata;
+    }
+
+    /**
+     * Filter NaN values from input list as specified by {@link NaNCleanup#CONTINUOUS}.
+     * @param points Point list to filter out. It will not be modified, a copy will be done.
+     */
+    static List<XY> cleanupNans(List<XY> points) {
+        final int nbPts = points.size();
+        if (nbPts < 3) return points;
+        final List<XY> cleanedPoints = new ArrayList<>();
+        int nanSeriesStart = -1;
+        for (int i = 0; i < nbPts; i++) {
+            final XY point = points.get(i);
+            final boolean isNaN = Double.isNaN(point.y);
+            if (isNaN && nanSeriesStart < 0) nanSeriesStart = i;
+            else if (!isNaN) {
+                if (nanSeriesStart >= 0) {
+                    cleanedPoints.add(points.get(nanSeriesStart));
+                    if (i - 1 > nanSeriesStart) cleanedPoints.add(points.get(i-1));
+                    nanSeriesStart = -1;
+                }
+                cleanedPoints.add(point);
+            }
+        }
+
+        if (nanSeriesStart >= 0) {
+            cleanedPoints.add(points.get(nanSeriesStart));
+            final int lastPtIdx = nbPts - 1;
+            if (nanSeriesStart < lastPtIdx) cleanedPoints.add(points.get(lastPtIdx));
+        }
+
+        return cleanedPoints;
     }
 
     /**
@@ -750,6 +819,41 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
             return new GridCoverageProcessor().resample(data, subGrid2d);
         } else {
             return data;
+        }
+    }
+
+    private static @Nullable String toStringValue(final Object value) {
+        if (value instanceof String) return (String) value;
+        else if (value instanceof String[]) {
+            String[] valueArray = (String[]) value;
+            if (valueArray.length > 1) throw new IllegalArgumentException("Expect a single value, but found "+valueArray.length);
+            if (valueArray.length < 1) return null;
+            else return valueArray[0];
+        }
+
+        return null;
+    }
+
+    private static <T extends Enum> T toEnumValue(Class<T> enumClass, Object value) {
+        if (enumClass.isInstance(value)) return enumClass.cast(value);
+        final String strValue = toStringValue(value);
+        if (strValue != null) return (T) Enum.valueOf(enumClass, strValue.toUpperCase(Locale.ROOT));
+        return null;
+    }
+
+    private class ProfileConfiguration {
+        final NaNPropagation nanPropagation;
+        final NaNCleanup naNCleanup;
+        final OutOfBounds outOfBounds;
+        final Integer samplingCount;
+        final ReductionMethod reductionMethod;
+
+        public ProfileConfiguration(NaNPropagation nanPropagation, NaNCleanup naNCleanup, OutOfBounds outOfBounds, Integer samplingCount, ReductionMethod reductionMethod) {
+            this.nanPropagation = nanPropagation;
+            this.naNCleanup = naNCleanup;
+            this.outOfBounds = outOfBounds;
+            this.samplingCount = samplingCount;
+            this.reductionMethod = reductionMethod;
         }
     }
 

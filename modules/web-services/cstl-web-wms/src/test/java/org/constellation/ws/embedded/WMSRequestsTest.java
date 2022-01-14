@@ -302,7 +302,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "&I=0&J=0&WiDtH=256&HeIgHt=256"
             + "&CRS=CRS:84&BBOX=-1,-2,-1,2"
             + "&PROFILE=LINESTRING(-1%20-2%2C-1%202)" // (-1 -2,-1 2)
-            + "&nanPropagation=any";
+            + "&nanPropagation=any&outOfBounds=ignore";
     /**
      * Asks for a profile intersecting regions without data available. The aim is to ensure that no-data values are
      * returned as NaN to the client.
@@ -324,7 +324,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "&FoRmAt=image/jpeg&INFO_FORMAT=application/json;%20subtype=profile"
             + "&I=0&J=0&WiDtH=256&HeIgHt=256"
             + "&CRS=CRS:84&BBOX=-62%2C14%2C-61%2C16"
-            + "&PROFILE=LINESTRING(-62%2014%2C-62%2016%2C-61%2016)";
+            + "&PROFILE=LINESTRING(-62%2014%2C-62%2016%2C-61%2016)"
+            + "&outofBounds=ignore";
 
     private static final String WMS_GETFEATUREINFO_JSON_FEAT_ALIAS = "QuErY_LaYeRs=JS1&BbOx=-80.72487831115721,35.2553619492954,-80.70324897766113,35.27035945142482&"
             + "FoRmAt=image/gif&ReQuEsT=GetFeatureInfo&"
@@ -2029,7 +2030,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         final String request = WMS_GETFEATUREINFO_PROFILE_NAN_SEGMENT;
 
         testProfile(request, values -> {
-            assertTrue("Result should not be empty", values.length > 2);
+            assertTrue("Result should not be empty", values.length > 1);
             for (int i = 0 ; i < values.length ; i++) {
                 assertTrue("All values should be NaN. Offending index: "+i, Double.isNaN(values[i]));
             }
@@ -2069,9 +2070,18 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         LOGGER.fine(result);
 
-        final CoverageProfileInfoFormat.Profile profile = new ObjectMapper().readValue(result, CoverageProfileInfoFormat.Profile.class);
-        final List<CoverageProfileInfoFormat.XY> points = profile.layers.get(0).getData().get(0).points;
+        final ObjectMapper mapper = new ObjectMapper();
+        CoverageProfileInfoFormat.Profile profile = mapper.readValue(result, CoverageProfileInfoFormat.Profile.class);
+        List<CoverageProfileInfoFormat.XY> points = profile.layers.get(0).getData().get(0).points;
         assertTrue(points.isEmpty());
+
+        result = getStringResponse(new URL(gfi.toString().replace("ignore", "nan")));
+        LOGGER.fine(result);
+        profile = mapper.readValue(result, CoverageProfileInfoFormat.Profile.class);
+        points = profile.layers.get(0).getData().get(0).points;
+        assertEquals(2, points.size());
+        assertTrue(Double.isNaN(points.get(0).y));
+        assertTrue(Double.isNaN(points.get(1).y));
     }
 
     @Test

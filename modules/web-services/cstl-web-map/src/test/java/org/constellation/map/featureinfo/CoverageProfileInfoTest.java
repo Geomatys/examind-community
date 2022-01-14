@@ -49,9 +49,13 @@ import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
 
 import static java.lang.Double.NaN;
+import static java.util.Arrays.asList;
 import static org.constellation.map.featureinfo.CoverageProfileInfoFormat.NaNPropagation.*;
 import static org.constellation.map.featureinfo.CoverageProfileInfoFormat.ReductionMethod.*;
+import static org.constellation.map.featureinfo.CoverageProfileInfoFormat.cleanupNans;
 import static org.constellation.map.featureinfo.CoverageProfileInfoFormat.reduce;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -375,6 +379,36 @@ public class CoverageProfileInfoTest {
         assertFalse("Too many points returned", profile.tryAdvance(noValueExpected));
     }
 
+    @Test
+    public void cleanupNaN() {
+        assertCleanupNaN("Simple case",
+                asList(xy(0, 10), xy(1, 11), xy(2, 12), xy(3, NaN), xy(5, NaN), xy(6, 16)),
+                asList(xy(0, 10), xy(1, 11), xy(2, 12), xy(3, NaN), xy(4, NaN), xy(5, NaN), xy(6, 16)));
+        assertCleanupNaN("Starts with NaNs",
+                asList(xy(0, NaN), xy(3, NaN), xy(4, 13)),
+                asList(xy(0, NaN), xy(1, NaN), xy(2, NaN), xy(3, NaN), xy(4, 13)));
+        assertCleanupNaN("Ends with NaNs",
+                asList(xy(0, 1), xy(1, 2), xy(3, NaN), xy(5, NaN)),
+                asList(xy(0, 1), xy(1, 2), xy(3, NaN), xy(4, NaN), xy(5, NaN)));
+        assertCleanupNaN("Complex case",
+                asList(xy(0, NaN), xy(1, 1), xy(2, 2), xy(3, NaN), xy(4, NaN), xy(5, 5),
+                        xy(6, NaN), xy(9, NaN), xy(10, 10), xy(11, NaN), xy(13, NaN), xy(14, 14),
+                        xy(15, NaN), xy(20, NaN), xy(21, 21), xy(22, 22), xy(23, NaN)),
+                asList(xy(0, NaN), xy(1, 1), xy(2, 2), xy(3, NaN), xy(4, NaN), xy(5, 5),
+                        xy(6, NaN), xy(7, NaN), xy(8, NaN), xy(9, NaN), xy(10, 10), xy(11, NaN),
+                        xy(12, NaN), xy(13, NaN), xy(14, 14), xy(15, NaN), xy(16, NaN), xy(17, NaN),
+                        xy(18, NaN), xy(19, NaN), xy(20, NaN), xy(21, 21), xy(22, 22), xy(23, NaN)));
+    }
+
+    private static void assertCleanupNaN(final String title, final List<XY> expected, final List<XY> points) {
+        final List<XY> result = cleanupNans(points);
+        assertEquals(title+": size differ", expected.size(), result.size());
+        for (int i = 0 ; i < expected.size() ; i++) {
+            assertEquals(title+": X at index "+i, expected.get(i).x, result.get(i).x, 1e-1);
+            assertEquals(title+": Y at index "+i, expected.get(i).y, result.get(i).y, 1e-1);
+        }
+    }
+
     /**
      * Create a grid-coverage whose extent starts at given x and y coordinates. The grid to CRS is identity, and CRS is
      * {@link CommonCRS#defaultGeographic() CRS:84 }.
@@ -464,5 +498,9 @@ public class CoverageProfileInfoTest {
         final LineString line = new GeometryFactory().createLineString(coordinates);
         line.setUserData(CommonCRS.WGS84.geographic());
         return line;
+    }
+
+    private XY xy(double x, double y) {
+        return new XY(x, y);
     }
 }
