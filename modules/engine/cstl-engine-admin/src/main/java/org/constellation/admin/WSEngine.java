@@ -18,8 +18,6 @@
  */
 package org.constellation.admin;
 
-import org.apache.sis.util.logging.Logging;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,7 +46,7 @@ import static org.constellation.api.WorkerState.*;
 @Component
 public class WSEngine implements IWSEngine {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.ws");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.ws");
 
     @Inject
     private ApplicationContext applicationContext;

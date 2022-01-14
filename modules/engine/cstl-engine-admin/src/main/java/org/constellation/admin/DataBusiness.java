@@ -31,7 +31,6 @@ import org.apache.sis.metadata.MetadataCopier;
 import org.apache.sis.metadata.MetadataStandard;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.Resource;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.listener.DefaultDataBusinessListener;
 import org.constellation.admin.util.MetadataUtilities;
 import org.constellation.api.DataType;
@@ -110,7 +109,7 @@ public class DataBusiness implements IDataBusiness {
     /**
      * Used for debugging purposes.
      */
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
     private static List<MetadataFeeding> METADATA_FILL_STRATEGIES = Collections.unmodifiableList(Arrays.asList(
             (datasource, feeder) -> feeder.setExtent(datasource, MetadataFeeder.WriteOption.CREATE_NEW),

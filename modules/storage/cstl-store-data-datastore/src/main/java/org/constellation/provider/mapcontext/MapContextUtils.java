@@ -27,7 +27,6 @@ import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.portrayal.MapItem;
 import org.apache.sis.portrayal.MapLayers;
 import org.apache.sis.referencing.CRS;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
@@ -56,7 +55,7 @@ import org.opengis.util.FactoryException;
  */
 public class MapContextUtils {
     
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.provider.mapcontext");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.provider.mapcontext");
 
     public static MapLayers getMapLayers(MapContextLayersDTO mc) throws FactoryException {
         CoordinateReferenceSystem crs = CRS.forCode(mc.getCrs());

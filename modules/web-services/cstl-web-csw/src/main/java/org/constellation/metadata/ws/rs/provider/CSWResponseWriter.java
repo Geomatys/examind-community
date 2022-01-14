@@ -19,7 +19,6 @@
 
 package org.constellation.metadata.ws.rs.provider;
 
-import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.XML;
 import org.constellation.jaxb.MarshallWarnings;
 import org.geotoolkit.csw.xml.CSWMarshallerPool;
@@ -52,7 +51,7 @@ import org.w3c.dom.Node;
  */
 public class CSWResponseWriter implements HttpMessageConverter<Object> {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.metadata.ws.rs.provider");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.metadata.ws.rs.provider");
 
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {

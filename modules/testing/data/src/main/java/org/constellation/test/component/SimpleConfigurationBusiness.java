@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.token.TokenUtils;
@@ -41,7 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 public class SimpleConfigurationBusiness implements IConfigurationBusiness {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.test.component");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.test.component");
 
     @Override
     public Path getConfigurationDirectory() {

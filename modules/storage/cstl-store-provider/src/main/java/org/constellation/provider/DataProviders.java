@@ -51,7 +51,6 @@ import org.apache.sis.storage.StorageConnector;
 import org.apache.sis.util.Static;
 import org.apache.sis.util.UnconvertibleObjectException;
 import org.apache.sis.util.SimpleInternationalString;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import org.constellation.dto.DataCustomConfiguration;
 import org.constellation.dto.DataDescription;
@@ -117,7 +116,7 @@ public final class DataProviders extends Static{
     /**
      * Logger used by all providers.
      */
-    public static final Logger LOGGER = Logging.getLogger("org.constellation.provider");
+    public static final Logger LOGGER = Logger.getLogger("org.constellation.provider");
 
     // TODO : use a by key lock
     private static final Map<Integer,DataProvider> CACHE = new HashMap<>();

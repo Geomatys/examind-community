@@ -27,7 +27,6 @@ import java.util.TreeSet;
 import java.util.logging.Logger;
 import org.apache.sis.feature.builder.AttributeRole;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
-import org.apache.sis.measure.MeasurementRange;
 
 import org.opengis.geometry.Envelope;
 import org.opengis.util.GenericName;
@@ -38,7 +37,6 @@ import org.apache.sis.portrayal.MapLayer;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.Resource;
-import org.apache.sis.util.logging.Logging;
 
 import org.constellation.api.ServiceDef.Query;
 import org.constellation.dto.DimensionRange;
@@ -63,7 +61,7 @@ import org.opengis.style.Style;
  */
 public abstract class AbstractData<T extends Resource> implements Data<T> {
 
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.provider");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.provider");
 
     /**
      * Layer name

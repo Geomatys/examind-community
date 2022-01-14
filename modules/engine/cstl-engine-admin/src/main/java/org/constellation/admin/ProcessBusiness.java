@@ -61,7 +61,6 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.api.CstlJobListener;
 import org.constellation.api.CstlScheduler;
 import org.constellation.business.IUserBusiness;
@@ -87,7 +86,7 @@ public class ProcessBusiness implements IProcessBusiness {
     public static final String BEAN_NAME = "processBusiness";
 
     private final DateFormat taskDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm");
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
     @Inject
     private TaskParameterRepository taskParameterRepository;

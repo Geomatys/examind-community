@@ -19,7 +19,6 @@
 
 package org.constellation.ws.rs.provider;
 
-import org.apache.sis.util.logging.Logging;
 import org.constellation.writer.ExceptionFilterWriter;
 import org.geotoolkit.ows.xml.ExceptionReportMarshallerPool;
 import org.geotoolkit.ows.xml.ExceptionResponse;
@@ -44,7 +43,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  */
 public class ExceptionReportWriter implements HttpMessageConverter<ExceptionResponse> {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.ws.rs.provider");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.ws.rs.provider");
 
     private static final String OWS_110_XSD = "http://www.opengis.net/ows/1.1 http://schemas.opengis.net/ows/1.1.0/owsExceptionReport.xsd";
 

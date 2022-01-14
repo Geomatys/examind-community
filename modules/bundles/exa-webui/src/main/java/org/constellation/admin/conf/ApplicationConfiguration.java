@@ -30,7 +30,6 @@ import java.io.InputStream;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
 
 @Configuration
 @ComponentScan(basePackages = {
@@ -38,7 +37,7 @@ import org.apache.sis.util.logging.Logging;
         "org.constellation.admin.security"})
 public class ApplicationConfiguration {
 
-    private final Logger log = Logging.getLogger("org.constellation.admin.conf");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin.conf");
 
     @Inject
     private Environment env;
@@ -50,12 +49,12 @@ public class ApplicationConfiguration {
      */
     @PostConstruct
     public void initApplication() throws IOException {
-        log.finer("Looking for Spring profiles...");
+        LOGGER.finer("Looking for Spring profiles...");
         if (env.getActiveProfiles().length == 0) {
-            log.finer("No Spring profile configured, running with default configuration");
+            LOGGER.finer("No Spring profile configured, running with default configuration");
         } else {
             for (String profile : env.getActiveProfiles()) {
-                log.log(Level.FINER, "Detected Spring profile : {0}", profile);
+                LOGGER.log(Level.FINER, "Detected Spring profile : {0}", profile);
             }
         }
     }

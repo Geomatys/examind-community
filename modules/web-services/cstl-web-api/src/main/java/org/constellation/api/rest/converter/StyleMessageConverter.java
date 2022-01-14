@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXBException;
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.sld.MutableLayer;
 import org.geotoolkit.sld.MutableStyledLayerDescriptor;
@@ -54,7 +53,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  */
 public class StyleMessageConverter implements HttpMessageConverter<Object> {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.rest.api");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.rest.api");
     
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {

@@ -23,7 +23,6 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import org.apache.sis.util.logging.Logging;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -47,7 +46,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  */
 public class WPSJSONResponseWriter implements HttpMessageConverter<WPSJSONResponse> {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.wps.ws.rs");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.wps.ws.rs");
     private final SimpleDateFormat DATE_FORM = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:SS'Z'");
 
     @Override

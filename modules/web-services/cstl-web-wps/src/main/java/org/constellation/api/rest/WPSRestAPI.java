@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.service.config.wps.ProcessContext;
 import org.constellation.dto.service.config.wps.ProcessFactory;
@@ -62,7 +61,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class WPSRestAPI {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.api.rest");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.api.rest");
 
     @Inject
     private IServiceBusiness serviceBusiness;

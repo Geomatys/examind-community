@@ -19,7 +19,6 @@
 
 package org.constellation.wps.ws.rs;
 
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.ows.xml.BoundingBox;
 import org.geotoolkit.wps.xml.WPSMarshallerPool;
 
@@ -43,7 +42,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  */
 public class BoundingBoxWriter implements HttpMessageConverter<BoundingBox> {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.wps.ws.rs");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.wps.ws.rs");
     
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {

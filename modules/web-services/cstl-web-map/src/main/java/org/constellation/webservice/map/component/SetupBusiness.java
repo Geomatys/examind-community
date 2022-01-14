@@ -36,14 +36,12 @@ import javax.inject.Named;
 import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.parameter.Parameters;
 
-import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import static org.constellation.api.ProviderConstants.GENERIC_SHAPE_PROVIDER;
 import static org.constellation.api.ProviderConstants.GENERIC_TIF_PROVIDER;
 import org.constellation.api.ProviderType;
 import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IConfigurationBusiness;
-import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDataCoverageJob;
 import org.constellation.business.IMapContextBusiness;
 import org.constellation.business.IProviderBusiness;
@@ -89,7 +87,7 @@ import org.opengis.style.StyleFactory;
 //@DependsOn("database-initer")
 public class SetupBusiness {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.webservice.map.component");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.webservice.map.component");
 
     private static final String DEFAULT_RESOURCES = "org/constellation/map/setup.zip";
 

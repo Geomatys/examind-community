@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.namespace.QName;
-import org.apache.sis.util.logging.Logging;
 import static com.examind.database.api.jooq.Tables.CSTL_USER;
 
 import com.examind.database.api.jooq.tables.pojos.Mapcontext;
@@ -74,7 +73,7 @@ import org.springframework.transaction.annotation.Transactional;
 @DependsOn("database-initer")
 public class JooqMapContextRepository extends AbstractJooqRespository<MapcontextRecord, Mapcontext> implements MapContextRepository {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.database.impl.repository");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.database.impl.repository");
 
     @Autowired
     private LayerRepository layerRepository;

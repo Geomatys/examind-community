@@ -30,8 +30,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
-import org.constellation.exception.ConfigurationRuntimeException;
 
 /**
  * Utility class that gathers and merge configurations from embedded/external property files,
@@ -52,7 +50,7 @@ import org.constellation.exception.ConfigurationRuntimeException;
  */
 public final class Application {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.dto");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.dto");
 
     private static final Properties APP_PROPERTIES = new Properties();
 

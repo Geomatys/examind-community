@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sql.DataSource;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.thesaurus.ConceptBrief;
 import org.constellation.dto.thesaurus.ConceptNode;
 import org.constellation.dto.thesaurus.FullConcept;
@@ -118,7 +117,7 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
 
     protected boolean state;
 
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.thesaurus.io");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.thesaurus.io");
 
     protected DataSource datasource;
 

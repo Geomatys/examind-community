@@ -22,11 +22,6 @@
         </dependency>
         <dependency>
             <groupId>org.geotoolkit</groupId>
-            <artifactId>geotk-utility</artifactId>
-            <version>${geotoolkit.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.geotoolkit</groupId>
             <artifactId>geotk-xml-csw</artifactId>
         </dependency>
         <dependency>

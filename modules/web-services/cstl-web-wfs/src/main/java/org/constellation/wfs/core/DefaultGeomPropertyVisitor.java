@@ -22,7 +22,7 @@ package org.constellation.wfs.core;
 
 import java.util.function.Function;
 import java.util.logging.Level;
-import org.apache.sis.util.logging.Logging;
+import java.util.logging.Logger;
 import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.filter.binaryspatial.LooseBBox;
 import org.geotoolkit.filter.binaryspatial.UnreprojectedLooseBBox;
@@ -51,7 +51,7 @@ public class DefaultGeomPropertyVisitor extends DuplicatingFilterVisitor{
             try {
                 geomAtt = FeatureExt.getDefaultGeometry(ft);
             } catch (PropertyNotFoundException e) {
-                Logging.getLogger("com.examind.ws.wfs").log(Level.FINE, "No geometry found", e);
+                Logger.getLogger("com.examind.ws.wfs").log(Level.FINE, "No geometry found", e);
                 return previous.apply(filter);
             }
             Expression exp1 = (Expression) visit(filter.getOperand1());

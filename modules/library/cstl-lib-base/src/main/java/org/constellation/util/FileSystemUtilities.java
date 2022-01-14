@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.dto.importdata.FileBean;
@@ -47,7 +46,7 @@ import org.geotoolkit.nio.IOUtilities;
  */
 public class FileSystemUtilities {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.util");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.util");
 
     private static final Map<String, FileSystemReference> USED_FILESYSTEMS = new HashMap<>();
 

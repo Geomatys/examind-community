@@ -27,7 +27,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PreDestroy;
 import org.apache.sis.referencing.CRS;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IClusterBusiness;
 import org.geotoolkit.lang.Setup;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +39,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
  */
 public class EPSGDatabaseIniter {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.database.configuration");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.database.configuration");
 
     @Autowired
     private IClusterBusiness clusterBusiness;

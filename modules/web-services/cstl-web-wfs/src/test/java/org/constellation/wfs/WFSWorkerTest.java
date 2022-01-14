@@ -18,7 +18,6 @@
  */
 package org.constellation.wfs;
 
-import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IDataBusiness;
@@ -95,7 +94,7 @@ import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 @ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-context.xml"})
 public class WFSWorkerTest {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.wfs");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.wfs");
 
     @Inject
     private IServiceBusiness serviceBusiness;

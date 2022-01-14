@@ -22,7 +22,6 @@ package org.constellation.sos.io.filesystem;
 // J2SE dependencies
 
 import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.sos.io.lucene.LuceneObservationIndexer;
 import org.geotoolkit.gml.xml.AbstractGeometry;
@@ -90,7 +89,7 @@ public class FileObservationWriter implements ObservationWriter {
 
     private static final String FILE_EXTENSION = ".xml";
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.sos.io.filesystem");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.sos.io.filesystem");
 
     public FileObservationWriter(final Path dataDirectory, final Path configDirectory, final Map<String, Object> properties) throws DataStoreException {
         super();

@@ -24,7 +24,6 @@ import java.util.logging.Logger;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.util.Utilities;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.util.ReflectionUtilities;
 import org.geotoolkit.gml.xml.AbstractFeature;
@@ -40,7 +39,7 @@ import org.opengis.referencing.operation.TransformException;
  */
 public class ObservationProviderUtils {
     
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.provider.observationstore");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.provider.observationstore");
     
     /**
      * Return true if the samplingPoint entry is strictly inside the specified envelope.

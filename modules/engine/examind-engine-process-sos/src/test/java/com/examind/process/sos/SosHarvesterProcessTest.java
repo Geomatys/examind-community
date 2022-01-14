@@ -39,7 +39,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import org.constellation.admin.WSEngine;
 import org.constellation.business.IDatasetBusiness;
@@ -131,7 +130,7 @@ import org.springframework.test.context.support.DirtiesContextTestExecutionListe
 @RunWith(SpringTestRunner.class)
 public class SosHarvesterProcessTest {
 
-    private static final Logger LOGGER = Logging.getLogger("com.examind.process.sos");
+    private static final Logger LOGGER = Logger.getLogger("com.examind.process.sos");
 
     private static boolean initialized = false;
 

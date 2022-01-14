@@ -12,7 +12,6 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.api.WorkerState;
 import org.constellation.ws.IWSEngine;
 import org.constellation.exception.ConfigurationException;
@@ -25,7 +24,7 @@ import org.constellation.ws.Worker;
 @Named
 public class ConstellationOGCRegistry {
 
-    private final static Logger LOGGER = Logging.getLogger("org.constellation.ws.component");
+    private final static Logger LOGGER = Logger.getLogger("org.constellation.ws.component");
 
     @Autowired(required = false)
     private Map<String,ConstellationOGCModule> constellationOGCModules = new HashMap<>();

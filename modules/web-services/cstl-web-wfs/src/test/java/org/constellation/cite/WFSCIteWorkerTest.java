@@ -33,7 +33,6 @@ import javax.inject.Inject;
 import javax.xml.namespace.QName;
 import org.apache.sis.geometry.GeneralDirectPosition;
 import org.apache.sis.storage.FeatureSet;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
@@ -91,7 +90,7 @@ import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 @ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-context.xml"})
 public class WFSCIteWorkerTest {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.cite");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.cite");
 
     private static WFSWorker worker;
 

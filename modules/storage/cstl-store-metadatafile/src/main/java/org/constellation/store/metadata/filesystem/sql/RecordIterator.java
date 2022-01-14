@@ -19,7 +19,6 @@
 
 package org.constellation.store.metadata.filesystem.sql;
 
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.util.collection.CloseableIterator;
 import org.w3c.dom.Document;
@@ -36,7 +35,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.XMLConstants;
 import org.constellation.util.NodeUtilities;
 import org.geotoolkit.metadata.MetadataType;
 import org.geotoolkit.metadata.RecordInfo;
@@ -47,7 +45,7 @@ import org.geotoolkit.metadata.RecordInfo;
  */
 public class RecordIterator implements CloseableIterator<RecordInfo> {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.metadata.io.filesystem.sql");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.metadata.io.filesystem.sql");
 
     private final DocumentBuilder docBuilder;
     private final Session session;

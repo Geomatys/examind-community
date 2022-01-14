@@ -58,7 +58,6 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.validation.Schema;
 
-import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
@@ -137,7 +136,7 @@ public abstract class AbstractWebService implements WebService{
     /**
      * The default debugging logger for all web services.
      */
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.ws.rs");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.ws.rs");
 
     /**
      * Automatically set by Jersey.

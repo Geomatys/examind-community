@@ -2,7 +2,6 @@ package org.constellation.admin.converter;
 
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.ObjectConverters;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.configuration.ConfigDirectory;
@@ -33,7 +32,7 @@ import static org.junit.Assert.assertEquals;
 @ContextConfiguration("classpath:/cstl/spring/test-context.xml")
 public class DataProcessReferenceToResourceTest {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.converter");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.converter");
 
     /**
      * DatasetBusiness used for provider GUI editors data

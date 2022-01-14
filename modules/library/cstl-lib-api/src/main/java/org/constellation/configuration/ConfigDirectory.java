@@ -19,7 +19,6 @@
 package org.constellation.configuration;
 
 import java.io.File;
-import org.apache.sis.util.logging.Logging;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -141,7 +140,7 @@ public final class ConfigDirectory {
     /**
      * The default debugging logger.
      */
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.configuration");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.configuration");
 
     private static Config config;
 

@@ -30,7 +30,6 @@ import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
 import javax.inject.Inject;
 import javax.xml.namespace.QName;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.ILayerBusiness;
@@ -65,7 +64,7 @@ import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 @ContextConfiguration("classpath:/cstl/spring/test-context.xml")
 public class LayerBusinessTest {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
     @Autowired
     private IDatasetBusiness datasetBusiness;

@@ -18,9 +18,6 @@
  */
 package org.constellation.ws.embedded;
 
-// J2SE dependencies
-
-import org.apache.sis.util.logging.Logging;
 import org.constellation.configuration.DataSourceType;
 import org.constellation.configuration.LayerContext;
 import org.constellation.configuration.ProcessContext;
@@ -83,7 +80,7 @@ public final class GrizzlyServer {
     /**
      * The default logger for this server.
      */
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.ws.embedded");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.ws.embedded");
 
     /**
      * The grizzly server that will received some HTTP requests.

@@ -32,7 +32,6 @@ import org.apache.sis.referencing.NamedIdentifier;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.Resource;
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.sensor.AbstractSensorStore;
 import org.constellation.sos.io.internal.InternalSensorReader;
 import org.constellation.sos.io.internal.InternalSensorWriter;
@@ -47,7 +46,7 @@ import org.opengis.util.GenericName;
  */
 public class InternalSensorStore extends AbstractSensorStore implements Resource {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.store");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.store");
 
     public InternalSensorStore(ParameterValueGroup source) {
         super(source);

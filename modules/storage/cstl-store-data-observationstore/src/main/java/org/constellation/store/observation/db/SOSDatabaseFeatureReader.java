@@ -14,7 +14,6 @@ import org.apache.sis.feature.builder.FeatureTypeBuilder;
 import org.apache.sis.internal.feature.AttributeConvention;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.util.Util;
 import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
 import org.geotoolkit.data.om.OMFeatureTypes;
@@ -31,7 +30,7 @@ import org.opengis.util.FactoryException;
  */
 class SOSDatabaseFeatureReader implements CloseableIterator<Feature> {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.store.observation.db");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.store.observation.db");
     protected final Connection cnx;
     private boolean firstCRS = true;
     protected FeatureType type;

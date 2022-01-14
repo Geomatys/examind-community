@@ -24,7 +24,6 @@ import com.codahale.metrics.health.HealthCheckRegistry;
 import com.codahale.metrics.servlet.InstrumentedFilter;
 import com.codahale.metrics.servlets.HealthCheckServlet;
 import com.codahale.metrics.servlets.MetricsServlet;
-import org.apache.sis.util.logging.Logging;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
@@ -41,7 +40,7 @@ import java.util.logging.Logger;
  */
 public class CstlInstaller implements ServletContextListener {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.setup");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.setup");
 
 
     public static final MetricRegistry METRIC_REGISTRY = new MetricRegistry();

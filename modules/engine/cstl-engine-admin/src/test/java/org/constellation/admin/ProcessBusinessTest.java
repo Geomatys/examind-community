@@ -25,7 +25,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IProcessBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.process.Task;
@@ -50,7 +49,7 @@ public class ProcessBusinessTest {
 
     private static final DateFormat TASK_DATE = new SimpleDateFormat("yyyy/MM/dd HH:mm");
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
     @Autowired
     private IProcessBusiness processBusiness;

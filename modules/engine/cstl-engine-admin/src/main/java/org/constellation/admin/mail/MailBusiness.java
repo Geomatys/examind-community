@@ -22,7 +22,6 @@ package org.constellation.admin.mail;
 import org.apache.commons.mail.EmailAttachment;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.HtmlEmail;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.exception.ConfigurationException;
@@ -50,7 +49,7 @@ import org.constellation.business.IMailBusiness;
 //@DependsOn({"database-initer"})
 public class MailBusiness implements IMailBusiness {
 
-    private final static Logger LOGGER = Logging.getLogger(MailBusiness.class.getPackage().getName());
+    private final static Logger LOGGER = Logger.getLogger(MailBusiness.class.getPackage().getName());
 
     private static final String FROM_KEY = "email.smtp.from";
     private static final String HOST_KEY = "email.smtp.host";

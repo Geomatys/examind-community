@@ -44,7 +44,6 @@ import org.springframework.web.bind.annotation.RestController;
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.AcknowlegementType;
 import org.constellation.dto.Page;
 import org.constellation.dto.PagedSearch;
@@ -85,7 +84,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 public class THWRestAPI {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.rest.api");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.rest.api");
 
 
     @Autowired

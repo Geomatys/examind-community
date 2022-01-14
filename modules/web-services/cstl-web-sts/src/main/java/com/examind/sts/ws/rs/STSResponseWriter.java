@@ -22,7 +22,6 @@ package com.examind.sts.ws.rs;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import org.apache.sis.util.logging.Logging;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -44,7 +43,7 @@ import org.geotoolkit.sts.json.STSResponse;
  */
 public class STSResponseWriter implements HttpMessageConverter<STSResponse> {
 
-    private static final Logger LOGGER = Logging.getLogger("com.examind.sts.ws.rs");
+    private static final Logger LOGGER = Logger.getLogger("com.examind.sts.ws.rs");
 
     private static final SimpleDateFormat DATE_FORM = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
     static {

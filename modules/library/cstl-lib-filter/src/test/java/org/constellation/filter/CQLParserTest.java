@@ -18,9 +18,6 @@
  */
 package org.constellation.filter;
 
-// J2SE dependencies
-
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.csw.xml.v202.QueryConstraintType;
 import org.geotoolkit.lucene.filter.LuceneOGCSpatialQuery;
 import org.geotoolkit.lucene.filter.SpatialQuery;
@@ -62,7 +59,7 @@ import org.opengis.filter.SpatialOperator;
 public class CQLParserTest {
 
     private LuceneFilterParser filterParser;
-    private static final Logger logger = Logging.getLogger("org.constellation.filter");
+    private static final Logger logger = Logger.getLogger("org.constellation.filter");
     private static final QName METADATA_QNAME = new QName("http://www.isotc211.org/2005/gmd", "MD_Metadata");
 
     @BeforeClass

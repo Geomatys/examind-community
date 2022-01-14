@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IMapContextBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.AbstractMCLayerDTO;
@@ -48,7 +47,7 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration("classpath:/cstl/spring/test-context.xml")
 public class MapContextBusinessTest {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
     @Autowired
     private IMapContextBusiness mpBusiness;

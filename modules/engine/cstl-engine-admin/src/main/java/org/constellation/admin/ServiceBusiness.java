@@ -54,7 +54,6 @@ import org.constellation.business.ClusterMessage;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IProviderBusiness;
 import static org.constellation.business.ClusterMessageConstant.*;
@@ -72,7 +71,7 @@ import org.constellation.ws.MimeType;
 @Primary
 public class ServiceBusiness implements IServiceBusiness {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
     @Inject
     private SecurityManager securityManager;

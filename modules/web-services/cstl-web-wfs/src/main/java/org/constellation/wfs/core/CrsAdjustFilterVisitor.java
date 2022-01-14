@@ -32,8 +32,8 @@ import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
 
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.sis.internal.filter.FunctionNames;
-import org.apache.sis.util.logging.Logging;
 
 /**
  *
@@ -66,7 +66,7 @@ public class CrsAdjustFilterVisitor extends DuplicatingFilterVisitor{
                     obj = geo;
                 }
             } catch (FactoryException | TransformException ex) {
-                Logging.getLogger("org.constellation.wfs.ws").log(Level.SEVERE, null, ex);
+                Logger.getLogger("org.constellation.wfs.ws").log(Level.SEVERE, null, ex);
             }
             return ff.literal(obj);
         });

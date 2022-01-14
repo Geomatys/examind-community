@@ -20,7 +20,6 @@ package org.constellation.dto.portrayal;
 
 import org.apache.sis.util.ObjectConverters;
 import org.apache.sis.util.UnconvertibleObjectException;
-import org.apache.sis.util.logging.Logging;
 
 import java.awt.*;
 import java.net.URL;
@@ -33,7 +32,7 @@ import java.util.logging.Logger;
  */
 public final class DecorationUtils {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.dto");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.dto");
 
     private DecorationUtils() {
     }

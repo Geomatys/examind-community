@@ -25,7 +25,6 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -80,7 +79,7 @@ public class NodeUtilities {
 
     private static final String NULL_VALUE = "null";
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.util");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.util");
 
     public static List<Node> getNodes(final String propertyName, final List<Node> nodes, final int ordinal, final boolean create) {
         final List<Node> result = new ArrayList<>();

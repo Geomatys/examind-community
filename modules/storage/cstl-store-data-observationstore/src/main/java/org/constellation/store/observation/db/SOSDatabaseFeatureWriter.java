@@ -8,7 +8,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.feature.FeatureExt;
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
@@ -19,7 +18,7 @@ import org.opengis.feature.FeatureType;
  */
 class SOSDatabaseFeatureWriter extends SOSDatabaseFeatureReader {
 
-    protected static final Logger LOGGER = Logging.getLogger("org.geotoolkit.data.om");
+    protected static final Logger LOGGER = Logger.getLogger("org.geotoolkit.data.om");
     // TODO WRITE private static final String SQL_WRITE_SAMPLING_POINT = "INSERT INTO \"" + schemaPrefix + "om\".\"sampling_features\" VALUES(?,?,?,?,?,?)";
 
 

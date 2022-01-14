@@ -36,7 +36,6 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import org.apache.sis.storage.DataStoreException;
 
-import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 
 import org.constellation.admin.SpringHelper;
@@ -54,7 +53,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class InternalSensorReader implements SensorReader {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.sos.io.internal");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.sos.io.internal");
     
     /**
      * A JAXB unmarshaller used to unmarshall the xml files.

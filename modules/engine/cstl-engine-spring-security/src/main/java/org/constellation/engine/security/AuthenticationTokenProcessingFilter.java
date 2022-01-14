@@ -28,7 +28,6 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.sis.util.logging.Logging;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -39,7 +38,7 @@ import org.springframework.web.filter.GenericFilterBean;
 public class AuthenticationTokenProcessingFilter extends GenericFilterBean {
 
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.engine.security");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.engine.security");
 
     private UnauthorizedHandler unauthorizedHandler = new UnauthorizedHandler() {
 

@@ -46,7 +46,6 @@ import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.WritableAggregate;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.api.TilingMode;
 import static org.constellation.api.TilingMode.*;
 import org.constellation.business.IConfigurationBusiness;
@@ -107,7 +106,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Component("pyramidBusiness")
 public class PyramidBusiness implements IPyramidBusiness {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
     protected static final String RENDERED_PREFIX = "rendered_";
 

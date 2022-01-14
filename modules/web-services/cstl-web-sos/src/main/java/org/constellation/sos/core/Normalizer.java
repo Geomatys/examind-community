@@ -21,17 +21,14 @@ package org.constellation.sos.core;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.gml.GmlInstant;
 import org.geotoolkit.gml.xml.AbstractFeature;
-import org.geotoolkit.gml.xml.AbstractTimePosition;
 import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.gml.xml.FeatureProperty;
 import org.geotoolkit.gml.xml.TimeIndeterminateValueType;
@@ -61,7 +58,7 @@ import org.opengis.temporal.Period;
  */
 public final class Normalizer {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.sos");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.sos");
 
     private Normalizer() {}
 

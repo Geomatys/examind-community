@@ -28,7 +28,6 @@ import javax.imageio.stream.MemoryCacheImageInputStream;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.StorageConnector;
 import org.apache.sis.util.collection.BackingStoreException;
-import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.util.Util;
 import org.geotoolkit.image.io.XImageIO;
@@ -141,7 +140,7 @@ public abstract class AbstractGrizzlyServer {
         }
     }
 
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.ws.embedded");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.ws.embedded");
 
     private static ConfigurableApplicationContext ctx;
 

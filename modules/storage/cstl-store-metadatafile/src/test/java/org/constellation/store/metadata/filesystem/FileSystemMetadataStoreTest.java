@@ -31,7 +31,6 @@ import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.DataStoreProvider;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
@@ -72,7 +71,7 @@ public class FileSystemMetadataStoreTest {
 
     private static Path dataDirectory;
 
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.store.metadata.filesystem");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.store.metadata.filesystem");
 
     private static FileSystemMetadataStore fsStore1;
 

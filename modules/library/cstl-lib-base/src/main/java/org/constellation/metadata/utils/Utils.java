@@ -42,7 +42,6 @@ import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.metadata.iso.ISOMetadata;
 import org.apache.sis.util.Classes;
 import org.apache.sis.util.SimpleInternationalString;
-import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.IdentifierSpace;
 
 import org.constellation.util.NodeUtilities;
@@ -60,7 +59,7 @@ public final class Utils {
     /**
      * A debugging logger.
      */
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.metadata.Utils");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.metadata.Utils");
 
     /**
      * A string constant used when we don't find a title on an object.

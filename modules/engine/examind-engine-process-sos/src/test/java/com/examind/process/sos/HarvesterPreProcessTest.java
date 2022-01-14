@@ -26,7 +26,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IProcessBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.process.ChainProcessRetriever;
@@ -62,7 +61,7 @@ import org.springframework.test.context.support.DirtiesContextTestExecutionListe
 @RunWith(SpringTestRunner.class)
 public class HarvesterPreProcessTest {
 
-    private static final Logger LOGGER = Logging.getLogger("com.examind.process.sos");
+    private static final Logger LOGGER = Logger.getLogger("com.examind.process.sos");
 
     private static final String confDirName = "HarvesterPreProcessTest" + UUID.randomUUID().toString();
 

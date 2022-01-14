@@ -31,7 +31,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IServiceBusiness;
@@ -115,7 +114,7 @@ public class OM2STSWorkerTest {
 
     private static final String CONFIG_DIR_NAME = "OM2STSWorkerTest" + UUID.randomUUID().toString();
 
-    public static final Logger LOGGER = Logging.getLogger("com.examind.sts.core");
+    public static final Logger LOGGER = Logger.getLogger("com.examind.sts.core");
 
     public static final SimpleDateFormat ISO_8601_3_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
     static {

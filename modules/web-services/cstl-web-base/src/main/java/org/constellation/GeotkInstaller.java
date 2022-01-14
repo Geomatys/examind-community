@@ -18,7 +18,6 @@
  */
 package org.constellation;
 
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.lang.Setup;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
@@ -37,7 +36,7 @@ import java.util.logging.Logger;
  */
 public final class GeotkInstaller implements ServletContextListener{
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation");
 
     @Override
     public synchronized void contextInitialized(ServletContextEvent sce) {

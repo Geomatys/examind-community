@@ -30,7 +30,6 @@ import java.nio.file.Paths;
 import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.util.NodeUtilities;
 import org.geotoolkit.nio.IOUtilities;
 import org.springframework.core.io.FileSystemResource;
@@ -55,7 +54,7 @@ import org.xml.sax.SAXException;
  */
 public class ProactiveScheduler {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.process.proactive");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.process.proactive");
 
     private final RestTemplate restTemplate;
 

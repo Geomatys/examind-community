@@ -33,7 +33,6 @@ import org.apache.sis.metadata.MetadataCopier;
 import org.apache.sis.metadata.iso.citation.DefaultOrganisation;
 import org.apache.sis.metadata.iso.citation.DefaultResponsibility;
 import org.apache.sis.storage.Resource;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.api.StatisticState;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
@@ -87,7 +86,7 @@ public class DataBusinessTest {
 
     private static boolean initialized = false;
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
     private static final String CONFIG_DIR_NAME = "DataBusinessTest" + UUID.randomUUID().toString();
 
     private static int coverage1DID;

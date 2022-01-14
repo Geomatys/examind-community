@@ -26,7 +26,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.storage.DataStoreProvider;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IDatasourceBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.DataCustomConfiguration;
@@ -56,7 +55,7 @@ import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 @ContextConfiguration("classpath:/cstl/spring/test-context.xml")
 public class DatasourceBusinessTest {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
     @Autowired
     private IDatasourceBusiness datasourceBusiness;

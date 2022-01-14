@@ -39,7 +39,6 @@ import java.lang.management.ManagementFactory;
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
 
 import static org.constellation.setup.CstlInstaller.HEALTH_CHECK_REGISTRY;
 import static org.constellation.setup.CstlInstaller.METRIC_REGISTRY;
@@ -48,7 +47,7 @@ import static org.constellation.setup.CstlInstaller.METRIC_REGISTRY;
 @EnableMetrics(proxyTargetClass = true)
 public class MetricsConfiguration extends MetricsConfigurerAdapter {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.conf");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.conf");
 
     @Inject
     private Environment env;

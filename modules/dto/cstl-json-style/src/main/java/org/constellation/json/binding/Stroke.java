@@ -20,7 +20,6 @@
 package org.constellation.json.binding;
 
 import java.awt.Color;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.json.util.StyleUtilities;
 import org.opengis.filter.Expression;
 import java.util.logging.Logger;
@@ -40,7 +39,7 @@ public final class Stroke implements StyleElement<org.opengis.style.Stroke> {
     /**
      * Used for debugging purposes.
      */
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.json.binding");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.json.binding");
 
     private String color   = "#000000";
     private Function function;

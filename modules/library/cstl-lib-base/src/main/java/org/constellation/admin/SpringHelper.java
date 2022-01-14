@@ -19,7 +19,6 @@
 package org.constellation.admin;
 
 import com.google.common.eventbus.EventBus;
-import org.apache.sis.util.logging.Logging;
 import org.springframework.context.ApplicationContext;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionCallback;
@@ -44,7 +43,7 @@ public final class SpringHelper {
 
     private static final Object LOCK = new Object();
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
     private static SpringHelper INSTANCE;
 
     @Autowired

@@ -44,7 +44,6 @@ import org.opengis.metadata.extent.Extent;
 import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.metadata.extent.GeographicExtent;
 import org.opengis.metadata.identification.Identification;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.CstlUser;
 import org.constellation.metadata.utils.MetadataFeeder;
 import org.constellation.metadata.utils.Utils;
@@ -66,7 +65,7 @@ import org.opengis.metadata.distribution.Distribution;
  */
 public final class MetadataUtilities {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.admin.util");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin.util");
 
     public static String getTemplateSensorMLString(final Properties prop, final String type) {
         try {

@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
 import static org.constellation.configuration.AppProperty.EXA_WPS_AUTHENTICATED_URLS;
 import org.constellation.configuration.Application;
 
@@ -35,7 +34,7 @@ import org.constellation.configuration.Application;
  */
 public class WPSURLUtils {
 
-    private static final Logger LOGGER = Logging.getLogger("com.examind.wps.util");
+    private static final Logger LOGGER = Logger.getLogger("com.examind.wps.util");
 
     private static final Map<String, String[]> AUTHENTICATED_URLS = new HashMap<>();
 

@@ -42,7 +42,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.sis.geometry.GeneralDirectPosition;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.data.dbf.DbaseFileStore;
 import org.geotoolkit.data.dbf.DbaseFileHeader;
 import org.geotoolkit.data.dbf.DbaseFileReader;
@@ -81,7 +80,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
 
     private static final String PROCEDURE_TREE_TYPE = "Component";
 
-    private static final Logger LOGGER = Logging.getLogger("com.examind.process.sos.dbf");
+    private static final Logger LOGGER = Logger.getLogger("com.examind.process.sos.dbf");
 
     private final Path dataFile;
 

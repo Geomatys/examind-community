@@ -95,7 +95,6 @@ import java.util.logging.Logger;
 import javax.inject.Inject;
 import org.apache.sis.util.ComparisonMode;
 import org.apache.sis.util.Utilities;
-import org.apache.sis.util.logging.Logging;
 
 import static org.constellation.api.CommonConstants.OFFERING;
 import static org.constellation.api.CommonConstants.PROCEDURE;
@@ -129,7 +128,7 @@ import org.springframework.test.context.support.DirtiesContextTestExecutionListe
 @ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-context.xml"})
 public abstract class SOS2WorkerTest {
 
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.sos.ws");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.sos.ws");
 
     @Inject
     protected IServiceBusiness serviceBusiness;

@@ -20,7 +20,6 @@
 package org.constellation.sos.ws;
 
 import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.swe.xml.AbstractEncoding;
 import org.geotoolkit.swe.xml.DataArray;
 import org.geotoolkit.swe.xml.TextBlock;
@@ -47,7 +46,7 @@ import org.opengis.util.CodeList;
  */
 public class DatablockParser {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.sos.ws");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.sos.ws");
 
     private static Timestamp getTimestampValue(final Date time) throws ObservationStoreException {
         return Timestamp.valueOf(OMUtils.getTimeValue(time));

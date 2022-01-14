@@ -31,7 +31,6 @@ import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.storage.GridCoverageResource;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.api.TaskState;
 import org.constellation.api.TilingMode;
 import org.constellation.business.IDataBusiness;
@@ -72,7 +71,7 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration("classpath:/cstl/spring/test-context.xml")
 public class PyramidBusinessTest {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
     @Autowired
     private IPyramidBusiness pyramidBusiness;

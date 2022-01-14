@@ -53,7 +53,6 @@ import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.IllegalNameException;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.WritableFeatureSet;
-import org.apache.sis.util.logging.Logging;
 import static org.constellation.store.observation.db.OM2FeatureStoreFactory.SCHEMA_PREFIX;
 import static org.constellation.store.observation.db.OM2FeatureStoreFactory.SGBDTYPE;
 import org.constellation.util.Util;
@@ -87,7 +86,7 @@ import org.opengis.util.GenericName;
  */
 public class OM2FeatureStore extends DataStore implements Aggregate {
 
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.store.observation");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.store.observation");
 
     private static final String CSTL_NAMESPACE = "http://constellation.org/om2";
     private static final GenericName CSTL_TN_SENSOR = NamesExt.create(CSTL_NAMESPACE, "Sensor");

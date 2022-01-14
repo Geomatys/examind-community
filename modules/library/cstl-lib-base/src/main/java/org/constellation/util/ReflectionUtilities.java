@@ -19,7 +19,6 @@
 
 package org.constellation.util;
 
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.util.StringUtilities;
 import org.opengis.annotation.UML;
 
@@ -48,7 +47,7 @@ import org.apache.sis.xml.IdentifierSpace;
  */
 public final class ReflectionUtilities {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.util");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.util");
 
     private static final String INCLASS = " in the class ";
 

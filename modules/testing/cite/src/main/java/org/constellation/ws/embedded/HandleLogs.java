@@ -19,7 +19,6 @@
 package org.constellation.ws.embedded;
 
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.sql.Result;
 import org.constellation.sql.ResultsDatabase;
 
@@ -49,7 +48,7 @@ import static org.constellation.ws.embedded.LaunchTests.CITE_EXECUTABLE_KEY;
  */
 public final class HandleLogs {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.ws.embedded");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.ws.embedded");
     /**
      * Prevents instantiation.
      */

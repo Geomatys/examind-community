@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.map.featureinfo.CoverageProfileInfoFormat;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
@@ -40,7 +39,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  */
 public class ProfileMessageConverter implements HttpMessageConverter<CoverageProfileInfoFormat.Profile> {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.rest.api");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.rest.api");
 
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {

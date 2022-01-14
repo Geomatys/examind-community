@@ -20,7 +20,6 @@
 package org.constellation.metadata.core;
 
 import org.constellation.exception.ConstellationException;
-import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IMailBusiness;
@@ -57,7 +56,7 @@ public class HarvestTaskScheduler {
     /**
      * use for debugging purpose
      */
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.metadata");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.metadata");
 
     /**
      * The name of the harvest task file

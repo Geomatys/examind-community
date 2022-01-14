@@ -19,7 +19,6 @@
 
 package org.constellation.coverage.ws.rs;
 
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.wcs.xml.WCSMarshallerPool;
 import org.geotoolkit.wcs.xml.WCSResponse;
 
@@ -43,7 +42,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  */
 public class WCSResponseWriter implements HttpMessageConverter<Object> {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.coverage.ws.rs");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.coverage.ws.rs");
 
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {

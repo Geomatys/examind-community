@@ -20,7 +20,6 @@ package org.constellation.business;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.ws.CstlServiceException;
 
@@ -33,7 +32,7 @@ import org.constellation.ws.CstlServiceException;
  */
 public abstract class MessageListener {
 
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
 
     public MessageListener(){

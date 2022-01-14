@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.internal.geojson.FeatureTypeUtils;
 import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
 import org.springframework.http.HttpInputMessage;
@@ -40,7 +39,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  */
 public class FeatureTypeGJSWriter implements HttpMessageConverter<FeatureTypeList> {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.wfs.ws.rs");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.wfs.ws.rs");
 
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {

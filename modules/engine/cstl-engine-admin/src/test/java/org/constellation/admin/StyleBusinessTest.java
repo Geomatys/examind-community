@@ -19,7 +19,7 @@
 package org.constellation.admin;
 
 import java.util.logging.Level;
-import org.apache.sis.util.logging.Logging;
+import java.util.logging.Logger;
 import org.constellation.business.IStyleBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.exception.ConstellationException;
@@ -58,7 +58,7 @@ public class StyleBusinessTest {
             }
             ConfigDirectory.shutdownTestEnvironement("StyleBusinessTest");
         } catch (ConstellationException ex) {
-            Logging.getLogger("org.constellation.admin").log(Level.SEVERE, null, ex);
+            Logger.getLogger("org.constellation.admin").log(Level.SEVERE, null, ex);
         }
     }
 

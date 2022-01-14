@@ -65,7 +65,6 @@ import org.apache.sis.measure.Units;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.util.ArgumentChecks;
 import org.apache.sis.util.UnconvertibleObjectException;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.service.config.wps.Process;
 import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.gml.JTStoGeometry;
@@ -121,7 +120,7 @@ import org.opengis.util.FactoryException;
  */
 public class GeotkProcess implements WPSProcess {
 
-    private final static Logger LOGGER = Logging.getLogger("com.examind.wps.component");
+    private final static Logger LOGGER = Logger.getLogger("com.examind.wps.component");
     private final ProcessDescriptor descriptor;
     private final URI schemaFolder;
     private String schemaURL;

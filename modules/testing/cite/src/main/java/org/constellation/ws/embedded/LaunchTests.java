@@ -19,7 +19,6 @@
 package org.constellation.ws.embedded;
 
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.sis.util.logging.Logging;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -46,7 +45,7 @@ public final class LaunchTests implements Runnable {
     /**
      * The default logger.
      */
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.ws.embedded");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.ws.embedded");
 
     /**
      * The running process.

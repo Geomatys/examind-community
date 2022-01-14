@@ -46,8 +46,8 @@ import javax.inject.Inject;
 import javax.xml.bind.Marshaller;
 import java.io.StringWriter;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
@@ -125,7 +125,7 @@ public class WMTSWorkerTest {
             worker = new DefaultWMTSWorker("default");
             worker.setServiceUrl("http://localhost:9090/WS/");
         } catch (Exception ex) {
-            Logging.getLogger("org.constellation.wmts.ws").log(Level.SEVERE, null, ex);
+            Logger.getLogger("org.constellation.wmts.ws").log(Level.SEVERE, null, ex);
         }
     }
 

@@ -27,7 +27,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
 
 /**
  * Returns a 401 error code (Unauthorized) to the client.
@@ -35,16 +34,14 @@ import org.apache.sis.util.logging.Logging;
 @Component
 public class Http401UnauthorizedEntryPoint implements AuthenticationEntryPoint {
 
-    private final Logger log = Logging.getLogger("org.constellation.admin.security");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin.security");
 
     /**
      * Always returns a 401 error code to the client.
      */
     @Override
-    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException arg2) throws IOException,
-            ServletException {
-
-        log.finer("Pre-authenticated entry point called. Rejecting access");
+    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException arg2) throws IOException, ServletException {
+        LOGGER.finer("Pre-authenticated entry point called. Rejecting access");
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Access Denied");
     }
 }

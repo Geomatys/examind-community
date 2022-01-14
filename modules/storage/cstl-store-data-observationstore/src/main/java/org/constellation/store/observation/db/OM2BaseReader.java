@@ -40,7 +40,6 @@ import java.util.logging.Logger;
 
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.observation.model.Field;
 import org.constellation.util.Util;
 import org.geotoolkit.geometry.jts.SRIDGenerator;
@@ -156,7 +155,7 @@ public class OM2BaseReader {
     /**
      * use for debugging purpose
      */
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.store.observation.db");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.store.observation.db");
 
     protected static final CoordinateReferenceSystem defaultCRS;
     static {

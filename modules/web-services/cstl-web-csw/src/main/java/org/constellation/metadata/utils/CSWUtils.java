@@ -33,7 +33,6 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.parsers.ParserConfigurationException;
-import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.MimeType;
@@ -73,7 +72,7 @@ import org.w3c.dom.Node;
  */
 public class CSWUtils {
 
-    public static final Logger LOGGER = Logging.getLogger("org.constellation.metadata.utils");
+    public static final Logger LOGGER = Logger.getLogger("org.constellation.metadata.utils");
 
     private static final DateFormat ISO8601_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     static {

@@ -29,7 +29,6 @@ import org.opengis.metadata.content.CoverageDescription;
 
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.util.collection.BackingStoreException;
-import org.apache.sis.util.logging.Logging;
 
 import org.geotoolkit.storage.coverage.CoverageDescriptionAdapter;
 import org.geotoolkit.storage.coverage.ImageStatistics;
@@ -70,7 +69,7 @@ public class DataCoverageJob implements IDataCoverageJob {
     /**
      * Used for debugging purposes.
      */
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
     /**
      * Injected data repository.

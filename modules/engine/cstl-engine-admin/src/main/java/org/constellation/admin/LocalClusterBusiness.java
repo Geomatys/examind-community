@@ -31,7 +31,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.util.ArgumentChecks;
 import org.apache.sis.util.collection.WeakValueHashMap;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.business.ClusterMessage;
 import org.constellation.business.IClusterBusiness;
 import org.constellation.business.MessageListener;
@@ -48,7 +47,7 @@ import static org.constellation.business.ClusterMessageConstant.*;
  */
 public class LocalClusterBusiness implements IClusterBusiness{
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
     private final String memberUID = UUID.randomUUID().toString();
     private final AtomicLong messageInc = new AtomicLong();

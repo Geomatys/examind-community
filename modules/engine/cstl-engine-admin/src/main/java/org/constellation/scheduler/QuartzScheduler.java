@@ -26,7 +26,6 @@ import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.parameter.Parameters;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.ProcessBusiness;
 import org.constellation.api.CstlJobListener;
 import org.constellation.api.CstlScheduler;
@@ -58,7 +57,7 @@ public class QuartzScheduler implements CstlScheduler {
 
     private Scheduler quartzScheduler;
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.scheduler");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.scheduler");
 
     private QuartzScheduler() throws ConstellationSchedulerException {
         Properties properties;

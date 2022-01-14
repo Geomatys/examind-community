@@ -37,7 +37,6 @@ import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.imageio.stream.ImageInputStream;
 import org.apache.commons.io.IOUtils;
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.storage.coverage.ImageTile;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
@@ -52,7 +51,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  */
 public class StreamResponseWriter implements HttpMessageConverter<ImageTile>  {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.map.ws.rs");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.map.ws.rs");
 
     @Override
     public boolean canRead(Class<?> type, MediaType mt) {

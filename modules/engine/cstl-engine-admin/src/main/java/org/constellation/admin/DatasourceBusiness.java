@@ -41,7 +41,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -59,7 +58,6 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.StorageConnector;
 import org.apache.sis.util.collection.Cache;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasourceBusiness;
@@ -82,7 +80,6 @@ import org.constellation.dto.ProviderConfiguration;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.TargetNotFoundException;
-import org.constellation.provider.Data;
 import org.constellation.provider.DataProviders;
 import org.constellation.util.FileSystemReference;
 import org.constellation.util.FileSystemUtilities;
@@ -105,7 +102,7 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 @Primary
 public class DatasourceBusiness implements IDatasourceBusiness {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
     /**
      * Injected datasource repository.

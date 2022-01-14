@@ -16,7 +16,6 @@ import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.sql.DataSource;
 import org.apache.sis.util.collection.BackingStoreException;
-import org.apache.sis.util.logging.Logging;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 
@@ -43,7 +42,7 @@ class DatasourceCache {
     }
 
     private void listenJMX(HikariDataSource datasource) {
-        final Logger logger = Logging.getLogger("com.examind.community.storage.sql.metrics");
+        final Logger logger = Logger.getLogger("com.examind.community.storage.sql.metrics");
         final String poolName = datasource.getPoolName();
         final String jmxId = String.format("com.zaxxer.hikari:type=Pool (%s)", poolName);
         MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();

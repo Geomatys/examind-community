@@ -21,7 +21,6 @@ package com.examind.wps;
 import com.examind.wps.api.IOParameterException;
 import com.examind.wps.api.WPSException;
 import com.examind.wps.api.WPSProcess;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.api.ServiceDef;
 import com.examind.wps.util.WPSUtils;
 import org.constellation.ws.CstlServiceException;
@@ -47,7 +46,7 @@ import org.geotoolkit.wps.xml.v200.StatusInfo;
  */
 public class WPSProcessRawListener implements ProcessListener{
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.wps.ws");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.wps.ws");
     private static final int TIMEOUT = 200; //processing time step
 
     private final Execute request;

@@ -104,7 +104,6 @@ import org.apache.sis.util.collection.BackingStoreException;
 import org.apache.sis.util.DefaultInternationalString;
 import org.apache.sis.util.iso.DefaultNameFactory;
 import org.apache.sis.util.SimpleInternationalString;
-import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.IdentifierSpace;
 
 import org.constellation.dto.contact.AccessConstraint;
@@ -141,7 +140,7 @@ import org.opengis.temporal.TemporalPrimitive;
  */
 public class MetadataFeeder {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.utils");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.utils");
 
     /**
      * metadata target

@@ -40,7 +40,6 @@ import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import static org.apache.sis.storage.DataStoreProvider.LOCATION;
 import org.apache.sis.storage.StorageConnector;
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.observation.AbstractObservationStoreFactory;
 import org.geotoolkit.util.NamesExt;
@@ -69,7 +68,7 @@ import org.opengis.parameter.ParameterValueGroup;
  */
 public abstract class FileParsingObservationStoreFactory extends AbstractObservationStoreFactory {
 
-    protected static final Logger LOGGER = Logging.getLogger("com.examind.process.sos");
+    protected static final Logger LOGGER = Logger.getLogger("com.examind.process.sos");
 
     protected static final ParameterBuilder PARAM_BUILDER = new ParameterBuilder();
 

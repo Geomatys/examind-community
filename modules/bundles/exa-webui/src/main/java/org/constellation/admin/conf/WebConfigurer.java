@@ -35,22 +35,21 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
 
 /**
  * Configuration of web application with Servlet 3.0 APIs.
  */
 public class WebConfigurer implements ServletContextListener {
 
-    private final Logger log = Logging.getLogger("org.constellation.admin.conf");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin.conf");
 
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         ServletContext servletContext = sce.getServletContext();
-        log.info("Web application configuration");
+        LOGGER.info("Web application configuration");
 
-        log.finer("Configuring Spring root application context");
+        LOGGER.finer("Configuring Spring root application context");
 
         Object rootContextObject = WebApplicationContextUtils.getWebApplicationContext(servletContext);
         AbstractRefreshableWebApplicationContext rootContext;
@@ -76,7 +75,7 @@ public class WebConfigurer implements ServletContextListener {
 
         initGzipFilter(servletContext, disps);
 
-        log.finer("Web application fully configured");
+        LOGGER.finer("Web application fully configured");
     }
 
 
@@ -85,10 +84,10 @@ public class WebConfigurer implements ServletContextListener {
      * Initializes the GZip filter.
      */
     private void initGzipFilter(ServletContext servletContext, EnumSet<DispatcherType> disps) {
-        log.finer("Registering GZip Filter");
+        LOGGER.finer("Registering GZip Filter");
 
         FilterRegistration.Dynamic compressingFilter = servletContext.addFilter("gzipFilter", new GZipServletFilter());
-        Map<String, String> parameters = new HashMap<String, String>();
+        Map<String, String> parameters = new HashMap<>();
 
         compressingFilter.setInitParameters(parameters);
 
@@ -108,12 +107,12 @@ public class WebConfigurer implements ServletContextListener {
      * Initializes Spring and Spring MVC.
      */
     private ServletRegistration.Dynamic initSpring(ServletContext servletContext, AbstractRefreshableWebApplicationContext rootContext) {
-        log.finer("Configuring Spring Web application context");
+        LOGGER.finer("Configuring Spring Web application context");
         AnnotationConfigWebApplicationContext dispatcherServletConfiguration = new AnnotationConfigWebApplicationContext();
         dispatcherServletConfiguration.setParent(rootContext);
         dispatcherServletConfiguration.register(DispatcherServletConfiguration.class);
 
-        log.finer("Registering Spring MVC Servlet");
+        LOGGER.finer("Registering Spring MVC Servlet");
         ServletRegistration.Dynamic dispatcherServlet = servletContext.addServlet("dispatcher", new DispatcherServlet(
                 dispatcherServletConfiguration));
         dispatcherServlet.addMapping("/app/*");
@@ -125,10 +124,10 @@ public class WebConfigurer implements ServletContextListener {
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
-        log.info("Destroying Web application");
+        LOGGER.info("Destroying Web application");
         WebApplicationContext ac = WebApplicationContextUtils.getRequiredWebApplicationContext(sce.getServletContext());
         AbstractRefreshableWebApplicationContext gwac = (AbstractRefreshableWebApplicationContext) ac;
         gwac.close();
-        log.finer("Web application destroyed");
+        LOGGER.finer("Web application destroyed");
     }
 }

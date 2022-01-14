@@ -19,8 +19,6 @@
 
 package org.constellation.store.metadata.filesystem.sql;
 
-import org.apache.sis.util.logging.Logging;
-
 import java.io.Closeable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -39,7 +37,7 @@ import org.geotoolkit.metadata.MetadataIoException;
  */
 public class Session implements Closeable {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.metadata.io.filesystem.sql");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.metadata.io.filesystem.sql");
 
     private final Connection con;
 

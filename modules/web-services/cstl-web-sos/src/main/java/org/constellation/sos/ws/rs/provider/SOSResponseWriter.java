@@ -19,7 +19,6 @@
 
 package org.constellation.sos.ws.rs.provider;
 
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.sos.xml.SOSMarshallerPool;
 import org.geotoolkit.sos.xml.SOSResponseWrapper;
 import org.geotoolkit.swes.xml.SOSResponse;
@@ -53,7 +52,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  */
 public class SOSResponseWriter implements HttpMessageConverter<SOSResponse> {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.sos.ws.rs");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.sos.ws.rs");
 
     private static final String SCHEMA_LOCATION_V100 =  "http://www.opengis.net/sos/1.0 http://schemas.opengis.net/sos/1.0.0/sosAll.xsd http://www.opengis.net/sampling/1.0 http://schemas.opengis.net/sampling/1.0.0/sampling.xsd";
     

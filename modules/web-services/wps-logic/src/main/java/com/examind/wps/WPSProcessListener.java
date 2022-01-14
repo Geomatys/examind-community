@@ -22,7 +22,6 @@ import com.examind.wps.api.IOParameterException;
 import com.examind.wps.api.WPSException;
 import com.examind.wps.api.WPSProcess;
 import java.net.URI;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.api.ServiceDef;
 import com.examind.wps.util.WPSUtils;
 import org.constellation.ws.CstlServiceException;
@@ -58,7 +57,7 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
  */
 public class WPSProcessListener implements ProcessListener{
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.wps.ws");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.wps.ws");
     private static final int TIMEOUT = 200; //processing time step
 
     private final Execute request;

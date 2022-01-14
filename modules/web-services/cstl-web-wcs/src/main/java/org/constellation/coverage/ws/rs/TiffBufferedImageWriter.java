@@ -27,7 +27,6 @@ import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageOutputStream;
-import org.apache.sis.util.logging.Logging;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -42,7 +41,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  */
 public class TiffBufferedImageWriter<T extends BufferedImage> implements HttpMessageConverter<T> {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.coverage.ws.rs");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.coverage.ws.rs");
 
     @Override
     public boolean canRead(Class<?> type, MediaType mt) {

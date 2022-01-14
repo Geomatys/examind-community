@@ -33,7 +33,6 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 import org.apache.sis.metadata.iso.DefaultIdentifier;
-import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
@@ -126,7 +125,7 @@ import org.springframework.test.context.support.DirtiesContextTestExecutionListe
 @ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-context.xml"})
 public abstract class SOSWorkerTest {
 
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.sos.ws");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.sos.ws");
 
     @Inject
     protected IServiceBusiness serviceBusiness;

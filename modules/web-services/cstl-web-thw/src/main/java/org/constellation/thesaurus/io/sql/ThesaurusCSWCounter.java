@@ -36,7 +36,6 @@ import java.util.logging.Logger;
 import javax.sql.DataSource;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.xml.namespace.QName;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import org.constellation.thesaurus.api.IThesaurusCSWCounter;
 import org.constellation.thesaurus.util.HTTPCommunicator;
@@ -62,7 +61,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
  */
 public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
 
-    protected static final Logger LOGGER = Logging.getLogger(ThesaurusCSWCounter.class.getName());
+    protected static final Logger LOGGER = Logger.getLogger(ThesaurusCSWCounter.class.getName());
 
     @Autowired
     @Qualifier("dataSource")

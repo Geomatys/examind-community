@@ -32,7 +32,6 @@ import java.util.TimerTask;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.geotoolkit.wps.xml.v200.Bill;
@@ -54,7 +53,7 @@ public class QuotationInfo {
     private final Map<String, Bill> jobBillMap = new HashMap<>();
     private final Set<String> expiredQuotation = new HashSet<>();
 
-    private static final Logger LOGGER = Logging.getLogger("com.examind.wps");
+    private static final Logger LOGGER = Logger.getLogger("com.examind.wps");
 
     public QuotationInfo() {
         final long defaultExpire = 1000*60*60*24*7L;  // une semaine

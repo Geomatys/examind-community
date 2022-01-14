@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.inject.Inject;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IServiceBusiness;
@@ -53,7 +52,7 @@ import org.springframework.test.context.support.DirtiesContextTestExecutionListe
 @ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-context.xml"})
 public abstract class SOSConfigurerTest {
 
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.sos.ws");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.sos.ws");
     @Inject
     protected IServiceBusiness serviceBusiness;
     @Inject

@@ -19,7 +19,6 @@
 
 package org.constellation.wps.ws.rs;
 
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.wps.xml.WPSMarshallerPool;
 
 import javax.xml.bind.JAXBException;
@@ -54,7 +53,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  */
 public class WPSResponseWriter implements HttpMessageConverter<WPSResponse> {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.wps.ws.rs");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.wps.ws.rs");
 
     public static final Map<String, String> XML_TO_JSON_NAMESPACES = new HashMap<>();
     static {

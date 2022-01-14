@@ -59,7 +59,6 @@ import org.apache.sis.metadata.iso.citation.Citations;
 import org.apache.sis.referencing.ImmutableIdentifier;
 import org.apache.sis.util.ArgumentChecks;
 import org.apache.sis.util.NullArgumentException;
-import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IServiceBusiness;
@@ -110,7 +109,7 @@ import org.opengis.util.NoSuchIdentifierException;
  */
 public class WPSUtils {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.wps.utils");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.wps.utils");
 
     private WPSUtils() {}
 

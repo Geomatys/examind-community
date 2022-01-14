@@ -19,7 +19,6 @@
 
 package org.constellation.store.metadata.filesystem.sql;
 
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.util.collection.CloseableIterator;
 
 import java.sql.ResultSet;
@@ -33,7 +32,7 @@ import java.util.logging.Logger;
  */
 public class IdentifierIterator implements CloseableIterator<String> {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.metadata.io.filesystem.sql");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.metadata.io.filesystem.sql");
 
     private final Session session;
 

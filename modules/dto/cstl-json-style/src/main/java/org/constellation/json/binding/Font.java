@@ -19,7 +19,6 @@
 
 package org.constellation.json.binding;
 
-import org.apache.sis.util.logging.Logging;
 import org.constellation.json.util.StyleUtilities;
 import org.opengis.filter.Expression;
 
@@ -42,7 +41,7 @@ public final class Font implements StyleElement<org.opengis.style.Font> {
     /**
      * Used for debugging purposes.
      */
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.json.binding");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.json.binding");
 
     private String size    = "12";
     private boolean bold   = false;

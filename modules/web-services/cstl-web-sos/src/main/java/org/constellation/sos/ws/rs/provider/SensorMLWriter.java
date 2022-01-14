@@ -19,7 +19,6 @@
 
 package org.constellation.sos.ws.rs.provider;
 
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.sml.xml.AbstractSensorML;
 import org.geotoolkit.sml.xml.SensorMLMarshallerPool;
 
@@ -43,7 +42,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  */
 public class SensorMLWriter implements HttpMessageConverter<AbstractSensorML> {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.ws.rs.provider");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.ws.rs.provider");
 
     private static final String SML_101_XSD = "http://www.opengis.net/sensorML/1.0.1 http://schemas.opengis.net/sensorML/1.0.1/sensorML.xsd";
 

@@ -19,7 +19,6 @@
 package org.constellation.metadata.harvest;
 
 import java.io.IOException;
-import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.apache.sis.internal.xml.LegacyNamespaces;
 import org.geotoolkit.metadata.MetadataIoException;
@@ -52,7 +51,7 @@ public abstract class CatalogueHarvester {
     /**
      * use for debugging purpose
      */
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.metadata");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.metadata");
 
     /**
      * A Marshaller / unMarshaller pool to send request to another CSW services / to get object from harvested resource.

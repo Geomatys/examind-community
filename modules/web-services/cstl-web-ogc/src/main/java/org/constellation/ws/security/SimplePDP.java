@@ -18,12 +18,8 @@
  */
 package org.constellation.ws.security;
 
-import org.apache.sis.util.logging.Logging;
 
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
@@ -43,7 +39,7 @@ public final class SimplePDP {
     /**
      * The logger for the PDP.
      */
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.ws.security");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.ws.security");
 
     /**
      * Engine that will launch the evaluation of the rule.

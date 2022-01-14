@@ -31,7 +31,6 @@ import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.logging.Logger;
 import javax.xml.namespace.QName;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.business.ClusterMessage;
 import static org.constellation.business.ClusterMessageConstant.*;
 import org.constellation.business.IClusterBusiness;
@@ -90,7 +89,7 @@ public class LayerBusiness implements ILayerBusiness {
     @Autowired
     protected IClusterBusiness clusterBusiness;
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
     /**
      * Lazy loaded map of {@link MapFactory} found in classLoader.

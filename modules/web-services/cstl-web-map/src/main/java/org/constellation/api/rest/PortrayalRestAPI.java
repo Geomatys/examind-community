@@ -24,7 +24,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IDataBusiness;
 import org.constellation.dto.DataBrief;
 import org.constellation.util.Util;
@@ -45,7 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class PortrayalRestAPI {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.api.rest");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.api.rest");
 
     @Inject
     private MapBusiness mapBusiness;

@@ -25,7 +25,6 @@ import java.util.logging.Logger;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.owc.xml.OwcMarshallerPool;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
@@ -41,7 +40,7 @@ import org.w3._2005.atom.FeedType;
  */
 public class MapContextMessageConverter implements HttpMessageConverter<FeedType> {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.rest.api");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.rest.api");
 
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {

@@ -30,7 +30,6 @@ import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.StorageConnector;
 import org.apache.sis.storage.sql.SQLStoreProvider;
 import org.apache.sis.util.iso.Names;
-import org.apache.sis.util.logging.Logging;
 import org.opengis.metadata.Metadata;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
@@ -81,7 +80,7 @@ public class SQLProvider extends DataStoreProvider {
     public static final ParameterDescriptor<String> TABLES;
 
     public static final ParameterDescriptorGroup INPUT;
-    static final Logger LOGGER = Logging.getLogger("com.examind.storage.sql");
+    static final Logger LOGGER = Logger.getLogger("com.examind.storage.sql");
 
     static {
         final ParameterBuilder builder = new ParameterBuilder();

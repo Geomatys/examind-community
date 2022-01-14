@@ -36,7 +36,6 @@ import java.util.logging.Logger;
 import javax.xml.namespace.QName;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import static org.constellation.api.CommonConstants.CSW_CONFIG_ONLY_PUBLISHED;
 import static org.constellation.api.CommonConstants.CSW_CONFIG_PARTIAL;
@@ -64,7 +63,7 @@ import org.w3c.dom.Node;
  */
 public class MetadataStoreWrapper extends AbstractCstlMetadataStore {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.metadata");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.metadata");
 
     private final boolean displayServiceMetadata;
 

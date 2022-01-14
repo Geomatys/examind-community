@@ -49,24 +49,21 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.sis.test.xml.DocumentComparator;
 
-import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.metadata.configuration.CSWConfigurer;
 import static org.constellation.test.utils.MetadataUtilities.metadataEquals;
-import org.apache.sis.storage.DataStoreProvider;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
-import org.geotoolkit.storage.DataStores;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Ignore;
-import org.opengis.parameter.ParameterValueGroup;
 
 
 /**
@@ -130,7 +127,7 @@ public class NetCDFCSWWorkerTest extends CSWworkerTest {
                 initialized = true;
             }
         } catch (Exception ex) {
-            Logging.getLogger("org.constellation.metadata.io.netcdf").log(Level.SEVERE, null, ex);
+            Logger.getLogger("org.constellation.metadata.io.netcdf").log(Level.SEVERE, null, ex);
         }
 
     }

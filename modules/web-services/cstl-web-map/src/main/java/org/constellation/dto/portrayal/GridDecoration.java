@@ -19,7 +19,6 @@
 package org.constellation.dto.portrayal;
 
 import org.apache.sis.referencing.CRS;
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.display2d.ext.grid.DefaultGridTemplate;
 import org.geotoolkit.display2d.ext.grid.GridTemplate;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -39,7 +38,7 @@ import java.util.logging.Logger;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class GridDecoration extends AbstractDecoration {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.dto");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.dto");
     @XmlElement(name = "MainGrid")
     private Grid mainGrid;
     @XmlElement(name = "SecondGrid")

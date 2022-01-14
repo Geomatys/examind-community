@@ -53,7 +53,6 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
-import org.apache.sis.util.logging.Logging;
 import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 import static org.geotoolkit.gml.xml.v311.ObjectFactory._Envelope_QNAME;
 import static org.geotoolkit.gml.xml.v311.ObjectFactory._LineString_QNAME;
@@ -76,7 +75,7 @@ import org.w3._2005.atom.PersonType;
  */
 public abstract class CSWConstants {
 
-    public static Logger LOGGER = Logging.getLogger("org.constellation.metadata.core");
+    public static Logger LOGGER = Logger.getLogger("org.constellation.metadata.core");
     /**
      * Request parameters.
      */

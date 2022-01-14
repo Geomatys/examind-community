@@ -27,7 +27,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.gml.GeometrytoJTS;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.storage.geojson.GeoJSONStreamWriter;
@@ -48,7 +47,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  */
 public class GeometryWriter implements HttpMessageConverter<AbstractGeometry> {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.wps.ws.rs");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.wps.ws.rs");
 
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {

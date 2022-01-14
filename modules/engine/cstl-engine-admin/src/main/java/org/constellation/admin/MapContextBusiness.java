@@ -36,7 +36,6 @@ import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.crs.AbstractCRS;
 import org.apache.sis.referencing.cs.AxesConvention;
-import org.apache.sis.util.logging.Logging;
 import static org.constellation.api.ProviderConstants.INTERNAL_MAP_CONTEXT_PROVIDER;
 import org.constellation.api.ProviderType;
 
@@ -75,7 +74,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Primary
 public class MapContextBusiness implements IMapContextBusiness {
 
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
     @Inject
     private MapContextRepository mapContextRepository;

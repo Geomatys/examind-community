@@ -37,7 +37,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import org.apache.sis.referencing.CRS;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
@@ -83,7 +82,7 @@ import static org.junit.Assert.assertEquals;
 @ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-context.xml"})
 public class WMSServiceTest {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.map.ws.rs");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.map.ws.rs");
 
     @Inject
     private IServiceBusiness serviceBusiness;

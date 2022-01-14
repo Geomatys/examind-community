@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import org.constellation.dto.process.TaskStatus;
 import org.constellation.api.TaskState;
@@ -60,7 +59,7 @@ import org.springframework.transaction.support.TransactionCallback;
  */
 public class QuartzJobListener implements JobListener, CstlJobListener {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.scheduler");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.scheduler");
     private static final int ROUND_SCALE = 2;
 
     public static final String PROPERTY_TASK = "task";

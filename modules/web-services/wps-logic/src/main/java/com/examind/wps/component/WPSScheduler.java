@@ -18,7 +18,6 @@
  */
 package com.examind.wps.component;
 
-import org.apache.sis.util.logging.Logging;
 import org.constellation.ws.CstlServiceException;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -31,7 +30,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PreDestroy;
 
-import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import org.geotoolkit.processing.quartz.ProcessJobDetail;
 import org.springframework.stereotype.Component;
 /**
@@ -41,7 +39,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class WPSScheduler {
 
-    private static final Logger LOGGER  = Logging.getLogger("org.constellation.wps.ws");
+    private static final Logger LOGGER  = Logger.getLogger("org.constellation.wps.ws");
 
     private static WPSScheduler INSTANCE;
 
@@ -53,7 +51,7 @@ public class WPSScheduler {
             quartzScheduler = schedFact.getScheduler();
             quartzScheduler.start();
         } catch (SchedulerException ex) {
-            throw new CstlServiceException(" Failed to start WPS quartz scheduler", ex, NO_APPLICABLE_CODE);
+            throw new CstlServiceException(" Failed to start WPS quartz scheduler", ex);
         }
     }
 

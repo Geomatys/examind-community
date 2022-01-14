@@ -16,7 +16,6 @@ import java.util.logging.Logger;
 
 
 import org.apache.sis.metadata.iso.DefaultMetadata;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.util.MetadataUtilities;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IMetadataBusiness;
@@ -38,7 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Primary
 public class ConfigurationBusiness implements IConfigurationBusiness {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
     @Autowired
     private PropertyRepository propertyRepository;

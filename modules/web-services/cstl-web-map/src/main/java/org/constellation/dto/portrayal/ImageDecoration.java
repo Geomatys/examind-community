@@ -18,7 +18,6 @@
  */
 package org.constellation.dto.portrayal;
 
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.display2d.ext.image.DefaultImageTemplate;
 import org.geotoolkit.display2d.ext.image.ImageTemplate;
 
@@ -38,7 +37,7 @@ import java.util.logging.Logger;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class ImageDecoration extends PositionableDecoration {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.dto");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.dto");
 
     @XmlElement(name = "Source")
     private String source;

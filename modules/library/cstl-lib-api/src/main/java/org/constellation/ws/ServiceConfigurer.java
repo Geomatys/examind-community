@@ -19,7 +19,6 @@
 
 package org.constellation.ws;
 
-import org.apache.sis.util.logging.Logging;
 import java.util.logging.Logger;
 
 /**
@@ -29,6 +28,6 @@ import java.util.logging.Logger;
  */
 public abstract class ServiceConfigurer {
 
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.ws");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.ws");
 
 }

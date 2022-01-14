@@ -31,7 +31,6 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.stream.XMLStreamWriter;
-import org.apache.sis.util.logging.Logging;
 import org.codehaus.jettison.mapped.Configuration;
 import org.codehaus.jettison.mapped.MappedNamespaceConvention;
 import org.codehaus.jettison.mapped.MappedXMLStreamWriter;
@@ -50,7 +49,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  */
 public class TimeObjectConverter implements HttpMessageConverter<TemporalGeometricPrimitive> {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.rest.api");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.rest.api");
 
     @Override
     public boolean canRead(Class<?> type, MediaType mt) {

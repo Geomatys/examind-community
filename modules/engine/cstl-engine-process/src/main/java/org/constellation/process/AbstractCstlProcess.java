@@ -20,7 +20,6 @@ package org.constellation.process;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
@@ -33,7 +32,7 @@ import org.opengis.parameter.ParameterValueGroup;
  */
 public abstract class AbstractCstlProcess extends AbstractProcess {
 
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.process");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.process");
 
     public AbstractCstlProcess(final ProcessDescriptor desc, final ParameterValueGroup parameter) {
         super(desc, parameter);

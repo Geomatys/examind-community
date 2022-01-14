@@ -34,7 +34,6 @@ import javax.inject.Inject;
 import javax.xml.bind.JAXBException;
 
 import org.apache.sis.metadata.iso.DefaultMetadata;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.util.MetadataUtilities;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.exception.ConfigurationException;
@@ -158,7 +157,7 @@ import org.constellation.util.Util;
 @Primary
 public class MetadataBusiness implements IMetadataBusiness {
 
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
     /**
      * Injected data repository.

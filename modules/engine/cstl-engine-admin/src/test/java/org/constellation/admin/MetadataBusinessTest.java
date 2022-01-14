@@ -32,8 +32,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.annotation.PostConstruct;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.sis.metadata.iso.DefaultMetadata;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.metadata.MetadataLightBrief;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
@@ -79,7 +79,7 @@ public class MetadataBusinessTest {
                 mdBean.deleteAllMetadata();
             }
         } catch (ConstellationException ex) {
-            Logging.getLogger("org.constellation.admin").log(Level.SEVERE, null, ex);
+            Logger.getLogger("org.constellation.admin").log(Level.SEVERE, null, ex);
         }
         ConfigDirectory.shutdownTestEnvironement("MetadataBusinessTest");
     }

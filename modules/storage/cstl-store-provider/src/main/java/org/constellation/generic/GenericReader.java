@@ -20,7 +20,6 @@
 package org.constellation.generic;
 
 import org.constellation.util.SQLUtilities;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.dto.service.config.generic.BDD;
 import org.constellation.dto.service.config.generic.Queries;
@@ -56,7 +55,7 @@ public abstract class GenericReader  {
     /**
      * use for debugging purpose
      */
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.generic");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.generic");
 
     /**
      * A precompiled Statement requesting all The identifiers

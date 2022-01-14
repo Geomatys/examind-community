@@ -18,8 +18,6 @@
  */
 package org.constellation.ws.rs.provider;
 
-import org.apache.sis.util.logging.Logging;
-
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -40,7 +38,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  */
 public class PathWriter implements HttpMessageConverter<Path> {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.wps.ws.rs");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.wps.ws.rs");
 
     @Override
     public boolean canRead(Class<?> clazz, org.springframework.http.MediaType mediaType) {

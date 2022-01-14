@@ -34,7 +34,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.metadata.MetadataStandard;
 import org.apache.sis.metadata.iso.DefaultMetadata;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.metadata.BlockObj;
 import org.constellation.dto.metadata.ComponentObj;
 import org.constellation.dto.metadata.Field;
@@ -52,7 +51,7 @@ import org.opengis.metadata.Metadata;
  */
 public abstract class Template {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.json.metadata");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.json.metadata");
 
     private final MetadataStandard standard;
 

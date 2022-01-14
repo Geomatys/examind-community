@@ -18,7 +18,6 @@
  */
 package org.constellation.provider;
 
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.parameter.Parameters;
 import org.opengis.metadata.quality.ConformanceResult;
 import org.opengis.parameter.ParameterValueGroup;
@@ -33,7 +32,7 @@ import java.util.logging.Logger;
  */
 public abstract class AbstractDataProviderFactory implements DataProviderFactory {
    
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.provider");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.provider");
 
     private final String name;
 

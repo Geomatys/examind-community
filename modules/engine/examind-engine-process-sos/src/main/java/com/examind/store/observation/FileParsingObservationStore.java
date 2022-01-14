@@ -37,7 +37,6 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.data.csv.CSVStore;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.observation.ObservationFilterReader;
@@ -66,7 +65,7 @@ import org.opengis.util.GenericName;
  */
 public abstract class FileParsingObservationStore extends CSVStore implements ObservationStore {
 
-    protected static final Logger LOGGER = Logging.getLogger("com.examind.store.observation");
+    protected static final Logger LOGGER = Logger.getLogger("com.examind.store.observation");
 
     protected static final String PROCEDURE_TREE_TYPE = "Component";
 

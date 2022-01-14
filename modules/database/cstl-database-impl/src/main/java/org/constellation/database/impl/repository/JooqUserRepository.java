@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
 
 import org.constellation.dto.UserWithRole;
 import org.constellation.dto.CstlUser;
@@ -54,7 +53,7 @@ public class JooqUserRepository extends
         AbstractJooqRespository<CstlUserRecord, com.examind.database.api.jooq.tables.pojos.CstlUser> implements
         UserRepository {
 
-    private final static Logger LOGGER = Logging.getLogger("org.constellation.database.impl.repository");
+    private final static Logger LOGGER = Logger.getLogger("org.constellation.database.impl.repository");
 
     public JooqUserRepository() {
         super(com.examind.database.api.jooq.tables.pojos.CstlUser.class, CSTL_USER);

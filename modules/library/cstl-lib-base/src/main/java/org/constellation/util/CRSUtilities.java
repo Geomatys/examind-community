@@ -31,7 +31,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
-import org.apache.sis.util.logging.Logging;
 import org.opengis.util.InternationalString;
 import org.opengis.geometry.Envelope;
 import org.opengis.referencing.operation.TransformException;
@@ -44,7 +43,7 @@ import org.opengis.referencing.operation.TransformException;
  */
 public class CRSUtilities {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.utils");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.utils");
 
     /**
      * A map on the form "crs name" + " - EPSG:" + "crs code" => "crs code"

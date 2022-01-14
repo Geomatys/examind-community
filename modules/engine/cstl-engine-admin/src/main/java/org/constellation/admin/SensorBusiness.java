@@ -57,7 +57,6 @@ import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.xml.bind.Marshaller;
 import org.apache.sis.storage.DataStoreProvider;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.util.MetadataUtilities;
 import static org.constellation.api.ProviderConstants.INTERNAL_SENSOR_PROVIDER;
 import org.constellation.business.IClusterBusiness;
@@ -84,7 +83,7 @@ import org.opengis.parameter.ParameterValueGroup;
 @Primary
 public class SensorBusiness implements ISensorBusiness {
 
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
     @Inject
     private IUserBusiness userBusiness;

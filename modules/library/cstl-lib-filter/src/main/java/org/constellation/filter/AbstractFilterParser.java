@@ -21,7 +21,6 @@ package org.constellation.filter;
 
 import java.util.Collections;
 import org.locationtech.jts.geom.Geometry;
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.csw.xml.QueryConstraint;
 import org.geotoolkit.filter.SpatialFilterType;
 import org.geotoolkit.geometry.jts.SRIDGenerator;
@@ -99,7 +98,7 @@ public abstract class AbstractFilterParser implements FilterParser {
     /**
      * use for debugging purpose
      */
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.metadata");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.metadata");
 
     protected static final String UNKNOW_CRS_ERROR_MSG = "Unknow Coordinate Reference System: ";
 

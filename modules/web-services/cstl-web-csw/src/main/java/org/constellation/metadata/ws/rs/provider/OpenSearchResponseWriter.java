@@ -25,7 +25,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.ops.xml.OpenSearchResponse;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
@@ -40,7 +39,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  */
 public class OpenSearchResponseWriter implements HttpMessageConverter<OpenSearchResponse> {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.metadata.ws.rs.provider");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.metadata.ws.rs.provider");
 
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {

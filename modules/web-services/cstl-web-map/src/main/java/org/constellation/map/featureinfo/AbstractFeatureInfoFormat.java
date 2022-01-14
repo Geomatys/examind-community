@@ -28,7 +28,6 @@ import java.util.logging.Logger;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Resource;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.api.DataType;
 import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
 import org.constellation.ws.LayerCache;
@@ -39,8 +38,6 @@ import org.geotoolkit.display2d.GO2Hints;
 import org.geotoolkit.display2d.GraphicVisitor;
 import org.geotoolkit.display2d.canvas.RenderingContext2D;
 import org.apache.sis.internal.map.Presentation;
-import org.geotoolkit.display2d.primitive.ProjectedCoverage;
-import org.geotoolkit.display2d.primitive.ProjectedFeature;
 import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.DefaultPortrayalService;
@@ -57,7 +54,7 @@ import org.opengis.util.GenericName;
  */
 public abstract class AbstractFeatureInfoFormat implements FeatureInfoFormat {
 
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.map.featureinfo");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.map.featureinfo");
 
     /**
      * Contains the values for all coverage layers requested.

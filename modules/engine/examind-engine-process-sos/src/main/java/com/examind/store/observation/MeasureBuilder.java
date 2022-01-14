@@ -30,7 +30,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.sos.MeasureStringBuilder;
 
 /**
@@ -39,7 +38,7 @@ import org.geotoolkit.sos.MeasureStringBuilder;
  */
 public class MeasureBuilder {
     
-    private static final Logger LOGGER = Logging.getLogger("com.examind.store.observation");
+    private static final Logger LOGGER = Logger.getLogger("com.examind.store.observation");
             
     private final LinkedHashMap<Number, LinkedHashMap<String, Double>> mmb = new LinkedHashMap<>();
      

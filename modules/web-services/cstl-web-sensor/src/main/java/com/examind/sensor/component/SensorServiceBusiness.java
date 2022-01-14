@@ -30,7 +30,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXBException;
 import org.apache.sis.storage.FeatureQuery;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.Sensor;
@@ -82,7 +81,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class SensorServiceBusiness {
 
-    private static final Logger LOGGER = Logging.getLogger("com.examind.sensor.component");
+    private static final Logger LOGGER = Logger.getLogger("com.examind.sensor.component");
 
     @Autowired
     protected ISensorBusiness sensorBusiness;

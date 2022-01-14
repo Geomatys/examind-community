@@ -31,11 +31,10 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPOutputStream;
-import org.apache.sis.util.logging.Logging;
 
 public class GZipServletFilter implements Filter {
 
-  private static final Logger LOGGER  = Logging.getLogger("org.constellation.admin.web.filter.gzip");
+  private static final Logger LOGGER  = Logger.getLogger("org.constellation.admin.web.filter.gzip");
 
   @Override
   public void init(FilterConfig filterConfig) throws ServletException {

@@ -28,8 +28,6 @@ import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
-import org.constellation.configuration.ConfigDirectory;
 
 /**
  *
@@ -37,7 +35,7 @@ import org.constellation.configuration.ConfigDirectory;
  */
 public class TestDatabaseHandler {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.test.utils");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.test.utils");
 
     public static Properties testProperties = new Properties();
 

@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.metadata.JsonMetadataConstants;
 import static org.constellation.dto.metadata.JsonMetadataConstants.getLastOrdinal;
 import static org.constellation.dto.metadata.JsonMetadataConstants.isNumeratedPath;
@@ -45,7 +44,7 @@ import org.constellation.dto.metadata.SuperBlock;
  */
 public class TemplateTree {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.json.metadata");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.json.metadata");
 
     private final List<ValueNode> nodes = new ArrayList<>();
 

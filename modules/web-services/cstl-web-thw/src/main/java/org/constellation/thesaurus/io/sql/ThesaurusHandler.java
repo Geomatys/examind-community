@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.StringTokenizer;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
 
 import org.constellation.thesaurus.api.IThesaurusHandler;
 
@@ -49,7 +48,7 @@ import org.geotoolkit.thw.model.Word;
  */
 public class ThesaurusHandler implements IThesaurusHandler {
 
-    private static final Logger LOGGER = Logging.getLogger("oorg.constellation.thesaurus.io.sql");
+    private static final Logger LOGGER = Logger.getLogger("oorg.constellation.thesaurus.io.sql");
 
     /**
      * A list of thesaurus.

@@ -27,7 +27,6 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Resource;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.provider.Data;
 import org.constellation.provider.DefaultCoverageData;
 import org.constellation.provider.DefaultFeatureData;
@@ -47,7 +46,7 @@ import org.springframework.stereotype.Component;
 @Primary
 public class DefaultExaDataCreator implements ExaDataCreator {
 
-    protected static final Logger LOGGER = Logging.getLogger("com.examind.provider.component");
+    protected static final Logger LOGGER = Logger.getLogger("com.examind.provider.component");
 
     @Override
     public Data create(final String dataName, Date version, final DataStore store, final Resource rs) throws DataStoreException {

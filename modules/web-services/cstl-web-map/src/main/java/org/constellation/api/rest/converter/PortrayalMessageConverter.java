@@ -25,7 +25,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.portrayal.CstlPortrayalService;
 import org.constellation.portrayal.PortrayalResponse;
 import org.geotoolkit.display.PortrayalException;
@@ -47,7 +46,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  */
 public class PortrayalMessageConverter implements HttpMessageConverter<PortrayalResponse> {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.rest.api");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.rest.api");
 
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {

@@ -23,7 +23,6 @@ import org.apache.sis.internal.feature.jts.JTS;
 import org.locationtech.jts.geom.Geometry;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.CRS;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.service.config.sos.SensorMLTree;
 import org.geotoolkit.gml.GeometrytoJTS;
 import org.geotoolkit.gml.xml.AbstractFeature;
@@ -71,7 +70,6 @@ import static org.geotoolkit.sml.xml.SensorMLUtilities.getSmlID;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.ObservationProvider;
 import org.geotoolkit.filter.FilterUtilities;
-import org.geotoolkit.sml.xml.SensorMLUtilities;
 import static org.geotoolkit.sml.xml.SensorMLUtilities.getOMType;
 import org.opengis.filter.FilterFactory;
 import org.opengis.observation.CompositePhenomenon;
@@ -86,7 +84,7 @@ public final class SensorUtils {
     /**
      * use for debugging purpose
      */
-    private static final Logger LOGGER = Logging.getLogger("com.examind.sensor.ws");
+    private static final Logger LOGGER = Logger.getLogger("com.examind.sensor.ws");
 
     private SensorUtils() {}
 

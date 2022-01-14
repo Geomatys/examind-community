@@ -32,7 +32,6 @@ import java.util.logging.Logger;
 import org.apache.sis.cql.CQLException;
 import org.apache.sis.util.ObjectConverters;
 import org.apache.sis.util.Static;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.json.binding.ChannelSelection;
 import org.constellation.json.binding.DynamicRangeSymbolizer;
 import org.constellation.json.binding.IsolineSymbolizer;
@@ -64,7 +63,7 @@ import org.opengis.filter.NilOperator;
  */
 public final class StyleUtilities extends Static {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.json.util");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.json.util");
 
     public static final Function<String, Color> COLOR_CONVERTER;
     static {

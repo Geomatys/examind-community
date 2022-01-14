@@ -29,11 +29,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.util.NullArgumentException;
-import org.apache.sis.util.logging.Logging;
 import static org.constellation.api.CommonConstants.NULL_VALUE;
 import org.constellation.api.PathType;
 import static org.constellation.metadata.CSWQueryable.DUBLIN_CORE_QUERYABLE;
@@ -55,7 +53,7 @@ import org.opengis.geometry.Envelope;
  */
 public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
 
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.metadata.index.elasticsearch.ElasticSearchIndexer");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.metadata.index.elasticsearch.ElasticSearchIndexer");
 
     protected final ElasticSearchClient client;
 

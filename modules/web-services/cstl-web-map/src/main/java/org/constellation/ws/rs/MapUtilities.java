@@ -18,7 +18,6 @@
  */
 package org.constellation.ws.rs;
 
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.sld.MutableStyledLayerDescriptor;
 import org.geotoolkit.sld.xml.Specification;
 import org.geotoolkit.sld.xml.StyleXmlIO;
@@ -37,7 +36,7 @@ import java.util.logging.Logger;
  */
 public class MapUtilities {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.ws.rs");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.ws.rs");
 
     public static MutableStyledLayerDescriptor toSLD(final String sldBody, final String sldURL,
                                                      final Specification.StyledLayerDescriptor version) throws MalformedURLException {

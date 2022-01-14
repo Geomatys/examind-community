@@ -31,7 +31,6 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 
@@ -50,7 +49,7 @@ public class TokenUtils {
 
     private static final String TOKEN_SEPARATOR = "_";
 
-    private final static Logger LOGGER = Logging.getLogger("org.constellation.token");
+    private final static Logger LOGGER = Logger.getLogger("org.constellation.token");
 
     public static final long tokenHalfLife = initTokenHalfLife();
 

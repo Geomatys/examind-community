@@ -26,7 +26,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IUserBusiness;
 import org.constellation.dto.UserWithRole;
 import org.constellation.engine.security.AuthenticationProxy;
@@ -48,7 +47,7 @@ import org.springframework.security.core.userdetails.UserDetails;
  */
 public class CstlAuthenticationProxy implements AuthenticationProxy {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.services.security");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.services.security");
 
     @Autowired
     private TokenService tokenService;

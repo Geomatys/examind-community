@@ -24,7 +24,6 @@ package org.constellation.store.metadata;
 import org.apache.sis.metadata.iso.citation.DefaultCitationDate;
 import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
 import org.apache.sis.util.SimpleInternationalString;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.generic.Values;
 import org.geotoolkit.ows.xml.v100.BoundingBoxType;
 import org.opengis.metadata.citation.CitationDate;
@@ -61,7 +60,7 @@ public final class GenericMetadataUtilities {
     /**
      * A List of date formatter.
      */
-    private static final List<DateFormat> DATE_FORMATS = new ArrayList<DateFormat>();
+    private static final List<DateFormat> DATE_FORMATS = new ArrayList<>();
     static {
         DATE_FORMATS.add(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
         DATE_FORMATS.add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss"));
@@ -72,7 +71,7 @@ public final class GenericMetadataUtilities {
     /**
      * A debugging logger
      */
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.metadata.io.generic");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.metadata.io.generic");
 
     /**
      * Avoid the IllegalArgumentException when the variable value is null.
@@ -175,7 +174,7 @@ public final class GenericMetadataUtilities {
      */
     private static List<Double[]> getCoordinateList(final String westVar, final String eastVar,
             final String southVar, final String northVar, final Values values) {
-        final List<Double[]> result = new ArrayList<Double[]>();
+        final List<Double[]> result = new ArrayList<>();
 
         final List<String> w = values.getVariables(westVar);
         final List<String> e = values.getVariables(eastVar);
@@ -255,7 +254,7 @@ public final class GenericMetadataUtilities {
      */
     public static List<GeographicExtent> createGeographicExtent(final String westVar, final String eastVar,
             final String southVar, final String northVar, final Values values) {
-        final List<GeographicExtent> result = new ArrayList<GeographicExtent>();
+        final List<GeographicExtent> result = new ArrayList<>();
         final List<Double[]> coordinates = getCoordinateList(westVar, eastVar, southVar, northVar, values);
 
         final int size = coordinates.size();
@@ -280,7 +279,7 @@ public final class GenericMetadataUtilities {
      */
     public static List<BoundingBoxType> createBoundingBoxes(final String westVar, final String eastVar,
             final String southVar, final String northVar, final Values values) {
-        final List<BoundingBoxType> result = new ArrayList<BoundingBoxType>();
+        final List<BoundingBoxType> result = new ArrayList<>();
         final List<Double[]> coordinates = getCoordinateList(westVar, eastVar, southVar, northVar, values);
 
         final int size = coordinates.size();

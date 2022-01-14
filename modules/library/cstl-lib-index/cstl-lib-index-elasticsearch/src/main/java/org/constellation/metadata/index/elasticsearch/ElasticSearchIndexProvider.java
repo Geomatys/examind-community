@@ -20,7 +20,6 @@
 package org.constellation.metadata.index.elasticsearch;
 
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.filter.ElasticSearchFilterParser;
 import org.constellation.filter.FilterParser;
@@ -39,7 +38,7 @@ import org.springframework.stereotype.Component;
 @Component(value = "es-node")
 public class ElasticSearchIndexProvider implements IndexProvider {
 
-    private static final Logger LOGGER = Logging.getLogger("ElasticSearchIndexProvider");
+    private static final Logger LOGGER = Logger.getLogger("ElasticSearchIndexProvider");
 
     public static final String INDEX_TYPE = "es-node";
 

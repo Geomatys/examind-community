@@ -18,7 +18,6 @@
  */
 package org.constellation.api.rest.converter;
 
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.xml.parameter.ParameterDescriptorWriter;
 import org.opengis.parameter.GeneralParameterDescriptor;
 
@@ -41,7 +40,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  */
 public class GeneralParameterDescriptorConverter implements HttpMessageConverter<GeneralParameterDescriptor> {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.ws.rs.provider");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.ws.rs.provider");
 
     @Override
     public boolean canRead(Class<?> type, MediaType mt) {

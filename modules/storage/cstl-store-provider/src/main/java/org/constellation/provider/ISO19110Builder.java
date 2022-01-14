@@ -36,7 +36,6 @@ import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.iso.DefaultNameFactory;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
@@ -68,7 +67,7 @@ import org.opengis.util.TypeName;
  */
 public class ISO19110Builder {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.provider");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.provider");
 
     public static FeatureCatalogue createCatalogueFromProvider(final int providerID) throws ConstellationException {
         DataProvider provider = DataProviders.getProvider(providerID);

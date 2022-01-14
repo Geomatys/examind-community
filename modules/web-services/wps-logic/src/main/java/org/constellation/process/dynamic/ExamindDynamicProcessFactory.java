@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.parameter.ParameterBuilder;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.exception.ConstellationException;
 import org.constellation.process.dynamic.cwl.RunCWLDescriptor;
 import org.constellation.process.dynamic.pbs.RunPBSDescriptor;
@@ -55,7 +54,7 @@ import org.opengis.util.NoSuchIdentifierException;
  */
 public class ExamindDynamicProcessFactory implements ProcessingRegistry {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.process");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.process");
 
     /**Factory name*/
     public static final String NAME = "examind-dynamic";

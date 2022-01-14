@@ -20,7 +20,6 @@
 package org.constellation.wps.ws.rs;
 
 import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
 import org.geotoolkit.feature.xml.XmlFeatureWriter;
 import org.geotoolkit.feature.xml.jaxp.JAXPStreamFeatureWriter;
@@ -45,7 +44,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  */
 public class FeatureSetWriter implements HttpMessageConverter<FeatureSet> {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.wps.ws.rs");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.wps.ws.rs");
 
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {

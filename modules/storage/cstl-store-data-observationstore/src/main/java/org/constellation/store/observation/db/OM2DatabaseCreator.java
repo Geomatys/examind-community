@@ -18,7 +18,6 @@
  */
 package org.constellation.store.observation.db;
 
-import org.apache.sis.util.logging.Logging;
 import org.constellation.util.Util;
 import org.geotoolkit.internal.sql.ScriptRunner;
 
@@ -40,7 +39,7 @@ import org.geotoolkit.nio.IOUtilities;
  */
 public class OM2DatabaseCreator {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.om2");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.om2");
 
     private final static String LAST_VERSION = "1.1.0";
 

@@ -21,7 +21,6 @@ package org.constellation.json.binding;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.json.util.StyleUtilities;
 import org.geotoolkit.style.StyleConstants;
 import org.geotoolkit.style.function.Method;
@@ -46,7 +45,7 @@ import org.opengis.filter.ValueReference;
  */
 public final class Interpolate implements Function {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.json.binding");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.json.binding");
 
     private static final long serialVersionUID = 1L;
 

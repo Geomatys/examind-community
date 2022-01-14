@@ -48,7 +48,6 @@ import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
 import org.apache.sis.test.xml.DocumentComparator;
 import org.apache.sis.util.ComparisonMode;
 import org.apache.sis.util.SimpleInternationalString;
-import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.apache.sis.xml.XML;
 import static org.constellation.metadata.core.CSWConstants.OUTPUT_SCHEMA;
@@ -149,7 +148,7 @@ public class CSWWorker3Test {
 
     protected static MarshallerPool pool;
 
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.metadata");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.metadata");
 
     protected boolean typeCheckUpdate = true;
 

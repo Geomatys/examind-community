@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.Sensor;
@@ -50,7 +49,7 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration("classpath:/cstl/spring/test-context.xml")
 public class SensorBusinessTest {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
     @Autowired
     private ISensorBusiness sensorBusiness;

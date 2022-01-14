@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.logging.Logger;
 import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.api.DataType;
 import org.constellation.api.ServiceDef;
 import org.constellation.dto.DimensionRange;
@@ -44,7 +43,7 @@ import org.opengis.util.GenericName;
  */
 public class LayerCache {
     
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.ws");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.ws");
 
     private final NameInProvider nip;
     private final GenericName name;

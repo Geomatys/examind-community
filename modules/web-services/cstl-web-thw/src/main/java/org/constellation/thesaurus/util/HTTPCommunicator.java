@@ -33,7 +33,6 @@ import javax.xml.bind.Unmarshaller;
 import org.geotoolkit.csw.xml.GetRecordById;
 import org.geotoolkit.csw.xml.GetRecordsRequest;
 import org.geotoolkit.ows.xml.RequestBase;
-import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.ws.CstlServiceException;
 
@@ -47,7 +46,7 @@ import org.constellation.ws.CstlServiceException;
 /* Prior to 2.0.5 this was HTTPUtils but we split out the other methods. */
 public final class HTTPCommunicator {
 
-    private static final Logger LOGGER = Logging.getLogger(HTTPCommunicator.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(HTTPCommunicator.class.getName());
 
     private HTTPCommunicator() {
     }

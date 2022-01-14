@@ -33,7 +33,6 @@ import org.apache.sis.referencing.NamedIdentifier;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.Resource;
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.sensor.AbstractSensorStore;
 import org.constellation.sos.io.filesystem.FileSensorReader;
 import org.constellation.sos.io.filesystem.FileSensorWriter;
@@ -48,7 +47,7 @@ import org.opengis.util.GenericName;
  */
 public class FileSystemSensorStore extends AbstractSensorStore implements Resource {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.store");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.store");
 
     public FileSystemSensorStore(ParameterValueGroup source) {
         super(source);

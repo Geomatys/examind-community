@@ -5,7 +5,6 @@ import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.SortedNumericSortField;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CommonCRS;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.metadata.index.AbstractCSWIndexer;
 import org.geotoolkit.index.LogicalFilterType;
 import org.geotoolkit.lucene.filter.LuceneOGCSpatialQuery;
@@ -44,7 +43,7 @@ public abstract class AbstractGenericIndexTest {
         return FilterUtilities.FF;
     }
 
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.metadata");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.metadata");
 
 
     public void simpleSearchTest(LuceneIndexSearcher indexSearcher) throws Exception {

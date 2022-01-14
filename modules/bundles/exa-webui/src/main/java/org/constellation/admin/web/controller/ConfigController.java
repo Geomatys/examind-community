@@ -33,13 +33,11 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
 
 @Controller
 public class ConfigController {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.admin.web.controller");
-
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin.web.controller");
 
     public ConfigController() {
         LOGGER.finer("ConfigController construct");

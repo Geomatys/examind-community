@@ -20,7 +20,6 @@
 package org.constellation.admin;
 
 import java.util.AbstractMap;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.exception.ConstellationException;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IMetadataBusiness;
@@ -46,7 +45,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
-import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IUserBusiness;
 import org.constellation.dto.metadata.MetadataLightBrief;
@@ -68,7 +66,7 @@ public class DatasetBusiness implements IDatasetBusiness {
     /**
      * Used for debugging purposes.
      */
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
     /**
      * Injected user business.

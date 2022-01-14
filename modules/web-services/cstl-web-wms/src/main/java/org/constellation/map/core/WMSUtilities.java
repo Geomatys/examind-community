@@ -22,7 +22,6 @@ import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.ext.legend.DefaultLegendService;
 import org.geotoolkit.display2d.ext.legend.LegendTemplate;
@@ -40,7 +39,7 @@ import org.opengis.style.Style;
  */
 public class WMSUtilities {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.map.ws");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.map.ws");
 
     public static BufferedImage getLegendGraphic(final MapItem mapItem, Dimension dimension, final LegendTemplate template,
                                           final Style style, final String rule, final Double scale)

@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
 import static org.constellation.api.CommonConstants.QUERY_CONSTRAINT;
 import org.constellation.filter.FilterParserException;
 import org.constellation.filter.FilterParserUtils;
@@ -71,7 +70,7 @@ import org.opengis.util.FactoryException;
  */
 public class SpatialFilterBuilder {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.metadata.index.elasticsearch");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.metadata.index.elasticsearch");
     
     public static XContentBuilder build(Filter filter, boolean withPlugin) throws IOException, FilterParserException {
         XContentBuilder builder = XContentFactory.jsonBuilder();

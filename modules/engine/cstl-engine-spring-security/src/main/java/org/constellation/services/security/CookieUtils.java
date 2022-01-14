@@ -27,7 +27,6 @@ import java.util.logging.Logger;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.sis.util.logging.Logging;
 import static org.constellation.configuration.AppProperty.EXA_COOKIE_DOMAIN;
 import static org.constellation.configuration.AppProperty.EXA_COOKIE_SECURE;
 import org.constellation.configuration.Application;
@@ -39,7 +38,7 @@ import org.springframework.http.HttpHeaders;
  */
 public class CookieUtils {
 
-    private static final Logger LOGGER = Logging.getLogger("com.examind.oauth");
+    private static final Logger LOGGER = Logger.getLogger("com.examind.oauth");
 
     /**
      * Extract the specified cookie in the request.

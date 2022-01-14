@@ -23,9 +23,6 @@ import java.nio.file.Path;
 
 import java.util.*;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
-import org.constellation.business.IProviderBusiness;
-import org.constellation.dto.ProviderBrief;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.util.Util;
 
@@ -35,7 +32,7 @@ import org.constellation.util.Util;
  * @author Guilhem Legal (Geomatys)
  */
 public class CsvFlatUtils {
-    private static final Logger LOGGER = Logging.getLogger("com.examind.store.observation.csvflat");
+    private static final Logger LOGGER = Logger.getLogger("com.examind.store.observation.csvflat");
 
     public static Set<String> extractCodes(Path dataFile, Collection<String> measureCodeColumns, char separator) throws ConstellationStoreException {
         try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), separator)) {

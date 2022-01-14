@@ -22,11 +22,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.sis.util.logging.Logging;
 
 public final class GZipResponseUtil {
 
-    private static final Logger LOG = Logging.getLogger("org.constellation.admin.web.filter.gzip");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin.web.filter.gzip");
 
     /**
      * Gzipping an empty file or stream always results in a 20 byte output
@@ -58,8 +57,8 @@ public final class GZipResponseUtil {
 
         //Check for 0 length body
         if (compressedBytes.length == EMPTY_GZIPPED_CONTENT_SIZE) {
-            if (LOG.isLoggable(Level.FINEST)) {
-                LOG.finest(request.getRequestURL() + " resulted in an empty response.");
+            if (LOGGER.isLoggable(Level.FINEST)) {
+                LOGGER.finest(request.getRequestURL() + " resulted in an empty response.");
             }
             return true;
         } else {
@@ -84,8 +83,8 @@ public final class GZipResponseUtil {
 
         //Check for NO_CONTENT
         if (responseStatus == HttpServletResponse.SC_NO_CONTENT) {
-            if (LOG.isLoggable(Level.FINER)) {
-                LOG.log(Level.FINER, "{0} resulted in a {1} response. Removing message body in accordance with RFC2616.",
+            if (LOGGER.isLoggable(Level.FINER)) {
+                LOGGER.log(Level.FINER, "{0} resulted in a {1} response. Removing message body in accordance with RFC2616.",
                         new Object[]{request.getRequestURL(), HttpServletResponse.SC_NO_CONTENT});
             }
             return true;
@@ -93,8 +92,8 @@ public final class GZipResponseUtil {
 
         //Check for NOT_MODIFIED
         if (responseStatus == HttpServletResponse.SC_NOT_MODIFIED) {
-            if (LOG.isLoggable(Level.FINER)) {
-                LOG.log(Level.FINER, "{0} resulted in a {1} response. Removing message body in accordance with RFC2616.",
+            if (LOGGER.isLoggable(Level.FINER)) {
+                LOGGER.log(Level.FINER, "{0} resulted in a {1} response. Removing message body in accordance with RFC2616.",
                         new Object[]{request.getRequestURL(), HttpServletResponse.SC_NOT_MODIFIED});
             }
             return true;

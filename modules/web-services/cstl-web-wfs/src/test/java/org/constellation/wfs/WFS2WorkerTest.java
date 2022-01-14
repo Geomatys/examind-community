@@ -38,7 +38,6 @@ import javax.inject.Inject;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
-import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IDataBusiness;
@@ -104,7 +103,7 @@ import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 @ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-context.xml"})
 public class WFS2WorkerTest {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.wfs");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.wfs");
 
     private static final ObjectFactory wfsFactory = new ObjectFactory();
     private static final org.geotoolkit.ogc.xml.v200.ObjectFactory ogcFactory = new org.geotoolkit.ogc.xml.v200.ObjectFactory();

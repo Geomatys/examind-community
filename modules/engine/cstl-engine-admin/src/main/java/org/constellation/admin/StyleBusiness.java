@@ -18,7 +18,6 @@
  */
 package org.constellation.admin;
 
-import org.apache.sis.util.logging.Logging;
 import org.constellation.business.*;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.DataBrief;
@@ -107,7 +106,7 @@ public class StyleBusiness implements IStyleBusiness {
     /**
      * Logger used for debugging and event notification.
      */
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
     /**
      * There are only two style groups.

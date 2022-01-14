@@ -21,8 +21,8 @@ package org.constellation.sos.ws;
 
 import java.io.File;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.sos.core.SOSworker;
@@ -80,7 +80,7 @@ public class GenericPostgridSOS2WorkerTest extends SOS2WorkerTest {
 
             }
         } catch (Exception ex) {
-            Logging.getLogger("org.constellation.sos.ws").log(Level.SEVERE, null, ex);
+            Logger.getLogger("org.constellation.sos.ws").log(Level.SEVERE, null, ex);
         }
     }
 

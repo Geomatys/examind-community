@@ -48,7 +48,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.storage.FeatureSet;
 
-import org.apache.sis.util.logging.Logging;
 import org.constellation.test.utils.TestEnvironment.DataImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
@@ -90,7 +89,7 @@ public class WFSServiceTest {
 
     private static final String CONFIG_DIR_NAME = "WFSServiceTest" + UUID.randomUUID().toString();
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.wfs");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.wfs");
 
     @BeforeClass
     public static void initTestDir() {

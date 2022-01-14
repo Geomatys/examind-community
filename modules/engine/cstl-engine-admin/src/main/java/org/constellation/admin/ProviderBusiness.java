@@ -35,7 +35,6 @@ import javax.inject.Inject;
 import javax.xml.namespace.QName;
 import org.apache.sis.parameter.Parameters;
 import org.apache.sis.storage.DataStoreProvider;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.api.DataType;
 import org.constellation.api.ProviderType;
 import org.constellation.business.*;
@@ -77,7 +76,7 @@ import org.w3c.dom.Node;
 @Component("providerBusiness")
 @Primary
 public class ProviderBusiness implements IProviderBusiness {
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
     @Inject
     private IUserBusiness userBusiness;

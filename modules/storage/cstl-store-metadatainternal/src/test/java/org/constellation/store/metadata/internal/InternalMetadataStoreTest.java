@@ -26,7 +26,6 @@ import javax.annotation.PostConstruct;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.test.xml.DocumentComparator;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IInternalMetadataBusiness;
 import org.constellation.configuration.ConfigDirectory;
@@ -65,7 +64,7 @@ public class InternalMetadataStoreTest {
 
     private static boolean initialized = false;
 
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.store.metadata.internal");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.store.metadata.internal");
 
     private static InternalMetadataStore inStore1;
 
@@ -111,6 +110,7 @@ public class InternalMetadataStoreTest {
                 final ParameterValueGroup params = factory.getOpenParameters().createValue();
 
                 inStore1 = (InternalMetadataStore) factory.open(params);
+                initialized = true;
             }
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, null, ex);

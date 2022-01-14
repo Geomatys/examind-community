@@ -33,9 +33,6 @@ import javax.sql.DataSource;
 import java.sql.*;
 import java.util.concurrent.locks.Lock;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
-import org.constellation.configuration.AppProperty;
-import org.constellation.configuration.Application;
 
 /**
  * Bean used to initialize/migrate database in Spring context.
@@ -45,7 +42,7 @@ import org.constellation.configuration.Application;
 @Configuration
 public class FlywaySpring {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.database.configuration");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.database.configuration");
 
     @Autowired
     @Qualifier(value = "dataSource")

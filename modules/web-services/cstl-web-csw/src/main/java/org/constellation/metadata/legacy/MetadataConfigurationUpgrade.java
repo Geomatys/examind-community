@@ -23,7 +23,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import org.constellation.exception.ConstellationException;
 import org.constellation.business.IClusterBusiness;
@@ -64,7 +63,7 @@ public class MetadataConfigurationUpgrade {
     @Inject
     private IClusterBusiness clusterBusiness;
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.metadata.legacy");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.metadata.legacy");
 
     public MetadataConfigurationUpgrade() {
         SpringHelper.injectDependencies(this);

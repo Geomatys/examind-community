@@ -61,10 +61,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
-import javax.imageio.spi.ImageReaderSpi;
-import javax.imageio.spi.ImageWriterSpi;
 import javax.inject.Inject;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
@@ -75,8 +72,6 @@ import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.test.utils.TestEnvironment.ProviderImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
-import org.geotoolkit.image.io.plugin.WorldFileImageReader;
-import org.geotoolkit.image.jai.Registry;
 import org.junit.AfterClass;
 
 import static org.junit.Assert.assertEquals;
@@ -107,7 +102,7 @@ import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 @ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-context.xml"})
 public class WCSWorkerOutputTest {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.coverage.ws");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.coverage.ws");
     /**
      * The layer to test.
      */

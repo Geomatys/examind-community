@@ -30,7 +30,6 @@ import java.util.Optional;
 import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.dto.CstlUser;
 import org.constellation.business.IUserBusiness;
@@ -56,7 +55,7 @@ public abstract class AbstractRestAPI {
     /**
      * Rest API logger
      */
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.rest.api");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.rest.api");
 
 
     protected void assertNotNullOrEmpty(final String param, final Object value) throws ConstellationException {

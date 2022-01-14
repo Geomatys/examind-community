@@ -18,8 +18,6 @@
  */
 package org.constellation.metadata.index.elasticsearch;
 
-import org.apache.sis.util.logging.Logging;
-
 import org.constellation.metadata.CSWQueryable;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.TestRunner;
@@ -76,7 +74,7 @@ public class ElasticSearchIndexTest {
     protected static final DefaultFilterFactory FF = FilterUtilities.FF;
 
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.metadata");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.metadata");
 
     private static ElasticSearchIndexSearcher indexSearcher;
 

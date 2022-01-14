@@ -21,7 +21,6 @@ package org.constellation.sos.io.generic;
 
 
 import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.dto.service.config.generic.BDD;
 import org.constellation.dto.service.config.generic.Query;
@@ -99,7 +98,7 @@ public abstract class AbstractGenericObservationFilter implements ObservationFil
     /**
      * use for debugging purpose
      */
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.sos.io.generic");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.sos.io.generic");
 
     public AbstractGenericObservationFilter(final Automatic configuration, final Map<String, Object> properties) throws DataStoreException {
         this.observationIdBase         = (String) properties.get(OBSERVATION_ID_BASE_NAME);

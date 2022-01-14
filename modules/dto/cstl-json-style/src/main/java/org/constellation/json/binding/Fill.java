@@ -19,7 +19,6 @@
 
 package org.constellation.json.binding;
 
-import org.apache.sis.util.logging.Logging;
 import org.constellation.json.util.StyleUtilities;
 import org.opengis.filter.Expression;
 
@@ -40,7 +39,7 @@ public final class Fill implements StyleElement<org.opengis.style.Fill> {
     /**
      * Used for debugging purposes.
      */
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.json.binding");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.json.binding");
 
     private String color   = "#555555";
     private String opacity = "1.0";

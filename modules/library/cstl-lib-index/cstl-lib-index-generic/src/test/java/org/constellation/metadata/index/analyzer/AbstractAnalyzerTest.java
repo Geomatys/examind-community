@@ -24,7 +24,6 @@ import org.apache.lucene.search.SortField;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.referencing.CommonCRS;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.util.Util;
 import org.geotoolkit.csw.xml.CSWMarshallerPool;
 import org.geotoolkit.index.LogicalFilterType;
@@ -65,7 +64,7 @@ public abstract class AbstractAnalyzerTest {
 
     protected static final DefaultFilterFactory FF = FilterUtilities.FF;
 
-    protected static final Logger logger = Logging.getLogger("org.constellation.metadata.index.generic");
+    protected static final Logger logger = Logger.getLogger("org.constellation.metadata.index.generic");
 
     protected static LuceneIndexSearcher indexSearcher;
 

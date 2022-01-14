@@ -24,7 +24,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.Identifiable;
@@ -35,7 +34,7 @@ import org.constellation.dto.Identifiable;
  */
 public abstract class AbstractFileSystemRepository {
 
-    protected static final Logger LOGGER = Logging.getLogger("com.examind.repository.filesystem");
+    protected static final Logger LOGGER = Logger.getLogger("com.examind.repository.filesystem");
 
     protected MarshallerPool pool;
 

@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.parameter.Parameters;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import org.constellation.dto.Data;
 import org.constellation.repository.DataRepository;
@@ -43,7 +42,7 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
  */
 public class DataStatisticsListener extends ProcessListenerAdapter {
 
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
     private final int dataId;
 

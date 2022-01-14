@@ -21,7 +21,6 @@ package org.constellation.sos.io.filesystem;
 
 
 import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.geotoolkit.gml.xml.AbstractGeometry;
@@ -74,7 +73,7 @@ public class FileObservationReader implements ObservationReader {
      /**
      * use for debugging purpose
      */
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.sos.io.filesystem");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.sos.io.filesystem");
 
     /**
      * The base for observation id.

@@ -46,14 +46,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
 
 @Configuration
 @ComponentScan("org.constellation.admin.web")
 @EnableWebMvc
 public class DispatcherServletConfiguration extends WebMvcConfigurerAdapter {
 
-    private final Logger log = Logging.getLogger("org.constellation.admin.conf");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin.conf");
 
     // 10 Mo max file size
     private static final int MAX_UPLOAD_SIZE = 10 * 1000 * 1000;
@@ -63,9 +62,9 @@ public class DispatcherServletConfiguration extends WebMvcConfigurerAdapter {
 
     @Bean
     public ViewResolver contentNegotiatingViewResolver() {
-        log.warning("Configuring the ContentNegotiatingViewResolver");
+        LOGGER.warning("Configuring the ContentNegotiatingViewResolver");
         ContentNegotiatingViewResolver viewResolver = new ContentNegotiatingViewResolver();
-        List<ViewResolver> viewResolvers = new ArrayList<ViewResolver>();
+        List<ViewResolver> viewResolvers = new ArrayList<>();
 
         UrlBasedViewResolver urlBasedViewResolver = new UrlBasedViewResolver();
         urlBasedViewResolver.setViewClass(JstlView.class);
@@ -89,7 +88,7 @@ public class DispatcherServletConfiguration extends WebMvcConfigurerAdapter {
 
     @Bean
     public LocaleChangeInterceptor localeChangeInterceptor() {
-        log.finer("Configuring localeChangeInterceptor");
+        LOGGER.finer("Configuring localeChangeInterceptor");
         LocaleChangeInterceptor localeChangeInterceptor = new LocaleChangeInterceptor();
         localeChangeInterceptor.setParamName("language");
         return localeChangeInterceptor;
@@ -97,7 +96,7 @@ public class DispatcherServletConfiguration extends WebMvcConfigurerAdapter {
 
     @Bean
     public MessageSource messageSource() {
-        log.finer("Loading MessageSources");
+        LOGGER.finer("Loading MessageSources");
         ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
         messageSource.setBasename("/WEB-INF/messages/messages");
         messageSource.setDefaultEncoding(StandardCharsets.UTF_8.name());
@@ -110,7 +109,7 @@ public class DispatcherServletConfiguration extends WebMvcConfigurerAdapter {
 
     @Bean
     public RequestMappingHandlerMapping requestMappingHandlerMapping() {
-        log.finer("Creating requestMappingHandlerMapping");
+        LOGGER.finer("Creating requestMappingHandlerMapping");
         RequestMappingHandlerMapping requestMappingHandlerMapping = new RequestMappingHandlerMapping();
         requestMappingHandlerMapping.setUseSuffixPatternMatch(false);
         Object[] interceptors = {localeChangeInterceptor()};
@@ -128,11 +127,11 @@ public class DispatcherServletConfiguration extends WebMvcConfigurerAdapter {
                                                  Object handler,
                                                  Exception ex) {
                 try {
-                    log.log(Level.SEVERE, "An error has occured: " + ex.getMessage(),ex);
+                    LOGGER.log(Level.SEVERE, "An error has occured: " + ex.getMessage(),ex);
                     response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                     return new ModelAndView();
                 } catch (Exception handlerException) {
-                    log.log(Level.WARNING, "Handling of [" + ex.getClass().getName() + "] resulted in Exception", handlerException);
+                    LOGGER.log(Level.WARNING, "Handling of [" + ex.getClass().getName() + "] resulted in Exception", handlerException);
                 }
                 return null;
             }

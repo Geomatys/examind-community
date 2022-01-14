@@ -29,7 +29,6 @@ import java.util.logging.Logger;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.api.rest.ErrorMessage;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
@@ -47,7 +46,7 @@ import org.springframework.http.ResponseEntity.BodyBuilder;
  */
 public class ResponseObject {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.ws.rs");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.ws.rs");
 
     private Object entity;
 

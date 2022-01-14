@@ -26,7 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.UserWithRole;
@@ -36,7 +35,7 @@ import org.junit.BeforeClass;
 
 public abstract class AbstractRepositoryTest {
 
-    protected final static Logger LOGGER = Logging.getLogger("com.examind.repository");
+    protected final static Logger LOGGER = Logger.getLogger("com.examind.repository");
 
     @Autowired
     DSLContext create;

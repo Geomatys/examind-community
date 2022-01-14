@@ -36,7 +36,6 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import org.apache.sis.util.ArraysExt;
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.display2d.GO2Hints;
 import org.geotoolkit.display2d.service.OutputDef;
 import org.geotoolkit.display2d.service.PortrayalExtension;
@@ -51,7 +50,7 @@ import org.geotoolkit.image.io.plugin.WorldFileImageWriter;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class WMSPortrayal {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.dto");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.dto");
 
     private static final String INTERPOLATION_NEAREST = "nearest";
     private static final String INTERPOLATION_BILINEAR = "bilinear";

@@ -18,7 +18,6 @@
  */
 package org.constellation.wps.ws.rs;
 
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.nio.IOUtilities;
 
 import java.io.File;
@@ -42,7 +41,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  */
 public class FileWriter implements HttpMessageConverter<File> {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.wps.ws.rs");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.wps.ws.rs");
 
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {

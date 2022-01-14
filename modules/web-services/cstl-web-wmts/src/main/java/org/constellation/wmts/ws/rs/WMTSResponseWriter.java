@@ -19,7 +19,6 @@
 
 package org.constellation.wmts.ws.rs;
 
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.wmts.xml.WMTSMarshallerPool;
 import org.geotoolkit.wmts.xml.WMTSResponse;
 
@@ -43,7 +42,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  */
 public class WMTSResponseWriter<T extends WMTSResponse>  implements HttpMessageConverter<T>  {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.map.ws.rs");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.map.ws.rs");
 
     @Override
     public boolean canRead(Class<?> type, MediaType mt) {

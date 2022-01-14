@@ -19,7 +19,6 @@
 
 package org.constellation.map.ws.rs;
 
-import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.writer.CapabilitiesFilterWriter;
 import org.geotoolkit.wms.xml.WMSMarshallerPool;
@@ -47,7 +46,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  */
 public class WMSResponseWriter implements HttpMessageConverter<WMSResponse> {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.map.ws.rs");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.map.ws.rs");
 
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {

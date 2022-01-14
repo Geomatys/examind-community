@@ -18,7 +18,6 @@
  */
 package org.constellation.process;
 
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
 import org.junit.Test;
@@ -46,7 +45,7 @@ import org.springframework.test.context.support.DirtiesContextTestExecutionListe
 @ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-context.xml"})
 public abstract class AbstractProcessTest {
 
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.process");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.process");
     private final String factory = ExamindProcessFactory.NAME;
     private final String process;
     

@@ -19,7 +19,6 @@
 package org.constellation.store.metadata.filesystem.sql;
 
 import java.io.ByteArrayInputStream;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.util.Util;
 
 import javax.sql.DataSource;
@@ -42,7 +41,7 @@ import org.geotoolkit.nio.IOUtilities;
  */
 public class MetadataDatasource {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.metadata.io.filesystem.sql");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.metadata.io.filesystem.sql");
 
     private final DataSource source;
 
@@ -62,7 +61,7 @@ public class MetadataDatasource {
      * @return a {@link org.constellation.store.metadata.filesystem.sql.Session} instance
      *
      * @throws  SQLException if a database access error occurs
-     * @throws org.apache.sis.storage.DataStoreException
+     * @throws org.geotoolkit.metadata.MetadataIoException If the schema prefix contains an invalid character.
      */
     public Session createSession() throws SQLException, MetadataIoException {
         final Connection c = source.getConnection();

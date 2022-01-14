@@ -19,9 +19,6 @@
 
 package org.constellation.sos.io.filesystem;
 
-// J2SE dependencies
-
-import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.sensor.SensorReader;
@@ -56,7 +53,7 @@ import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V200;
  */
 public class FileSensorReader implements SensorReader {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.sos.io.filesystem");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.sos.io.filesystem");
 
     /**
      * A JAXB unmarshaller used to unmarshall the xml files.

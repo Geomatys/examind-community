@@ -45,7 +45,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
 import org.apache.sis.geometry.GeneralEnvelope;
-import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.dto.StyleBrief;
 import org.constellation.dto.StyleReference;
@@ -75,7 +74,7 @@ import org.opengis.util.GenericName;
  */
 public final class Util {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.util");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.util");
 
     private static final XMLInputFactory XML_IN_FACTORY = XMLInputFactory.newFactory();
 

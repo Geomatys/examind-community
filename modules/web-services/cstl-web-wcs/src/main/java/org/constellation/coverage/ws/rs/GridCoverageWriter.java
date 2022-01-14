@@ -21,7 +21,6 @@ package org.constellation.coverage.ws.rs;
 
 import java.io.File;
 import java.io.FileInputStream;
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.image.io.metadata.SpatialMetadata;
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -59,7 +58,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  */
 public class GridCoverageWriter implements HttpMessageConverter<GeotiffResponse> {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.coverage.ws.rs");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.coverage.ws.rs");
 
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {

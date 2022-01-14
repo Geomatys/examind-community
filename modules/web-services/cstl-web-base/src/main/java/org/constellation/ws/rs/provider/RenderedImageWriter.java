@@ -30,7 +30,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
 
 import static org.geotoolkit.image.io.XImageIO.*;
 import org.springframework.http.MediaType;
@@ -49,7 +48,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  */
 public class RenderedImageWriter implements HttpMessageConverter<RenderedImage> {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.ws.rs.provider");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.ws.rs.provider");
 
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {

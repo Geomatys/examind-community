@@ -27,7 +27,6 @@ import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.api.rest.ErrorMessage;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IServiceBusiness;
@@ -51,7 +50,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("wps/{serviceId}/products")
 public class WPSResultService {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.wps.ws.rs");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.wps.ws.rs");
 
     @Inject
     protected IServiceBusiness serviceBusiness;

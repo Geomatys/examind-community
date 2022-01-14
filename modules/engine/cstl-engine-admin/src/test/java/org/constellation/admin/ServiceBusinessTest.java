@@ -33,12 +33,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Arrays;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.constellation.configuration.ConfigDirectory;
 import org.junit.BeforeClass;
 
-import org.apache.sis.util.logging.Logging;
-import org.constellation.dto.service.Instance;
 import org.constellation.dto.service.ServiceComplete;
 import org.constellation.exception.ConstellationException;
 
@@ -63,7 +62,7 @@ public class ServiceBusinessTest {
             }
             ConfigDirectory.shutdownTestEnvironement("ServiceBusinessTest");
         } catch (ConstellationException ex) {
-            Logging.getLogger("org.constellation.admin").log(Level.SEVERE, null, ex);
+            Logger.getLogger("org.constellation.admin").log(Level.SEVERE, null, ex);
         }
     }
 

@@ -27,7 +27,6 @@ import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.DataStoreProvider;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.test.utils.SpringTestRunner;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
@@ -61,7 +60,7 @@ import org.springframework.test.context.support.DirtiesContextTestExecutionListe
 @RunWith(SpringTestRunner.class)
 public class NetCDFMetadataStoreTest {
 
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.store.metadata.netcdf");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.store.metadata.netcdf");
 
     private static Path dataDirectory;
 

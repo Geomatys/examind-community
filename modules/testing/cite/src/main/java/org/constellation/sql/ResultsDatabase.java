@@ -18,7 +18,6 @@
  */
 package org.constellation.sql;
 
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.io.X364;
 
@@ -59,7 +58,7 @@ import org.constellation.test.utils.TestDatabaseHandler;
  */
 public class ResultsDatabase {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.sql");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.sql");
     /**
      * The pattern for the ouput of a date.
      */

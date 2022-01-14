@@ -39,7 +39,6 @@ import javax.xml.validation.SchemaFactory;
 
 import org.apache.sis.internal.util.UnmodifiableArrayList;
 import org.apache.sis.util.Version;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.api.ServiceDef;
 import org.constellation.api.ServiceDef.Specification;
 import org.constellation.admin.SpringHelper;
@@ -72,7 +71,7 @@ public abstract class AbstractWorker implements Worker {
     /**
      * The default logger.
      */
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.ws");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.ws");
 
     /**
      * A flag indicating if the worker is correctly started.

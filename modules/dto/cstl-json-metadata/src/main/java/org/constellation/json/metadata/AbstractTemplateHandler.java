@@ -28,7 +28,6 @@ import java.util.logging.Logger;
 import org.apache.sis.metadata.KeyNamePolicy;
 import org.apache.sis.metadata.MetadataStandard;
 import org.apache.sis.metadata.ValueExistencePolicy;
-import org.apache.sis.util.logging.Logging;
 import org.opengis.metadata.citation.Responsibility;
 import org.opengis.metadata.citation.ResponsibleParty;
 import org.opengis.metadata.constraint.Constraints;
@@ -50,7 +49,7 @@ import org.opengis.metadata.spatial.VectorSpatialRepresentation;
  */
 public class AbstractTemplateHandler {
 
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.json.metadata");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.json.metadata");
     /**
      * The metadata standard.
      */

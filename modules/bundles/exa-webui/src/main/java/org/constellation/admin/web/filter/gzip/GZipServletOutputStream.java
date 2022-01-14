@@ -24,13 +24,12 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.logging.Logger;
 import javax.servlet.WriteListener;
-import org.apache.sis.util.logging.Logging;
 
 class GZipServletOutputStream extends ServletOutputStream {
 
     private final OutputStream stream;
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.admin.web.filter.gzip");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin.web.filter.gzip");
 
     public GZipServletOutputStream(OutputStream output) throws IOException {
         super();

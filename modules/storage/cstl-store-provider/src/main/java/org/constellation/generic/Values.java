@@ -19,8 +19,6 @@
 
 package org.constellation.generic;
 
-import org.apache.sis.util.logging.Logging;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,7 +34,7 @@ import java.util.logging.Logger;
  */
 public class Values {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.generic");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.generic");
     /**
      * A Map of (varName) - (list of values) refreshed at every request.
      */
@@ -71,7 +69,7 @@ public class Values {
      */
     public String getVariable(final String variable) {
         final List<Object> result = values.get(variable);
-        if (result != null && result.size() > 0) {
+        if (result != null && !result.isEmpty()) {
             if (result.size() > 1) {
                 LOGGER.log(Level.WARNING, "retrieving single value for variable:{0} but the is multiple values", variable);
             }
@@ -88,7 +86,7 @@ public class Values {
 
     public Object getTypedVariable(final String variable) {
         final List<Object> result = values.get(variable);
-        if (result != null && result.size() > 0) {
+        if (result != null && !result.isEmpty()) {
             if (result.size() > 1) {
                 LOGGER.log(Level.WARNING, "retrieving single value for variable:{0} but the is multiple values", variable);
             }
