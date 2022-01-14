@@ -16,9 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.dto.service.config.wxs;
+package org.constellation.dto;
 
-import javax.xml.bind.annotation.XmlRootElement;
 import java.util.SortedMap;
 
 /**
@@ -28,8 +27,7 @@ import java.util.SortedMap;
  * @version 0.9
  * @since 0.9
  */
-@XmlRootElement
-public class CRSCoverageList {
+public class CRSList {
 
     private int length;
 

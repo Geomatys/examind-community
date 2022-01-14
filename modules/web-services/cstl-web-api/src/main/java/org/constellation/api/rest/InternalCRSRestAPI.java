@@ -20,14 +20,12 @@ package org.constellation.api.rest;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
-import org.apache.sis.referencing.CRS;
-import org.constellation.dto.service.config.wxs.CRSCoverageList;
+import org.constellation.dto.CRSList;
+import org.constellation.dto.CoordinateReferenceSystem;
 import org.constellation.util.CRSUtilities;
-import org.opengis.referencing.crs.CRSAuthorityFactory;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.util.FactoryException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -55,7 +53,7 @@ public class InternalCRSRestAPI extends AbstractRestAPI {
             @PathVariable("start") int start,
             @PathVariable("nbByPage") int nbByPage,
             @PathVariable("filter") String filter){
-        final CRSCoverageList coverageList = CRSUtilities.pagingAndFilterCode(start, nbByPage, filter);
+        final CRSList coverageList = CRSUtilities.pagingAndFilterCode(start, nbByPage, filter);
         return new ResponseEntity(coverageList, HttpStatus.OK);
     }
 
@@ -65,16 +63,13 @@ public class InternalCRSRestAPI extends AbstractRestAPI {
     @RequestMapping(value="/internal/crs", method=GET, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity getCRS() {
         try {
-            final CRSAuthorityFactory factory = CRS.getAuthorityFactory("EPSG");
-            final Set<String> authorityCodes = factory.getAuthorityCodes(CoordinateReferenceSystem.class);
-
-            final List<org.constellation.dto.CoordinateReferenceSystem> crss = new ArrayList<>();
-            for (String code : authorityCodes) {
-                final String codeAndName = code + " - " + factory.getDescriptionText(code).toString();
-                crss.add(new org.constellation.dto.CoordinateReferenceSystem("EPSG:"+code, codeAndName));
+            final Map<String, String> crsList = CRSUtilities.getCRSCodes(null);
+            final List<CoordinateReferenceSystem> crss = new ArrayList<>();
+            for (Entry<String, String> entry : crsList.entrySet()) {
+                crss.add(new CoordinateReferenceSystem("EPSG:" + entry.getKey(), entry.getValue()));
             }
             return new ResponseEntity(crss, HttpStatus.OK);
-        } catch (FactoryException ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.WARNING, "Unable to load EPSG codes : "+ex.getMessage(), ex);
             return new ErrorMessage().error(ex).build();
         }
@@ -86,27 +81,16 @@ public class InternalCRSRestAPI extends AbstractRestAPI {
      * @param filter an optional filter parameter applied on code and crs name.
      */
     @RequestMapping(value="/internal/crs/search/{filter}", method=GET, produces=MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity getAllEPSG(
-            @PathVariable("filter") String filter) {
+    public ResponseEntity getAllEPSG(@PathVariable("filter") String filter) {
         try {
-            final CRSAuthorityFactory factory = CRS.getAuthorityFactory("EPSG");
-            final Set<String> authorityCodes = factory.getAuthorityCodes(CoordinateReferenceSystem.class);
-
-            if (filter != null) {
-                filter = filter.toLowerCase();
-            }
-
-            final List<org.constellation.dto.CoordinateReferenceSystem> crss = new ArrayList<>();
-            for (String code : authorityCodes) {
-                final String codeAndName = code + " - " + factory.getDescriptionText(code).toString();
-
-                if (filter != null && codeAndName.toLowerCase().contains(filter)) {
-                    crss.add(new org.constellation.dto.CoordinateReferenceSystem("EPSG:"+code, codeAndName));
-                }
+            final Map<String, String> crsList = CRSUtilities.getCRSCodes(filter);
+            final List<CoordinateReferenceSystem> crss = new ArrayList<>();
+            for (Entry<String, String> entry : crsList.entrySet()) {
+                crss.add(new CoordinateReferenceSystem("EPSG:" + entry.getKey(), entry.getValue()));
             }
             return new ResponseEntity(crss, HttpStatus.OK);
-        } catch (FactoryException ex) {
-            LOGGER.log(Level.WARNING, "Enable to load EPSG codes : "+ex.getMessage(), ex);
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, "Unable to load EPSG codes : "+ex.getMessage(), ex);
             return new ErrorMessage().error(ex).build();
         }
     }

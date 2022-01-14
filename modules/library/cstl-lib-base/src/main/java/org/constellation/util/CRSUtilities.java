@@ -21,72 +21,86 @@ package org.constellation.util;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import org.apache.sis.referencing.CRS;
-import org.constellation.dto.service.config.wxs.CRSCoverageList;
+import org.constellation.dto.CRSList;
 import org.opengis.referencing.IdentifiedObject;
 import org.opengis.referencing.crs.CRSAuthorityFactory;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.util.FactoryException;
 
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.util.logging.Logging;
+import org.opengis.util.InternationalString;
 
 /**
- * @author bgarcia
+ * Utility method that regroup CRS listing methods used in UI.
+ *
+ * @author Benjamin Garcia (Geomatys)
+ * @author Guilhem Legal (Geomatys)
  */
 public class CRSUtilities {
 
     private static final Logger LOGGER = Logging.getLogger("org.constellation.utils");
 
-    private static SortedMap<String, String> ePSGCodes;
-
-    public static void main(String[] args) throws FactoryException {
-        CRSCoverageList allCodes = pagingAndFilterCode(0, 10, "Lambert");
-        LOGGER.log(Level.INFO, allCodes.getLength() + " total elements");
-        LOGGER.log(Level.INFO, allCodes.getSelectedEPSGCode().size() + " elements");
-
-        for (String key : allCodes.getSelectedEPSGCode().keySet()) {
-            LOGGER.log(Level.INFO, key + " => " + allCodes.getSelectedEPSGCode().get(key));
-        }
-    }
-
+    /**
+     * A map on the form "crs name" + " - EPSG:" + "crs code" => "crs code"
+     */
+    private static SortedMap<String, String> wktCrsList;
 
     /**
-     * @throws FactoryException
+     * A map on the form "crs code" => "crs code" + " - " + "crs description"
      */
-    public static Map<String, String> setWKTMap() throws FactoryException {
-        if (ePSGCodes == null) {
-            ePSGCodes = new TreeMap<>();
-            final CRSAuthorityFactory factory = CRS.getAuthorityFactory("EPSG");
-            final Collection<String> codes = factory.getAuthorityCodes(CoordinateReferenceSystem.class);
+    private static Map<String, String> crsList;
 
-            for (final String code : codes) {
-                try {
-                    final IdentifiedObject obj = factory.createObject(code);
-                    final String wkt = obj.getName().toString();
-                    ePSGCodes.put(wkt + " - EPSG:" + code, code);
-                } catch (Exception ex) {
-                    //some objects can not be expressed in WKT, we skip them
-                    if (LOGGER.isLoggable(Level.FINEST)) {
-                        LOGGER.log(Level.FINEST, "not available in WKT : " + code);
+    /**
+     * Load in cache two kind of CRS listing.
+     */
+    private static void computeCRSMap() {
+        if (wktCrsList == null) {
+            wktCrsList = new TreeMap<>();
+            crsList    = new LinkedHashMap<>();
+            try {
+                final CRSAuthorityFactory factory = CRS.getAuthorityFactory("EPSG");
+                final Collection<String> codes = factory.getAuthorityCodes(CoordinateReferenceSystem.class);
+
+                for (final String code : codes) {
+                    try {
+                        final InternationalString descIs = factory.getDescriptionText(code);
+                        final String description = descIs != null ? " - " + descIs.toString() : "";
+
+                        final String codeAndName = code + description;
+                        crsList.put(code, codeAndName);
+                        final IdentifiedObject obj = factory.createObject(code);
+                        final String wkt = obj.getName().toString();
+                        wktCrsList.put(wkt + " - EPSG:" + code, code);
+                    } catch (Exception ex) {
+                        //some objects can not be expressed in WKT, we skip them
+                        if (LOGGER.isLoggable(Level.FINEST)) {
+                            LOGGER.log(Level.FINEST, "not available in WKT : " + code);
+                        }
                     }
                 }
+            } catch (FactoryException e) {
+                LOGGER.log(Level.WARNING, "Error while accesing EPSG factory", e);
             }
         }
-        return ePSGCodes;
     }
 
-    public static CRSCoverageList pagingAndFilterCode(final int start, final int nbByPage, final String filter) {
+    /**
+     * Return a map of crs descriptions (on the form"crs name" + " - EPSG:" + "crs code" => "crs code").
+     *
+     * @param start Start offset.
+     * @param nbByPage Number of element by page.
+     * @param filter If specified, apply a contains filter the result list.
+     * @return a map of crs descriptions.
+     */
+    public static CRSList pagingAndFilterCode(final int start, final int nbByPage, final String filter) {
+        computeCRSMap();
         SortedMap<String, String> selectedEPSGCode = new TreeMap<>();
-        final CRSCoverageList coverageList = new CRSCoverageList();
-        try {
-            setWKTMap();
-        } catch (FactoryException e) {
-            LOGGER.log(Level.WARNING, "Error on wkt factory", e);
-        }
-
-        if (!filter.equalsIgnoreCase("none")) {
+        final CRSList coverageList = new CRSList();
+        if (!"none".equalsIgnoreCase(filter)) {
             //filter epsg codes
             Predicate<String> myStringPredicate = new Predicate<String>() {
                 @Override
@@ -97,21 +111,20 @@ public class CRSUtilities {
                 }
             };
 
-            selectedEPSGCode = Maps.filterKeys(ePSGCodes, myStringPredicate);
+            selectedEPSGCode = Maps.filterKeys(wktCrsList, myStringPredicate);
             coverageList.setLength(selectedEPSGCode.size());
-        }else{
-            coverageList.setLength(ePSGCodes.size());
+        } else {
+            coverageList.setLength(wktCrsList.size());
         }
-
 
         //selectedEPSGCode is empty because they don't have a filter applied
         if (selectedEPSGCode.isEmpty()) {
-            int epsgCode = ePSGCodes.size();
+            int epsgCode = wktCrsList.size();
             if (nbByPage > epsgCode) {
-                coverageList.setSelectedEPSGCode(ePSGCodes);
+                coverageList.setSelectedEPSGCode(wktCrsList);
                 return coverageList;
             } else {
-                selectedEPSGCode = getSubCRSMap(start, nbByPage, ePSGCodes);
+                selectedEPSGCode = getSubCRSMap(start, nbByPage, wktCrsList);
             }
         } else {
             selectedEPSGCode = getSubCRSMap(start, nbByPage, selectedEPSGCode);
@@ -119,7 +132,6 @@ public class CRSUtilities {
         coverageList.setSelectedEPSGCode(selectedEPSGCode);
         return coverageList;
     }
-
 
     private static SortedMap<String, String> getSubCRSMap(final int start, final int nbByPage, SortedMap<String, String> sortedMap) {
         final Set<String> keys = sortedMap.keySet();
@@ -135,15 +147,36 @@ public class CRSUtilities {
         return sortedMap;
     }
 
+    /**
+     * Return the count of available crs.
+     */
     public static int getEPSGCodesLength(){
-        if(ePSGCodes==null){
-            try {
-                setWKTMap();
-            } catch (FactoryException e) {
-                LOGGER.log(Level.WARNING, "error on epsg map building", e);
+        computeCRSMap();
+        return wktCrsList.size();
+    }
+
+    /**
+     * Return a map of crs descriptions (on the form "crs code" => "crs code" + " - " + "crs description").
+     * The result can be filtered by specifying a filter parameter applied as a contains on the crs code or crs description.
+     *
+     * @param filter If specified, apply a contains filter the result list.
+     *
+     * @return A map of crs descriptions.
+     */
+    public static Map<String, String> getCRSCodes(String filter) {
+        computeCRSMap();
+        if (filter != null) {
+            filter = filter.toLowerCase();
+            final Map<String, String> results = new LinkedHashMap<>();
+            for (Entry<String, String> entry : crsList.entrySet()) {
+                if (entry.getValue().toLowerCase().contains(filter)) {
+                    results.put(entry.getKey(), entry.getValue());
+                }
             }
+            return results;
+        } else {
+            return crsList;
         }
-        return ePSGCodes.size();
     }
 
 }

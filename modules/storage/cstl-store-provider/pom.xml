@@ -35,10 +35,6 @@
         </dependency>
         <dependency>
             <groupId>org.geotoolkit</groupId>
-            <artifactId>geotk-utility-jdbc</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.geotoolkit</groupId>
             <artifactId>geotk-xml-feature-catalogue</artifactId>
         </dependency>
         <dependency>

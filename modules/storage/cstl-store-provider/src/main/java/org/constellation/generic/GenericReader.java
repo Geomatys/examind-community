@@ -19,6 +19,7 @@
 
 package org.constellation.generic;
 
+import org.constellation.util.SQLUtilities;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.dto.service.config.generic.BDD;
@@ -134,7 +135,7 @@ public abstract class GenericReader  {
         try {
             final BDD bdd = configuration.getBdd();
             if (bdd != null) {
-                this.datasource = BDDUtils.getPooledDataSource(bdd.getClassName(), bdd.getConnectURL(), bdd.getUser(), bdd.getPassword());
+                this.datasource = SQLUtilities.getDataSource(bdd.getClassName(), bdd.getConnectURL(), bdd.getUser(), bdd.getPassword());
                 //try to connect
                 final Connection c = datasource.getConnection();
                 c.close();

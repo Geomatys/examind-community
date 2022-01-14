@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.constellation.generic.BDDUtils;
+import org.constellation.util.SQLUtilities;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_ID_BASE_NAME;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_TEMPLATE_ID_BASE_NAME;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.PHENOMENON_ID_BASE_NAME;
@@ -120,7 +120,7 @@ public abstract class AbstractGenericObservationFilter implements ObservationFil
             throw new DataStoreException("Unable to find the filter queries part");
         }
         try {
-            this.dataSource = BDDUtils.getDataSource(db.getClassName(), db.getConnectURL(), db.getUser(), db.getPassword());
+            this.dataSource = SQLUtilities.getDataSource(db.getClassName(), db.getConnectURL(), db.getUser(), db.getPassword());
             if (configurationQuery.getStatique() != null) {
                 for (Query query : configurationQuery.getStatique().getQuery()) {
                     processStatiqueQuery(query);
@@ -205,16 +205,10 @@ public abstract class AbstractGenericObservationFilter implements ObservationFil
      */
     protected void reloadConnection() throws CstlServiceException {
         if (!isReconnecting) {
-            try {
-               LOGGER.info("refreshing the connection");
-               BDD db          = configuration.getBdd();
-               this.dataSource = BDDUtils.getDataSource(db.getClassName(), db.getConnectURL(), db.getUser(), db.getPassword());
-               isReconnecting  = false;
-
-            } catch(SQLException ex) {
-                LOGGER.log(Level.SEVERE, "SQLException while restarting the connection:{0}", ex.getMessage());
-                isReconnecting = false;
-            }
+            LOGGER.info("refreshing the connection");
+            BDD db          = configuration.getBdd();
+            this.dataSource = SQLUtilities.getDataSource(db.getClassName(), db.getConnectURL(), db.getUser(), db.getPassword());
+            isReconnecting  = false;
         }
         throw new CstlServiceException("The database connection has been lost, the service is trying to reconnect", NO_APPLICABLE_CODE);
     }

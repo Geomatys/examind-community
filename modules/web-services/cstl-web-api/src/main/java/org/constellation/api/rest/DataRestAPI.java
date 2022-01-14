@@ -39,7 +39,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.referencing.CommonCRS;
-import org.apache.sis.storage.DataStoreException;
 import org.constellation.api.TilingMode;
 import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
 import org.constellation.business.IConfigurationBusiness;
@@ -62,7 +61,6 @@ import org.constellation.dto.Sort;
 import org.constellation.dto.metadata.MetadataBrief;
 import org.constellation.dto.metadata.MetadataLightBrief;
 import org.constellation.dto.metadata.RootObj;
-import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.metadata.utils.Utils;
 import org.constellation.provider.Data;
@@ -71,9 +69,6 @@ import org.constellation.provider.PyramidData;
 import org.constellation.util.MetadataMerger;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.nio.ZipUtilities;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.crs.ImageCRS;
-import org.opengis.util.GenericName;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
 import static org.springframework.http.HttpStatus.*;
@@ -190,26 +185,6 @@ public class DataRestAPI extends AbstractRestAPI{
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
-        }
-    }
-
-    /**
-     * Verify if a valid Coordinate Reference System has been found on the specified provider.
-     *
-     * @param providerId The provider identifier.
-     *
-     * @throws ConfigurationException if CRS can not be accessed, if it is null or invalid
-     */
-    private void verifyCRS(int providerId) throws ConstellationException {
-        try {
-            final Map<GenericName, CoordinateReferenceSystem> nameCoordinateReferenceSystemHashMap = DataProviders.getCRS(providerId);
-            for(final CoordinateReferenceSystem crs : nameCoordinateReferenceSystemHashMap.values()){
-                if (crs == null || crs instanceof ImageCRS) {
-                    throw new DataStoreException("CRS is null or is instance of ImageCRS");
-                }
-            }
-        } catch (DataStoreException e) {
-            throw new ConfigurationException("Cannot get CRS for provider " + providerId);
         }
     }
 

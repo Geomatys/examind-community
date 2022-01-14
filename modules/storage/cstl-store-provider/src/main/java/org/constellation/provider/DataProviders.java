@@ -44,7 +44,6 @@ import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
-import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.Resource;
@@ -287,41 +286,6 @@ public final class DataProviders extends Static{
         return names;
     }
 
-
-    public static HashMap<GenericName, CoordinateReferenceSystem> getCRS(int id) throws ConstellationStoreException {
-        HashMap<GenericName,CoordinateReferenceSystem> nameCoordinateReferenceSystemHashMap = new HashMap<>();
-        //test getting CRS from data
-        try  {
-            final DataProvider provider = getProvider(id);
-            if (provider != null) {
-                final DataStore store = provider.getMainStore();
-
-                for (final Resource rs : DataStores.flatten(store, false)) {
-                    Optional<GenericName> name = rs.getIdentifier();
-                    if (name.isPresent()) {
-                        if (rs instanceof GridCoverageResource) {
-                           final GridCoverageResource coverageReference = (GridCoverageResource) rs;
-                           final CoordinateReferenceSystem crs = coverageReference.getGridGeometry().getCoordinateReferenceSystem();
-                           if (crs != null) {
-                               nameCoordinateReferenceSystemHashMap.put(name.get(),crs);
-                           }
-                       } else if (rs instanceof FeatureSet) {
-                           FeatureSet fs = (FeatureSet) rs;
-                           final FeatureType ft = fs.getType();
-                           final CoordinateReferenceSystem crs = FeatureExt.getCRS(ft);
-                           if(crs!=null) {
-                               nameCoordinateReferenceSystemHashMap.put(name.get(),crs);
-                           }
-                       }
-                    }
-                }
-            }
-        } catch (Exception ex) {
-            throw new ConstellationStoreException(ex);
-        }
-        return nameCoordinateReferenceSystemHashMap;
-    }
-
     /**
      * Returns scales array for data.(for wmts scales)
      *
@@ -472,21 +436,6 @@ public final class DataProviders extends Static{
             results[i] = mergedScales.get(i);
         }
         return results;
-    }
-
-    public static List<String> getAllEpsgCodes() {
-        final List<String> codes = new ArrayList<>();
-        try{
-            final CRSAuthorityFactory factory = CRS.getAuthorityFactory("EPSG");
-            final Set<String> authorityCodes = factory.getAuthorityCodes(CoordinateReferenceSystem.class);
-            for (String code : authorityCodes){
-                code += " - " + factory.getDescriptionText(code).toString();
-                codes.add(code);
-            }
-        }catch(FactoryException ex){
-            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(),ex);
-        }
-        return codes;
     }
 
     /**
