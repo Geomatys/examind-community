@@ -41,7 +41,7 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
         // WebSocketBroadcastController.processMessageFromClient() method is
         // mapped to handle.
         StompWebSocketEndpointRegistration endpoint= registry.addEndpoint("/ws/adminmessages");
-        endpoint.setAllowedOrigins("*");
+        endpoint.setAllowedOriginPatterns("*");
         endpoint.withSockJS();
     }
 
