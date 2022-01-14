@@ -28,10 +28,13 @@ maven-deploy-manually:
     # Login to Docker repository
     - mkdir ~/.docker && echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
     # Move Examind .war next to Dockerfile
-    - cp ./modules/bundles/exa-bundle/target/examind.war ./docker/mount/examind/tomcat/webapps/.
+    - cp -r ./modules/bundles/exa-bundle/target/examind/ ./docker/mount/examind/tomcat/webapps/examind/
     # Build and push
     - docker build -t images.geomatys.com/examind/examind-community:$DOCKER_TAG ./docker/
     - docker push images.geomatys.com/examind/examind-community:$DOCKER_TAG
+  # Avoid executing default after-script that uses maven.
+  after_script:
+    - echo 'pushed'
 
 docker-push-latest:
   extends: .docker-push
