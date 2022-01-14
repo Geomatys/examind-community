@@ -42,6 +42,7 @@ import org.jooq.SelectConditionStep;
 import org.jooq.SelectLimitStep;
 import org.jooq.SortField;
 import org.jooq.UpdateConditionStep;
+import org.jooq.impl.DSL;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -314,7 +315,7 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, co
         if(sortEntry != null) {
             final SortField f;
             if("title".equals(sortEntry.getKey())){
-                f = "ASC".equals(sortEntry.getValue()) ? LAYER.TITLE.lower().asc() : LAYER.TITLE.lower().desc();
+                f = "ASC".equals(sortEntry.getValue()) ? DSL.lower(LAYER.TITLE).asc() : DSL.lower(LAYER.TITLE).desc();
             } else {
                 f = "ASC".equals(sortEntry.getValue()) ? LAYER.DATE.asc() : LAYER.DATE.desc();
             }

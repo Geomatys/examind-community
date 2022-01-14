@@ -196,8 +196,8 @@ public class JooqDatasetRepository extends AbstractJooqRespository<DatasetRecord
         // add sort
         if(sortEntry != null) {
             final SortField f;
-            if ("title".equals(sortEntry.getKey()) || "name".equals(sortEntry.getKey())){
-                f = "ASC".equals(sortEntry.getValue()) ? DATASET.IDENTIFIER.lower().asc() : DATASET.IDENTIFIER.lower().desc();
+            if ("title".equals(sortEntry.getKey()) || "name".equals(sortEntry.getKey())) {
+                f = "ASC".equals(sortEntry.getValue()) ? DSL.lower(DATASET.IDENTIFIER).asc() : DSL.lower(DATASET.IDENTIFIER).desc();
             } else if ("owner_login".equals(sortEntry.getKey())) {
                 f = "ASC".equals(sortEntry.getValue()) ? CSTL_USER.LOGIN.asc() : CSTL_USER.LOGIN.desc();
             } else {

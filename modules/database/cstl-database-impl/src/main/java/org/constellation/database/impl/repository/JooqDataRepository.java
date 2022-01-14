@@ -450,7 +450,7 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, com.
         if(sortEntry != null) {
             final SortField f;
             if("title".equals(sortEntry.getKey())){
-                f = "ASC".equals(sortEntry.getValue()) ? DATA.NAME.lower().asc() : DATA.NAME.lower().desc();
+                f = "ASC".equals(sortEntry.getValue()) ? DSL.lower(DATA.NAME).asc() : DSL.lower(DATA.NAME).desc();
             }else {
                 f = "ASC".equals(sortEntry.getValue()) ? DATA.DATE.asc() : DATA.DATE.desc();
             }

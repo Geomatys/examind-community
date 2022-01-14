@@ -594,7 +594,7 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
         if(sortEntry != null) {
             final SortField f;
             if("title".equals(sortEntry.getKey())){
-                f = "ASC".equals(sortEntry.getValue()) ? METADATA.TITLE.lower().asc() : METADATA.TITLE.lower().desc();
+                f = "ASC".equals(sortEntry.getValue()) ? DSL.lower(METADATA.TITLE).asc() : DSL.lower(METADATA.TITLE).desc();
             }else if("date_creation".equals(sortEntry.getKey())){
                 f = "ASC".equals(sortEntry.getValue()) ? METADATA.DATE_CREATION.asc() : METADATA.DATE_CREATION.desc();
             }else { //default sorting on date stamp
