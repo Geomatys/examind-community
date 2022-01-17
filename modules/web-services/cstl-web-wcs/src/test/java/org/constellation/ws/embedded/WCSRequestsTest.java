@@ -22,6 +22,7 @@ import java.awt.image.BufferedImage;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -29,8 +30,15 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
+import javax.imageio.spi.ImageReaderSpi;
+import javax.imageio.spi.ImageWriterSpi;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import org.apache.sis.coverage.grid.GridGeometry;
+import org.apache.sis.storage.DataStore;
+import org.apache.sis.storage.GridCoverageResource;
+import org.apache.sis.storage.Resource;
+import org.apache.sis.storage.StorageConnector;
 import org.constellation.admin.SpringHelper;
 import org.constellation.exception.ConstellationException;
 import org.constellation.business.IDataBusiness;
@@ -69,9 +77,16 @@ import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.domCompare;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.getCurrentPort;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.unmarshallJsonResponse;
+import org.geotoolkit.coverage.tiff.TiffProvider;
+import org.geotoolkit.image.io.plugin.WorldFileImageReader;
+import org.geotoolkit.image.jai.Registry;
+import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.referencing.CRS;
+import org.geotoolkit.referencing.ReferencingUtilities;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import org.opengis.geometry.Envelope;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
  * A set of methods that request a Grizzly server which embeds a WCS service.
@@ -113,7 +128,7 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
                                       "format=image/png&width=1024&height=512&" +
                                       "crs=EPSG:4326&bbox=-180,-90,180,90&" +
                                       "coverage="+ LAYER_TEST;
-    
+
     private static final String WCS_GETCOVERAGE_ALIAS ="request=GetCoverage&service=WCS&version=1.0.0&" +
                                       "format=image/png&width=1024&height=512&" +
                                       "crs=EPSG:4326&bbox=-180,-90,180,90&" +
@@ -131,10 +146,37 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
 
     private static final String WCS_GETCOVERAGE_PNG_TIFF_201 ="request=GetCoverage&service=WCS&version=2.0.1&" +
                                       "format=image/tiff&coverageid="+ LAYER_TEST;
-    
+
+    private static final String WCS_GETCOVERAGE_PNG_TIFF_201_SUB ="request=GetCoverage&service=WCS&version=2.0.1&" +
+                                      "format=image/tiff&SUBSET=%CE%BB(-100.0,100.0)&coverageid="+ LAYER_TEST;
+
+    private static final String WCS_GETCOVERAGE_PNG_TIFF_201_OUT3857 ="request=GetCoverage&service=WCS&version=2.0.1&" +
+                                      "format=image/tiff&OUTPUTCRS=EPSG:3857&coverageid="+ LAYER_TEST;
+
+    private static final String WCS_GETCOVERAGE_PNG_TIFF_201_SUB_OUT3857 ="request=GetCoverage&service=WCS&version=2.0.1&" +
+                                      "format=image/tiff&SUBSET=%CE%BB(-100.0,100.0)&OUTPUTCRS=EPSG:3857&coverageid="+ LAYER_TEST;
+
+    private static final String WCS_GETCOVERAGE_PNG_TIFF_201_SUB3857_OUT3857 ="request=GetCoverage&service=WCS&version=2.0.1&" +
+                                      "format=image/tiff&SUBSET=X(-11153691.167372918,11153691.167372918)&SUBSETTINGCRS=EPSG:3857&OUTPUTCRS=EPSG:3857&coverageid="+ LAYER_TEST;
+
+    private static final String WCS_GETCOVERAGE_PNG_TIFF_201_SUB_ANTIMERIDIAN ="request=GetCoverage&service=WCS&version=2.0.1&" +
+                                      "format=image/tiff&SUBSET=%CE%BB(100.0,-100.0)&coverageid="+ LAYER_TEST;
+
     private static final String WCS_GETCOVERAGE_TIFF_TIFF_201 ="request=GetCoverage&service=WCS&version=2.0.1&" +
                                       "format=image/tiff&coverageid="+ LAYER_TEST2;
-    
+
+    private static final String WCS_GETCOVERAGE_TIFF_TIFF_201_SUB ="request=GetCoverage&service=WCS&version=2.0.1&" +
+                                      "format=image/tiff&SUBSET=Lon(-61.5,-61.0)&coverageid="+ LAYER_TEST2;
+
+    private static final String WCS_GETCOVERAGE_TIFF_TIFF_201_OUT3857 ="request=GetCoverage&service=WCS&version=2.0.1&" +
+                                      "format=image/tiff&OUTPUTCRS=EPSG:3857&coverageid="+ LAYER_TEST2;
+
+    private static final String WCS_GETCOVERAGE_TIFF_TIFF_201_SUB_OUT3857 ="request=GetCoverage&service=WCS&version=2.0.1&" +
+                                      "format=image/tiff&SUBSET=Lon(-61.5,-61.0)&OUTPUTCRS=EPSG:3857&coverageid="+ LAYER_TEST2;
+
+    private static final String WCS_GETCOVERAGE_TIFF_TIFF_201_SUB3857_OUT3857 ="request=GetCoverage&service=WCS&version=2.0.1&" +
+                                      "format=image/tiff&SUBSET=X(-6846273.562535691,-6790475.93861636)&SUBSETTINGCRS=EPSG:3857&OUTPUTCRS=EPSG:3857&coverageid="+ LAYER_TEST2;
+
     private static final String WCS_GETCAPABILITIES ="request=GetCapabilities&service=WCS&version=1.0.0";
 
     private static final String WCS_GETCAPABILITIES2 ="request=GetCapabilities&service=WCS&version=1.0.0";
@@ -142,18 +184,20 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
     private static final String WCS_DESCRIBECOVERAGE ="request=DescribeCoverage&coverage=" + LAYER_TEST + "&service=wcs&version=1.0.0";
     private static final String WCS_DESCRIBECOVERAGE_ALIAS ="request=DescribeCoverage&coverage=" + LAYER_ALIAS + "&service=wcs&version=1.0.0";
     private static final String WCS_DESCRIBECOVERAGE_TIFF ="request=DescribeCoverage&coverage=martinique&service=wcs&version=1.0.0";
-    
+
     private static final String WCS_DESCRIBECOVERAGE_201_PNG ="request=DescribeCoverage&coverageid=SSTMDE200305&service=wcs&version=2.0.1";
     private static final String WCS_DESCRIBECOVERAGE_201_PNG_ALIAS ="request=DescribeCoverage&coverageid=aliased&service=wcs&version=2.0.1";
     private static final String WCS_DESCRIBECOVERAGE_201_PNG_NMSP ="request=DescribeCoverage&coverageid=SST:SSTMDE200305&service=wcs&version=2.0.1";
-    
+
     private static final String WCS_DESCRIBECOVERAGE_201_TIFF ="request=DescribeCoverage&coverageid=martinique&service=wcs&version=2.0.1";
 
     private static boolean initialized = false;
 
+    private static Path CONFIG_DIR;
+
     @BeforeClass
     public static void initTestDir() {
-        ConfigDirectory.setupTestEnvironement("WCSRequestsTest");
+        CONFIG_DIR = ConfigDirectory.setupTestEnvironement("WCSRequestsTest");
         controllerConfiguration = WCSControllerConfig.class;
     }
 
@@ -166,6 +210,18 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
             try {
                 startServer();
 
+                WorldFileImageReader.Spi.registerDefaults(null);
+
+                //reset values, only allow pure java readers
+                for(String jn : ImageIO.getReaderFormatNames()){
+                    Registry.setNativeCodecAllowed(jn, ImageReaderSpi.class, false);
+                }
+
+                //reset values, only allow pure java writers
+                for(String jn : ImageIO.getWriterFormatNames()){
+                    Registry.setNativeCodecAllowed(jn, ImageWriterSpi.class, false);
+                }
+
                 layerBusiness.removeAll();
                 serviceBusiness.deleteAll();
                 dataBusiness.deleteAll();
@@ -175,7 +231,7 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
                 ImageIO.scanForPlugins();
                 org.geotoolkit.lang.Setup.initialize(null);
 
-                
+
                 EPSG_VERSION = CRS.getVersion("EPSG").toString();
 
                 final TestResources testResource = initDataDirectory();
@@ -186,7 +242,7 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
                 // second data for alias
                 pi = testResource.createProvider(TestResource.PNG, providerBusiness, null);
                 Integer did2 = pi.datas.get(0).id;
-                
+
                 pi = testResource.createProvider(TestResource.TIF, providerBusiness, null);
                 Integer did3 = pi.datas.get(0).id;
 
@@ -314,7 +370,7 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
         assertEquals(1024, image.getWidth());
         assertEquals(512,  image.getHeight());
         assertTrue  (ImageTesting.getNumColors(image) > 8);
-        }
+    }
 
     @Test
     @Order(order=2)
@@ -364,41 +420,85 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
 
     @Test
     @Order(order=2)
-    public void testWCSGetCoverage201() throws Exception {
+    public void testWCSGetCoverage201_PNGSRC() throws Exception {
         initLayerList();
         // Creates a valid GetCoverage url.
-        URL getCoverageUrl;
-        try {
-            getCoverageUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_PNG_TIFF_201);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        URL getCoverageUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_PNG_TIFF_201);
 
-        // Try to get the coverage from the url.
-        BufferedImage image = getImageFromURLByFormat(getCoverageUrl, "geotiff");
-        // TODO verification on result
-        
-      /*  
-        
-        Issue here to read the tiff
-        
-        
-        try {
-            getCoverageUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_TIFF_TIFF_201);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        Path p = CONFIG_DIR.resolve("SST.tif");
+        writeInFile(getCoverageUrl, p);
+        verifyTiff(p, "CRS:84", new double[]{-180.0, -90.0, 180.0, 90.0});
 
-        // Try to get the coverage from the url.
-        image = getImageFromURLByFormat(getCoverageUrl, "geotiff");
-        // TODO verification on result
-        
-        */
+        getCoverageUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_PNG_TIFF_201_OUT3857);
+
+        p = CONFIG_DIR.resolve("SST-3857.tif");
+        writeInFile(getCoverageUrl, p);
+        verifyTiff(p, "EPSG:3857", new double[]{-20037508.342789244, -20048966.104014594, 20037508.342789244, 20048966.104014594});
+
+        getCoverageUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_PNG_TIFF_201_SUB);
+
+        p = CONFIG_DIR.resolve("SST-SUB.tif");
+        writeInFile(getCoverageUrl, p);
+        verifyTiff(p, "CRS:84", new double[]{-100.0, -90.0, 100.0, 90.0});
+
+        getCoverageUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_PNG_TIFF_201_SUB_OUT3857);
+
+        p = CONFIG_DIR.resolve("SST-SUB-3847.tif");
+        writeInFile(getCoverageUrl, p);
+        verifyTiff(p, "EPSG:3857", new double[]{-11153691.167372918, -20048966.104014594, 11153691.167372918, 20048966.104014594});
+
+        getCoverageUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_PNG_TIFF_201_SUB3857_OUT3857);
+
+        p = CONFIG_DIR.resolve("SST-SUB-3847-3847.tif");
+        writeInFile(getCoverageUrl, p);
+        verifyTiff(p, "EPSG:3857", new double[]{-11153691.167372918, -20072439.67067411, 11153691.167372918, 20072439.670674134});
+
+        getCoverageUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_PNG_TIFF_201_SUB_ANTIMERIDIAN);
+
+        p = CONFIG_DIR.resolve("SST-SUB-ANTI.tif");
+        writeInFile(getCoverageUrl, p);
+        verifyTiff(p, "CRS:84", new double[]{-180.0, -90.0, 180.0, 90.0}); // not good
+
     }
 
-    
+    @Test
+    @Order(order=2)
+    public void testWCSGetCoverage201_TIFSRC() throws Exception {
+        initLayerList();
+
+        URL getCoverageUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_TIFF_TIFF_201);
+
+        Path p = CONFIG_DIR.resolve("marti.tif");
+        writeInFile(getCoverageUrl, p);
+        verifyTiff(p, "CRS:84", new double[]{-61.6166, 14.25931, -60.6907, 15.0292});
+
+        getCoverageUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_TIFF_TIFF_201_OUT3857);
+
+        p = CONFIG_DIR.resolve("marti-3857.tif");
+        writeInFile(getCoverageUrl, p);
+        verifyTiff(p, "EPSG:3857", new double[]{-6859137.568050235, 1603984.0704114565, -6756064.723864956, 1692569.0006932162});
+
+        getCoverageUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_TIFF_TIFF_201_SUB);
+
+        p = CONFIG_DIR.resolve("marti-SUB.tif");
+        writeInFile(getCoverageUrl, p);
+        verifyTiff(p, "CRS:84", new double[]{-61.5, 14.25931, -61.0, 15.0292});
+
+        getCoverageUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_TIFF_TIFF_201_SUB_OUT3857);
+
+        p = CONFIG_DIR.resolve("marti-SUB-3857.tif");
+        writeInFile(getCoverageUrl, p);
+        verifyTiff(p, "EPSG:3857", new double[]{-6846273.562535691, 1603984.0704114565, -6790475.93861636, 1692569.0006932162});
+
+        getCoverageUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_TIFF_TIFF_201_SUB3857_OUT3857);
+
+        p = CONFIG_DIR.resolve("marti-SUB-3857-3857.tif");
+        writeInFile(getCoverageUrl, p);
+        verifyTiff(p, "EPSG:3857", new double[]{-6846273.562535691, 1603984.0704114565, -6790475.93861636, 1692569.0006932162});
+
+    }
+
+
     /**
      * Ensures a GetCoverage request with the output format matrix works fine.
      *
@@ -550,7 +650,7 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
 
         String result = getStringResponse(getCapsUrl);
         String expResult = getStringFromFile("org/constellation/ws/embedded/v100/describeCoveragePNG.xml");
-        
+
         domCompare(result, expResult);
 
         try {
@@ -562,9 +662,9 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getCapsUrl);
         expResult = getStringFromFile("org/constellation/ws/embedded/v100/describeCoveragePNG_ALIAS.xml");
-        
+
         domCompare(result, expResult);
-        
+
         try {
             getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_DESCRIBECOVERAGE_TIFF);
         } catch (MalformedURLException ex) {
@@ -574,9 +674,9 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getCapsUrl);
         expResult = getStringFromFile("org/constellation/ws/embedded/v100/describeCoverageTIFF.xml");
-        
+
         domCompare(result, expResult);
-        
+
         try {
             getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_DESCRIBECOVERAGE_201_PNG);
         } catch (MalformedURLException ex) {
@@ -586,7 +686,7 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getCapsUrl);
         expResult = getStringFromFile("org/constellation/ws/embedded/v201/describeCoveragePNG.xml");
-       
+
         domCompare(result, expResult);
 
         try {
@@ -612,7 +712,7 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
         expResult = getStringFromFile("org/constellation/ws/embedded/v201/describeCoveragePNG_NMSP.xml");
 
         domCompare(result, expResult);
-        
+
         try {
             getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_DESCRIBECOVERAGE_201_TIFF);
         } catch (MalformedURLException ex) {
@@ -622,16 +722,16 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getCapsUrl);
         expResult = getStringFromFile("org/constellation/ws/embedded/v201/describeCoverageTIFF.xml");
-        
+
         domCompare(result, expResult);
 
     }
-    
+
     @Test
     @Order(order=6)
     public void listInstanceTest() throws Exception {
         initLayerList();
-        
+
         URL liUrl = new URL("http://localhost:" + getCurrentPort() + "/API/OGC/wcs/all");
 
         URLConnection conec = liUrl.openConnection();
@@ -652,5 +752,37 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
     protected static void domCompare(final Object actual, String expected) throws Exception {
         expected = expected.replace("EPSG_VERSION", EPSG_VERSION);
         domCompare(actual, expected, Arrays.asList("http://www.opengis.net/gml/3.2:id"));
+    }
+
+    protected static void verifyTiff(Path p, String expectedCRS, double[] expectedBbox) throws Exception {
+        String resourceName = IOUtilities.filenameWithoutExtension(p);
+        TiffProvider geotkTiff = new TiffProvider();
+        DataStore result = geotkTiff.open(new StorageConnector(p));
+        Resource r = result.findResource(resourceName);
+        assertNotNull(r);
+        assertTrue(r instanceof GridCoverageResource);
+        GridCoverageResource gcr = (GridCoverageResource) r;
+
+        // verify CRS
+        if (expectedCRS != null) {
+            final GridGeometry ggg = gcr.getGridGeometry();
+            assertNotNull(ggg);
+            final CoordinateReferenceSystem crs = ggg.getCoordinateReferenceSystem();
+            assertNotNull(crs);
+            final String crsIdentifier = ReferencingUtilities.lookupIdentifier(crs, true);
+            assertEquals(expectedCRS, crsIdentifier);
+        }
+
+        // verify bbox
+        if (expectedBbox != null) {
+            final GridGeometry ggg = gcr.getGridGeometry();
+            assertNotNull(ggg);
+            final Envelope env = ggg.getEnvelope();
+            assertNotNull(env);
+            assertEquals(expectedBbox[0], env.getMinimum(0), 0.2);
+            assertEquals(expectedBbox[1], env.getMinimum(1), 0.2);
+            assertEquals(expectedBbox[2], env.getMaximum(0), 0.2);
+            assertEquals(expectedBbox[3], env.getMaximum(1), 0.2);
+        }
     }
 }

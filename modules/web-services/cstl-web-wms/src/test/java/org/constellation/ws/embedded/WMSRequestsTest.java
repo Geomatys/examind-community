@@ -20,8 +20,6 @@ package org.constellation.ws.embedded;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import org.apache.sis.util.ArraysExt;
 import org.constellation.dto.service.config.Languages;
 import org.constellation.dto.service.config.Language;
 import org.constellation.configuration.ConfigDirectory;
@@ -64,10 +62,8 @@ import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.spi.ImageWriterSpi;
 import javax.xml.bind.JAXBException;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -77,8 +73,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
-import javax.imageio.ImageWriter;
-import javax.imageio.stream.ImageOutputStream;
 
 import static java.lang.Double.NaN;
 import static org.junit.Assert.assertArrayEquals;
@@ -108,8 +102,6 @@ import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
-import static org.geotoolkit.image.io.XImageIO.getWriterByMIMEType;
-import static org.geotoolkit.image.io.XImageIO.isValidType;
 
 /**
  * A set of methods that request a SpringBoot server which embeds a WMS service.
@@ -491,9 +483,11 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     
     private static boolean initialized = false;
 
+    private static Path CONFIG_DIR;
+
     @BeforeClass
     public static void startup() {
-        ConfigDirectory.setupTestEnvironement("WMSRequestTest");
+        CONFIG_DIR = ConfigDirectory.setupTestEnvironement("WMSRequestTest");
         controllerConfiguration = WMSControllerConfig.class;
     }
 
@@ -744,7 +738,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertEquals(1024, image.getWidth());
         assertEquals(512, image.getHeight());
         assertTrue(ImageTesting.getNumColors(image) > 8);
-        //write(image, "image/png");
+        writeImageInFile(image, "image/png", CONFIG_DIR.resolve("ANTI-MERI.png"));
 
         getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_ANTI_MERI_CROSS_MERC);
 
@@ -756,7 +750,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertEquals(1024, image.getWidth());
         assertEquals(512, image.getHeight());
         assertTrue(ImageTesting.getNumColors(image) > 8);
-        //write(image, "image/png");
+        writeImageInFile(image, "image/png", CONFIG_DIR.resolve("ANTI-MERI-MERC.png"));
+
     }
 
     /**
@@ -2061,7 +2056,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         });
     }
 
-    private void testProfile(String request, Consumer<double[]> assertYValues) throws IOException {
+    private void testProfile(String request, Consumer<double[]> assertYValues) throws Exception {
         // TODO: should be in a @BeforeEah method
         initLayerList();
 
@@ -2482,34 +2477,4 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
         comparator.compare();
     }
-
-    /**
-     * Debug method that write a temporary file with the image for verification.
-     * 
-     */
-    public void write(BufferedImage t, String mimeType) throws IOException {
-        ImageWriter writer = null;
-        ImageOutputStream stream = null;
-        try {
-            Path p = Files.createTempFile("wms", "test");
-            System.out.println(p.getFileName().toString());
-            Object output = p;
-            writer = getWriterByMIMEType(mimeType, output, t);
-            final ImageWriterSpi spi = writer.getOriginatingProvider();
-            if (!isValidType(spi.getOutputTypes(), output)) {
-                stream = ImageIO.createImageOutputStream(output);
-                output = stream;
-            }
-            writer.setOutput(output);
-            writer.write(t);
-        } finally {
-            if (writer != null) {
-                writer.dispose();
-            }
-            if (stream != null) {
-                stream.close();
-            }
-        }
-    }
-
 }

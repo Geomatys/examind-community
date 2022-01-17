@@ -42,6 +42,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -50,6 +51,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -59,7 +62,10 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageWriter;
+import javax.imageio.spi.ImageWriterSpi;
 import javax.imageio.stream.ImageInputStream;
+import javax.imageio.stream.ImageOutputStream;
 import org.apache.commons.io.IOUtils;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IDataBusiness;
@@ -88,6 +94,8 @@ import org.apache.sis.test.xml.DocumentComparator;
 import org.constellation.business.IPyramidBusiness;
 import org.constellation.business.IUserBusiness;
 import org.constellation.util.NodeUtilities;
+import static org.geotoolkit.image.io.XImageIO.getWriterByMIMEType;
+import static org.geotoolkit.image.io.XImageIO.isValidType;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
@@ -509,6 +517,40 @@ public abstract class AbstractGrizzlyServer {
 //            assumeNoException(ex);
 //        }
         return image;
+    }
+
+    protected static void writeInFile(final URL url, Path out) throws Exception {
+        try (final InputStream in = url.openStream();
+             OutputStream ous = Files.newOutputStream(out)) {
+            IOUtilities.copy(in, ous);
+        }
+    }
+
+    /**
+     * Debug method that write a temporary file with the image for verification.
+     *
+     */
+    public void writeImageInFile(BufferedImage t, String mimeType, Path out) throws IOException {
+        ImageWriter writer = null;
+        ImageOutputStream stream = null;
+        try {
+            Object output = out;
+            writer = getWriterByMIMEType(mimeType, output, t);
+            final ImageWriterSpi spi = writer.getOriginatingProvider();
+            if (!isValidType(spi.getOutputTypes(), output)) {
+                stream = ImageIO.createImageOutputStream(output);
+                output = stream;
+            }
+            writer.setOutput(output);
+            writer.write(t);
+        } finally {
+            if (writer != null) {
+                writer.dispose();
+            }
+            if (stream != null) {
+                stream.close();
+            }
+        }
     }
 
     protected static BufferedImage getImageFromPostKvp(final URL url, final Map<String, String> parameters, final String mime) throws IOException {
