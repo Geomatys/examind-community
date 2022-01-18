@@ -38,7 +38,7 @@ services :
          CSTL_REFRESH_URL: "http://localhost:8080/examind/API/auth/extendToken"
          CSTL_URL: "http://localhost:8080/examind"
          CSTL_HOME: /var/examind/
-         CATALINA_OPTS: "-Xms1G -Xmx4G -Dfile.encoding=UTF-8"
+         CATALINA_OPTS: "-Xms1G -Xmx4G -Dfile.encoding=UTF-8 --add-opens java.desktop/sun.awt.image=ALL-UNNAMED"
          JPDA_ADDRESS: "*:8000"
          JPDA_TRANSPORT: dt_socket
          CSTL_TOKEN_LIFE: 30
