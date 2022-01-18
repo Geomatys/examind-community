@@ -24,10 +24,6 @@ import org.flywaydb.core.Flyway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
-
 /**
  * Main used to init database using flyway during Jooq POJO/DAO generation.
  *

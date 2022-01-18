@@ -4,7 +4,9 @@
     <!-- ========================= DATASOURCE DEFINITION ========================= -->
 
     <!-- Register all database related beans -->
-    <bean id="database-registerer" class="org.constellation.database.configuration.DatabaseRegister"/>
+    <bean id="database-registerer" class="org.constellation.database.configuration.DatabaseRegister">
+        <property name="test" value="true"/>
+    </bean>
 
     <!-- Install/Initialize EPSG database -->
     <bean id="epsg-database-initer" depends-on="database-registerer"

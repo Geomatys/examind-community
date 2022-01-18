@@ -35,9 +35,8 @@
  <bean id="authenticationProxy" class="org.constellation.services.security.DummyAuthenticationProxy"/>
  <bean id="cstlStyleConverterBusiness" class="org.constellation.json.component.StyleConverterBusiness" />
 
-  <bean class="org.constellation.database.configuration.TestingDBConfiguration" />
   <bean class="org.constellation.test.component.TestSpatialIndexDBConfiguration" />
-  <import resource="cstl-ds.xml"/>
+  <import resource="cstl-ds-test.xml"/>
   <import resource="cstl-tx.xml" />
 
   <import resource="classpath*:/cstl/spring/auto/*-context.xml" />

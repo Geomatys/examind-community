@@ -22,7 +22,7 @@
         </dependency>
         <dependency>
             <groupId>com.examind.community</groupId>
-            <artifactId>cstl-lib-api</artifactId>
+            <artifactId>cstl-lib-base</artifactId>
             <version>${project.version}</version>
         </dependency>
 
