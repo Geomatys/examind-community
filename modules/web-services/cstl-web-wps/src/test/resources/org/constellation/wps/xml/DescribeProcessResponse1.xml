@@ -1014,25 +1014,11 @@
               <MimeType>image/gif</MimeType>
             </Format>
             <Format>
-              <MimeType>image/jp2</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/jp2</MimeType>
-            </Format>
-            <Format>
               <MimeType>image/jpeg</MimeType>
               <Encoding>base64</Encoding>
             </Format>
             <Format>
               <MimeType>image/jpeg</MimeType>
-            </Format>
-            <Format>
-              <MimeType>image/jpeg2000</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/jpeg2000</MimeType>
             </Format>
             <Format>
               <MimeType>image/tiff</MimeType>
@@ -1056,13 +1042,6 @@
               <MimeType>image/vnd.wap.wbmp</MimeType>
             </Format>
             <Format>
-              <MimeType>image/x-bmp</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/x-bmp</MimeType>
-            </Format>
-            <Format>
               <MimeType>image/x-geotiff</MimeType>
               <Encoding>base64</Encoding>
             </Format>
@@ -1077,46 +1056,11 @@
               <MimeType>image/x-png</MimeType>
             </Format>
             <Format>
-              <MimeType>image/x-portable-anymap</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/x-portable-anymap</MimeType>
-            </Format>
-            <Format>
-              <MimeType>image/x-portable-bitmap</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/x-portable-bitmap</MimeType>
-            </Format>
-            <Format>
-              <MimeType>image/x-portable-graymap</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/x-portable-graymap</MimeType>
-            </Format>
-            <Format>
-              <MimeType>image/x-portable-pixmap</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/x-portable-pixmap</MimeType>
-            </Format>
-            <Format>
               <MimeType>image/x-raw</MimeType>
               <Encoding>base64</Encoding>
             </Format>
             <Format>
               <MimeType>image/x-raw</MimeType>
-            </Format>
-            <Format>
-              <MimeType>image/x-windows-bmp</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/x-windows-bmp</MimeType>
             </Format>
             <Format>
               <MimeType>text/plain</MimeType>
@@ -1187,25 +1131,11 @@
               <MimeType>image/gif</MimeType>
             </Format>
             <Format>
-              <MimeType>image/jp2</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/jp2</MimeType>
-            </Format>
-            <Format>
               <MimeType>image/jpeg</MimeType>
               <Encoding>base64</Encoding>
             </Format>
             <Format>
               <MimeType>image/jpeg</MimeType>
-            </Format>
-            <Format>
-              <MimeType>image/jpeg2000</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/jpeg2000</MimeType>
             </Format>
             <Format>
               <MimeType>image/tiff</MimeType>
@@ -1229,13 +1159,6 @@
               <MimeType>image/vnd.wap.wbmp</MimeType>
             </Format>
             <Format>
-              <MimeType>image/x-bmp</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/x-bmp</MimeType>
-            </Format>
-            <Format>
               <MimeType>image/x-geotiff</MimeType>
               <Encoding>base64</Encoding>
             </Format>
@@ -1248,41 +1171,6 @@
             </Format>
             <Format>
               <MimeType>image/x-png</MimeType>
-            </Format>
-            <Format>
-              <MimeType>image/x-portable-anymap</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/x-portable-anymap</MimeType>
-            </Format>
-            <Format>
-              <MimeType>image/x-portable-bitmap</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/x-portable-bitmap</MimeType>
-            </Format>
-            <Format>
-              <MimeType>image/x-portable-graymap</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/x-portable-graymap</MimeType>
-            </Format>
-            <Format>
-              <MimeType>image/x-portable-pixmap</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/x-portable-pixmap</MimeType>
-            </Format>
-            <Format>
-              <MimeType>image/x-windows-bmp</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/x-windows-bmp</MimeType>
             </Format>
             <Format>
               <MimeType>text/plain</MimeType>
@@ -3095,25 +2983,11 @@
               <MimeType>image/gif</MimeType>
             </Format>
             <Format>
-              <MimeType>image/jp2</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/jp2</MimeType>
-            </Format>
-            <Format>
               <MimeType>image/jpeg</MimeType>
               <Encoding>base64</Encoding>
             </Format>
             <Format>
               <MimeType>image/jpeg</MimeType>
-            </Format>
-            <Format>
-              <MimeType>image/jpeg2000</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/jpeg2000</MimeType>
             </Format>
             <Format>
               <MimeType>image/tiff</MimeType>
@@ -3137,13 +3011,6 @@
               <MimeType>image/vnd.wap.wbmp</MimeType>
             </Format>
             <Format>
-              <MimeType>image/x-bmp</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/x-bmp</MimeType>
-            </Format>
-            <Format>
               <MimeType>image/x-geotiff</MimeType>
               <Encoding>base64</Encoding>
             </Format>
@@ -3158,46 +3025,11 @@
               <MimeType>image/x-png</MimeType>
             </Format>
             <Format>
-              <MimeType>image/x-portable-anymap</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/x-portable-anymap</MimeType>
-            </Format>
-            <Format>
-              <MimeType>image/x-portable-bitmap</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/x-portable-bitmap</MimeType>
-            </Format>
-            <Format>
-              <MimeType>image/x-portable-graymap</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/x-portable-graymap</MimeType>
-            </Format>
-            <Format>
-              <MimeType>image/x-portable-pixmap</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/x-portable-pixmap</MimeType>
-            </Format>
-            <Format>
               <MimeType>image/x-raw</MimeType>
               <Encoding>base64</Encoding>
             </Format>
             <Format>
               <MimeType>image/x-raw</MimeType>
-            </Format>
-            <Format>
-              <MimeType>image/x-windows-bmp</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/x-windows-bmp</MimeType>
             </Format>
             <Format>
               <MimeType>text/plain</MimeType>
@@ -3268,25 +3100,11 @@
               <MimeType>image/gif</MimeType>
             </Format>
             <Format>
-              <MimeType>image/jp2</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/jp2</MimeType>
-            </Format>
-            <Format>
               <MimeType>image/jpeg</MimeType>
               <Encoding>base64</Encoding>
             </Format>
             <Format>
               <MimeType>image/jpeg</MimeType>
-            </Format>
-            <Format>
-              <MimeType>image/jpeg2000</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/jpeg2000</MimeType>
             </Format>
             <Format>
               <MimeType>image/tiff</MimeType>
@@ -3310,13 +3128,6 @@
               <MimeType>image/vnd.wap.wbmp</MimeType>
             </Format>
             <Format>
-              <MimeType>image/x-bmp</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/x-bmp</MimeType>
-            </Format>
-            <Format>
               <MimeType>image/x-geotiff</MimeType>
               <Encoding>base64</Encoding>
             </Format>
@@ -3329,41 +3140,6 @@
             </Format>
             <Format>
               <MimeType>image/x-png</MimeType>
-            </Format>
-            <Format>
-              <MimeType>image/x-portable-anymap</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/x-portable-anymap</MimeType>
-            </Format>
-            <Format>
-              <MimeType>image/x-portable-bitmap</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/x-portable-bitmap</MimeType>
-            </Format>
-            <Format>
-              <MimeType>image/x-portable-graymap</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/x-portable-graymap</MimeType>
-            </Format>
-            <Format>
-              <MimeType>image/x-portable-pixmap</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/x-portable-pixmap</MimeType>
-            </Format>
-            <Format>
-              <MimeType>image/x-windows-bmp</MimeType>
-              <Encoding>base64</Encoding>
-            </Format>
-            <Format>
-              <MimeType>image/x-windows-bmp</MimeType>
             </Format>
             <Format>
               <MimeType>text/plain</MimeType>

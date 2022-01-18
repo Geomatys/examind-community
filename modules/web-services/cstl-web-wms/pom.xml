@@ -109,10 +109,6 @@
       <groupId>javax.media</groupId>
       <artifactId>jai_core</artifactId>
     </dependency>
-    <dependency>
-      <groupId>javax.media</groupId>
-      <artifactId>jai_imageio</artifactId>
-    </dependency>
   </dependencies>
 
 </project>

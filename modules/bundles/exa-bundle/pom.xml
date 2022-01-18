@@ -44,10 +44,6 @@
             <groupId>javax.media</groupId>
             <artifactId>jai_codec</artifactId>
         </dependency>
-        <dependency>
-            <groupId>javax.media</groupId>
-            <artifactId>jai_imageio</artifactId>
-        </dependency>
     </dependencies>
 
     <build>

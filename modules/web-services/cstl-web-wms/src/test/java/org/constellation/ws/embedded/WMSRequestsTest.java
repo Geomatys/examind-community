@@ -885,6 +885,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
      */
     @Test
     @Order(order = 8)
+    @Ignore("Pixmap support has been removed. Re-activate if we support it again in the future.")
     public void testWMSGetMapLakePpm() throws Exception {
         initLayerList();
         

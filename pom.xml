@@ -960,7 +960,6 @@
                     <argLine>
                       <!-- @{argLine} necessary for jacoco generation, because we added more parameters -->
                       @{argLine}
-                      --add-opens java.base/sun.security.action=ALL-UNNAMED
                       --add-opens java.desktop/sun.awt.image=ALL-UNNAMED
                     </argLine>
                   </configuration>

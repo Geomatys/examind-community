@@ -558,36 +558,20 @@
           <wps:Format mimeType="image/bmp" maximumMegabytes="100"/>
           <wps:Format mimeType="image/gif" encoding="base64" maximumMegabytes="100"/>
           <wps:Format mimeType="image/gif" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/jp2" encoding="base64" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/jp2" maximumMegabytes="100"/>
           <wps:Format mimeType="image/jpeg" encoding="base64" maximumMegabytes="100"/>
           <wps:Format mimeType="image/jpeg" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/jpeg2000" encoding="base64" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/jpeg2000" maximumMegabytes="100"/>
           <wps:Format mimeType="image/tiff" encoding="base64" maximumMegabytes="100"/>
           <wps:Format mimeType="image/tiff" maximumMegabytes="100"/>
           <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64" maximumMegabytes="100"/>
           <wps:Format mimeType="image/tiff;subtype=geotiff" maximumMegabytes="100"/>
           <wps:Format mimeType="image/vnd.wap.wbmp" encoding="base64" maximumMegabytes="100"/>
           <wps:Format mimeType="image/vnd.wap.wbmp" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/x-bmp" encoding="base64" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/x-bmp" maximumMegabytes="100"/>
           <wps:Format mimeType="image/x-geotiff" encoding="base64" maximumMegabytes="100"/>
           <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100"/>
           <wps:Format mimeType="image/x-png" encoding="base64" maximumMegabytes="100"/>
           <wps:Format mimeType="image/x-png" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/x-portable-anymap" encoding="base64" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/x-portable-anymap" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/x-portable-bitmap" encoding="base64" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/x-portable-bitmap" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/x-portable-graymap" encoding="base64" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/x-portable-graymap" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/x-portable-pixmap" encoding="base64" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/x-portable-pixmap" maximumMegabytes="100"/>
           <wps:Format mimeType="image/x-raw" encoding="base64" maximumMegabytes="100"/>
           <wps:Format mimeType="image/x-raw" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/x-windows-bmp" encoding="base64" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/x-windows-bmp" maximumMegabytes="100"/>
           <wps:Format mimeType="text/plain" encoding="base64" maximumMegabytes="100"/>
           <wps:Format mimeType="text/plain" maximumMegabytes="100"/>
           <wps:Format mimeType="text/x-ascii-grid" encoding="base64" maximumMegabytes="100"/>
@@ -619,34 +603,18 @@
           <wps:Format mimeType="image/bmp"/>
           <wps:Format mimeType="image/gif" encoding="base64"/>
           <wps:Format mimeType="image/gif"/>
-          <wps:Format mimeType="image/jp2" encoding="base64"/>
-          <wps:Format mimeType="image/jp2"/>
           <wps:Format mimeType="image/jpeg" encoding="base64"/>
           <wps:Format mimeType="image/jpeg"/>
-          <wps:Format mimeType="image/jpeg2000" encoding="base64"/>
-          <wps:Format mimeType="image/jpeg2000"/>
           <wps:Format mimeType="image/tiff" encoding="base64"/>
           <wps:Format mimeType="image/tiff"/>
           <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64"/>
           <wps:Format mimeType="image/tiff;subtype=geotiff"/>
           <wps:Format mimeType="image/vnd.wap.wbmp" encoding="base64"/>
           <wps:Format mimeType="image/vnd.wap.wbmp"/>
-          <wps:Format mimeType="image/x-bmp" encoding="base64"/>
-          <wps:Format mimeType="image/x-bmp"/>
           <wps:Format mimeType="image/x-geotiff" encoding="base64"/>
           <wps:Format mimeType="image/x-geotiff"/>
           <wps:Format mimeType="image/x-png" encoding="base64"/>
           <wps:Format mimeType="image/x-png"/>
-          <wps:Format mimeType="image/x-portable-anymap" encoding="base64"/>
-          <wps:Format mimeType="image/x-portable-anymap"/>
-          <wps:Format mimeType="image/x-portable-bitmap" encoding="base64"/>
-          <wps:Format mimeType="image/x-portable-bitmap"/>
-          <wps:Format mimeType="image/x-portable-graymap" encoding="base64"/>
-          <wps:Format mimeType="image/x-portable-graymap"/>
-          <wps:Format mimeType="image/x-portable-pixmap" encoding="base64"/>
-          <wps:Format mimeType="image/x-portable-pixmap"/>
-          <wps:Format mimeType="image/x-windows-bmp" encoding="base64"/>
-          <wps:Format mimeType="image/x-windows-bmp"/>
           <wps:Format mimeType="text/plain" encoding="base64"/>
           <wps:Format mimeType="text/plain"/>
           <wps:Format mimeType="text/x-ascii-grid" encoding="base64"/>
@@ -1514,36 +1482,20 @@
           <wps:Format mimeType="image/bmp" maximumMegabytes="100"/>
           <wps:Format mimeType="image/gif" encoding="base64" maximumMegabytes="100"/>
           <wps:Format mimeType="image/gif" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/jp2" encoding="base64" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/jp2" maximumMegabytes="100"/>
           <wps:Format mimeType="image/jpeg" encoding="base64" maximumMegabytes="100"/>
           <wps:Format mimeType="image/jpeg" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/jpeg2000" encoding="base64" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/jpeg2000" maximumMegabytes="100"/>
           <wps:Format mimeType="image/tiff" encoding="base64" maximumMegabytes="100"/>
           <wps:Format mimeType="image/tiff" maximumMegabytes="100"/>
           <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64" maximumMegabytes="100"/>
           <wps:Format mimeType="image/tiff;subtype=geotiff" maximumMegabytes="100"/>
           <wps:Format mimeType="image/vnd.wap.wbmp" encoding="base64" maximumMegabytes="100"/>
           <wps:Format mimeType="image/vnd.wap.wbmp" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/x-bmp" encoding="base64" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/x-bmp" maximumMegabytes="100"/>
           <wps:Format mimeType="image/x-geotiff" encoding="base64" maximumMegabytes="100"/>
           <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100"/>
           <wps:Format mimeType="image/x-png" encoding="base64" maximumMegabytes="100"/>
           <wps:Format mimeType="image/x-png" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/x-portable-anymap" encoding="base64" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/x-portable-anymap" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/x-portable-bitmap" encoding="base64" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/x-portable-bitmap" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/x-portable-graymap" encoding="base64" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/x-portable-graymap" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/x-portable-pixmap" encoding="base64" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/x-portable-pixmap" maximumMegabytes="100"/>
           <wps:Format mimeType="image/x-raw" encoding="base64" maximumMegabytes="100"/>
           <wps:Format mimeType="image/x-raw" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/x-windows-bmp" encoding="base64" maximumMegabytes="100"/>
-          <wps:Format mimeType="image/x-windows-bmp" maximumMegabytes="100"/>
           <wps:Format mimeType="text/plain" encoding="base64" maximumMegabytes="100"/>
           <wps:Format mimeType="text/plain" maximumMegabytes="100"/>
           <wps:Format mimeType="text/x-ascii-grid" encoding="base64" maximumMegabytes="100"/>
@@ -1575,34 +1527,18 @@
           <wps:Format mimeType="image/bmp"/>
           <wps:Format mimeType="image/gif" encoding="base64"/>
           <wps:Format mimeType="image/gif"/>
-          <wps:Format mimeType="image/jp2" encoding="base64"/>
-          <wps:Format mimeType="image/jp2"/>
           <wps:Format mimeType="image/jpeg" encoding="base64"/>
           <wps:Format mimeType="image/jpeg"/>
-          <wps:Format mimeType="image/jpeg2000" encoding="base64"/>
-          <wps:Format mimeType="image/jpeg2000"/>
           <wps:Format mimeType="image/tiff" encoding="base64"/>
           <wps:Format mimeType="image/tiff"/>
           <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64"/>
           <wps:Format mimeType="image/tiff;subtype=geotiff"/>
           <wps:Format mimeType="image/vnd.wap.wbmp" encoding="base64"/>
           <wps:Format mimeType="image/vnd.wap.wbmp"/>
-          <wps:Format mimeType="image/x-bmp" encoding="base64"/>
-          <wps:Format mimeType="image/x-bmp"/>
           <wps:Format mimeType="image/x-geotiff" encoding="base64"/>
           <wps:Format mimeType="image/x-geotiff"/>
           <wps:Format mimeType="image/x-png" encoding="base64"/>
           <wps:Format mimeType="image/x-png"/>
-          <wps:Format mimeType="image/x-portable-anymap" encoding="base64"/>
-          <wps:Format mimeType="image/x-portable-anymap"/>
-          <wps:Format mimeType="image/x-portable-bitmap" encoding="base64"/>
-          <wps:Format mimeType="image/x-portable-bitmap"/>
-          <wps:Format mimeType="image/x-portable-graymap" encoding="base64"/>
-          <wps:Format mimeType="image/x-portable-graymap"/>
-          <wps:Format mimeType="image/x-portable-pixmap" encoding="base64"/>
-          <wps:Format mimeType="image/x-portable-pixmap"/>
-          <wps:Format mimeType="image/x-windows-bmp" encoding="base64"/>
-          <wps:Format mimeType="image/x-windows-bmp"/>
           <wps:Format mimeType="text/plain" encoding="base64"/>
           <wps:Format mimeType="text/plain"/>
           <wps:Format mimeType="text/x-ascii-grid" encoding="base64"/>
