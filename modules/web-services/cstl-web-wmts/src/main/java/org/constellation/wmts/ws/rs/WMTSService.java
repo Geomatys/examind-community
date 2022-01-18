@@ -18,6 +18,7 @@
  */
 package org.constellation.wmts.ws.rs;
 
+import java.util.Locale;
 import org.constellation.api.ServiceDef;
 import org.constellation.api.ServiceDef.Specification;
 import org.constellation.wmts.core.WMTSWorker;
@@ -385,12 +386,7 @@ public class WMTSService extends GridWebService<WMTSWorker> {
                                           HttpServletResponse response) {
         putServiceIdParam(serviceId);
         try {
-            final String mimeType;
-            try {
-                mimeType = XImageIO.formatNameToMimeType(format);
-            } catch (IIOException ex) {
-                throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
-            }
+            final String mimeType = getMimeType(format);
             final GetTile gt = createNewGetTileRequestRestful(layer, tileMatrixSet, tileMatrix, tileRow, tileCol, mimeType, null);
             return treatIncomingRequest(gt).getResponseEntity(response);
         } catch (CstlServiceException ex) {
@@ -427,6 +423,33 @@ public class WMTSService extends GridWebService<WMTSWorker> {
         final ExceptionReport report = new ExceptionReport(ex.getMessage(), codeName,
                 ex.getLocator(), serviceDef.exceptionVersion.toString());
         return new ResponseObject(report, MediaType.TEXT_XML);
+    }
 
+    /**
+     * <em>This method is a workaround !</em>.
+     * Provides fast-access constants for common image format names. The aim is before all to avoid inconsistencies due
+     * to service loading returning different results depending on current classpath/module accesses.
+     * Note that for other formats, a potentially costly scan of available image reader SPIs is done through {@link XImageIO}.
+     *
+     * @param imageFormatName An image format name, like "png", "jpeg" or "tiff".
+     * @return The found mime-type. Never be null.
+     */
+    private static String getMimeType(final String imageFormatName) throws CstlServiceException {
+        switch (imageFormatName.toLowerCase(Locale.ROOT)) {
+            case "png": return "image/png";
+            case "jpg":
+            case "jpeg": return "image/jpeg";
+            case "tif":
+            case "tiff": return "image/tiff";
+            default: {
+                try {
+                    final String mime = XImageIO.formatNameToMimeType(imageFormatName);
+                    if (mime == null) throw new CstlServiceException("No mime-type available for image format: "+imageFormatName, NO_APPLICABLE_CODE);
+                    return mime;
+                } catch (IIOException ex) {
+                    throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
+                }
+            }
+        }
     }
 }
