@@ -40,7 +40,6 @@ import org.constellation.dto.Sort;
 import org.constellation.dto.StyleBrief;
 import org.constellation.exception.TargetNotFoundException;
 import org.constellation.json.util.StyleUtilities;
-import org.constellation.json.view.JsonView;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -144,14 +143,13 @@ public final class StyleRestAPI extends AbstractRestAPI {
      *
      * @param accept optional request accept type, application/json(default) or application/xml
      * @param id style identifier
-     * @param fields optional fields filter, example : name,rules.title,rules.minScale
      * @return ResponseEntity never null
      */
     @RequestMapping(value="/styles/{id}", method=GET, produces = {MediaType.APPLICATION_JSON_VALUE,MediaType.APPLICATION_XML_VALUE})
     public ResponseEntity getStyle(
             @PathVariable(value="id") int id,
-            @RequestHeader(value="Accept",required=false,defaultValue="application/json") String accept,
-            @RequestParam(value="fields",required=false,defaultValue="") String fields){
+            @RequestHeader(value="Accept",required=false,defaultValue="application/json") String accept
+    ) {
 
         final boolean asJson = accept.toLowerCase().contains("application/json");
         try {
@@ -159,9 +157,6 @@ public final class StyleRestAPI extends AbstractRestAPI {
             if (asJson) {
                 style = styleConverterBusiness.getJsonStyle((org.opengis.style.Style) style);
                 ((Style)style).setId(id);
-                if(!fields.isEmpty()){
-                    style = new JsonView(style, fields.split(","));
-                }
             }
             return new ResponseEntity(style,OK);
         } catch(TargetNotFoundException ex) {
@@ -224,7 +219,7 @@ public final class StyleRestAPI extends AbstractRestAPI {
     public ResponseEntity getStyles(){
         try {
             final List<StyleBrief> styles = styleBusiness.getAvailableStyles("sld",null);
-            return new ResponseEntity(JsonView.map(styles,STYLE_DEFAULT_FIELDS),OK);
+            return new ResponseEntity(styles, OK);
         } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
