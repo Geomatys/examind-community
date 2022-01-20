@@ -130,8 +130,8 @@ public abstract class AbstractFeatureInfoFormat implements FeatureInfoFormat {
      * @param sDef {@link org.geotoolkit.display2d.service.SceneDef}
      * @param cDef {@link org.geotoolkit.display2d.service.CanvasDef}
      * @param searchArea {@link java.awt.Rectangle} of the searching area
-     * @param maxCandidat
-     * @throws PortrayalException
+     * @param maxCandidat Maximum number of layers to collect information for. If null or less than 1, we consider there
+     *                    is no limit to the number of collectable layers.
      * @see #nextProjectedFeature(MapLayer, Feature, RenderingContext2D, SearchAreaJ2D)
      * @see #nextProjectedCoverage(MapLayer, GridCoverageResource, RenderingContext2D, SearchAreaJ2D)
      */
@@ -169,11 +169,7 @@ public abstract class AbstractFeatureInfoFormat implements FeatureInfoFormat {
 
             @Override
             public boolean isStopRequested() {
-                if (maxCandidat != null) {
-                    return (idx == maxCandidat);
-                } else {
-                    return false;
-                }
+                return maxCandidat != null && maxCandidat > 0 && idx >= maxCandidat;
             }
         });
 
