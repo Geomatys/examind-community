@@ -83,12 +83,12 @@
                     <execution>
                         <phase>package</phase>
                         <configuration>
-                            <tasks>
+                            <target>
                                 <delete dir="${project.basedir}/../../../docker/mount/examind/tomcat/webapps/examind" includeEmptyDirs="true"/>
                                 <copy todir="${project.basedir}/../../../docker/mount/examind/tomcat/webapps/examind">
                                     <fileset dir="${project.basedir}/target/examind"/>
                                 </copy>
-                            </tasks>
+                            </target>
                         </configuration>
                         <goals>
                             <goal>run</goal>

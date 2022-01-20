@@ -27,6 +27,16 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+
+            <!--
+             TODO: The flyway version should be inherited from Examind Community imported POM, but does not
+             appear to work. In the long term, we should upgrade Flyway to sync it with Geomatys BOM defined version.
+             -->
+            <dependency>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-core</artifactId>
+                <version>4.2.0</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
