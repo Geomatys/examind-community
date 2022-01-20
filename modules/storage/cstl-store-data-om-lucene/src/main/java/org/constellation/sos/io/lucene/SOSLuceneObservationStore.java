@@ -36,7 +36,7 @@ import org.apache.sis.storage.DataStoreProvider;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import org.constellation.sos.io.filesystem.FileObservationReader;
 import org.constellation.sos.io.filesystem.FileObservationWriter;
-import org.geotoolkit.data.om.xml.XmlObservationUtils;
+import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.AbstractObservationStore;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.ObservationFilterReader;
@@ -123,13 +123,13 @@ public class SOSLuceneObservationStore extends AbstractObservationStore {
                     result.procedures.add(procedure);
                 }
                 final PhenomenonProperty phenProp = o.getPropertyObservedProperty();
-                final List<String> fields = XmlObservationUtils.getPhenomenonsFields(phenProp);
+                final List<String> fields = OMUtils.getPhenomenonsFields(phenProp);
                 for (String field : fields) {
                     if (!result.fields.contains(field)) {
                         result.fields.add(field);
                     }
                 }
-                final Phenomenon phen = XmlObservationUtils.getPhenomenons(phenProp);
+                final Phenomenon phen = OMUtils.getPhenomenon(phenProp);
                 if (!result.phenomenons.contains(phen)) {
                     result.phenomenons.add(phen);
                 }
@@ -157,7 +157,7 @@ public class SOSLuceneObservationStore extends AbstractObservationStore {
                 result.add(procedure);
             }
             final PhenomenonProperty phenProp = o.getPropertyObservedProperty();
-            final List<String> fields = XmlObservationUtils.getPhenomenonsFields(phenProp);
+            final List<String> fields = OMUtils.getPhenomenonsFields(phenProp);
             for (String field : fields) {
                 if (!procedure.fields.contains(field)) {
                     procedure.fields.add(field);

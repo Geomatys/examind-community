@@ -65,7 +65,7 @@ import org.constellation.util.Util;
 import org.geotoolkit.storage.event.FeatureStoreContentEvent;
 import org.geotoolkit.data.om.OMFeatureTypes;
 import static org.geotoolkit.data.om.OMFeatureTypes.*;
-import org.geotoolkit.data.om.xml.XmlObservationUtils;
+import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.storage.feature.GenericNameIndex;
@@ -242,13 +242,13 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
                     result.procedures.add(procedure);
                 }
                 final PhenomenonProperty phenProp = o.getPropertyObservedProperty();
-                final List<String> fields = XmlObservationUtils.getPhenomenonsFields(phenProp);
+                final List<String> fields = OMUtils.getPhenomenonsFields(phenProp);
                 for (String field : fields) {
                     if (!result.fields.contains(field)) {
                         result.fields.add(field);
                     }
                 }
-                final Phenomenon phen = XmlObservationUtils.getPhenomenons(phenProp);
+                final Phenomenon phen = OMUtils.getPhenomenon(phenProp);
                 if (!result.phenomenons.contains(phen)) {
                     result.phenomenons.add(phen);
                 }
@@ -282,7 +282,7 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
                 result.add(procedure);
             }
             final PhenomenonProperty phenProp = o.getPropertyObservedProperty();
-            final List<String> fields = XmlObservationUtils.getPhenomenonsFields(phenProp);
+            final List<String> fields = OMUtils.getPhenomenonsFields(phenProp);
             for (String field : fields) {
                 if (!procedure.fields.contains(field)) {
                     procedure.fields.add(field);
