@@ -190,18 +190,16 @@ public abstract class ComputedResourceProvider extends AbstractDataProvider {
         final List<Data> results = new ArrayList<>();
         final DataRepository repo = SpringHelper.getBean(DataRepository.class);
         for (Integer dataId : dataIds) {
-            org.constellation.dto.Data d = repo.findById(dataId);
-            if (d != null) {
-                Data dp = DataProviders.getProviderData(d.getProviderId(), d.getNamespace(), d.getName());
-                if (dp != null) {
-                    results.add(dp);
-                } else {
-                    throw new TargetNotFoundException("No data found in provider named: {" + d.getNamespace() + "} " + d.getName());
-                }
-            } else {
-                throw new TargetNotFoundException("No data found with id:" + dataId);
-            }
+            results.add(getData(repo, dataId));
         }
         return results;
+    }
+
+    protected Data<?> getData(DataRepository repo, int dataId) throws ConfigurationException {
+        final org.constellation.dto.Data d = repo.findById(dataId);
+        if (d == null) throw new TargetNotFoundException("No data found with id:" + dataId);
+        final Data<?> dp = DataProviders.getProviderData(d.getProviderId(), d.getNamespace(), d.getName());
+        if (dp == null) throw new TargetNotFoundException("No data found in provider named: {" + d.getNamespace() + "} " + d.getName());
+        return dp;
     }
 }
