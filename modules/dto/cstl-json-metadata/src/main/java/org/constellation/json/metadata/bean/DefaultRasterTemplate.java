@@ -18,6 +18,7 @@
  */
 package org.constellation.json.metadata.bean;
 
+import java.util.Arrays;
 import org.apache.sis.metadata.MetadataStandard;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.constellation.json.metadata.Template;
@@ -31,19 +32,15 @@ public class DefaultRasterTemplate extends Template {
 
 
     public DefaultRasterTemplate() {
-        super(MetadataStandard.ISO_19115, "org/constellation/json/metadata/profile_default_raster.json");
+        super("profile_default_raster",
+              MetadataStandard.ISO_19115,
+              "org/constellation/json/metadata/profile_default_raster.json",
+              Arrays.asList("raster", "coverage"), true);
     }
 
-    @Override
-    public String getIdentifier() {
-        return "profile_default_raster";
-    }
-
-    @Override
-    public boolean isDefault() {
-        return true;
-    }
-
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public boolean matchMetadata(Object metadata) {
         if(metadata instanceof DefaultMetadata) {
@@ -53,10 +50,5 @@ public class DefaultRasterTemplate extends Template {
             }
         }
         return false;
-    }
-
-    @Override
-    public boolean matchDataType(String dataType) {
-        return "raster".equalsIgnoreCase(dataType) || "coverage".equalsIgnoreCase(dataType);
     }
 }

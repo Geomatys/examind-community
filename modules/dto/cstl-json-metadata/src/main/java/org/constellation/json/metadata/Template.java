@@ -43,6 +43,7 @@ import org.constellation.dto.metadata.SuperBlockObj;
 import org.constellation.metadata.utils.MetadataFeeder;
 import org.constellation.metadata.utils.Utils;
 import org.geotoolkit.nio.IOUtilities;
+import org.geotoolkit.util.StringUtilities;
 import org.opengis.metadata.Metadata;
 
 /**
@@ -59,9 +60,18 @@ public abstract class Template {
 
     private final Map<Class<?>, Class<?>> specialized;
 
-    public Template(final MetadataStandard standard,String resourcePath) {
+    private final List<String> dataTypes;
+
+    private final String identifier;
+
+    private final boolean isDefault;
+
+    public Template(final String identifier, final MetadataStandard standard,String resourcePath, List<String> dataTypes, final boolean isDefault) {
+        this.identifier = identifier;
         this.standard = standard;
         this.specialized = AbstractTemplateHandler.DEFAULT_SPECIALIZED;
+        this.dataTypes = dataTypes;
+        this.isDefault = isDefault;
 
         final ObjectMapper objectMapper = new ObjectMapper();
         try {
@@ -77,15 +87,19 @@ public abstract class Template {
     /**
      * Identifier of Template. Usually bean name.
      */
-    public abstract String getIdentifier();
+    public String getIdentifier() {
+        return identifier;
+    }
 
     /**
      * Flag Template as default template.
      * Used if more than one template match.
      * @return
      */
-    public abstract boolean isDefault();
-
+    public boolean isDefault(){
+        return isDefault;
+    }
+    
     /**
      * Check if template match a metadata.
      * Usually check for metadata type or search for a flag into metadata object.
@@ -93,7 +107,9 @@ public abstract class Template {
      * @param metadata object
      * @return true if matching, false otherwise
      */
-    public abstract boolean matchMetadata(Object metadata);
+    public boolean matchMetadata(Object metadata) {
+        return false;
+    }
 
     /**
      * Check if template match a data type.
@@ -101,7 +117,9 @@ public abstract class Template {
      * @param dataType String like "COVERAGE", "VECTOR", ....
      * @return true if matching, false otherwise
      */
-    public abstract boolean matchDataType(String dataType);
+    public boolean matchDataType(String dataType) {
+        return StringUtilities.containsIgnoreCase(dataTypes, dataType);
+    }
 
     /**
      * Build an empty metadata.

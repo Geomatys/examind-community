@@ -18,6 +18,7 @@
  */
 package org.constellation.json.metadata.bean;
 
+import java.util.ArrayList;
 import org.apache.sis.metadata.MetadataStandard;
 import org.constellation.json.metadata.Template;
 import org.constellation.util.ReflectionUtilities;
@@ -31,30 +32,24 @@ import org.springframework.stereotype.Component;
 public class EbrimTemplate extends Template {
 
     public EbrimTemplate() {
-        super(MetadataStandard.ISO_19115, "org/constellation/json/metadata/profile_ebrim.json");
+        super("profile_ebrim",
+              MetadataStandard.ISO_19115,
+             "org/constellation/json/metadata/profile_ebrim.json",
+             new ArrayList<>(), false);
     }
 
-    @Override
-    public String getIdentifier() {
-        return "profile_ebrim";
-    }
-
-    @Override
-    public boolean isDefault() {
-        return false;
-    }
-
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public boolean matchMetadata(Object meta) {
         return ReflectionUtilities.instanceOf("org.geotoolkit.ebrim.xml.v250.RegistryObjectType", meta.getClass()) ||
                ReflectionUtilities.instanceOf("org.geotoolkit.ebrim.xml.v300.IdentifiableType", meta.getClass());
     }
 
-    @Override
-    public boolean matchDataType(String dataType) {
-        return false;
-    }
-
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public Object emptyMetadata() {
         try {

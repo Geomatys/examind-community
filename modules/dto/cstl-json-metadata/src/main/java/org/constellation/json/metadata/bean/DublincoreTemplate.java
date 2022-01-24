@@ -18,6 +18,7 @@
  */
 package org.constellation.json.metadata.bean;
 
+import java.util.ArrayList;
 import org.apache.sis.metadata.MetadataStandard;
 import org.constellation.json.metadata.Template;
 import org.geotoolkit.csw.xml.Record;
@@ -31,29 +32,23 @@ import org.springframework.stereotype.Component;
 public class DublincoreTemplate extends Template {
 
     public DublincoreTemplate() {
-        super(MetadataStandard.ISO_19115, "org/constellation/json/metadata/profile_dublincore.json");
+        super("profile_dublincore",
+              MetadataStandard.ISO_19115,
+              "org/constellation/json/metadata/profile_dublincore.json",
+              new ArrayList<>(), false);
     }
 
-    @Override
-    public String getIdentifier() {
-        return "profile_dublincore";
-    }
-
-    @Override
-    public boolean isDefault() {
-        return false;
-    }
-
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public boolean matchMetadata(Object metadata) {
         return metadata instanceof Record;
     }
 
-    @Override
-    public boolean matchDataType(String dataType) {
-        return false;
-    }
-
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public Object emptyMetadata() {
         return new RecordType();

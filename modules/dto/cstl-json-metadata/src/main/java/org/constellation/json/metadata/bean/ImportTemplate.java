@@ -18,6 +18,7 @@
  */
 package org.constellation.json.metadata.bean;
 
+import java.util.ArrayList;
 import java.util.Date;
 import org.apache.sis.metadata.MetadataStandard;
 import org.apache.sis.metadata.iso.DefaultMetadata;
@@ -32,29 +33,15 @@ import org.springframework.stereotype.Component;
 public class ImportTemplate extends Template {
 
     public ImportTemplate() {
-        super(MetadataStandard.ISO_19115, "org/constellation/json/metadata/profile_import.json");
+        super("profile_import",
+              MetadataStandard.ISO_19115,
+              "org/constellation/json/metadata/profile_import.json",
+              new ArrayList<>(), true);
     }
 
-    @Override
-    public String getIdentifier() {
-        return "profile_import";
-    }
-
-    @Override
-    public boolean isDefault() {
-        return true;
-    }
-
-    @Override
-    public boolean matchMetadata(Object metadata) {
-        return false;
-    }
-
-    @Override
-    public boolean matchDataType(String dataType) {
-        return false;
-    }
-
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public Object emptyMetadata() {
         DefaultMetadata meta = new DefaultMetadata();

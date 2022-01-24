@@ -18,6 +18,7 @@
  */
 package org.constellation.json.metadata.bean;
 
+import java.util.ArrayList;
 import org.apache.sis.metadata.MetadataStandard;
 import org.constellation.json.metadata.Template;
 import org.geotoolkit.dif.xml.v102.DIF;
@@ -32,34 +33,31 @@ import org.springframework.stereotype.Component;
 public class DifTemplate extends Template {
 
     public DifTemplate() {
-        super(MetadataStandard.ISO_19115, "org/constellation/json/metadata/profile_dif.json");
+        super("profile_dif",
+              MetadataStandard.ISO_19115,
+              "org/constellation/json/metadata/profile_dif.json",
+              new ArrayList<>(), false);
     }
 
-    @Override
-    public String getIdentifier() {
-        return "profile_dif";
-    }
-
-    @Override
-    public boolean isDefault() {
-        return false;
-    }
-
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public boolean matchMetadata(Object metadata) {
         return metadata instanceof DIF;
     }
 
-    @Override
-    public boolean matchDataType(String dataType) {
-        return false;
-    }
-
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public Object emptyMetadata() {
         return new DIF();
     }
 
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public String getMetadataIdentifier(Object metadata) {
         if (metadata instanceof DIF) {
@@ -72,11 +70,7 @@ public class DifTemplate extends Template {
     }
 
     /**
-     * Set the identifier for the metadata Object.
-     *
-     * @param identifier The identifier to set.
-     * @param metadata A metadata Object.
-     *
+     * {@inheritDoc }
      */
     @Override
     public void setMetadataIdentifier(final String identifier, final Object metadata) {
@@ -94,6 +88,9 @@ public class DifTemplate extends Template {
         }
     }
 
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public String getMetadataTitle(Object metadata) {
         if (metadata instanceof DIF) {
@@ -104,11 +101,7 @@ public class DifTemplate extends Template {
     }
 
     /**
-     * Set the title for the metadata Object.
-     *
-     * @param title The title to set.
-     * @param metadata A metadata Object.
-     *
+     * {@inheritDoc }
      */
     @Override
     public void setMetadataTitle(final String title, final Object metadata) {

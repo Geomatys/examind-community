@@ -18,6 +18,7 @@
  */
 package org.constellation.json.metadata.bean;
 
+import java.util.ArrayList;
 import org.constellation.json.metadata.Template;
 import org.geotoolkit.feature.catalog.FeatureCatalogueImpl;
 import org.geotoolkit.feature.catalog.FeatureCatalogueStandard;
@@ -29,32 +30,32 @@ import org.springframework.stereotype.Component;
 @Component("profile_default_feature_catalogue")
 public class FeatureCatalogueTemplate extends Template {
 
-    private static final String NAME = "profile_default_feature_catalogue";
-
     public FeatureCatalogueTemplate() {
-        super(FeatureCatalogueStandard.ISO_19110, "org/constellation/json/metadata/profile_feature_catalogue.json");
+        super("profile_default_feature_catalogue",
+              FeatureCatalogueStandard.ISO_19110,
+              "org/constellation/json/metadata/profile_feature_catalogue.json",
+              new ArrayList<>(), false);
     }
 
-    @Override
-    public String getIdentifier() {
-        return NAME;
-    }
-
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public boolean isDefault() {
         return true;
     }
 
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public boolean matchMetadata(Object metadata) {
         return metadata instanceof FeatureCatalogueImpl;
     }
 
-    @Override
-    public boolean matchDataType(String dataType) {
-        return false;
-    }
-    
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public Object emptyMetadata() {
         return new FeatureCatalogueImpl();

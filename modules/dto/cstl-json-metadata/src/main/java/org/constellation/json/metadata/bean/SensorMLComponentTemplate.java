@@ -18,6 +18,7 @@
  */
 package org.constellation.json.metadata.bean;
 
+import java.util.ArrayList;
 import org.constellation.json.metadata.Template;
 import org.geotoolkit.sml.xml.v101.SensorML;
 import org.geotoolkit.sml.xml.v101.SensorMLStandard;
@@ -30,29 +31,15 @@ import org.springframework.stereotype.Component;
 public class SensorMLComponentTemplate extends Template {
 
     public SensorMLComponentTemplate() {
-        super(SensorMLStandard.SYSTEM, "org/constellation/json/metadata/profile_sensorml_component.json");
+        super("profile_sensorml_component",
+              SensorMLStandard.SYSTEM,
+              "org/constellation/json/metadata/profile_sensorml_component.json",
+              new ArrayList<>(), false);
     }
 
-    @Override
-    public String getIdentifier() {
-        return "profile_sensorml_component";
-    }
-
-    @Override
-    public boolean isDefault() {
-        return false;
-    }
-
-    @Override
-    public boolean matchMetadata(Object metadata) {
-        return false;
-    }
-
-    @Override
-    public boolean matchDataType(String dataType) {
-        return false;
-    }
-
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public Object emptyMetadata() {
         return new SensorML();

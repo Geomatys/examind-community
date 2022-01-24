@@ -18,6 +18,7 @@
  */
 package org.constellation.json.metadata.bean;
 
+import java.util.Arrays;
 import org.apache.sis.metadata.MetadataStandard;
 import org.constellation.json.metadata.Template;
 import org.springframework.stereotype.Component;
@@ -28,28 +29,10 @@ import org.springframework.stereotype.Component;
 @Component("profile_inspire_raster")
 public class InspireRasterTemplate extends Template {
 
-
     public InspireRasterTemplate() {
-        super(MetadataStandard.ISO_19115, "org/constellation/json/metadata/profile_inspire_raster.json");
-    }
-
-    @Override
-    public String getIdentifier() {
-        return "profile_inspire_raster";
-    }
-
-    @Override
-    public boolean isDefault() {
-        return false;
-    }
-
-    @Override
-    public boolean matchMetadata(Object metadata) {
-        return false;
-    }
-
-    @Override
-    public boolean matchDataType(String dataType) {
-        return "raster".equalsIgnoreCase(dataType) || "coverage".equalsIgnoreCase(dataType);
+        super("profile_inspire_raster",
+              MetadataStandard.ISO_19115,
+              "org/constellation/json/metadata/profile_inspire_raster.json",
+              Arrays.asList("raster", "coverage"), false);
     }
 }
