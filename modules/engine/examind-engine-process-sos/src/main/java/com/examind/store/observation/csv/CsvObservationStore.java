@@ -351,7 +351,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
 
 
     @Override
-    public Set<String> getPhenomenonNames() {
+    public Set<String> getPhenomenonNames() throws DataStoreException {
 
         // open csv file
         try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), delimiter, quotechar)) {
@@ -376,7 +376,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
             return Collections.emptySet();
         } catch (IOException ex) {
             LOGGER.log(Level.WARNING, "problem reading csv file", ex);
-            throw new UncheckedIOException(ex);
+            throw new DataStoreException(ex);
         }
     }
 

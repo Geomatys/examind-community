@@ -17,43 +17,21 @@
 package org.constellation.sos.io.lucene;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 import java.util.logging.Level;
-import org.apache.sis.metadata.ModifiableMetadata;
-import org.apache.sis.metadata.iso.DefaultIdentifier;
-import org.apache.sis.metadata.iso.DefaultMetadata;
-import org.apache.sis.metadata.iso.citation.DefaultCitation;
-import org.apache.sis.metadata.iso.identification.DefaultDataIdentification;
-import org.apache.sis.referencing.NamedIdentifier;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
-import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import org.constellation.sos.io.filesystem.FileObservationReader;
 import org.constellation.sos.io.filesystem.FileObservationWriter;
-import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.AbstractObservationStore;
-import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationWriter;
-import org.geotoolkit.observation.xml.AbstractObservation;
-import org.geotoolkit.observation.xml.Process;
 import org.geotoolkit.observation.model.ExtractionResult;
-import org.geotoolkit.sos.xml.ResponseModeType;
 import org.geotoolkit.storage.DataStores;
-import org.geotoolkit.swe.xml.PhenomenonProperty;
 import org.opengis.metadata.Metadata;
-import org.opengis.observation.Observation;
-import org.opengis.observation.Phenomenon;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.temporal.TemporalGeometricPrimitive;
-import org.opengis.util.GenericName;
 
 /**
  *
@@ -78,96 +56,25 @@ public class SOSLuceneObservationStore extends AbstractObservationStore {
         filter = new LuceneObservationFilterReader(confDir, properties, reader);
     }
 
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public DataStoreProvider getProvider() {
         return DataStores.getProviderById(SOSLuceneObservationStoreFactory.NAME);
     }
 
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public Metadata getMetadata() throws DataStoreException {
-        final String name = "lucene-observation";
-        final DefaultMetadata metadata = new DefaultMetadata();
-        final DefaultDataIdentification identification = new DefaultDataIdentification();
-        final NamedIdentifier identifier = new NamedIdentifier(new DefaultIdentifier(name));
-        final DefaultCitation citation = new DefaultCitation(name);
-        citation.setIdentifiers(Collections.singleton(identifier));
-        identification.setCitation(citation);
-        metadata.setIdentificationInfo(Collections.singleton(identification));
-        metadata.transitionTo(ModifiableMetadata.State.FINAL);
-        return metadata;
+        return buildMetadata("lucene-observation");
     }
 
-    @Override
-    public ExtractionResult getResults(final String affectedSensorId, final List<String> sensorIDs, Set<Phenomenon> phenomenons, final Set<org.opengis.observation.sampling.SamplingFeature> samplingFeatures) throws DataStoreException {
-        if (affectedSensorId != null) {
-            LOGGER.warning("SOSLuceneObservationStore does not allow to override sensor ID");
-        }
-
-        final ExtractionResult result = new ExtractionResult();
-        result.spatialBound.initBoundary();
-
-        final ObservationFilterReader currentFilter = getFilter();
-        final Map<String, Object> hints = new HashMap<>();
-        hints.put("responseMode", ResponseModeType.INLINE);
-        hints.put("resultModel", OBSERVATION_QNAME);
-        currentFilter.init(OMEntity.OBSERVATION, hints);
-        currentFilter.setProcedure(sensorIDs);
-
-        final Set<String> observationIDS = filter.getIdentifiers(new HashMap<>());
-        for (String oid : observationIDS) {
-            final AbstractObservation o = (AbstractObservation) reader.getObservation(oid, OBSERVATION_QNAME, ResponseModeType.INLINE, "2.0.0");
-            final Process proc          =  o.getProcedure();
-            final ExtractionResult.ProcedureTree procedure = new ExtractionResult.ProcedureTree(proc.getHref(), proc.getName(), proc.getDescription(), "Component", "timeseries");
-            if (sensorIDs == null || sensorIDs.contains(procedure.id)) {
-                if (!result.procedures.contains(procedure)) {
-                    result.procedures.add(procedure);
-                }
-                final PhenomenonProperty phenProp = o.getPropertyObservedProperty();
-                final List<String> fields = OMUtils.getPhenomenonsFields(phenProp);
-                for (String field : fields) {
-                    if (!result.fields.contains(field)) {
-                        result.fields.add(field);
-                    }
-                }
-                final Phenomenon phen = OMUtils.getPhenomenon(phenProp);
-                if (!result.phenomenons.contains(phen)) {
-                    result.phenomenons.add(phen);
-                }
-                result.spatialBound.appendLocation(o.getSamplingTime(), o.getFeatureOfInterest());
-                procedure.spatialBound.appendLocation(o.getSamplingTime(), o.getFeatureOfInterest());
-                result.observations.add(o);
-            }
-        }
-        return result;
-    }
-
-    @Override
-    public List<ExtractionResult.ProcedureTree> getProcedures() throws DataStoreException {
-        final List<ExtractionResult.ProcedureTree> result = new ArrayList<>();
-
-        // TODO optimize we don't need to call the filter here
-        final ObservationFilterReader currentFilter = (ObservationFilterReader) getFilter();
-        final List<Observation> observations = currentFilter.getObservations(Collections.emptyMap());
-        for (Observation obs : observations) {
-            final AbstractObservation o = (AbstractObservation)obs;
-            final Process proc          =  o.getProcedure();
-            final ExtractionResult.ProcedureTree procedure = new ExtractionResult.ProcedureTree(proc.getHref(), proc.getName(), proc.getDescription(), "Component", "timeseries");
-
-            if (!result.contains(procedure)) {
-                result.add(procedure);
-            }
-            final PhenomenonProperty phenProp = o.getPropertyObservedProperty();
-            final List<String> fields = OMUtils.getPhenomenonsFields(phenProp);
-            for (String field : fields) {
-                if (!procedure.fields.contains(field)) {
-                    procedure.fields.add(field);
-                }
-            }
-            procedure.spatialBound.appendLocation(obs.getSamplingTime(), obs.getFeatureOfInterest());
-        }
-        return result;
-    }
-
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public void close() throws DataStoreException {
         if (reader != null) reader.destroy();
@@ -175,6 +82,9 @@ public class SOSLuceneObservationStore extends AbstractObservationStore {
         if (filter != null) filter.destroy();
     }
 
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public TemporalGeometricPrimitive getTemporalBounds() throws DataStoreException {
         final ExtractionResult result = new ExtractionResult();
@@ -190,11 +100,17 @@ public class SOSLuceneObservationStore extends AbstractObservationStore {
         return reader;
     }
 
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public ObservationWriter getWriter() {
         return writer;
     }
 
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public ObservationFilterReader getFilter() {
         try {
@@ -203,10 +119,5 @@ public class SOSLuceneObservationStore extends AbstractObservationStore {
             LOGGER.log(Level.WARNING, null, ex);
         }
         return null;
-    }
-
-    @Override
-    public Optional<GenericName> getIdentifier() {
-        return Optional.empty();
     }
 }

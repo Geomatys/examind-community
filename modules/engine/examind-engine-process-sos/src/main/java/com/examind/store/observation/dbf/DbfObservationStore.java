@@ -486,7 +486,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
     }
 
     @Override
-    public Set<String> getPhenomenonNames() {
+    public Set<String> getPhenomenonNames() throws DataStoreException {
 
         try (SeekableByteChannel sbc = Files.newByteChannel(dataFile, StandardOpenOption.READ)){
 
@@ -511,7 +511,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
             return Collections.emptySet();
         } catch (IOException ex) {
             LOGGER.log(Level.WARNING, "problem reading dbf file", ex);
-            throw new UncheckedIOException(ex);
+            throw new DataStoreException(ex);
         }
     }
 
