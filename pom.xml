@@ -13,7 +13,7 @@
     <parent>
         <groupId>org.geotoolkit</groupId>
         <artifactId>buildset</artifactId>
-        <version>21.12.24</version>
+        <version>22.01.24</version>
     </parent>
 
     <groupId>com.examind.community</groupId>
@@ -250,13 +250,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>com.geomatys</groupId>
-                <artifactId>geomatys-bom</artifactId>
-                <version>2022.1</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
 
             <dependency>
                 <groupId>org.glassfish.hk2.external</groupId>
