@@ -597,7 +597,7 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
     }
 
     @Override
-    public Integer getParent(Integer id) {
+    public Integer getParents(Integer id) {
         // TODO Optimize
         for (Entry<Integer, List<Data>> entry : linkedData.entrySet()) {
             for (Data d : entry.getValue()) {

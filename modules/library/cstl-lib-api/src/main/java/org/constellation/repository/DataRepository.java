@@ -35,7 +35,16 @@ public interface DataRepository extends AbstractRepository {
 
     Integer create(Data data);
 
-    Integer getParent(Integer id);
+    /**
+     * Return the "parents" data identifiers of the specified one.
+     * Most of the time, a data has no parent (direct file import).
+     * A pyramid data can have single or multiple parents depending on the number of original data
+     * that were used to generate the pyramid.
+     *
+     * @param id Data identifier.
+     * @return A list of data identifiers.
+     */
+    List<Integer> getParents(Integer id);
 
     int delete(String namespaceURI, String localPart, int providerId);
 

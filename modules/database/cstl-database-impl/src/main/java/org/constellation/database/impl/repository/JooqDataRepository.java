@@ -288,11 +288,11 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, com.
     }
 
     @Override
-    public Integer getParent(Integer id) {
+    public List<Integer> getParents(Integer id) {
         return dsl.select(DATA_X_DATA.DATA_ID)
                 .from(DATA_X_DATA)
                 .where(DATA_X_DATA.CHILD_ID.eq(id))
-                .fetchOneInto(Integer.class);
+                .fetchInto(Integer.class);
     }
 
     /**

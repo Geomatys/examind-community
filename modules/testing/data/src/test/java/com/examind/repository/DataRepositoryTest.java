@@ -97,6 +97,14 @@ public class DataRepositoryTest extends AbstractRepositoryTest {
         Assert.assertNotNull(data5);
         Assert.assertNotNull(data5.getId());
 
+        //  set data 5 child of 4 and 3
+        dataRepository.linkDataToData(did3, did5);
+        dataRepository.linkDataToData(did4, did5);
+
+        List<Integer> parents = dataRepository.getParents(did5);
+        Assert.assertTrue(parents.contains(did3));
+        Assert.assertTrue(parents.contains(did4));
+        
         /**
          * Data search
          */
