@@ -404,7 +404,8 @@ public abstract class AbstractWebService implements WebService{
      * @return an xml exception report.
      */
     @RequestMapping(consumes = "text/plain", method = RequestMethod.POST, headers="Accept=*/*")
-    public ResponseEntity doPOSTPlain(final InputStream is) {
+    public ResponseEntity doPOSTPlain(@PathVariable("serviceId") String serviceId, final InputStream is) {
+        putServiceIdParam(serviceId);
         LOGGER.warning("request POST plain sending Exception");
         return launchException("The plain text content type is not allowed. Send " +
         		       "a message body with key=value pairs in the " +

@@ -88,16 +88,20 @@ public class ResponseObject {
         this.status   = HttpStatus.OK;
     }
 
-    public ResponseObject(Object entity, String mimeType, int status) {
+    public ResponseObject(Object entity, String mimeType, Integer status) {
         this.entity   = entity;
         this.mimeTypeSpecial = mimeType;
-        this.status   = HttpStatus.valueOf(status);
+        if (status != null) {
+            this.status   = HttpStatus.valueOf(status);
+        }
     }
 
-    public ResponseObject(Object entity, MediaType mimeType, int status) {
+    public ResponseObject(Object entity, MediaType mimeType, Integer status) {
         this.entity   = entity;
         this.mimeType = mimeType;
-        this.status   = HttpStatus.valueOf(status);
+        if (status != null) {
+            this.status   = HttpStatus.valueOf(status);
+        }
     }
 
     public ResponseObject(Object entity, MediaType mimeType, HttpStatus status) {

@@ -19,7 +19,9 @@
 package org.constellation.ws.rs;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
@@ -31,7 +33,9 @@ import org.constellation.api.ServiceDef;
 import org.constellation.api.ServiceDef.Specification;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.IWSEngine;
+import org.constellation.ws.UnauthorizedException;
 import org.constellation.ws.Worker;
+import org.geotoolkit.ows.xml.ExceptionResponse;
 import org.geotoolkit.ows.xml.OWSExceptionCode;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_CRS;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_DIMENSION_VALUE;
@@ -48,9 +52,11 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.STYLE_NOT_DEFINED;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.TILE_OUT_OF_RANGE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.VERSION_NEGOTIATION_FAILED;
+import org.geotoolkit.ows.xml.OWSXmlFactory;
 import org.geotoolkit.util.StringUtilities;
 import org.opengis.util.CodeList;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 
 
 /**
@@ -202,20 +208,86 @@ public abstract class OGCWebService<W extends Worker> extends AbstractWebService
      * </ul>
      * In both ways, the exception is then marshalled and returned to the client.
      *
-     * @param ex         The exception that has been generated during the web-service operation requested.
+     * @param exc        The exception that has been generated during the web-service operation requested.
      * @param serviceDef The service definition, from which the version number of exception report will
-     *                   be extracted.
+     *                   be extracted. if {@code null} the default version of the worker will be used.
      * @param w the selected worker on which apply the request.
      *
-     * @return An XML representing the exception.
+     * @return A HTTP response oject representing the exception.
      */
-    protected abstract ResponseObject processExceptionResponse(final CstlServiceException ex, final ServiceDef serviceDef, final Worker w);
+    protected ResponseObject processExceptionResponse(final Exception exc, ServiceDef serviceDef, final Worker w) {
+        return processExceptionResponse(exc, serviceDef, w, getExceptionMimeType());
+    }
+    
+    /**
+     * Handle all exceptions returned by a web service operation in two ways:
+     * <ul>
+     *   <li>if the exception code indicates a mistake done by the user, just display a single
+     *       line message in logs.</li>
+     *   <li>otherwise logs the full stack trace in logs, because it is something interesting for
+     *       a developer</li>
+     * </ul>
+     * In both ways, the exception is then marshalled and returned to the client.
+     *
+     * @param exc        The exception that has been generated during the web-service operation requested.
+     * @param serviceDef The service definition, from which the version number of exception report will
+     *                   be extracted. if {@code null} the default version of the worker will be used.
+     * @param w the selected worker on which apply the request.
+     * @param mimeType The mime type to use to return the http response.
+     *
+     * @return A HTTP response oject representing the exception.
+     */
+    protected ResponseObject processExceptionResponse(final Exception exc, ServiceDef serviceDef, final Worker w, MediaType mimeType) {
+        final CstlServiceException ex = CstlServiceException.castOrWrap(exc);
+         // asking for authentication
+        if (ex instanceof UnauthorizedException) {
+            Map<String, String> headers = new HashMap<>();
+            headers.put("WWW-Authenticate", " Basic");
+            return new ResponseObject(HttpStatus.UNAUTHORIZED, headers);
+        }
+        logException(ex);
+
+        if (serviceDef == null) {
+            serviceDef = w.getBestVersion(null);
+        }
+        final String version           = serviceDef.version.toString();
+        final String owsVersion        = serviceDef.owsVersion.toString();
+        final String exVersion         = serviceDef.exceptionVersion.toString();
+        final String exceptionCode     = getOWSExceptionCodeRepresentation(ex.getExceptionCode());
+        final ExceptionResponse report = OWSXmlFactory.buildExceptionReport(owsVersion, ex.getMessage(), exceptionCode, ex.getLocator(), exVersion);
+        final Integer status           = getHttpCodeFromErrorCode(exceptionCode, version);
+        return new ResponseObject(report, mimeType, status);
+    }
+
+    /**
+     * return a specific http code correspounding to the exception code.
+     * Default implementation return always 200 (OK). Sub-classes may override this method to return specific code.
+     * The acting version of the service is specified because in some standard, a version send some related version http code.
+     * 
+     * @param exceptionCode An ows error code.
+     * @param version Acting version of the service.
+     * 
+     * @return An HTTP status code.
+     */
+    protected int getHttpCodeFromErrorCode(final String exceptionCode, String version) {
+        return 200;
+    }
+
+    /**
+     * Return the default mime type to use, to return Exception report.
+     * Default value is XML, sub-classes may override this method to return specific value.
+     *
+     * @return A mime type.
+     */
+    protected MediaType getExceptionMimeType() {
+        return MediaType.TEXT_XML;
+    }
 
     /**
      * The shared method to build a service ExceptionReport.
      *
-     * @param message
-     * @param codeName
+     * @param message A message dscribing the error.
+     * @param codeName An error code.
      * @return
      */
     @Override

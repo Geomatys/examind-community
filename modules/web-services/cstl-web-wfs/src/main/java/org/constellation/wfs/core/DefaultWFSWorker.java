@@ -2396,7 +2396,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
         final List<LayerCache> layers;
         if (names.isEmpty()) {
             // return all layers
-            layers = getLayerCaches(userLogin);
+            layers = getLayerCaches(userLogin, true);
         } else {
             layers = new ArrayList<>();
             for (String name : names) {

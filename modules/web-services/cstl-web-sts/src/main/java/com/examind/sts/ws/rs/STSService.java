@@ -19,8 +19,6 @@
 
 package com.examind.sts.ws.rs;
 
-// J2SE dependencies
-
 import static com.examind.sts.core.STSConstants.*;
 import java.util.HashMap;
 import java.util.List;
@@ -31,10 +29,8 @@ import static org.constellation.api.QueryConstants.VERSION_PARAMETER;
 import org.constellation.api.ServiceDef;
 import org.constellation.api.ServiceDef.Specification;
 import org.constellation.ws.CstlServiceException;
-import org.constellation.ws.UnauthorizedException;
 import org.constellation.ws.Worker;
 import org.constellation.ws.rs.ResponseObject;
-import org.geotoolkit.ows.xml.ExceptionResponse;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.geotoolkit.ows.xml.RequestBase;
 import org.opengis.filter.SortOrder;
@@ -108,7 +104,7 @@ public class STSService extends OGCWebService<STSWorker> {
             final RequestBase request;
             if (objectRequest == null) {
                 version = worker.getVersionFromNumber(getParameter(VERSION_PARAMETER, false)); // needed if exception is launch before request build
-                request = adaptQuery(getParameter(REQUEST_PARAMETER, true), worker);
+                request = adaptQuery(getParameter(REQUEST_PARAMETER, true), worker, null);
             } else if (objectRequest instanceof RequestBase) {
                 request = (RequestBase) objectRequest;
             } else {
@@ -198,7 +194,7 @@ public class STSService extends OGCWebService<STSWorker> {
             throw new CstlServiceException("The operation " + request.getClass().getName() + " is not supported by the service",
                                           INVALID_PARAMETER_VALUE, "request");
 
-        } catch (CstlServiceException ex) {
+        } catch (Exception ex) {
             return processExceptionResponse(ex, version, worker);
         }
     }
@@ -207,55 +203,34 @@ public class STSService extends OGCWebService<STSWorker> {
      * {@inheritDoc}
      */
     @Override
-    protected ResponseObject processExceptionResponse(final CstlServiceException ex, ServiceDef serviceDef, final Worker worker) {
-         // asking for authentication
-        if (ex instanceof UnauthorizedException) {
-            Map<String, String> headers = new HashMap<>();
-            headers.put("WWW-Authenticate", " Basic");
-            return new ResponseObject(HttpStatus.UNAUTHORIZED, headers);
-        }
-        logException(ex);
-
-        if (serviceDef == null) {
-            serviceDef = worker.getBestVersion(null);
-        }
-        final String version           = serviceDef.exceptionVersion.toString();
-        final String exceptionCode     = getOWSExceptionCodeRepresentation(ex.getExceptionCode());
-        final ExceptionResponse report = new org.geotoolkit.ows.xml.v200.ExceptionReport(ex.getMessage(), exceptionCode, ex.getLocator(), version);
-        final int port = getHttpCodeFromErrorCode(exceptionCode);
-        return new ResponseObject(report,  MediaType.APPLICATION_JSON, port);
+    protected MediaType getExceptionMimeType() {
+        return MediaType.APPLICATION_JSON;
     }
 
-    private int getHttpCodeFromErrorCode(final String exceptionCode) {
-        if (null ==exceptionCode) {
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected int getHttpCodeFromErrorCode(final String exceptionCode, final String version) {
+        if (null == exceptionCode) {
             return 200;
         } else switch (exceptionCode) {
-            case "CannotLockAllFeatures":
-            case "FeaturesNotLocked":
-            case "InvalidLockId":
             case "InvalidValue":
             case "OperationParsingFailed":
             case "OperationNotSupported":
             case "MissingParameterValue":
             case "InvalidParameterValue":
             case "VersionNegotiationFailed":
-            case "InvalidUpdateSequence":
             case "OptionNotSupported":
             case "NoApplicableCode":
                 return 400;
-            case "DuplicateStoredQueryIdValue":
-            case "DuplicateStoredQueryParameterName":
-                return 409;
-            case "LockHasExpired":
-            case "OperationProcessingFailed":
-                return 403;
             default:
                 return 200;
         }
     }
 
 
-    private RequestBase adaptQuery(final String requestName, final Worker worker) throws CstlServiceException {
+    private RequestBase adaptQuery(final String requestName, final Worker worker, String pathInfo) throws CstlServiceException {
 
         RequestBase request = null;
         if (STR_GETFEATUREOFINTEREST.equalsIgnoreCase(requestName)) {
@@ -307,6 +282,7 @@ public class STSService extends OGCWebService<STSWorker> {
             sRequest.setExpand(parseCommaSeparatedParameter(EXPAND));
             sRequest.setSelect(parseCommaSeparatedParameter(SELECT));
             sRequest.setOrderby(parseSortByParameter());
+            sRequest.getExtraFlag().put("orig-path", pathInfo);
             // extended param decimation
             String deci = getParameter(DECIMATION, false);
             if (deci != null) {
@@ -319,6 +295,7 @@ public class STSService extends OGCWebService<STSWorker> {
             sRequest.setSelect(parseCommaSeparatedParameter(SELECT));
             sRequest.setResultFormat(getParameter(RESULT_FORMAT, false));
             sRequest.setId(getParameter("id", true));
+            sRequest.getExtraFlag().put("orig-path", pathInfo);
             return request;
         } else if (request instanceof RequestBase) {
             return request;
@@ -369,12 +346,9 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETFEATUREOFINTEREST, worker);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETFEATUREOFINTEREST, worker, req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -390,13 +364,10 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETFEATUREOFINTEREST, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETFEATUREOFINTEREST, worker, req.getPathInfo());
                 request.getExtraFilter().put("observationId", id);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -413,12 +384,9 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequestById request = (AbstractSTSRequestById) adaptQuery(STR_GETFEATUREOFINTEREST_BYID, worker);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
+                AbstractSTSRequestById request = (AbstractSTSRequestById) adaptQuery(STR_GETFEATUREOFINTEREST_BYID, worker, req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -429,16 +397,13 @@ public class STSService extends OGCWebService<STSWorker> {
 
     @RequestMapping(path = "Things", method = RequestMethod.GET)
     public ResponseEntity getThings(@PathVariable("serviceId") String serviceId, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
-       putServiceIdParam(serviceId);
+        putServiceIdParam(serviceId);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETTHINGS, worker);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETTHINGS, worker, req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -455,12 +420,9 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequestById request = (AbstractSTSRequestById) adaptQuery(STR_GETTHING_BYID, worker);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
+                AbstractSTSRequestById request = (AbstractSTSRequestById) adaptQuery(STR_GETTHING_BYID, worker, req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -475,12 +437,9 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVATION, worker);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVATION, worker, req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -497,13 +456,10 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVATION, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVATION, worker, req.getPathInfo());
                 request.getExtraFilter().put("featureOfInterest", id);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -520,12 +476,9 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequestById request = (AbstractSTSRequestById) adaptQuery(STR_GETOBSERVATION_BYID, worker);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
+                AbstractSTSRequestById request = (AbstractSTSRequestById) adaptQuery(STR_GETOBSERVATION_BYID, worker, req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -536,16 +489,13 @@ public class STSService extends OGCWebService<STSWorker> {
 
     @RequestMapping(path = "Datastreams", method = RequestMethod.GET)
     public ResponseEntity getDatastreams(@PathVariable("serviceId") String serviceId, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
-       putServiceIdParam(serviceId);
+        putServiceIdParam(serviceId);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETDATASTREAMS, worker);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETDATASTREAMS, worker, req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -562,12 +512,9 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequestById request = (AbstractSTSRequestById) adaptQuery(STR_GETDATASTREAM_BYID, worker);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
+                AbstractSTSRequestById request = (AbstractSTSRequestById) adaptQuery(STR_GETDATASTREAM_BYID, worker, req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -583,13 +530,10 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETDATASTREAMS, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETDATASTREAMS, worker, req.getPathInfo());
                 request.getExtraFilter().put("observationId", id);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -605,13 +549,10 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETDATASTREAMS, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETDATASTREAMS, worker, req.getPathInfo());
                 request.getExtraFilter().put("observedProperty", id);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -626,12 +567,9 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETMULTIDATASTREAMS, worker);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETMULTIDATASTREAMS, worker, req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -648,12 +586,9 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequestById request = (AbstractSTSRequestById) adaptQuery(STR_GETMULTIDATASTREAM_BYID, worker);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
+                AbstractSTSRequestById request = (AbstractSTSRequestById) adaptQuery(STR_GETMULTIDATASTREAM_BYID, worker, req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -669,13 +604,10 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETMULTIDATASTREAMS, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETMULTIDATASTREAMS, worker, req.getPathInfo());
                 request.getExtraFilter().put("observationId", id);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -691,13 +623,10 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETMULTIDATASTREAMS, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETMULTIDATASTREAMS, worker, req.getPathInfo());
                 request.getExtraFilter().put("observedProperty", id);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -713,12 +642,9 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVEDPROPERTIES, worker);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVEDPROPERTIES, worker, req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -735,12 +661,9 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequestById request = (AbstractSTSRequestById) adaptQuery(STR_GETOBSERVEDPROPERTY_BYID, worker);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
+                AbstractSTSRequestById request = (AbstractSTSRequestById) adaptQuery(STR_GETOBSERVEDPROPERTY_BYID, worker, req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -757,13 +680,10 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVEDPROPERTIES, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVEDPROPERTIES, worker, req.getPathInfo());
                 request.getExtraFilter().put("observationId", id);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -780,13 +700,10 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVATION, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVATION, worker, req.getPathInfo());
                 request.getExtraFilter().put("observationId", id);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -803,13 +720,10 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETSENSORS, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETSENSORS, worker, req.getPathInfo());
                 request.getExtraFilter().put("observationId", id);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -826,14 +740,11 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVEDPROPERTIES, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVEDPROPERTIES, worker, req.getPathInfo());
                 request.getExtraFilter().put("observationId", id);
                 request.getExtraFlag().put("forMDS", "true");
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -850,14 +761,11 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVATION, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVATION, worker, req.getPathInfo());
                 request.getExtraFilter().put("observationId", id);
                 request.getExtraFlag().put("forMDS", "true");
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -874,14 +782,11 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETSENSORS, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETSENSORS, worker, req.getPathInfo());
                 request.getExtraFilter().put("observationId", id);
                 request.getExtraFlag().put("forMDS", "true");
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -897,12 +802,9 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETLOCATIONS, worker);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETLOCATIONS, worker, req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -919,12 +821,9 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequestById request = (AbstractSTSRequestById) adaptQuery(STR_GETLOCATION_BYID, worker);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
+                AbstractSTSRequestById request = (AbstractSTSRequestById) adaptQuery(STR_GETLOCATION_BYID, worker, req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -941,13 +840,10 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETTHINGS, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETTHINGS, worker, req.getPathInfo());
                 request.getExtraFilter().put("procedure", id);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -964,14 +860,11 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETTHINGS, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETTHINGS, worker, req.getPathInfo());
                 request.getExtraFilter().put("observationId", id);
                 request.getExtraFlag().put("forMDS", "true");
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -986,12 +879,9 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETSENSORS, worker);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETSENSORS, worker, req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -1008,12 +898,9 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequestById request = (AbstractSTSRequestById) adaptQuery(STR_GETSENSOR_BYID, worker);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
+                AbstractSTSRequestById request = (AbstractSTSRequestById) adaptQuery(STR_GETSENSOR_BYID, worker, req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -1030,13 +917,10 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETDATASTREAMS, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETDATASTREAMS, worker, req.getPathInfo());
                 request.getExtraFilter().put("procedure", id);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -1053,13 +937,10 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETDATASTREAMS, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETDATASTREAMS, worker, req.getPathInfo());
                 request.getExtraFilter().put("procedure", id);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -1076,13 +957,10 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETMULTIDATASTREAMS, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETMULTIDATASTREAMS, worker, req.getPathInfo());
                 request.getExtraFilter().put("procedure", id);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -1099,13 +977,10 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETMULTIDATASTREAMS, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETMULTIDATASTREAMS, worker, req.getPathInfo());
                 request.getExtraFilter().put("procedure", id);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -1120,12 +995,9 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETHISTORICALLOCATIONS, worker);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETHISTORICALLOCATIONS, worker, req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -1142,12 +1014,9 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequestById request = (AbstractSTSRequestById) adaptQuery(STR_GETHISTORICALLOCATION_BYID, worker);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
+                AbstractSTSRequestById request = (AbstractSTSRequestById) adaptQuery(STR_GETHISTORICALLOCATION_BYID, worker, req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -1165,18 +1034,15 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETTHINGS, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETTHINGS, worker, req.getPathInfo());
                 int pos = id != null ? id.lastIndexOf('-') : -1;
                 if (pos != -1) {
                     String sensorId = id.substring(0, pos);
                     String timeStr = id.substring(pos + 1); // not neccesary for finding thing
                     request.getExtraFilter().put("procedure", sensorId);
-                    request.getExtraFlag().put("orig-path", req.getPathInfo());
                     return treatIncomingRequest(request).getResponseEntity(response);
                 }
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+           } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -1193,7 +1059,7 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETHISTORICALLOCATIONS, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETHISTORICALLOCATIONS, worker, req.getPathInfo());
                 int pos = id != null ? id.lastIndexOf('-') : -1;
 
                 // single historical location
@@ -1201,20 +1067,16 @@ public class STSService extends OGCWebService<STSWorker> {
                     String sensorId = id.substring(0, pos);
                     String timeStr = id.substring(pos + 1);
                     request.getExtraFilter().put("procedure", sensorId);
-                    request.getExtraFlag().put("orig-path", req.getPathInfo());
                     request.getExtraFlag().put("hloc-time", timeStr);
                     return treatIncomingRequest(request).getResponseEntity(response);
 
                 // sensor location
                 } else {
                     request.getExtraFilter().put("procedure", id);
-                    request.getExtraFlag().put("orig-path", req.getPathInfo());
                     request.getExtraFlag().put("hloc-time", "no-time");
                     return treatIncomingRequest(request).getResponseEntity(response);
                 }
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -1231,14 +1093,11 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETHISTORICALLOCATIONS, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETHISTORICALLOCATIONS, worker, req.getPathInfo());
                 request.getExtraFilter().put("procedure", id);
-                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
 
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();
@@ -1257,8 +1116,8 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETLOCATIONS, worker);
-                int pos = id != null ? id.lastIndexOf('-') : -1;
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETLOCATIONS, worker, req.getPathInfo());
+                int pos = id.lastIndexOf('-');
                 if (pos != -1) {
                     String sensorId = id.substring(0, pos);
                     String timeStr = id.substring(pos + 1);
@@ -1266,9 +1125,7 @@ public class STSService extends OGCWebService<STSWorker> {
                     request.getExtraFlag().put("hloc-time", timeStr);
                     return treatIncomingRequest(request).getResponseEntity(response);
                 }
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
             } finally {
                 clearKvpMap();

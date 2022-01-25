@@ -385,13 +385,13 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
         obj = unmarshallResponse(getCapsUrl);
         assertTrue(obj instanceof org.geotoolkit.ows.xml.v100.ExceptionReport);
         org.geotoolkit.ows.xml.v100.ExceptionReport report100 = (org.geotoolkit.ows.xml.v100.ExceptionReport) obj;
-        assertEquals("1.0.0", report100.getVersion());
+        assertEquals("1.1.0", report100.getVersion());
 
         getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETCAPABILITIES_URL_NO_SERV2);
         obj = unmarshallResponse(getCapsUrl);
         assertTrue(obj instanceof ExceptionReport);
         ExceptionReport report200 = (ExceptionReport) obj;
-        assertEquals("2.0.0", report200.getVersion());
+        assertEquals("2.0.2", report200.getVersion());
 
         getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETCAPABILITIES_URL_NO_VERS);
         obj = unmarshallResponse(getCapsUrl);

@@ -24,12 +24,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.sis.cql.CQL;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.referencing.CRS;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.api.ServiceDef;
 import org.constellation.api.rest.ErrorMessage;
 import org.constellation.api.rest.I18nCodes;
@@ -72,8 +70,6 @@ import static org.constellation.wfs.core.AtomLinkBuilder.buildDocumentLinks;
 @RequestMapping("feature/{serviceId:.+}")
 public class FeatureAPI extends GridWebService<WFSWorker> {
 
-    protected static final Logger LOGGER = Logging.getLogger("org.constellation.rest.api");
-
     private static final FilterFactory FF = DefaultFactories.forBuildin(FilterFactory.class);
 
     public FeatureAPI() {
@@ -103,9 +99,9 @@ public class FeatureAPI extends GridWebService<WFSWorker> {
     }
 
     @Override
-    protected ResponseObject processExceptionResponse(CstlServiceException ex, ServiceDef serviceDef, Worker w) {
-        LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
-        return new ResponseObject(new ErrorMessage(ex));
+    protected ResponseObject processExceptionResponse(final Exception exc, ServiceDef serviceDef, final Worker w, MediaType mimeType) {
+        LOGGER.log(Level.WARNING, exc.getLocalizedMessage(), exc);
+        return new ResponseObject(new ErrorMessage(exc));
     }
 
     @RequestMapping(method = GET, produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})

@@ -19,25 +19,19 @@
 
 package org.constellation.thesaurus.ws.rs;
 
-import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 
-// constellation dependencies
 import org.constellation.api.ServiceDef;
 import org.constellation.ws.CstlServiceException;
-import org.constellation.ws.Worker;
 import org.constellation.ws.rs.OGCWebService;
 
-//geotoolkit dependencies
-import org.geotoolkit.ows.xml.v110.ExceptionReport;
 import org.geotoolkit.util.StringUtilities;
 
 import org.constellation.thesaurus.core.THWworker;
+import org.constellation.ws.MimeType;
 import org.constellation.ws.rs.ResponseObject;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.*;
 
@@ -101,39 +95,8 @@ public class RestThesaurusService extends OGCWebService<THWworker> {
      * {@inheritDoc}
      */
     @Override
-    protected ResponseObject processExceptionResponse(CstlServiceException ex, ServiceDef sdef, Worker w) {
-        try {
-            if (ex != null) {
-                String code = null;
-                if (ex.getExceptionCode() != null)  {
-                    code = ex.getExceptionCode().name();
-                }
-                final ExceptionReport report = new ExceptionReport(ex.getMessage(), code, ex.getLocator(), null);
-                final StringWriter sw        = new StringWriter();
-                Marshaller marshaller        = null;
-                try {
-                    marshaller = getMarshallerPool().acquireMarshaller();
-                    marshaller.marshal(report, sw);
-                } finally {
-                    if (marshaller != null) {
-                        getMarshallerPool().recycle(marshaller);
-                    }
-                }
-                return new ResponseObject(sw.toString(), "text/xml");
-            }
-        } catch (JAXBException e) {
-            LOGGER.log(Level.WARNING, null, e);
-        }
-        return new ResponseObject("Internal error", "text/plain");
-
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public ResponseObject treatIncomingRequest(Object objectRequest, final THWworker worker) {
-        String outputFormat                 = "text/xml";
+        String outputFormat                 = MimeType.TEXT_XML;
         if (worker != null) {
             try {
 

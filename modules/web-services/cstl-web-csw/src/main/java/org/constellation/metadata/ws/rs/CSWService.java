@@ -208,33 +208,10 @@ public class CSWService extends OGCWebService<CSWworker> {
             throw new CstlServiceException("The operation " +  request.getClass().getName() + " is not supported by the service",
                     INVALID_PARAMETER_VALUE, "request");
 
-        } catch (CstlServiceException ex) {
+        } catch (Exception ex) {
             return processExceptionResponse(ex, serviceDef, worker);
-
         }
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected ResponseObject processExceptionResponse(final CstlServiceException ex, ServiceDef serviceDef, final Worker w) {
-        // asking for authentication
-        if (ex instanceof UnauthorizedException) {
-            Map<String, String> headers = new HashMap<>();
-            headers.put("WWW-Authenticate", " Basic");
-            return new ResponseObject(HttpStatus.UNAUTHORIZED, headers);
-        }
-        logException(ex);
-        if (serviceDef == null) {
-            serviceDef = w.getBestVersion(null);
-        }
-        final String version           = serviceDef.exceptionVersion.toString();
-        final String code              = getOWSExceptionCodeRepresentation(ex.getExceptionCode());
-        final ExceptionResponse report = CswXmlFactory.buildExceptionReport(serviceDef.version.toString(), ex.getMessage(), code, ex.getLocator(), version);
-        return new ResponseObject(report, MediaType.TEXT_XML);
-    }
-
 
     /**
      * Build request object from KVP parameters.
@@ -913,7 +890,7 @@ public class CSWService extends OGCWebService<CSWworker> {
                 }
 
                 return new ResponseObject(response, outputFormat).getResponseEntity();
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, serviceDef, worker).getResponseEntity();
             }
         } else {

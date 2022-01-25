@@ -277,7 +277,8 @@ public class WMSService extends GridWebService<WMSWorker> {
      * {@inheritDoc}
      */
     @Override
-    protected ResponseObject processExceptionResponse(final CstlServiceException ex, ServiceDef serviceDef, final Worker w) {
+    protected ResponseObject processExceptionResponse(final Exception exc, ServiceDef serviceDef, final Worker w) {
+        final CstlServiceException ex = CstlServiceException.castOrWrap(exc);
 
         if (serviceDef == null) {
             serviceDef = w.getBestVersion(null);

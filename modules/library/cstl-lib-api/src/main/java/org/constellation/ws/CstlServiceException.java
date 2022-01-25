@@ -44,9 +44,9 @@ public class CstlServiceException extends ConstellationException {
     private final String locator;
 
     /**
-     * The http code to return (default is 200)
+     * The http code to return.
      */
-    private int httpCode = 200;
+    private Integer httpCode;
 
     /**
      * Creates an exception with the specified details message.
@@ -156,7 +156,7 @@ public class CstlServiceException extends ConstellationException {
      * @param httpCode The http code to return.
      */
     public CstlServiceException(final String message, final Exception cause, final CodeList exceptionCode,
-                                final String locator, final int httpCode)
+                                final String locator, final Integer httpCode)
     {
         super(message, cause);
         this.exceptionCode = exceptionCode;
@@ -179,16 +179,29 @@ public class CstlServiceException extends ConstellationException {
     }
 
     /**
-     * @return The http code to return (default is 200)
+     * @return The http code to return or {@code null}
      */
-    public int getHttpCode() {
+    public Integer getHttpCode() {
         return httpCode;
     }
 
     /**
-     * @param httpCode The http code to return (default is 200)
+     * @param httpCode The http code to return  or {@code null}
      */
-    public void setHttpCode(int httpCode) {
+    public void setHttpCode(Integer httpCode) {
         this.httpCode = httpCode;
+    }
+
+    /**
+     * Return directly the exception if its a {@link CstlServiceException}, or wrap it into one.
+     *
+     * @param ex An Exception.
+     * @return A {@link CstlServiceException}.
+     */
+    public static CstlServiceException castOrWrap(final Exception ex) {
+        if (ex instanceof CstlServiceException) {
+            return (CstlServiceException) ex;
+        }
+        return new CstlServiceException(ex);
     }
 }

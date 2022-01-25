@@ -23,7 +23,6 @@ import org.constellation.api.ServiceDef.Specification;
 import org.constellation.sos.core.SOSworker;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.MimeType;
-import org.constellation.ws.UnauthorizedException;
 import org.constellation.ws.Worker;
 import org.constellation.ws.rs.OGCWebService;
 import org.geotoolkit.ows.xml.AcceptFormats;
@@ -31,7 +30,6 @@ import org.geotoolkit.ows.xml.AcceptVersions;
 import org.geotoolkit.ows.xml.OWSXmlFactory;
 import org.geotoolkit.ows.xml.RequestBase;
 import org.geotoolkit.ows.xml.Sections;
-import org.geotoolkit.ows.xml.v110.ExceptionReport;
 import org.geotoolkit.ows.xml.v110.SectionsType;
 import org.geotoolkit.sos.xml.GetCapabilities;
 import org.geotoolkit.sos.xml.GetFeatureOfInterest;
@@ -58,9 +56,7 @@ import org.opengis.temporal.Period;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
 
@@ -104,7 +100,6 @@ import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimeDuring;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimeEquals;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimeInstant;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimePeriod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -263,10 +258,8 @@ public class SOService extends OGCWebService<SOSworker> {
              throw new CstlServiceException("The operation " + request + " is not supported by the service",
                      INVALID_PARAMETER_VALUE, "request");
 
-
-        } catch (CstlServiceException ex) {
+        } catch (Exception ex) {
             return processExceptionResponse(ex, serviceDef, worker);
-
         }
     }
 
@@ -280,34 +273,6 @@ public class SOService extends OGCWebService<SOSworker> {
     private void throwUnsupportedGetMethod(String operationName) throws CstlServiceException {
         throw new CstlServiceException("The operation " + operationName + " is only requestable in XML via POST method",
                                                   OPERATION_NOT_SUPPORTED, operationName);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected ResponseObject processExceptionResponse(final CstlServiceException ex, ServiceDef serviceDef, final Worker w) {
-         // asking for authentication
-        if (ex instanceof UnauthorizedException) {
-            Map<String, String> headers = new HashMap<>();
-            headers.put("WWW-Authenticate", " Basic");
-            return new ResponseObject(HttpStatus.UNAUTHORIZED, headers);
-        }
-        logException(ex);
-
-        final String exceptionVersion;
-        if (serviceDef == null) {
-            if  (w != null) {
-                exceptionVersion = w.getBestVersion(null).exceptionVersion.toString();
-            } else {
-                exceptionVersion = null;
-            }
-        } else {
-            exceptionVersion = serviceDef.exceptionVersion.toString();
-        }
-        final String exceptionCode   = getOWSExceptionCodeRepresentation(ex.getExceptionCode());
-        final ExceptionReport report = new ExceptionReport(ex.getMessage(), exceptionCode, ex.getLocator(), exceptionVersion);
-        return new ResponseObject(report, MediaType.TEXT_XML);
     }
 
     /**

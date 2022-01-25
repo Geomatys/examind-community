@@ -19,7 +19,6 @@
 
 package org.constellation.wfs.ws.rs;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.lang.reflect.Proxy;
@@ -71,7 +70,6 @@ import static org.constellation.wfs.core.WFSConstants.STR_TRANSACTION;
 import static org.constellation.wfs.core.WFSConstants.STR_XSD;
 import org.constellation.wfs.core.WFSWorker;
 import org.constellation.ws.CstlServiceException;
-import org.constellation.ws.UnauthorizedException;
 import org.constellation.ws.WebServiceUtilities;
 import org.constellation.ws.Worker;
 import org.constellation.ws.rs.GridWebService;
@@ -84,7 +82,6 @@ import org.geotoolkit.ogc.xml.SortBy;
 import org.geotoolkit.ogc.xml.XMLFilter;
 import org.geotoolkit.ows.xml.AcceptFormats;
 import org.geotoolkit.ows.xml.AcceptVersions;
-import org.geotoolkit.ows.xml.ExceptionResponse;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
 import org.geotoolkit.ows.xml.RequestBase;
@@ -310,33 +307,9 @@ public class WFSService extends GridWebService<WFSWorker> {
      * {@inheritDoc}
      */
     @Override
-    protected ResponseObject processExceptionResponse(final CstlServiceException ex, ServiceDef serviceDef, final Worker worker) {
-         // asking for authentication
-        if (ex instanceof UnauthorizedException) {
-            Map<String, String> headers = new HashMap<>();
-            headers.put("WWW-Authenticate", " Basic");
-            return new ResponseObject(HttpStatus.UNAUTHORIZED, headers);
-        }
-        logException(ex);
-
-        if (serviceDef == null) {
-            serviceDef = worker.getBestVersion(null);
-        }
-        final String version         = serviceDef.exceptionVersion.toString();
-        final String exceptionCode   = getOWSExceptionCodeRepresentation(ex.getExceptionCode());
-        final ExceptionResponse report;
-        if (serviceDef.exceptionVersion.toString().equals("1.0.0")) {
-            report = new org.geotoolkit.ows.xml.v100.ExceptionReport(ex.getMessage(), exceptionCode, ex.getLocator(), version);
-            return new ResponseObject(report, "text/xml");
-        } else {
-            report = new org.geotoolkit.ows.xml.v110.ExceptionReport(ex.getMessage(), exceptionCode, ex.getLocator(), version);
-            final int port = getHttpCodeFromErrorCode(exceptionCode);
-            return new ResponseObject(report, "text/xml", port);
-        }
-    }
-
-    private int getHttpCodeFromErrorCode(final String exceptionCode) {
-        if (null ==exceptionCode) {
+    protected int getHttpCodeFromErrorCode(final String exceptionCode, final String version) {
+        if (version.equals("1.0.0")) return 200;
+        if (exceptionCode == null) {
             return 200;
         } else switch (exceptionCode) {
             case "CannotLockAllFeatures":
@@ -1103,9 +1076,7 @@ public class WFSService extends GridWebService<WFSWorker> {
                 final AcceptVersions acceptVersions = buildAcceptVersion(version, versions);
                 final GetCapabilities gc = WFSXmlFactory.buildGetCapabilities(version, acceptVersions, sections, null, null, "WFS");
                 return treatIncomingRequest(gc).getResponseEntity();
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity();
             }
         }
@@ -1121,9 +1092,7 @@ public class WFSService extends GridWebService<WFSWorker> {
                 worker.checkVersionSupported(version, true);
                 final DescribeFeatureType df = WFSXmlFactory.buildDecribeFeatureType(version, "WFS", null, null, null);
                 return treatIncomingRequest(df).getResponseEntity();
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity();
             }
         }
@@ -1178,9 +1147,7 @@ public class WFSService extends GridWebService<WFSWorker> {
                     request = gf;
                 }
                 return treatIncomingRequest(request).getResponseEntity();
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity();
             }
         }
@@ -1199,9 +1166,7 @@ public class WFSService extends GridWebService<WFSWorker> {
                 final InsertElement elem = WFSXmlFactory.buildInsertElement(version, null, srsName, in);
                 final Transaction request = WFSXmlFactory.buildTransaction(version, "WFS", null, AllSomeType.ALL, elem);
                 return treatIncomingRequest(request).getResponseEntity();
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity();
             }
         }
@@ -1231,9 +1196,7 @@ public class WFSService extends GridWebService<WFSWorker> {
                 final Transaction request = WFSXmlFactory.buildTransaction(version, "WFS", null, AllSomeType.ALL, elem);
                 request.setPrefixMapping(prefixMapping);
                 return treatIncomingRequest(request).getResponseEntity();
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity();
             }
         }
@@ -1261,9 +1224,7 @@ public class WFSService extends GridWebService<WFSWorker> {
                 final Transaction request = WFSXmlFactory.buildTransaction(version, "WFS", null, AllSomeType.ALL, elem);
                 request.setPrefixMapping(prefixMapping);
                 return treatIncomingRequest(request).getResponseEntity();
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity();
             }
         }
@@ -1295,9 +1256,7 @@ public class WFSService extends GridWebService<WFSWorker> {
                 final Query query = buildQuery(version, filter, typeNames, null, srsName, sortBy, propertyNames);
                 final Object request = WFSXmlFactory.buildGetFeature(version, "WFS", null, startIndex, maxFeature, query, resultType, outputFormat);
                 return treatIncomingRequest(request).getResponseEntity();
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity();
             }
         }
@@ -1317,9 +1276,7 @@ public class WFSService extends GridWebService<WFSWorker> {
                 final ReplaceElement elem = WFSXmlFactory.buildReplaceElement(version, null, srsName, filter, in);
                 final Transaction request = WFSXmlFactory.buildTransaction(version, "WFS", null, AllSomeType.ALL, elem);
                 return treatIncomingRequest(request).getResponseEntity();
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity();
             }
         }
@@ -1338,9 +1295,7 @@ public class WFSService extends GridWebService<WFSWorker> {
                 final DeleteElement elem = WFSXmlFactory.buildDeleteElement(version, filter, null, new QName(featureType));
                 final Transaction request = WFSXmlFactory.buildTransaction(version, "WFS", null, AllSomeType.ALL, elem);
                 return treatIncomingRequest(request).getResponseEntity();
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity();
             }
         }
@@ -1382,9 +1337,7 @@ public class WFSService extends GridWebService<WFSWorker> {
                 final GetPropertyValue request = WFSXmlFactory.buildGetPropertyValue(version, "WFS", null, startIndex, maxFeature, query, resultType, outputFormat, prop);
                 request.setPrefixMapping(prefixMapping);
                 return treatIncomingRequest(request).getResponseEntity();
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity();
             }
         }
@@ -1423,9 +1376,7 @@ public class WFSService extends GridWebService<WFSWorker> {
                 final Transaction request = WFSXmlFactory.buildTransaction(version, "WFS", null, AllSomeType.ALL, update);
                 request.setPrefixMapping(prefixMapping);
                 return treatIncomingRequest(request).getResponseEntity();
-            } catch (IllegalArgumentException | JAXBException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity();
             }
         }
@@ -1457,9 +1408,7 @@ public class WFSService extends GridWebService<WFSWorker> {
                 final Transaction request = WFSXmlFactory.buildTransaction(version, "WFS", null, AllSomeType.ALL, update);
                 request.setPrefixMapping(prefixMapping);
                 return treatIncomingRequest(request).getResponseEntity();
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity();
             }
         }
@@ -1491,9 +1440,7 @@ public class WFSService extends GridWebService<WFSWorker> {
                 final Query query = buildQuery(version, filter, typeNames, null, srsName, sortBy, propNames);
                 final Object request = WFSXmlFactory.buildGetPropertyValue(version, "WFS", null, startIndex, maxFeature, query, resultType, outputFormat, prop);
                 return treatIncomingRequest(request).getResponseEntity();
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity();
             }
         }
@@ -1522,9 +1469,7 @@ public class WFSService extends GridWebService<WFSWorker> {
                 final UpdateElement update = WFSXmlFactory.buildUpdateElement(version, null, srsName, filter, new QName(featureType), Arrays.asList(property));
                 final Object request = WFSXmlFactory.buildTransaction(version, "WFS", null, AllSomeType.ALL, update);
                 return treatIncomingRequest(request).getResponseEntity();
-            } catch (IllegalArgumentException | JAXBException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity();
             }
         }
@@ -1546,9 +1491,7 @@ public class WFSService extends GridWebService<WFSWorker> {
                 final UpdateElement update = WFSXmlFactory.buildUpdateElement(version, null, srsName, filter, new QName(featureType), Arrays.asList(property));
                 final Object request = WFSXmlFactory.buildTransaction(version, "WFS", null, AllSomeType.ALL, update);
                 return treatIncomingRequest(request).getResponseEntity();
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity();
             }
         }
@@ -1564,9 +1507,7 @@ public class WFSService extends GridWebService<WFSWorker> {
                 worker.checkVersionSupported(version, true);
                 final ListStoredQueries lsq = WFSXmlFactory.buildListStoredQueries(version, "WFS", null);
                 return treatIncomingRequest(lsq).getResponseEntity();
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity();
             }
         }
@@ -1599,9 +1540,7 @@ public class WFSService extends GridWebService<WFSWorker> {
                 } else {
                     throw new CstlServiceException("Unexpected content for query body");
                 }
-            } catch (IllegalArgumentException | JAXBException | IOException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity();
             }
         }
@@ -1637,9 +1576,7 @@ public class WFSService extends GridWebService<WFSWorker> {
                 final GetFeature lsq = WFSXmlFactory.buildGetFeature(version, "WFS", null, null, null, query, null, null);
                 return treatIncomingRequest(lsq).getResponseEntity();
 
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity();
             }
         }
@@ -1670,9 +1607,7 @@ public class WFSService extends GridWebService<WFSWorker> {
                 } else {
                     throw new CstlServiceException("Unexpected content for query body");
                 }
-            } catch (IllegalArgumentException | JAXBException | IOException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity();
             }
         }
@@ -1707,9 +1642,7 @@ public class WFSService extends GridWebService<WFSWorker> {
                 } else {
                     throw new CstlServiceException("Unexpected content for query body");
                 }
-            } catch (IllegalArgumentException | JAXBException | IOException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity();
             }
         }
@@ -1726,9 +1659,7 @@ public class WFSService extends GridWebService<WFSWorker> {
                 final DropStoredQuery lsq = WFSXmlFactory.buildDropStoredQuery(version, "WFS", null, queryId);
                 return treatIncomingRequest(lsq).getResponseEntity();
 
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
-            } catch (CstlServiceException ex) {
+            } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity();
             }
         }

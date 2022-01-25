@@ -29,7 +29,6 @@ import org.geotoolkit.image.io.XImageIO;
 import org.geotoolkit.ows.xml.RequestBase;
 import org.geotoolkit.ows.xml.v110.AcceptFormatsType;
 import org.geotoolkit.ows.xml.v110.AcceptVersionsType;
-import org.geotoolkit.ows.xml.v110.ExceptionReport;
 import org.geotoolkit.ows.xml.v110.SectionsType;
 import org.geotoolkit.wmts.xml.WMTSMarshallerPool;
 import org.geotoolkit.wmts.xml.v100.DimensionNameValue;
@@ -64,6 +63,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import javax.servlet.http.HttpServletResponse;
 import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
+import org.springframework.http.HttpStatus;
 
 // Jersey dependencies
 
@@ -89,7 +89,6 @@ public class WMTSService extends GridWebService<WMTSWorker> {
         setXMLContext(WMTSMarshallerPool.getInstance());
         LOGGER.log(Level.INFO, "WMTS REST service running");
     }
-
 
     /**
      * {@inheritDoc}
@@ -354,13 +353,16 @@ public class WMTSService extends GridWebService<WMTSWorker> {
                                                         @PathVariable("caps") final String resourcename,
                                                         HttpServletResponse response) {
         putServiceIdParam(serviceId);
-        try {
-            final GetCapabilities gc = createNewGetCapabilitiesRequestRestful(version);
-            return treatIncomingRequest(gc).getResponseEntity(response);
-        } catch (CstlServiceException ex) {
-            final Worker w = wsengine.getInstance("WMTS", getSafeParameter("serviceId"));
-            return processExceptionResponse(ex, null, w).getResponseEntity(response);
+        final Worker worker = getWorker(serviceId);
+        if (worker != null) {
+            try {
+                final GetCapabilities gc = createNewGetCapabilitiesRequestRestful(version);
+                return treatIncomingRequest(gc).getResponseEntity(response);
+            } catch (Exception ex) {
+                return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            }
         }
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
     /**
@@ -385,44 +387,17 @@ public class WMTSService extends GridWebService<WMTSWorker> {
                                           @PathVariable("format") final String format,
                                           HttpServletResponse response) {
         putServiceIdParam(serviceId);
-        try {
-            final String mimeType = getMimeType(format);
-            final GetTile gt = createNewGetTileRequestRestful(layer, tileMatrixSet, tileMatrix, tileRow, tileCol, mimeType, null);
-            return treatIncomingRequest(gt).getResponseEntity(response);
-        } catch (CstlServiceException ex) {
-            final Worker w = wsengine.getInstance("WMTS", getSafeParameter("serviceId"));
-            return processExceptionResponse(ex, null, w).getResponseEntity(response);
+        final Worker worker = getWorker(serviceId);
+        if (worker != null) {
+            try {
+                final String mimeType = getMimeType(format);
+                final GetTile gt = createNewGetTileRequestRestful(layer, tileMatrixSet, tileMatrix, tileRow, tileCol, mimeType, null);
+                return treatIncomingRequest(gt).getResponseEntity(response);
+            } catch (Exception ex) {
+                return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            }
         }
-    }
-
-    /**
-     * Handle all exceptions returned by a web service operation in two ways:
-     * <ul>
-     *   <li>if the exception code indicates a mistake done by the user, just display a single
-     *       line message in logs.</li>
-     *   <li>otherwise logs the full stack trace in logs, because it is something interesting for
-     *       a developer</li>
-     * </ul>
-     * In both ways, the exception is then marshalled and returned to the client.
-     *
-     * @param ex The exception that has been generated during the web-service operation requested.
-     * @param worker The worker operating this exception.
-     *
-     * @return An XML representing the exception.
-     *
-     */
-    @Override
-    protected ResponseObject processExceptionResponse(final CstlServiceException ex, ServiceDef serviceDef, final Worker worker) {
-        logException(ex);
-
-        if (serviceDef == null) {
-            serviceDef = worker.getBestVersion(null);
-        }
-        final String codeName = getOWSExceptionCodeRepresentation(ex.getExceptionCode());
-
-        final ExceptionReport report = new ExceptionReport(ex.getMessage(), codeName,
-                ex.getLocator(), serviceDef.exceptionVersion.toString());
-        return new ResponseObject(report, MediaType.TEXT_XML);
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
     /**

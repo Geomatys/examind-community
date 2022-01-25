@@ -262,15 +262,14 @@ public class WCSService extends GridWebService<WCSWorker> {
      * {@inheritDoc}
      */
     @Override
-    protected ResponseObject processExceptionResponse(final CstlServiceException ex, ServiceDef serviceDef, final Worker w) {
+    protected ResponseObject processExceptionResponse(final Exception exc, ServiceDef serviceDef, final Worker w) {
+        final CstlServiceException ex = CstlServiceException.castOrWrap(exc);
         logException(ex);
 
         // SEND THE HTTP RESPONSE
         final ExceptionResponse report;
         if (serviceDef == null) {
-            // TODO: Get the best version for WCS. For the moment, just 1.0.0.
-            serviceDef = ServiceDef.WCS_1_0_0;
-            //serviceDef = getBestVersion(null);
+            serviceDef = w.getBestVersion(null);
         }
         final String locator = ex.getLocator();
         String code;
@@ -281,7 +280,7 @@ public class WCSService extends GridWebService<WCSWorker> {
         }
         int status = 200;
         if (serviceDef.owsCompliant) {
-            if (serviceDef.exceptionVersion.toString().equals("1.1.0")) {
+            if (serviceDef.owsVersion.toString().equals("1.1.0")) {
                 report = new ExceptionReport(ex.getMessage(), code, locator, serviceDef.exceptionVersion.toString());
             } else {
                 // transform error code
