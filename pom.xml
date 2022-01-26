@@ -794,6 +794,13 @@
                                     </excludes>
                                     <message>Vulnerable Log4J version : CVE-2021-44228</message>
                                 </bannedDependencies>
+                                <bannedDependencies>
+                                    <excludes>
+                                        <exclude>javax.xml.bind:jaxb-api</exclude>
+                                        <exclude>com.sun.xml.bind:jaxb-impl</exclude>
+                                    </excludes>
+                                    <message>Outdated JAXB implementation.</message>
+                                </bannedDependencies>
                             </rules>
                         </configuration>
                     </execution>
