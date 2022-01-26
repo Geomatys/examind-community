@@ -20,6 +20,8 @@ package org.constellation.ws.embedded;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import org.apache.sis.util.ArraysExt;
 import org.constellation.dto.service.config.Languages;
 import org.constellation.dto.service.config.Language;
 import org.constellation.configuration.ConfigDirectory;
@@ -302,7 +304,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "&I=0&J=0&WiDtH=256&HeIgHt=256"
             + "&CRS=CRS:84&BBOX=-1,-2,-1,2"
             + "&PROFILE=LINESTRING(-1%20-2%2C-1%202)" // (-1 -2,-1 2)
-            + "&nanPropagation=any&outOfBounds=ignore";
+            + "&nanPropagation=any&outOfBounds=ignore&reducer=nearest";
     /**
      * Asks for a profile intersecting regions without data available. The aim is to ensure that no-data values are
      * returned as NaN to the client.
@@ -2022,8 +2024,29 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
     @Test
     public void testWMSGetFeatureInfoProfileNaNAny() throws Exception {
-        final double[] expectedValues = {1, 1, 1, NaN, 2, 2, 2};
-        testProfile(WMS_GETFEATUREINFO_PROFILE_NAN_ANY, values -> assertArrayEquals(expectedValues, values, 1e-2));
+        final double[] expectedDistinctValues = { 2, NaN, 1 };
+        testProfile(WMS_GETFEATUREINFO_PROFILE_NAN_ANY, values -> {
+            // The assertion is quite complex, but it is difficult to know precisely how many values will be returned,
+            // we opt for testing that distinct values arrive in a specific order (distinct until changed algorithm).
+            final double[] distinctUntilChangedValues = new double[expectedDistinctValues.length];
+            distinctUntilChangedValues[0] = values[0];
+            for (int i = 1, j = 0 ; i < values.length ; i++) {
+                final double valueDiff = Math.abs(values[i] - distinctUntilChangedValues[j]);
+                if (Double.isNaN(values[i]) && Double.isFinite(expectedDistinctValues[j])
+                        || Double.isFinite(values[i]) && Double.isNaN(expectedDistinctValues[j])
+                        || valueDiff > 1e-4) {
+                    if (++j >= distinctUntilChangedValues.length) throw new AssertionError(String.format(
+                            "Profile values are invalid.%n" +
+                                    "Distinct values expected in order: %s%n" +
+                                    "But distinct consolidated values are: %s%n" +
+                                    "Raw value array is: %s%n" +
+                                    "Shift detected at raw value index: %d",
+                            Arrays.toString(expectedDistinctValues), Arrays.toString(distinctUntilChangedValues), Arrays.toString(values), i));
+                    distinctUntilChangedValues[j] = values[i];
+                }
+            }
+            assertArrayEquals("Profile values", expectedDistinctValues, distinctUntilChangedValues, 1e-2);
+        });
     }
 
     @Test
@@ -2488,4 +2511,5 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             }
         }
     }
+
 }
