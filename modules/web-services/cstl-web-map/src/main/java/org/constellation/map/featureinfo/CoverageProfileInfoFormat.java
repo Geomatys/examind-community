@@ -344,16 +344,14 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
 
             final GridCoverage coverage = readCoverage(resource, workEnv);
             Object parameters = ((org.geotoolkit.wms.xml.GetFeatureInfo) getFI).getParameters();
-            ReductionMethod reducer = null;
+            ReductionMethod reducer = ReductionMethod.AVG;
             NaNPropagation nanBehavior = NaNPropagation.ALL;
             OutOfBounds outOfBounds = OutOfBounds.NAN;
             NaNCleanup nanCleanup = NaNCleanup.CONTINUOUS;
             if (parameters instanceof Map) {
                 final Map<?, ?> paramMap = (Map) parameters;
-                String reduceParam = toStringValue(paramMap.get(PARAM_REDUCER));
-                if (reduceParam != null) {
-                    reducer = ReductionMethod.valueOf(reduceParam);
-                }
+                ReductionMethod reduceParam = toEnumValue(ReductionMethod.class, paramMap.get(PARAM_REDUCER));
+                if (reduceParam != null) reducer = reduceParam;
 
                 NaNPropagation nanBehave = toEnumValue(NaNPropagation.class, paramMap.get(PARAM_NAN_BEHAVIOR));
                 if (nanBehave != null) nanBehavior = nanBehave;
