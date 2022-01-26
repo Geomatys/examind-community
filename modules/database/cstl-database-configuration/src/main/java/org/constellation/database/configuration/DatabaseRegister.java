@@ -56,23 +56,11 @@ public class DatabaseRegister {
 
     @PostConstruct
     public void init() {
-        // Force loading driver because some containers like tomcat 7.0.21+ disable drivers at startup.
-        try {
-            Class.forName("org.postgresql.Driver");
-        } catch (ClassNotFoundException ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-        }
-        try {
-            Class.forName("org.hsqldb.jdbc.JDBCDriver");
-        } catch (ClassNotFoundException ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-        }
 
         final String exaDbUrl = test ?
             Application.getProperty(AppProperty.TEST_DATABASE_URL, DEFAULT_TEST_DATABASE_URL) :
             Application.getProperty(AppProperty.CSTL_DATABASE_URL);
         final String epsgDbUrl = Application.getProperty(AppProperty.EPSG_DATABASE_URL, exaDbUrl);
-
 
         if (exaDbUrl == null) {
             throw new ConfigurationRuntimeException("Property \"" + AppProperty.CSTL_DATABASE_URL.name() + "\" not defined.");
@@ -80,6 +68,26 @@ public class DatabaseRegister {
         if (epsgDbUrl == null) {
             throw new ConfigurationRuntimeException("Property \"" + AppProperty.EPSG_DATABASE_URL.name() + "\" not defined.");
         }
+
+        final String driverClass;
+        if (exaDbUrl.contains("postgres")) {
+            settings = new Settings().withRenderNameCase(RenderNameCase.AS_IS);
+            dialect = SQLDialect.POSTGRES;
+            driverClass = "org.postgresql.Driver";
+        } else {
+            settings = new Settings().withRenderQuotedNames(RenderQuotedNames.EXPLICIT_DEFAULT_QUOTED);
+            dialect = SQLDialect.HSQLDB;
+            driverClass = "org.hsqldb.jdbc.JDBCDriver";
+        }
+
+        // Force loading driver because some containers like tomcat 7.0.21+ disable drivers at startup.
+        // TODO: verify if we still need this
+        try {
+            Class.forName(driverClass);
+        } catch (ClassNotFoundException ex) {
+            LOGGER.fine("Database driver cannot be eagerly loaded. Database connection may fail");
+        }
+
         Long leakDetectionThreshold = null;
         if (test) {
             leakDetectionThreshold = 10000L;
@@ -93,13 +101,6 @@ public class DatabaseRegister {
             // database url denote the same server.
             epsgDatasource = SQLUtilities.createDataSource(epsgDbUrl, "epsg", epsgMaxPoolSize, leakDetectionThreshold);
 
-            if (exaDbUrl.contains("postgres")) {
-                settings = new Settings().withRenderNameCase(RenderNameCase.AS_IS);
-                dialect = SQLDialect.POSTGRES;
-            } else {
-                settings = new Settings().withRenderQuotedNames(RenderQuotedNames.EXPLICIT_DEFAULT_QUOTED);
-                dialect = SQLDialect.HSQLDB;
-            }
         } catch (Exception e) {
             throw new ConfigurationRuntimeException("Error while initializing the examind datasources", e);
         }
