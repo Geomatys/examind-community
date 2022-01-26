@@ -89,8 +89,10 @@ public class DatabaseRegister {
             exaDatasource = SQLUtilities.createDataSource(exaDbUrl, "examind", exaMaxPoolSize, leakDetectionThreshold);
 
             final Integer epsgMaxPoolSize = Application.getIntegerProperty(AppProperty.EPSG_DATABASE_MAX_POOL_SIZE);
-            epsgDatasource = SQLUtilities.createDataSource(exaDbUrl, "epsg", epsgMaxPoolSize, leakDetectionThreshold);
-        
+            // TODO: Verify what would be the advantages and limitations of re-using above exaDatasource in case both
+            // database url denote the same server.
+            epsgDatasource = SQLUtilities.createDataSource(epsgDbUrl, "epsg", epsgMaxPoolSize, leakDetectionThreshold);
+
             if (exaDbUrl.contains("postgres")) {
                 settings = new Settings().withRenderNameCase(RenderNameCase.AS_IS);
                 dialect = SQLDialect.POSTGRES;
