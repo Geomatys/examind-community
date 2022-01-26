@@ -46,7 +46,11 @@ mvn install -DskipTests
 ```
 Note 1 : for smaller download without git history: `git clone --depth 1 https://github.com/Geomatys/examind-community.git`
 
-Note 2 : if you want to build with tests, you'll need a test database named `cstl-test` owned by role:password `cstl:admin`.
+Note 2 : if you want to build with tests, an in-memory HSQL database will be created, however if you want to use a PostgreSQL database, you'll need an empty database. then execute the following command:
+```sh
+mvn clean install -Dtest.database.url="postgres://<user>:<password>@<host>:<port>/<database name>"
+```
+example: `postgres://cstl:admin@localhost:5432/cstl-test`
 
 ### Deploy using Docker
 If not already done, build sources as stated in previous section.

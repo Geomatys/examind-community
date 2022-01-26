@@ -45,7 +45,7 @@ import org.jooq.conf.RenderQuotedNames;
 public class DatabaseRegister {
 
     private static final Logger LOGGER = Logging.getLogger("org.constellation.database.configuration");
-    private static final String DEFAULT_TEST_DATABASE_URL = "postgres://cstl:admin@localhost:5432/cstl-test";
+    private static final String DEFAULT_TEST_DATABASE_URL = "jdbc:hsqldb:mem:admin";
 
     private DataSource exaDatasource;
     private DataSource epsgDatasource;
