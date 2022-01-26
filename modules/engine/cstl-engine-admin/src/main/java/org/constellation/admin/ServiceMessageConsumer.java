@@ -24,6 +24,7 @@ import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import org.constellation.api.ServiceDef;
 import org.constellation.api.WorkerState;
+import static org.constellation.api.WorkerState.UNKNOWN;
 import static org.constellation.api.WorkerState.UP;
 import org.constellation.business.ClusterMessage;
 import org.constellation.business.IClusterBusiness;
@@ -135,15 +136,22 @@ public class ServiceMessageConsumer extends MessageListener{
         if (serviceId == null || serviceId.isEmpty()) {
             throw new ConfigurationException("Service instance identifier can't be null or empty.");
         }
-        final Worker worker = wsengine.getInstance(serviceType, serviceId);
-        if (worker instanceof Refreshable) {
-            try  {
-                ((Refreshable)worker).refresh();
-            } catch (CstlServiceException ex) {
-                LOGGER.warning("Unable to refresh " + serviceType + " worker (" + serviceId + "). Cause: " + ex.getMessage());
-            }
-        }
+        final WorkerState state = wsengine.getWorkerStatus(serviceType, serviceId);
+        // do not refresh a non-working worker
+        if (state == UP) {
+            final Worker worker = wsengine.getInstance(serviceType, serviceId);
 
+            if (worker instanceof Refreshable) {
+                try  {
+                    ((Refreshable)worker).refresh();
+                } catch (CstlServiceException ex) {
+                    LOGGER.warning("Unable to refresh " + serviceType + " worker (" + serviceId + "). Cause: " + ex.getMessage());
+                }
+            }
+        // log only for special state
+        } else if (state != UNKNOWN) {
+            LOGGER.warning("Unable to refresh " + serviceType + " worker (" + serviceId + ") state:" + state);
+        }
         return null;
     }
 

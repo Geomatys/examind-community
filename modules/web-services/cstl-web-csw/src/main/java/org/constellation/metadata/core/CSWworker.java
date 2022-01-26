@@ -1642,11 +1642,12 @@ public class CSWworker extends AbstractWorker implements Refreshable {
 
     @Override
     public void refresh() throws CstlServiceException {
+        isWorking();
         try {
             indexSearcher.refresh();
             mdStore.clearCache();
         } catch (IndexingException ex) {
-            throw new CstlServiceException("Error while refreshing cache", ex, NO_APPLICABLE_CODE);
+            throw new CstlServiceException("Error while refreshing cache", ex);
         }
     }
 
