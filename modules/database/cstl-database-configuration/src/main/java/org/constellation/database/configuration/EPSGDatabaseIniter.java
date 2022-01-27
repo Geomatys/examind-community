@@ -21,12 +21,17 @@ package org.constellation.database.configuration;
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.*;
+import java.util.Hashtable;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PreDestroy;
+import javax.naming.Context;
+import javax.naming.Name;
+import javax.naming.spi.ObjectFactory;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IClusterBusiness;
@@ -111,7 +116,7 @@ public class EPSGDatabaseIniter {
             final DatabaseMetaData md = conn.getMetaData();
             LOGGER.info("Check EPSG database installation on " + md.getURL());
 
-            final ResultSet result = md.getTables(null, "epsg", null, new String[] {"TABLE"});
+            final ResultSet result = md.getTables(null, "EPSG", null, new String[] {"TABLE"});
             while (result.next()) {
                 final String table = result.getString("TABLE_NAME");
                 for (final String candidate : SAMPLES) {
@@ -126,4 +131,69 @@ public class EPSGDatabaseIniter {
             throw new IOException(e);
         }
     }
+
+    /**
+     * TODO remove this along with the contex.xml file when a fix will be applied to SIS.
+     * 
+     * Factory used to create epsg datasource.
+     * The returned datasource is backed by given spring hikary datasource.
+     */
+    public static class Factory implements ObjectFactory{
+
+        @Override
+        public Object getObjectInstance(Object obj, Name name, Context nameCtx, Hashtable<?, ?> environment) throws Exception {
+            return new DelayedDataSource();
+        }
+
+    }
+
+    private static class DelayedDataSource implements DataSource{
+
+        @Override
+        public Connection getConnection() throws SQLException {
+            return getDataSource().getConnection();
+        }
+
+        @Override
+        public Connection getConnection(String username, String password) throws SQLException {
+            return getDataSource().getConnection(username, password);
+        }
+
+        @Override
+        public PrintWriter getLogWriter() throws SQLException {
+            return getDataSource().getLogWriter();
+        }
+
+        @Override
+        public void setLogWriter(PrintWriter out) throws SQLException {
+            getDataSource().setLogWriter(out);
+        }
+
+        @Override
+        public void setLoginTimeout(int seconds) throws SQLException {
+            getDataSource().setLoginTimeout(seconds);
+        }
+
+        @Override
+        public int getLoginTimeout() throws SQLException {
+            return getDataSource().getLoginTimeout();
+        }
+
+        @Override
+        public java.util.logging.Logger getParentLogger() throws SQLFeatureNotSupportedException {
+            return getDataSource().getParentLogger();
+        }
+
+        @Override
+        public <T> T unwrap(Class<T> iface) throws SQLException {
+            return getDataSource().unwrap(iface);
+        }
+
+        @Override
+        public boolean isWrapperFor(Class<?> iface) throws SQLException {
+            return getDataSource().isWrapperFor(iface);
+        }
+
+    }
+
 }
