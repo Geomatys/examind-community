@@ -10,7 +10,8 @@ function storesTreeViewDirective() {
         templateUrl: 'components/wizard-data-import/steps/step2/stores-tree-view/stores-tree-view.html',
         scope: {
             storesRef: "=",
-            displayDataLayer: "&"
+            displayDataLayer: "&",
+            batchMode: "="
         }
     };
 }
@@ -23,6 +24,8 @@ function StoresTreeViewController($scope) {
     self.displayDataLayer = $scope.displayDataLayer();
 
     self.allStoresSelection = false;
+    
+    self.batchMode = $scope.batchMode;
 
     // Get the index of the item in the given list
     function getIndexForItem(list, item) {
@@ -39,6 +42,9 @@ function StoresTreeViewController($scope) {
         return list && list.length && getIndexForItem(list, item) !== -1;
     };
 
+    self.showSelectAll = function () {
+        return self.storesRef.storeList.length >1 && !self.batchMode;
+    }
     /**
      * Toggle store selection in the case of indivisible data store
      * @param item

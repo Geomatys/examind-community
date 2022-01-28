@@ -1,6 +1,6 @@
 <div class="store-tree">
     <div class="checkbox" style="margin-left: 15px;"
-         ng-if="treeCtrl.storesRef.storeList.length >1">
+         ng-if="treeCtrl.showSelectAll()">
         <label>
             <input type="checkbox" ng-model="treeCtrl.allStoresSelection"
             ng-change="treeCtrl.toggleAllStoreSelection()"/>
