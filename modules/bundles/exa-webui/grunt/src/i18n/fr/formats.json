@@ -28,7 +28,9 @@
     "geotk_csv": "Examind : CSV",
     "geotk-landsat": "Examind : Landsat",
     "hgt": "Examind : HGT",
+    "GeoTIFF":"SIS: TIFF",
     
+    "GeoTIFF-image/tiff":"SIS: TIFF",
     "aixm-application/aixm+xml": "Examind : AIXM",
     "geojson-application/json": "Examind : GeoJSON",
     "netcdf-application/x-netcdf": "Examind : NetCDF",
