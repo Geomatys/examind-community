@@ -204,8 +204,12 @@ function Step1WizardController($scope, $rootScope, $translate, $interval, $modal
                         }
                     });
                     if (self.stores.detectedStores.length === 1) {
-                        self.stores.selectedStore = self.stores.detectedStores[0];
-                        self.selectStore();
+                        var currentStore = self.stores.detectedStores[0];
+                        // do not call this twice
+                        if (currentStore !== self.stores.selectedStore) {
+                            self.stores.selectedStore = currentStore;
+                            self.selectStore();
+                        }
                     }
                     cfpLoadingBar.complete();
                 }, function (reason) {
@@ -233,8 +237,12 @@ function Step1WizardController($scope, $rootScope, $translate, $interval, $modal
                             $interval.cancel(self.stores.asyncComputeStoresInterval);
                             self.stores.computeStoresCompleted = true;
                             if (self.stores.detectedStores.length === 1) {
-                                self.stores.selectedStore = self.stores.detectedStores[0];
-                                self.selectStore();
+                                var currentStore = self.stores.detectedStores[0];
+                                // do not call this twice
+                                if (currentStore !== self.stores.selectedStore) {
+                                    self.stores.selectedStore = currentStore;
+                                    self.selectStore();
+                                }
                             }
 
                             $translate('wiz.data.import.step1.msg.success.analyse.data.state')
