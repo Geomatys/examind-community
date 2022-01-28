@@ -161,12 +161,6 @@
         <!--tracking-mode>URL</tracking-mode-->
     </session-config>
 
-    <resource-env-ref>
-        <description>Connection to the database needed by Apache SIS.</description>
-        <resource-env-ref-name>jdbc/SpatialMetadata</resource-env-ref-name>
-        <resource-env-ref-type>javax.sql.DataSource</resource-env-ref-type>
-    </resource-env-ref>
-
     <error-page>
         <!-- Missing login -->
         <error-code>401</error-code>

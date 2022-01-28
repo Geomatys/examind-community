@@ -9,10 +9,7 @@
     </bean>
 
     <!-- Install/Initialize EPSG database -->
-    <bean id="epsg-database-initer" depends-on="database-registerer"
-          class="org.constellation.database.configuration.EPSGDatabaseIniter">
-        <property name="dataSource" ref="epsgDataSource"/>
-    </bean>
+    <bean id="epsg-database-initer" depends-on="database-registerer" class="org.constellation.database.configuration.EPSGDatabaseIniter"/>
 
     <!-- Initialize/Update database -->
     <bean id="database-initer" depends-on="epsg-database-initer" class="org.constellation.database.configuration.FlywaySpring"/>
