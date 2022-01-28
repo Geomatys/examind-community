@@ -138,7 +138,7 @@ function Step5WizardController($scope, $location, $translate, $q, Growl, Examind
     };
 
     self.disableAssociateBtn = function () {
-        return !self.wizardValues.step5.styleId;
+        return !self.wizardValues.step5.styleId || self.wizardValues.step1.advConfig.batchMode;
     };
 
     // Implement the conditions to disable next button in this step
@@ -225,7 +225,18 @@ function Step5WizardController($scope, $location, $translate, $q, Growl, Examind
         // The ref object of the selected data layer to apply the style
         self.selectedDataRef = {};
         // Get the array of the selected data layers
-        self.dataLayers = self.wizardValues.step2.acceptedData;
+        
+        // in batch mode use the first sample data
+        if (self.wizardValues.step1.advConfig.batchMode) {
+            self.dataLayers = [];
+            var storeList = self.wizardValues.step2.storesRef.storeList;
+            if (storeList.length > 0 && storeList[0].resources.length > 0) {
+                self.dataLayers.push(storeList[0].resources[0]);
+            }
+        // else we use only the accepted data
+        } else {
+            self.dataLayers = self.wizardValues.step2.acceptedData;
+        }
 
         self.dataLayersPagination.show = self.dataLayers.length > 1;
 
