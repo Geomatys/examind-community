@@ -132,6 +132,16 @@ function RemoteSourceController($scope, $translate, Examind, Growl, cfpLoadingBa
             scheme: 'ftp://',
             isDefaultProtocol: true
         }, {
+            id: 's3',
+            name: 'S3',
+            connection: {
+                login: '',
+                password: ''
+            },
+            readFromRemote: false,
+            scheme: 's3://',
+            isDefaultProtocol: true
+        }, {
             id: 'smb',
             name: 'SMB',
             connection: {
@@ -354,7 +364,7 @@ function RemoteSourceController($scope, $translate, Examind, Growl, cfpLoadingBa
     };
     
     self.showDeepOption = function () {
-        return self.remote.protocol.id === 'file';
+        return self.remote.protocol.id === 'file' || self.remote.protocol.id === 's3';
     };
 
     self.getBtnLabelFor = function (protocolId) {
