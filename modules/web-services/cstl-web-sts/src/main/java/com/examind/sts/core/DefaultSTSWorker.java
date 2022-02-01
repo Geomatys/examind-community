@@ -58,6 +58,7 @@ import org.constellation.api.ServiceDef;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.exception.ConstellationStoreException;
+import org.constellation.util.Util;
 import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.geometry.GeometricUtilities;
 import org.geotoolkit.geometry.jts.JTS;
@@ -427,7 +428,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     private Observation buildMdsObservation(RequestOptions exp, List<org.opengis.observation.Observation> obs, String obsId) throws ConstellationStoreException {
         exp = exp.subLevel("Observations");
         String selfLink = getServiceUrl();
-        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Observations(" + obsId + ")";
+        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Observations(" + Util.encodeSlash(obsId) + ")";
 
         org.geotoolkit.sampling.xml.SamplingFeature foi = null;
         AbstractObservation template                    = null;
@@ -515,7 +516,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     private Observation buildObservation(RequestOptions exp, AbstractObservation obs, boolean fromMds, Map<String, GeoJSONGeometry> sensorArea) throws ConstellationStoreException {
         exp = exp.subLevel("Observations");
         String selfLink = getServiceUrl();
-        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Observations(" + obs.getName().getCode() + ")";
+        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Observations(" + Util.encodeSlash(obs.getName().getCode()) + ")";
 
         Observation observation = new Observation();
         if (exp.featureOfInterest.expanded) {
@@ -815,7 +816,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     private Datastream buildDatastream(RequestOptions exp, AbstractObservation obs, Map<String, GeoJSONGeometry> sensorArea) throws ConstellationStoreException {
         exp = exp.subLevel("Datastreams");
         String selfLink = getServiceUrl();
-        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Datastreams(" + obs.getName().getCode() + ")";
+        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Datastreams(" + Util.encodeSlash(obs.getName().getCode()) + ")";
 
         org.constellation.dto.Sensor s = null;
         String sensorID = null;
@@ -970,7 +971,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     private MultiDatastream buildMultiDatastream(RequestOptions exp, AbstractObservation obs, Map<String, GeoJSONGeometry> sensorArea) throws ConstellationStoreException {
         exp = exp.subLevel("MultiDatastreams");
         String selfLink = getServiceUrl();
-        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/MultiDatastreams(" + obs.getName().getCode() + ")";
+        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/MultiDatastreams(" + Util.encodeSlash(obs.getName().getCode()) + ")";
 
         org.constellation.dto.Sensor s = null;
         String sensorID = null;
@@ -1205,7 +1206,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         exp = exp.subLevel("ObservedProperties");
         if (s == null) return null;
         String selfLink = getServiceUrl();
-        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/ObservedProperties(" + s.getId()+ ")";
+        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/ObservedProperties(" + Util.encodeSlash(s.getId()) + ")";
         ObservedProperty obsProp = new ObservedProperty();
         final String phenId = s.getId();
         final String definition = s.getName().getCode();
@@ -1457,7 +1458,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         }
 
         String selfLink = getServiceUrl();
-        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Sensors("+ sensorID+ ")";
+        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Sensors(" + Util.encodeSlash(sensorID) + ")";
 
         String metadataLink = null;
         String description = "";
@@ -1508,7 +1509,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     private Thing buildThing(RequestOptions exp, String sensorID, org.constellation.dto.Sensor s, org.geotoolkit.observation.xml.Process p) throws ConstellationStoreException {
         exp = exp.subLevel("Things");
         String selfLink = getServiceUrl();
-        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Things("+ sensorID+ ")";
+        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Things(" + Util.encodeSlash(sensorID) + ")";
 
         if (s == null) {
             s = getSensor(sensorID);
@@ -1763,7 +1764,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         } else {
             locID = sensorID;
         }
-        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Locations(" + locID + ")";
+        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Locations(" + Util.encodeSlash(locID) + ")";
         Location result = new Location();
         if (exp.isSelected("id")) result.setIotId(locID);
         if (exp.isSelected("description")) result.setDescription(description);
@@ -1831,7 +1832,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
         String hlid = sensorID + "-" + d.getTime();
         String selfLink = getServiceUrl();
-        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/HistoricalLocations(" + hlid + ")";
+        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/HistoricalLocations(" + Util.encodeSlash(hlid) + ")";
         HistoricalLocation result = new HistoricalLocation();
         if (exp.isSelected("id")) result.setIotId(hlid);
         if (exp.isSelected("time")) result.setTime(d);
@@ -1856,7 +1857,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     private FeatureOfInterest buildFeatureOfInterest(RequestOptions exp, org.geotoolkit.sampling.xml.SamplingFeature sp) throws ConstellationStoreException {
         exp = exp.subLevel("FeaturesOfInterest");
         String selfLink = getServiceUrl();
-        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/FeaturesOfInterest(" + sp.getId() + ")";
+        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/FeaturesOfInterest(" + Util.encodeSlash(sp.getId()) + ")";
         FeatureOfInterest result = new FeatureOfInterest();
         if (exp.isSelected("id")) result.setIotId(sp.getId());
         if (exp.isSelected("Description")) result.setDescription(sp.getDescription());

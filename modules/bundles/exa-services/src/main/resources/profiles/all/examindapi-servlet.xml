@@ -31,8 +31,12 @@
       < max size of file in memory (in bytes) >
       <property name="maxInMemorySize" value="2048" /-->
   </bean>
-
+  <bean id="pathHelper" class="org.springframework.web.util.UrlPathHelper">
+      <property name="UrlDecode" value="false"/>
+  </bean>
+  
   <mvc:annotation-driven>
+    <mvc:path-matching path-helper="pathHelper"/>
     <mvc:message-converters>
         <bean class="org.constellation.api.rest.converter.MapContextMessageConverter" />
         <bean class="org.constellation.api.rest.converter.StyleMessageConverter" />

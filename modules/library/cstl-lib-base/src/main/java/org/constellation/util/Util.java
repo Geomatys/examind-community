@@ -341,4 +341,7 @@ public final class Util {
         }
     }
 
+    public static String encodeSlash(String s) {
+        return s.replace("/", "%2F");
+    }
 }

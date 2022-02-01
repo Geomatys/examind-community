@@ -24,6 +24,11 @@
   <bean id="md5PasswordEncoder" class="org.springframework.security.crypto.password.MessageDigestPasswordEncoder">
     <constructor-arg value="MD5"/>
   </bean>
+  
+  <bean id="defaultHttpFirewall" class="org.springframework.security.web.firewall.StrictHttpFirewall">
+      <property name="AllowUrlEncodedSlash" value="true"/>
+  </bean>
+  <sec:http-firewall ref="defaultHttpFirewall"/>
 
   <sec:authentication-manager alias="authenticationManager">
     <sec:authentication-provider user-service-ref="cstlUserService">

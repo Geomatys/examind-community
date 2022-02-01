@@ -21,8 +21,12 @@
   <tx:annotation-driven proxy-target-class="true" transaction-manager="transactionManager" />
 
   <bean id="xml.xstream.marshaller" class="org.springframework.oxm.xstream.XStreamMarshaller" />
+  <bean id="pathHelper" class="org.springframework.web.util.UrlPathHelper">
+      <property name="UrlDecode" value="false"/>
+  </bean>
 
   <mvc:annotation-driven>
+    <mvc:path-matching path-helper="pathHelper"/>
     <mvc:message-converters>
         <bean class="com.examind.sts.ws.rs.STSResponseWriter" />
         <bean class="org.constellation.coverage.ws.rs.GridCoverageNCWriter" />
