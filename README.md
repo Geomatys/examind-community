@@ -53,13 +53,28 @@ mvn clean install -Dtest.database.url="postgres://<user>:<password>@<host>:<port
 example: `postgres://cstl:admin@localhost:5432/cstl-test`
 
 ### Deploy using Docker
-If not already done, build sources as stated in previous section.
 
-Build the `images.geomatys.com/examind/examind-community:latest` Docker image
+#### Build Docker image
+
+When building the project, add the `docker` profile to also compile docker image.
+This will produce a Tomcat based image of Examind-Community application. The resulting image will be `images.geomatys.com/examind/examind-community:latest`.
+
+*Tip*: you can customize the docker tag of the image by specifying the `docker.tag` property.
+
+*Example*: Build the project and the docker image, setting the image tag to `myVersion`:
+
+```shell
+mvn install -Pdocker -Ddocker.tag=myVersion
 ```
-cd <base directory>/modules/bundles/exa-bundle
-mvn clean install dockerfile:build -Ddocker.tag=latest
-``` 
+
+*Tip*: If you've already compiled the project, and just want to rebuild docker image, you can reduce work by re-packaging the `exa-bundle` module with `docker` profile:
+
+```shell
+mvn package -Pdocker -pl :exa-bundle
+```
+
+#### Run
+
 Go to docker folder
 ```
 cd <base directory>/docker
