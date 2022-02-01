@@ -1,18 +1,20 @@
 /*
- *    Geotoolkit - An Open Source Java GIS Toolkit
- *    http://www.geotoolkit.org
+ *    Examind - An open source and standard compliant SDI
+ *    http://www.constellation-sdi.org
  *
- *    (C) 2011, Geomatys
+ * Copyright 2011 Geomatys.
  *
- *    This library is free software; you can redistribute it and/or
- *    modify it under the terms of the GNU Lesser General Public
- *    License as published by the Free Software Foundation;
- *    version 2.1 of the License.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *    This library is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *    Lesser General Public License for more details.
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.examind.process.sos;
 
@@ -23,6 +25,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.channels.SeekableByteChannel;
+import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -168,6 +171,7 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
                         Set<String> currentCodes = extractCodes(child, obsPropColumns, separator.charAt(0));
                         codes.addAll(currentCodes);
                     }
+                    Arrays.sort(headers);
                 }
             } else {
                 throw new ProcessException("The source folder does not point to a directory", this);
@@ -202,23 +206,16 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         SIDparam.setUserMap(userMap);
         inputs.add(SIDparam);
 
-        final Parameter DSparam = new Parameter(DATASET_IDENTIFIER_NAME, String.class, DATASET_IDENTIFIER_DESC, DATASET_IDENTIFIER_DESC, 1, 1);
-        inputs.add(DSparam);
-
-        final Parameter OTparam = new Parameter(OBS_TYPE_NAME, String.class, OBS_TYPE_DESC, OBS_TYPE_DESC, observationType != null ? 1 : 0, 1, observationType);
-        inputs.add(OTparam);
-
-        final Parameter PRparam = new Parameter(THING_ID_NAME, String.class, THING_ID_DESC, THING_ID_DESC, 0, 1);
-        inputs.add(PRparam);
-
-        final Parameter PCparam = new Parameter(THING_COLUMN_NAME, String.class, THING_COLUMN_DESC, THING_COLUMN_DESC, 0, 1, null, headers);
-        inputs.add(PCparam);
-
-        final Parameter SPparam = new Parameter(SEPARATOR_NAME, String.class, SEPARATOR_DESC, SEPARATOR_DESC, 1, 1, separator);
-        inputs.add(SPparam);
-
-        final Parameter CQparam = new Parameter(CHARQUOTE_NAME, String.class, CHARQUOTE_DESC, CHARQUOTE_DESC, charquote != null ? 1 : 0, 1, charquote);
-        inputs.add(CQparam);
+        inputs.add(new Parameter(DATASET_IDENTIFIER_NAME, String.class, DATASET_IDENTIFIER_DESC, DATASET_IDENTIFIER_DESC, 1, 1));
+        inputs.add(new Parameter(OBS_TYPE_NAME,           String.class, OBS_TYPE_DESC,           OBS_TYPE_DESC, observationType != null ? 1 : 0, 1, observationType));
+        
+        inputs.add(new Parameter(THING_ID_NAME,           String.class, THING_ID_DESC,           THING_ID_DESC,           0, 1));
+        inputs.add(new Parameter(THING_COLUMN_NAME,       String.class, THING_COLUMN_DESC,       THING_COLUMN_DESC,       0, 1, null, headers));
+        inputs.add(new Parameter(THING_NAME_COLUMN_NAME,  String.class, THING_NAME_COLUMN_DESC,  THING_NAME_COLUMN_DESC,  0, 1, null, headers));
+        inputs.add(new Parameter(THING_DESC_COLUMN_NAME,  String.class, THING_DESC_COLUMN_DESC,  THING_DESC_COLUMN_DESC,  0, 1, null, headers));
+       
+        inputs.add(new Parameter(SEPARATOR_NAME, String.class, SEPARATOR_DESC, SEPARATOR_DESC, 1, 1, separator));
+        inputs.add(new Parameter(CHARQUOTE_NAME, String.class, CHARQUOTE_DESC, CHARQUOTE_DESC, charquote != null ? 1 : 0, 1, charquote));
 
         String defaultMainCol = null;
         if ("Timeserie".equals(observationType) || "Trajectory".equals(observationType)) {
@@ -226,90 +223,64 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         }
 
         if (csvFlat && observationType == null) {
-            final Parameter MCparam = new Parameter(Z_COLUMN_NAME, String.class, Z_COLUMN_DESC, Z_COLUMN_DESC, 1, 1, defaultMainCol, headers);
-            inputs.add(MCparam);
+            inputs.add(new Parameter(Z_COLUMN_NAME, String.class, Z_COLUMN_DESC, Z_COLUMN_DESC, 1, 1, defaultMainCol, headers));
         } else {
-            final Parameter MCparam = new Parameter(MAIN_COLUMN_NAME, String.class, MAIN_COLUMN_DESC, MAIN_COLUMN_DESC, 1, 1, defaultMainCol, headers);
-            inputs.add(MCparam);
+            inputs.add(new Parameter(MAIN_COLUMN_NAME, String.class, MAIN_COLUMN_DESC, MAIN_COLUMN_DESC, 1, 1, defaultMainCol, headers));
         }
         
-        final Parameter DCparam = new Parameter(DATE_COLUMN_NAME, String.class, DATE_COLUMN_DESC, DATE_COLUMN_DESC, 1, 1, guessColumn(headers, Arrays.asList("time", "date")), headers);
-        inputs.add(DCparam);
+        inputs.add(new Parameter(DATE_COLUMN_NAME, String.class, DATE_COLUMN_DESC, DATE_COLUMN_DESC, 1, 1, guessColumn(headers, Arrays.asList("time", "date")), headers));
+        inputs.add(new Parameter(DATE_FORMAT_NAME, String.class, DATE_FORMAT_DESC, DATE_FORMAT_DESC, 1, 1, "yyyy-MM-dd'T'HH:mm:ss'Z'"));
 
-        final Parameter DFparam = new Parameter(DATE_FORMAT_NAME, String.class, DATE_FORMAT_DESC, DATE_FORMAT_DESC, 1, 1, "yyyy-MM-dd'T'HH:mm:ss'Z'");
-        inputs.add(DFparam);
+        inputs.add(new Parameter(LONGITUDE_COLUMN_NAME, String.class,  LONGITUDE_COLUMN_DESC, LONGITUDE_COLUMN_DESC, 1, 1, guessColumn(headers, Arrays.asList("longitude", "long")), headers));
+        inputs.add(new Parameter(LATITUDE_COLUMN_NAME,  String.class,  LATITUDE_COLUMN_DESC,  LATITUDE_COLUMN_DESC,  1, 1, guessColumn(headers, Arrays.asList("latitude", "lat")), headers));
+        inputs.add(new Parameter(FOI_COLUMN_NAME,       String.class,  FOI_COLUMN_DESC,       FOI_COLUMN_DESC,       0, 1, null, headers));
+        inputs.add(new Parameter(UOM_COLUMN_NAME,       String.class,  UOM_COLUMN_DESC,       UOM_COLUMN_DESC,       0, 1, null, headers));
+        inputs.add(new Parameter(EXTRACT_UOM_NAME,      Boolean.class, EXTRACT_UOM_DESC,      EXTRACT_UOM_DESC,      0, 1, false));
 
-        final Parameter LatCparam = new Parameter(LONGITUDE_COLUMN_NAME, String.class, LONGITUDE_COLUMN_DESC, LONGITUDE_COLUMN_DESC, 1, 1, guessColumn(headers, Arrays.asList("longitude", "long")), headers);
-        inputs.add(LatCparam);
-
-        final Parameter LonCparam = new Parameter(LATITUDE_COLUMN_NAME, String.class, LATITUDE_COLUMN_DESC, LATITUDE_COLUMN_DESC, 1, 1, guessColumn(headers, Arrays.asList("latitude", "lat")), headers);
-        inputs.add(LonCparam);
-
-        final Parameter FCparam = new Parameter(FOI_COLUMN_NAME, String.class, FOI_COLUMN_DESC, FOI_COLUMN_DESC, 0, 1, null, headers);
-        inputs.add(FCparam);
-
-        final Parameter RPparam = new Parameter(REMOVE_PREVIOUS_NAME, Boolean.class, REMOVE_PREVIOUS_DESC, REMOVE_PREVIOUS_DESC, 0, 1, false);
-        inputs.add(RPparam);
-
-        final Parameter EUparam = new Parameter(EXTRACT_UOM_NAME, Boolean.class, EXTRACT_UOM_DESC, EXTRACT_UOM_DESC, 0, 1, false);
-        inputs.add(EUparam);
+        inputs.add(new Parameter(REMOVE_PREVIOUS_NAME, Boolean.class, REMOVE_PREVIOUS_DESC, REMOVE_PREVIOUS_DESC, 0, 1, false));
 
         if ("csv".equals(format)) {
 
-            final Parameter CCparam = new Parameter(OBS_PROP_COLUMN_NAME, String.class, OBS_PROP_COLUMN_DESC, OBS_PROP_COLUMN_DESC, 0, 92, null, headers);
-            inputs.add(CCparam);
-
-            final Parameter SIparam = new Parameter(STORE_ID_NAME, String.class, STORE_ID_DESC, STORE_ID_DESC, 1, 1, "observationCsvFile");
-            inputs.add(SIparam);
-
-            final Parameter FOparam = new Parameter(FORMAT_NAME, String.class, FORMAT_DESC, FORMAT_DESC, 1, 1, "text/csv; subtype=\"om\"");
-            inputs.add(FOparam);
+            inputs.add(new Parameter(OBS_PROP_COLUMN_NAME, String.class, OBS_PROP_COLUMN_DESC, OBS_PROP_COLUMN_DESC, 0, 92, null, headers));
+            inputs.add(new Parameter(STORE_ID_NAME,        String.class, STORE_ID_DESC,        STORE_ID_DESC,        1, 1, "observationCsvFile"));
+            inputs.add(new Parameter(FORMAT_NAME,          String.class, FORMAT_DESC,          FORMAT_DESC,          1, 1, "text/csv; subtype=\"om\""));
 
         } else if (csvFlat) {
 
-            final Parameter CCparam = new Parameter(OBS_PROP_COLUMN_NAME, String.class, OBS_PROP_COLUMN_DESC, OBS_PROP_COLUMN_DESC, 0, obsPropColumns.size(), null, obsPropColumns.toArray());
+            
+            final Parameter CCparam;
+            if (obsPropColumns.size() == 1) {
+                CCparam = new Parameter(OBS_PROP_COLUMN_NAME, String.class, OBS_PROP_COLUMN_DESC, OBS_PROP_COLUMN_DESC,  1, 1, obsPropColumns.get(0));
+            } else {
+                // issue here. we lost the recorded values after the first
+                CCparam = new Parameter(OBS_PROP_COLUMN_NAME, String.class, OBS_PROP_COLUMN_DESC, OBS_PROP_COLUMN_DESC,  obsPropColumns.size(), obsPropColumns.size(), obsPropColumns.get(0), obsPropColumns.toArray());
+            }
             inputs.add(CCparam);
 
             List<String> sortedCodes = new ArrayList<>(codes);
             Collections.sort(sortedCodes);
-            final Parameter MCSparam = new Parameter(OBS_PROP_COLUMNS_FILTER_NAME, String.class, OBS_PROP_COLUMNS_FILTER_DESC, OBS_PROP_COLUMNS_FILTER_DESC, 0, 92, null, sortedCodes.toArray());
-            inputs.add(MCSparam);
+            inputs.add(new Parameter(OBS_PROP_NAME_COLUMN_NAME,    String.class, OBS_PROP_NAME_COLUMN_DESC,    OBS_PROP_NAME_COLUMN_DESC,    0, 92, null, headers));
+            inputs.add(new Parameter(OBS_PROP_COLUMNS_FILTER_NAME, String.class, OBS_PROP_COLUMNS_FILTER_DESC, OBS_PROP_COLUMNS_FILTER_DESC, 0, 92, null, sortedCodes.toArray()));
 
-            final Parameter SIparam = new Parameter(STORE_ID_NAME, String.class, STORE_ID_DESC, STORE_ID_DESC, 1, 1, "observationCsvFlatFile");
-            inputs.add(SIparam);
-
-            final Parameter FOparam = new Parameter(FORMAT_NAME, String.class, FORMAT_DESC, FORMAT_DESC, 1, 1, "text/csv; subtype=\"om\"");
-            inputs.add(FOparam);
-            
-            final Parameter VCparam = new Parameter(RESULT_COLUMN_NAME, String.class, RESULT_COLUMN_DESC, RESULT_COLUMN_DESC, 1, 1, resultColumn);
-            inputs.add(VCparam);
-
-            final Parameter TCparam = new Parameter(TYPE_COLUMN_NAME, String.class, TYPE_COLUMN_DESC, TYPE_COLUMN_DESC, 0, 1, typeColumn);
-            inputs.add(TCparam);
+            inputs.add(new Parameter(STORE_ID_NAME,                String.class, STORE_ID_DESC,                STORE_ID_DESC,                1, 1, "observationCsvFlatFile"));
+            inputs.add(new Parameter(FORMAT_NAME,                  String.class, FORMAT_DESC,                  FORMAT_DESC,                  1, 1, "text/csv; subtype=\"om\""));
+            inputs.add(new Parameter(RESULT_COLUMN_NAME,           String.class, RESULT_COLUMN_DESC,           RESULT_COLUMN_DESC,           1, 1, resultColumn));
+            inputs.add(new Parameter(TYPE_COLUMN_NAME,             String.class, TYPE_COLUMN_DESC,             TYPE_COLUMN_DESC,             0, 1, typeColumn));
         
         } else if ("dbf".equals(format)) {
-            final Parameter SIparam = new Parameter(STORE_ID_NAME, String.class, STORE_ID_DESC, STORE_ID_DESC, 1, 1, "observationDbfFile");
-            inputs.add(SIparam);
-
-            final Parameter FOparam = new Parameter(FORMAT_NAME, String.class, FORMAT_DESC, FORMAT_DESC, 1, 1, "application/dbase; subtype=\"om\"");
-            inputs.add(FOparam);
+            inputs.add(new Parameter(STORE_ID_NAME, String.class, STORE_ID_DESC, STORE_ID_DESC, 1, 1, "observationDbfFile"));
+            inputs.add(new Parameter(FORMAT_NAME,   String.class, FORMAT_DESC,   FORMAT_DESC,   1, 1, "application/dbase; subtype=\"om\""));
         }
 
-
         chain.setInputs(inputs);
-
 
         // no outputs for now
         final List<Parameter> outputs = new ArrayList<>();
 
-        final Parameter oparam1 = new Parameter(OBSERVATION_INSERTED_NAME, Integer.class, OBSERVATION_INSERTED_DESC, OBSERVATION_INSERTED_DESC, 0, 1);
-        outputs.add(oparam1);
-
-        final Parameter oparam2 = new Parameter(FILE_INSERTED_NAME, Integer.class, FILE_INSERTED_DESC, FILE_INSERTED_DESC, 0, 1);
-        outputs.add(oparam2);
+        outputs.add(new Parameter(OBSERVATION_INSERTED_NAME, Integer.class, OBSERVATION_INSERTED_DESC, OBSERVATION_INSERTED_DESC, 0, 1));
+        outputs.add(new Parameter(FILE_INSERTED_NAME,        Integer.class, FILE_INSERTED_DESC,        FILE_INSERTED_DESC,        0, 1));
 
         chain.setOutputs(outputs);
-
 
         //chain blocks
         final ElementProcess dock = chain.addProcessElement(id++, ExamindProcessFactory.NAME, harvesterProcessName);
@@ -345,7 +316,7 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
     private String[] extractHeaders(Path dataFile, String format, char separator) throws ProcessException {
         LOGGER.log(Level.INFO, "Extracting headers from : {0}", dataFile.getFileName().toString());
         if ("csv".equals(format) || "csv-flat".equals(format)) {
-            try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), separator)) {
+            try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile, Charset.forName("UTF-8")), separator)) {
 
                 final Iterator<String[]> it = reader.iterator();
 
