@@ -79,32 +79,13 @@
                 </configuration>
             </plugin>
             <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <configuration>
-                            <target>
-                                <delete dir="${project.basedir}/../../../docker/mount/examind/tomcat/webapps/examind" includeEmptyDirs="true"/>
-                                <copy todir="${project.basedir}/../../../docker/mount/examind/tomcat/webapps/examind">
-                                    <fileset dir="${project.basedir}/target/examind"/>
-                                </copy>
-                            </target>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-              <groupId>com.spotify</groupId>
-              <artifactId>dockerfile-maven-plugin</artifactId>
-              <configuration>
-                <repository>images.geomatys.com/examind/examind-community</repository>
-                <tag>${docker.tag}</tag>
-                <contextDirectory>${project.basedir}/../../../docker</contextDirectory>
-              </configuration>
+                <groupId>com.spotify</groupId>
+                <artifactId>dockerfile-maven-plugin</artifactId>
+                <configuration>
+                    <repository>images.geomatys.com/examind/examind-community</repository>
+                    <tag>${docker.tag}</tag>
+                    <contextDirectory>${project.build.directory}</contextDirectory>
+                </configuration>
             </plugin>
         </plugins>
     </build>
@@ -118,6 +99,29 @@
 
             <build>
                 <plugins>
+                    <!-- Copy docker build files into target directory -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>copy-dockerfile</id>
+                                <phase>prepare-package</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${project.build.directory}</outputDirectory>
+                                    <resources>
+                                        <resource>
+                                            <directory>src/docker</directory>
+                                            <filtering>false</filtering>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
                     <!--
                      Note: docker build configuration is defined outside profile, to allow users to rebuild image using
                      directly mvn dockerfile:build command when needed (must have packaged once with docker profile, to

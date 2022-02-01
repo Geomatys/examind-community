@@ -1,0 +1,6 @@
+*
+
+!Dockerfile
+!conf/
+!file-system-support/
+!examind/
