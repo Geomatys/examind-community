@@ -122,6 +122,61 @@
                             </execution>
                         </executions>
                     </plugin>
+                    <!-- Add support for third-party file-systems-->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>copy-nio-filesystems</id>
+                                <phase>prepare-package</phase>
+                                <goals>
+                                    <goal>copy</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>
+                                        ${project.build.directory}/file-system-support
+                                    </outputDirectory>
+                                    <artifactItems>
+                                        <artifactItem>
+                                            <groupId>com.github.robtimus</groupId>
+                                            <artifactId>ftp-fs</artifactId>
+                                            <version>1.3-GEOMATYS-MC0001</version>
+                                            <classifier>jar-with-dependencies</classifier>
+                                            <type>jar</type>
+                                            <destFileName>geomatys-ftp.jar</destFileName>
+                                        </artifactItem>
+
+                                        <artifactItem>
+                                            <groupId>com.geomatys.fork</groupId>
+                                            <artifactId>geomatys-s3</artifactId>
+                                            <version>1.5.1-GEOMATYS-MC0005</version>
+                                            <classifier>jar-with-dependencies</classifier>
+                                            <type>jar</type>
+                                            <destFileName>geomatys-s3.jar</destFileName>
+                                        </artifactItem>
+
+                                        <artifactItem>
+                                            <groupId>com.geomatys</groupId>
+                                            <artifactId>hadoop-nio2-fs</artifactId>
+                                            <version>1.0-GEOMATYS-MC0003</version>
+                                            <type>jar</type>
+                                            <destFileName>geomatys-hdfs.jar</destFileName>
+                                        </artifactItem>
+
+                                        <artifactItem>
+                                            <groupId>ch.pontius.nio</groupId>
+                                            <artifactId>smb-nio</artifactId>
+                                            <version>0.4-GEOMATYS-MC0001</version>
+                                            <classifier>jar-with-dependencies</classifier>
+                                            <type>jar</type>
+                                            <destFileName>geomatys-smb.jar</destFileName>
+                                        </artifactItem>
+                                    </artifactItems>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
                     <!--
                      Note: docker build configuration is defined outside profile, to allow users to rebuild image using
                      directly mvn dockerfile:build command when needed (must have packaged once with docker profile, to
