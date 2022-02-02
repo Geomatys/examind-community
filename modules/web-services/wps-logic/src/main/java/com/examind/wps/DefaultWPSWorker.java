@@ -62,7 +62,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.xml.datatype.XMLGregorianCalendar;
 import org.apache.sis.util.Version;
-import org.apache.sis.xml.MarshallerPool;
 import org.constellation.admin.SpringHelper;
 import static org.constellation.api.QueryConstants.SERVICE_PARAMETER;
 import org.constellation.api.ServiceDef;
@@ -98,7 +97,6 @@ import org.geotoolkit.util.Exceptions;
 import org.geotoolkit.util.StringUtilities;
 import org.geotoolkit.wps.client.WPSVersion;
 import org.geotoolkit.wps.converters.WPSConvertersUtils;
-import org.geotoolkit.wps.xml.WPSMarshallerPool;
 import org.geotoolkit.wps.xml.v200.Capabilities;
 import org.geotoolkit.wps.xml.v200.DataInput;
 import org.geotoolkit.wps.xml.v200.DataOutput;
@@ -434,11 +432,6 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
             }
         }
         LOGGER.log(Level.INFO, "{0} processes loaded.", processList.size());
-    }
-
-    @Override
-    protected MarshallerPool getMarshallerPool() {
-        return WPSMarshallerPool.getInstance();
     }
 
     /**

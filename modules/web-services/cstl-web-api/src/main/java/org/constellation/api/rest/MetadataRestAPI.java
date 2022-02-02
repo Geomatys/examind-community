@@ -374,7 +374,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
                         if("_all".equals(value)) {
                             continue; //no need to filter on period if we ask from the beginning.
                         }
-                        Long delta = Util.getDeltaTime(value);
+                        Long delta = getDeltaTime(value);
                         if (delta == null) {
                             continue;
                         }

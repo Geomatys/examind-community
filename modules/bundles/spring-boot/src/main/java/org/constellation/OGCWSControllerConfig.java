@@ -40,6 +40,8 @@ import org.constellation.wps.ws.rs.WPSResponseWriter;
 import org.constellation.ws.rs.provider.ExceptionReportWriter;
 import org.constellation.api.rest.converter.PortrayalMessageConverter;
 import org.constellation.api.rest.converter.ProfileMessageConverter;
+import org.constellation.wfs.ws.rs.FeatureSetCollectionWriter;
+import org.constellation.wfs.ws.rs.FeatureSetXmlWriter;
 import org.constellation.ws.rs.provider.ByteArrayWriter;
 import org.constellation.ws.rs.provider.RenderedImageWriter;
 
@@ -65,6 +67,8 @@ public class OGCWSControllerConfig extends WebMvcConfigurationSupport {
         converters.add(new FeatureTypeGJSWriter());
         converters.add(new ValueCollectionWriter());
         converters.add(new WFSResponseWriter());
+        converters.add(new FeatureSetCollectionWriter());
+        converters.add(new FeatureSetXmlWriter());
         converters.add(new NodeReader());
         converters.add(new SchemaWriter());
         converters.add(new BoundingBoxWriter());

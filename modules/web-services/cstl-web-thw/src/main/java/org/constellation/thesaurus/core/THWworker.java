@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import javax.inject.Named;
-import org.apache.sis.xml.MarshallerPool;
 
 // constellation dependencies
 import org.constellation.api.ServiceDef.Specification;
@@ -92,15 +91,6 @@ public class THWworker extends AbstractWorker {
         }
         started();
     }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    protected MarshallerPool getMarshallerPool() {
-        return THSMarshallerPool.getInstance();
-    }
-
 
     public GetTopmostConceptsResponse getTopmostConcepts(final GetTopmostConcepts request) throws CstlServiceException {
         isWorking();

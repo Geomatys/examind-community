@@ -210,23 +210,6 @@ public final class Util {
     }
 
 
-    public static Long getDeltaTime(String period) {
-        final long currentTs = System.currentTimeMillis();
-        final long dayTms = 1000 * 60 * 60 * 24L;
-        if ("week".equalsIgnoreCase(period)) {
-            return currentTs - (dayTms * 7);
-        } else if ("month".equalsIgnoreCase(period)) {
-            return currentTs - (dayTms * 30);
-        } else if ("3months".equalsIgnoreCase(period)) {
-            return currentTs - (dayTms * 90);
-        } else if ("6months".equalsIgnoreCase(period)) {
-            return currentTs - (dayTms * 180);
-        } else if ("year".equalsIgnoreCase(period)) {
-            return currentTs - (dayTms * 365);
-        }
-        return null;
-    }
-
     public static StyleReference findStyleReference(final String styleID, List<StyleReference> styles) {
         if (styles != null) {
             for (StyleReference styleRef : styles) {

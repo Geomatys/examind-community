@@ -44,7 +44,6 @@ import javax.xml.namespace.QName;
 import org.apache.sis.storage.FeatureQuery;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.util.Utilities;
-import org.apache.sis.xml.MarshallerPool;
 import static org.constellation.api.CommonConstants.LOCATION;
 import static org.constellation.api.CommonConstants.FEATURE_OF_INTEREST;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
@@ -179,12 +178,6 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             isTransactionnal = t;
         }
         started();
-    }
-
-    @Override
-    protected MarshallerPool getMarshallerPool() {
-        // NO XML binding for this service
-        return null;
     }
 
     /**

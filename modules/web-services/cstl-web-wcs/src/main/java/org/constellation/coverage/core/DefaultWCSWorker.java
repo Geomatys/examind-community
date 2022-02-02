@@ -57,7 +57,6 @@ import org.apache.sis.referencing.crs.DefaultTemporalCRS;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.util.Utilities;
-import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.DataType;
 import org.constellation.api.QueryConstants;
 import org.constellation.api.ServiceDef;
@@ -217,14 +216,6 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
     public DefaultWCSWorker(final String id) {
         super(id, ServiceDef.Specification.WCS);
         started();
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    protected MarshallerPool getMarshallerPool() {
-        return WCSMarshallerPool.getInstance();
     }
 
     /**

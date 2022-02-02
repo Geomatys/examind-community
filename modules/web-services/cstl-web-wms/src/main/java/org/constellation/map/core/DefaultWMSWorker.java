@@ -56,7 +56,6 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.Resource;
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
-import org.apache.sis.xml.MarshallerPool;
 import static org.constellation.api.CommonConstants.DEFAULT_CRS;
 import org.constellation.api.ServiceDef;
 import org.constellation.dto.Reference;
@@ -242,11 +241,6 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             LOGGER.log(Level.WARNING, null, ex);
         }
         started();
-    }
-
-    @Override
-    protected MarshallerPool getMarshallerPool() {
-        return WMSMarshallerPool.getInstance();
     }
 
     /**

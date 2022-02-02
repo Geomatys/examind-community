@@ -26,11 +26,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.sis.metadata.iso.DefaultMetadata;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.api.ServiceDef.Specification;
 import org.constellation.ws.IWSEngine;
 import org.constellation.business.IMetadataBusiness;
@@ -79,7 +77,7 @@ import org.w3c.dom.Node;
  * @author Guilhem Legal (Geomatys)
  */
 @RestController
-public class CSWRestAPI {
+public class CSWRestAPI extends AbstractRestAPI {
 
     @Autowired
     protected IServiceBusiness serviceBusiness;
@@ -92,11 +90,6 @@ public class CSWRestAPI {
 
     @Inject
     private TemplateResolver templateResolver;
-
-    /**
-     * Used for debugging purposes.
-     */
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.api.rest");
 
     @RequestMapping(value="/CSW/{id}/index/refresh",method=GET,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity refreshIndex(final @PathVariable("id") String id,

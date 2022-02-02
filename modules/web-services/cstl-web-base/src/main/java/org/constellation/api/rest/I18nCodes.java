@@ -58,4 +58,12 @@ public final class I18nCodes {
 
     }
 
+    public interface Collection {
+
+        /**
+         * When requested FeatureAPI collection is not available.
+         */
+        public static final String NOT_FOUND = "api.msg.error.collection.notFound";
+        public static final String PARAM_UNKNOWN = "api.msg.error.collection.paramUnknown";
+    }
 }

@@ -53,7 +53,6 @@ import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.event.StoreEvent;
 import org.apache.sis.storage.event.StoreListener;
 import org.apache.sis.util.Utilities;
-import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.ServiceDef;
 import org.constellation.dto.StyleReference;
 import org.constellation.dto.contact.Details;
@@ -75,11 +74,9 @@ import org.geotoolkit.display2d.service.SceneDef;
 import org.geotoolkit.geometry.jts.JTSEnvelope2D;
 import org.apache.sis.portrayal.MapLayers;
 import org.geotoolkit.internal.referencing.CRSUtilities;
-import org.constellation.provider.PyramidData;
 import org.geotoolkit.ows.xml.AbstractCapabilitiesCore;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.*;
 
-import org.geotoolkit.ows.xml.OWSExceptionCode;
 import org.geotoolkit.ows.xml.v110.AcceptFormatsType;
 import org.geotoolkit.ows.xml.v110.AcceptVersionsType;
 import org.geotoolkit.ows.xml.v110.BoundingBoxType;
@@ -98,7 +95,6 @@ import org.geotoolkit.storage.multires.TileMatrices;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.temporal.util.TimeParser;
 import org.geotoolkit.wmts.WMTSUtilities;
-import org.geotoolkit.wmts.xml.WMTSMarshallerPool;
 import org.geotoolkit.wmts.xml.v100.Capabilities;
 import org.geotoolkit.wmts.xml.v100.ContentsType;
 import org.geotoolkit.wmts.xml.v100.Dimension;
@@ -179,10 +175,6 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
         started();
     }
 
-    @Override
-    protected MarshallerPool getMarshallerPool() {
-        return WMTSMarshallerPool.getInstance();
-    }
     /**
      * {@inheritDoc}
      */

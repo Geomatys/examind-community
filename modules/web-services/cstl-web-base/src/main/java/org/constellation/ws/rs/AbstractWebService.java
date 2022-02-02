@@ -682,7 +682,7 @@ public abstract class AbstractWebService implements WebService{
 
     /**
      * Return the service URL obtain by the first request made.
-     * something like : http://localhost:8080/constellation/WS/
+     * something like : http://localhost:8080/constellation/WS
      *
      * @return the service uURL.
      */

@@ -25,7 +25,6 @@ import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.crs.AbstractCRS;
 import org.apache.sis.referencing.cs.AxesConvention;
 import org.apache.sis.util.Utilities;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IServiceBusiness;
@@ -55,16 +54,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.lang3.StringUtils;
-import org.constellation.business.IUserBusiness;
 
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -77,12 +71,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  * @author Guilhem Legal (Geomatys)
  */
 @RestController
-public class MapRestAPI {
-
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.api.rest");
-
-    @Inject
-    private IUserBusiness userBusiness;
+public class MapRestAPI extends AbstractRestAPI {
 
     @Inject
     private IStyleBusiness styleBusiness;
@@ -98,7 +87,6 @@ public class MapRestAPI {
 
     @Inject
     private IServiceBusiness serviceBusiness;
-
 
     /**
      * Extracts and returns the list of {@link LayerConfig}s available on a "map" service.
@@ -407,89 +395,6 @@ public class MapRestAPI {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
-    }
-
-    /**
-     * Proceed to fill a map of filters used to search records.
-     * the filters are passed from a pojo {@link PagedSearch}
-     *
-     * @param pagedSearch {link PagedSearch} given filter params
-     * @param req given http request object to extract the user
-     * @return {@code Map} map of filters to send
-     */
-    private Map<String,Object> prepareFilters(final PagedSearch pagedSearch, final HttpServletRequest req) {
-        List<Filter> filters = pagedSearch.getFilters();
-        final String searchTerm = pagedSearch.getText();
-        if(!StringUtils.isBlank(searchTerm)){
-            final Filter f = new Filter("term",searchTerm);
-            if(filters != null){
-                filters.add(f);
-            }else {
-                filters = Arrays.asList(f);
-            }
-        }
-        final Map<String,Object> filterMap = new HashMap<>();
-        if (filters != null) {
-            for (final Filter f : filters) {
-                Map.Entry<String, Object> entry = transformFilter(f, req);
-                if (entry != null) {
-                    filterMap.put(entry.getKey(), entry.getValue());
-                }
-            }
-        }
-        return filterMap;
-    }
-
-    /**
-     * Transform a Filter sent by the UI into a map of entry.
-     *
-     * @param f UI sent filter.
-     * @param req servlet request.
-     *
-     * @return A map of field / value to perform filtering.
-     */
-    private Map.Entry<String, Object> transformFilter(Filter f, final HttpServletRequest req) {
-        String value = f.getValue();
-
-        if ("OR".equals(f.getOperator())) {
-            final List<Map.Entry<String, Object>> children = new ArrayList<>();
-            for (final Filter child : f.getFilters()) {
-                final Map.Entry<String, Object> entry = transformFilter(child, req);
-                if (entry != null) {
-                    children.add(entry);
-                }
-            }
-            return new AbstractMap.SimpleEntry<>("OR", children);
-        } else if (value == null || "_all".equals(value)) {
-            return null;
-        }
-        if ("owner".equals(f.getField())) {
-            try {
-                final int userId = Integer.valueOf(value);
-                return new AbstractMap.SimpleEntry<>("owner", userId);
-            } catch (Exception ex) {
-                //try as login
-                if ("_me".equals(value)) {
-                    //get user login
-                    value = req.getUserPrincipal() != null ? req.getUserPrincipal().getName() : null;
-                }
-                final Optional<CstlUser> optUser = userBusiness.findOne(value);
-                if (optUser.isPresent()) {
-                    final CstlUser user = optUser.get();
-                    if (user != null) {
-                        return new AbstractMap.SimpleEntry<>(f.getField(), user.getId());
-                    }
-                }
-            }
-        } else if ("period".equals(f.getField())) {
-            Long delta = Util.getDeltaTime(value);
-            if (delta == null) {
-                return null;
-            }
-            return new AbstractMap.SimpleEntry<>("period", delta);
-
-        }
-        return null;
     }
 
     /**

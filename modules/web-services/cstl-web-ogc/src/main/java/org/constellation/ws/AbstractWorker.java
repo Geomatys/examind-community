@@ -40,7 +40,6 @@ import javax.xml.validation.SchemaFactory;
 import org.apache.sis.internal.util.UnmodifiableArrayList;
 import org.apache.sis.util.Version;
 import org.apache.sis.util.logging.Logging;
-import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.ServiceDef;
 import org.constellation.api.ServiceDef.Specification;
 import org.constellation.admin.SpringHelper;
@@ -380,13 +379,6 @@ public abstract class AbstractWorker implements Worker {
         }
         return details;
     }
-
-    /**
-     * Return the marshaller pool used to unmarshaller the capabilities documents of the service.
-     *
-     * @return the marshaller pool used to unmarshaller the capabilities documents of the service.
-     */
-    protected abstract MarshallerPool getMarshallerPool();
 
     /**
      * Throw and exception if the service is not working

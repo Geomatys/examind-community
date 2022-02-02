@@ -30,7 +30,6 @@ import java.util.Optional;
 import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.dto.CstlUser;
@@ -40,7 +39,6 @@ import org.constellation.configuration.Application;
 import org.constellation.dto.Filter;
 import org.constellation.dto.PagedSearch;
 import org.constellation.exception.ConstellationException;
-import org.constellation.util.Util;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -54,8 +52,6 @@ public abstract class AbstractRestAPI {
 
     @Autowired
     private IConfigurationBusiness configBusiness;
-
-    protected static final String RENDERED_PREFIX = "rendered_";
 
     /**
      * Rest API logger
@@ -92,11 +88,11 @@ public abstract class AbstractRestAPI {
     protected Map<String,Object> prepareFilters(final PagedSearch pagedSearch, final HttpServletRequest req) {
         List<Filter> filters = pagedSearch.getFilters();
         final String searchTerm = pagedSearch.getText();
-        if(!StringUtils.isBlank(searchTerm)){
+        if (searchTerm!= null && !searchTerm.isEmpty()) {
             final Filter f = new Filter("term",searchTerm);
-            if(filters != null){
+            if (filters != null) {
                 filters.add(f);
-            }else {
+            } else {
                 filters = Arrays.asList(f);
             }
         }
@@ -128,7 +124,7 @@ public abstract class AbstractRestAPI {
             for (final Filter child : f.getFilters()) {
                 final Map.Entry<String, Object> entry = transformFilter(child, req);
                 if (entry != null) {
-                    children.add(transformFilter(child, req));
+                    children.add(entry);
                 }
             }
             return new AbstractMap.SimpleEntry<>("OR", children);
@@ -154,7 +150,7 @@ public abstract class AbstractRestAPI {
                 }
             }
         } else if ("period".equals(f.getField())) {
-            Long delta = Util.getDeltaTime(value);
+            Long delta = getDeltaTime(value);
             if (delta == null) {
                 return null;
             }
@@ -208,5 +204,22 @@ public abstract class AbstractRestAPI {
             }
         }
         return url.toString();
+    }
+
+    protected static Long getDeltaTime(String period) {
+        final long currentTs = System.currentTimeMillis();
+        final long dayTms = 1000 * 60 * 60 * 24L;
+        if ("week".equalsIgnoreCase(period)) {
+            return currentTs - (dayTms * 7);
+        } else if ("month".equalsIgnoreCase(period)) {
+            return currentTs - (dayTms * 30);
+        } else if ("3months".equalsIgnoreCase(period)) {
+            return currentTs - (dayTms * 90);
+        } else if ("6months".equalsIgnoreCase(period)) {
+            return currentTs - (dayTms * 180);
+        } else if ("year".equalsIgnoreCase(period)) {
+            return currentTs - (dayTms * 365);
+        }
+        return null;
     }
 }

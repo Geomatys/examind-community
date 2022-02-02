@@ -19,7 +19,6 @@
 package org.constellation.metadata.core;
 
 import com.codahale.metrics.annotation.Timed;
-import org.apache.sis.xml.MarshallerPool;
 import org.apache.sis.xml.Namespaces;
 import org.apache.sis.internal.xml.LegacyNamespaces;
 import org.constellation.api.ServiceDef;
@@ -40,7 +39,6 @@ import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.UnauthorizedException;
 import org.geotoolkit.csw.xml.AbstractCapabilities;
 import org.geotoolkit.csw.xml.Acknowledgement;
-import org.geotoolkit.csw.xml.CSWMarshallerPool;
 import org.geotoolkit.csw.xml.CswXmlFactory;
 import org.geotoolkit.csw.xml.Delete;
 import org.geotoolkit.csw.xml.DescribeRecord;
@@ -1630,14 +1628,6 @@ public class CSWworker extends AbstractWorker implements Refreshable {
             harvestTaskScheduler.destroy();
         }
         stopped();
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    protected MarshallerPool getMarshallerPool() {
-        return CSWMarshallerPool.getInstanceCswOnly();
     }
 
     @Override

@@ -41,7 +41,6 @@ import javax.inject.Named;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import org.apache.sis.storage.FeatureQuery;
-import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.ServiceDef;
 import org.constellation.exception.ConstellationException;
 import org.constellation.api.CommonConstants;
@@ -401,7 +400,7 @@ public class SOSworker extends SensorWorker {
         final String currentVersion = request.getVersion().toString();
 
         final AcceptFormats formats = request.getAcceptFormats();
-        if (formats != null && formats.getOutputFormat().size() > 0 ) {
+        if (formats != null && !formats.getOutputFormat().isEmpty() ) {
             boolean found = false;
             for (String form: formats.getOutputFormat()) {
                 if (ACCEPTED_OUTPUT_FORMATS.contains(form)) {
@@ -2213,14 +2212,6 @@ public class SOSworker extends SensorWorker {
         if (isTransactionSecurized() && !SecurityManagerHolder.getInstance().isAuthenticated()) {
             throw new UnauthorizedException("You must be authentified to perform an " + requestName + " request.");
         }
-    }
-
-   /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected MarshallerPool getMarshallerPool() {
-        return SOSMarshallerPool.getInstance();
     }
 
     /**

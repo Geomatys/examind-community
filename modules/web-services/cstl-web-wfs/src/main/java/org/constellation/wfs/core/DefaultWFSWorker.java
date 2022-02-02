@@ -35,12 +35,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Named;
@@ -55,6 +55,7 @@ import org.apache.sis.internal.feature.jts.JTS;
 import org.apache.sis.internal.storage.ConcatenatedFeatureSet;
 import org.apache.sis.storage.FeatureQuery;
 import org.apache.sis.internal.xml.XmlUtilities;
+import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.IdentifiedObjects;
@@ -66,7 +67,6 @@ import org.apache.sis.storage.event.StoreListener;
 import org.apache.sis.util.Utilities;
 import org.apache.sis.util.Version;
 import org.apache.sis.util.logging.Logging;
-import org.apache.sis.xml.MarshallerPool;
 import org.apache.sis.xml.Namespaces;
 import org.constellation.api.ServiceDef;
 import org.constellation.dto.NameInProvider;
@@ -80,7 +80,9 @@ import org.constellation.provider.FeatureData;
 import org.constellation.security.SecurityManagerHolder;
 import org.constellation.util.NameComparator;
 import org.constellation.util.QNameComparator;
+import org.constellation.util.Util;
 import org.constellation.wfs.NameOverride;
+import static org.constellation.wfs.core.WFSConstants.GML_3_2_SF_MIME;
 import org.constellation.wfs.core.WFSConstants.GetXSD;
 import static org.constellation.wfs.core.WFSConstants.IDENTIFIER_FILTER;
 import static org.constellation.wfs.core.WFSConstants.IDENTIFIER_PARAM;
@@ -93,6 +95,7 @@ import org.constellation.wfs.ws.rs.ValueCollectionWrapper;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.LayerCache;
 import org.constellation.ws.LayerWorker;
+import org.constellation.ws.MimeType;
 import org.constellation.ws.UnauthorizedException;
 import org.geotoolkit.storage.feature.FeatureStore;
 import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
@@ -100,6 +103,10 @@ import org.geotoolkit.storage.feature.FeatureStoreUtilities;
 import org.geotoolkit.storage.memory.InMemoryFeatureSet;
 import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.feature.FeatureTypeExt;
+import org.geotoolkit.feature.xml.BoundingBox;
+import org.geotoolkit.feature.xml.Extent;
+import org.geotoolkit.feature.xml.FeatureSetCollection;
+import org.geotoolkit.feature.xml.Link;
 import org.geotoolkit.feature.xml.Utils;
 import org.geotoolkit.feature.xml.XmlFeatureSet;
 import org.geotoolkit.feature.xml.jaxb.JAXBFeatureTypeWriter;
@@ -282,7 +289,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 
     private void loadStoredQueries() {
         try {
-            final Object obj = serviceBusiness.getExtraConfiguration("WFS", getId(), "StoredQueries.xml", getMarshallerPool());
+            final Object obj = serviceBusiness.getExtraConfiguration("WFS", getId(), "StoredQueries.xml",  WFSMarshallerPool.getInstance());
             if (obj instanceof StoredQueries) {
                 StoredQueries candidate = (StoredQueries) obj;
                 this.storedQueries = candidate.getStoredQuery();
@@ -337,15 +344,10 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 
     private void storedQueries() {
         try {
-            serviceBusiness.setExtraConfiguration("WFS", getId(), "StoredQueries.xml", new StoredQueries(storedQueries), getMarshallerPool());
+            serviceBusiness.setExtraConfiguration("WFS", getId(), "StoredQueries.xml", new StoredQueries(storedQueries),  WFSMarshallerPool.getInstance());
         } catch (ConstellationException ex) {
             LOGGER.log(Level.WARNING, "Error while writing stored queries", ex);
         }
-    }
-
-    @Override
-    protected MarshallerPool getMarshallerPool() {
-        return WFSMarshallerPool.getInstance();
     }
 
     /**
@@ -970,7 +972,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
         if ((request.getQuery() == null || request.getQuery().isEmpty()) && (request.getStoredQuery() == null || request.getStoredQuery().isEmpty())) {
             throw new CstlServiceException("You must specify a query!", MISSING_PARAMETER_VALUE);
         }
-        final LinkedHashMap<String, ? extends Query> queries = extractStoredQueries(request);
+        final Map<String, ? extends Query> queries = extractStoredQueries(request);
 
         final Map<GenericName, LayerCache> layers = getLayerCaches(userLogin).stream()
                 .collect(
@@ -1160,7 +1162,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
         /**
          * 3 possibilities here :
          *    1) return a collection of collection.
-         *    2) return an ampty collection
+         *    2) return an empty collection
          *    3) if there is only one feature we return (change the return type in object)
          *
          * result TODO find an id and a member type
@@ -1179,9 +1181,9 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
         }
         LOGGER.log(Level.FINE, "GetFeature treated in {0}ms", (System.currentTimeMillis() - start));
 
-        if(queries.size()==1 && queries.containsKey("urn:ogc:def:query:OGC-WFS::GetFeatureById")){
+        if (queries.size() == 1 && queries.containsKey("urn:ogc:def:query:OGC-WFS::GetFeatureById")) {
             return new FeatureSetWrapper(collections, schemaLocations, gmlVersion, currentVersion, (int)nbMatched,true);
-        }else{
+        } else {
             return new FeatureSetWrapper(collections, schemaLocations, gmlVersion, currentVersion, (int)nbMatched,false);
         }
 
@@ -2045,7 +2047,9 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
      */
     private Filter processFilter(final FeatureType ft, Filter filter, final Map<String, GenericName> aliases) {
         try {
-            filter = (Filter) new AliasFilterVisitor(aliases)   .visit(filter);
+            if (aliases!= null && !aliases.isEmpty()) {
+                filter = (Filter) new AliasFilterVisitor(aliases)   .visit(filter);
+            }
             filter = (Filter) new UnprefixerFilterVisitor(ft)   .visit(filter);
             filter = (Filter) new DefaultGeomPropertyVisitor(ft).visit(filter);
             filter = (Filter) new GMLNamespaceVisitor()         .visit(filter);
@@ -2054,7 +2058,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             final String defaultCRS = getCRSCode(ft);
             final CoordinateReferenceSystem exposedCrs = CRS.forCode(defaultCRS);
             final CoordinateReferenceSystem trueCrs = getCRS(ft);
-            if (exposedCrs!=null && trueCrs!=null && !Utilities.equalsIgnoreMetadata(trueCrs, exposedCrs)) {
+            if (exposedCrs != null && trueCrs != null && !Utilities.equalsIgnoreMetadata(trueCrs, exposedCrs)) {
                 filter = (Filter) new FillCrsVisitor(exposedCrs).visit(filter);
                 filter = (Filter) new CrsAdjustFilterVisitor(exposedCrs, trueCrs).visit(filter);
             }
@@ -2383,5 +2387,99 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             }
         }
         return results;
+    }
+
+    @Override
+    public List<org.geotoolkit.feature.xml.Collection> getCollections(List<String> names) throws CstlServiceException {
+        final String userLogin  = getUserLogin();
+        final List<LayerCache> layers;
+        if (names.isEmpty()) {
+            // return all layers
+            layers = getLayerCaches(userLogin);
+        } else {
+            layers = new ArrayList<>();
+            for (String name : names) {
+                final GenericName collName = Util.parseLayerName(name);
+                layers.add(getLayerCache(userLogin, collName));
+            }
+        }
+        return layers.stream().map(r -> dataToCollection(r)).collect(Collectors.toList());
+    }
+
+    private org.geotoolkit.feature.xml.Collection dataToCollection(LayerCache layer) {
+        final Data data = layer.getData();
+        final List<Link> links = new ArrayList<>();
+        final Extent extent = new Extent();
+
+        try {
+            final DefaultGeographicBoundingBox gbox = new DefaultGeographicBoundingBox();
+            gbox.setBounds(data.getEnvelope());
+            BoundingBox box = new BoundingBox();
+            box.setMinx(gbox.getWestBoundLongitude());
+            box.setMiny(gbox.getSouthBoundLatitude());
+            box.setMaxx(gbox.getEastBoundLongitude());
+            box.setMaxy(gbox.getNorthBoundLatitude());
+            extent.getSpatial().addBox(box);
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, "Cannot set spatial extent of data " + data.getName(), ex);
+            extent.setSpatial(null);
+        }
+
+        try {
+            SortedSet<Date> dates = data.getDateRange();
+            if (dates != null) {
+                extent.getTemporal().addInterval(dates.first());
+                extent.getTemporal().addInterval(dates.last());
+            } else {
+                extent.setTemporal(null);
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Cannot set temporal extent of data " + data.getName(), e);
+            extent.setTemporal(null);
+        }
+        String identifier = identifier(layer);
+        String title      = layer.getConfiguration().getTitle();
+        String url        = getServiceUrl().replace("/wfs", "/feature").replace("?", "");
+        links.add(new Link(url + "/collections/" + identifier + "/items",                   "items", MimeType.APP_GEOJSON, title, null, null));
+        links.add(new Link(url + "/collections/" + identifier + "/items?f=application/xml", "items", GML_3_2_SF_MIME,      title, null, null));
+
+        return new org.geotoolkit.feature.xml.Collection(identifier, title, null, links, extent, "VECTOR");
+    }
+
+    @Override
+    public FeatureSetCollection getCollectionItems(String collectionId, Filter filter, int limit, int offset) throws CstlServiceException {
+        try {
+            final String userLogin  = getUserLogin();
+            final LayerCache layer = getLayerCache(userLogin, Util.parseLayerName(collectionId));
+            final FeatureData data = (FeatureData) layer.getData();
+            FeatureSet fs = data.getOrigin();
+            /*
+            * always reproject to CRS:84 (TODO already good crs?)
+            */
+            final FeatureQuery query = org.geotoolkit.storage.feature.query.Query.reproject(fs.getType(), CommonCRS.defaultGeographic());
+            /*
+            * Apply filters
+            */
+            if (filter != null) {
+                filter = processFilter(fs.getType(), filter, new HashMap<>());
+                query.setSelection(filter);
+            }
+            fs = fs.subset(query);
+            int nbMatched = FeatureStoreUtilities.getCount(fs).intValue();
+
+           /*
+            * Apply paging
+            */
+            final FeatureQuery reduced = new FeatureQuery();
+            reduced.setLimit(limit);
+            reduced.setOffset(offset);
+            fs = fs.subset(reduced);
+
+            int nbReturned = FeatureStoreUtilities.getCount(fs).intValue();
+
+            return new FeatureSetCollection(fs, new ArrayList<>(), nbMatched, nbReturned);
+        } catch (DataStoreException ex) {
+            throw new CstlServiceException(ex);
+        }
     }
 }

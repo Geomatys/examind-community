@@ -101,6 +101,8 @@ public final class WFSConstants {
 
     public final static String GML_3_2_1_MIME = "application/gml+xml; version=3.2";
 
+    public final static String GML_3_2_SF_MIME = "application/gml+xml;version=3.2;profile=&quot;http://www.opengis.net/def/profile/ogc/2.0/gml-sf0&quot;";
+
     public static final FilterCapabilities FILTER_CAPABILITIES_V110;
     static {
         final GeometryOperand[] geometryOperands = new GeometryOperand[4];

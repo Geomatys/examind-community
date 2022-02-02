@@ -43,11 +43,11 @@ import org.geotoolkit.wfs.xml.Transaction;
 import org.geotoolkit.wfs.xml.TransactionResponse;
 import org.geotoolkit.wfs.xml.WFSCapabilities;
 import org.geotoolkit.xsd.xml.v2001.Schema;
+import org.geotoolkit.feature.xml.Collection;
 
 import java.util.List;
-
-// Constellation dependencies
-// Geotoolkit dependencies
+import org.geotoolkit.feature.xml.FeatureSetCollection;
+import org.opengis.filter.Filter;
 
 /**
  *
@@ -126,4 +126,8 @@ public interface WFSWorker extends Worker {
     List<ParameterExpression> getParameterForStoredQuery(final String queryId);
     
     Schema getXsd(final WFSConstants.GetXSD request) throws CstlServiceException;
+
+    List<Collection> getCollections(List<String> collectionIds) throws CstlServiceException;
+
+    FeatureSetCollection getCollectionItems(String collectionId, Filter filter, int limit, int offset) throws CstlServiceException;
 }

@@ -116,7 +116,7 @@ public abstract class SensorWorker extends AbstractWorker {
         return null;
     }
 
-    protected boolean getBooleanProperty(final String propertyName, boolean defaultValue) {
+    protected final boolean getBooleanProperty(final String propertyName, boolean defaultValue) {
         if (configuration != null) {
             return configuration.getBooleanParameter(propertyName, defaultValue);
         }
