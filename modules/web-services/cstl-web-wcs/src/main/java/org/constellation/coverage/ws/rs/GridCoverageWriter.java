@@ -45,6 +45,7 @@ import org.constellation.util.WCSUtils;
 import org.geotoolkit.image.io.plugin.TiffImageWriteParam;
 import org.geotoolkit.internal.coverage.CoverageUtilities;
 import org.geotoolkit.nio.IOUtilities;
+import org.opengis.referencing.datum.PixelInCell;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -119,8 +120,13 @@ public class GridCoverageWriter implements HttpMessageConverter<GeotiffResponse>
         }
 
         if (entry.outputCRS != null) {
-            GeneralEnvelope env = CRSUtilities.reprojectWithNoInfinity(coverage.getEnvelope(), entry.outputCRS);
-            coverage = new GridCoverageProcessor().resample(coverage, new GridGeometry(coverage.getGridGeometry().getExtent(), env, GridOrientation.REFLECTION_Y));
+            final GridGeometry gg = coverage.getGridGeometry();
+            final GridGeometry outputGeom;
+            if (gg.isDefined(GridGeometry.ENVELOPE)) {
+                GeneralEnvelope env = CRSUtilities.reprojectWithNoInfinity(gg.getEnvelope(), entry.outputCRS);
+                outputGeom = new GridGeometry(gg.isDefined(GridGeometry.EXTENT) ? gg.getExtent() : null, env, GridOrientation.REFLECTION_Y);
+            } else outputGeom = new GridGeometry(null, PixelInCell.CELL_CENTER, null, entry.outputCRS);
+            coverage = new GridCoverageProcessor().resample(coverage, outputGeom);
         }
 
         //see if we convert to geophysic or not before writing
