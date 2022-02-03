@@ -1,0 +1,42 @@
+{
+  "type" : "FeatureCollection",
+  "numberMatched" : 3,
+  "numberReturned" : 2,
+  "links" : [ {
+    "href" : "http://localhost:9090/WS/feature/default/collections/$collectionId/items",
+    "rel" : "self",
+    "type" : "application/geo+json",
+    "title" : "this document"
+  }, {
+    "href" : "http://localhost:9090/WS/feature/default/collections/$collectionId/items?f=application/xml",
+    "rel" : "alternate",
+    "type" : "application/gml+xml;version=3.2;profile=&quot;http://www.opengis.net/def/profile/ogc/2.0/gml-sf0&quot;",
+    "title" : "this document as XML"
+  }, {
+    "href" : "http://localhost:9090/WS/feature/default/collections/$collectionId/items?offset=2&limit=2&f=application/geo+json",
+    "rel" : "next",
+    "type" : "application/geo+json",
+    "title" : "next page"
+  } ],
+  "features" : [ {
+    "type" : "Feature",
+    "id" : "BasicPolygons.1",
+    "geometry" : {
+      "type" : "MultiPolygon",
+      "coordinates" : [ [ [ [ -1, 0 ], [ 0, 1 ], [ 1, 0 ], [ 0, -1 ], [ -1, 0 ] ] ] ]
+    },
+    "properties" : {
+      "ID" : ""
+    }
+  }, {
+    "type" : "Feature",
+    "id" : "BasicPolygons.2",
+    "geometry" : {
+      "type" : "MultiPolygon",
+      "coordinates" : [ [ [ [ -2, 6 ], [ 1, 6 ], [ 1, 3 ], [ -2, 3 ], [ -2, 6 ] ] ] ]
+    },
+    "properties" : {
+      "ID" : ""
+    }
+  } ]
+}

@@ -76,7 +76,6 @@ public class FeatureSetCollectionWriter implements HttpMessageConverter<FeatureS
     public void write(FeatureSetCollection t, MediaType contentType, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
        
         MediaType media = null; 
-        
         try {
             media = outputMessage.getHeaders().getContentType();
         } catch (InvalidMediaTypeException ex) {
@@ -84,7 +83,13 @@ public class FeatureSetCollectionWriter implements HttpMessageConverter<FeatureS
         }
         
         if (MediaType.APPLICATION_JSON.equals(media)) {
-            try (GeoJSONStreamWriter featureWriter = new GeoJSONStreamWriter(outputMessage.getBody(), t.getFeatureSet().getType(), t.getLinks(), t.getNbMatched(), t.getNbReturned(), JsonEncoding.UTF8, 20, true);
+            // todo improve FeatureSetCollection class
+            Integer nbMatched = null, nbReturned = null;
+            if (t.hasNumberMatched()) {
+                nbMatched  = t.getNbMatched();
+                nbReturned = t.getNbReturned();
+            }
+            try (GeoJSONStreamWriter featureWriter = new GeoJSONStreamWriter(outputMessage.getBody(), t.getFeatureSet().getType(), t.getLinks(), nbMatched, nbReturned, JsonEncoding.UTF8, 20, true);
                 Stream<Feature> stream = t.getFeatureSet().features(false)) {
                 Iterator<Feature> iterator = stream.iterator();
                 featureWriter.writeCollection();
@@ -104,14 +109,17 @@ public class FeatureSetCollectionWriter implements HttpMessageConverter<FeatureS
                 final JAXPStreamFeatureWriter featureWriter = new JAXPStreamFeatureWriter(t.getGmlVersion(), null, t.getSchemaLocations());
                 //write possible namespaces first, even if they are not used
                 //this avoids jaxb to add them millions of times
-                if (!"3.1.1".equals(t.getGmlVersion())) featureWriter.getCommonPrefixes().put("gml30", "http://www.opengis.net/gml");
-                featureWriter.getCommonPrefixes().put("gmd", "http://www.isotc211.org/2005/gmd");
-                featureWriter.getCommonPrefixes().put("gmx", "http://www.isotc211.org/2005/gmx");
-                featureWriter.getCommonPrefixes().put("srv1", "http://www.isotc211.org/2005/srv");
-                featureWriter.getCommonPrefixes().put("gco", "http://www.isotc211.org/2005/gco");                
+                if (!"3.1.1".equals(t.getGmlVersion())) {
+                    featureWriter.getCommonPrefixes().put("gml30", "http://www.opengis.net/gml");
+                    featureWriter.getCommonPrefixes().put("gmd", "http://www.isotc211.org/2005/gmd");
+                    featureWriter.getCommonPrefixes().put("gmx", "http://www.isotc211.org/2005/gmx");
+                    featureWriter.getCommonPrefixes().put("srv1", "http://www.isotc211.org/2005/srv");
+                    featureWriter.getCommonPrefixes().put("gco", "http://www.isotc211.org/2005/gco");
+                }
                 
-                int i = 0;
-                for (Link link : t.getLinks()) {
+                
+                for (int i = 0; i < t.getLinks().size(); i++) {
+                    Link link = t.getLinks().get(i);
                     outputMessage.getHeaders().add("href" + i, link.getHref());
                     if (link.getRel() != null) {
                         outputMessage.getHeaders().add("rel" + i, link.getRel());
@@ -128,7 +136,6 @@ public class FeatureSetCollectionWriter implements HttpMessageConverter<FeatureS
                     if (link.getLength() != null) {
                         outputMessage.getHeaders().add("length" + i, String.valueOf(link.getLength()));
                     }
-                    i++;
                 }
                 if (t.hasNumberMatched()) {
                     outputMessage.getHeaders().add("numberMatched", String.valueOf(t.getNbMatched()));

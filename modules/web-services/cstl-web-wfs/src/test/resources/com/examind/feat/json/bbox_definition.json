@@ -1,0 +1,27 @@
+{
+    "type": "FeatureCollection",
+    "numberMatched": 1,
+    "numberReturned": 1,
+    "links": [{
+            "href": "http://localhost:9090/WS/feature/default/collections/$collectionId/items",
+            "rel": "self",
+            "type": "application/geo+json",
+            "title": "this document"
+        }, {
+            "href": "http://localhost:9090/WS/feature/default/collections/$collectionId/items?f=application/xml",
+            "rel": "alternate",
+            "type": "application/gml+xml;version=3.2;profile=&quot;http://www.opengis.net/def/profile/ogc/2.0/gml-sf0&quot;",
+            "title": "this document as XML"
+        }],
+    "features": [{
+            "type": "Feature",
+            "id": "BasicPolygons.1",
+            "geometry": {
+                "type": "MultiPolygon",
+                "coordinates": [[[[-1, 0], [0, 1], [1, 0], [0, -1], [-1, 0]]]]
+            },
+            "properties": {
+                "ID": ""
+            }
+        }]
+}

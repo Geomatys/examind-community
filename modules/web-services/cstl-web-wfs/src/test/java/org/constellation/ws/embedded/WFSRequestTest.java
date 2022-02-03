@@ -147,6 +147,8 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
 
     private static final String WFS_GETFEATURE_JSON2 = "service=WFS&version=2.0.0&request=GetFeature&typenames=SamplingPoint&outputFormat=application/json&srsName=epsg:3857&count=2";
 
+    private static final String WFS_GETFEATURE_JSON3 = "service=WFS&version=2.0.0&request=GetFeature&typenames=Bridges&outputFormat=application/json&srsName=epsg:3857&count=2";
+
     private static final String WFS_GETFEATURE_CITE1 = "service=WFS&version=1.1.0&request=GetFeature&typename=sf:PrimitiveGeoFeature&namespace=xmlns%28sf=http://cite.opengeospatial.org/gmlsf%29&filter=%3Cogc:Filter%20xmlns:gml=%22http://www.opengis.net/gml%22%20xmlns:ogc=%22http://www.opengis.net/ogc%22%3E%3Cogc:PropertyIsEqualTo%3E%3Cogc:PropertyName%3E//gml:description%3C/ogc:PropertyName%3E%3Cogc:Literal%3Edescription-f008%3C/ogc:Literal%3E%3C/ogc:PropertyIsEqualTo%3E%3C/ogc:Filter%3E";
 
     private static final String WFS_GETFEATURE_CITE2 = "service=WFS&version=1.1.0&request=GetFeature&typename=sf:PrimitiveGeoFeature&namespace=xmlns(sf=http://cite.opengeospatial.org/gmlsf)&filter=%3Cogc:Filter%20xmlns:ogc=%22http://www.opengis.net/ogc%22%3E%3Cogc:PropertyIsEqualTo%3E%3Cogc:PropertyName%3E*%5B1%5D%3C/ogc:PropertyName%3E%3Cogc:Literal%3Edescription-f001%3C/ogc:Literal%3E%3C/ogc:PropertyIsEqualTo%3E%3C/ogc:Filter%3E";
@@ -1881,17 +1883,10 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
     @Order(order=31)
     public void testWFSGetFeatureGETJSON() throws Exception {
         initPool();
-        final URL getfeatsUrl1;
-        final URL getfeatsUrl2;
-        try {
-            getfeatsUrl1 = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_JSON);
-            getfeatsUrl2 = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_JSON2);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
+        
         //for WFS 1.1.0
-        String result = getStringResponse(getfeatsUrl1.openConnection());
+        URL getfeatsUrl= new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_JSON);
+        String result = getStringResponse(getfeatsUrl.openConnection());
         result = result.replaceAll("\\s+", "");
         assertTrue(isJSONValid(result));
         String expected = getStringFromFile("org/constellation/wfs/json/collection-v1.json");
@@ -1899,10 +1894,20 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
         assertEquals(expected, result);
 
         //for WFS 2.0.0
-        result = getStringResponse(getfeatsUrl2.openConnection());
+        getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_JSON2);
+        result = getStringResponse(getfeatsUrl.openConnection());
         result = result.replaceAll("\\s+", "");
         assertTrue(isJSONValid(result));
         expected = getStringFromFile("org/constellation/wfs/json/collection-v2.json");
+        expected = expected.replaceAll("\\s+", "");
+        assertEquals(expected, result);
+
+        //for WFS 2.0.0 shapefile
+        getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_JSON3);
+        result = getStringResponse(getfeatsUrl.openConnection());
+        result = result.replaceAll("\\s+", "");
+        assertTrue(isJSONValid(result));
+        expected = getStringFromFile("org/constellation/wfs/json/collection2.json");
         expected = expected.replaceAll("\\s+", "");
         assertEquals(expected, result);
     }

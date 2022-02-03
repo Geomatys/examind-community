@@ -62,7 +62,7 @@ public class SchemaWriter implements HttpMessageConverter<Schema> {
 
     @Override
     public Schema read(Class<? extends Schema> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("Schema message converter do not support reading.");
+        throw new HttpMessageNotReadableException("Schema message converter do not support reading.", him);
     }
     
     @Override

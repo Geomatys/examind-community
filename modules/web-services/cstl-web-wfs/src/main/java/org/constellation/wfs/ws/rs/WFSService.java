@@ -19,8 +19,6 @@
 
 package org.constellation.wfs.ws.rs;
 
-// J2SE dependencies
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -43,6 +41,7 @@ import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import org.apache.sis.xml.MarshallerPool;
+import static org.constellation.api.CommonConstants.OUTPUT_FORMAT;
 import static org.constellation.api.QueryConstants.ACCEPT_FORMATS_PARAMETER;
 import static org.constellation.api.QueryConstants.ACCEPT_VERSIONS_PARAMETER;
 import static org.constellation.api.QueryConstants.REQUEST_PARAMETER;
@@ -435,7 +434,7 @@ public class WFSService extends GridWebService<WFSWorker> {
     }
 
     private DescribeFeatureType createNewDescribeFeatureTypeRequest(final Worker w) throws CstlServiceException {
-        String outputFormat   = getParameter("outputFormat", false);
+        String outputFormat   = getParameter(OUTPUT_FORMAT, false);
         final String handle   = getParameter(HANDLE, false);
         final String service  = getParameter(SERVICE_PARAMETER, true);
         final String version  = getParameter(VERSION_PARAMETER, true);
@@ -513,7 +512,7 @@ public class WFSService extends GridWebService<WFSWorker> {
         final String version = getParameter(VERSION_PARAMETER, true);
         worker.checkVersionSupported(version, false);
         final String handle  = getParameter(HANDLE,  false);
-        final String outputFormat  = getParameter("outputFormat", false);
+        final String outputFormat  = getParameter(OUTPUT_FORMAT, false);
 
         final String max;
         if (version.equals("2.0.0")) {
@@ -704,7 +703,7 @@ public class WFSService extends GridWebService<WFSWorker> {
         final String service = getParameter(SERVICE_PARAMETER, true);
         final String version = getParameter(VERSION_PARAMETER, true);
         final String handle  = getParameter(HANDLE,  false);
-        final String outputFormat  = getParameter("outputFormat", false);
+        final String outputFormat  = getParameter(OUTPUT_FORMAT, false);
 
         worker.checkVersionSupported(version, false);
 
@@ -834,7 +833,7 @@ public class WFSService extends GridWebService<WFSWorker> {
         final String version      = getParameter(VERSION_PARAMETER, true);
         worker.checkVersionSupported(version, false);
         final String handle       = getParameter(HANDLE,  false);
-        final String outputFormat = getParameter("outputFormat", false);
+        final String outputFormat = getParameter(OUTPUT_FORMAT, false);
         final String id           = getParameter("gmlobjectid", true);
 
         return buildGetGmlObject(version, id, service, handle, outputFormat);
@@ -1159,7 +1158,7 @@ public class WFSService extends GridWebService<WFSWorker> {
                     }
                     final Integer maxFeature = parseOptionalIntegerParam("count");
                     final Integer startIndex = parseOptionalIntegerParam("startIndex");
-                    final String outputFormat = getSafeParameter("outputFormat");
+                    final String outputFormat = getSafeParameter(OUTPUT_FORMAT);
                     final List<String> propertyNames = parseCommaSeparatedParameter("propertyName");
                     final List<QName> typeNames = Arrays.asList(new QName(featureType));
                     final Object xmlFilter  = getComplexParameter(FILTER, false);
@@ -1283,7 +1282,7 @@ public class WFSService extends GridWebService<WFSWorker> {
                 // TODO namespace param
                 final SortBy sortBy = parseSortByParameter(version);
                 final String srsName = getSafeParameter("srsName");
-                final String outputFormat = getSafeParameter("outputFormat");
+                final String outputFormat = getSafeParameter(OUTPUT_FORMAT);
                 String resultTypeStr = getSafeParameter("resultType");
                 ResultTypeType resultType = ResultTypeType.RESULTS;
                 if (resultTypeStr != null) {
@@ -1369,7 +1368,7 @@ public class WFSService extends GridWebService<WFSWorker> {
                 // TODO namespace param
                 final SortBy sortBy = parseSortByParameter(version);
                 final String srsName = getSafeParameter("srsName");
-                final String outputFormat = getSafeParameter("outputFormat");
+                final String outputFormat = getSafeParameter(OUTPUT_FORMAT);
                 String resultTypeStr = getSafeParameter("resultType");
                 ResultTypeType resultType = ResultTypeType.RESULTS;
                 if (resultTypeStr != null) {
@@ -1479,7 +1478,7 @@ public class WFSService extends GridWebService<WFSWorker> {
                 // TODO namespace param
                 final SortBy sortBy = parseSortByParameter(version);
                 final String srsName = getSafeParameter("srsName");
-                final String outputFormat = getSafeParameter("outputFormat");
+                final String outputFormat = getSafeParameter(OUTPUT_FORMAT);
                 String resultTypeStr = getSafeParameter("resultType");
                 ResultTypeType resultType = ResultTypeType.RESULTS;
                 if (resultTypeStr != null) {

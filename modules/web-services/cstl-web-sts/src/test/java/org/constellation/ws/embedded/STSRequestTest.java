@@ -19,10 +19,6 @@
 
 package org.constellation.ws.embedded;
 
-import org.constellation.test.utils.JSONComparator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.net.URL;
 import java.net.URLConnection;
@@ -1684,14 +1680,5 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         pt = new PointType(e.getLowerCorner());
         geom = GeometrytoJTS.toJTS(pt, AxisResolve.AUTO, false);
         sb.append("Binary: ").append(org.apache.commons.codec.binary.Hex.encodeHexString(writer.write(geom))).append('\n');
-    }
-
-    public static void compareJSON(String expected, String result) throws JsonProcessingException {
-        JSONComparator comparator = new JSONComparator();
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode expectedNode = mapper.readTree(expected);
-        JsonNode resultNode = mapper.readTree(result);
-
-        assertTrue(expectedNode.equals(comparator, resultNode));
     }
 }

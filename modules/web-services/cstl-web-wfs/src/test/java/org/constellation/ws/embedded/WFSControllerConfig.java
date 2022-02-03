@@ -19,11 +19,12 @@
 package org.constellation.ws.embedded;
 
 import java.util.List;
+import org.constellation.wfs.ws.rs.FeatureSetCollectionWriter;
 import org.constellation.wfs.ws.rs.FeatureSetWriter;
+import org.constellation.wfs.ws.rs.FeatureSetXmlWriter;
 import org.constellation.wfs.ws.rs.FeatureTypeGJSWriter;
 import org.constellation.wfs.ws.rs.NodeReader;
 import org.constellation.wfs.ws.rs.SchemaWriter;
-import org.constellation.wfs.ws.rs.ValueCollectionWriter;
 import org.constellation.wfs.ws.rs.WFSResponseWriter;
 import org.constellation.ws.rs.provider.ExceptionReportWriter;
 import org.springframework.context.annotation.Configuration;
@@ -46,8 +47,9 @@ public class WFSControllerConfig  extends WebMvcConfigurationSupport {
     @Override
     protected void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
         converters.add(new FeatureSetWriter());
+        converters.add(new FeatureSetCollectionWriter());
+        converters.add(new FeatureSetXmlWriter());
         converters.add(new FeatureTypeGJSWriter());
-        converters.add(new ValueCollectionWriter());
         converters.add(new WFSResponseWriter());
         converters.add(new NodeReader());
         converters.add(new SchemaWriter());

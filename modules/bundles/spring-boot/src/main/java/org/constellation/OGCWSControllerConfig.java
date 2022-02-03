@@ -30,7 +30,6 @@ import org.constellation.sos.ws.rs.provider.SensorMLWriter;
 import org.constellation.wfs.ws.rs.FeatureTypeGJSWriter;
 import org.constellation.wfs.ws.rs.NodeReader;
 import org.constellation.wfs.ws.rs.SchemaWriter;
-import org.constellation.wfs.ws.rs.ValueCollectionWriter;
 import org.constellation.wfs.ws.rs.WFSResponseWriter;
 import org.constellation.wps.ws.rs.BoundingBoxWriter;
 import org.constellation.wps.ws.rs.FeatureSetWriter;
@@ -65,7 +64,6 @@ public class OGCWSControllerConfig extends WebMvcConfigurationSupport {
         converters.add(new NodeWriter());
         converters.add(new org.constellation.wfs.ws.rs.FeatureSetWriter());
         converters.add(new FeatureTypeGJSWriter());
-        converters.add(new ValueCollectionWriter());
         converters.add(new WFSResponseWriter());
         converters.add(new FeatureSetCollectionWriter());
         converters.add(new FeatureSetXmlWriter());

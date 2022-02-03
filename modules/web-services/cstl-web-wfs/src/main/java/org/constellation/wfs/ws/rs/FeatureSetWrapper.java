@@ -18,6 +18,8 @@
  */
 package org.constellation.wfs.ws.rs;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.sis.storage.FeatureSet;
@@ -29,7 +31,9 @@ public class FeatureSetWrapper {
 
     private final List<FeatureSet> featureSets;
 
-    private final int nbMatched;
+    private final String valueReference;
+
+    private final Integer nbMatched;
 
     private final Map<String, String> schemaLocations;
 
@@ -40,13 +44,24 @@ public class FeatureSetWrapper {
     private final boolean writeSingleFeature;
 
     public FeatureSetWrapper(final List<FeatureSet> featureSets, final Map<String, String> schemaLocations, final String gmlVersion,
-            final String wfsVersion, final int nbMatched, boolean writeSingleFeature) {
+            final String wfsVersion, final Integer nbMatched, boolean writeSingleFeature) {
         this.featureSets = featureSets;
         this.gmlVersion = gmlVersion;
         this.wfsVersion = wfsVersion;
         this.schemaLocations = schemaLocations;
         this.nbMatched = nbMatched;
         this.writeSingleFeature = writeSingleFeature;
+        this.valueReference = null;
+    }
+
+    public FeatureSetWrapper(final FeatureSet featureSet, final String valueReference, final String gmlVersion) {
+        this.featureSets = Arrays.asList(featureSet);
+        this.gmlVersion = gmlVersion;
+        this.wfsVersion = "2.0.0";
+        this.schemaLocations = new HashMap<>();
+        this.nbMatched = null;
+        this.writeSingleFeature = true;
+        this.valueReference = valueReference;
     }
 
     /**
@@ -80,7 +95,7 @@ public class FeatureSetWrapper {
     /**
      * @return the nbMatched
      */
-    public int getNbMatched() {
+    public Integer getNbMatched() {
         return nbMatched;
     }
 
@@ -88,4 +103,10 @@ public class FeatureSetWrapper {
         return writeSingleFeature;
     }
 
+    /**
+     * @return the valueReference
+     */
+    public String getValueReference() {
+        return valueReference;
+    }
 }

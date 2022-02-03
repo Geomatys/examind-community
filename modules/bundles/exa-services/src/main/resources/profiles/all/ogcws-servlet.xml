@@ -39,7 +39,6 @@
         <bean class="org.constellation.wfs.ws.rs.FeatureTypeGJSWriter" />
         <bean class="org.constellation.wfs.ws.rs.NodeReader" />
         <bean class="org.constellation.wfs.ws.rs.SchemaWriter" />
-        <bean class="org.constellation.wfs.ws.rs.ValueCollectionWriter" />
         <bean class="org.constellation.wfs.ws.rs.WFSResponseWriter" />
         <bean class="org.constellation.wfs.ws.rs.FeatureSetWriter" />
         <bean class="org.constellation.wfs.ws.rs.FeatureSetCollectionWriter" />

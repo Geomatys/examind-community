@@ -31,7 +31,9 @@ import java.util.stream.Stream;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.feature.FeatureExt;
+import org.geotoolkit.feature.xml.XmlFeatureWriter;
 import org.geotoolkit.feature.xml.jaxp.JAXPStreamFeatureWriter;
+import org.geotoolkit.feature.xml.jaxp.JAXPStreamValueCollectionWriter;
 import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
 import org.geotoolkit.storage.geojson.GeoJSONStreamWriter;
 import org.opengis.feature.Feature;
@@ -103,37 +105,49 @@ public class FeatureSetWriter implements HttpMessageConverter<FeatureSetWrapper>
 
         } else {
             try {
-                final JAXPStreamFeatureWriter featureWriter = new JAXPStreamFeatureWriter(t.getGmlVersion(), t.getWfsVersion(), t.getSchemaLocations());
-                //write possible namespaces first, even if they are not used
-                //this avoids jaxb to add them millions of times
-                if (!"3.1.1".equals(t.getGmlVersion())) featureWriter.getCommonPrefixes().put("gml30", "http://www.opengis.net/gml");
-                featureWriter.getCommonPrefixes().put("gmd", "http://www.isotc211.org/2005/gmd");
-                featureWriter.getCommonPrefixes().put("gmx", "http://www.isotc211.org/2005/gmx");
-                featureWriter.getCommonPrefixes().put("srv1", "http://www.isotc211.org/2005/srv");
-                featureWriter.getCommonPrefixes().put("gco", "http://www.isotc211.org/2005/gco");
 
-                if (t.isWriteSingleFeature()) {
-                    //write a single feature without collection element container
-                    final Optional<Feature> feat;
-                    if (!t.getFeatureSet().isEmpty()) {
-                        feat = t.getFeatureSet().get(0).features(true).findFirst();
-                    } else {
-                        feat = Optional.empty();
-                    }
-
-                    if (feat.isPresent()) {
-                        Feature f = feat.get();
-                        featureWriter.write(f, outputMessage.getBody(), t.getNbMatched());
-                    } else {
-                        //write an empty collection
-                        featureWriter.write(t.getFeatureSet(), outputMessage.getBody(), t.getNbMatched());
-                    }
-
+                // value collection mode
+                if (t.getValueReference() != null) {
+                    final XmlFeatureWriter featureWriter = new JAXPStreamValueCollectionWriter(t.getValueReference());
+                    // in this case the list should always be only one element
+                    featureWriter.write(t.getFeatureSet().get(0), outputMessage.getBody());
+                    
+                // normal wfs geFeature mode
                 } else {
-                    if (t.getFeatureSet().size() == 1) {
-                        featureWriter.write(t.getFeatureSet().get(0), outputMessage.getBody(), t.getNbMatched());
+                    final JAXPStreamFeatureWriter featureWriter = new JAXPStreamFeatureWriter(t.getGmlVersion(), t.getWfsVersion(), t.getSchemaLocations());
+                    //write possible namespaces first, even if they are not used
+                    //this avoids jaxb to add them millions of times
+                    if (!"3.1.1".equals(t.getGmlVersion())){
+                        featureWriter.getCommonPrefixes().put("gml30", "http://www.opengis.net/gml");
+                        featureWriter.getCommonPrefixes().put("gmd", "http://www.isotc211.org/2005/gmd");
+                        featureWriter.getCommonPrefixes().put("gmx", "http://www.isotc211.org/2005/gmx");
+                        featureWriter.getCommonPrefixes().put("srv1", "http://www.isotc211.org/2005/srv");
+                        featureWriter.getCommonPrefixes().put("gco", "http://www.isotc211.org/2005/gco");
+                    }
+
+                    if (t.isWriteSingleFeature()) {
+                        
+                        final Optional<Feature> feat;
+                        if (!t.getFeatureSet().isEmpty()) {
+                            feat = t.getFeatureSet().get(0).features(true).findFirst();
+                        } else {
+                            feat = Optional.empty();
+                        }
+
+                        if (feat.isPresent()) {
+                            Feature f = feat.get();
+                            featureWriter.write(f, outputMessage.getBody(), t.getNbMatched());
+                        } else {
+                            //write an empty collection
+                            featureWriter.write(t.getFeatureSet(), outputMessage.getBody(), t.getNbMatched());
+                        }
+
                     } else {
-                        featureWriter.write(t.getFeatureSet(), outputMessage.getBody(), t.getNbMatched());
+                        if (t.getFeatureSet().size() == 1) {
+                            featureWriter.write(t.getFeatureSet().get(0), outputMessage.getBody(), t.getNbMatched());
+                        } else {
+                            featureWriter.write(t.getFeatureSet(), outputMessage.getBody(), t.getNbMatched());
+                        }
                     }
                 }
             } catch (Exception ex) {

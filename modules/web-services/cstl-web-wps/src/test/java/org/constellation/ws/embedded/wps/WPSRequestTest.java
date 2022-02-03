@@ -18,9 +18,6 @@
  */
 package org.constellation.ws.embedded.wps;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -47,7 +44,6 @@ import org.constellation.dto.service.config.wps.ProcessContext;
 import org.constellation.dto.service.config.wps.ProcessFactory;
 import org.constellation.dto.service.config.wps.Processes;
 import org.constellation.exception.ConfigurationException;
-import org.constellation.test.utils.JSONComparator;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.TestRunner;
 import org.constellation.util.Util;
@@ -878,20 +874,6 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
         return o;
     }
 
-    public static void compareJSON(String expected, String result) throws JsonProcessingException {
-        JSONComparator comparator = new JSONComparator();
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode expectedNode = mapper.readTree(expected);
-        JsonNode resultNode = mapper.readTree(result);
-
-        boolean eq = expectedNode.equals(comparator, resultNode);
-
-        StringBuilder sb = new StringBuilder("expected:\n");
-        sb.append(expected).append("\nbut was:\n");
-        sb.append(result);
-        assertTrue(sb.toString(), eq);
-    }
-    
     @Test
     @Order(order=12)
     public void testWPSExecuteFeatureSetInputOutputXML() throws Exception {

@@ -76,4 +76,6 @@ public final class MimeType {
 
     public static final String APP_JSON_UTF8   = "application/json; charset=utf-8";
 
+    public static final String APP_JSON_SCHEMA = "application/schema+json";
+
 }

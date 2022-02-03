@@ -68,6 +68,7 @@ import org.apache.sis.util.Utilities;
 import org.apache.sis.util.Version;
 import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.Namespaces;
+import static org.constellation.api.CommonConstants.OUTPUT_FORMAT;
 import org.constellation.api.ServiceDef;
 import org.constellation.dto.NameInProvider;
 import org.constellation.dto.contact.Details;
@@ -82,7 +83,8 @@ import org.constellation.util.NameComparator;
 import org.constellation.util.QNameComparator;
 import org.constellation.util.Util;
 import org.constellation.wfs.NameOverride;
-import static org.constellation.wfs.core.WFSConstants.GML_3_2_SF_MIME;
+import static org.constellation.wfs.core.AtomLinkBuilder.BuildItemsLink;
+import static org.constellation.wfs.core.AtomLinkBuilder.buildDescribedByLink;
 import org.constellation.wfs.core.WFSConstants.GetXSD;
 import static org.constellation.wfs.core.WFSConstants.IDENTIFIER_FILTER;
 import static org.constellation.wfs.core.WFSConstants.IDENTIFIER_PARAM;
@@ -91,7 +93,6 @@ import static org.constellation.wfs.core.WFSConstants.OPERATIONS_METADATA_V200;
 import static org.constellation.wfs.core.WFSConstants.TYPE_PARAM;
 import static org.constellation.wfs.core.WFSConstants.UNKNOW_TYPENAME;
 import org.constellation.wfs.ws.rs.FeatureSetWrapper;
-import org.constellation.wfs.ws.rs.ValueCollectionWrapper;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.LayerCache;
 import org.constellation.ws.LayerWorker;
@@ -636,7 +637,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 
         final int size = types.size();
 
-        if (request.getOutputFormat().equals("application/schema+json")) {
+        if (request.getOutputFormat().equals(MimeType.APP_JSON_SCHEMA)) {
             return new org.constellation.wfs.ws.rs.FeatureTypeList(types);
         }
 
@@ -1152,10 +1153,10 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                    "text/xml; subtype=\"gml/3.2\"".equals(request.getOutputFormat())   ||
                    "application/gml+xml; version=3.2".equals(request.getOutputFormat())) {
             gmlVersion = "3.2.1";
-        } else if ("application/json".equals(request.getOutputFormat())) {
+        } else if (MimeType.APP_JSON.equals(request.getOutputFormat())) {
             gmlVersion = null;
         } else {
-            throw new CstlServiceException("invalid outputFormat:" + request.getOutputFormat(), INVALID_PARAMETER_VALUE, "outputFormat");
+            throw new CstlServiceException("invalid outputFormat:" + request.getOutputFormat(), INVALID_PARAMETER_VALUE, OUTPUT_FORMAT);
         }
 
 
@@ -1346,7 +1347,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 throw new CstlServiceException(ex.getMessage(), ex);
             }
         }
-        return new ValueCollectionWrapper(featureCollection, request.getValueReference(), "3.2.1");
+        return new FeatureSetWrapper(featureCollection, request.getValueReference(), "3.2.1");
     }
 
     private List<SortProperty> visitJaxbSortBy(final org.geotoolkit.ogc.xml.SortBy jaxbSortby,final Map<String, String> namespaceMapping, final String version) {
@@ -2439,33 +2440,45 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
         }
         String identifier = identifier(layer);
         String title      = layer.getConfiguration().getTitle();
-        String url        = getServiceUrl().replace("/wfs", "/feature").replace("?", "");
-        links.add(new Link(url + "/collections/" + identifier + "/items",                   "items", MimeType.APP_GEOJSON, title, null, null));
-        links.add(new Link(url + "/collections/" + identifier + "/items?f=application/xml", "items", GML_3_2_SF_MIME,      title, null, null));
-
+        if (title == null) {
+            title = identifier;
+        }
+        String wfsUrl = getServiceUrl();
+        String url    = wfsUrl.replace("/wfs", "/feature").replace("?", "");
+        BuildItemsLink(url, identifier, title, links);
+        // add schema decription
+        buildDescribedByLink(wfsUrl, links, identifier);
         return new org.geotoolkit.feature.xml.Collection(identifier, title, null, links, extent, "VECTOR");
     }
 
     @Override
-    public FeatureSetCollection getCollectionItems(String collectionId, Filter filter, int limit, int offset) throws CstlServiceException {
+    public FeatureSetCollection getCollectionItems(String collectionId, Filter filter, int limit, int offset, boolean includedMatched) throws CstlServiceException {
         try {
-            final String userLogin  = getUserLogin();
+            final String userLogin = getUserLogin();
             final LayerCache layer = getLayerCache(userLogin, Util.parseLayerName(collectionId));
             final FeatureData data = (FeatureData) layer.getData();
-            FeatureSet fs = data.getOrigin();
+            FeatureSet fs          = data.getOrigin();
+            FeatureQuery query     = null;
             /*
-            * always reproject to CRS:84 (TODO already good crs?)
+            * always reproject to CRS:84 if not already
             */
-            final FeatureQuery query = org.geotoolkit.storage.feature.query.Query.reproject(fs.getType(), CommonCRS.defaultGeographic());
+            final CoordinateReferenceSystem crs = FeatureExt.getCRS(fs.getType());
+            if (!Utilities.equalsApproximately(crs, CommonCRS.defaultGeographic())) {
+                query = org.geotoolkit.storage.feature.query.Query.reproject(fs.getType(), CommonCRS.defaultGeographic());
+            }
+
             /*
             * Apply filters
             */
             if (filter != null) {
                 filter = processFilter(fs.getType(), filter, new HashMap<>());
+                if (query == null) query = new FeatureQuery();
                 query.setSelection(filter);
             }
-            fs = fs.subset(query);
-            int nbMatched = FeatureStoreUtilities.getCount(fs).intValue();
+            if (query != null) {
+                fs = fs.subset(query);
+            }
+            int nbMatched =  includedMatched ? FeatureStoreUtilities.getCount(fs).intValue() : -1;
 
            /*
             * Apply paging
@@ -2475,9 +2488,13 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             reduced.setOffset(offset);
             fs = fs.subset(reduced);
 
-            int nbReturned = FeatureStoreUtilities.getCount(fs).intValue();
+            int nbReturned = includedMatched ? FeatureStoreUtilities.getCount(fs).intValue() : -1;
 
-            return new FeatureSetCollection(fs, new ArrayList<>(), nbMatched, nbReturned);
+            if (includedMatched) {
+                return new FeatureSetCollection(fs, new ArrayList<>(), nbMatched, nbReturned);
+            } else {
+                return new FeatureSetCollection(fs, new ArrayList<>());
+            }
         } catch (DataStoreException ex) {
             throw new CstlServiceException(ex);
         }

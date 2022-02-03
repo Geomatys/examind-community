@@ -129,5 +129,5 @@ public interface WFSWorker extends Worker {
 
     List<Collection> getCollections(List<String> collectionIds) throws CstlServiceException;
 
-    FeatureSetCollection getCollectionItems(String collectionId, Filter filter, int limit, int offset) throws CstlServiceException;
+    FeatureSetCollection getCollectionItems(String collectionId, Filter filter, int limit, int offset, boolean includedMatched) throws CstlServiceException;
 }

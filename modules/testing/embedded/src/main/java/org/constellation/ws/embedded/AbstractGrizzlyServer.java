@@ -19,6 +19,8 @@
 package org.constellation.ws.embedded;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -89,10 +91,12 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import static junit.framework.Assert.assertTrue;
 import org.apache.catalina.Context;
 import org.apache.sis.test.xml.DocumentComparator;
 import org.constellation.business.IPyramidBusiness;
 import org.constellation.business.IUserBusiness;
+import org.constellation.test.utils.JSONComparator;
 import org.constellation.util.NodeUtilities;
 import static org.geotoolkit.image.io.XImageIO.getWriterByMIMEType;
 import static org.geotoolkit.image.io.XImageIO.isValidType;
@@ -817,6 +821,20 @@ public abstract class AbstractGrizzlyServer {
 
     protected static void domCompare(final Object actual, final Object expected) throws Exception {
         domCompare(actual, expected, new ArrayList<>());
+    }
+
+    public static void compareJSON(String expected, String result) throws JsonProcessingException {
+        JSONComparator comparator = new JSONComparator();
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode expectedNode = mapper.readTree(expected);
+        JsonNode resultNode = mapper.readTree(result);
+
+        boolean eq = expectedNode.equals(comparator, resultNode);
+
+        StringBuilder sb = new StringBuilder("expected:\n");
+        sb.append(expected).append("\nbut was:\n");
+        sb.append(result);
+        assertTrue(sb.toString(), eq);
     }
 
     /**

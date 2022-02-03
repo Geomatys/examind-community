@@ -47,14 +47,12 @@ import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.wxs.LayerContext;
-import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.FeatureData;
 import org.constellation.test.utils.CstlDOMComparator;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.test.utils.TestEnvironment.DataImport;
-import org.constellation.test.utils.TestEnvironment.ProviderImport;
 import org.constellation.test.utils.TestEnvironment.ProvidersImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
@@ -63,7 +61,6 @@ import org.constellation.util.Util;
 import org.constellation.wfs.core.DefaultWFSWorker;
 import org.constellation.wfs.core.WFSWorker;
 import org.constellation.wfs.ws.rs.FeatureSetWrapper;
-import org.constellation.wfs.ws.rs.ValueCollectionWrapper;
 import org.constellation.ws.CstlServiceException;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
@@ -792,9 +789,10 @@ public class WFS2WorkerTest {
         request.setResultType(ResultTypeType.RESULTS);
         result = worker.getPropertyValue(request);
 
-        assertTrue(result instanceof ValueCollectionWrapper);
-        ValueCollectionWrapper wrapper = (ValueCollectionWrapper) result;
-        result = wrapper.getFeatureSet();
+        assertTrue(result instanceof FeatureSetWrapper);
+        FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
+        assertEquals(1, wrapper.getFeatureSet().size());
+        result = wrapper.getFeatureSet().get(0);
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         JAXPStreamValueCollectionWriter valueWriter = new JAXPStreamValueCollectionWriter(valueReference);
@@ -812,9 +810,10 @@ public class WFS2WorkerTest {
         request.setValueReference(valueReference);
         result = worker.getPropertyValue(request);
 
-        assertTrue(result instanceof ValueCollectionWrapper);
-        wrapper = (ValueCollectionWrapper) result;
-        result = wrapper.getFeatureSet();
+        assertTrue(result instanceof FeatureSetWrapper);
+        wrapper = (FeatureSetWrapper) result;
+        assertEquals(1, wrapper.getFeatureSet().size());
+        result = wrapper.getFeatureSet().get(0);
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         valueWriter = new JAXPStreamValueCollectionWriter(valueReference);

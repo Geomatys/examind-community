@@ -21,7 +21,6 @@ package org.constellation.wfs.ws.rs;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -34,8 +33,9 @@ import org.apache.sis.util.logging.Logging;
 import org.constellation.api.ServiceDef;
 import org.constellation.api.rest.ErrorMessage;
 import org.constellation.api.rest.I18nCodes;
-import org.constellation.business.IDataBusiness;
-import static org.constellation.wfs.core.WFSConstants.GML_3_2_SF_MIME;
+import static org.constellation.wfs.core.AtomLinkBuilder.buildCollectionLink;
+import static org.constellation.wfs.core.AtomLinkBuilder.buildDescribedByLink;
+import static org.constellation.wfs.core.WFSConstants.FEAT_API_CONFORMS;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.LAYER_NOT_DEFINED;
 import org.constellation.wfs.core.WFSWorker;
 import org.constellation.ws.CstlServiceException;
@@ -43,7 +43,6 @@ import org.constellation.ws.MimeType;
 import org.constellation.ws.Worker;
 import org.constellation.ws.rs.GridWebService;
 import org.constellation.ws.rs.ResponseObject;
-import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.feature.xml.Collection;
 import org.geotoolkit.feature.xml.Conformance;
 import org.geotoolkit.feature.xml.FeatureSetCollection;
@@ -51,9 +50,9 @@ import org.geotoolkit.feature.xml.LandingPage;
 import org.geotoolkit.feature.xml.Link;
 import org.geotoolkit.feature.xml.Spatial;
 import org.geotoolkit.feature.xml.collections;
+import org.geotoolkit.storage.feature.FeatureStoreUtilities;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -62,6 +61,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import static org.constellation.wfs.core.AtomLinkBuilder.buildDocumentLinks;
 
 /**
  * @author Hilmi BOUALLAGUE (Geomatys)
@@ -75,14 +75,6 @@ public class FeatureAPI extends GridWebService<WFSWorker> {
     protected static final Logger LOGGER = Logging.getLogger("org.constellation.rest.api");
 
     private static final FilterFactory FF = DefaultFactories.forBuildin(FilterFactory.class);
-    static final List<String> CONFORMS = Collections.unmodifiableList(Arrays.asList(
-        "https://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core",
-        "https://www.opengis.net/spec/ogcapi-features-1/1.0/conf/geojson",
-        "https://www.opengis.net/spec/ogcapi-features-1/1.0/conf/gmlsf0"
-    ));
-
-    @Autowired
-    private IDataBusiness dataBusiness;
 
     public FeatureAPI() {
         // here we use wfs for worker retrieval purpose
@@ -91,12 +83,29 @@ public class FeatureAPI extends GridWebService<WFSWorker> {
 
     @Override
     protected ResponseObject treatIncomingRequest(Object objectRequest, WFSWorker worker) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        try {
+            String format = getParameter("f", false);
+            if (format == null) {
+                format = "application/json";
+            }
+            final boolean asJson = format.contains(MimeType.APP_JSON);
+            MediaType media;
+            if (asJson) {
+                media = MediaType.APPLICATION_JSON;
+            } else {
+                media = MediaType.APPLICATION_XML;
+            }
+            LandingPage landingPage = buildLandingPage(format, worker.getId());
+            return new ResponseObject(landingPage, media, HttpStatus.OK);
+        } catch (CstlServiceException ex) {
+            return processExceptionResponse(ex, ServiceDef.FEAT_1_0_0, worker);
+        }
     }
 
     @Override
     protected ResponseObject processExceptionResponse(CstlServiceException ex, ServiceDef serviceDef, Worker w) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+        return new ResponseObject(new ErrorMessage(ex));
     }
 
     @RequestMapping(method = GET, produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
@@ -104,33 +113,33 @@ public class FeatureAPI extends GridWebService<WFSWorker> {
         try {
             final boolean asJson = format.contains(MimeType.APP_JSON);
             MediaType media;
-            String url = getServiceURL() + "/feature/" + serviceId;
-            List<Link> links = new ArrayList<>();
-            links.add(new Link(url + "/apidocs", "service-desc", null, "the API definition", null, null));
-            
-            Link linkJson = new Link(url, "self", MimeType.APP_JSON, "this document", null, null);
-            Link linkXml = new Link(url + "?f=application/xml", "self", MimeType.APP_XML, "this document", null, null);
             if (asJson) {
-                linkXml.setRel("alternate");
-                linkXml.setTitle(linkXml.getTitle() + " as XML");
                 media = MediaType.APPLICATION_JSON;
             } else {
-                linkJson.setRel("alternate");
-                linkJson.setTitle(linkJson.getTitle() + " as JSON");
                 media = MediaType.APPLICATION_XML;
             }
-            links.add(linkJson);
-            links.add(linkXml);
-            links.add(new Link(url + "/conformance", "conformance", MimeType.APP_JSON, "OGC API conformance classes implemented by this server as JSON", null, null));
-            links.add(new Link(url + "/conformance?f=application/xml", "conformance", MimeType.APP_XML, "OGC API conformance classes implemented by this server as XML", null, null));
-            links.add(new Link(url + "/collections", "data", MimeType.APP_JSON, "Information about the feature collections as JSON", null, null));
-            links.add(new Link(url + "/collections?f=application/xml", "data", MimeType.APP_XML, "Information about the feature collections as XML", null, null));
-            LandingPage landingPage = new LandingPage("Examind OGC API Features service", "Access Examind vector data via a Web API that conforms to the OGC API Features specification", links);
+            LandingPage landingPage = buildLandingPage(format, serviceId);
             return new ResponseObject(landingPage, media, HttpStatus.OK).getResponseEntity();
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
+    }
+
+    private LandingPage buildLandingPage(String format, String serviceId) {
+        final boolean asJson = format.contains(MimeType.APP_JSON);
+        String url    = getServiceURL() + "/feature/" + serviceId;
+        String wfsUrl = getServiceURL() + "/wfs/" + serviceId + "?";
+
+        List<Link> links = new ArrayList<>();
+        links.add(new Link(url + "/apidocs", "service-desc", null, "the API definition", null, null));
+        buildDocumentLinks(url, asJson, links, false);
+        links.add(new Link(url + "/conformance", "conformance", MimeType.APP_JSON, "OGC API conformance classes implemented by this server as JSON", null, null));
+        links.add(new Link(url + "/conformance?f=application/xml", "conformance", MimeType.APP_XML, "OGC API conformance classes implemented by this server as XML", null, null));
+        links.add(new Link(url + "/collections", "data", MimeType.APP_JSON, "Information about the feature collections as JSON", null, null));
+        links.add(new Link(url + "/collections?f=application/xml", "data", MimeType.APP_XML, "Information about the feature collections as XML", null, null));
+        buildDescribedByLink(wfsUrl, links, null);
+        return new LandingPage("Examind OGC API Features service", "Access Examind vector data via a Web API that conforms to the OGC API Features specification", links);
     }
 
     @RequestMapping(value = "/conformance", method = GET, produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
@@ -144,7 +153,7 @@ public class FeatureAPI extends GridWebService<WFSWorker> {
                 media = MediaType.APPLICATION_XML;
             }
             Conformance conformance = new Conformance();
-            conformance.setConformsTo(CONFORMS);
+            conformance.setConformsTo(FEAT_API_CONFORMS);
             return new ResponseObject(conformance, media, HttpStatus.OK).getResponseEntity();
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
@@ -171,16 +180,12 @@ public class FeatureAPI extends GridWebService<WFSWorker> {
                 final boolean asJson = format.contains(MimeType.APP_JSON);
                 MediaType media;
                 String url = getServiceURL() + "/feature/" + serviceId + "/collections";
-                Link linkSelfJson = new Link(url, "self", MimeType.APP_JSON, "this document", null, null);
-                Link linkSelfXml = new Link(url + "?f=application/xml", "self", MimeType.APP_XML, "this document", null, null);
+                buildDocumentLinks(url, asJson, collections.getLinks(), false);
+                
                 if (asJson) {
                     media = MediaType.APPLICATION_JSON;
-                    linkSelfXml.setRel("alternate");
-                    linkSelfXml.setTitle(linkSelfXml.getTitle() + " as XML");
                 } else {
                     media = MediaType.APPLICATION_XML;
-                    linkSelfJson.setRel("alternate");
-                    linkSelfJson.setTitle(linkSelfJson.getTitle() + " as JSON");
                     for (Collection c : collections.getCollections()) {
                         if (c.getExtent() != null && c.getExtent().getSpatial() != null) {
                             Spatial spa = c.getExtent().getSpatial();
@@ -190,8 +195,6 @@ public class FeatureAPI extends GridWebService<WFSWorker> {
                         }
                     }
                 }
-                collections.getLinks().add(linkSelfJson);
-                collections.getLinks().add(linkSelfXml);
 
                 return new ResponseObject(collections, media, HttpStatus.OK).getResponseEntity();
             } catch (Exception ex) {
@@ -312,7 +315,7 @@ public class FeatureAPI extends GridWebService<WFSWorker> {
                         env.setRange(0, Double.parseDouble(splitBbox[0]), Double.parseDouble(splitBbox[2]));
                         env.setRange(1, Double.parseDouble(splitBbox[1]), Double.parseDouble(splitBbox[3]));
 
-                        filter = FF.bbox(FF.property("<to update>"), env);
+                        filter = FF.bbox(FF.property(""), env);
                     }
                     if (cqlFilter != null) {
                         Filter cql = CQL.parseFilter(cqlFilter);
@@ -324,27 +327,21 @@ public class FeatureAPI extends GridWebService<WFSWorker> {
                     }
                 }
 
-                FeatureSetCollection fsc =  worker.getCollectionItems(collectionId, filter, limit, offset);
-
-                String url = getServiceURL() + "/feature/" + serviceId + "collections/" + collectionId + "/items";
+                FeatureSetCollection fsc =  worker.getCollectionItems(collectionId, filter, limit, offset, true);
+                 final boolean asJson = format.contains(MimeType.APP_GEOJSON);
+                String url = getServiceURL() + "/feature/" + serviceId + "/collections/" + collectionId + "/items";
                 List<Link> links  = new ArrayList<>();
-                Link linkSelfJson = new Link(url, "self", MimeType.APP_GEOJSON, "this document", null, null);
-                Link linkSelfXml  = new Link(url + "?f=application/xml", "self", GML_3_2_SF_MIME, "this document", null, null);
-                final boolean asJson = format.contains(MimeType.APP_GEOJSON);
+
+                buildDocumentLinks(url, asJson, links, true);
+
                 MediaType media;
                 if (asJson) {
                     media = MediaType.APPLICATION_JSON;
-                    linkSelfXml.setRel("alternate");
-                    linkSelfXml.setTitle(linkSelfXml.getTitle() + " as XML");
                 } else {
                     media = MediaType.APPLICATION_XML;
-                    linkSelfJson.setRel("alternate");
-                    linkSelfJson.setTitle(linkSelfJson.getTitle() + " as JSON");
                 }
-                links.add(linkSelfXml);
-                links.add(linkSelfJson);
                 if ((offset + fsc.getNbReturned()) < fsc.getNbMatched()) {
-                    Link linkNext = new Link(url + "?offset=" + (offset + limit) + "&limit=" + limit + (bbox != null ? "&bbox=" + bbox : "") + (bbox_crs != null ? "&bbox-crs=" + bbox_crs : "") + (cqlFilter != null ? "&filter=" + cqlFilter : ""), "next", "application/geo+json", "next page", null, null);
+                    Link linkNext = new Link(url + "?offset=" + (offset + limit) + "&limit=" + limit + (bbox != null ? "&bbox=" + bbox : "") + (bbox_crs != null ? "&bbox-crs=" + bbox_crs : "") + (cqlFilter != null ? "&filter=" + cqlFilter : "") + "&f=" + format, "next", format, "next page", null, null);
                     links.add(linkNext);
                 }
 
@@ -371,7 +368,6 @@ public class FeatureAPI extends GridWebService<WFSWorker> {
      *
      * @param collectionId collection identifier
      * @param featureId    feature identifier
-     * @param req
      * @param format       Response's format
      * @return ResponseEntity never null
      */
@@ -385,29 +381,23 @@ public class FeatureAPI extends GridWebService<WFSWorker> {
         if (worker != null) {
             try {
                 Filter filter = FF.resourceId(featureId);
-                FeatureSetCollection fsc =  worker.getCollectionItems(collectionId, filter, 1, 0);
+                FeatureSetCollection fsc =  worker.getCollectionItems(collectionId, filter, 1, 0, false);
 
-                if (fsc.hasNumberMatched()) {
-                    String url = getServiceURL() + "/feature/" + serviceId + "collections/" + collectionId;
+                // todo improve FeatureSetCollection class
+                if (FeatureStoreUtilities.getCount(fsc.getFeatureSet()) > 0) {
+                    String url = getServiceURL() + "/feature/" + serviceId + "/collections/" + collectionId;
                     List<Link> links = new ArrayList<>();
-                    Link linkSelfJson = new Link(url + "/items/" + featureId, "self", MimeType.APP_GEOJSON, "this document", null, null);
-                    Link linkSelfXml = new Link(url + "/items/" + featureId + "?f=application/xml", "self", "application/gml+xml;version=3.2;profile=&quot;http://www.opengis.net/def/profile/ogc/2.0/gml-sf0&quot;", "this document", null, null);
                     final boolean asJson = format.contains(MimeType.APP_GEOJSON);
+                    buildDocumentLinks(url + "/items/" + featureId, asJson, links, true);
+                    buildCollectionLink(url, links);
+                    fsc.getLinks().addAll(links);
+                    
                     MediaType media;
                     if (asJson) {
                         media = MediaType.APPLICATION_JSON;
-                        linkSelfXml.setRel("alternate");
-                        linkSelfXml.setTitle(linkSelfXml.getTitle() + " as XML");
                     } else {
                         media = MediaType.APPLICATION_XML;
-                        linkSelfJson.setRel("alternate");
-                        linkSelfJson.setTitle(linkSelfJson.getTitle() + " as JSON");
                     }
-                    links.add(linkSelfJson);
-                    links.add(linkSelfXml);
-                    links.add(new Link(url, "collection", MimeType.APP_GEOJSON, "the collection document as JSON", null, null));
-                    links.add(new Link(url + "?f=application/xml", "collection", MimeType.APP_XML, "the collection document as XML", null, null));
-                    fsc.getLinks().addAll(links);
                     return new ResponseObject(fsc, media, HttpStatus.OK).getResponseEntity();
                 }
                 return new ErrorMessage(HttpStatus.NOT_FOUND).i18N(I18nCodes.Collection.NOT_FOUND).build();

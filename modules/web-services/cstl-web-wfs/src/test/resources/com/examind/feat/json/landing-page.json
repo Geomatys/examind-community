@@ -1,0 +1,49 @@
+{
+    "title": "Examind OGC API Features service",
+    "description": "Access Examind vector data via a Web API that conforms to the OGC API Features specification",
+    "links": [{
+            "href": "http://localhost:9090/WS/feature/default/apidocs",
+            "rel": "service-desc",
+            "title": "the API definition"
+        }, {
+            "href": "http://localhost:9090/WS/feature/default",
+            "rel": "self",
+            "type": "application/json",
+            "title": "this document"
+        }, {
+            "href": "http://localhost:9090/WS/feature/default?f=application/xml",
+            "rel": "alternate",
+            "type": "application/vnd.ogc.xml",
+            "title": "this document as XML"
+        }, {
+            "href": "http://localhost:9090/WS/feature/default/conformance",
+            "rel": "conformance",
+            "type": "application/json",
+            "title": "OGC API conformance classes implemented by this server as JSON"
+        }, {
+            "href": "http://localhost:9090/WS/feature/default/conformance?f=application/xml",
+            "rel": "conformance",
+            "type": "application/vnd.ogc.xml",
+            "title": "OGC API conformance classes implemented by this server as XML"
+        }, {
+            "href": "http://localhost:9090/WS/feature/default/collections",
+            "rel": "data",
+            "type": "application/json",
+            "title": "Information about the feature collections as JSON"
+        }, {
+            "href": "http://localhost:9090/WS/feature/default/collections?f=application/xml",
+            "rel": "data",
+            "type": "application/vnd.ogc.xml",
+            "title": "Information about the feature collections as XML"
+        }, {
+            "href": "http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&service=WFS&version=2.0.0",
+            "rel": "describedBy",
+            "type": "application/xml",
+            "title": "GML application schema."
+        }, {
+            "href": "http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&service=WFS&version=2.0.0&outputformat=application/schema%2Bjson",
+            "rel": "describedBy",
+            "type": "application/schema+json",
+            "title": "JSON application schema."
+        }]
+}

@@ -71,11 +71,11 @@ public class WFSResponseWriter implements HttpMessageConverter<WFSResponse> {
             final Marshaller m = WFSMarshallerPool.getInstance().acquireMarshaller();
 
             final String version = t.getVersion();
-            if("1.0.0".equals(version)){
+            if ("1.0.0".equals(version)) {
                 m.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.0.0/wfs.xsd");
-            }else if("1.1.0".equals(version)){
+            } else if("1.1.0".equals(version)){
                 m.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.1.0/wfs.xsd");
-            }else if("2.0.0".equals(version)){
+            } else if("2.0.0".equals(version)){
                 m.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.opengis.net/wfs/2.0 http://schemas.opengis.net/wfs/2.0/wfs.xsd");
             }
 

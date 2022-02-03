@@ -1,0 +1,31 @@
+{
+    "type": "FeatureCollection",
+    "crs": {
+        "type": "name",
+        "properties": {
+            "name": "urn:ogc:def:crs:EPSG:9.9.1:3857"
+        }
+    },
+    "features": [{
+            "type": "Feature",
+            "id": "Bridges.1",
+            "crs": {
+                "type": "name",
+                "properties": {
+                    "name": "urn:ogc:def:crs:EPSG:9.9.1:3857"
+                }
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [77.9236, 22.2639]
+            },
+            "properties": {
+                "the_geom": {
+                    "type": "Point",
+                    "coordinates": [77.9236, 22.2639]
+                },
+                "FID": "110",
+                "NAME": "CamBridge"
+            }
+        }]
+}
