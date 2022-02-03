@@ -26,9 +26,13 @@ maven-deploy-manually:
   script:
     # Login to Docker repository
     - mkdir ~/.docker && echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
-    # Build and push
-    - mvn package -pl :exa-bundle -Pdocker -Ddocker.tag=$DOCKER_TAG
-    - docker push images.geomatys.com/examind/examind-community:$DOCKER_TAG
+    # Build Docker image. Use step by step command, to avoid re-packaging the entire project, which is not needed.
+    - >
+      mvn -pl :exa-bundle -Pdocker -Ddocker.tag=$DOCKER_TAG
+      resources:copy-resources@copy-dockerfile
+      dependency:copy@copy-nio-filesystems
+      dockerfile:build@build-tomcat-image
+    - mvn -pl :exa-bundle -Pdocker -Ddocker.tag=$DOCKER_TAG dockerfile:push
   # Avoid executing default after-script that uses maven.
   after_script:
     - echo 'pushed'
