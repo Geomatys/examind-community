@@ -15,10 +15,6 @@ maven-deploy-tag:
   only:
     - tags
 
-maven-deploy-manually:
-  extends: .maven-deploy
-  when: manual
-
 .docker-push:
   extends: .publish
   variables:
