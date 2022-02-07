@@ -37,7 +37,7 @@
         <bean class="org.constellation.sos.ws.rs.provider.SOSResponseWriter" />
         <bean class="org.constellation.sos.ws.rs.provider.SensorMLWriter" />
         <bean class="org.constellation.wfs.ws.rs.FeatureTypeGJSWriter" />
-        <bean class="org.constellation.wfs.ws.rs.NodeReader" />
+        <bean class="org.constellation.ws.rs.provider.NodeReader" />
         <bean class="org.constellation.wfs.ws.rs.SchemaWriter" />
         <bean class="org.constellation.wfs.ws.rs.WFSResponseWriter" />
         <bean class="org.constellation.wfs.ws.rs.FeatureSetWriter" />

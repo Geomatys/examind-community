@@ -18,8 +18,6 @@
  */
 package org.constellation.util;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Maps;
 import org.apache.sis.referencing.CRS;
 import org.constellation.dto.CRSList;
 import org.opengis.referencing.IdentifiedObject;
@@ -106,16 +104,13 @@ public class CRSUtilities {
         final CRSList coverageList = new CRSList();
         if (!"none".equalsIgnoreCase(filter)) {
             //filter epsg codes
-            Predicate<String> myStringPredicate = new Predicate<String>() {
-                @Override
-                public boolean apply(final String s) {
-                    String s1 = s.toLowerCase();
-                    String filter1 = filter.toLowerCase();
-                    return s1.contains(filter1) || s1.equalsIgnoreCase(filter1);
+            for (Entry<String, String> entry : wktCrsList.entrySet()) {
+                String s1      = entry.getKey();
+                String filter1 = filter.toLowerCase();
+                if (s1.contains(filter1) || s1.equalsIgnoreCase(filter1)) {
+                    selectedEPSGCode.put(entry.getKey(), entry.getValue());
                 }
-            };
-
-            selectedEPSGCode = Maps.filterKeys(wktCrsList, myStringPredicate);
+            }
             coverageList.setLength(selectedEPSGCode.size());
         } else {
             coverageList.setLength(wktCrsList.size());

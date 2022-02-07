@@ -49,6 +49,10 @@ public final class SpringHelper {
 
     @Autowired
     protected ApplicationContext context;
+
+    /**
+     * TODO this eventBus should be removed and replaced by the clusterBusiness
+     */
     protected EventBus eventBus;
 
     protected SpringHelper(){

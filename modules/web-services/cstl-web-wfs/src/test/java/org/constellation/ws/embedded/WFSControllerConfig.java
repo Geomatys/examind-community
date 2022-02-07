@@ -23,7 +23,7 @@ import org.constellation.wfs.ws.rs.FeatureSetCollectionWriter;
 import org.constellation.wfs.ws.rs.FeatureSetWriter;
 import org.constellation.wfs.ws.rs.FeatureSetXmlWriter;
 import org.constellation.wfs.ws.rs.FeatureTypeGJSWriter;
-import org.constellation.wfs.ws.rs.NodeReader;
+import org.constellation.ws.rs.provider.NodeReader;
 import org.constellation.wfs.ws.rs.SchemaWriter;
 import org.constellation.wfs.ws.rs.WFSResponseWriter;
 import org.constellation.ws.rs.provider.ExceptionReportWriter;
