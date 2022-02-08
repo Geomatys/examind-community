@@ -1,11 +1,31 @@
+/*
+ *    Examind community - An open source and standard compliant SDI
+ *    https://community.examind.com/
+ *
+ * Copyright 2022 Geomatys.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.constellation.admin.converter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.deser.std.StdDelegatingDeserializer;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.ObjectConverters;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.process.DataProcessReference;
-import org.constellation.exception.ConstellationException;
 import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.test.utils.TestEnvironment;
@@ -17,13 +37,19 @@ import org.springframework.util.Assert;
 
 import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
-import java.io.IOException;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.GridCoverageResource;
+import org.constellation.converter.DataProcessReferenceConverter;
+import org.constellation.test.utils.TestEnvironment.DataImport;
+import org.constellation.util.ParamUtilities;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import org.opengis.parameter.ParameterDescriptor;
+import org.opengis.parameter.ParameterDescriptorGroup;
+import org.opengis.parameter.ParameterValueGroup;
 
 
 @RunWith(SpringTestRunner.class)
@@ -42,6 +68,8 @@ public class DataProcessReferenceToResourceTest extends SpringContextTest {
 
     private static int nbVectorData = -1;
 
+    private static DataImport di;
+
     private static boolean initialized = false;
 
     @PostConstruct
@@ -55,8 +83,10 @@ public class DataProcessReferenceToResourceTest extends SpringContextTest {
             org.geotoolkit.lang.Setup.initialize(null);
 
             // coverage-file datastore
-            testResources.createProvider(TestEnvironment.TestResource.TIF, providerBusiness, null);
+            di = testResources.createProvider(TestEnvironment.TestResource.TIF, providerBusiness, null).datas.get(0);
             testResources.createProvider(TestEnvironment.TestResource.PNG, providerBusiness, null);
+
+
 
             // shapefile datastore
             nbVectorData = testResources.createProviders(TestEnvironment.TestResource.SHAPEFILES, providerBusiness, null).datas().size();
@@ -85,6 +115,40 @@ public class DataProcessReferenceToResourceTest extends SpringContextTest {
             final Resource converted = ObjectConverters.convert(dpr, Resource.class);
             Assert.isInstanceOf(GridCoverageResource.class, converted);
         }
+    }
+
+    @Test
+    public void jsonConvertTest() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        SimpleModule module = new SimpleModule();
+        module.addDeserializer(Resource.class, new StdDelegatingDeserializer<>(new DataProcessReferenceConverter()));
+
+        String dataRef = "{" +
+                         "\"id\":" + di.id + "," +
+                         "\"name\":\"" + di.name + "\"," +
+                         "\"namespace\":\"" + di.namespace + "\"," +
+                         "\"provider\":" + di.pid  +
+                         "}";
+        mapper.registerModule(module);
+        Resource imm = mapper.readValue(dataRef, Resource.class);
+        assertTrue(imm instanceof Resource);
+        assertTrue(imm instanceof GridCoverageResource);
+
+
+        // now try to read in the context of a parameter value
+        final ParameterBuilder builder = new ParameterBuilder();
+
+        final ParameterDescriptor<Resource> resParam = builder.addName("resourceParam").setRequired(true).create(Resource.class, null);
+        final ParameterDescriptorGroup descriptor    =  builder.addName("group").setRequired(true).createGroup(resParam);
+
+        String json = "{\"resourceParam\":" +  dataRef + "}";
+
+        ParameterValueGroup pvalue = (ParameterValueGroup) ParamUtilities.readParameterJSON(json, descriptor);
+
+        Object value = pvalue.parameter("resourceParam").getValue();
+        assertTrue(value instanceof Resource);
+        assertTrue(value instanceof GridCoverageResource);
+
     }
 
 }

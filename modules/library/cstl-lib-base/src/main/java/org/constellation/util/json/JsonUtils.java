@@ -1,3 +1,21 @@
+/*
+ *    Examind community - An open source and standard compliant SDI
+ *    http://www.constellation-sdi.org
+ *
+ * Copyright 2022 Geomatys.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.constellation.util.json;
 
 import com.fasterxml.jackson.core.JsonEncoding;
@@ -5,22 +23,29 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.sis.storage.Resource;
+import com.fasterxml.jackson.databind.deser.std.StdDelegatingDeserializer;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.fasterxml.jackson.databind.util.StdConverter;
 import org.apache.sis.util.ObjectConverters;
 import org.apache.sis.util.Static;
 import org.apache.sis.util.UnconvertibleObjectException;
-import org.constellation.dto.process.DataProcessReference;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.ServiceLoader;
 import java.util.Stack;
 
 /**
@@ -32,6 +57,24 @@ public class JsonUtils extends Static {
      * Jackson JsonFactory used to create temporary JsonGenerators.
      */
     private static final JsonFactory JSON_FACTORY = new JsonFactory();
+
+    private static SimpleModule CUSTOM_MODULE = null;
+    
+    /**
+     * Find all json Converters defined in META-INF/service files.
+     */
+    private static synchronized Module findCustomConverters() {
+        if (CUSTOM_MODULE == null) {
+            CUSTOM_MODULE = new SimpleModule();
+            final Iterator<StdConverter> ite = ServiceLoader.load(StdConverter.class).iterator();
+            while (ite.hasNext()) {
+                StdConverter sm = ite.next();
+                Class<?> rawClass = sm.getOutputType(TypeFactory.defaultInstance()).getRawClass();
+                CUSTOM_MODULE.addDeserializer(rawClass, new StdDelegatingDeserializer<>(sm));
+            }
+        }
+        return CUSTOM_MODULE;
+    }
 
     private JsonUtils(){}
 
@@ -122,15 +165,12 @@ public class JsonUtils extends Static {
      */
     static Object readValue(JsonNode node, Class binding, String parameterName) throws IOException {
         try {
-            // particular case if binding extends a Resource, a Resource is returned.
-            if (Resource.class.isAssignableFrom(binding)) {
-                ObjectMapper mapper = new ObjectMapper();
-                final DataProcessReference o = mapper.treeToValue(node, DataProcessReference.class);
-                return ObjectConverters.convert(o, Resource.class);
-            } else {
-                ObjectMapper mapper = new ObjectMapper();
-                return mapper.treeToValue(node, binding);
-            }
+            ObjectMapper mapper = new ObjectMapper();
+            // special case with custom converter
+            Module module = findCustomConverters();
+            mapper.registerModule(module);
+            return mapper.treeToValue(node, binding);
+            
         } catch (JsonProcessingException ex) {
             if (node.isTextual()) {
                 try {

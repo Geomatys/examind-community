@@ -1,2 +1,3 @@
 org.constellation.converter.StringToCharacterConverter
 org.constellation.converter.DataProcessReferenceToResourceConverter
+org.constellation.converter.MapContextReferenceToMapLayersConverter

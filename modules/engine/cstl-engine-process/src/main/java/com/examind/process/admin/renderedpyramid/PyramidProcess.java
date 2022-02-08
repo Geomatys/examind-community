@@ -1,3 +1,21 @@
+/*
+ *    Examind community - An open source and standard compliant SDI
+ *    http://www.constellation-sdi.org
+ *
+ * Copyright 2022 Geomatys.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.examind.process.admin.renderedpyramid;
 
 import com.examind.process.admin.AdminProcessDescriptor;
@@ -5,7 +23,6 @@ import com.examind.process.admin.AdminProcessRegistry;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.sis.parameter.ParameterBuilder;
-import org.apache.sis.portrayal.MapLayers;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Resource;
@@ -24,9 +41,6 @@ import org.geotoolkit.processing.AbstractProcessDescriptor;
 import org.geotoolkit.processing.ForwardProcessListener;
 import org.geotoolkit.storage.coverage.CoverageTileGenerator;
 import org.geotoolkit.storage.coverage.mosaic.AggregatedCoverageResource;
-import org.geotoolkit.storage.coverage.mosaic.AggregatedCoverageResource.Mode;
-import org.geotoolkit.storage.coverage.mosaic.AggregatedCoverageResource.Source;
-import org.geotoolkit.storage.coverage.mosaic.AggregatedCoverageResource.VirtualBand;
 import org.geotoolkit.storage.multires.TileMatrices;
 import org.geotoolkit.storage.multires.TileMatrixSet;
 import org.opengis.parameter.ParameterDescriptor;

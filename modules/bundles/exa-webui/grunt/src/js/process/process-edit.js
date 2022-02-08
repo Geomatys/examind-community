@@ -161,13 +161,13 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
                     }]
                 }
             })
-            .put('org.geotoolkit.map.MapContext', {
+            .put('org.apache.sis.portrayal.MapLayers', {
                 templateUrl: 'views/tasks/editor/mapcontext.html',
                 controller:'ProcessMapContextEditorController',
                 controllerAs: 'ec',
                 resolve : {
-                    'mapcontexts': ['Examind', function(Examind) {
-                        return Examind.mapcontexts.getMapLayers();
+                    'mapcontexts': ['DataService', function(DataService) {
+                        return DataService.getAllMapContexts();
                     }]
                 }
             })
