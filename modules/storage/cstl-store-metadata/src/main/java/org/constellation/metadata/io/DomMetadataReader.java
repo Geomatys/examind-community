@@ -80,6 +80,7 @@ import org.geotoolkit.metadata.RecordInfo;
 import static org.geotoolkit.metadata.TypeNames.METADATA_QNAME;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.v100.ObjectFactory._BoundingBox_QNAME;
+import org.w3c.dom.NodeList;
 
 
 /**
@@ -102,6 +103,9 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
     private static final String GMX = "http://www.isotc211.org/2005/gmx";
     private static final String GML = "http://www.opengis.net/gml/3.2";
     private static final String GCO = "http://www.isotc211.org/2005/gco";
+
+    private static final String DCE = "http://purl.org/dc/elements/1.1/";
+    private static final String DCT = "http://purl.org/dc/terms/";
 
     private static enum DateLabel {
         UNKNOW("unknown"),
@@ -220,12 +224,18 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
         return null;
     }
 
+    private String getOWSNamespaceFromCSW(String mainNmsp) {
+        return (Namespaces.CSW.equals(mainNmsp)) ? "http://www.opengis.net/ows/2.0" : "http://www.opengis.net/ows";
+    }
+
     /**
-     * Apply the elementSet (Brief, Summary or full) or the custom elementSetName on the specified record.
+     * Apply the elementSet (Brief, Summary or full) or the custom elementSetName on the specified CSW Record.
      *
-     * @param record A dublinCore record.
+     * @param record A CSW record.
      * @param type The ElementSetType to apply on this record.
      * @param elementName A list of QName corresponding to the requested attribute. this parameter is ignored if type is not null.
+     * @param mainNmsp Main namespace for Record object (depends on csw version).
+     * @param transform If set to {@code true} and type set to FULL, the original document will be returned.
      *
      * @return A record object.
      * @throws MetadataIoException If the type and the element name are null.
@@ -237,90 +247,94 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
         } catch (ParserConfigurationException ex) {
             throw new MetadataIoException(ex);
         }
-        String owsNmsp;
-        if (mainNmsp.equals(Namespaces.CSW)) {
-            owsNmsp = "http://www.opengis.net/ows/2.0";
-        } else {
-            owsNmsp = "http://www.opengis.net/ows";
-        }
+        final String owsNmsp = getOWSNamespaceFromCSW(mainNmsp);
         final Document document = docBuilder.newDocument();
         if (type != null) {
-            if (transform && type.equals(ElementSetType.FULL)) {
-                final Element root = document.createElementNS(mainNmsp, "Record");
-                for (int i = 0; i < record.getChildNodes().getLength(); i++) {
-                    Node child = record.getChildNodes().item(i);
-                    Node imported = document.importNode(child, true);
 
-                    if (imported.getNodeType() == Node.ELEMENT_NODE && imported.getLocalName().equals("BoundingBox") && !imported.getNamespaceURI().equals(owsNmsp)) {
-                        document.renameNode(imported, owsNmsp, imported.getLocalName());
-                        for (int j = 0; j < imported.getChildNodes().getLength(); j++) {
-                            Node childbbox = imported.getChildNodes().item(j);
-                            if (childbbox.getNodeType() == Node.ELEMENT_NODE) {
-                                document.renameNode(childbbox, owsNmsp, childbbox.getLocalName());
+            if (type.equals(ElementSetType.FULL)) {
+                if (transform) {
+                    // change the namespace of the root node
+                    final Element root = document.createElementNS(mainNmsp, "Record");
+                    final NodeList recChildren = record.getChildNodes();
+                    for (int i = 0; i < recChildren.getLength(); i++) {
+                        Node child = recChildren.item(i);
+                        Node imported = document.importNode(child, true);
+
+                        // change the OWS namespace of the bbox node
+                        if (imported.getNodeType() == Node.ELEMENT_NODE && imported.getLocalName().equals("BoundingBox") && !imported.getNamespaceURI().equals(owsNmsp)) {
+                            document.renameNode(imported, owsNmsp, imported.getLocalName());
+                            final NodeList impChildren = imported.getChildNodes();
+                            for (int j = 0; j < impChildren.getLength(); j++) {
+                                Node childbbox = impChildren.item(j);
+                                if (childbbox.getNodeType() == Node.ELEMENT_NODE) {
+                                    document.renameNode(childbbox, owsNmsp, childbbox.getLocalName());
+                                }
                             }
                         }
+                        NodeUtilities.appendChilds(root, Arrays.asList(imported));
                     }
-                    NodeUtilities.appendChilds(root, Arrays.asList(imported));
+                    return root;
+                } else {
+                    // retur the original record unchanged
+                    return record;
                 }
-                return root;
 
-            } else if (type.equals(ElementSetType.SUMMARY)) {
-                final Element sumRoot = document.createElementNS(mainNmsp, "SummaryRecord");
+            } else {
                 final List<String> identifierValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:identifier");
-                final List<Node> identifiers = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "identifier", identifierValues, true);
-                NodeUtilities.appendChilds(sumRoot, identifiers);
+                final List<Node> identifiers = NodeUtilities.buildNodes(document, DCE, "identifier", identifierValues, true);
                 final List<String> titleValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:title");
-                final List<Node> titles = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "title", titleValues, true);
-                NodeUtilities.appendChilds(sumRoot, titles);
+                final List<Node> titles = NodeUtilities.buildNodes(document, DCE, "title", titleValues, true);
                 final List<String> typeValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:type");
-                final List<Node> types = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "type", typeValues, false);
-                NodeUtilities.appendChilds(sumRoot, types);
-                final List<String> subValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:subject");
-                final List<Node> subjects = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "subject", subValues, false);
-                NodeUtilities.appendChilds(sumRoot, subjects);
-                final List<String> formValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:format");
-                final List<Node> formats = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "format", formValues, false);
-                NodeUtilities.appendChilds(sumRoot, formats);
-                final List<String> modValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:modified");
-                final List<Node> modifieds = NodeUtilities.buildNodes(document, "http://purl.org/dc/terms/", "modified", modValues, false);
-                NodeUtilities.appendChilds(sumRoot, modifieds);
-                final List<String> absValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:abstract");
-                final List<Node> abstracts = NodeUtilities.buildNodes(document, "http://purl.org/dc/terms/", "abstract", absValues, false);
-                NodeUtilities.appendChilds(sumRoot, abstracts);
+                final List<Node> types = NodeUtilities.buildNodes(document, DCE, "type", typeValues, false);
+
+                final List<Node> bboxes = new ArrayList<>();
                 final List<Node> origBboxes = NodeUtilities.getNodeFromPath(record, "/ows:BoundingBox");
                 for (Node origBbox : origBboxes) {
                     Node n = document.importNode(origBbox, true);
+                    // change the OWS namespace of the bbox node if needed
                     if (!n.getNamespaceURI().equals(owsNmsp)) {
                         document.renameNode(n, owsNmsp, n.getLocalName());
-                        for (int i = 0; i < n.getChildNodes().getLength(); i++) {
-                            Node child = n.getChildNodes().item(i);
+                        final NodeList nChildren = n.getChildNodes();
+                        for (int i = 0; i < nChildren.getLength(); i++) {
+                            Node child = nChildren.item(i);
                             if (child.getNodeType() == Node.ELEMENT_NODE) {
                                 document.renameNode(child, owsNmsp, child.getLocalName());
                             }
                         }
                     }
-                    NodeUtilities.appendChilds(sumRoot, Arrays.asList(n));
+                    bboxes.add(n);
                 }
-                return sumRoot;
-            } else if (type.equals(ElementSetType.BRIEF)) {
-                final Element briefRoot = document.createElementNS(mainNmsp, "BriefRecord");
-                final List<String> identifierValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:identifier");
-                final List<Node> identifiers = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "identifier", identifierValues, true);
-                NodeUtilities.appendChilds(briefRoot, identifiers);
-                final List<String> titleValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:title");
-                final List<Node> titles = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "title", titleValues, true);
-                NodeUtilities.appendChilds(briefRoot, titles);
-                final List<String> typeValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:type");
-                final List<Node> types = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "type", typeValues, false);
-                NodeUtilities.appendChilds(briefRoot, types);
-                final List<Node> origBboxes = NodeUtilities.getNodeFromPath(record, "/csw:Record/ows:BoundingBox");
-                for (Node origBbox : origBboxes) {
-                    Node n = document.importNode(origBbox, true);
-                    NodeUtilities.appendChilds(briefRoot, Arrays.asList(n));
+
+                if (type == ElementSetType.BRIEF) {
+                    final Element briefRoot = document.createElementNS(mainNmsp, "BriefRecord");
+                    NodeUtilities.appendChilds(briefRoot, identifiers);
+                    NodeUtilities.appendChilds(briefRoot, titles);
+                    NodeUtilities.appendChilds(briefRoot, types);
+                    NodeUtilities.appendChilds(briefRoot, bboxes);
+                    return briefRoot;
+
+                /// type == ElementSetType.SUMMARY
+                } else {
+                    final Element sumRoot = document.createElementNS(mainNmsp, "SummaryRecord");
+
+                    NodeUtilities.appendChilds(sumRoot, identifiers);
+                    NodeUtilities.appendChilds(sumRoot, titles);
+                    NodeUtilities.appendChilds(sumRoot, types);
+                    final List<String> subValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:subject");
+                    final List<Node> subjects = NodeUtilities.buildNodes(document, DCE, "subject", subValues, false);
+                    NodeUtilities.appendChilds(sumRoot, subjects);
+                    final List<String> formValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:format");
+                    final List<Node> formats = NodeUtilities.buildNodes(document, DCE, "format", formValues, false);
+                    NodeUtilities.appendChilds(sumRoot, formats);
+                    final List<String> modValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:modified");
+                    final List<Node> modifieds = NodeUtilities.buildNodes(document, DCT, "modified", modValues, false);
+                    NodeUtilities.appendChilds(sumRoot, modifieds);
+                    final List<String> absValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:abstract");
+                    final List<Node> abstracts = NodeUtilities.buildNodes(document, DCT, "abstract", absValues, false);
+                    NodeUtilities.appendChilds(sumRoot, abstracts);
+                    NodeUtilities.appendChilds(sumRoot, bboxes);
+                    return sumRoot;
                 }
-                return briefRoot;
-            } else {
-                return record;
             }
         } else if (elementName != null) {
             final Element recRoot = document.createElementNS(mainNmsp, "Record");
@@ -344,12 +358,7 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
     protected Node translateISOtoDCNode(final Node metadata, final ElementSetType type, final List<QName> elementName, String mainNmsp) throws MetadataIoException  {
         if (metadata != null) {
 
-            String owsNmsp;
-            if (mainNmsp.equals(Namespaces.CSW)) {
-                owsNmsp = "http://www.opengis.net/ows/2.0";
-            } else {
-                owsNmsp = "http://www.opengis.net/ows";
-            }
+            final String owsNmsp = getOWSNamespaceFromCSW(mainNmsp);
             final DocumentBuilder docBuilder;
             try {
                 docBuilder = dbf.newDocumentBuilder();
@@ -364,21 +373,21 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
              * BRIEF part
              */
             final List<String> identifierValues = NodeUtilities.getValuesFromPaths(metadata, ISO_QUERYABLE.get("Identifier").paths);
-            final List<Node> identifiers = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "identifier", identifierValues, true);
+            final List<Node> identifiers = NodeUtilities.buildNodes(document, DCE, "identifier", identifierValues, true);
 
             if (elementName != null && elementName.contains(_Identifier_QNAME)) {
                 NodeUtilities.appendChilds(root, identifiers);
             }
 
             final List<String> titleValues = NodeUtilities.getValuesFromPaths(metadata, ISO_QUERYABLE.get("Title").paths);
-            final List<Node> titles = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "title", titleValues, true);
+            final List<Node> titles = NodeUtilities.buildNodes(document, DCE, "title", titleValues, true);
 
             if (elementName != null && elementName.contains(_Title_QNAME)) {
                 NodeUtilities.appendChilds(root, titles);
             }
 
             final List<String> dataTypeValues = NodeUtilities.getValuesFromPaths(metadata, ISO_QUERYABLE.get("Type").paths);
-            final List<Node> dataTypes = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "type", dataTypeValues, false);
+            final List<Node> dataTypes = NodeUtilities.buildNodes(document, DCE, "type", dataTypeValues, false);
 
             if (elementName != null && elementName.contains(_Type_QNAME)) {
                 NodeUtilities.appendChilds(root, dataTypes);
@@ -389,32 +398,9 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
             final List<String> northValues = NodeUtilities.getValuesFromPaths(metadata, ISO_QUERYABLE.get("NorthBoundLatitude").paths);
             final List<String> southValues = NodeUtilities.getValuesFromPaths(metadata, ISO_QUERYABLE.get("SouthBoundLatitude").paths);
 
-            final List<Node> bboxes = new ArrayList<>();
-            if (westValues.size()  == eastValues.size()  &&
-                eastValues.size()  == northValues.size() &&
-                northValues.size() == southValues.size()) {
+            final List<Node> bboxes = buildOwsBboxes(document, owsNmsp, westValues, eastValues, northValues, southValues);
 
-                for (int i = 0; i < westValues.size(); i++) {
-                    final Node bboxNode = document.createElementNS(owsNmsp, "BoundingBox");
-                    final Node crsAtt   = document.createAttribute("crs");
-                    crsAtt.setTextContent("EPSG:4326");
-                    bboxNode.getAttributes().setNamedItem(crsAtt);
-                    final Node dimAtt   = document.createAttribute("dimensions");
-                    dimAtt.setTextContent("2");
-                    bboxNode.getAttributes().setNamedItem(dimAtt);
-                    final Node lower    = document.createElementNS(owsNmsp, "LowerCorner");
-                    lower.setTextContent(southValues.get(i) + " " + westValues.get(i));
-                    bboxNode.appendChild(lower);
-                    final Node upper    = document.createElementNS(owsNmsp, "UpperCorner");
-                    upper.setTextContent(northValues.get(i) + " " + eastValues.get(i));
-                    bboxNode.appendChild(upper);
-                    bboxes.add(bboxNode);
-                }
-            } else {
-                LOGGER.warning("incoherent bboxes coordinate");
-            }
-
-            if (ElementSetType.BRIEF.equals(type)) {
+            if (ElementSetType.BRIEF == type) {
                 final Element briefRoot = document.createElementNS(mainNmsp, "BriefRecord");
                 NodeUtilities.appendChilds(briefRoot, identifiers);
                 NodeUtilities.appendChilds(briefRoot, titles);
@@ -427,21 +413,21 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
              *  SUMMARY part
              */
             final List<String> abstractValues = NodeUtilities.getValuesFromPath(metadata, "/gmd:MD_Metadata/gmd:identificationInfo/*/gmd:abstract/gco:CharacterString");
-            final List<Node> abstracts = NodeUtilities.buildNodes(document, "http://purl.org/dc/terms/", "abstract", abstractValues, false);
+            final List<Node> abstracts = NodeUtilities.buildNodes(document, DCT, "abstract", abstractValues, false);
 
             if (elementName != null && elementName.contains(_Abstract_QNAME)) {
                 NodeUtilities.appendChilds(root, abstracts);
             }
 
             final List<String> kwValues = NodeUtilities.getValuesFromPaths(metadata, ISO_QUERYABLE.get("Subject").paths);
-            final List<Node> subjects = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "subject", kwValues, false);
+            final List<Node> subjects = NodeUtilities.buildNodes(document, DCE, "subject", kwValues, false);
 
             if (elementName != null && elementName.contains(_Subject_QNAME)) {
                 NodeUtilities.appendChilds(root, subjects);
             }
 
             final List<String> formValues = NodeUtilities.getValuesFromPaths(metadata, ISO_QUERYABLE.get("Format").paths);
-            final List<Node> formats = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "format", formValues, false);
+            final List<Node> formats = NodeUtilities.buildNodes(document, DCE, "format", formValues, false);
 
             if (elementName != null && elementName.contains(_Format_QNAME)) {
                  NodeUtilities.appendChilds(root, formats);
@@ -452,13 +438,13 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
             for (String modValue : modValues) {
                 dateValues.add(formatDate(modValue));
             }
-            final List<Node> modifieds = NodeUtilities.buildNodes(document, "http://purl.org/dc/terms/", "modified", dateValues, false);
+            final List<Node> modifieds = NodeUtilities.buildNodes(document, DCT, "modified", dateValues, false);
 
             if (elementName != null && elementName.contains(_Modified_QNAME)) {
                 NodeUtilities.appendChilds(root, modifieds);
             }
 
-            if (ElementSetType.SUMMARY.equals(type)) {
+            if (ElementSetType.SUMMARY == type) {
                 final Element sumRoot = document.createElementNS(mainNmsp, "SummaryRecord");
                 NodeUtilities.appendChilds(sumRoot, identifiers);
                 NodeUtilities.appendChilds(sumRoot, titles);
@@ -471,21 +457,21 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                 return sumRoot;
             }
 
-            final List<Node> dates = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "date", dateValues, false);
+            final List<Node> dates = NodeUtilities.buildNodes(document, DCE, "date", dateValues, false);
 
             if (elementName != null && elementName.contains(_Date_QNAME)) {
                 NodeUtilities.appendChilds(root, dates);
             }
 
             final List<String> creaValues = NodeUtilities.getValuesFromPaths(metadata, DUBLIN_CORE_QUERYABLE.get("creator").paths);
-            final List<Node> creators = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "creator", creaValues, false);
+            final List<Node> creators = NodeUtilities.buildNodes(document, DCE, "creator", creaValues, false);
 
             if (elementName != null && elementName.contains(_Creator_QNAME)) {
                 NodeUtilities.appendChilds(root, creators);
             }
 
             final List<String> desValues = NodeUtilities.getValuesFromPath(metadata, "/gmd:MD_Metadata/gmd:identificationInfo/*/gmd:graphicOverview/gmd:MD_BrowseGraphic/gmd:fileName/gmx:FileName/@src");
-            final List<Node> descriptions = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "description", desValues, false);
+            final List<Node> descriptions = NodeUtilities.buildNodes(document, DCE, "description", desValues, false);
 
             if (!descriptions.isEmpty() && elementName != null && elementName.contains(_Description_QNAME)) {
                 NodeUtilities.appendChilds(root, descriptions);
@@ -497,14 +483,14 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
             paths.add("/gmi:MI_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributor/gmd:MD_Distributor/gmd:distributorContact/gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString");
             paths.add("/gmi:MI_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributor/gmd:MD_Distributor/gmd:distributorContact/gmd:CI_ResponsibleParty/gmd:organisationName/gmx:Anchor");
             final List<String> distValues = NodeUtilities.getValuesFromPaths(metadata, paths);
-            final List<Node> distributors = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "publisher", distValues, false);
+            final List<Node> distributors = NodeUtilities.buildNodes(document, DCE, "publisher", distValues, false);
 
             if (elementName != null && elementName.contains(_Publisher_QNAME)) {
                 NodeUtilities.appendChilds(root, distributors);
             }
 
             final List<String> langValues = NodeUtilities.getValuesFromPaths(metadata, ISO_QUERYABLE.get("Language").paths);
-            final List<Node> languages = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "language", langValues, false);
+            final List<Node> languages = NodeUtilities.buildNodes(document, DCE, "language", langValues, false);
 
             if (elementName != null && elementName.contains(_Language_QNAME)) {
                 NodeUtilities.appendChilds(root, languages);
@@ -524,31 +510,31 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                     relValues.add(link);
 
                     // URI
-                    final Node n = document.createElementNS("http://purl.org/dc/elements/1.1/", "URI");
+                    final Element n = document.createElementNS(DCE, "URI");
                     n.setTextContent(link);
 
                     final String protocol = NodeUtilities.getFirstValueFromPath(transferOpt, "/gmd:CI_OnlineResource/gmd:protocol/gco:CharacterString");
                     if (protocol != null) {
-                        ((Element)n).setAttribute("protocol", protocol);
+                        n.setAttribute("protocol", protocol);
                     }
                     final String description = NodeUtilities.getFirstValueFromPath(transferOpt, "/gmd:CI_OnlineResource/gmd:description/gco:CharacterString");
                     if (description != null) {
-                        ((Element)n).setAttribute("description", description);
+                        n.setAttribute("description", description);
                     }
                     final String name = NodeUtilities.getFirstValueFromPath(transferOpt, "/gmd:CI_OnlineResource/gmd:name/gco:CharacterString");
                     if (name != null) {
-                        ((Element)n).setAttribute("name", name);
+                        n.setAttribute("name", name);
                     }
                     uris.add(n);
                 }
             }
 
-            final List<Node> references = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "references", relValues, false);
+            final List<Node> references = NodeUtilities.buildNodes(document, DCE, "references", relValues, false);
 
             /* TODO
             final SimpleLiteral spatial = null;*/
 
-            if (ElementSetType.FULL.equals(type)) {
+            if (ElementSetType.FULL == type) {
                 final Element recRoot = document.createElementNS(mainNmsp, "Record");
                 NodeUtilities.appendChilds(recRoot, identifiers);
                 NodeUtilities.appendChilds(recRoot, titles);
@@ -579,12 +565,7 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
      protected Node translateDIFtoDCNode(final Node metadata, final ElementSetType type, final List<QName> elementName, String mainNmsp) throws MetadataIoException  {
         if (metadata != null) {
 
-            String owsNmsp;
-            if (mainNmsp.equals(Namespaces.CSW)) {
-                owsNmsp = "http://www.opengis.net/ows/2.0";
-            } else {
-                owsNmsp = "http://www.opengis.net/ows";
-            }
+            final String owsNmsp = getOWSNamespaceFromCSW(mainNmsp);
             final DocumentBuilder docBuilder;
             try {
                 docBuilder = dbf.newDocumentBuilder();
@@ -599,21 +580,21 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
              * BRIEF part
              */
             final List<String> identifierValues = NodeUtilities.getValuesFromPaths(metadata, DUBLIN_CORE_QUERYABLE.get("identifier").paths);
-            final List<Node> identifiers = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "identifier", identifierValues, true);
+            final List<Node> identifiers = NodeUtilities.buildNodes(document, DCE, "identifier", identifierValues, true);
 
             if (elementName != null && elementName.contains(_Identifier_QNAME)) {
                 NodeUtilities.appendChilds(root, identifiers);
             }
 
             final List<String> titleValues = NodeUtilities.getValuesFromPaths(metadata, DUBLIN_CORE_QUERYABLE.get("title").paths);
-            final List<Node> titles = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "title", titleValues, true);
+            final List<Node> titles = NodeUtilities.buildNodes(document, DCE, "title", titleValues, true);
 
             if (elementName != null && elementName.contains(_Title_QNAME)) {
                 NodeUtilities.appendChilds(root, titles);
             }
 
             final List<String> dataTypeValues = NodeUtilities.getValuesFromPaths(metadata, DUBLIN_CORE_QUERYABLE.get("type").paths);
-            final List<Node> dataTypes = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "type", dataTypeValues, false);
+            final List<Node> dataTypes = NodeUtilities.buildNodes(document, DCE, "type", dataTypeValues, false);
 
             if (elementName != null && elementName.contains(_Type_QNAME)) {
                 NodeUtilities.appendChilds(root, dataTypes);
@@ -624,32 +605,9 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
             final List<String> northValues = NodeUtilities.getValuesFromPaths(metadata, DIF_QUERYABLE.get("NorthBoundLatitude").paths);
             final List<String> southValues = NodeUtilities.getValuesFromPaths(metadata, DIF_QUERYABLE.get("SouthBoundLatitude").paths);
 
-            final List<Node> bboxes = new ArrayList<>();
-            if (westValues.size()  == eastValues.size()  &&
-                eastValues.size()  == northValues.size() &&
-                northValues.size() == southValues.size()) {
+            final List<Node> bboxes = buildOwsBboxes(document, owsNmsp, westValues, eastValues, northValues, southValues);
 
-                for (int i = 0; i < westValues.size(); i++) {
-                    final Node bboxNode = document.createElementNS(owsNmsp, "BoundingBox");
-                    final Node crsAtt   = document.createAttribute("crs");
-                    crsAtt.setTextContent("EPSG:4326");
-                    bboxNode.getAttributes().setNamedItem(crsAtt);
-                    final Node dimAtt   = document.createAttribute("dimensions");
-                    dimAtt.setTextContent("2");
-                    bboxNode.getAttributes().setNamedItem(dimAtt);
-                    final Node lower    = document.createElementNS(owsNmsp, "LowerCorner");
-                    lower.setTextContent(southValues.get(i) + " " + westValues.get(i));
-                    bboxNode.appendChild(lower);
-                    final Node upper    = document.createElementNS(owsNmsp, "UpperCorner");
-                    upper.setTextContent(northValues.get(i) + " " + eastValues.get(i));
-                    bboxNode.appendChild(upper);
-                    bboxes.add(bboxNode);
-                }
-            } else {
-                LOGGER.warning("incoherent bboxes coordinate");
-            }
-
-            if (ElementSetType.BRIEF.equals(type)) {
+            if (ElementSetType.BRIEF == type) {
                 final Element briefRoot = document.createElementNS(mainNmsp, "BriefRecord");
                 NodeUtilities.appendChilds(briefRoot, identifiers);
                 NodeUtilities.appendChilds(briefRoot, titles);
@@ -662,21 +620,21 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
              *  SUMMARY part
              */
             final List<String> abstractValues = NodeUtilities.getValuesFromPaths(metadata, DUBLIN_CORE_QUERYABLE.get("abstract").paths);
-            final List<Node> abstracts = NodeUtilities.buildNodes(document, "http://purl.org/dc/terms/", "abstract", abstractValues, false);
+            final List<Node> abstracts = NodeUtilities.buildNodes(document, DCT, "abstract", abstractValues, false);
 
             if (elementName != null && elementName.contains(_Abstract_QNAME)) {
                 NodeUtilities.appendChilds(root, abstracts);
             }
 
             final List<String> kwValues = NodeUtilities.getValuesFromPaths(metadata, DUBLIN_CORE_QUERYABLE.get("subject").paths);
-            final List<Node> subjects = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "subject", kwValues, false);
+            final List<Node> subjects = NodeUtilities.buildNodes(document, DCE, "subject", kwValues, false);
 
             if (elementName != null && elementName.contains(_Subject_QNAME)) {
                 NodeUtilities.appendChilds(root, subjects);
             }
 
             final List<String> formValues = NodeUtilities.getValuesFromPaths(metadata, DUBLIN_CORE_QUERYABLE.get("format").paths);
-            final List<Node> formats = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "format", formValues, false);
+            final List<Node> formats = NodeUtilities.buildNodes(document, DCE, "format", formValues, false);
 
             if (elementName != null && elementName.contains(_Format_QNAME)) {
                  NodeUtilities.appendChilds(root, formats);
@@ -687,13 +645,13 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
             for (String modValue : modValues) {
                 dateValues.add(formatDate(modValue));
             }
-            final List<Node> modifieds = NodeUtilities.buildNodes(document, "http://purl.org/dc/terms/", "modified", dateValues, false);
+            final List<Node> modifieds = NodeUtilities.buildNodes(document, DCT, "modified", dateValues, false);
 
             if (elementName != null && elementName.contains(_Modified_QNAME)) {
                 NodeUtilities.appendChilds(root, modifieds);
             }
 
-            if (ElementSetType.SUMMARY.equals(type)) {
+            if (ElementSetType.SUMMARY == type) {
                 final Element sumRoot = document.createElementNS(mainNmsp, "SummaryRecord");
                 NodeUtilities.appendChilds(sumRoot, identifiers);
                 NodeUtilities.appendChilds(sumRoot, titles);
@@ -706,14 +664,14 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                 return sumRoot;
             }
 
-            final List<Node> dates = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "date", dateValues, false);
+            final List<Node> dates = NodeUtilities.buildNodes(document, DCE, "date", dateValues, false);
 
             if (elementName != null && elementName.contains(_Date_QNAME)) {
                 NodeUtilities.appendChilds(root, dates);
             }
 
             final List<String> creaValues = NodeUtilities.getValuesFromPaths(metadata, DUBLIN_CORE_QUERYABLE.get("creator").paths);
-            final List<Node> creators = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "creator", creaValues, false);
+            final List<Node> creators = NodeUtilities.buildNodes(document, DCE, "creator", creaValues, false);
 
             if (elementName != null && elementName.contains(_Creator_QNAME)) {
                 NodeUtilities.appendChilds(root, creators);
@@ -721,7 +679,7 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
 
             final List<Node> descriptions = new ArrayList<>();
         //    final List<String> desValues = NodeUtilities.getValuesFromPath(metadata, "/gmd:MD_Metadata/gmd:identificationInfo/*/gmd:graphicOverview/gmd:MD_BrowseGraphic/gmd:fileName/gmx:FileName/@src");
-        //    final List<Node> descriptions = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "description", desValues, false);
+        //    final List<Node> descriptions = NodeUtilities.buildNodes(document, DCE, "description", desValues, false);
 
         //    if (!descriptions.isEmpty() && elementName != null && elementName.contains(_Description_QNAME)) {
         //        NodeUtilities.appendChilds(root, descriptions);
@@ -734,7 +692,7 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
         //    paths.add("/gmi:MI_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributor/gmd:MD_Distributor/gmd:distributorContact/gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString");
         //    paths.add("/gmi:MI_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributor/gmd:MD_Distributor/gmd:distributorContact/gmd:CI_ResponsibleParty/gmd:organisationName/gmx:Anchor");
         //    final List<String> distValues = NodeUtilities.getValuesFromPaths(metadata, paths);
-        //    final List<Node> distributors = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "publisher", distValues, false);
+        //    final List<Node> distributors = NodeUtilities.buildNodes(document, DCE, "publisher", distValues, false);
 
         //    if (elementName != null && elementName.contains(_Publisher_QNAME)) {
         //        NodeUtilities.appendChilds(root, distributors);
@@ -742,7 +700,7 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
 
             final List<Node> languages = new ArrayList<>();
         //    final List<String> langValues = NodeUtilities.getValuesFromPaths(metadata, ISO_QUERYABLE.get("Language").paths);
-        //    final List<Node> languages = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "language", langValues, false);
+        //    final List<Node> languages = NodeUtilities.buildNodes(document, DCE, "language", langValues, false);
 
         //    if (elementName != null && elementName.contains(_Language_QNAME)) {
         //        NodeUtilities.appendChilds(root, languages);
@@ -754,12 +712,12 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
             }
 
             final List<String> relValues = NodeUtilities.getValuesFromConditionalPath(metadata, DIF_DISTRIBUTION_LINK, DIF_DISTRIBUTION_COND_PATH, DIF_DISTRIBUTION_COND_VALUE);
-            final List<Node> references = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "references", relValues, false);
+            final List<Node> references = NodeUtilities.buildNodes(document, DCE, "references", relValues, false);
 
             /* TODO
             final SimpleLiteral spatial = null;*/
 
-            if (ElementSetType.FULL.equals(type)) {
+            if (ElementSetType.FULL == type) {
                 final Element recRoot = document.createElementNS(mainNmsp, "Record");
                 NodeUtilities.appendChilds(recRoot, identifiers);
                 NodeUtilities.appendChilds(recRoot, titles);
@@ -783,6 +741,53 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
             return root;
         }
         return null;
+    }
+
+    private List<Node> buildOwsBboxes(final Document document, final String owsNmsp, final List<String> westValues , final List<String> eastValues, final List<String> northValues, final List<String> southValues) {
+        final List<Node> bboxes = new ArrayList<>();
+        if (westValues.size() == eastValues.size()
+                && eastValues.size() == northValues.size()
+                && northValues.size() == southValues.size()) {
+
+            for (int i = 0; i < westValues.size(); i++) {
+                final Node bboxNode = document.createElementNS(owsNmsp, "BoundingBox");
+                final Node crsAtt = document.createAttribute("crs");
+                crsAtt.setTextContent("EPSG:4326");
+                bboxNode.getAttributes().setNamedItem(crsAtt);
+                final Node dimAtt = document.createAttribute("dimensions");
+                dimAtt.setTextContent("2");
+                bboxNode.getAttributes().setNamedItem(dimAtt);
+                final Node lower = document.createElementNS(owsNmsp, "LowerCorner");
+                lower.setTextContent(southValues.get(i) + " " + westValues.get(i));
+                bboxNode.appendChild(lower);
+                final Node upper = document.createElementNS(owsNmsp, "UpperCorner");
+                upper.setTextContent(northValues.get(i) + " " + eastValues.get(i));
+                bboxNode.appendChild(upper);
+                bboxes.add(bboxNode);
+            }
+        } else {
+            LOGGER.warning("incoherent bboxes coordinate");
+        }
+        return bboxes;
+    }
+
+    private void buildIndividualNameFromDIF(Document doc, Node ciResp, Node personNode, String nodeName) {
+        String fName = NodeUtilities.getFirstValueFromPath(personNode, "/dif:Contact_Person/dif:First_Name");
+        String mName = NodeUtilities.getFirstValueFromPath(personNode, "/dif:Contact_Person/dif:Middle_Name");
+        String lName = NodeUtilities.getFirstValueFromPath(personNode, "/dif:Contact_Person/dif:Last_Name");
+        if (fName != null || mName != null || lName != null) {
+            StringBuilder indName = new StringBuilder();
+            if (fName != null) {
+                indName.append(fName).append(" ");
+            }
+            if (mName != null) {
+                indName.append(mName).append(" ");
+            }
+            if (lName != null) {
+                indName.append(lName);
+            }
+            addCharacterStringNode(doc, ciResp, nodeName, indName.toString());
+        }
     }
 
     protected Node translateDIFtoISONode(final Node metadata, final ElementSetType type, final List<QName> elementName) throws MetadataIoException {
@@ -837,28 +842,13 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                         for (Node personNode : persons) {
                             final Node contact = doc.createElementNS(GMD, "contact");
                             root.appendChild(contact);
-                            final Node ciResp = doc.createElementNS(GMD, "CI_ResponsibleParty");
+                            final Element ciResp = doc.createElementNS(GMD, "CI_ResponsibleParty");
                             contact.appendChild(ciResp);
 
                             String uuid  = NodeUtilities.getFirstValueFromPath(personNode, "/dif:Contact_Person/@uuid");
                             addAttribute(ciResp, "uuid", uuid);
 
-                            String fName = NodeUtilities.getFirstValueFromPath(personNode, "/dif:Contact_Person/dif:First_Name");
-                            String mName = NodeUtilities.getFirstValueFromPath(personNode, "/dif:Contact_Person/dif:Middle_Name");
-                            String lName = NodeUtilities.getFirstValueFromPath(personNode, "/dif:Contact_Person/dif:Last_Name");
-                            if (fName != null || mName != null || lName != null) {
-                                StringBuilder indName = new StringBuilder();
-                                if (fName != null) {
-                                    indName.append(fName).append(" ");
-                                }
-                                if (mName != null) {
-                                    indName.append(mName).append(" ");
-                                }
-                                if (lName != null) {
-                                    indName.append(lName);
-                                }
-                                addCharacterStringNode(doc, ciResp, "organisationName", indName.toString());
-                            }
+                            buildIndividualNameFromDIF(doc, ciResp, personNode, "organisationName");
                             addCharacterStringNode(doc, ciResp, "positionName", "METADATA AUTHOR");
 
                             buildDiffAddress(doc, ciResp, personNode, null, "/dif:Contact_Person");
@@ -935,7 +925,7 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                             for (Node groupNode : groups) {
                                 final Node poc = doc.createElementNS(GMD, "pointOfContact");
                                 dIdent.appendChild(poc);
-                                final Node ciResp = doc.createElementNS(GMD, "CI_ResponsibleParty");
+                                final Element ciResp = doc.createElementNS(GMD, "CI_ResponsibleParty");
                                 poc.appendChild(ciResp);
                                 addAttribute(ciResp, "uuid", orguuid);
                                 addCharacterStringNode(doc, ciResp, "organisationName", orgName);
@@ -950,25 +940,10 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                             for (Node personNode : persons) {
                                 final Node poc = doc.createElementNS(GMD, "pointOfContact");
                                 dIdent.appendChild(poc);
-                                final Node ciResp = doc.createElementNS(GMD, "CI_ResponsibleParty");
+                                final Element ciResp = doc.createElementNS(GMD, "CI_ResponsibleParty");
                                 poc.appendChild(ciResp);
                                 addAttribute(ciResp, "uuid", orguuid);
-                                String fName = NodeUtilities.getFirstValueFromPath(personNode, "/dif:Contact_Person/dif:First_Name");
-                                String mName = NodeUtilities.getFirstValueFromPath(personNode, "/dif:Contact_Person/dif:Middle_Name");
-                                String lName = NodeUtilities.getFirstValueFromPath(personNode, "/dif:Contact_Person/dif:Last_Name");
-                                if (fName != null || mName != null || lName != null) {
-                                    StringBuilder indName = new StringBuilder();
-                                    if (fName != null) {
-                                        indName.append(fName).append(" ");
-                                    }
-                                    if (mName != null) {
-                                        indName.append(mName).append(" ");
-                                    }
-                                    if (lName != null) {
-                                        indName.append(lName);
-                                    }
-                                    addCharacterStringNode(doc, ciResp, "individualName", indName.toString());
-                                }
+                                buildIndividualNameFromDIF(doc, ciResp, personNode, "individualName");
                                 addCharacterStringNode(doc, ciResp, "organisationName", orgName);
                                 addCharacterStringNode(doc, ciResp, "positionName", "DATA CENTER CONTACT");
 
@@ -990,11 +965,11 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
 
                 String fileValue = NodeUtilities.getFirstValueFromPath(multiMedia, "/dif:Multimedia_Sample/dif:File");
                 if (fileValue != null) {
-                    Node fileNNode = doc.createElementNS(GMD, "fileName");
+                    Element fileNNode = doc.createElementNS(GMD, "fileName");
                     browNode.appendChild(fileNNode);
-                    Node fileXNode = doc.createElementNS(GMX, "FileName");
+                    Element fileXNode = doc.createElementNS(GMX, "FileName");
                     fileXNode.setTextContent(fileValue);
-                    ((Element)fileXNode).setAttribute("src", fileValue);
+                    fileXNode.setAttribute("src", fileValue);
                     fileNNode.appendChild(fileXNode);
                 } else {
                      addNullNode(doc, browNode, GMD, "fileName", "inapplicable");
@@ -1005,10 +980,10 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
 
                 String formatValue = NodeUtilities.getFirstValueFromPath(multiMedia, "/dif:Multimedia_Sample/dif:Format");
                 if (formatValue != null) {
-                    final Node node = doc.createElementNS(GMD, "fileType");
-                    final Node val = doc.createElementNS(GMX, "MimeFileType");
+                    final Element node = doc.createElementNS(GMD, "fileType");
+                    final Element val = doc.createElementNS(GMX, "MimeFileType");
                     val.setTextContent(formatValue);
-                    ((Element)val).setAttribute("type", formatValue);
+                    val.setAttribute("type", formatValue);
                     node.appendChild(val);
                     browNode.appendChild(node);
                 }
@@ -1163,7 +1138,7 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                 tempElem.appendChild(tempEx);
                 final Node ext = doc.createElementNS(GMD, "extent");
                 tempEx.appendChild(ext);
-                final Node tp = doc.createElementNS(GML, "TimePeriod");
+                final Element tp = doc.createElementNS(GML, "TimePeriod");
                 addAttributeNS(tp, "http://www.opengis.net/gml/3.2", "id", "timeperiod1");
                 ext.appendChild(tp);
 
@@ -1217,7 +1192,7 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                                 for (Node groupNode : groups) {
                                     final Node contact = doc.createElementNS(GMD, "distributorContact");
                                     mdDistributor.appendChild(contact);
-                                    final Node ciResp = doc.createElementNS(GMD, "CI_ResponsibleParty");
+                                    final Element ciResp = doc.createElementNS(GMD, "CI_ResponsibleParty");
                                     contact.appendChild(ciResp);
 
                                     addAttribute(ciResp, "uuid", orguuid);
@@ -1235,27 +1210,11 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                                 for (Node personNode : persons) {
                                     final Node contact = doc.createElementNS(GMD, "distributorContact");
                                     mdDistributor.appendChild(contact);
-                                    final Node ciResp = doc.createElementNS(GMD, "CI_ResponsibleParty");
+                                    final Element ciResp = doc.createElementNS(GMD, "CI_ResponsibleParty");
                                     contact.appendChild(ciResp);
 
                                     addAttribute(ciResp, "uuid", orguuid);
-
-                                    String fName = NodeUtilities.getFirstValueFromPath(personNode, "/dif:Contact_Person/dif:First_Name");
-                                    String mName = NodeUtilities.getFirstValueFromPath(personNode, "/dif:Contact_Person/dif:Middle_Name");
-                                    String lName = NodeUtilities.getFirstValueFromPath(personNode, "/dif:Contact_Person/dif:Last_Name");
-                                    if (fName != null || mName != null || lName != null) {
-                                        StringBuilder indName = new StringBuilder();
-                                        if (fName != null) {
-                                            indName.append(fName).append(" ");
-                                        }
-                                        if (mName != null) {
-                                            indName.append(mName).append(" ");
-                                        }
-                                        if (lName != null) {
-                                            indName.append(lName);
-                                        }
-                                        addCharacterStringNode(doc, ciResp, "individualName", indName.toString());
-                                    }
+                                    buildIndividualNameFromDIF(doc, ciResp, personNode, "individualName");
                                     addCharacterStringNode(doc, ciResp, "organisationName", orgName);
                                     addCharacterStringNode(doc, ciResp, "positionName", "DATA CENTER CONTACT");
 
@@ -1466,30 +1425,30 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
     }
 
     private void addNullNode(Document doc, Node root, String nmsp, String nodeName, String value) {
-        final Node node = doc.createElementNS(nmsp, nodeName);
+        final Element node = doc.createElementNS(nmsp, nodeName);
         addAttributeNS(node, GCO, "nilReason", value);
         root.appendChild(node);
     }
 
-    private void addAttribute(Node root, String attName, String value) {
+    private void addAttribute(Element root, String attName, String value) {
         if (value != null) {
-            ((Element)root).setAttribute(attName, value);
+            root.setAttribute(attName, value);
         }
     }
 
-    private void addAttributeNS(Node root, String nmsp, String attName, String value) {
+    private void addAttributeNS(Element root, String nmsp, String attName, String value) {
         if (value != null) {
-            ((Element)root).setAttributeNS(nmsp, attName, value);
+            root.setAttributeNS(nmsp, attName, value);
         }
     }
 
     private void addCodelistNode(Document doc, Node root, String nodeName, String codelistName, String value) {
         if (value != null) {
             final Node node = doc.createElementNS(GMD, nodeName);
-            final Node val = doc.createElementNS(GMD, codelistName);
+            final Element val = doc.createElementNS(GMD, codelistName);
 
-            ((Element) val).setAttribute("codeList", "http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#" + codelistName);
-            ((Element) val).setAttribute("codeListValue", value);
+            val.setAttribute("codeList", "http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#" + codelistName);
+            val.setAttribute("codeListValue", value);
             val.setTextContent(value);
             node.appendChild(val);
             root.appendChild(node);
