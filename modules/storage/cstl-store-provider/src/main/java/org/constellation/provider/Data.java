@@ -105,6 +105,7 @@ public interface Data<T extends Resource> {
     Envelope getEnvelope() throws ConstellationStoreException;
 
     /**
+     * @return the identifier of the data.
      */
     GenericName getName();
 

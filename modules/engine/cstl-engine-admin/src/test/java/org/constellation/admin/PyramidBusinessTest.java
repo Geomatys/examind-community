@@ -172,8 +172,9 @@ public class PyramidBusinessTest {
         //dataIds.addAll(providerBusiness.getDataIdsFromProviderId(coverage1PID));
 
         Assert.assertEquals(1, dataIds.size());
+        int nbLevel = 4; // will not be used because its coverage data
 
-        TilingResult result = pyramidBusiness.pyramidDatas(1, "my_pyramid", dataIds, "CRS:84", TilingMode.RENDERED);
+        TilingResult result = pyramidBusiness.pyramidDatas(1, "my_pyramid", dataIds, "CRS:84", TilingMode.RENDERED, nbLevel);
 
         Assert.assertNotNull(result.getPyramidDataId());
         org.constellation.dto.Data d = dataBusiness.getData(result.getPyramidDataId());
@@ -260,8 +261,9 @@ public class PyramidBusinessTest {
         Integer mpId = mpBusiness.createFromData(1, "my_context", "CRS:84", inD.getEnvelope(), Arrays.asList(db));
 
         MapContextLayersDTO mapContext = mpBusiness.findMapContextLayers(mpId);
+        int nbLevel = 4;
 
-        TilingResult result = pyramidBusiness.pyramidMapContext(1, "my_pyramid_context", "CRS:84", mapContext, TilingMode.RENDERED);
+        TilingResult result = pyramidBusiness.pyramidMapContext(1, "my_pyramid_context", "CRS:84", mapContext, TilingMode.RENDERED, nbLevel);
 
         Assert.assertNotNull(result.getPyramidDataId());
         org.constellation.dto.Data d = dataBusiness.getData(result.getPyramidDataId());
@@ -320,7 +322,7 @@ public class PyramidBusinessTest {
         
         Assert.assertTrue(model instanceof TileMatrixSet);
         TileMatrixSet tms = (TileMatrixSet) model;
-        Assert.assertEquals(8, tms.getTileMatrices().size());
+        Assert.assertEquals(nbLevel, tms.getTileMatrices().size());
         
         Assert.assertNotNull(result.getPyramidDataId());
 
@@ -339,8 +341,9 @@ public class PyramidBusinessTest {
         //dataIds.addAll(providerBusiness.getDataIdsFromProviderId(coverage1PID));
 
         Assert.assertEquals(1, dataIds.size());
+        int nbLevel = 4; // will not be used because its coverage data
 
-        TilingResult result = pyramidBusiness.pyramidDatas(1, null, dataIds, null, TilingMode.CONFORM);
+        TilingResult result = pyramidBusiness.pyramidDatas(1, null, dataIds, null, TilingMode.CONFORM, nbLevel);
 
         Assert.assertNotNull(result.getPyramidDataId());
         org.constellation.dto.Data d = dataBusiness.getData(result.getPyramidDataId());

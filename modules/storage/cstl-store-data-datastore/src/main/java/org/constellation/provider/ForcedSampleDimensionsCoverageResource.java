@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.admin;
+package org.constellation.provider;
 
 import java.awt.image.RenderedImage;
 import java.util.List;

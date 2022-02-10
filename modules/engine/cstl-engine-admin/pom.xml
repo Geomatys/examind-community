@@ -56,25 +56,17 @@
         </dependency>
         <dependency>
             <groupId>org.geotoolkit</groupId>
-            <artifactId>geotk-xml-sld</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.geotoolkit</groupId>
             <artifactId>geotk-xml-ebrim</artifactId>
         </dependency>
         <dependency>
             <groupId>org.geotoolkit</groupId>
             <artifactId>geotk-client-wps</artifactId>
         </dependency>
+        <!-- for dimap metadata reading -->
         <dependency>
             <groupId>org.geotoolkit</groupId>
             <artifactId>geotk-coverage-geotiff</artifactId>
         </dependency>
-         <dependency>
-            <groupId>org.geotoolkit</groupId>
-            <artifactId>geotk-render2d</artifactId>
-        </dependency>
-
         <!-- for map context tiling -->
         <dependency>
             <groupId>org.geotoolkit</groupId>

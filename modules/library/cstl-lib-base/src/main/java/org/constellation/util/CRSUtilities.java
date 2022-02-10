@@ -31,6 +31,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
+import org.apache.sis.referencing.crs.AbstractCRS;
+import org.apache.sis.referencing.cs.AxesConvention;
+import org.constellation.exception.ConstellationException;
 import org.opengis.util.InternationalString;
 import org.opengis.geometry.Envelope;
 import org.opengis.referencing.operation.TransformException;
@@ -207,5 +210,26 @@ public class CRSUtilities {
             result.intersect(crsEnv);
         }
         return result;
+    }
+
+    /**
+     * Return a CRS for a specified code.
+     *
+     * @param crs a CRS identifier.
+     * @param forceConvention If set to {@code true} The CRS is returned with a forced convention of AxesConvention.RIGHT_HANDED.
+     * 
+     * @return A CoordinateReferenceSystem or {@code Optional.empty()} if the input parameter "crs" is null or empty.
+     * 
+     * @throws ConstellationException If the CRS code is invalid.
+     */
+    public static Optional<CoordinateReferenceSystem>  verifyCrs(String crs, boolean forceConvention) throws ConstellationException {
+        if (crs == null || (crs = crs.trim()).isEmpty()) return Optional.empty();
+        try {
+            final CoordinateReferenceSystem decodedCrs = CRS.forCode(crs);
+            if (!forceConvention) return Optional.of(decodedCrs);
+            return Optional.of(AbstractCRS.castOrCopy(CRS.forCode(crs)).forConvention(AxesConvention.RIGHT_HANDED));
+        } catch (FactoryException ex) {
+            throw new ConstellationException("Invalid CRS code : " + crs);
+        }
     }
 }

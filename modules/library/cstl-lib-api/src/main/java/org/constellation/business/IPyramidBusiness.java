@@ -39,11 +39,12 @@ public interface IPyramidBusiness {
      * @param crs The given pyramid coordinate reference system.
      * @param userId The pyramids owner.
      * @param mode The tiling mode, RENDERED or CONFORM.
+     * @param nbLevel Number of level to compute.
      * 
      * @return {@link TilingResult}
      * @throws org.constellation.exception.ConstellationException
      */
-    TilingResult pyramidMapContext(Integer userId, String pyramidDataName, final String crs, final MapContextLayersDTO mc, final TilingMode mode) throws ConstellationException;
+    TilingResult pyramidMapContext(Integer userId, String pyramidDataName, final String crs, final MapContextLayersDTO mc, final TilingMode mode, final int nbLevel) throws ConstellationException;
 
     /**
      * Generates a pyramid for a map context. if mode = RENDERED generated pyramid will be styled for rendering.
@@ -54,19 +55,21 @@ public interface IPyramidBusiness {
      * @param crs The given pyramid coordinate reference system.
      * @param userId The pyramids owner.
      * @param mode The tiling mode, RENDERED or CONFORM.
+     * @param nbLevel Number of level to compute (used only if a non-coverage data is present in the list)
      * 
      * @return {@link TilingResult}
      * @throws org.constellation.exception.ConstellationException
      */
-    TilingResult pyramidDatas(Integer userId, String pyramidDataName, List<Integer> dataIds, final String crs, final TilingMode mode) throws ConstellationException;
+    TilingResult pyramidDatas(Integer userId, String pyramidDataName, List<Integer> dataIds, final String crs, final TilingMode mode, final int nbLevel) throws ConstellationException;
 
     /**
      * Generates a pyramid conform for each data of the provider.
      * N.B : Generated pyramid contains coverage real values, it's not styled for rendering.
      *
      * @param providerId Provider identifier of the data to tile.
+     * @param nbLevel Number of level to compute (used only for non-coverage data)
      *
      */
-    void createAllPyramidConformForProvider(final int providerId) throws ConstellationException;
+    void createAllPyramidConformForProvider(final int providerId, int nbLevel) throws ConstellationException;
 
 }

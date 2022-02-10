@@ -19,20 +19,21 @@
 package org.constellation.provider;
 
 import java.awt.Dimension;
-import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.opengis.geometry.Envelope;
 
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridGeometry;
+import org.apache.sis.portrayal.MapItem;
 import org.apache.sis.storage.GridCoverageResource;
 
 import org.geotoolkit.image.io.metadata.SpatialMetadata;
 
 import org.constellation.exception.ConstellationStoreException;
-import org.constellation.provider.Data;
+import org.opengis.style.Style;
 
 /**
  * Coverage extension of a {@link Data}, which add some methods specific
@@ -44,7 +45,9 @@ import org.constellation.provider.Data;
  * @since 0.4
  */
 public interface CoverageData extends Data<GridCoverageResource> {
+
     /**
+     * @return The original MIME type of the data.
      */
     String getImageFormat();
 
@@ -62,6 +65,12 @@ public interface CoverageData extends Data<GridCoverageResource> {
      */
     GridCoverage getCoverage(final Envelope envelope, final Dimension dimension) throws ConstellationStoreException;
 
+    /**
+     * Get back grid geometry for the data.
+     *
+     * @return The grid geometry of this data.
+     * @throws ConstellationStoreException If we cannot extract geometry information from the resource.
+     */
     GridGeometry getGeometry() throws ConstellationStoreException;
 
     /**
@@ -69,4 +78,14 @@ public interface CoverageData extends Data<GridCoverageResource> {
      * @return
      */
     List<org.constellation.dto.Dimension> getSpecialDimensions() throws ConstellationStoreException;
+
+    /**
+     * 
+     * @param style Style to apply to the data. Can be null.
+     * @param params Extra parameters usable by specific implementations. No more details available at API level. Can be null.
+     * @param forceSampleDimensions if set to {@code true} the sample dimensions will be overriden.
+     *
+     * @return A map Item.
+     */
+    MapItem getMapLayer(Style style, final Map<String, Object> params, boolean forceSampleDimensions) throws ConstellationStoreException;
 }

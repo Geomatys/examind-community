@@ -21,6 +21,8 @@ package org.constellation.provider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import java.awt.Dimension;
+import java.awt.image.DataBuffer;
+import java.awt.image.RenderedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -33,18 +35,19 @@ import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.stream.DoubleStream;
 import org.apache.sis.coverage.SampleDimension;
-import org.apache.sis.coverage.grid.DomainLinearizer;
 import org.apache.sis.coverage.grid.GridCoverage;
-import org.apache.sis.coverage.grid.GridCoverageProcessor;
 import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.coverage.grid.GridOrientation;
-import org.apache.sis.image.Interpolation;
+import org.apache.sis.coverage.grid.IncompleteGridGeometryException;
+import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.internal.util.UnmodifiableArrayList;
 import org.apache.sis.measure.NumberRange;
 import org.apache.sis.parameter.Parameters;
+import org.apache.sis.portrayal.MapItem;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
+import org.apache.sis.referencing.operation.transform.MathTransforms;
 import org.apache.sis.referencing.operation.transform.TransformSeparator;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
@@ -58,6 +61,7 @@ import static org.constellation.api.StatisticState.STATE_PENDING;
 import org.constellation.dto.BandDescription;
 import org.constellation.dto.CoverageDataDescription;
 import org.constellation.dto.StatInfo;
+import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.util.DataStatisticsListener;
 import org.constellation.provider.util.ImageStatisticDeserializer;
@@ -66,6 +70,7 @@ import org.geotoolkit.coverage.grid.GridGeometryIterator;
 import org.geotoolkit.coverage.grid.GridIterator;
 import org.geotoolkit.coverage.worldfile.FileCoverageResource;
 import org.geotoolkit.image.io.metadata.SpatialMetadata;
+import org.geotoolkit.map.MapBuilder;
 import org.geotoolkit.processing.coverage.statistics.Statistics;
 import org.geotoolkit.processing.coverage.statistics.StatisticsDescriptor;
 import org.geotoolkit.referencing.ReferencingUtilities;
@@ -81,7 +86,9 @@ import org.opengis.referencing.crs.VerticalCRS;
 import org.opengis.referencing.cs.CoordinateSystemAxis;
 import org.opengis.referencing.datum.PixelInCell;
 import org.opengis.referencing.operation.MathTransform;
+import org.opengis.referencing.operation.MathTransform1D;
 import org.opengis.referencing.operation.TransformException;
+import org.opengis.style.Style;
 import org.opengis.util.GenericName;
 
 /**
@@ -108,6 +115,88 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
 
     public DefaultCoverageData(final GenericName name, final GridCoverageResource ref, final DataStore store){
         super(name, ref, store);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public MapItem getMapLayer(Style style, Map<String, Object> params, boolean forceSampleDimensions) throws ConstellationStoreException {
+        if (!forceSampleDimensions) {
+            return getMapLayer(style, params);
+        } else {
+            GridCoverageResource resource = forceSampleDimensions(origin);
+            return MapBuilder.createLayer(resource);
+        }
+    }
+
+    /**
+     * find the type of data we are dealing with, geophysic or photographic
+     * 
+     * @param inRef
+     * @return
+     * @throws ConstellationException
+     */
+    private GridCoverageResource forceSampleDimensions(GridCoverageResource inRef) throws ConstellationStoreException {
+        try {
+            final List<SampleDimension> sampleDimensions = inRef.getSampleDimensions();
+            if (sampleDimensions != null) {
+                final int nbBand = sampleDimensions.size();
+                for (int i = 0; i < nbBand; i++) {
+                    if (sampleDimensions.get(i).getCategories() != null) {
+                        return inRef;
+                    }
+                }
+
+                //no sample dimension categories, we force some categories
+                //this is a bypass solution to avoid black border images in pyramids
+                //note : we need a pyramid storage model that doesn't produce any pixels
+                //outside the original coverage area
+                GridGeometry gg = inRef.getGridGeometry();
+                RenderedImage img = readSmallImage(inRef, gg);
+                if (img == null) {
+                    return inRef;
+                }
+                final int dataType = img.getSampleModel().getDataType();
+                final List<SampleDimension> newDims = new ArrayList<>();
+                for (int i = 0; i < nbBand; i++) {
+                    final SampleDimension sd = sampleDimensions.get(i);
+                    NumberRange range;
+                    switch (dataType) {
+                        case DataBuffer.TYPE_BYTE : range = NumberRange.create(0, true, 255, true); break;
+                        case DataBuffer.TYPE_SHORT : range = NumberRange.create(Short.MIN_VALUE, true, Short.MAX_VALUE, true); break;
+                        case DataBuffer.TYPE_USHORT : range = NumberRange.create(0, true, 0xFFFF, true); break;
+                        case DataBuffer.TYPE_INT : range = NumberRange.create(Integer.MIN_VALUE, true, Integer.MAX_VALUE, true); break;
+                        default : range = NumberRange.create(-Double.MAX_VALUE, true, +Double.MAX_VALUE, true); break;
+                    }
+
+                    final SampleDimension nsd = new SampleDimension.Builder()
+                            .setName(sd.getName())
+                            .addQuantitative("data", range, (MathTransform1D) MathTransforms.linear(1, 0), sd.getUnits().orElse(null))
+                            .build();
+                    newDims.add(nsd);
+                }
+                inRef = new ForcedSampleDimensionsCoverageResource(inRef, newDims);
+            }
+        } catch (DataStoreException ex) {
+            throw new ConstellationStoreException("Failed to extract no-data values for resampling " + ex.getMessage(),ex);
+        }
+        return inRef;
+    }
+
+    private RenderedImage readSmallImage(GridCoverageResource ref, GridGeometry gg) throws DataStoreException{
+        //read a single pixel value
+        try {
+            double[] resolution = gg.getResolution(false);
+            final GeneralEnvelope envelope = new GeneralEnvelope(gg.getEnvelope());
+            for(int i=0;i<resolution.length;i++){
+                resolution[i] = envelope.getSpan(i)/ 5.0;
+            }
+
+            GridGeometry query = gg.derive().subgrid(envelope, resolution).sliceByRatio(0.5, 0,1).build();
+            return ref.read(query).render(null);
+        } catch (IncompleteGridGeometryException ex){}
+        return null;
     }
 
     /**
@@ -219,6 +308,9 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
         return result;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Envelope getEnvelope() throws ConstellationStoreException {
         GridGeometry ggg = getGeometry();
@@ -229,6 +321,9 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
         return null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getImageFormat() {
          if (origin instanceof FileCoverageResource) {
@@ -242,11 +337,17 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
         return "";
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public SpatialMetadata getSpatialMetadata() throws ConstellationStoreException {
         return null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<SampleDimension> getSampleDimensions() throws ConstellationStoreException {
         try {
@@ -258,11 +359,7 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
 
 
     /**
-     * Get back grid geometry for the data.
-     *
-     * @return The grid geometry of this data.
-     * @throws ConstellationStoreException If we cannot extract geometry information
-     * from the resource.
+     * {@inheritDoc}
      */
     @Override
     public GridGeometry getGeometry() throws ConstellationStoreException {

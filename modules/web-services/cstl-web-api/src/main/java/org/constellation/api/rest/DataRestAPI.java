@@ -350,19 +350,21 @@ public class DataRestAPI extends AbstractRestAPI{
 
     /**
      * Generates a pyramid on a data in the given provider, create and return this new provider.
-     *
      * N.B : Generated pyramid contains coverage real values, it's not styled for rendering.
      *
+     *
      * @param dataId the given data id.
+     * @param nbLevel Number of level to compute (used only for non-coverage data). default to 8.
      * @param req
      * @return
      */
     @RequestMapping(value="/datas/{dataId}/pyramid/",method=POST,consumes=APPLICATION_JSON_VALUE,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity pyramidData(@PathVariable("dataId") final int dataId,
+            @RequestParam(name = "nblevel", defaultValue = "8") final int nbLevel,
             HttpServletRequest req) {
         try {
             final int userId = assertAuthentificated(req);
-            final TilingResult ref =  pyramidBusiness.pyramidDatas(userId, null, Arrays.asList(dataId), null, TilingMode.CONFORM);
+            final TilingResult ref =  pyramidBusiness.pyramidDatas(userId, null, Arrays.asList(dataId), null, TilingMode.CONFORM, nbLevel);
             return new ResponseEntity(ref, OK);
         }catch(ConstellationException ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
@@ -371,14 +373,14 @@ public class DataRestAPI extends AbstractRestAPI{
     }
 
     /**
-     * Generates a pyramid on a list of data and create and return this new provider.
-     * Creates btw a mapcontext that contains internal data.
+     * Generates a pyramid on a list of data and create and return this new provider.Creates btw a mapcontext that contains internal data.
      * N.B : It creates a styled pyramid, which can be used for display purposes, but not for analysis.
      *
      * @param crs The selected CRS for the generated pyramid.
      * @param layerName The given pyramid name.
      * @param dataIds The list of data identifier to integrate in the generated pyramid.
      * @param mode Tiling mode, default to RENDERED.
+     * @param nbLevel Number of level to compute (used only if a non-coverage data is present in the list). default to 8.
      * @param req
      *
      * @return Informations about tiling process.
@@ -389,11 +391,12 @@ public class DataRestAPI extends AbstractRestAPI{
             @RequestParam("layerName") final String layerName,
             @RequestBody final List<Integer> dataIds,
             @RequestParam(name = "mode", defaultValue = "RENDERED") final String mode,
+            @RequestParam(name = "nblevel", defaultValue = "8") final int nbLevel,
             HttpServletRequest req) {
         try {
 
             int userId = assertAuthentificated(req);
-            final TilingResult ref = pyramidBusiness.pyramidDatas(userId, layerName, dataIds, crs, TilingMode.valueOf(mode));
+            final TilingResult ref = pyramidBusiness.pyramidDatas(userId, layerName, dataIds, crs, TilingMode.valueOf(mode), nbLevel);
             return new ResponseEntity(ref, OK);
         } catch (ConstellationException ex) {
             return new ErrorMessage().message(ex.getMessage()).build();
