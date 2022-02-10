@@ -121,7 +121,7 @@ public class QuartzJobListener implements JobListener, CstlJobListener {
     @Override
     public void jobWasExecuted(JobExecutionContext jec, JobExecutionException jee) {
        if (jee != null) {
-            LOGGER.warning("Error after job execution:" + jee.getMessage());
+            LOGGER.log(Level.WARNING, "Error after job execution.", jee);
             final ProcessJobDetail detail = (ProcessJobDetail) jec.getJobDetail();
             final ProcessJob pj = (ProcessJob) jec.getJobInstance();
             final QuartzTask quartzTask = (QuartzTask) detail.getJobDataMap().get(QuartzJobListener.PROPERTY_TASK);
@@ -176,7 +176,7 @@ public class QuartzJobListener implements JobListener, CstlJobListener {
     /**
      * Catch process events and set them in the TaskState.
      */
-    private static class StateListener implements ProcessListener{
+    private static class StateListener implements ProcessListener {
 
         private final String title;
         private final Task taskEntity;
@@ -195,100 +195,126 @@ public class QuartzJobListener implements JobListener, CstlJobListener {
 
         @Override
         public void started(ProcessEvent event) {
-            taskEntity.setState(TaskState.RUNNING.name());
-            taskEntity.setDateStart(System.currentTimeMillis());
-            taskEntity.setMessage(toString(event.getTask()));
-            roundProgression(event);
-            updateTask(taskEntity);
+            final String newState = TaskState.RUNNING.name();
+            final Double progress = roundProgression(event);
+            final String msg      = toString(event.getTask());
+            synchronized (taskEntity) {
+                if (!isAlreadyDone(taskEntity.getState(), newState)) {
+                    taskEntity.setState(newState);
+                    taskEntity.setDateStart(System.currentTimeMillis());
+                    taskEntity.setMessage(msg);
+                    if (progress != null) taskEntity.setProgress(progress);
+                    updateTask(taskEntity);
+                }
+            }
         }
 
         @Override
         public void progressing(ProcessEvent event) {
-            taskEntity.setState(TaskState.RUNNING.name());
-            taskEntity.setMessage(toString(event.getTask()));
-            roundProgression(event);
-
-            ParameterValueGroup output = event.getOutput();
-            if (output != null) {
-                try {
-                    taskEntity.setTaskOutput(ParamUtilities.writeParameterJSON(output));
-                } catch (JsonProcessingException e) {
-                    LOGGER.log(Level.WARNING, "Process output serialization failed", e);
+            final String newState = TaskState.RUNNING.name();
+            final Double progress = roundProgression(event);
+            final String msg      = toString(event.getTask());
+            final String output   = getTaskOutput(event.getOutput());
+            synchronized (taskEntity) {
+                if (!isAlreadyDone(taskEntity.getState(), newState)) {
+                    taskEntity.setState(newState);
+                    taskEntity.setMessage(msg);
+                    taskEntity.setTaskOutput(output);
+                    if (progress != null) taskEntity.setProgress(progress);
+                    if (event.getException() != null) warnings.add(event);
+                    updateTask(taskEntity);
                 }
             }
-
-            if (event.getException() != null) {
-                warnings.add(event);
-            }
-
-            updateTask(taskEntity);
         }
 
         @Override
         public void paused(ProcessEvent event) {
-            taskEntity.setState(TaskState.PAUSED.name());
-            taskEntity.setMessage(toString(event.getTask()));
-            roundProgression(event);
-            updateTask(taskEntity);
+            final String newState = TaskState.PAUSED.name();
+            final Double progress = roundProgression(event);
+            final String msg      = toString(event.getTask());
+            synchronized (taskEntity) {
+                if (!isAlreadyDone(taskEntity.getState(), newState)) {
+                    taskEntity.setState(newState);
+                    taskEntity.setMessage(msg);
+                    if (progress != null) taskEntity.setProgress(progress);
+                    updateTask(taskEntity);
+                }
+            }
         }
 
         @Override
         public void resumed(ProcessEvent event) {
-            taskEntity.setState(TaskState.RUNNING.name());
-            taskEntity.setMessage(toString(event.getTask()));
-            roundProgression(event);
-            updateTask(taskEntity);
+            final String newState = TaskState.RUNNING.name();
+            final Double progress = roundProgression(event);
+            final String msg      = toString(event.getTask());
+            synchronized (taskEntity) {
+                if (!isAlreadyDone(taskEntity.getState(), newState)) {
+                    taskEntity.setState(TaskState.RUNNING.name());
+                    taskEntity.setMessage(msg);
+                    if (progress != null) taskEntity.setProgress(progress);
+                    updateTask(taskEntity);
+                }
+            }
         }
 
         @Override
         public void completed(ProcessEvent event) {
-            taskEntity.setDateEnd(System.currentTimeMillis());
-            taskEntity.setMessage(toString(event.getTask()));
-            roundProgression(event);
-
-            ParameterValueGroup output = event.getOutput();
-            if (output != null) {
-                try {
-                    taskEntity.setTaskOutput(ParamUtilities.writeParameterJSON(output));
-                } catch (JsonProcessingException e) {
-                    LOGGER.log(Level.WARNING, "Process output serialization failed", e);
-                }
-            }
-
+            final Double progress = roundProgression(event);
+            final String output   = getTaskOutput(event.getOutput());
+            final String newState;
+            final String msg;
             // If a warning occurred, send exception to the user.
             if (!warnings.isEmpty()) {
-                taskEntity.setState(TaskState.WARNING.name());
-                taskEntity.setMessage(processWarningMessage());
+                newState = TaskState.WARNING.name();
+                msg = processWarningMessage();
             } else {
-                taskEntity.setState(TaskState.SUCCEED.name());
+                newState = TaskState.SUCCEED.name();
+                msg = toString(event.getTask());
             }
-
-            updateTask(taskEntity);
+            synchronized (taskEntity) {
+                if (!isAlreadyDone(taskEntity.getState(), newState)) {
+                    taskEntity.setDateEnd(System.currentTimeMillis());
+                    taskEntity.setMessage(msg);
+                    taskEntity.setState(newState);
+                    taskEntity.setTaskOutput(output);
+                    if (progress != null) taskEntity.setProgress(progress);
+                    updateTask(taskEntity);
+                }
+            }
         }
 
 
         @Override
         public void failed(ProcessEvent event) {
-            taskEntity.setState(TaskState.FAILED.name());
-            taskEntity.setDateEnd(System.currentTimeMillis());
-
+            final String newState = TaskState.FAILED.name();
             final Exception exception = event.getException();
             final String exceptionStr = printException(exception);
-            taskEntity.setMessage(toString(event.getTask()) + " cause : " + exceptionStr);
-            //taskEntity.setProgress((double) event.getProgress());
-            updateTask(taskEntity);
+            final String msg = toString(event.getTask()) + " cause : " + exceptionStr;
+
+            synchronized (taskEntity) {
+                if (!isAlreadyDone(taskEntity.getState(), newState)) {
+                    taskEntity.setState(newState);
+                    taskEntity.setDateEnd(System.currentTimeMillis());
+                    taskEntity.setMessage(msg);
+                    updateTask(taskEntity);
+                }
+            }
         }
 
         @Override
         public void dismissed(ProcessEvent event) {
-            taskEntity.setState(TaskState.CANCELLED.name());
-            taskEntity.setDateEnd(System.currentTimeMillis());
-
             final Exception exception = event.getException();
             final String exceptionStr = printException(exception);
-            taskEntity.setMessage(toString(event.getTask()) + " cause : " + exceptionStr);
-            //taskEntity.setProgress((double) event.getProgress());
-            updateTask(taskEntity);
+            final String newState = TaskState.CANCELLED.name();
+            final String msg = toString(event.getTask()) + " cause : " + exceptionStr;
+            synchronized (taskEntity) {
+                if (!isAlreadyDone(taskEntity.getState(), newState)) {
+                    taskEntity.setState(newState);
+                    taskEntity.setDateEnd(System.currentTimeMillis());
+                    taskEntity.setMessage(msg);
+                    updateTask(taskEntity);
+                }
+            }
         }
 
         private void updateTask(Task taskEntity) {
@@ -329,26 +355,52 @@ public class QuartzJobListener implements JobListener, CstlJobListener {
         }
 
         /**
+         * Transform a parameter value group in a JSON String.
+         * If the serialisation fail, it will only log the error and return {@code null}.
+         * 
+         * @param output A proccess output result.
+         *
+         * @return A JSON String or {@code null}.
+         */
+        private String getTaskOutput(ParameterValueGroup output) {
+            if (output != null) {
+                try {
+                    return ParamUtilities.writeParameterJSON(output);
+                } catch (JsonProcessingException e) {
+                    LOGGER.log(Level.WARNING, "Process output serialization failed", e);
+                }
+            }
+            return null;
+        }
+
+        /**
          * Round event progression value to {@link #ROUND_SCALE} before
          * set to taskEntity object.
          *
          * @param event ProcessEvent
          */
-        private void roundProgression(ProcessEvent event) {
+        private Double roundProgression(ProcessEvent event) {
             if (!Float.isNaN(event.getProgress()) && !Float.isInfinite(event.getProgress())) {
                 BigDecimal progress = BigDecimal.valueOf(event.getProgress());
                 progress = progress.setScale(ROUND_SCALE, BigDecimal.ROUND_HALF_UP);
-                taskEntity.setProgress(progress.doubleValue());
+                return progress.doubleValue();
             }
+            return null;
         }
 
         private String toString(InternationalString str){
-            if(str==null){
-                return "";
-            }else{
-                return str.toString();
-            }
+            return str != null ? str.toString() : "";
         }
 
+        private boolean isAlreadyDone(String currentState, String newState) {
+            boolean alreadyDone =
+                    TaskState.FAILED.name().equals(currentState)    ||
+                    TaskState.CANCELLED.name().equals(currentState) ||
+                    TaskState.SUCCEED.name().equals(currentState);
+            if (alreadyDone) {
+                LOGGER.warning("A task try to change the state of a process to: " + newState + ", after the task was reported as " + currentState);
+            }
+            return alreadyDone;
+        }
     }
 }
