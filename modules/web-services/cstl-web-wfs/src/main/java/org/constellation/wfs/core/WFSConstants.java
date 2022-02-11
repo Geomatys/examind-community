@@ -67,6 +67,9 @@ import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import org.apache.sis.util.Version;
 import static org.constellation.api.CommonConstants.OUTPUT_FORMAT;
 import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
+import static org.constellation.ws.MimeType.APP_GML32_XML;
+import static org.constellation.ws.MimeType.TEXT_GML31_XML;
+import org.geotoolkit.atom.xml.Link;
 import org.geotoolkit.ows.xml.RequestBase;
 
 /**
@@ -99,16 +102,12 @@ public final class WFSConstants {
     /**
      * The Mime type for describe feature GML 3.1.1
      */
-    public final static String GML_3_1_1_MIME = "text/xml; subtype=\"gml/3.1.1\"";
-
-    public final static String GML_3_2_1_MIME = "application/gml+xml; version=3.2";
-
     public final static String GML_3_2_SF_MIME = "application/gml+xml;version=3.2;profile=&quot;http://www.opengis.net/def/profile/ogc/2.0/gml-sf0&quot;";
 
-    public static final List<String> FEAT_API_CONFORMS = Collections.unmodifiableList(Arrays.asList(
-        "https://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core",
-        "https://www.opengis.net/spec/ogcapi-features-1/1.0/conf/geojson",
-        "https://www.opengis.net/spec/ogcapi-features-1/1.0/conf/gmlsf0"
+    public static final List<Link> FEAT_API_CONFORMS = Collections.unmodifiableList(Arrays.asList(
+        new Link("https://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core", null, null, null),
+        new Link("https://www.opengis.net/spec/ogcapi-features-1/1.0/conf/geojson", null, null, null),
+        new Link("https://www.opengis.net/spec/ogcapi-features-1/1.0/conf/gmlsf0", null, null, null)
     ));
 
     public static final FilterCapabilities FILTER_CAPABILITIES_V110;
@@ -232,7 +231,7 @@ public final class WFSConstants {
         operations.add(getCapabilities);
 
         final List<AbstractDomain> dfParameters = new ArrayList<>();
-        dfParameters.add(WFSXmlFactory.buildDomain("1.1.0", OUTPUT_FORMAT, Arrays.asList("text/xml; subtype=\"gml/3.1.1\"")));
+        dfParameters.add(WFSXmlFactory.buildDomain("1.1.0", OUTPUT_FORMAT, Arrays.asList(TEXT_GML31_XML)));
         dfParameters.add(WFSXmlFactory.buildDomain("1.1.0", "Service",      Arrays.asList("WFS")));
         dfParameters.add(WFSXmlFactory.buildDomain("1.1.0", "Version",      Arrays.asList("1.1.0")));
         AbstractOperation describeFeatureType = WFSXmlFactory.buildOperation("1.1.0", dcps, dfParameters, null, "DescribeFeatureType");
@@ -240,7 +239,7 @@ public final class WFSConstants {
 
         final List<AbstractDomain> gfParameters = new ArrayList<>();
         gfParameters.add(WFSXmlFactory.buildDomain("1.1.0", "resultType",   Arrays.asList("results","hits")));
-        gfParameters.add(WFSXmlFactory.buildDomain("1.1.0", OUTPUT_FORMAT, Arrays.asList("text/xml; subtype=\"gml/3.1.1\"")));
+        gfParameters.add(WFSXmlFactory.buildDomain("1.1.0", OUTPUT_FORMAT, Arrays.asList(TEXT_GML31_XML)));
         gfParameters.add(WFSXmlFactory.buildDomain("1.1.0", "Service",      Arrays.asList("WFS")));
         gfParameters.add(WFSXmlFactory.buildDomain("1.1.0", "Version",      Arrays.asList("1.1.0")));
 
@@ -250,7 +249,7 @@ public final class WFSConstants {
         operations.add(getFeature);
 
         final List<AbstractDomain> tParameters = new ArrayList<>();
-        tParameters.add(WFSXmlFactory.buildDomain("1.1.0", "inputFormat",   Arrays.asList("text/xml; subtype=\"gml/3.1.1\"")));
+        tParameters.add(WFSXmlFactory.buildDomain("1.1.0", "inputFormat",   Arrays.asList(TEXT_GML31_XML)));
         tParameters.add(WFSXmlFactory.buildDomain("1.1.0", "idgen",         Arrays.asList("GenerateNew","UseExisting","ReplaceDuplicate")));
         tParameters.add(WFSXmlFactory.buildDomain("1.1.0", "releaseAction", Arrays.asList("ALL", "SOME")));
         tParameters.add(WFSXmlFactory.buildDomain("1.1.0", "Service",       Arrays.asList("WFS")));
@@ -283,7 +282,7 @@ public final class WFSConstants {
         operations.add(getCapabilities);
 
         final List<AbstractDomain> dfParameters = new ArrayList<>();
-        dfParameters.add(WFSXmlFactory.buildDomain("2.0.0", OUTPUT_FORMAT, Arrays.asList("application/gml+xml; version=3.2", "application/schema+json")));
+        dfParameters.add(WFSXmlFactory.buildDomain("2.0.0", OUTPUT_FORMAT, Arrays.asList(APP_GML32_XML, "application/schema+json")));
         dfParameters.add(serviceDomain);
         dfParameters.add(versionDomain);
         AbstractOperation describeFeatureType = WFSXmlFactory.buildOperation("2.0.0", dcps, dfParameters, null, "DescribeFeatureType");
@@ -291,7 +290,7 @@ public final class WFSConstants {
 
         final List<AbstractDomain> gfParameters = new ArrayList<>();
         gfParameters.add(WFSXmlFactory.buildDomain("2.0.0", "resultType",   Arrays.asList("results","hits")));
-        gfParameters.add(WFSXmlFactory.buildDomain("2.0.0", OUTPUT_FORMAT, Arrays.asList("application/gml+xml; version=3.2", "application/json")));
+        gfParameters.add(WFSXmlFactory.buildDomain("2.0.0", OUTPUT_FORMAT, Arrays.asList(APP_GML32_XML, "application/json")));
         gfParameters.add(serviceDomain);
         gfParameters.add(versionDomain);
 
@@ -301,7 +300,7 @@ public final class WFSConstants {
         operations.add(getFeature);
 
         final List<AbstractDomain> tParameters = new ArrayList<>();
-        tParameters.add(WFSXmlFactory.buildDomain("2.0.0", "inputFormat",   Arrays.asList("application/gml+xml; version=3.2")));
+        tParameters.add(WFSXmlFactory.buildDomain("2.0.0", "inputFormat",   Arrays.asList(APP_GML32_XML)));
         tParameters.add(WFSXmlFactory.buildDomain("2.0.0", "idgen",         Arrays.asList("GenerateNew","UseExisting","ReplaceDuplicate")));
         tParameters.add(WFSXmlFactory.buildDomain("2.0.0", "releaseAction", Arrays.asList("ALL", "SOME")));
         tParameters.add(serviceDomain);

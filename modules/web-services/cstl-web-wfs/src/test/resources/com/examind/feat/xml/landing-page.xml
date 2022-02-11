@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<feat:LandingPage xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:xlink="http://www.w3.org/1999/xlink" 
+                  xmlns:feat="http://www.opengis.net/ogcapi-features-1/1.0" 
+                  xmlns:atom="http://www.w3.org/2005/Atom"
+                  xsi:schemaLocation="http://www.opengis.net/ogcapi-features-1/1.0 http://schemas.opengis.net/ogcapi/features/part1/1.0/xml/core.xsd"
+                  service="OGCAPI-Features"
+                  version="1.0.0">
+    <feat:Title>Examind OGC API Features service</feat:Title>
+    <feat:Description>Access Examind vector data via a Web API that conforms to the OGC API Features specification</feat:Description>
+    <atom:link
+        href="http://localhost:9090/WS/feature/default/apidocs"
+        rel="service-desc"
+        title="the API definition"/>
+    <atom:link
+        href="http://localhost:9090/WS/feature/default?f=application/xml"
+        rel="self"
+        type="application/vnd.ogc.xml"
+        title="this document"/>
+    <atom:link
+        href="http://localhost:9090/WS/feature/default"
+        rel="alternate"
+        type="application/json"
+        title="this document as JSON"/>
+    <atom:link
+        href="http://localhost:9090/WS/feature/default/conformance"
+        rel="conformance"
+        type="application/json"
+        title="OGC API conformance classes implemented by this server as JSON"/>
+    <atom:link
+        href="http://localhost:9090/WS/feature/default/conformance?f=application/xml"
+        rel="conformance"
+        type="application/vnd.ogc.xml"
+        title="OGC API conformance classes implemented by this server as XML"/>
+    <atom:link
+        href="http://localhost:9090/WS/feature/default/collections"
+        rel="data"
+        type="application/json"
+        title="Information about the feature collections as JSON"/>
+    <atom:link
+        href="http://localhost:9090/WS/feature/default/collections?f=application/xml"
+        rel="data"
+        type="application/vnd.ogc.xml"
+        title="Information about the feature collections as XML"/>
+    <atom:link
+        href="http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&amp;service=WFS&amp;version=2.0.0"
+        rel="describedBy"
+        type="application/xml"
+        title="GML application schema."/>
+    <atom:link
+        href="http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&amp;service=WFS&amp;version=2.0.0&amp;outputformat=application/schema%2Bjson"
+        rel="describedBy"
+        type="application/schema+json"
+        title="JSON application schema."/>
+</feat:LandingPage>

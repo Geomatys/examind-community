@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<feat:ConformsTo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xmlns:xlink="http://www.w3.org/1999/xlink" 
+                 xmlns:feat="http://www.opengis.net/ogcapi-features-1/1.0" 
+                 xmlns:atom="http://www.w3.org/2005/Atom"
+                 xsi:schemaLocation="http://www.opengis.net/ogcapi-features-1/1.0 http://schemas.opengis.net/ogcapi/features/part1/1.0/xml/core.xsd"
+                 service="OGCAPI-Features"
+                 version="1.0.0">
+    <atom:link href="https://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core"/>
+    <atom:link href="https://www.opengis.net/spec/ogcapi-features-1/1.0/conf/geojson"/>
+    <atom:link href="https://www.opengis.net/spec/ogcapi-features-1/1.0/conf/gmlsf0"/>
+</feat:ConformsTo>

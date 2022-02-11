@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<feat:Collections xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:xlink="http://www.w3.org/1999/xlink" 
+                  xmlns:feat="http://www.opengis.net/ogcapi-features-1/1.0" 
+                  xmlns:atom="http://www.w3.org/2005/Atom"
+                  xsi:schemaLocation="http://www.opengis.net/ogcapi-features-1/1.0 http://schemas.opengis.net/ogcapi/features/part1/1.0/xml/core.xsd"
+                  service="OGCAPI-Features"
+                  version="1.0.0">
+    <atom:link href="http://localhost:9090/WS/feature/default/collections?f=application/xml" rel="self" type="application/vnd.ogc.xml" title="this document"/>
+    <atom:link href="http://localhost:9090/WS/feature/default/collections" rel="alternate" type="application/json" title="this document as JSON"/>
+    <feat:Collection>
+        <feat:Id>BasicPolygons</feat:Id>
+        <feat:Title>BasicPolygons</feat:Title>
+        <atom:link href="http://localhost:9090/WS/feature/default/collections/BasicPolygons/items" rel="items" type="application/geo+json" title="BasicPolygons"/>
+        <atom:link href="http://localhost:9090/WS/feature/default/collections/BasicPolygons/items?f=application/xml" rel="items" type="application/gml+xml;version=3.2;profile=&amp;quot;http://www.opengis.net/def/profile/ogc/2.0/gml-sf0&amp;quot;" title="BasicPolygons"/>
+        <atom:link href="http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&amp;service=WFS&amp;version=2.0.0&amp;typeName=BasicPolygons" rel="describedBy" type="application/xml" title="GML application schema for BasicPolygons type."/>
+        <atom:link href="http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&amp;service=WFS&amp;version=2.0.0&amp;typeName=BasicPolygons&amp;outputformat=application/schema%2Bjson" rel="describedBy" type="application/schema+json" title="JSON application schema for BasicPolygons type."/>
+        <feat:Extent>
+            <feat:Spatial crs="http://www.opengis.net/def/crs/OGC/1.3/CRS84">
+                <feat:LowerCorner>-2.0 -1.0</feat:LowerCorner>
+                <feat:UpperCorner>2.0 6.0</feat:UpperCorner>
+            </feat:Spatial>
+        </feat:Extent>
+    </feat:Collection>
+    <feat:Collection>
+        <feat:Id>Bridges</feat:Id>
+        <feat:Title>Bridges</feat:Title>
+        <atom:link href="http://localhost:9090/WS/feature/default/collections/Bridges/items" rel="items" type="application/geo+json" title="Bridges"/>
+        <atom:link href="http://localhost:9090/WS/feature/default/collections/Bridges/items?f=application/xml" rel="items" type="application/gml+xml;version=3.2;profile=&amp;quot;http://www.opengis.net/def/profile/ogc/2.0/gml-sf0&amp;quot;" title="Bridges"/>
+        <atom:link href="http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&amp;service=WFS&amp;version=2.0.0&amp;typeName=Bridges" rel="describedBy" type="application/xml" title="GML application schema for Bridges type."/>
+        <atom:link href="http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&amp;service=WFS&amp;version=2.0.0&amp;typeName=Bridges&amp;outputformat=application/schema%2Bjson" rel="describedBy" type="application/schema+json" title="JSON application schema for Bridges type."/>
+        <feat:Extent>
+            <feat:Spatial crs="http://www.opengis.net/def/crs/OGC/1.3/CRS84">
+                <feat:LowerCorner>7.0E-4 2.0E-4</feat:LowerCorner>
+                <feat:UpperCorner>7.0E-4 2.0E-4</feat:UpperCorner>
+            </feat:Spatial>
+        </feat:Extent>
+    </feat:Collection>
+    <feat:Collection>
+        <feat:Id>BuildingCenters</feat:Id>
+        <feat:Title>BuildingCenters</feat:Title>
+        <atom:link href="http://localhost:9090/WS/feature/default/collections/BuildingCenters/items" rel="items" type="application/geo+json" title="BuildingCenters"/>
+        <atom:link href="http://localhost:9090/WS/feature/default/collections/BuildingCenters/items?f=application/xml" rel="items" type="application/gml+xml;version=3.2;profile=&amp;quot;http://www.opengis.net/def/profile/ogc/2.0/gml-sf0&amp;quot;" title="BuildingCenters"/>
+        <atom:link href="http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&amp;service=WFS&amp;version=2.0.0&amp;typeName=BuildingCenters" rel="describedBy" type="application/xml" title="GML application schema for BuildingCenters type."/>
+        <atom:link href="http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&amp;service=WFS&amp;version=2.0.0&amp;typeName=BuildingCenters&amp;outputformat=application/schema%2Bjson" rel="describedBy" type="application/schema+json" title="JSON application schema for BuildingCenters type."/>
+        <feat:Extent>
+            <feat:Spatial crs="http://www.opengis.net/def/crs/OGC/1.3/CRS84">
+                <feat:LowerCorner>6.0E-4 0.001</feat:LowerCorner>
+                <feat:UpperCorner>9.0E-4 0.0022</feat:UpperCorner>
+            </feat:Spatial>
+        </feat:Extent>
+    </feat:Collection>
+    <feat:Collection>
+        <feat:Id>Buildings</feat:Id>
+        <feat:Title>Buildings</feat:Title>
+        <atom:link href="http://localhost:9090/WS/feature/default/collections/Buildings/items" rel="items" type="application/geo+json" title="Buildings"/>
+        <atom:link href="http://localhost:9090/WS/feature/default/collections/Buildings/items?f=application/xml" rel="items" type="application/gml+xml;version=3.2;profile=&amp;quot;http://www.opengis.net/def/profile/ogc/2.0/gml-sf0&amp;quot;" title="Buildings"/>
+        <atom:link href="http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&amp;service=WFS&amp;version=2.0.0&amp;typeName=Buildings" rel="describedBy" type="application/xml" title="GML application schema for Buildings type."/>
+        <atom:link href="http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&amp;service=WFS&amp;version=2.0.0&amp;typeName=Buildings&amp;outputformat=application/schema%2Bjson" rel="describedBy" type="application/schema+json" title="JSON application schema for Buildings type."/>
+        <feat:Extent>
+            <feat:Spatial crs="http://www.opengis.net/def/crs/OGC/1.3/CRS84">
+                <feat:LowerCorner>5.0E-4 8.0E-4</feat:LowerCorner>
+                <feat:UpperCorner>0.001 0.0024</feat:UpperCorner>
+            </feat:Spatial>
+        </feat:Extent>
+    </feat:Collection>
+    <feat:Collection>
+        <feat:Id>DividedRoutes</feat:Id>
+        <feat:Title>DividedRoutes</feat:Title>
+        <atom:link href="http://localhost:9090/WS/feature/default/collections/DividedRoutes/items" rel="items" type="application/geo+json" title="DividedRoutes"/>
+        <atom:link href="http://localhost:9090/WS/feature/default/collections/DividedRoutes/items?f=application/xml" rel="items" type="application/gml+xml;version=3.2;profile=&amp;quot;http://www.opengis.net/def/profile/ogc/2.0/gml-sf0&amp;quot;" title="DividedRoutes"/>
+        <atom:link href="http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&amp;service=WFS&amp;version=2.0.0&amp;typeName=DividedRoutes" rel="describedBy" type="application/xml" title="GML application schema for DividedRoutes type."/>
+        <atom:link href="http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&amp;service=WFS&amp;version=2.0.0&amp;typeName=DividedRoutes&amp;outputformat=application/schema%2Bjson" rel="describedBy" type="application/schema+json" title="JSON application schema for DividedRoutes type."/>
+        <feat:Extent>
+            <feat:Spatial crs="http://www.opengis.net/def/crs/OGC/1.3/CRS84">
+                <feat:LowerCorner>-0.0024 -0.0032</feat:LowerCorner>
+                <feat:UpperCorner>0.0024 -0.0026</feat:UpperCorner>
+            </feat:Spatial>
+        </feat:Extent>
+    </feat:Collection>
+    <feat:Collection>
+        <feat:Id>Forests</feat:Id>
+        <feat:Title>Forests</feat:Title>
+        <atom:link href="http://localhost:9090/WS/feature/default/collections/Forests/items" rel="items" type="application/geo+json" title="Forests"/>
+        <atom:link href="http://localhost:9090/WS/feature/default/collections/Forests/items?f=application/xml" rel="items" type="application/gml+xml;version=3.2;profile=&amp;quot;http://www.opengis.net/def/profile/ogc/2.0/gml-sf0&amp;quot;" title="Forests"/>
+        <atom:link href="http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&amp;service=WFS&amp;version=2.0.0&amp;typeName=Forests" rel="describedBy" type="application/xml" title="GML application schema for Forests type."/>
+        <atom:link href="http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&amp;service=WFS&amp;version=2.0.0&amp;typeName=Forests&amp;outputformat=application/schema%2Bjson" rel="describedBy" type="application/schema+json" title="JSON application schema for Forests type."/>
+        <feat:Extent>
+            <feat:Spatial crs="http://www.opengis.net/def/crs/OGC/1.3/CRS84">
+                <feat:LowerCorner>-0.0024 -0.0014</feat:LowerCorner>
+                <feat:UpperCorner>0.0018 0.0042</feat:UpperCorner>
+            </feat:Spatial>
+        </feat:Extent>
+    </feat:Collection>
+    <feat:Collection>
+        <feat:Id>JS2</feat:Id>
+        <feat:Title>JS2</feat:Title>
+        <atom:link href="http://localhost:9090/WS/feature/default/collections/JS2/items" rel="items" type="application/geo+json" title="JS2"/>
+        <atom:link href="http://localhost:9090/WS/feature/default/collections/JS2/items?f=application/xml" rel="items" type="application/gml+xml;version=3.2;profile=&amp;quot;http://www.opengis.net/def/profile/ogc/2.0/gml-sf0&amp;quot;" title="JS2"/>
+        <atom:link href="http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&amp;service=WFS&amp;version=2.0.0&amp;typeName=JS2" rel="describedBy" type="application/xml" title="GML application schema for JS2 type."/>
+        <atom:link href="http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&amp;service=WFS&amp;version=2.0.0&amp;typeName=JS2&amp;outputformat=application/schema%2Bjson" rel="describedBy" type="application/schema+json" title="JSON application schema for JS2 type."/>
+        <feat:Extent>
+            <feat:Spatial crs="http://www.opengis.net/def/crs/OGC/1.3/CRS84">
+                <feat:LowerCorner>-80.72487831115721 35.2553619492954</feat:LowerCorner>
+                <feat:UpperCorner>-80.70324897766113 35.27035945142482</feat:UpperCorner>
+            </feat:Spatial>
+        </feat:Extent>
+    </feat:Collection>
+    <feat:Collection>
+        <feat:Id>Lakes</feat:Id>
+        <feat:Title>Lakes</feat:Title>
+        <atom:link href="http://localhost:9090/WS/feature/default/collections/Lakes/items" rel="items" type="application/geo+json" title="Lakes"/>
+        <atom:link href="http://localhost:9090/WS/feature/default/collections/Lakes/items?f=application/xml" rel="items" type="application/gml+xml;version=3.2;profile=&amp;quot;http://www.opengis.net/def/profile/ogc/2.0/gml-sf0&amp;quot;" title="Lakes"/>
+        <atom:link href="http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&amp;service=WFS&amp;version=2.0.0&amp;typeName=Lakes" rel="describedBy" type="application/xml" title="GML application schema for Lakes type."/>
+        <atom:link href="http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&amp;service=WFS&amp;version=2.0.0&amp;typeName=Lakes&amp;outputformat=application/schema%2Bjson" rel="describedBy" type="application/schema+json" title="JSON application schema for Lakes type."/>
+        <feat:Extent>
+            <feat:Spatial crs="http://www.opengis.net/def/crs/OGC/1.3/CRS84">
+                <feat:LowerCorner>6.0E-4 -0.0018</feat:LowerCorner>
+                <feat:UpperCorner>0.0031 -1.0E-4</feat:UpperCorner>
+            </feat:Spatial>
+        </feat:Extent>
+    </feat:Collection>
+    <feat:Collection>
+        <feat:Id>MapNeatline</feat:Id>
+        <feat:Title>MapNeatline</feat:Title>
+        <atom:link href="http://localhost:9090/WS/feature/default/collections/MapNeatline/items" rel="items" type="application/geo+json" title="MapNeatline"/>
+        <atom:link href="http://localhost:9090/WS/feature/default/collections/MapNeatline/items?f=application/xml" rel="items" type="application/gml+xml;version=3.2;profile=&amp;quot;http://www.opengis.net/def/profile/ogc/2.0/gml-sf0&amp;quot;" title="MapNeatline"/>
+        <atom:link href="http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&amp;service=WFS&amp;version=2.0.0&amp;typeName=MapNeatline" rel="describedBy" type="application/xml" title="GML application schema for MapNeatline type."/>
+        <atom:link href="http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&amp;service=WFS&amp;version=2.0.0&amp;typeName=MapNeatline&amp;outputformat=application/schema%2Bjson" rel="describedBy" type="application/schema+json" title="JSON application schema for MapNeatline type."/>
+        <feat:Extent>
+            <feat:Spatial crs="http://www.opengis.net/def/crs/OGC/1.3/CRS84">
+                <feat:LowerCorner>-0.0024 -0.0042</feat:LowerCorner>
+                <feat:UpperCorner>0.0024 0.0042</feat:UpperCorner>
+            </feat:Spatial>
+        </feat:Extent>
+    </feat:Collection>
+    <feat:Collection>
+        <feat:Id>NamedPlaces</feat:Id>
+        <feat:Title>NamedPlaces</feat:Title>
+        <atom:link href="http://localhost:9090/WS/feature/default/collections/NamedPlaces/items" rel="items" type="application/geo+json" title="NamedPlaces"/>
+        <atom:link href="http://localhost:9090/WS/feature/default/collections/NamedPlaces/items?f=application/xml" rel="items" type="application/gml+xml;version=3.2;profile=&amp;quot;http://www.opengis.net/def/profile/ogc/2.0/gml-sf0&amp;quot;" title="NamedPlaces"/>
+        <atom:link href="http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&amp;service=WFS&amp;version=2.0.0&amp;typeName=NamedPlaces" rel="describedBy" type="application/xml" title="GML application schema for NamedPlaces type."/>
+        <atom:link href="http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&amp;service=WFS&amp;version=2.0.0&amp;typeName=NamedPlaces&amp;outputformat=application/schema%2Bjson" rel="describedBy" type="application/schema+json" title="JSON application schema for NamedPlaces type."/>
+        <feat:Extent>
+            <feat:Spatial crs="http://www.opengis.net/def/crs/OGC/1.3/CRS84">
+                <feat:LowerCorner>-0.0011 0.0014</feat:LowerCorner>
+                <feat:UpperCorner>0.0024 0.0042</feat:UpperCorner>
+            </feat:Spatial>
+        </feat:Extent>
+    </feat:Collection>
+    <feat:Collection>
+        <feat:Id>Ponds</feat:Id>
+        <feat:Title>Ponds</feat:Title>
+        <atom:link href="http://localhost:9090/WS/feature/default/collections/Ponds/items" rel="items" type="application/geo+json" title="Ponds"/>
+        <atom:link href="http://localhost:9090/WS/feature/default/collections/Ponds/items?f=application/xml" rel="items" type="application/gml+xml;version=3.2;profile=&amp;quot;http://www.opengis.net/def/profile/ogc/2.0/gml-sf0&amp;quot;" title="Ponds"/>
+        <atom:link href="http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&amp;service=WFS&amp;version=2.0.0&amp;typeName=Ponds" rel="describedBy" type="application/xml" title="GML application schema for Ponds type."/>
+        <atom:link href="http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&amp;service=WFS&amp;version=2.0.0&amp;typeName=Ponds&amp;outputformat=application/schema%2Bjson" rel="describedBy" type="application/schema+json" title="JSON application schema for Ponds type."/>
+        <feat:Extent>
+            <feat:Spatial crs="http://www.opengis.net/def/crs/OGC/1.3/CRS84">
+                <feat:LowerCorner>0.0016 -0.002</feat:LowerCorner>
+                <feat:UpperCorner>0.002 -0.0014</feat:UpperCorner>
+            </feat:Spatial>
+        </feat:Extent>
+    </feat:Collection>
+    <feat:Collection>
+        <feat:Id>RoadSegments</feat:Id>
+        <feat:Title>RoadSegments</feat:Title>
+        <atom:link href="http://localhost:9090/WS/feature/default/collections/RoadSegments/items" rel="items" type="application/geo+json" title="RoadSegments"/>
+        <atom:link href="http://localhost:9090/WS/feature/default/collections/RoadSegments/items?f=application/xml" rel="items" type="application/gml+xml;version=3.2;profile=&amp;quot;http://www.opengis.net/def/profile/ogc/2.0/gml-sf0&amp;quot;" title="RoadSegments"/>
+        <atom:link href="http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&amp;service=WFS&amp;version=2.0.0&amp;typeName=RoadSegments" rel="describedBy" type="application/xml" title="GML application schema for RoadSegments type."/>
+        <atom:link href="http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&amp;service=WFS&amp;version=2.0.0&amp;typeName=RoadSegments&amp;outputformat=application/schema%2Bjson" rel="describedBy" type="application/schema+json" title="JSON application schema for RoadSegments type."/>
+        <feat:Extent>
+            <feat:Spatial crs="http://www.opengis.net/def/crs/OGC/1.3/CRS84">
+                <feat:LowerCorner>-0.0024 -0.0042</feat:LowerCorner>
+                <feat:UpperCorner>0.0024 0.0042</feat:UpperCorner>
+            </feat:Spatial>
+        </feat:Extent>
+    </feat:Collection>
+    <feat:Collection>
+        <feat:Id>Streams</feat:Id>
+        <feat:Title>Streams</feat:Title>
+        <atom:link href="http://localhost:9090/WS/feature/default/collections/Streams/items" rel="items" type="application/geo+json" title="Streams"/>
+        <atom:link href="http://localhost:9090/WS/feature/default/collections/Streams/items?f=application/xml" rel="items" type="application/gml+xml;version=3.2;profile=&amp;quot;http://www.opengis.net/def/profile/ogc/2.0/gml-sf0&amp;quot;" title="Streams"/>
+        <atom:link href="http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&amp;service=WFS&amp;version=2.0.0&amp;typeName=Streams" rel="describedBy" type="application/xml" title="GML application schema for Streams type."/>
+        <atom:link href="http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&amp;service=WFS&amp;version=2.0.0&amp;typeName=Streams&amp;outputformat=application/schema%2Bjson" rel="describedBy" type="application/schema+json" title="JSON application schema for Streams type."/>
+        <feat:Extent>
+            <feat:Spatial crs="http://www.opengis.net/def/crs/OGC/1.3/CRS84">
+                <feat:LowerCorner>-0.0024 -4.0E-4</feat:LowerCorner>
+                <feat:UpperCorner>0.0024 0.0036</feat:UpperCorner>
+            </feat:Spatial>
+        </feat:Extent>
+    </feat:Collection>
+</feat:Collections>

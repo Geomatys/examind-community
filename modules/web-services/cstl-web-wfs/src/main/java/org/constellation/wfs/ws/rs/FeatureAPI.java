@@ -45,9 +45,8 @@ import org.geotoolkit.feature.xml.Collection;
 import org.geotoolkit.feature.xml.Conformance;
 import org.geotoolkit.feature.xml.FeatureSetCollection;
 import org.geotoolkit.feature.xml.LandingPage;
-import org.geotoolkit.feature.xml.Link;
-import org.geotoolkit.feature.xml.Spatial;
-import org.geotoolkit.feature.xml.collections;
+import org.geotoolkit.atom.xml.Link;
+import org.geotoolkit.feature.xml.Collections;
 import org.geotoolkit.storage.feature.FeatureStoreUtilities;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
@@ -128,12 +127,12 @@ public class FeatureAPI extends GridWebService<WFSWorker> {
         String wfsUrl = getServiceURL() + "/wfs/" + serviceId + "?";
 
         List<Link> links = new ArrayList<>();
-        links.add(new Link(url + "/apidocs", "service-desc", null, "the API definition", null, null));
+        links.add(new Link(url + "/apidocs", "service-desc", null, "the API definition"));
         buildDocumentLinks(url, asJson, links, false);
-        links.add(new Link(url + "/conformance", "conformance", MimeType.APP_JSON, "OGC API conformance classes implemented by this server as JSON", null, null));
-        links.add(new Link(url + "/conformance?f=application/xml", "conformance", MimeType.APP_XML, "OGC API conformance classes implemented by this server as XML", null, null));
-        links.add(new Link(url + "/collections", "data", MimeType.APP_JSON, "Information about the feature collections as JSON", null, null));
-        links.add(new Link(url + "/collections?f=application/xml", "data", MimeType.APP_XML, "Information about the feature collections as XML", null, null));
+        links.add(new Link(url + "/conformance", "conformance", MimeType.APP_JSON, "OGC API conformance classes implemented by this server as JSON"));
+        links.add(new Link(url + "/conformance?f=application/xml", "conformance", MimeType.APP_XML, "OGC API conformance classes implemented by this server as XML"));
+        links.add(new Link(url + "/collections", "data", MimeType.APP_JSON, "Information about the feature collections as JSON"));
+        links.add(new Link(url + "/collections?f=application/xml", "data", MimeType.APP_XML, "Information about the feature collections as XML"));
         buildDescribedByLink(wfsUrl, links, null);
         return new LandingPage("Examind OGC API Features service", "Access Examind vector data via a Web API that conforms to the OGC API Features specification", links);
     }
@@ -148,8 +147,7 @@ public class FeatureAPI extends GridWebService<WFSWorker> {
             } else {
                 media = MediaType.APPLICATION_XML;
             }
-            Conformance conformance = new Conformance();
-            conformance.setConformsTo(FEAT_API_CONFORMS);
+            Conformance conformance = new Conformance(FEAT_API_CONFORMS);
             return new ResponseObject(conformance, media, HttpStatus.OK).getResponseEntity();
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
@@ -171,8 +169,7 @@ public class FeatureAPI extends GridWebService<WFSWorker> {
         if (worker != null) {
             try {
                 List<Collection> layers = worker.getCollections(new ArrayList<>());
-
-                collections collections = new collections(new ArrayList<>(), layers);
+                Collections collections = new Collections(new ArrayList<>(), layers);
                 final boolean asJson = format.contains(MimeType.APP_JSON);
                 MediaType media;
                 String url = getServiceURL() + "/feature/" + serviceId + "/collections";
@@ -182,14 +179,7 @@ public class FeatureAPI extends GridWebService<WFSWorker> {
                     media = MediaType.APPLICATION_JSON;
                 } else {
                     media = MediaType.APPLICATION_XML;
-                    for (Collection c : collections.getCollections()) {
-                        if (c.getExtent() != null && c.getExtent().getSpatial() != null) {
-                            Spatial spa = c.getExtent().getSpatial();
-                            spa.setLowerCorner();
-                            spa.setUpperCorner();
-                            spa.getBbox().clear();
-                        }
-                    }
+                    collections.setXMLBBoxMode();
                 }
 
                 return new ResponseObject(collections, media, HttpStatus.OK).getResponseEntity();
@@ -217,21 +207,20 @@ public class FeatureAPI extends GridWebService<WFSWorker> {
         if (worker != null) {
             try {
                 // if the layer does not exist an exception will be thrown
-                final Collection collection = worker.getCollections(Arrays.asList(collectionId)).get(0);
+                final List<Collection> layers = worker.getCollections(Arrays.asList(collectionId));
                 final boolean asJson = format.contains(MimeType.APP_JSON);
+                Object result;
                 MediaType media;
                 if (asJson) {
                     media = MediaType.APPLICATION_JSON;
+                    result = layers.get(0);
                 } else {
                     media = MediaType.APPLICATION_XML;
-                    if (collection.getExtent() != null && collection.getExtent().getSpatial() != null) {
-                        Spatial spa = collection.getExtent().getSpatial();
-                        spa.setLowerCorner();
-                        spa.setUpperCorner();
-                        spa.getBbox().clear();
-                    }
+                    final Collections collections = new Collections(new ArrayList<>(), layers);
+                    collections.setXMLBBoxMode();
+                    result = collections;
                 }
-                return new ResponseObject(collection, media, HttpStatus.OK).getResponseEntity();
+                return new ResponseObject(result, media, HttpStatus.OK).getResponseEntity();
                 
             } catch (CstlServiceException ex) {
                 if (ex.getExceptionCode().equals(LAYER_NOT_DEFINED)) {
@@ -337,7 +326,7 @@ public class FeatureAPI extends GridWebService<WFSWorker> {
                     media = MediaType.APPLICATION_XML;
                 }
                 if ((offset + fsc.getNbReturned()) < fsc.getNbMatched()) {
-                    Link linkNext = new Link(url + "?offset=" + (offset + limit) + "&limit=" + limit + (bbox != null ? "&bbox=" + bbox : "") + (bbox_crs != null ? "&bbox-crs=" + bbox_crs : "") + (cqlFilter != null ? "&filter=" + cqlFilter : "") + "&f=" + format, "next", format, "next page", null, null);
+                    Link linkNext = new Link(url + "?offset=" + (offset + limit) + "&limit=" + limit + (bbox != null ? "&bbox=" + bbox : "") + (bbox_crs != null ? "&bbox-crs=" + bbox_crs : "") + (cqlFilter != null ? "&filter=" + cqlFilter : "") + "&f=" + format, "next", format, "next page");
                     links.add(linkNext);
                 }
 

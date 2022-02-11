@@ -97,6 +97,8 @@ import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.LayerCache;
 import org.constellation.ws.LayerWorker;
 import org.constellation.ws.MimeType;
+import static org.constellation.ws.MimeType.APP_GML32_XML;
+import static org.constellation.ws.MimeType.TEXT_GML31_XML;
 import org.constellation.ws.UnauthorizedException;
 import org.geotoolkit.storage.feature.FeatureStore;
 import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
@@ -107,7 +109,7 @@ import org.geotoolkit.feature.FeatureTypeExt;
 import org.geotoolkit.feature.xml.BoundingBox;
 import org.geotoolkit.feature.xml.Extent;
 import org.geotoolkit.feature.xml.FeatureSetCollection;
-import org.geotoolkit.feature.xml.Link;
+import org.geotoolkit.atom.xml.Link;
 import org.geotoolkit.feature.xml.Utils;
 import org.geotoolkit.feature.xml.XmlFeatureSet;
 import org.geotoolkit.feature.xml.jaxb.JAXBFeatureTypeWriter;
@@ -1146,12 +1148,12 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             }
         }
         final String gmlVersion;
-        if ("text/xml; subtype=\"gml/3.1.1\"".equals(request.getOutputFormat()) ||
+        if (TEXT_GML31_XML.equals(request.getOutputFormat()) ||
             "text/gml; subtype=\"gml/3.1.1\"".equals(request.getOutputFormat())) {
             gmlVersion = "3.1.1";
         } else if ("text/xml; subtype=\"gml/3.2.1\"".equals(request.getOutputFormat()) ||
                    "text/xml; subtype=\"gml/3.2\"".equals(request.getOutputFormat())   ||
-                   "application/gml+xml; version=3.2".equals(request.getOutputFormat())) {
+                   APP_GML32_XML.equals(request.getOutputFormat())) {
             gmlVersion = "3.2.1";
         } else if (MimeType.APP_JSON.equals(request.getOutputFormat())) {
             gmlVersion = null;
@@ -1417,9 +1419,9 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 final String handle = insertRequest.getHandle();
 
                 // we verify the input format
-                if (insertRequest.getInputFormat() != null && !(insertRequest.getInputFormat().equals("text/xml; subtype=\"gml/3.1.1\"")
-                                                           ||   insertRequest.getInputFormat().equals("application/gml+xml; version=3.2"))) {
-                    throw new CstlServiceException("This only input format supported are: text/xml; subtype=\"gml/3.1.1\" and application/gml+xml; version=3.2",
+                if (insertRequest.getInputFormat() != null && !(insertRequest.getInputFormat().equals(TEXT_GML31_XML)
+                                                           ||   insertRequest.getInputFormat().equals(APP_GML32_XML))) {
+                    throw new CstlServiceException("This only input format supported are: text/xml; subtype=\"gml/3.1.1\" and " + APP_GML32_XML,
                             INVALID_PARAMETER_VALUE, "inputFormat");
                 }
 
@@ -1598,9 +1600,9 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 final UpdateElement updateRequest = (UpdateElement) transaction;
 
                 // we verify the input format
-                if (updateRequest.getInputFormat() != null && !(updateRequest.getInputFormat().equals("text/xml; subtype=\"gml/3.1.1\"")
-                                                           ||   updateRequest.getInputFormat().equals("application/gml+xml; version=3.2"))) {
-                    throw new CstlServiceException("This only input format supported are: text/xml; subtype=\"gml/3.1.1\" and application/gml+xml; version=3.2",
+                if (updateRequest.getInputFormat() != null && !(updateRequest.getInputFormat().equals(TEXT_GML31_XML)
+                                                           ||   updateRequest.getInputFormat().equals(APP_GML32_XML))) {
+                    throw new CstlServiceException("This only input format supported are: text/xml; subtype=\"gml/3.1.1\" and " + APP_GML32_XML,
                             INVALID_PARAMETER_VALUE, "inputFormat");
                 }
 
@@ -1717,9 +1719,9 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 final String handle = replaceRequest.getHandle();
 
                 // we verify the input format
-                if (replaceRequest.getInputFormat() != null && !(replaceRequest.getInputFormat().equals("text/xml; subtype=\"gml/3.1.1\"")
-                                                            ||   replaceRequest.getInputFormat().equals("application/gml+xml; version=3.2"))) {
-                    throw new CstlServiceException("This only input format supported are: text/xml; subtype=\"gml/3.1.1\" and application/gml+xml; version=3.2",
+                if (replaceRequest.getInputFormat() != null && !(replaceRequest.getInputFormat().equals(TEXT_GML31_XML)
+                                                            ||   replaceRequest.getInputFormat().equals(APP_GML32_XML))) {
+                    throw new CstlServiceException("This only input format supported are: " + TEXT_GML31_XML + " and " + APP_GML32_XML,
                             INVALID_PARAMETER_VALUE, "inputFormat");
                 }
 
@@ -2448,7 +2450,9 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
         BuildItemsLink(url, identifier, title, links);
         // add schema decription
         buildDescribedByLink(wfsUrl, links, identifier);
-        return new org.geotoolkit.feature.xml.Collection(identifier, title, null, links, extent, "VECTOR");
+        // String itemType = "VECTOR" set item type to null for now as it does not appears in official xsd at http://schemas.opengis.net/ogcapi/features/part1/1.0/xml/core.xsd
+        // but it appears at https://github.com/opengeospatial/ogcapi-features/blob/master/core/xml/core.xsd
+        return new org.geotoolkit.feature.xml.Collection(identifier, title, null, links, extent, null);
     }
 
     @Override

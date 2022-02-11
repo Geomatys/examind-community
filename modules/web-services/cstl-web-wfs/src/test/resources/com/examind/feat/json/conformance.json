@@ -1,0 +1,9 @@
+{
+    "conformsTo": [{
+            "href": "https://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core"
+        }, {
+            "href": "https://www.opengis.net/spec/ogcapi-features-1/1.0/conf/geojson"
+        }, {
+            "href": "https://www.opengis.net/spec/ogcapi-features-1/1.0/conf/gmlsf0"
+        }]
+}

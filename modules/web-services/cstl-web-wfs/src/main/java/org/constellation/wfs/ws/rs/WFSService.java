@@ -50,10 +50,8 @@ import static org.constellation.api.QueryConstants.UPDATESEQUENCE_PARAMETER;
 import static org.constellation.api.QueryConstants.VERSION_PARAMETER;
 import org.constellation.api.ServiceDef;
 import org.constellation.api.ServiceDef.Specification;
-import static org.constellation.wfs.core.WFSConstants.FILTER;
-import static org.constellation.wfs.core.WFSConstants.GML_3_1_1_MIME;
-import static org.constellation.wfs.core.WFSConstants.GML_3_2_1_MIME;
 import org.constellation.wfs.core.WFSConstants.GetXSD;
+import static org.constellation.wfs.core.WFSConstants.FILTER;
 import static org.constellation.wfs.core.WFSConstants.HANDLE;
 import static org.constellation.wfs.core.WFSConstants.NAMESPACE;
 import static org.constellation.wfs.core.WFSConstants.STR_CREATE_STORED_QUERY;
@@ -70,6 +68,8 @@ import static org.constellation.wfs.core.WFSConstants.STR_TRANSACTION;
 import static org.constellation.wfs.core.WFSConstants.STR_XSD;
 import org.constellation.wfs.core.WFSWorker;
 import org.constellation.ws.CstlServiceException;
+import static org.constellation.ws.MimeType.APP_GML32_XML;
+import static org.constellation.ws.MimeType.TEXT_GML31_XML;
 import org.constellation.ws.WebServiceUtilities;
 import org.constellation.ws.Worker;
 import org.constellation.ws.rs.GridWebService;
@@ -215,11 +215,11 @@ public class WFSService extends GridWebService<WFSWorker> {
                 final DescribeFeatureType model = (DescribeFeatureType) request;
                 String requestOutputFormat = model.getOutputFormat();
                 final String outputFormat;
-                if (requestOutputFormat == null || requestOutputFormat.equals("text/xml; subtype=\"gml/3.1.1\"")) {
-                    outputFormat = GML_3_1_1_MIME;
+                if (requestOutputFormat == null || requestOutputFormat.equals(TEXT_GML31_XML)) {
+                    outputFormat = TEXT_GML31_XML;
                 } else if (requestOutputFormat.equals("text/xml; subtype=\"gml/3.2.1\"") || requestOutputFormat.equals("text/xml; subtype=\"gml/3.2\"")||
-                           requestOutputFormat.equals("application/gml+xml; version=3.2")) {
-                    outputFormat = GML_3_2_1_MIME;
+                           requestOutputFormat.equals(APP_GML32_XML)) {
+                    outputFormat = APP_GML32_XML;
                 } else {
                     outputFormat = requestOutputFormat;
                 }
@@ -231,11 +231,11 @@ public class WFSService extends GridWebService<WFSWorker> {
                 final GetFeature model = (GetFeature) request;
                 String requestOutputFormat = model.getOutputFormat();
                 final String outputFormat;
-                if (requestOutputFormat == null || requestOutputFormat.equals("text/xml; subtype=\"gml/3.1.1\"")) {
-                    outputFormat = GML_3_1_1_MIME;
+                if (requestOutputFormat == null || requestOutputFormat.equals(TEXT_GML31_XML)) {
+                    outputFormat = TEXT_GML31_XML;
                 } else if (requestOutputFormat.equals("text/xml; subtype=\"gml/3.2.1\"") || requestOutputFormat.equals("text/xml; subtype=\"gml/3.2\"") ||
-                           requestOutputFormat.equals("application/gml+xml; version=3.2")) {
-                    outputFormat = GML_3_2_1_MIME;
+                           requestOutputFormat.equals(APP_GML32_XML)) {
+                    outputFormat = APP_GML32_XML;
                 } else {
                     outputFormat = requestOutputFormat;
                 }
@@ -246,11 +246,11 @@ public class WFSService extends GridWebService<WFSWorker> {
                 final GetPropertyValue model = (GetPropertyValue) request;
                 String requestOutputFormat = model.getOutputFormat();
                 final String outputFormat;
-                if (requestOutputFormat == null || requestOutputFormat.equals("text/xml; subtype=\"gml/3.1.1\"")) {
-                    outputFormat = GML_3_1_1_MIME;
+                if (requestOutputFormat == null || requestOutputFormat.equals(TEXT_GML31_XML)) {
+                    outputFormat = TEXT_GML31_XML;
                 } else if (requestOutputFormat.equals("text/xml; subtype=\"gml/3.2.1\"") || requestOutputFormat.equals("text/xml; subtype=\"gml/3.2\"") ||
-                           requestOutputFormat.equals("application/gml+xml; version=3.2")) {
-                    outputFormat = GML_3_2_1_MIME;
+                           requestOutputFormat.equals(APP_GML32_XML)) {
+                    outputFormat = APP_GML32_XML;
                 } else {
                     outputFormat = requestOutputFormat;
                 }

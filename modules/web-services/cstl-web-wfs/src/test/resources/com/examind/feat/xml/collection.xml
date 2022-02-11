@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<feat:Collections xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:xlink="http://www.w3.org/1999/xlink" 
+                  xmlns:feat="http://www.opengis.net/ogcapi-features-1/1.0" 
+                  xmlns:atom="http://www.w3.org/2005/Atom"
+                  xsi:schemaLocation="http://www.opengis.net/ogcapi-features-1/1.0 http://schemas.opengis.net/ogcapi/features/part1/1.0/xml/core.xsd"
+                  service="OGCAPI-Features"
+                  version="1.0.0">
+  <feat:Collection>
+    <feat:Id>BasicPolygons</feat:Id>
+    <feat:Title>BasicPolygons</feat:Title>
+    <atom:link href="http://localhost:9090/WS/feature/default/collections/BasicPolygons/items" rel="items" type="application/geo+json" title="BasicPolygons"/>
+    <atom:link href="http://localhost:9090/WS/feature/default/collections/BasicPolygons/items?f=application/xml" rel="items" type="application/gml+xml;version=3.2;profile=&amp;quot;http://www.opengis.net/def/profile/ogc/2.0/gml-sf0&amp;quot;" title="BasicPolygons"/>
+    <atom:link href="http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&amp;service=WFS&amp;version=2.0.0&amp;typeName=BasicPolygons" rel="describedBy" type="application/xml" title="GML application schema for BasicPolygons type."/>
+    <atom:link href="http://localhost:9090/WS/wfs/default?request=DescribeFeatureType&amp;service=WFS&amp;version=2.0.0&amp;typeName=BasicPolygons&amp;outputformat=application/schema%2Bjson" rel="describedBy" type="application/schema+json" title="JSON application schema for BasicPolygons type."/>
+    <feat:Extent>
+      <feat:Spatial crs="http://www.opengis.net/def/crs/OGC/1.3/CRS84">
+        <feat:LowerCorner>-2.0 -1.0</feat:LowerCorner>
+        <feat:UpperCorner>2.0 6.0</feat:UpperCorner>
+      </feat:Spatial>
+    </feat:Extent>
+  </feat:Collection>
+</feat:Collections>
+

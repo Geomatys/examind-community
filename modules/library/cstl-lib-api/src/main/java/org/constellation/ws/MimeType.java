@@ -30,6 +30,8 @@ public final class MimeType {
 
     public static final String TEXT_XML        = "text/xml";
 
+    public final static String TEXT_GML31_XML = "text/xml; subtype=\"gml/3.1.1\"";
+
     public static final String APPLICATION_XML = "application/xml";
 
     public static final String TEXT_PLAIN      = "text/plain";
@@ -61,6 +63,8 @@ public final class MimeType {
     public static final String APP_XML         = "application/vnd.ogc.xml";
 
     public static final String APP_GML_XML     = "application/gml+xml";
+
+     public static final String APP_GML32_XML  = "application/gml+xml; version=3.2";
 
     public static final String APP_GML         = "application/vnd.ogc.gml";
 

@@ -47,7 +47,6 @@ import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import org.constellation.test.utils.TestRunner;
-import static org.constellation.wfs.core.WFSConstants.FEAT_API_CONFORMS;
 import org.geotoolkit.feature.xml.BoundingBox;
 import org.geotoolkit.feature.xml.Collection;
 import org.geotoolkit.feature.xml.Conformance;
@@ -56,14 +55,13 @@ import org.geotoolkit.feature.xml.LandingPage;
 import org.geotoolkit.feature.xml.Spatial;
 import org.junit.Assert;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.xml.sax.SAXException;
-import org.geotoolkit.feature.xml.collections;
+import org.geotoolkit.feature.xml.Collections;
 import org.geotoolkit.wfs.xml.WFSMarshallerPool;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -179,6 +177,14 @@ public class FeatureApiTest extends AbstractGrizzlyServer {
         String expectedResult = getStringFromFile("com/examind/feat/json/landing-page.json");
 
         compareJSON(expectedResult, result);
+
+        request = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default?f=application/xml");
+        con = request.openConnection();
+        Assert.assertEquals(200, ((HttpURLConnection) con).getResponseCode());
+        result = getStringResponse(request);
+        expectedResult = getStringFromFile("com/examind/feat/xml/landing-page.xml");
+
+        domCompare(expectedResult, result);
     }
 
     @Test
@@ -186,15 +192,23 @@ public class FeatureApiTest extends AbstractGrizzlyServer {
     public void testGetCollections() throws Exception {
         init();
         URL request = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections");
-        Object o = unmarshallJsonResponse(request, collections.class);
-        Assert.assertTrue(o instanceof collections);
-        collections collections = (collections) o;
+        Object o = unmarshallJsonResponse(request, Collections.class);
+        Assert.assertTrue(o instanceof Collections);
+        Collections collections = (Collections) o;
         verifyCollection(collections, COLLECTION_ID, -2.0, 2.0, -1.0, 6.0);
         verifyCollection(collections, COLLECTION_ALIAS, -80.72487831115721, -80.70324897766113, 35.2553619492954, 35.27035945142482);
+
+        request = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections?f=application/xml");
+        URLConnection con = request.openConnection();
+        Assert.assertEquals(200, ((HttpURLConnection) con).getResponseCode());
+        String result = getStringResponse(request);
+        String expectedResult = getStringFromFile("com/examind/feat/xml/collections.xml");
+
+        domCompare(expectedResult, result);
         
     }
 
-    private void verifyCollection(collections collections, String name, double eminx, double emax, double eminy, double emaxy) {
+    private void verifyCollection(Collections collections, String name, double eminx, double emax, double eminy, double emaxy) {
         final Collection collection = collections.getCollections().stream()
                 .filter(c -> c.getTitle().endsWith(name))
                 .findAny()
@@ -227,8 +241,18 @@ public class FeatureApiTest extends AbstractGrizzlyServer {
         Object o = unmarshallJsonResponse(request, Conformance.class);
         Assert.assertTrue(o instanceof Conformance);
 
-        List<String> conformUris = ((Conformance) o).getConformsTo();
-        assertArrayEquals("Conformance URIs", FEAT_API_CONFORMS.toArray(), conformUris.toArray());
+        String result = getStringResponse(request);
+        String expectedResult = getStringFromFile("com/examind/feat/json/conformance.json");
+
+        compareJSON(expectedResult, result);
+
+        request = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/conformance?f=application/xml");
+        con = request.openConnection();
+        Assert.assertEquals(200, ((HttpURLConnection) con).getResponseCode());
+        result = getStringResponse(request);
+        expectedResult = getStringFromFile("com/examind/feat/xml/conformance.xml");
+
+        domCompare(expectedResult, result);
     }
 
     @Test
@@ -236,9 +260,9 @@ public class FeatureApiTest extends AbstractGrizzlyServer {
     public void testGetCollection() throws Exception {
         init();
         URL request = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections");
-        Object o = unmarshallJsonResponse(request, collections.class);
-        Assert.assertTrue(o instanceof collections);
-        collections c = (collections) o;
+        Object o = unmarshallJsonResponse(request, Collections.class);
+        Assert.assertTrue(o instanceof Collections);
+        Collections c = (Collections) o;
 
         for (Collection listedCollection : c.getCollections()) {
             String collectionId = listedCollection.getId();
@@ -246,6 +270,7 @@ public class FeatureApiTest extends AbstractGrizzlyServer {
             URLConnection con = requestCollection.openConnection();
             Assert.assertEquals(200, ((HttpURLConnection) con).getResponseCode());
             Object oCollection = unmarshallJsonResponse(requestCollection, Collection.class);
+            Assert.assertTrue(oCollection instanceof Collection);
             Collection requestedCollection = (Collection) oCollection;
             Assert.assertEquals(requestedCollection.getId(), listedCollection.getId());
             Assert.assertEquals(requestedCollection.getTitle(), listedCollection.getTitle());
@@ -266,6 +291,16 @@ public class FeatureApiTest extends AbstractGrizzlyServer {
                 Assert.assertEquals(requestedBbox.getMiny(), listedBbox.getMiny(), 1e-5);
                 Assert.assertEquals(requestedBbox.getMaxy(), listedBbox.getMaxy(), 1e-5);
             }
+
+            if (collectionId.equals(COLLECTION_ID)) {
+                request = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + collectionId + "?f=application/xml");
+                con = request.openConnection();
+                Assert.assertEquals(200, ((HttpURLConnection) con).getResponseCode());
+                String result = getStringResponse(request);
+                String expectedResult = getStringFromFile("com/examind/feat/xml/collection.xml");
+
+                domCompare(expectedResult, result);
+            }
         }
     }
 
@@ -274,9 +309,9 @@ public class FeatureApiTest extends AbstractGrizzlyServer {
     public void testGetCollectionItems() throws Exception {
         init();
         URL request = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections");
-        Object o = unmarshallJsonResponse(request, collections.class);
-        Assert.assertTrue(o instanceof collections);
-        collections c = (collections) o;
+        Object o = unmarshallJsonResponse(request, Collections.class);
+        Assert.assertTrue(o instanceof Collections);
+        Collections c = (Collections) o;
 
         for (int i = 0; i < c.getCollections().size(); i++) {
             String collectionId = c.getCollections().get(i).getId();
@@ -460,16 +495,16 @@ public class FeatureApiTest extends AbstractGrizzlyServer {
         con = requestCollections.openConnection();
         Assert.assertEquals(200, ((HttpURLConnection) con).getResponseCode());
         Object obj = unmarshallResponse(requestCollections);
-        Assert.assertTrue(obj instanceof collections);
+        Assert.assertTrue(obj instanceof Collections);
         validationFromSchema(getStringResponse(requestCollections), validator);
-        collections c = (collections) obj;
+        Collections c = (Collections) obj;
         String collectionId = c.getCollections().get(9).getId();
 
         URL requestCollection = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + collectionId + "?f=application/xml");
         con = requestCollection.openConnection();
         Assert.assertEquals(200, ((HttpURLConnection) con).getResponseCode());
         Object object = unmarshallResponse(requestCollection);
-        Assert.assertTrue(object instanceof Collection);
+        Assert.assertTrue(object instanceof Collections);
         validationFromSchema(getStringResponse(requestCollection), validator);
 
         URL requestItems = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + collectionId + "/items?f=application/xml");
@@ -502,7 +537,7 @@ public class FeatureApiTest extends AbstractGrizzlyServer {
             validator.validate(xmlFile);
         } catch (Exception ex) {
             LOGGER.log(Level.INFO, ex.getMessage(), ex);
-            LOGGER.warning("VALIDATION KO");
+            Assert.fail("VALIDATION KO:" + ex.getMessage());
         }
     }
 }

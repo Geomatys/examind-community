@@ -24,7 +24,7 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.feature.xml.FeatureSetCollection;
-import org.geotoolkit.feature.xml.Link;
+import org.geotoolkit.atom.xml.Link;
 import org.geotoolkit.feature.xml.jaxp.JAXPStreamFeatureWriter;
 import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
 import org.geotoolkit.storage.geojson.GeoJSONStreamWriter;

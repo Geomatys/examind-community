@@ -21,7 +21,7 @@ package org.constellation.wfs.core;
 import java.util.List;
 import static org.constellation.wfs.core.WFSConstants.GML_3_2_SF_MIME;
 import org.constellation.ws.MimeType;
-import org.geotoolkit.feature.xml.Link;
+import org.geotoolkit.atom.xml.Link;
 
 /**
  *
@@ -37,8 +37,8 @@ public class AtomLinkBuilder {
             titleSuffix = " for "  + identifier + " type.";
         }
 
-        links.add(new Link(describeFeatureUrl,                                             "describedBy", MimeType.APPLICATION_XML, "GML application schema"  + titleSuffix, null, null));
-        links.add(new Link(describeFeatureUrl + "&outputformat=application/schema%2Bjson", "describedBy", MimeType.APP_JSON_SCHEMA, "JSON application schema" + titleSuffix, null, null));
+        links.add(new Link(describeFeatureUrl,                                             "describedBy", MimeType.APPLICATION_XML, "GML application schema"  + titleSuffix));
+        links.add(new Link(describeFeatureUrl + "&outputformat=application/schema%2Bjson", "describedBy", MimeType.APP_JSON_SCHEMA, "JSON application schema" + titleSuffix));
     }
 
     public static void buildDocumentLinks(String url, boolean asJson, List<Link> links, boolean specialMime) {
@@ -50,8 +50,8 @@ public class AtomLinkBuilder {
             xmlMime  = MimeType.APP_XML;
             jsonMime = MimeType.APP_JSON;
         }
-        Link linkSelf = new Link(url,                        "self", jsonMime, "this document", null, null);
-        Link linkAlt  = new Link(url + "?f=application/xml", "self", xmlMime,  "this document", null, null);
+        Link linkSelf = new Link(url,                        "self", jsonMime, "this document");
+        Link linkAlt  = new Link(url + "?f=application/xml", "self", xmlMime,  "this document");
         String titleSuffix;
         if (asJson) {
             titleSuffix = " as XML";
@@ -68,12 +68,12 @@ public class AtomLinkBuilder {
     }
 
     public static void buildCollectionLink(String url, List<Link> links) {
-        links.add(new Link(url,                        "collection", MimeType.APP_GEOJSON,    "the collection document as JSON", null, null));
-        links.add(new Link(url + "?f=application/xml", "collection", MimeType.APPLICATION_XML, "the collection document as XML", null, null));
+        links.add(new Link(url,                        "collection", MimeType.APP_GEOJSON,    "the collection document as JSON"));
+        links.add(new Link(url + "?f=application/xml", "collection", MimeType.APPLICATION_XML, "the collection document as XML"));
     }
 
     public static void BuildItemsLink(String url, String identifier, String title, List<Link> links) {
-        links.add(new Link(url + "/collections/" + identifier + "/items",                   "items", MimeType.APP_GEOJSON, title, null, null));
-        links.add(new Link(url + "/collections/" + identifier + "/items?f=application/xml", "items", GML_3_2_SF_MIME,      title, null, null));
+        links.add(new Link(url + "/collections/" + identifier + "/items",                   "items", MimeType.APP_GEOJSON, title));
+        links.add(new Link(url + "/collections/" + identifier + "/items?f=application/xml", "items", GML_3_2_SF_MIME,      title));
     }
 }
