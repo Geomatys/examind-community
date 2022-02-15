@@ -338,21 +338,18 @@ public class StyleBusiness implements IStyleBusiness {
     @Override
     @Transactional
     public void updateStyle(final int id, final org.opengis.style.Style style) throws ConfigurationException {
+        ensureNonNull("Style", style);
         final String styleName = style.getName();
         // Proceed style name.
         if (isBlank(styleName)) {
             throw new ConfigurationException("Unable to create/update the style. No specified style name.");
         }
-        final StringWriter sw = new StringWriter();
-        final StyleXmlIO util = new StyleXmlIO();
-        try {
-            util.writeStyle(sw, style, Specification.StyledLayerDescriptor.V_1_1_0);
-        } catch (JAXBException ex) {
-            throw new ConfigurationException(ex);
-        }
+
         final Style s = styleRepository.findById(id);
+
         if (s != null) {
-            s.setBody(sw.toString());
+            final String xmlStyle = writeStyle(style);
+            s.setBody(xmlStyle);
             s.setType(getTypeFromMutableStyle((MutableStyle) style));
             s.setName(styleName);
             styleRepository.update(s);
