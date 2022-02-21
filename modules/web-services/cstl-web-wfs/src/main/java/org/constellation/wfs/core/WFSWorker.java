@@ -46,7 +46,7 @@ import org.geotoolkit.xsd.xml.v2001.Schema;
 import org.geotoolkit.feature.xml.Collection;
 
 import java.util.List;
-import org.geotoolkit.feature.xml.FeatureSetCollection;
+import org.geotoolkit.feature.model.FeatureSetWrapper;
 import org.opengis.filter.Filter;
 
 /**
@@ -129,5 +129,5 @@ public interface WFSWorker extends Worker {
 
     List<Collection> getCollections(List<String> collectionIds) throws CstlServiceException;
 
-    FeatureSetCollection getCollectionItems(String collectionId, Filter filter, int limit, int offset, boolean includedMatched) throws CstlServiceException;
+    FeatureSetWrapper getCollectionItems(String collectionId, Filter filter, int limit, int offset, boolean includedMatched) throws CstlServiceException;
 }

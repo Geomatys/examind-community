@@ -59,7 +59,7 @@ import org.constellation.util.QNameComparator;
 import org.constellation.util.Util;
 import org.constellation.wfs.core.DefaultWFSWorker;
 import org.constellation.wfs.core.WFSWorker;
-import org.constellation.wfs.ws.rs.FeatureSetWrapper;
+import org.geotoolkit.feature.model.FeatureSetWrapper;
 import org.constellation.ws.CstlServiceException;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;

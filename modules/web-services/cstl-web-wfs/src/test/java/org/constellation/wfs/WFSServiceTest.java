@@ -25,7 +25,7 @@ import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.test.SpringContextTest;
-import org.constellation.wfs.ws.rs.FeatureSetWrapper;
+import org.geotoolkit.feature.model.FeatureSetWrapper;
 import org.constellation.wfs.ws.rs.WFSService;
 import org.constellation.ws.rs.AbstractWebService;
 import org.geotoolkit.nio.IOUtilities;

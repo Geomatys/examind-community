@@ -92,7 +92,6 @@ import static org.constellation.wfs.core.WFSConstants.OPERATIONS_METADATA_V110;
 import static org.constellation.wfs.core.WFSConstants.OPERATIONS_METADATA_V200;
 import static org.constellation.wfs.core.WFSConstants.TYPE_PARAM;
 import static org.constellation.wfs.core.WFSConstants.UNKNOW_TYPENAME;
-import org.constellation.wfs.ws.rs.FeatureSetWrapper;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.LayerCache;
 import org.constellation.ws.LayerWorker;
@@ -108,8 +107,8 @@ import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.feature.FeatureTypeExt;
 import org.geotoolkit.feature.xml.BoundingBox;
 import org.geotoolkit.feature.xml.Extent;
-import org.geotoolkit.feature.xml.FeatureSetCollection;
 import org.geotoolkit.atom.xml.Link;
+import org.geotoolkit.feature.model.FeatureSetWrapper;
 import org.geotoolkit.feature.xml.Utils;
 import org.geotoolkit.feature.xml.XmlFeatureSet;
 import org.geotoolkit.feature.xml.jaxb.JAXBFeatureTypeWriter;
@@ -1184,12 +1183,8 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
         }
         LOGGER.log(Level.FINE, "GetFeature treated in {0}ms", (System.currentTimeMillis() - start));
 
-        if (queries.size() == 1 && queries.containsKey("urn:ogc:def:query:OGC-WFS::GetFeatureById")) {
-            return new FeatureSetWrapper(collections, schemaLocations, gmlVersion, currentVersion, (int)nbMatched,true);
-        } else {
-            return new FeatureSetWrapper(collections, schemaLocations, gmlVersion, currentVersion, (int)nbMatched,false);
-        }
-
+        boolean singleFeature = queries.size() == 1 && queries.containsKey("urn:ogc:def:query:OGC-WFS::GetFeatureById");
+        return new FeatureSetWrapper(collections, schemaLocations, gmlVersion, currentVersion, (int)nbMatched, singleFeature);
     }
 
     private boolean isAllFeatureTypes(List<QName> typeNames) {
@@ -1768,18 +1763,10 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 } else if (featureObject instanceof FeatureSet) {
                     try {
                         typeName = ((FeatureSet) featureObject).getType().getName();
-                        final LayerCache layer ;
-                        try {
-                            layer = getLayerCache(userLogin, typeName);
-                        } catch (CstlServiceException ex) {
-                            throw new CstlServiceException(UNKNOW_TYPENAME + typeName);
-                        }
-                        final FeatureData data = (FeatureData) layer.getData();
-                        featureCollection = new org.geotoolkit.storage.feature.FeatureSetWrapper((FeatureSet) featureObject, data.getStore());
+                        featureCollection = (FeatureSet) featureObject;
                     } catch (DataStoreException ex) {
                         throw new CstlServiceException(ex);
                     }
-
                 } else {
                     final String featureType;
                     if (featureObject == null) {
@@ -2456,7 +2443,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
     }
 
     @Override
-    public FeatureSetCollection getCollectionItems(String collectionId, Filter filter, int limit, int offset, boolean includedMatched) throws CstlServiceException {
+    public FeatureSetWrapper getCollectionItems(String collectionId, Filter filter, int limit, int offset, boolean includedMatched) throws CstlServiceException {
         try {
             final String userLogin = getUserLogin();
             final LayerCache layer = getLayerCache(userLogin, Util.parseLayerName(collectionId));
@@ -2482,7 +2469,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             if (query != null) {
                 fs = fs.subset(query);
             }
-            int nbMatched =  includedMatched ? FeatureStoreUtilities.getCount(fs).intValue() : -1;
+            Integer nbMatched =  includedMatched ? FeatureStoreUtilities.getCount(fs).intValue() : null;
 
            /*
             * Apply paging
@@ -2492,13 +2479,9 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             reduced.setOffset(offset);
             fs = fs.subset(reduced);
 
-            int nbReturned = includedMatched ? FeatureStoreUtilities.getCount(fs).intValue() : -1;
+            Integer nbReturned = includedMatched ? FeatureStoreUtilities.getCount(fs).intValue() : null;
 
-            if (includedMatched) {
-                return new FeatureSetCollection(fs, new ArrayList<>(), nbMatched, nbReturned);
-            } else {
-                return new FeatureSetCollection(fs, new ArrayList<>());
-            }
+            return new FeatureSetWrapper(fs, new ArrayList<>(), new HashMap<>(), nbMatched, nbReturned);
         } catch (DataStoreException ex) {
             throw new CstlServiceException(ex);
         }

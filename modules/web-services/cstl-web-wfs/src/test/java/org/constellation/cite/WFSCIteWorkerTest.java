@@ -44,7 +44,7 @@ import org.constellation.test.utils.TestEnvironment.DataImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.wfs.core.DefaultWFSWorker;
 import org.constellation.wfs.core.WFSWorker;
-import org.constellation.wfs.ws.rs.FeatureSetWrapper;
+import org.geotoolkit.feature.model.FeatureSetWrapper;
 import org.geotoolkit.storage.feature.FeatureStoreUtilities;
 import org.geotoolkit.feature.xml.XmlFeatureWriter;
 import org.geotoolkit.feature.xml.jaxp.JAXPStreamFeatureWriter;

@@ -29,7 +29,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import org.apache.sis.storage.DataStoreException;
+import org.geotoolkit.atom.xml.Link;
 import org.geotoolkit.feature.FeatureExt;
+import org.geotoolkit.feature.model.FeatureSetWrapper;
 import org.geotoolkit.feature.xml.XmlFeatureWriter;
 import org.geotoolkit.feature.xml.jaxp.JAXPStreamFeatureWriter;
 import org.geotoolkit.feature.xml.jaxp.JAXPStreamValueCollectionWriter;
@@ -87,9 +89,15 @@ public class FeatureSetWriter implements HttpMessageConverter<FeatureSetWrapper>
             if (t.getFeatureSet().size() > 1) {
                 throw new UnsupportedOperationException("TODO MULTIPLE JSON");
             }
-            try (GeoJSONStreamWriter featureWriter = new GeoJSONStreamWriter(outputMessage.getBody(), t.getFeatureSet().get(0).getType(), JsonEncoding.UTF8, 4, true);
+            Integer nbReturned = null,nbMatched = null;
+            if ("feat-1.0.0".equals(t.getWfsVersion())) {
+                nbReturned = t.getNbReturned();
+                nbMatched = t.getNbMatched();
+            }
+            try (GeoJSONStreamWriter featureWriter = new GeoJSONStreamWriter(outputMessage.getBody(), t.getFeatureSet().get(0).getType(), t.getLinks(), nbMatched, nbReturned, JsonEncoding.UTF8, 4, true);
                  Stream<Feature> stream = t.getFeatureSet().get(0).features(false)) {
                 Iterator<Feature> iterator = stream.iterator();
+                featureWriter.writeCollection(); // todo rename in geotk ?
                 while (iterator.hasNext()) {
                     Feature next = iterator.next();
                     Feature neww = featureWriter.next();
@@ -124,7 +132,36 @@ public class FeatureSetWriter implements HttpMessageConverter<FeatureSetWrapper>
                         featureWriter.getCommonPrefixes().put("gco", "http://www.isotc211.org/2005/gco");
                     }
 
-                    if (t.isWriteSingleFeature()) {
+
+                    if ("feat-1.0.0".equals(t.getWfsVersion())) {
+                        for (int i = 0; i < t.getLinks().size(); i++) {
+                            Link link = t.getLinks().get(i);
+                            outputMessage.getHeaders().add("href" + i, link.getHref());
+                            if (link.getRel() != null) {
+                                outputMessage.getHeaders().add("rel" + i, link.getRel());
+                            }
+                            if (link.getType() != null) {
+                                outputMessage.getHeaders().add("type" + i, link.getType());
+                            }
+                            if (link.getTitle() != null) {
+                                outputMessage.getHeaders().add("title" + i, link.getTitle());
+                            }
+                            if (link.getHreflang() != null) {
+                                outputMessage.getHeaders().add("hreflang" + i, link.getHreflang());
+                            }
+                            if (link.getLength() != null) {
+                                outputMessage.getHeaders().add("length" + i, String.valueOf(link.getLength()));
+                            }
+                        }
+                        if (t.getNbMatched() != null) {
+                            outputMessage.getHeaders().add("numberMatched", String.valueOf(t.getNbMatched()));
+                        }
+                        if (t.getNbReturned() != null) {
+                            outputMessage.getHeaders().add("numberReturned", String.valueOf(t.getNbReturned()));
+                        }
+                        featureWriter.write(t, outputMessage.getBody(), t.getNbMatched());
+
+                    } else if (t.isWriteSingleFeature()) {
                         
                         final Optional<Feature> feat;
                         if (!t.getFeatureSet().isEmpty()) {

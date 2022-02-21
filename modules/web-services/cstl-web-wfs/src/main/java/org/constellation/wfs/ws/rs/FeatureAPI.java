@@ -43,7 +43,6 @@ import org.constellation.ws.rs.GridWebService;
 import org.constellation.ws.rs.ResponseObject;
 import org.geotoolkit.feature.xml.Collection;
 import org.geotoolkit.feature.xml.Conformance;
-import org.geotoolkit.feature.xml.FeatureSetCollection;
 import org.geotoolkit.feature.xml.LandingPage;
 import org.geotoolkit.atom.xml.Link;
 import org.geotoolkit.feature.xml.Collections;
@@ -59,6 +58,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import static org.constellation.wfs.core.AtomLinkBuilder.buildDocumentLinks;
+import org.geotoolkit.feature.model.FeatureSetWrapper;
 
 /**
  * @author Hilmi BOUALLAGUE (Geomatys)
@@ -312,8 +312,8 @@ public class FeatureAPI extends GridWebService<WFSWorker> {
                     }
                 }
 
-                FeatureSetCollection fsc =  worker.getCollectionItems(collectionId, filter, limit, offset, true);
-                 final boolean asJson = format.contains(MimeType.APP_GEOJSON);
+                FeatureSetWrapper fsc =  worker.getCollectionItems(collectionId, filter, limit, offset, true);
+                final boolean asJson  = format.contains(MimeType.APP_GEOJSON);
                 String url = getServiceURL() + "/feature/" + serviceId + "/collections/" + collectionId + "/items";
                 List<Link> links  = new ArrayList<>();
 
@@ -366,10 +366,10 @@ public class FeatureAPI extends GridWebService<WFSWorker> {
         if (worker != null) {
             try {
                 Filter filter = FF.resourceId(featureId);
-                FeatureSetCollection fsc =  worker.getCollectionItems(collectionId, filter, 1, 0, false);
+                FeatureSetWrapper fsc =  worker.getCollectionItems(collectionId, filter, 1, 0, false);
 
                 // todo improve FeatureSetCollection class
-                if (FeatureStoreUtilities.getCount(fsc.getFeatureSet()) > 0) {
+                if (FeatureStoreUtilities.getCount(fsc.getFeatureSet().get(0)) > 0) {
                     String url = getServiceURL() + "/feature/" + serviceId + "/collections/" + collectionId;
                     List<Link> links = new ArrayList<>();
                     final boolean asJson = format.contains(MimeType.APP_GEOJSON);

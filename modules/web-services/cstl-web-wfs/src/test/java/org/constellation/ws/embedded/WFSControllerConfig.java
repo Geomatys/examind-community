@@ -19,7 +19,6 @@
 package org.constellation.ws.embedded;
 
 import java.util.List;
-import org.constellation.wfs.ws.rs.FeatureSetCollectionWriter;
 import org.constellation.wfs.ws.rs.FeatureSetWriter;
 import org.constellation.wfs.ws.rs.FeatureTypeGJSWriter;
 import org.constellation.ws.rs.provider.NodeReader;
@@ -34,7 +33,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupp
 
 /**
  *
- * @author guilhem
+ * @author Guilhem Legal (Geomatys)
  */
 @Configuration
 public class WFSControllerConfig  extends WebMvcConfigurationSupport {
@@ -46,7 +45,6 @@ public class WFSControllerConfig  extends WebMvcConfigurationSupport {
     @Override
     protected void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
         converters.add(new FeatureSetWriter());
-        converters.add(new FeatureSetCollectionWriter());
         converters.add(new FeatureTypeGJSWriter());
         converters.add(new WFSResponseWriter());
         converters.add(new NodeReader());
