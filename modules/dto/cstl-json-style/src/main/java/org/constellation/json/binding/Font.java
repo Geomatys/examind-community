@@ -26,7 +26,6 @@ import org.opengis.filter.Expression;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import static org.constellation.json.util.StyleFactories.SF;
@@ -39,11 +38,6 @@ import static org.constellation.json.util.StyleUtilities.parseExpression;
  * @since 0.9
  */
 public final class Font implements StyleElement<org.opengis.style.Font> {
-
-    /**
-     * Used for debugging purposes.
-     */
-    private static final Logger LOGGER = Logger.getLogger("org.constellation.json.binding");
 
     private String size    = "12";
     private boolean bold   = false;
