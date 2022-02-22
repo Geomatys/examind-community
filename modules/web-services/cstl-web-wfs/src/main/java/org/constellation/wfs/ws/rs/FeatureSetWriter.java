@@ -94,10 +94,10 @@ public class FeatureSetWriter implements HttpMessageConverter<FeatureSetWrapper>
                 nbReturned = t.getNbReturned();
                 nbMatched = t.getNbMatched();
             }
-            try (GeoJSONStreamWriter featureWriter = new GeoJSONStreamWriter(outputMessage.getBody(), t.getFeatureSet().get(0).getType(), t.getLinks(), nbMatched, nbReturned, JsonEncoding.UTF8, 4, true);
+            try (GeoJSONStreamWriter featureWriter = new GeoJSONStreamWriter(outputMessage.getBody(), t.getFeatureSet().get(0).getType(), JsonEncoding.UTF8, 4, true);
                  Stream<Feature> stream = t.getFeatureSet().get(0).features(false)) {
                 Iterator<Feature> iterator = stream.iterator();
-                featureWriter.writeCollection(); // todo rename in geotk ?
+                featureWriter.writeCollection(t.getLinks(), nbMatched, nbReturned);
                 while (iterator.hasNext()) {
                     Feature next = iterator.next();
                     Feature neww = featureWriter.next();
@@ -113,13 +113,13 @@ public class FeatureSetWriter implements HttpMessageConverter<FeatureSetWrapper>
         } else {
             try {
 
-                // value collection mode
+                // WFS value collection mode
                 if (t.getValueReference() != null) {
                     final XmlFeatureWriter featureWriter = new JAXPStreamValueCollectionWriter(t.getValueReference());
                     // in this case the list should always be only one element
                     featureWriter.write(t.getFeatureSet().get(0), outputMessage.getBody());
                     
-                // normal wfs geFeature mode
+                // normal WFS/featureAPI mode
                 } else {
                     final JAXPStreamFeatureWriter featureWriter = new JAXPStreamFeatureWriter(t.getGmlVersion(), t.getWfsVersion(), t.getSchemaLocations());
                     //write possible namespaces first, even if they are not used
@@ -159,7 +159,7 @@ public class FeatureSetWriter implements HttpMessageConverter<FeatureSetWrapper>
                         if (t.getNbReturned() != null) {
                             outputMessage.getHeaders().add("numberReturned", String.valueOf(t.getNbReturned()));
                         }
-                        featureWriter.write(t, outputMessage.getBody(), t.getNbMatched());
+                        featureWriter.write(t, outputMessage.getBody());
 
                     } else if (t.isWriteSingleFeature()) {
                         
@@ -172,18 +172,14 @@ public class FeatureSetWriter implements HttpMessageConverter<FeatureSetWrapper>
 
                         if (feat.isPresent()) {
                             Feature f = feat.get();
-                            featureWriter.write(f, outputMessage.getBody(), t.getNbMatched());
+                            featureWriter.write(f, outputMessage.getBody());
                         } else {
                             //write an empty collection
-                            featureWriter.write(t.getFeatureSet(), outputMessage.getBody(), t.getNbMatched());
+                            featureWriter.write(t, outputMessage.getBody());
                         }
 
                     } else {
-                        if (t.getFeatureSet().size() == 1) {
-                            featureWriter.write(t.getFeatureSet().get(0), outputMessage.getBody(), t.getNbMatched());
-                        } else {
-                            featureWriter.write(t.getFeatureSet(), outputMessage.getBody(), t.getNbMatched());
-                        }
+                        featureWriter.write(t, outputMessage.getBody());
                     }
                 }
             } catch (Exception ex) {

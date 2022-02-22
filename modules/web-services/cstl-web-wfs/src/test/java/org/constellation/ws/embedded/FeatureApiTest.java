@@ -426,6 +426,32 @@ public class FeatureApiTest extends AbstractGrizzlyServer {
     }
 
     @Test
+    @Order(order = 16)
+    public void testGetCollectionFeatureXml() throws Exception {
+        init();
+        URL requestCollection = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + COLLECTION_ID + "/items?f=application/xml");
+        String resultCollection = getStringResponse(requestCollection);
+        String expectedResult = getStringFromFile("com/examind/feat/xml/f_op_collection.xml");
+
+        domCompare(resultCollection, expectedResult);
+
+        int idPos = resultCollection.indexOf("gml:id=\"");
+        Assert.assertNotEquals(-1, idPos);
+        idPos += 8;
+        int endIdPos = resultCollection.indexOf('"', idPos);
+        Assert.assertNotEquals(-1, endIdPos);
+        String featureId = resultCollection.substring(idPos, endIdPos);
+
+        URL requestFeature = new URL("http://localhost:"+ getCurrentPort() + "/WS/feature/default/collections/" + COLLECTION_ID + "/items/" + featureId + "?f=application/xml");
+        URLConnection con = requestFeature.openConnection();
+        Assert.assertEquals(200, ((HttpURLConnection) con).getResponseCode());
+        String resultFeature = getStringResponse(requestFeature);
+        String expectedResultFeature = getStringFromFile("com/examind/feat/xml/f_op_feature.xml");
+
+        domCompare(expectedResultFeature, resultFeature);
+    }
+
+    @Test
     @Order(order = 17)
     public void testGetCollectionFeatureResponseContent() throws Exception {
         init();

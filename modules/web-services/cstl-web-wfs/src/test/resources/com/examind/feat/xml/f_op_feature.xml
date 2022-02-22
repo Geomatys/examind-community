@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sf:FeatureCollection xmlns:sf="http://www.opengis.net/ogcapi-features-1/1.0/sf"
+                      xmlns:gml="http://www.opengis.net/gml/3.2"
+                      xmlns:xlink="http://www.w3.org/1999/xlink" 
+                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <gml:boundedBy>
+        <gml:Envelope srsName="urn:ogc:def:crs:OGC:1.3:CRS84">
+            <gml:lowerCorner>-1.0 -1.0</gml:lowerCorner>
+            <gml:upperCorner>1.0 1.0</gml:upperCorner>
+        </gml:Envelope>
+    </gml:boundedBy>
+    <sf:featureMember>
+        <BasicPolygons gml:id="BasicPolygons.1">
+            <the_geom>
+                <gml:MultiSurface srsName="urn:ogc:def:crs:OGC:1.3:CRS84" srsDimension="2" gml:id="BasicPolygons.1_g0">
+                    <gml:surfaceMember>
+                        <gml:Polygon gml:id="BasicPolygons.1_g1">
+                            <gml:exterior>
+                                <gml:LinearRing>
+                                    <gml:posList>-1.0 0.0 0.0 1.0 1.0 0.0 0.0 -1.0 -1.0 0.0</gml:posList>
+                                </gml:LinearRing>
+                            </gml:exterior>
+                        </gml:Polygon>
+                    </gml:surfaceMember>
+                </gml:MultiSurface>
+            </the_geom>
+            <ID></ID>
+        </BasicPolygons>
+    </sf:featureMember>
+</sf:FeatureCollection>

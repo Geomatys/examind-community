@@ -456,11 +456,10 @@ public class WFS2WorkerTest extends SpringContextTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet().get(0);
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         StringWriter writer = new StringWriter();
-        featureWriter.write(result,writer, 6);
+        featureWriter.write(wrapper, writer);
 
         String expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-3v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -1769,11 +1768,10 @@ public class WFS2WorkerTest extends SpringContextTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet().get(0);
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write(result,writer,6);
+        featureWriter.write(wrapper,writer);
 
         expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-3v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
