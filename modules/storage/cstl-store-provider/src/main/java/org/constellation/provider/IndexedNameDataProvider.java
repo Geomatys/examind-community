@@ -167,7 +167,7 @@ public abstract class IndexedNameDataProvider<T extends DataStore> extends Abstr
     /**
      * Fill namespace on name is not present.
      */
-    protected GenericName lookForKey(final GenericName key){
+    protected synchronized GenericName lookForKey(final GenericName key){
         if (noNamespaceInKey) {
             if (!index.contains(key)) {
                 return null;
