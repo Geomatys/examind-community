@@ -53,6 +53,7 @@ public class DataSourceToStringConverter extends SimpleConverter<DataSource, Str
                 // TODO: Try forging back jdbc url ? (Note: hide login/pw for security purpose)
                 throw new UnconvertibleObjectException("Cannot extract JDBC URL from input datasource");
             }
+            return url;
         }
         throw new UnconvertibleObjectException("Unknown datasource type. For now, only Geotk/Hikari datasources are supported");
     }
