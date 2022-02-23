@@ -82,7 +82,7 @@ public interface WFSWorker extends Worker {
      * @return features instances.
      * @throws CstlServiceException
      */
-    Object getFeature(final GetFeature request) throws CstlServiceException;
+    FeatureSetWrapper getFeature(final GetFeature request) throws CstlServiceException;
 
     /**
      * Allows retrieval of features and elements by ID from a web feature service.
@@ -117,7 +117,7 @@ public interface WFSWorker extends Worker {
      */
     TransactionResponse transaction(final Transaction request) throws CstlServiceException;
 
-    Object getPropertyValue(final GetPropertyValue request) throws CstlServiceException;
+    FeatureSetWrapper getPropertyValue(final GetPropertyValue request) throws CstlServiceException;
 
     CreateStoredQueryResponse createStoredQuery(final CreateStoredQuery request) throws CstlServiceException;
 

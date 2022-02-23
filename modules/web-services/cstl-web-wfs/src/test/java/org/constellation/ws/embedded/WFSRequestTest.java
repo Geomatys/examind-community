@@ -420,7 +420,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
 
         assertTrue("unexpected type: " + obj.getClass().getName() + "\n" + obj, obj instanceof FeatureCollectionType);
         FeatureCollectionType result = (FeatureCollectionType)obj;
-        assertEquals(new Integer(6), result.getNumberOfFeatures());
+        assertEquals(Integer.valueOf(6), result.getNumberOfFeatures());
         assertEquals(6, result.getFeatureMember().size());
 
         /*
@@ -437,7 +437,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
 
         assertTrue("unexpected type: " + obj.getClass().getName() + "\n" + obj, obj instanceof FeatureCollectionType);
         result = (FeatureCollectionType)obj;
-        assertEquals(new Integer(2), result.getNumberOfFeatures());
+        assertEquals(Integer.valueOf(2), result.getNumberOfFeatures());
         assertEquals(2, result.getFeatureMember().size());
 
         /*
@@ -454,7 +454,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
 
         assertTrue("unexpected type: " + obj.getClass().getName() + "\n" + obj, obj instanceof FeatureCollectionType);
         result = (FeatureCollectionType)obj;
-        assertEquals(new Integer(5), result.getNumberOfFeatures());
+        assertEquals(Integer.valueOf(5), result.getNumberOfFeatures());
         assertEquals(5, result.getFeatureMember().size());
     }
 
@@ -477,7 +477,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
 
         assertTrue("unexpected type: " + obj.getClass().getName() + "\n" + obj, obj instanceof FeatureCollectionType);
         FeatureCollectionType result = (FeatureCollectionType)obj;
-        assertEquals(new Integer(6), result.getNumberOfFeatures());
+        assertEquals(Integer.valueOf(6), result.getNumberOfFeatures());
         assertEquals(6, result.getFeatureMember().size());
 
         Set expectedIds = new HashSet<>(Arrays.asList("station-001",
@@ -499,6 +499,11 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
         */
         request = new GetFeatureType("WFS", "1.1.0", null, null, queries, ResultTypeType.HITS, "text/xml; subtype=\"gml/3.1.1\"");
 
+        conec = getCapsUrl.openConnection();
+        postRequestObject(conec, request);
+        obj = getStringResponse(conec);
+        System.out.println(obj);
+
         // for a POST request
         conec = getCapsUrl.openConnection();
         postRequestObject(conec, request);
@@ -506,7 +511,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
 
         assertTrue("unexpected type: " + obj.getClass().getName() + "\n" + obj, obj instanceof FeatureCollectionType);
         result = (FeatureCollectionType)obj;
-        assertEquals(new Integer(6), result.getNumberOfFeatures());
+        assertEquals(Integer.valueOf(6), result.getNumberOfFeatures());
         assertEquals(0, result.getFeatureMember().size());
 
 
@@ -522,7 +527,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
 
         assertTrue("unexpected type: " + obj.getClass().getName() + "\n" + obj, obj instanceof FeatureCollectionType);
         result = (FeatureCollectionType)obj;
-        assertEquals(new Integer(3), result.getNumberOfFeatures());
+        assertEquals(Integer.valueOf(3), result.getNumberOfFeatures());
         assertEquals(3, result.getFeatureMember().size());
 
 
@@ -1103,7 +1108,8 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
         assertTrue("unexpected type: " + result.getClass().getName() + "\n" + result, result instanceof ValueCollectionType);
 
         assertTrue(result instanceof ValueCollection);
-        assertEquals(12, ((ValueCollection)result).getNumberReturned());
+        assertEquals("12", ((ValueCollection)result).getNumberMatched());
+        assertEquals(0, ((ValueCollection)result).getNumberReturned());
 
         /**
          * Test 2 : query on typeName samplingPoint with RESULTS
@@ -1482,7 +1488,8 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
         assertTrue("unexpected type: " + result.getClass().getName() + "\n" + result, result instanceof ValueCollectionType);
 
         assertTrue(result instanceof ValueCollection);
-        assertEquals(12, ((ValueCollection)result).getNumberReturned());
+        assertEquals("12", ((ValueCollection)result).getNumberMatched());
+        assertEquals(0, ((ValueCollection)result).getNumberReturned());
 
         /**
          * Test 2 : query on typeName samplingPoint with RESULTS

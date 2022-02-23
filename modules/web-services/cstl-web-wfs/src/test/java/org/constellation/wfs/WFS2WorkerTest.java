@@ -416,9 +416,8 @@ public class WFS2WorkerTest extends SpringContextTest {
         Integer startIndex = null;
         GetFeatureType request = new GetFeatureType("WFS", "2.0.0", null, startIndex, Integer.MAX_VALUE, null, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
 
-        Object result = null;
         try {
-            result = worker.getFeature(request);
+            worker.getFeature(request);
             fail("Should have raised an error.");
         } catch (CstlServiceException ex) {
             //ok
@@ -430,7 +429,7 @@ public class WFS2WorkerTest extends SpringContextTest {
         request = new GetFeatureType("WFS", "1.2.0", null, startIndex, Integer.MAX_VALUE, null, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
 
         try {
-            result = worker.getFeature(request);
+            worker.getFeature(request);
             fail("Should have raised an error.");
         } catch (CstlServiceException ex) {
             assertEquals(ex.getExceptionCode(), INVALID_PARAMETER_VALUE);
@@ -452,14 +451,11 @@ public class WFS2WorkerTest extends SpringContextTest {
         queries.add(new QueryType(null, Arrays.asList(new QName("http://www.opengis.net/sampling/1.0", "SamplingPoint")), null));
         GetFeatureType request = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
 
-        Object result = worker.getFeature(request);
-
-        assertTrue(result instanceof FeatureSetWrapper);
-        FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        FeatureSetWrapper result = worker.getFeature(request);
+        assertEquals("3.2.1", result.getGmlVersion());
 
         StringWriter writer = new StringWriter();
-        featureWriter.write(wrapper, writer);
+        featureWriter.write(result, writer);
 
         String expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-3v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -476,10 +472,10 @@ public class WFS2WorkerTest extends SpringContextTest {
         queries.add(query);
         request = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, queries, ResultTypeType.HITS, "text/xml; subtype=\"gml/3.2.1\"");
 
-        FeatureCollectionType resultHits = (FeatureCollectionType) worker.getFeature(request);
+        result = worker.getFeature(request);
 
-        assertEquals("results:" + resultHits, "6", resultHits.getNumberMatched());
-        assertEquals("results:" + resultHits, 0, resultHits.getNumberReturned());
+        assertEquals(Integer.valueOf(6), result.getNbMatched());
+        assertEquals(Integer.valueOf(0), result.getNbReturned());
 
         /*
          * Test 3 : query on typeName samplingPoint with propertyName = {gml:name}
@@ -492,14 +488,10 @@ public class WFS2WorkerTest extends SpringContextTest {
         request = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
 
         result = worker.getFeature(request);
-
-        assertTrue(result instanceof FeatureSetWrapper);
-        wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet().get(0);
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        assertEquals("3.2.1", result.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write(result,writer);
+        featureWriter.write(result, writer);
 
         expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-5v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -519,11 +511,7 @@ public class WFS2WorkerTest extends SpringContextTest {
         request = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
 
         result = worker.getFeature(request);
-
-        assertTrue(result instanceof FeatureSetWrapper);
-        wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet().get(0);
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        assertEquals("3.2.1", result.getGmlVersion());
 
         writer = new StringWriter();
         featureWriter.write(result,writer);
@@ -546,14 +534,10 @@ public class WFS2WorkerTest extends SpringContextTest {
         request = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
 
         result = worker.getFeature(request);
-
-        assertTrue(result instanceof FeatureSetWrapper);
-        wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet().get(0);
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        assertEquals("3.2.1", result.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write(result,writer);
+        featureWriter.write(result, writer);
 
         expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-4v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -572,15 +556,11 @@ public class WFS2WorkerTest extends SpringContextTest {
         queries.add(new QueryType(filter, Arrays.asList(new QName("http://www.opengis.net/sampling/1.0", "SamplingPoint")), null));
         request = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
 
-       result = worker.getFeature(request);
-
-        assertTrue(result instanceof FeatureSetWrapper);
-        wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet().get(0);
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        result = worker.getFeature(request);
+        assertEquals("3.2.1", result.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write(result,writer);
+        featureWriter.write(result, writer);
 
         expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-8v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -600,14 +580,10 @@ public class WFS2WorkerTest extends SpringContextTest {
         request = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
 
         result = worker.getFeature(request);
-
-        assertTrue(result instanceof FeatureSetWrapper);
-        wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet().get(0);
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        assertEquals("3.2.1", result.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write(result,writer);
+        featureWriter.write(result, writer);
 
         expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-8v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -627,14 +603,10 @@ public class WFS2WorkerTest extends SpringContextTest {
         request = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
 
         result = worker.getFeature(request);
-
-        assertTrue(result instanceof FeatureSetWrapper);
-        wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet().get(0);
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        assertEquals("3.2.1", result.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write(result,writer);
+        featureWriter.write(result, writer);
 
         expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-6v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -654,14 +626,10 @@ public class WFS2WorkerTest extends SpringContextTest {
         request = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
 
         result = worker.getFeature(request);
-
-        assertTrue(result instanceof FeatureSetWrapper);
-        wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet().get(0);
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        assertEquals("3.2.1", result.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write(result,writer);
+        featureWriter.write(result, writer);
 
         expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-7v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -681,14 +649,10 @@ public class WFS2WorkerTest extends SpringContextTest {
         request = new GetFeatureType("WFS", "2.0.0", null, null, 2, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
         request.setStartIndex(2);
         result = worker.getFeature(request);
-
-        assertTrue(result instanceof FeatureSetWrapper);
-        wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet().get(0);
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        assertEquals("3.2.1", result.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write(result,writer);
+        featureWriter.write(result, writer);
 
         expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-9v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -706,10 +670,9 @@ public class WFS2WorkerTest extends SpringContextTest {
         queries.add(query);
         request = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, queries, ResultTypeType.HITS, "text/xml; subtype=\"gml/3.2.1\"");
 
-        resultHits = (FeatureCollectionType) worker.getFeature(request);
-
-        assertTrue(resultHits.getNumberReturned() == 0);
-        assertEquals("results:" + resultHits, "6", resultHits.getNumberMatched());
+        result = worker.getFeature(request);
+        assertTrue(result.getNbReturned() == 0);
+        assertEquals(Integer.valueOf(6), result.getNbMatched());
 
 
         /*
@@ -759,10 +722,10 @@ public class WFS2WorkerTest extends SpringContextTest {
         String valueReference = "sampledFeature";
         GetPropertyValueType request = new GetPropertyValueType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, query, ResultTypeType.HITS, "text/xml; subtype=\"gml/3.2.1\"", valueReference);
 
-        Object result = worker.getPropertyValue(request);
+        FeatureSetWrapper result = worker.getPropertyValue(request);
 
-        assertTrue(result instanceof ValueCollection);
-        assertEquals(6, ((ValueCollection)result).getNumberReturned());
+        assertEquals(Integer.valueOf(6), result.getNbMatched());
+        assertEquals(Integer.valueOf(0), result.getNbReturned());
 
         /*
          * Test 2 : query on typeName samplingPoint with RESULTS
@@ -770,11 +733,10 @@ public class WFS2WorkerTest extends SpringContextTest {
         request.setResultType(ResultTypeType.RESULTS);
         result = worker.getPropertyValue(request);
 
-        assertTrue(result instanceof FeatureSetWrapper);
-        FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
-        assertEquals(1, wrapper.getFeatureSet().size());
-        result = wrapper.getFeatureSet().get(0);
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        assertEquals(1, result.getFeatureSet().size());
+        assertEquals("3.2.1", result.getGmlVersion());
+        assertEquals(Integer.valueOf(6), result.getNbMatched());
+        assertEquals(Integer.valueOf(6), result.getNbReturned());
 
         JAXPStreamValueCollectionWriter valueWriter = new JAXPStreamValueCollectionWriter(valueReference);
 
@@ -791,11 +753,10 @@ public class WFS2WorkerTest extends SpringContextTest {
         request.setValueReference(valueReference);
         result = worker.getPropertyValue(request);
 
-        assertTrue(result instanceof FeatureSetWrapper);
-        wrapper = (FeatureSetWrapper) result;
-        assertEquals(1, wrapper.getFeatureSet().size());
-        result = wrapper.getFeatureSet().get(0);
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        assertEquals(1, result.getFeatureSet().size());
+        assertEquals("3.2.1", result.getGmlVersion());
+        assertEquals(Integer.valueOf(6), result.getNbMatched());
+        assertEquals(Integer.valueOf(6), result.getNbReturned());
 
         valueWriter = new JAXPStreamValueCollectionWriter(valueReference);
 
@@ -832,16 +793,10 @@ public class WFS2WorkerTest extends SpringContextTest {
         queries.add(new QueryType(null, Arrays.asList(new QName("http://www.opengis.net/gml/3.2", "Bridges"), new QName("http://www.opengis.net/gml/3.2", "NamedPlaces")), null));
         GetFeatureType request = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
 
-        Object result = worker.getFeature(request);
-
-        assertTrue(result instanceof FeatureSetWrapper);
-        FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
-
+        FeatureSetWrapper result = worker.getFeature(request);
 
         StringWriter writer = new StringWriter();
         featureWriter.write(result,writer);
-
 
         String sresult = writer.toString();
         sresult = sresult.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
@@ -877,15 +832,11 @@ public class WFS2WorkerTest extends SpringContextTest {
         queries.add(selfJoinQuery);
         GetFeatureType request = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
 
-        Object result = worker.getFeature(request);
-
-        assertTrue(result instanceof FeatureSetWrapper);
-        FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        FeatureSetWrapper result = worker.getFeature(request);
+        assertEquals("3.2.1", result.getGmlVersion());
 
         StringWriter writer = new StringWriter();
-        featureWriter.write(result,writer);
+        featureWriter.write(result, writer);
 
         String expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.systemCollectionSelfJoin.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -917,15 +868,11 @@ public class WFS2WorkerTest extends SpringContextTest {
         queries.add(selfJoinQuery);
         GetFeatureType request = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
 
-        Object result = worker.getFeature(request);
-
-        assertTrue(result instanceof FeatureSetWrapper);
-        FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        FeatureSetWrapper result = worker.getFeature(request);
+        assertEquals("3.2.1", result.getGmlVersion());
 
         StringWriter writer = new StringWriter();
-        featureWriter.write(result,writer);
+        featureWriter.write(result, writer);
 
         String expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.systemCollectionSelfJoin.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -947,15 +894,11 @@ public class WFS2WorkerTest extends SpringContextTest {
         queries.add(new QueryType(null, Arrays.asList(new QName("http://www.opengis.net/gml/3.2", "Bridges")), null));
         GetFeatureType request = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
 
-        Object result = worker.getFeature(request);
-
-        assertTrue(result instanceof FeatureSetWrapper);
-        FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet().get(0);
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        FeatureSetWrapper result = worker.getFeature(request);
+        assertEquals("3.2.1", result.getGmlVersion());
 
         StringWriter writer = new StringWriter();
-        featureWriter.write(result,writer);
+        featureWriter.write(result, writer);
 
         String sresult = writer.toString();
         sresult = sresult.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
@@ -973,14 +916,10 @@ public class WFS2WorkerTest extends SpringContextTest {
         request = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
 
         result = worker.getFeature(request);
-
-        assertTrue(result instanceof FeatureSetWrapper);
-        wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet().get(0);
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        assertEquals("3.2.1", result.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write(result,writer);
+        featureWriter.write(result, writer);
 
         sresult = writer.toString();
         sresult = sresult.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
@@ -997,14 +936,10 @@ public class WFS2WorkerTest extends SpringContextTest {
         request = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
 
         result = worker.getFeature(request);
-
-        assertTrue(result instanceof FeatureSetWrapper);
-        wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet().get(0);
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        assertEquals("3.2.1", result.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write(result,writer);
+        featureWriter.write(result, writer);
 
         sresult = writer.toString();
         sresult = sresult.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
@@ -1022,10 +957,8 @@ public class WFS2WorkerTest extends SpringContextTest {
 
         result = worker.getFeature(request);
 
-        FeatureCollectionType resultHits = (FeatureCollectionType)result;
-
-        assertTrue(resultHits.getNumberReturned() == 0);
-        assertEquals("2", resultHits.getNumberMatched());
+        assertTrue(result.getNbReturned() == 0);
+        assertEquals(Integer.valueOf(2), result.getNbMatched());
 
         /*
          * Test 5 : query on typeName NamedPlaces with srsName = EPSG:27582
@@ -1037,14 +970,10 @@ public class WFS2WorkerTest extends SpringContextTest {
         request = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
 
         result = worker.getFeature(request);
-
-        assertTrue(result instanceof FeatureSetWrapper);
-        wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet().get(0);
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        assertEquals("3.2.1", result.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write(result,writer);
+        featureWriter.write(result, writer);
 
         sresult = writer.toString();
         sresult = sresult.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
@@ -1063,10 +992,7 @@ public class WFS2WorkerTest extends SpringContextTest {
         request = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
 
         result = worker.getFeature(request);
-        assertTrue(result instanceof FeatureSetWrapper);
-        wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet().get(0);
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        assertEquals("3.2.1", result.getGmlVersion());
 
         writer = new StringWriter();
         featureWriter.write(result,writer);
@@ -1088,14 +1014,10 @@ public class WFS2WorkerTest extends SpringContextTest {
         request = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
 
         result = worker.getFeature(request);
-
-        assertTrue(result instanceof FeatureSetWrapper);
-        wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet().get(0);
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        assertEquals("3.2.1", result.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write(result,writer);
+        featureWriter.write(result, writer);
 
         sresult = writer.toString();
         sresult = sresult.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
@@ -1116,11 +1038,7 @@ public class WFS2WorkerTest extends SpringContextTest {
         request = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
 
         result = worker.getFeature(request);
-
-        assertTrue(result instanceof FeatureSetWrapper);
-        wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet().get(0);
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        assertEquals("3.2.1", result.getGmlVersion());
 
         writer = new StringWriter();
         featureWriter.write(result,writer);
@@ -1275,12 +1193,8 @@ public class WFS2WorkerTest extends SpringContextTest {
         queries.add(new QueryType(null, Arrays.asList(new QName("http://www.opengis.net/gml/3.2", "NamedPlaces")), null));
         GetFeatureType requestGF = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
 
-        Object resultGF = worker.getFeature(requestGF);
-
-        assertTrue(resultGF instanceof FeatureSetWrapper);
-        FeatureSetWrapper wrapper = (FeatureSetWrapper) resultGF;
-        resultGF = wrapper.getFeatureSet().get(0);
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        FeatureSetWrapper resultGF = worker.getFeature(requestGF);
+        assertEquals("3.2.1", resultGF.getGmlVersion());
 
         StringWriter writer = new StringWriter();
         featureWriter.write(resultGF,writer);
@@ -1332,15 +1246,11 @@ public class WFS2WorkerTest extends SpringContextTest {
         queries.add(new QueryType(null, Arrays.asList(new QName("http://www.opengis.net/gml/3.2", "NamedPlaces")), null));
         GetFeatureType requestGF = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
 
-        Object resultGF = worker.getFeature(requestGF);
-
-        assertTrue(resultGF instanceof FeatureSetWrapper);
-        FeatureSetWrapper wrapper = (FeatureSetWrapper) resultGF;
-        resultGF = wrapper.getFeatureSet().get(0);
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        FeatureSetWrapper resultGF = worker.getFeature(requestGF);
+        assertEquals("3.2.1", resultGF.getGmlVersion());
 
         StringWriter writer = new StringWriter();
-        featureWriter.write(resultGF,writer);
+        featureWriter.write(resultGF, writer);
 
         String sresult = writer.toString();
         sresult = sresult.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
@@ -1394,11 +1304,7 @@ public class WFS2WorkerTest extends SpringContextTest {
         queries.add(new QueryType(null, Arrays.asList(new QName("http://www.opengis.net/gml/3.2", "NamedPlaces")), null));
         GetFeatureType requestGF = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
 
-        Object resultGF = worker.getFeature(requestGF);
-
-        assertTrue(resultGF instanceof FeatureSetWrapper);
-        FeatureSetWrapper wrapper = (FeatureSetWrapper) resultGF;
-        resultGF = wrapper.getFeatureSet().get(0);
+        FeatureSetWrapper resultGF = worker.getFeature(requestGF);
 
         StringWriter writer = new StringWriter();
         featureWriter.write(resultGF,writer);
@@ -1645,15 +1551,11 @@ public class WFS2WorkerTest extends SpringContextTest {
         final QueryType query = new QueryType(filter, null, "2.0.0");
         GetFeatureType request = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, Arrays.asList(query), ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
 
-        Object result = worker.getFeature(request);
-
-        assertTrue(result instanceof FeatureSetWrapper);
-        FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet().get(0);
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        FeatureSetWrapper result = worker.getFeature(request);
+        assertEquals("3.2.1", result.getGmlVersion());
 
         StringWriter writer = new StringWriter();
-        featureWriter.write(result,writer);
+        featureWriter.write(result, writer);
 
         String expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-2v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -1679,15 +1581,11 @@ public class WFS2WorkerTest extends SpringContextTest {
         StoredQueryType query = new StoredQueryType("nameQuery", null, params);
         request.getAbstractQueryExpression().add(factory.createStoredQuery(query));
 
-        Object result = worker.getFeature(request);
-
-        assertTrue(result instanceof FeatureSetWrapper);
-        FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet().get(0);
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        FeatureSetWrapper result = worker.getFeature(request);
+        assertEquals("3.2.1", result.getGmlVersion());
 
         StringWriter writer = new StringWriter();
-        featureWriter.write(result,writer);
+        featureWriter.write(result, writer);
 
         String expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-2v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -1707,14 +1605,10 @@ public class WFS2WorkerTest extends SpringContextTest {
         request.getAbstractQueryExpression().add(factory.createStoredQuery(query));
 
         result = worker.getFeature(request);
-
-        assertTrue(result instanceof FeatureSetWrapper);
-        wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet().get(0);
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        assertEquals("3.2.1", result.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write(result,writer);
+        featureWriter.write(result, writer);
 
         expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-2v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -1740,12 +1634,10 @@ public class WFS2WorkerTest extends SpringContextTest {
         result = worker.getFeature(request);
 
         assertTrue(result instanceof FeatureSetWrapper);
-        wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet().get(0);
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        assertEquals("3.2.1", result.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write(result,writer);
+        featureWriter.write(result, writer);
 
         expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-8v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -1765,13 +1657,10 @@ public class WFS2WorkerTest extends SpringContextTest {
         request.getAbstractQueryExpression().add(factory.createStoredQuery(query));
 
         result = worker.getFeature(request);
-
-        assertTrue(result instanceof FeatureSetWrapper);
-        wrapper = (FeatureSetWrapper) result;
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        assertEquals("3.2.1", result.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write(wrapper,writer);
+        featureWriter.write(result, writer);
 
         expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-3v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -1796,15 +1685,11 @@ public class WFS2WorkerTest extends SpringContextTest {
         StoredQueryType query = new StoredQueryType("urn:ogc:def:query:OGC-WFS::GetFeatureById", null, params);
         request.getAbstractQueryExpression().add(factory.createStoredQuery(query));
 
-        Object result = worker.getFeature(request);
-
-        assertTrue(result instanceof FeatureSetWrapper);
-        FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet().get(0);
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        FeatureSetWrapper result = worker.getFeature(request);
+        assertEquals("3.2.1", result.getGmlVersion());
 
         StringWriter writer = new StringWriter();
-        featureWriter.write(result,writer);
+        featureWriter.write(result, writer);
 
         String expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-2v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -1822,14 +1707,11 @@ public class WFS2WorkerTest extends SpringContextTest {
         queries.add(new QueryType(null, Arrays.asList(new QName("http://www.opengis.net/gml/3.2", "NamedPlaces")), null));
         GetFeatureType requestGF = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/gml; subtype=\"gml/3.1.1\"");
 
-        Object resultGF = worker.getFeature(requestGF);
-
-        assertTrue(resultGF instanceof FeatureSetWrapper);
-        FeatureSetWrapper wrapper = (FeatureSetWrapper) resultGF;
+        FeatureSetWrapper resultGF = worker.getFeature(requestGF);
 
         final Map<String, String> expResult = new HashMap<>();
         expResult.put("http://www.opengis.net/gml/3.2", "http://geomatys.com/constellation/WS/wfs/test1?request=DescribeFeatureType&version=2.0.0&service=WFS&namespace=xmlns(ns1=http://www.opengis.net/gml/3.2)&typenames=ns1:NamedPlaces");
-        assertEquals(expResult, wrapper.getSchemaLocations());
+        assertEquals(expResult, resultGF.getSchemaLocations());
 
     }
 
@@ -1844,15 +1726,11 @@ public class WFS2WorkerTest extends SpringContextTest {
         final QueryType query = new QueryType(filter, null, "2.0.0");
         GetFeatureType request = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, Arrays.asList(query), ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
 
-        Object result = worker.getFeature(request);
-
-        assertTrue(result instanceof FeatureSetWrapper);
-        FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet().get(0);
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        FeatureSetWrapper result = worker.getFeature(request);
+        assertEquals("3.2.1", result.getGmlVersion());
 
         StringWriter writer = new StringWriter();
-        featureWriter.write(result,writer);
+        featureWriter.write(result, writer);
 
         String expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.featureCollection-1v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -1877,15 +1755,11 @@ public class WFS2WorkerTest extends SpringContextTest {
         queries.add(new QueryType(null, Arrays.asList(new QName("http://www.opengis.net/gml/3.2", "feature")), null));
         GetFeatureType request = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
 
-        Object result = worker.getFeature(request);
-
-        assertTrue(result instanceof FeatureSetWrapper);
-        FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet().get(0);
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        FeatureSetWrapper result = worker.getFeature(request);
+        assertEquals("3.2.1", result.getGmlVersion());
 
         StringWriter writer = new StringWriter();
-        featureWriter.write(result,writer);
+        featureWriter.write(result, writer);
 
         String sresult = writer.toString();
         sresult = sresult.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
@@ -1903,11 +1777,7 @@ public class WFS2WorkerTest extends SpringContextTest {
         request = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
 
         result = worker.getFeature(request);
-
-        assertTrue(result instanceof FeatureSetWrapper);
-        wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet().get(0);
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        assertEquals("3.2.1", result.getGmlVersion());
 
         writer = new StringWriter();
         featureWriter.write(result,writer);
@@ -1931,9 +1801,7 @@ public class WFS2WorkerTest extends SpringContextTest {
         result = worker.getFeature(request);
 
         assertTrue(result instanceof FeatureSetWrapper);
-        wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet().get(0);
-        assertEquals("3.2.1", wrapper.getGmlVersion());
+        assertEquals("3.2.1", result.getGmlVersion());
 
         writer = new StringWriter();
         featureWriter.write(result,writer);

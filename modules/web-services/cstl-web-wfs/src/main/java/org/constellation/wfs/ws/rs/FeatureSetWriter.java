@@ -116,8 +116,7 @@ public class FeatureSetWriter implements HttpMessageConverter<FeatureSetWrapper>
                 // WFS value collection mode
                 if (t.getValueReference() != null) {
                     final XmlFeatureWriter featureWriter = new JAXPStreamValueCollectionWriter(t.getValueReference());
-                    // in this case the list should always be only one element
-                    featureWriter.write(t.getFeatureSet().get(0), outputMessage.getBody());
+                    featureWriter.write(t, outputMessage.getBody());
                     
                 // normal WFS/featureAPI mode
                 } else {

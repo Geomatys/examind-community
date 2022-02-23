@@ -45,8 +45,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Named;
 import javax.xml.bind.JAXBElement;
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import org.apache.sis.geometry.Envelopes;
@@ -54,7 +52,6 @@ import org.apache.sis.internal.feature.AttributeConvention;
 import org.apache.sis.internal.feature.jts.JTS;
 import org.apache.sis.internal.storage.ConcatenatedFeatureSet;
 import org.apache.sis.storage.FeatureQuery;
-import org.apache.sis.internal.xml.XmlUtilities;
 import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
@@ -185,13 +182,11 @@ import static org.geotoolkit.wfs.xml.WFSXmlFactory.buildBBOX;
 import static org.geotoolkit.wfs.xml.WFSXmlFactory.buildCreateStoredQueryResponse;
 import static org.geotoolkit.wfs.xml.WFSXmlFactory.buildDescribeStoredQueriesResponse;
 import static org.geotoolkit.wfs.xml.WFSXmlFactory.buildDropStoredQueryResponse;
-import static org.geotoolkit.wfs.xml.WFSXmlFactory.buildFeatureCollection;
 import static org.geotoolkit.wfs.xml.WFSXmlFactory.buildFeatureType;
 import static org.geotoolkit.wfs.xml.WFSXmlFactory.buildFeatureTypeList;
 import static org.geotoolkit.wfs.xml.WFSXmlFactory.buildListStoredQueriesResponse;
 import static org.geotoolkit.wfs.xml.WFSXmlFactory.buildSections;
 import static org.geotoolkit.wfs.xml.WFSXmlFactory.buildTransactionResponse;
-import static org.geotoolkit.wfs.xml.WFSXmlFactory.buildValueCollection;
 import static org.geotoolkit.wfs.xml.WFSXmlFactory.buildWFSCapabilities;
 import org.geotoolkit.wfs.xml.v110.FeatureCollectionType;
 import org.geotoolkit.wfs.xml.v200.ObjectFactory;
@@ -950,14 +945,15 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
      * {@inheritDoc }
      */
     @Override
-    public Object getFeature(final GetFeature request) throws CstlServiceException {
+    public FeatureSetWrapper getFeature(final GetFeature request) throws CstlServiceException {
         LOGGER.log(Level.FINE, "GetFeature request proccesing");
         final long start = System.currentTimeMillis();
 
         // we verify the base attribute
         verifyBaseRequest(request, false, false);
 
-        long nbMatched                             = 0;
+        Integer nbMatched                          = 0;
+        Integer nbReturned                         = 0;
         final String userLogin                     = getUserLogin();
         final String currentVersion                = request.getVersion().toString();
         final int maxFeatures                      = request.getCount();
@@ -1033,6 +1029,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             //decode sort by----------------------------------------------------
             final List<SortProperty> sortBys = visitJaxbSortBy(query.getSortBy(), namespaceMapping, currentVersion);
 
+            boolean singleCollectionRequested = typeNames.size() == 1;
             for (GenericName typeName : typeNames) {
                 final LayerCache layer = layers.get(typeName);
 
@@ -1073,15 +1070,17 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 // look for matching count before pagination
                 try {
                     Long colMatch = FeatureStoreUtilities.getCount(origin.subset(subquery));
-                    nbMatched = nbMatched + colMatch;
+                    nbMatched = nbMatched + colMatch.intValue();
                 } catch (DataStoreException ex) {
                     throw new CstlServiceException(ex);
                 }
 
-                if (startIndex != 0){
+                if (startIndex != 0) {
                     subquery.setOffset(startIndex);
                 }
-                if (maxFeatures != 0){
+                if (request.getResultType() == ResultTypeType.HITS) {
+                    subquery.setLimit(0);
+                } else if (maxFeatures != 0 ) {
                     subquery.setLimit(maxFeatures);
                 }
 
@@ -1100,14 +1099,15 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 // we verify that all the properties contained in the filter are known by the feature type.
                 verifyFilterProperty(NameOverride.wrap(ft, typeName), cleanFilter, aliases);
 
-                long colSize = 0;
+                Long colSize;
                 try {
                     colSize = FeatureStoreUtilities.getCount(collection);
+                    nbReturned = nbReturned + colSize.intValue();
                 } catch (DataStoreException ex) {
                     throw new CstlServiceException(ex);
                 }
 
-                if (colSize > 0) {
+                if (colSize > 0 || singleCollectionRequested) {
                     if (queryCRS == null) {
                         try {
                             //ensure axes are in the declared order, since we use urn epsg, we must comply
@@ -1172,19 +1172,14 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
         if (collections.isEmpty()) {
             collections.add(FeatureStoreUtilities.collection("collection-1", null));
         }
-        if (request.getResultType() == ResultTypeType.HITS) {
-            final XMLGregorianCalendar calendar;
-            try {
-                calendar = XmlUtilities.toXML(null, new Date());
-            } catch (DatatypeConfigurationException e) {
-                throw new CstlServiceException("Unable to create XMLGregorianCalendar from Date.");
-            }
-            return buildFeatureCollection(currentVersion, "collection-1", (int)nbMatched, calendar);
+        if (request.getResultType() == ResultTypeType.HITS && "1.1.0".equals(currentVersion)) {
+            nbReturned =  nbMatched;
+            nbMatched = null;
         }
         LOGGER.log(Level.FINE, "GetFeature treated in {0}ms", (System.currentTimeMillis() - start));
 
         boolean singleFeature = queries.size() == 1 && queries.containsKey("urn:ogc:def:query:OGC-WFS::GetFeatureById");
-        return new FeatureSetWrapper(collections, schemaLocations, gmlVersion, currentVersion, (int)nbMatched, singleFeature);
+        return new FeatureSetWrapper(collections, schemaLocations, gmlVersion, currentVersion, nbMatched, nbReturned, singleFeature);
     }
 
     private boolean isAllFeatureTypes(List<QName> typeNames) {
@@ -1199,7 +1194,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
     }
 
     @Override
-    public Object getPropertyValue(final GetPropertyValue request) throws CstlServiceException {
+    public FeatureSetWrapper getPropertyValue(final GetPropertyValue request) throws CstlServiceException {
         LOGGER.log(Level.FINE, "GetPropertyValue request processing\n");
         final long startTime = System.currentTimeMillis();
         verifyBaseRequest(request, true, false);
@@ -1211,11 +1206,14 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             throw new CstlServiceException("ValueReference must not be empty", INVALID_PARAMETER_VALUE, "valueReference");
         }
 
+        Integer nbMatched                          = 0;
+        Integer nbReturned                         = 0;
         final String userLogin                     = getUserLogin();
         final Map<String, String> namespaceMapping = request.getPrefixMapping();
         final String currentVersion                = request.getVersion().toString();
         final Collection<? extends Query> queries  = extractStoredQueries(request).values();
         final Integer maxFeatures                  = request.getCount();
+        final Integer startIndex                   = request.getStartIndex();
         final Map<String, String> schemaLocations  = new HashMap<>();
         final List<FeatureSet> collections  = new ArrayList<>();
 
@@ -1270,11 +1268,25 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 final FeatureQuery subquery = new FeatureQuery();
                 subquery.setSelection(cleanFilter);
 
-                if (!sortBys.isEmpty()) {
-                    subquery.setSortBy(sortBys.toArray(new SortProperty[sortBys.size()]));
+                // look for matching count before pagination
+                try {
+                    Long colMatch = FeatureStoreUtilities.getCount(origin.subset(subquery));
+                    nbMatched = nbMatched + colMatch.intValue();
+                } catch (DataStoreException ex) {
+                    throw new CstlServiceException(ex);
                 }
-                if (maxFeatures != 0){
+
+                if (startIndex != 0) {
+                    subquery.setOffset(startIndex);
+                }
+                if (request.getResultType() == ResultTypeType.HITS) {
+                    subquery.setLimit(0);
+                } else if (maxFeatures != 0 ) {
                     subquery.setLimit(maxFeatures);
+                }
+
+                if (!sortBys.isEmpty()) {
+                    subquery.setSortBy(sortBys.toArray(new SortProperty[0]));
                 }
 
                 // we ensure that the property names are contained in the feature type and add the mandatory attribute to the list
@@ -1294,6 +1306,9 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 
                 try {
                     FeatureSet col = origin.subset(subquery);
+
+                    Long colSize = FeatureStoreUtilities.getCount(col);
+                    nbReturned = nbReturned + colSize.intValue();
 
                     if (crs != null) {
                         col = col.subset(org.geotoolkit.storage.feature.query.Query.reproject(col.getType(), crs));
@@ -1331,20 +1346,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
         }
 
         LOGGER.log(Level.FINE, "GetPropertyValue request processed in {0} ms", (System.currentTimeMillis() - startTime));
-        if (request.getResultType() == ResultTypeType.HITS) {
-            final XMLGregorianCalendar calendar;
-            try {
-                calendar = XmlUtilities.toXML(null, new Date());
-            } catch (DatatypeConfigurationException e) {
-                throw new CstlServiceException("Unable to create XMLGregorianCalendar from Date.");
-            }
-            try {
-                return buildValueCollection(currentVersion, FeatureStoreUtilities.getCount(featureCollection).intValue(), calendar);
-            } catch (DataStoreException ex) {
-                throw new CstlServiceException(ex.getMessage(), ex);
-            }
-        }
-        return new FeatureSetWrapper(featureCollection, request.getValueReference(), "3.2.1");
+        return new FeatureSetWrapper(featureCollection, request.getValueReference(), nbMatched, nbReturned, "3.2.1");
     }
 
     private List<SortProperty> visitJaxbSortBy(final org.geotoolkit.ogc.xml.SortBy jaxbSortby,final Map<String, String> namespaceMapping, final String version) {
