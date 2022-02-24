@@ -76,7 +76,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import org.springframework.test.annotation.DirtiesContext;
 
 /**
  * Testing class for WCS requests.
@@ -86,7 +85,6 @@ import org.springframework.test.annotation.DirtiesContext;
  *
  * @since 0.5
  */
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class WCSWorkerOutputTest extends SpringContextTest {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.coverage.ws");

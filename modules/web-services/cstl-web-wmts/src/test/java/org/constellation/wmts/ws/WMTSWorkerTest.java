@@ -49,7 +49,6 @@ import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.exception.ConstellationException;
 import org.constellation.test.utils.TestEnvironment;
-import org.springframework.test.annotation.DirtiesContext;
 
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
@@ -61,7 +60,6 @@ import static org.junit.Assert.fail;
  *
  * @author Guilhem Legal (Geomatys)
  */
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class WMTSWorkerTest extends SpringContextTest {
 
     @Inject

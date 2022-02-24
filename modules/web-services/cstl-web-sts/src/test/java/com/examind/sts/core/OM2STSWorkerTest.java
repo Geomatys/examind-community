@@ -40,8 +40,6 @@ import org.constellation.exception.ConstellationRuntimeException;
 import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.TestEnvironment.TestResource;
-import org.constellation.test.utils.TestEnvironment.TestResources;
-import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import org.geotoolkit.internal.geojson.binding.GeoJSONFeature;
 import org.geotoolkit.internal.geojson.binding.GeoJSONGeometry;
 import org.geotoolkit.sts.GetCapabilities;
@@ -79,7 +77,6 @@ import org.geotoolkit.util.DeltaComparable;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.test.annotation.DirtiesContext;
 
 /**
  * TODO: remove dirty context annotation once we've managed to sanitize Spring context management.
@@ -87,7 +84,6 @@ import org.springframework.test.annotation.DirtiesContext;
  *
  * @author Guilhem Legal (Geomatys)
  */
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class OM2STSWorkerTest extends SpringContextTest {
 
     @Inject
