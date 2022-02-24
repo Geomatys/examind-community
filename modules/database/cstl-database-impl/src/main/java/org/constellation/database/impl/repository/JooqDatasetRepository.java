@@ -20,7 +20,6 @@ package org.constellation.database.impl.repository;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.HashMap;
 import com.examind.database.api.jooq.tables.Data;
 import com.examind.database.api.jooq.tables.pojos.Dataset;
 import com.examind.database.api.jooq.tables.pojos.Metadata;
@@ -45,8 +44,10 @@ import static com.examind.database.api.jooq.Tables.METADATA;
 import static com.examind.database.api.jooq.Tables.METADATA_X_CSW;
 import static com.examind.database.api.jooq.Tables.SENSORED_DATA;
 import org.constellation.dto.DataSet;
+import org.constellation.exception.ConstellationPersistenceException;
 import org.jooq.Select;
-import org.jooq.SelectConditionStep;
+import org.jooq.SelectConnectByStep;
+import org.jooq.SelectJoinStep;
 import org.jooq.SelectLimitStep;
 import org.jooq.SortField;
 import org.springframework.context.annotation.DependsOn;
@@ -173,127 +174,78 @@ public class JooqDatasetRepository extends AbstractJooqRespository<DatasetRecord
     @Override
     public Map.Entry<Integer, List<DataSet>> filterAndGet(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage) {
 
-        //add default filter
-        if (filterMap == null) {
-           filterMap = new HashMap<>();
-        }
-
         // build SQL query
-        Select query = null;
-        for (final Map.Entry<String, Object> entry : filterMap.entrySet()) {
-            final Condition cond = buidCondition(entry.getKey(), entry.getValue());
-            if (cond != null) {
-                if (query == null) {
-                    query = dsl.select(DATASET.fields()).from(DATASET)
-                               .leftOuterJoin(CSTL_USER).on(CSTL_USER.ID.eq(DATASET.OWNER)) // dataset -> cstl_user
-                               .where(cond);
-                } else {
-                    query = ((SelectConditionStep) query).and(cond);
-                }
-            }
-        }
+        SelectJoinStep baseQuery = dsl.select(DATASET.fields()).from(DATASET).leftOuterJoin(CSTL_USER).on(CSTL_USER.ID.eq(DATASET.OWNER)); // dataset -> cstl_user
+        SelectConnectByStep fquery = buildQuery(baseQuery, filterMap);
 
         // add sort
-        if(sortEntry != null) {
+        Select query;
+        if (sortEntry != null) {
             final SortField f;
             if ("title".equals(sortEntry.getKey()) || "name".equals(sortEntry.getKey())) {
                 f = "ASC".equals(sortEntry.getValue()) ? DSL.lower(DATASET.IDENTIFIER).asc() : DSL.lower(DATASET.IDENTIFIER).desc();
             } else if ("owner_login".equals(sortEntry.getKey())) {
                 f = "ASC".equals(sortEntry.getValue()) ? CSTL_USER.LOGIN.asc() : CSTL_USER.LOGIN.desc();
-            } else {
+            } else { //default sorting on date stamp
                 f = "ASC".equals(sortEntry.getValue()) ? DATASET.DATE.asc() : DATASET.DATE.desc();
             }
-            if (query == null) {
-                query = dsl.select(DATASET.fields()).from(DATASET)
-                           .leftOuterJoin(CSTL_USER).on(CSTL_USER.ID.eq(DATASET.OWNER)) // dataset -> cstl_user
-                           .orderBy(f);
-            } else {
-                query = ((SelectConditionStep)query).orderBy(f);
-            }
+            query = fquery.orderBy(f);
+        } else {
+            query = fquery;
         }
 
-        final Map.Entry<Integer,List<DataSet>> result;
-        if (query == null) {
-            final int count = dsl.selectCount().from(DATASET).fetchOne(0,int.class);
-            result = new AbstractMap.SimpleImmutableEntry<>(count,
-                    convertDatasetListToDto(dsl.select(DATASET.fields())
-                                               .from(DATASET)
-                                               .limit(rowsPerPage)
-                                               .offset((pageNumber - 1) * rowsPerPage)
-                                               .fetchInto(Dataset.class)));
-        } else {
-            final int count = dsl.fetchCount(query);
-            result = new AbstractMap.SimpleImmutableEntry<>(count,
-                    convertDatasetListToDto(((SelectLimitStep) query).limit(rowsPerPage).offset((pageNumber - 1) * rowsPerPage)
-                                             .fetchInto(Dataset.class)));
-        }
+        final int count = dsl.fetchCount(query);
+        final Map.Entry<Integer,List<DataSet>> result = new AbstractMap.SimpleImmutableEntry<>(count,
+                convertDatasetListToDto(((SelectLimitStep) query).limit(rowsPerPage).offset((pageNumber - 1) * rowsPerPage)
+                                         .fetchInto(Dataset.class)));
         return result;
     }
 
-    public Condition buidCondition(String key, Object value) {
+    @Override
+    protected Condition buildSpecificCondition(String key, Object value) {
         if ("owner".equals(key)) {
-            return DATASET.OWNER.equal((Integer) value);
+            return DATASET.OWNER.equal(castOrThrow(key, value, Integer.class));
         } else if ("id".equals(key)) {
-            return DATASET.ID.equal((Integer) value);
+            return DATASET.ID.equal(castOrThrow(key, value, Integer.class));
         } else if ("term".equals(key)) {
-            String likeExpr = '%' + (String)value + '%';
-             Field<Integer> countNamedData = countNamedData(DATASET.ID, likeExpr);
-            return DATASET.IDENTIFIER.likeIgnoreCase(likeExpr).or(CSTL_USER.LOGIN.likeIgnoreCase(likeExpr)).or(countNamedData.greaterThan(0));
+            String likeExpr = '%' + castOrThrow(key, value, String.class) + '%';
+            Field<Integer> countNamedData = countNamedData(DATASET.ID, likeExpr);
+            return DATASET.IDENTIFIER.likeIgnoreCase(likeExpr)
+               .or(CSTL_USER.LOGIN.likeIgnoreCase(likeExpr))
+               .or(countNamedData.greaterThan(0));
         } else if ("period".equals(key)) {
-            return DATASET.DATE.greaterOrEqual((Long) value);
-
+            return DATASET.DATE.greaterOrEqual(castOrThrow(key, value, Long.class));
         } else if ("type".equals(key)) {
-            return DATASET.TYPE.eq((String) value);
-
+            return DATASET.TYPE.eq(castOrThrow(key, value, String.class));
         } else if ("excludeEmpty".equals(key)) {
-            if ((boolean)value == true) {
-                Field<Integer> countData = countData(DATASET.ID);
-                return countData.greaterThan(0);
+            Boolean is = castOrThrow(key, value, Boolean.class);
+            if (is) {
+                return countData(DATASET.ID).greaterThan(0);
             } else {
                 return DSL.trueCondition();
             }
-
         } else if ("hasVectorData".equals(key)) {
+            Boolean hvd = castOrThrow(key, value, Boolean.class);
             Field<Integer> countVectorData = countDataOfType(DATASET.ID, "VECTOR");
-            return (boolean)value ? countVectorData.greaterThan(0) : countVectorData.eq(0);
+            return hvd ? countVectorData.greaterThan(0) : countVectorData.eq(0);
 
         } else if ("hasCoverageData".equals(key)) {
+            Boolean hcd = castOrThrow(key, value, Boolean.class);
             Field<Integer> countCoverageData = countDataOfType(DATASET.ID, "COVERAGE");
-            return (boolean)value ? countCoverageData.greaterThan(0) : countCoverageData.eq(0);
+            return hcd ? countCoverageData.greaterThan(0) : countCoverageData.eq(0);
 
         } else if ("hasLayerData".equals(key)) {
+            Boolean hld = castOrThrow(key, value, Boolean.class);
             Field<Integer> countLayerData = countLayerData(DATASET.ID);
-            return (boolean)value ? countLayerData.greaterThan(0) : countLayerData.eq(0);
+            return hld ? countLayerData.greaterThan(0) : countLayerData.eq(0);
 
         } else if ("hasSensorData".equals(key)) {
+            Boolean hsd = castOrThrow(key, value, Boolean.class);
             Field<Integer> countSensorData = countSensorData(DATASET.ID);
-            return (boolean)value ? countSensorData.greaterThan(0) : countSensorData.eq(0);
+            return hsd ? countSensorData.greaterThan(0) : countSensorData.eq(0);
 
-        } else if ("OR".equals(key)) {
-            List<Map.Entry<String, Object>> values =  (List<Map.Entry<String, Object>>) value;
-            Condition c = null;
-            for (Map.Entry<String, Object> e: values) {
-                Condition c2 = buidCondition(e.getKey(), e.getValue());
-                if (c == null) {
-                    c = c2;
-                } else {
-                    c = c.or(c2);
-                }
-            }
-            return c;
-        } else if ("AND".equals(key)) {
-            List<Map.Entry<String, Object>> values =  (List<Map.Entry<String, Object>>) value;
-            Condition c = null;
-            for (Map.Entry<String, Object> e: values) {
-                Condition c2 = buidCondition(e.getKey(), e.getValue());
-                if (c == null) {
-                    c = c2;
-                } else {
-                    c = c.and(c2);
-                }
-            }
         }
-        return null;
+        throw new ConstellationPersistenceException(key + " parameter is not supported.");
     }
 
     @Override

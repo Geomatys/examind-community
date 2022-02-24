@@ -52,6 +52,9 @@ import static com.examind.database.api.jooq.Tables.PROVIDER;
 import static com.examind.database.api.jooq.Tables.SENSORED_DATA;
 import static com.examind.database.api.jooq.Tables.SERVICE;
 import static com.examind.database.api.jooq.Tables.STYLED_DATA;
+import org.constellation.exception.ConstellationPersistenceException;
+import org.jooq.SelectConnectByStep;
+import org.jooq.SelectJoinStep;
 import org.springframework.context.annotation.DependsOn;
 
 @Component
@@ -422,108 +425,65 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, com.
     @Override
     public Map.Entry<Integer, List<Data>> filterAndGet(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage) {
 
-        //add default filter
         if (filterMap == null) {
            filterMap = new HashMap<>();
         }
-        if (!filterMap.containsKey("hidden")) {
-            filterMap.put("hidden", false);
-        }
-        if (!filterMap.containsKey("included")) {
-            filterMap.put("included", true);
-        }
+        //add default filter
+        filterMap.putIfAbsent("hidden",  false); // problem if there is a "hidden" filter in a sub clause
+        filterMap.putIfAbsent("included", true); // same problem
 
-        // build SQL query
-        Select query = null;
-        for (final Map.Entry<String, Object> entry : filterMap.entrySet()) {
-            final Condition cond = buidCondition(entry.getKey(), entry.getValue());
-            if (cond != null) {
-                if (query == null) {
-                    query = dsl.select(DATA.fields()).from(DATA).where(cond);
-                } else {
-                    query = ((SelectConditionStep) query).and(cond);
-                }
-            }
-        }
+        // build filtered SQL query
+        SelectJoinStep baseQuery = dsl.select(DATA.fields()).from(DATA);
+        SelectConnectByStep fquery = buildQuery(baseQuery, filterMap);
 
         // add sort
-        if(sortEntry != null) {
+        Select query;
+        if (sortEntry != null) {
             final SortField f;
-            if("title".equals(sortEntry.getKey())){
+            if ("title".equals(sortEntry.getKey())) {
                 f = "ASC".equals(sortEntry.getValue()) ? DSL.lower(DATA.NAME).asc() : DSL.lower(DATA.NAME).desc();
-            }else {
+            } else { //default sorting on date stamp
                 f = "ASC".equals(sortEntry.getValue()) ? DATA.DATE.asc() : DATA.DATE.desc();
             }
-            if (query == null) {
-                query = dsl.select(DATA.fields()).from(DATA).orderBy(f);
-            } else {
-                query = ((SelectConditionStep)query).orderBy(f);
-            }
-        }
-
-        final Map.Entry<Integer,List<Data>> result;
-        if (query == null) {
-            final int count = dsl.selectCount().from(DATA).fetchOne(0,int.class);
-            result = new AbstractMap.SimpleImmutableEntry<>(count,
-                    convertDataListToDto(dsl.select(DATA.fields()).from(DATA).limit(rowsPerPage).offset((pageNumber - 1) * rowsPerPage).fetchInto(com.examind.database.api.jooq.tables.pojos.Data.class)));
+            query = fquery.orderBy(f);
         } else {
-            final int count = dsl.fetchCount(query);
-            result = new AbstractMap.SimpleImmutableEntry<>(count,
-                    convertDataListToDto(((SelectLimitStep) query).limit(rowsPerPage).offset((pageNumber - 1) * rowsPerPage).fetchInto(com.examind.database.api.jooq.tables.pojos.Data.class)));
+            query = fquery;
         }
+        
+        final int count = dsl.fetchCount(query);
+        final Map.Entry<Integer,List<Data>> result = new AbstractMap.SimpleImmutableEntry<>(count,
+                convertDataListToDto(((SelectLimitStep) query).limit(rowsPerPage).offset((pageNumber - 1) * rowsPerPage).fetchInto(com.examind.database.api.jooq.tables.pojos.Data.class)));
         return result;
     }
 
-    public Condition buidCondition(String key, Object value) {
+    @Override
+    protected Condition buildSpecificCondition(String key, Object value) {
         if ("owner".equals(key)) {
-            return DATA.OWNER.equal((Integer) value);
+            return DATA.OWNER.equal(castOrThrow(key, value, Integer.class));
         } else if ("dataset".equals(key)) {
-            return DATA.DATASET_ID.equal((Integer) value);
+            return DATA.DATASET_ID.equal(castOrThrow(key, value, Integer.class));
         } else if ("provider_id".equals(key)) {
-            return DATA.PROVIDER.equal((Integer) value);
+            return DATA.PROVIDER.equal(castOrThrow(key, value, Integer.class));
         } else if ("rendered".equals(key)) {
-            return DATA.RENDERED.equal((Boolean) value);
+            return DATA.RENDERED.equal(castOrThrow(key, value, Boolean.class));
         } else if ("included".equals(key)) {
-            return DATA.INCLUDED.equal((Boolean) value);
+            return DATA.INCLUDED.equal(castOrThrow(key, value, Boolean.class));
         } else if ("id".equals(key)) {
-            return DATA.ID.equal((Integer) value);
+            return DATA.ID.equal(castOrThrow(key, value, Integer.class));
         } else if ("sub_type".equals(key)) {
-            return DATA.SUBTYPE.equal((String) value);
+            return DATA.SUBTYPE.equal(castOrThrow(key, value, String.class));
         } else if ("hidden".equals(key)) {
-            return DATA.HIDDEN.equal((Boolean) value);
+            return DATA.HIDDEN.equal(castOrThrow(key, value, Boolean.class));
         } else if ("sensorable".equals(key)) {
-            return DATA.SENSORABLE.equal((Boolean) value);
+            return DATA.SENSORABLE.equal(castOrThrow(key, value, Boolean.class));
         } else if ("term".equals(key)) {
-            return DATA.NAME.likeIgnoreCase("%" + value + "%");
+            return DATA.NAME.likeIgnoreCase("%" + castOrThrow(key, value, String.class) + "%");
         } else if ("period".equals(key)) {
-            return DATA.DATE.greaterOrEqual((Long) value);
+            return DATA.DATE.greaterOrEqual(castOrThrow(key, value, Long.class));
         } else if ("type".equals(key)) {
-            return DATA.TYPE.eq((String) value);
-        } else if ("OR".equals(key)) {
-            List<Map.Entry<String, Object>> values =  (List<Map.Entry<String, Object>>) value;
-            Condition c = null;
-            for (Map.Entry<String, Object> e: values) {
-                Condition c2 = buidCondition(e.getKey(), e.getValue());
-                if (c == null) {
-                    c = c2;
-                } else {
-                    c = c.or(c2);
-                }
-            }
-            return c;
-        } else if ("AND".equals(key)) {
-            List<Map.Entry<String, Object>> values =  (List<Map.Entry<String, Object>>) value;
-            Condition c = null;
-            for (Map.Entry<String, Object> e: values) {
-                Condition c2 = buidCondition(e.getKey(), e.getValue());
-                if (c == null) {
-                    c = c2;
-                } else {
-                    c = c.and(c2);
-                }
-            }
+            return DATA.TYPE.eq(castOrThrow(key, value, String.class));
         }
-        return null;
+        throw new ConstellationPersistenceException(key + " parameter is not supported.");
     }
 
     @Override

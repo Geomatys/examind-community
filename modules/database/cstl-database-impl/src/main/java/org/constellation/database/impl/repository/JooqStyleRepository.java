@@ -1,3 +1,21 @@
+/*
+ *    Examind community - An open source and standard compliant SDI
+ *    https://community.examind.com/
+ *
+ * Copyright 2022 Geomatys.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.constellation.database.impl.repository;
 
 import com.examind.database.api.jooq.tables.records.StyleRecord;
@@ -13,9 +31,9 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.Map.Entry;
 
 import static com.examind.database.api.jooq.Tables.*;
+import org.constellation.exception.ConstellationPersistenceException;
 
 @Component
 @DependsOn("database-initer")
@@ -207,10 +225,10 @@ public class JooqStyleRepository extends AbstractJooqRespository<StyleRecord, co
                 .fetchInto(StyleReference.class);
 
         for(StyleReference sr : refs){
-            switch(sr.getProviderId()){
-                case 1 : sr.setProviderIdentifier("sld"); break;
-                case 2 : sr.setProviderIdentifier("sld_temp"); break;
-                default : throw new IllegalArgumentException("Style provider with identifier \"" + sr.getProviderId() + "\" does not exist.");
+            switch (sr.getProviderId()) {
+                case 1 -> sr.setProviderIdentifier("sld");
+                case 2 -> sr.setProviderIdentifier("sld_temp");
+                default -> throw new IllegalArgumentException("Style provider with identifier \"" + sr.getProviderId() + "\" does not exist.");
             }
         }
 
@@ -227,11 +245,11 @@ public class JooqStyleRepository extends AbstractJooqRespository<StyleRecord, co
                         .orderBy(STYLED_LAYER.IS_DEFAULT)
                         .fetchInto(StyleReference.class);
 
-        for(StyleReference sr : refs){
-            switch(sr.getProviderId()){
-                case 1 : sr.setProviderIdentifier("sld"); break;
-                case 2 : sr.setProviderIdentifier("sld_temp"); break;
-                default : throw new IllegalArgumentException("Style provider with identifier \"" + sr.getProviderId() + "\" does not exist.");
+        for (StyleReference sr : refs) {
+            switch (sr.getProviderId()) {
+                case 1 -> sr.setProviderIdentifier("sld");
+                case 2 -> sr.setProviderIdentifier("sld_temp");
+                default -> throw new IllegalArgumentException("Style provider with identifier \"" + sr.getProviderId() + "\" does not exist.");
             }
         }
         return refs;
@@ -262,88 +280,47 @@ public class JooqStyleRepository extends AbstractJooqRespository<StyleRecord, co
                                        final int rowsPerPage) {
         Collection<Field<?>> fields = new ArrayList<>();
         Collections.addAll(fields,STYLE.fields());
-        Select query = null;
-        if (filterMap != null) {
-            for (final Map.Entry<String, Object> entry : filterMap.entrySet()) {
-                final Condition cond = buildCondition(entry.getKey(), entry.getValue());
-                if (cond != null) {
-                    if (query == null) {
-                        query = dsl.select(fields).from(STYLE).leftOuterJoin(CSTL_USER).on(STYLE.OWNER.eq(CSTL_USER.ID)).where(cond);
-                    } else {
-                        query = ((SelectConditionStep) query).and(cond);
-                    }
-                }
-            }
-        }
-        if(sortEntry != null) {
-            SortField f = null;
+
+        SelectJoinStep baseQuery   = dsl.select(fields).from(STYLE).leftOuterJoin(CSTL_USER).on(STYLE.OWNER.eq(CSTL_USER.ID));
+        SelectConnectByStep fquery = buildQuery(baseQuery, filterMap);
+
+        Select query;
+        if (sortEntry != null) {
+            SortField f;
             if ("title".equals(sortEntry.getKey()) || "name".equals(sortEntry.getKey())) {
                 f = "ASC".equals(sortEntry.getValue()) ? STYLE.NAME.asc() : STYLE.NAME.desc();
-            } else if ("date".equals(sortEntry.getKey())) {
-                f = "ASC".equals(sortEntry.getValue()) ? STYLE.DATE.asc() : STYLE.DATE.desc();
             } else if ("owner".equals(sortEntry.getKey())) {
                 f = "ASC".equals(sortEntry.getValue()) ? CSTL_USER.LOGIN.asc() : CSTL_USER.LOGIN.desc();
+            } else {  //default sorting on date stamp
+                f = "ASC".equals(sortEntry.getValue()) ? STYLE.DATE.asc() : STYLE.DATE.desc();
             }
-            if (f != null) {
-                if (query == null) {
-                    query = dsl.select(fields).from(STYLE).leftOuterJoin(CSTL_USER).on(STYLE.OWNER.eq(CSTL_USER.ID)).orderBy(f);
-                } else {
-                    query = ((SelectConditionStep) query).orderBy(f);
-                }
-            }
+            query = fquery.orderBy(f);
+        } else {
+            query = fquery;
         }
 
-        final Map.Entry<Integer,List<Style>> result;
-        if(query == null) { //means there are no sorting and no filters
-            final int count = dsl.selectCount().from(STYLE).fetchOne(0,int.class);
-            result = new AbstractMap.SimpleImmutableEntry<>(count,
-                    convertStyleListToDto(dsl.select(fields).from(STYLE).limit(rowsPerPage).offset((pageNumber - 1) * rowsPerPage).fetchInto(com.examind.database.api.jooq.tables.pojos.Style.class)));
-        }else {
-            final int count = dsl.fetchCount(query);
-            result = new AbstractMap.SimpleImmutableEntry<>(count,
-                    convertStyleListToDto(((SelectLimitStep) query).limit(rowsPerPage).offset((pageNumber - 1) * rowsPerPage).fetchInto(com.examind.database.api.jooq.tables.pojos.Style.class)));
-        }
+        final int count = dsl.fetchCount(query);
+        final Map.Entry<Integer,List<Style>> result = new AbstractMap.SimpleImmutableEntry<>(count,
+                convertStyleListToDto(((SelectLimitStep) query).limit(rowsPerPage).offset((pageNumber - 1) * rowsPerPage).fetchInto(com.examind.database.api.jooq.tables.pojos.Style.class)));
         return result;
     }
 
-    private Condition buildCondition(String key, Object value) {
+    @Override
+    protected Condition buildSpecificCondition(String key, Object value) {
         if ("owner".equals(key)) {
-            return STYLE.OWNER.equal((Integer) value);
+            return STYLE.OWNER.equal(castOrThrow(key, value, Integer.class));
         } else if ("term".equals(key)) {
-            return STYLE.NAME.likeIgnoreCase("%" + value + "%");
+            return STYLE.NAME.likeIgnoreCase("%" +  castOrThrow(key, value, String.class) + "%");
         } else if ("isShared".equals(key)) {
-            return STYLE.IS_SHARED.eq((Boolean)value);
+            return STYLE.IS_SHARED.eq(castOrThrow(key, value, Boolean.class));
         } else if ("period".equals(key)) {
-            return STYLE.DATE.greaterOrEqual((Long) value);
+            return STYLE.DATE.greaterOrEqual(castOrThrow(key, value, Long.class));
         } else if ("type".equals(key)) {
-            return STYLE.TYPE.eq((String) value);
+            return STYLE.TYPE.eq( castOrThrow(key, value, String.class));
         } else if ("provider".equalsIgnoreCase(key)) {
-            return STYLE.PROVIDER.equal((Integer) value);
-        } else if ("OR".equals(key)) {
-            List<Entry<String, Object>> values =  (List<Entry<String, Object>>) value;
-            Condition c = null;
-            for (Entry<String, Object> e: values) {
-                Condition c2 = buildCondition(e.getKey(), e.getValue());
-                if (c == null) {
-                    c = c2;
-                } else {
-                    c = c.or(c2);
-                }
-            }
-            return c;
-        } else if ("AND".equals(key)) {
-            List<Entry<String, Object>> values =  (List<Entry<String, Object>>) value;
-            Condition c = null;
-            for (Entry<String, Object> e: values) {
-                Condition c2 = buildCondition(e.getKey(), e.getValue());
-                if (c == null) {
-                    c = c2;
-                } else {
-                    c = c.and(c2);
-                }
-            }
+            return STYLE.PROVIDER.equal(castOrThrow(key, value, Integer.class));
         }
-        return null;
+        throw new ConstellationPersistenceException(key + " parameter is not supported.");
     }
 
     @Override

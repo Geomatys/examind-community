@@ -30,7 +30,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import static com.examind.database.api.jooq.Tables.SERVICE;
 
 import org.constellation.dto.metadata.MetadataComplete;
@@ -40,6 +39,8 @@ import com.examind.database.api.jooq.tables.pojos.MetadataXCsw;
 import com.examind.database.api.jooq.tables.records.MetadataBboxRecord;
 import com.examind.database.api.jooq.tables.records.MetadataRecord;
 import com.examind.database.api.jooq.tables.records.MetadataXCswRecord;
+import java.util.Arrays;
+import org.constellation.exception.ConstellationPersistenceException;
 import org.constellation.repository.MetadataRepository;
 import org.jooq.AggregateFunction;
 import org.jooq.Condition;
@@ -48,6 +49,7 @@ import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Select;
 import org.jooq.SelectConditionStep;
+import org.jooq.SelectConnectByStep;
 import org.jooq.SelectJoinStep;
 import org.jooq.SelectLimitStep;
 import org.jooq.SortField;
@@ -365,32 +367,16 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
                 filterQuery = query.where(METADATA.SERVICE_ID.isNull());
             }
             if (onlyPublished) {
-                if (filterQuery == null) {
-                    filterQuery = query.where(METADATA.IS_PUBLISHED.eq(Boolean.TRUE));
-                } else {
-                    filterQuery = filterQuery.and(METADATA.IS_PUBLISHED.eq(Boolean.TRUE));
-                }
+                filterQuery = addCondition(query, filterQuery, METADATA.IS_PUBLISHED.eq(Boolean.TRUE));
             }
             if (providerId != null) {
-                if (filterQuery == null) {
-                    filterQuery = query.where(METADATA.PROVIDER_ID.eq(providerId));
-                } else {
-                    filterQuery = filterQuery.and(METADATA.PROVIDER_ID.eq(providerId));
-                }
+                filterQuery = addCondition(query, filterQuery, METADATA.PROVIDER_ID.eq(providerId));
             }
             if (type != null) {
-                if (filterQuery == null) {
-                    filterQuery = query.where(METADATA.TYPE.eq(type));
-                } else {
-                    filterQuery = filterQuery.and(METADATA.TYPE.eq(type));
-                }
+                filterQuery = addCondition(query, filterQuery, METADATA.TYPE.eq(type));
             }
             if (hidden != null) {
-                if (filterQuery == null) {
-                    filterQuery = query.where(METADATA.IS_HIDDEN.eq(hidden));
-                } else {
-                    filterQuery = filterQuery.and(METADATA.IS_HIDDEN.eq(hidden));
-                }
+                filterQuery = addCondition(query, filterQuery, METADATA.IS_HIDDEN.eq(hidden));
             }
             return filterQuery.fetchInto(String.class);
         }
@@ -407,25 +393,13 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
                 filterQuery = query.where(METADATA.SERVICE_ID.isNull());
             }
             if (onlyPublished) {
-                if (filterQuery == null) {
-                    filterQuery = query.where(METADATA.IS_PUBLISHED.eq(Boolean.TRUE));
-                } else {
-                    filterQuery = filterQuery.and(METADATA.IS_PUBLISHED.eq(Boolean.TRUE));
-                }
+                filterQuery = addCondition(query, filterQuery, METADATA.IS_PUBLISHED.eq(Boolean.TRUE));
             }
             if (providerId != null) {
-                if (filterQuery == null) {
-                    filterQuery = query.where(METADATA.PROVIDER_ID.eq(providerId));
-                } else {
-                    filterQuery = filterQuery.and(METADATA.PROVIDER_ID.eq(providerId));
-                }
+                filterQuery = addCondition(query, filterQuery, METADATA.PROVIDER_ID.eq(providerId));
             }
             if (type != null) {
-                if (filterQuery == null) {
-                    filterQuery = query.where(METADATA.TYPE.eq(type));
-                } else {
-                    filterQuery = filterQuery.and(METADATA.TYPE.eq(type));
-                }
+                filterQuery = addCondition(query, filterQuery, METADATA.TYPE.eq(type));
             }
             return dsl.fetchCount(filterQuery);
         }
@@ -442,11 +416,7 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
             filterQuery = query.where(METADATA.SERVICE_ID.isNull());
         }
         if (onlyPublished) {
-            if (filterQuery == null) {
-                filterQuery = query.where(METADATA.IS_PUBLISHED.eq(Boolean.TRUE));
-            } else {
-                filterQuery = filterQuery.and(METADATA.IS_PUBLISHED.eq(Boolean.TRUE));
-            }
+            filterQuery = addCondition(query, filterQuery, METADATA.IS_PUBLISHED.eq(Boolean.TRUE));
         }
         return convertListToDto(filterQuery.fetchInto(com.examind.database.api.jooq.tables.pojos.Metadata.class));
     }
@@ -525,26 +495,10 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
      */
     @Override
     public List<Map<String, Object>> filterAndGetWithoutPagination(final Map<String,Object> filterMap) {
-        Select query = null;
-        Collection<Field<?>> fields = new ArrayList<>();
-        Collections.addAll(fields,METADATA.ID,METADATA.TITLE,METADATA.PROFILE);
-        if (filterMap != null) {
-            for (final Map.Entry<String, Object> entry : filterMap.entrySet()) {
-                final Condition cond = buidCondition(entry.getKey(), entry.getValue());
-                if (cond != null) {
-                    if (query == null) {
-                        query = dsl.select(fields).from(METADATA).where(cond);
-                    } else {
-                        query = ((SelectConditionStep) query).and(cond);
-                    }
-                }
-            }
-        }
-        if(query == null) {
-            return dsl.select(fields).from(METADATA).fetchMaps();
-        }else {
-            return query.fetchMaps();
-        }
+        Collection<Field<?>> fields       = Arrays.asList(METADATA.ID, METADATA.TITLE, METADATA.PROFILE);
+        SelectJoinStep baseQuery          = dsl.select(fields).from(METADATA);
+        SelectConnectByStep filteredQuery = buildQuery(baseQuery, filterMap);
+        return filteredQuery.fetchMaps();
     }
 
     /**
@@ -575,101 +529,84 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
         if (filterMap == null) {
            filterMap = new HashMap<>();
         }
-        if (!filterMap.containsKey("hidden")) {
-            filterMap.put("hidden", false);
-        }
+        filterMap.putIfAbsent("hidden", false);
 
-        Select query = null;
-        for (final Map.Entry<String, Object> entry : filterMap.entrySet()) {
-            final Condition cond = buidCondition(entry.getKey(), entry.getValue());
-            if (cond != null) {
-                if (query == null) {
-                    query = dsl.select(fields).from(METADATA).where(cond);
-                } else {
-                    query = ((SelectConditionStep) query).and(cond);
-                }
-            }
-        }
+        // build filtered SQL query
+        SelectJoinStep baseQuery = dsl.select(fields).from(METADATA);
+        SelectConnectByStep fquery = buildQuery(baseQuery, filterMap);
 
-        if(sortEntry != null) {
+        // add sort
+        Select query;
+        if (sortEntry != null) {
             final SortField f;
-            if("title".equals(sortEntry.getKey())){
+            if ("title".equals(sortEntry.getKey())) {
                 f = "ASC".equals(sortEntry.getValue()) ? DSL.lower(METADATA.TITLE).asc() : DSL.lower(METADATA.TITLE).desc();
-            }else if("date_creation".equals(sortEntry.getKey())){
+            } else if("date_creation".equals(sortEntry.getKey())){
                 f = "ASC".equals(sortEntry.getValue()) ? METADATA.DATE_CREATION.asc() : METADATA.DATE_CREATION.desc();
-            }else { //default sorting on date stamp
+            } else { //default sorting on date stamp
                 f = "ASC".equals(sortEntry.getValue()) ? METADATA.DATESTAMP.asc() : METADATA.DATESTAMP.desc();
             }
-            if(query == null) {
-                query = dsl.select(fields).from(METADATA).orderBy(f);
-            }else {
-                query = ((SelectConditionStep)query).orderBy(f);
-            }
+            query = fquery.orderBy(f);
+        } else {
+            query = fquery;
         }
 
-        final Map.Entry<Integer,List<Metadata>> result;
-        if(query == null) { //means there are no sorting and no filters
-            final int count = dsl.selectCount().from(METADATA).fetchOne(0,int.class);
-            result = new AbstractMap.SimpleImmutableEntry<>(count,
-                    convertListToDto(dsl.select(fields)
-                                        .from(METADATA)
-                                        .limit(rowsPerPage).offset((pageNumber - 1) * rowsPerPage)
-                                        .fetchInto(com.examind.database.api.jooq.tables.pojos.Metadata.class)));
-        }else {
-            final int count = dsl.fetchCount(query);
-            result = new AbstractMap.SimpleImmutableEntry<>(count,
+        final int count = dsl.fetchCount(query);
+        final Map.Entry<Integer,List<Metadata>> result = new AbstractMap.SimpleImmutableEntry<>(count,
                     convertListToDto(((SelectLimitStep) query)
                                        .limit(rowsPerPage)
                                        .offset((pageNumber - 1) * rowsPerPage)
                                        .fetchInto(com.examind.database.api.jooq.tables.pojos.Metadata.class)));
-        }
+        
         return result;
     }
 
-    public Condition buidCondition(String key, Object value) {
+    @Override
+    protected Condition buildSpecificCondition(String key, Object value) {
         if ("owner".equals(key)) {
-            return METADATA.OWNER.equal((Integer) value);
+            return METADATA.OWNER.equal(castOrThrow(key, value, Integer.class));
         } else if ("data".equals(key)) {
-            return METADATA.DATA_ID.equal((Integer) value);
+            return METADATA.DATA_ID.equal(castOrThrow(key, value, Integer.class));
         } else if ("dataset".equals(key)) {
-            return METADATA.DATASET_ID.equal((Integer) value);
+            return METADATA.DATASET_ID.equal(castOrThrow(key, value, Integer.class));
         } else if ("profile".equals(key)) {
-            return METADATA.PROFILE.equal((String) value);
+            return METADATA.PROFILE.equal(castOrThrow(key, value, String.class));
         } else if ("validated".equals(key)) {
-            return METADATA.IS_VALIDATED.equal((Boolean) value);
+            return METADATA.IS_VALIDATED.equal(castOrThrow(key, value, Boolean.class));
         } else if ("validation_required".equals(key)) {
-            return METADATA.VALIDATION_REQUIRED.equal((String) value);
+            return METADATA.VALIDATION_REQUIRED.equal(castOrThrow(key, value, String.class));
         } else if ("isShared".equals(key)) {
-            return METADATA.IS_SHARED.equal((Boolean) value);
+            return METADATA.IS_SHARED.equal(castOrThrow(key, value, Boolean.class));
         } else if ("hidden".equals(key)) {
-            return METADATA.IS_HIDDEN.equal((Boolean) value);
+            return METADATA.IS_HIDDEN.equal(castOrThrow(key, value, Boolean.class));
         } else if ("id".equals(key)) {
-            return METADATA.ID.equal((Integer) value);
+            return METADATA.ID.equal(castOrThrow(key, value, Integer.class));
         } else if ("identifier".equals(key)) {
-            return METADATA.METADATA_ID.equal((String) value);
+            return METADATA.METADATA_ID.equal(castOrThrow(key, value, String.class));
         } else if ("parent".equals(key)) {
-            return METADATA.PARENT_IDENTIFIER.equal((Integer) value).or(METADATA.ID.equal((Integer) value));
+            Integer id = castOrThrow(key, value, Integer.class);
+            return METADATA.PARENT_IDENTIFIER.equal(id).or(METADATA.ID.equal(id));
         } else if ("published".equals(key)) {
-            return METADATA.IS_PUBLISHED.equal((Boolean) value);
+            return METADATA.IS_PUBLISHED.equal(castOrThrow(key, value, Boolean.class));
         } else if ("level".equals(key)) {
-            return METADATA.LEVEL.equal((String) value);
+            return METADATA.LEVEL.equal(castOrThrow(key, value, String.class));
         } else if ("term".equals(key)) {
-            return METADATA.TITLE.likeIgnoreCase("%" + value + "%").or(METADATA.RESUME.likeIgnoreCase("%" + value + "%"));
+            String term = "%" + castOrThrow(key, value, String.class) + "%";
+            return METADATA.TITLE.likeIgnoreCase(term).or(METADATA.RESUME.likeIgnoreCase(term));
         } else if ("period".equals(key)) {
-            return METADATA.DATESTAMP.greaterOrEqual((Long) value);
+            return METADATA.DATESTAMP.greaterOrEqual(castOrThrow(key, value, Long.class));
         } else if ("type".equals(key)) {
-            return METADATA.TYPE.eq((String) value);
+            return METADATA.TYPE.eq(castOrThrow(key, value, String.class));
         } else if ("includeService".equals(key)) {
-            if (value instanceof Boolean) {
-                if (!(Boolean)value) {
-                    return METADATA.SERVICE_ID.isNull();
-                }
+            Boolean is = castOrThrow(key, value, Boolean.class);
+            if (!is) {
+                return METADATA.SERVICE_ID.isNull();
             } else {
-                throw new IllegalArgumentException("Value associated to 'includeService' is invalid. A boolean is expected, but received: "+value);
+                return DSL.trueCondition();
             }
         } else if ("name".equals(key)) {
             Condition namesCond = null;
-            List<String> names = (List<String>) value;
+            List<String> names = castOrThrow(key, value, List.class);
             for (String name : names) {
                 if (namesCond == null) {
                     namesCond = METADATA.PROFILE.eq(name);
@@ -679,44 +616,11 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
             }
             return namesCond;
         } else if ("csw_id".equals(key)) {
-            if (value instanceof Integer) {
-                int cswId = (int) value;
-                return METADATA.ID.in(dsl.select(METADATA_X_CSW.METADATA_ID).from(METADATA_X_CSW).where(METADATA_X_CSW.CSW_ID.eq(cswId)));
-            } else  {
-                throw new IllegalArgumentException("Value associated to 'cswId' is invalid. An integer is expected, but received: "+value);
-            }
+            return METADATA.ID.in(dsl.select(METADATA_X_CSW.METADATA_ID).from(METADATA_X_CSW).where(METADATA_X_CSW.CSW_ID.eq(castOrThrow(key, value, Integer.class))));
         } else if ("!csw_id".equals(key)) {
-            if (value instanceof Integer) {
-                int cswId = (int) value;
-                return METADATA.ID.notIn(dsl.select(METADATA_X_CSW.METADATA_ID).from(METADATA_X_CSW).where(METADATA_X_CSW.CSW_ID.eq(cswId)));
-            } else  {
-                throw new IllegalArgumentException("Value associated to 'cswId' is invalid. An integer is expected, but received: "+value);
-            }
-        } else if ("OR".equals(key)) {
-            List<Entry<String, Object>> values =  (List<Entry<String, Object>>) value;
-            Condition c = null;
-            for (Entry<String, Object> e: values) {
-                Condition c2 = buidCondition(e.getKey(), e.getValue());
-                if (c == null) {
-                    c = c2;
-                } else {
-                    c = c.or(c2);
-                }
-            }
-            return c;
-        } else if ("AND".equals(key)) {
-            List<Entry<String, Object>> values =  (List<Entry<String, Object>>) value;
-            Condition c = null;
-            for (Entry<String, Object> e: values) {
-                Condition c2 = buidCondition(e.getKey(), e.getValue());
-                if (c == null) {
-                    c = c2;
-                } else {
-                    c = c.and(c2);
-                }
-            }
+            return METADATA.ID.notIn(dsl.select(METADATA_X_CSW.METADATA_ID).from(METADATA_X_CSW).where(METADATA_X_CSW.CSW_ID.eq(castOrThrow(key, value, Integer.class))));
         }
-        return null;
+        throw new ConstellationPersistenceException(key + " parameter is not supported.");
     }
 
     @Override
@@ -787,105 +691,38 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
 
     @Override
     public Map<String,Integer> getProfilesCount(final Map<String,Object> filterMap) {
-
         AggregateFunction<Integer> count = DSL.count(METADATA.PROFILE);
-
-        SelectJoinStep select = dsl.select(METADATA.PROFILE, count ).from(METADATA);
-        SelectConditionStep cond = null;
-
-        if (filterMap != null) {
-            for (final Map.Entry<String, Object> entry : filterMap.entrySet()) {
-                final Condition condFilter = buidCondition(entry.getKey(), entry.getValue());
-                if (condFilter != null) {
-                    if (cond != null) {
-                        cond = cond.and(condFilter);
-                    } else if (select != null){
-                        cond = select.where(condFilter);
-                        select = null;
-                    }
-                }
-            }
-        }
-
-        if (select != null) {
-            return select.groupBy(METADATA.PROFILE).orderBy(count.desc()).fetchMap(METADATA.PROFILE, count);
-        } else if (cond != null){
-            return cond.groupBy(METADATA.PROFILE).orderBy(count.desc()).fetchMap(METADATA.PROFILE, count);
-        // should never happen
-        } else {
-            throw new IllegalStateException("SQL error");
-        }
+        SelectJoinStep baseQuery         = dsl.select(METADATA.PROFILE, count ).from(METADATA);
+        SelectConnectByStep fquery       = buildQuery(baseQuery, filterMap);
+        return fquery.groupBy(METADATA.PROFILE).orderBy(count.desc()).fetchMap(METADATA.PROFILE, count);
     }
 
     @Override
     public int countInCompletionRange(final Map<String,Object> filterMap, final int minCompletion, final int maxCompletion) {
-        SelectConditionStep cond = dsl.select().from(METADATA).where(METADATA.MD_COMPLETION.between(minCompletion, maxCompletion));
-        if (filterMap != null) {
-            for (final Map.Entry<String, Object> entry : filterMap.entrySet()) {
-                final Condition condFilter = buidCondition(entry.getKey(), entry.getValue());
-                if (condFilter != null) {
-                    cond = cond.and(condFilter);
-                }
-            }
-        }
-        return dsl.fetchCount(cond);
+        SelectConditionStep baseQuery = dsl.select().from(METADATA).where(METADATA.MD_COMPLETION.between(minCompletion, maxCompletion));
+        baseQuery                     = buildQuery(baseQuery, filterMap);
+        return dsl.fetchCount(baseQuery);
     }
 
     @Override
     public int countTotalMetadata(final Map<String,Object> filterMap) {
-        SelectJoinStep select = dsl.select().from(METADATA);
-        SelectConditionStep cond = null;
-
-        if (filterMap != null) {
-            for (final Map.Entry<String, Object> entry : filterMap.entrySet()) {
-                final Condition condFilter = buidCondition(entry.getKey(), entry.getValue());
-                if (condFilter != null) {
-                    if (cond != null) {
-                        cond = cond.and(condFilter);
-                    } else if (select != null){
-                        cond = select.where(condFilter);
-                        select = null;
-                    }
-                }
-            }
-        }
-
-        if (select != null) {
-            return dsl.fetchCount(select);
-        } else if (cond != null) {
-            return dsl.fetchCount(cond);
-        // should never happen
-        } else {
-            throw new IllegalStateException("SQL error");
-        }
+        SelectJoinStep baseQuery   = dsl.select().from(METADATA);
+        SelectConnectByStep fquery = buildQuery(baseQuery, filterMap);
+        return dsl.fetchCount(fquery);
     }
 
     @Override
     public int countValidated(boolean status, final Map<String,Object> filterMap) {
-        SelectConditionStep cond = dsl.select().from(METADATA).where(METADATA.IS_VALIDATED.equal(status));
-        if (filterMap != null) {
-            for (final Map.Entry<String, Object> entry : filterMap.entrySet()) {
-                final Condition condFilter = buidCondition(entry.getKey(), entry.getValue());
-                if (condFilter != null) {
-                    cond = cond.and(condFilter);
-                }
-            }
-        }
-        return dsl.fetchCount(cond);
+        SelectConditionStep baseQuery = dsl.select().from(METADATA).where(METADATA.IS_VALIDATED.equal(status));
+        baseQuery                     = buildQuery(baseQuery, filterMap);
+        return dsl.fetchCount(baseQuery);
     }
 
     @Override
     public int countPublished(boolean status, final Map<String,Object> filterMap) {
-        SelectConditionStep cond = dsl.select().from(METADATA).where(METADATA.IS_PUBLISHED.equal(status));
-        if (filterMap != null) {
-            for (final Map.Entry<String, Object> entry : filterMap.entrySet()) {
-                final Condition condFilter = buidCondition(entry.getKey(), entry.getValue());
-                if (condFilter != null) {
-                    cond = cond.and(condFilter);
-                }
-            }
-        }
-        return dsl.fetchCount(cond);
+        SelectConditionStep baseQuery = dsl.select().from(METADATA).where(METADATA.IS_PUBLISHED.equal(status));
+        baseQuery                     = buildQuery(baseQuery, filterMap);
+        return dsl.fetchCount(baseQuery);
     }
 
     @Override

@@ -50,16 +50,19 @@ import org.constellation.dto.MapContextDTO;
 import org.constellation.dto.Style;
 import org.constellation.dto.service.Service;
 import org.constellation.exception.ConfigurationException;
+import org.constellation.exception.ConstellationPersistenceException;
 import org.constellation.repository.DataRepository;
 import org.constellation.repository.LayerRepository;
 import org.constellation.repository.ServiceRepository;
 import org.constellation.repository.StyleRepository;
 import org.constellation.repository.UserRepository;
+import org.jooq.Condition;
 
 import org.jooq.Field;
 import org.jooq.InsertSetMoreStep;
 import org.jooq.Select;
-import org.jooq.SelectConditionStep;
+import org.jooq.SelectConnectByStep;
+import org.jooq.SelectJoinStep;
 import org.jooq.SelectLimitStep;
 import org.jooq.SortField;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -144,22 +147,19 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
                     .set(MAPCONTEXT_STYLED_LAYER.LAYER_VISIBLE, layer.isVisible())
                     .set(MAPCONTEXT_STYLED_LAYER.LAYER_ORDER, layer.getOrder())
                     .set(MAPCONTEXT_STYLED_LAYER.LAYER_OPACITY, layer.getOpacity());
-            if (layer instanceof InternalServiceMCLayerDTO) {
-                InternalServiceMCLayerDTO isLayer = (InternalServiceMCLayerDTO) layer;
+            if (layer instanceof InternalServiceMCLayerDTO isLayer) {
                 insert=
                 insert.set(MAPCONTEXT_STYLED_LAYER.LAYER_ID, isLayer.getLayerId())
                       .set(MAPCONTEXT_STYLED_LAYER.STYLE_ID, isLayer.getStyleId())
                       .set(MAPCONTEXT_STYLED_LAYER.ISWMS, true);
 
-            } else if (layer instanceof DataMCLayerDTO) {
-                DataMCLayerDTO dLayer = (DataMCLayerDTO) layer;
+            } else if (layer instanceof DataMCLayerDTO dLayer) {
                 insert=
                 insert.set(MAPCONTEXT_STYLED_LAYER.DATA_ID, dLayer.getDataId())
                       .set(MAPCONTEXT_STYLED_LAYER.STYLE_ID, dLayer.getStyleId())
                       .set(MAPCONTEXT_STYLED_LAYER.ISWMS, true);
 
-            } else if (layer instanceof ExternalServiceMCLayerDTO) {
-                ExternalServiceMCLayerDTO eLayer = (ExternalServiceMCLayerDTO) layer;
+            } else if (layer instanceof ExternalServiceMCLayerDTO eLayer) {
                 insert=
                 insert.set(MAPCONTEXT_STYLED_LAYER.EXTERNAL_LAYER, eLayer.getExternalLayer() != null ? eLayer.getExternalLayer().getLocalPart() : null)
                       .set(MAPCONTEXT_STYLED_LAYER.EXTERNAL_LAYER_EXTENT, eLayer.getExternalLayerExtent())
@@ -237,52 +237,42 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
                                        final int pageNumber,
                                        final int rowsPerPage) {
         Collection<Field<?>> fields = new ArrayList<>();
-        Collections.addAll(fields,MAPCONTEXT.fields());
-        Select query = null;
-        if(filterMap != null) {
-            for(final Map.Entry<String,Object> entry : filterMap.entrySet()) {
-                if("owner".equals(entry.getKey())) {
-                    if(query == null) {
-                        query = dsl.select(fields).from(MAPCONTEXT).leftOuterJoin(CSTL_USER).on(MAPCONTEXT.OWNER.eq(CSTL_USER.ID)).where(MAPCONTEXT.OWNER.equal((Integer)entry.getValue()));
-                    }else {
-                        query = ((SelectConditionStep)query).and(MAPCONTEXT.OWNER.equal((Integer)entry.getValue()));
-                    }
-                }else if("term".equals(entry.getKey())) {
-                    if(query == null) {
-                        query = dsl.select(fields).from(MAPCONTEXT).leftOuterJoin(CSTL_USER).on(MAPCONTEXT.OWNER.eq(CSTL_USER.ID)).where(MAPCONTEXT.NAME.likeIgnoreCase("%"+entry.getValue()+"%").or(MAPCONTEXT.DESCRIPTION.likeIgnoreCase("%"+entry.getValue()+"%")));
-                    }else {
-                        query = ((SelectConditionStep)query).and(MAPCONTEXT.NAME.likeIgnoreCase("%"+entry.getValue()+"%").or(MAPCONTEXT.DESCRIPTION.likeIgnoreCase("%"+entry.getValue()+"%")));
-                    }
-                }
-            }
-        }
-        if(sortEntry != null) {
+        Collections.addAll(fields, MAPCONTEXT.fields());
+        SelectJoinStep baseQuery = dsl.select(fields).from(MAPCONTEXT).leftOuterJoin(CSTL_USER).on(MAPCONTEXT.OWNER.eq(CSTL_USER.ID));
+        SelectConnectByStep fquery = buildQuery(baseQuery, filterMap);
+        
+        // add sort
+        Select query;
+        if (sortEntry != null) {
             SortField f = null;
             if ("title".equals(sortEntry.getKey()) || "name".equals(sortEntry.getKey())) {
                 f = "ASC".equals(sortEntry.getValue()) ? MAPCONTEXT.NAME.asc() : MAPCONTEXT.NAME.desc();
             } else if ("owner".equals(sortEntry.getKey())) {
                 f = "ASC".equals(sortEntry.getValue()) ? CSTL_USER.LOGIN.asc() : CSTL_USER.LOGIN.desc();
+            } else {
+                throw new ConstellationPersistenceException("sort is not supported ont the parameter: " + sortEntry.getKey());
             }
-            if (f != null) {
-                if (query == null) {
-                    query = dsl.select(fields).from(MAPCONTEXT).leftOuterJoin(CSTL_USER).on(MAPCONTEXT.OWNER.eq(CSTL_USER.ID)).orderBy(f);
-                } else {
-                    query = ((SelectConditionStep) query).orderBy(f);
-                }
-            }
+            query = fquery.orderBy(f);
+        } else {
+            query = fquery;
         }
 
-        final Map.Entry<Integer,List<MapContextDTO>> result;
-        if(query == null) { //means there are no sorting and no filters
-            final int count = dsl.selectCount().from(MAPCONTEXT).fetchOne(0,int.class);
-            result = new AbstractMap.SimpleImmutableEntry<>(count,
-                    convertMCListToDto(dsl.select(fields).from(MAPCONTEXT).leftOuterJoin(CSTL_USER).on(MAPCONTEXT.OWNER.eq(CSTL_USER.ID)).limit(rowsPerPage).offset((pageNumber - 1) * rowsPerPage).fetchInto(Mapcontext.class)));
-        }else {
-            final int count = dsl.fetchCount(query);
-            result = new AbstractMap.SimpleImmutableEntry<>(count,
-                    convertMCListToDto(((SelectLimitStep) query).limit(rowsPerPage).offset((pageNumber - 1) * rowsPerPage).fetchInto(Mapcontext.class)));
-        }
+        final int count = dsl.fetchCount(query);
+        final Map.Entry<Integer,List<MapContextDTO>> result = new AbstractMap.SimpleImmutableEntry<>(count,
+                convertMCListToDto(((SelectLimitStep) query).limit(rowsPerPage).offset((pageNumber - 1) * rowsPerPage).fetchInto(Mapcontext.class)));
         return result;
+    }
+
+    @Override
+    protected Condition buildSpecificCondition(String key, Object value) {
+        if ("owner".equals(key)) {
+            return MAPCONTEXT.OWNER.equal(castOrThrow(key, value, Integer.class));
+        } else if ("term".equals(key)) {
+            String term = castOrThrow(key, value, String.class);
+            return MAPCONTEXT.NAME.likeIgnoreCase("%" + term  + "%")
+               .or(MAPCONTEXT.DESCRIPTION.likeIgnoreCase("%" + term + "%"));
+        }
+        throw new ConstellationPersistenceException(key + " parameter is not supported.");
     }
 
     @Override
