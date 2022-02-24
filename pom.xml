@@ -246,6 +246,12 @@
             <version>${geotoolkit.version}</version>
             <scope>test</scope>
         </dependency>
+
+         <dependency>
+             <groupId>com.google.jimfs</groupId>
+             <artifactId>jimfs</artifactId>
+             <scope>test</scope>
+         </dependency>
     </dependencies>
 
     <dependencyManagement>

@@ -18,8 +18,16 @@
  */
 package org.constellation.store.metadata.netcdf;
 
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URL;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -30,6 +38,8 @@ import org.apache.sis.storage.DataStoreProvider;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.test.utils.SpringTestRunner;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
+import static org.junit.Assert.assertNotNull;
+
 import org.constellation.util.NodeUtilities;
 import org.geotoolkit.csw.xml.DomainValues;
 import org.geotoolkit.csw.xml.v202.RecordType;
@@ -37,6 +47,7 @@ import org.geotoolkit.ebrim.xml.EBRIMMarshallerPool;
 import org.geotoolkit.lang.Setup;
 import org.geotoolkit.metadata.MetadataType;
 import org.geotoolkit.metadata.RecordInfo;
+import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.storage.DataStores;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -54,78 +65,58 @@ import org.springframework.test.context.support.DirtiesContextTestExecutionListe
  *
  * @author Guilhem Legal (Geomatys)
  */
-@TestExecutionListeners({DependencyInjectionTestExecutionListener.class,DirtiesContextTestExecutionListener.class})
-@DirtiesContext(hierarchyMode = DirtiesContext.HierarchyMode.EXHAUSTIVE,classMode=DirtiesContext.ClassMode.AFTER_CLASS)
-@ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-no-hazelcast.xml"})
-@RunWith(SpringTestRunner.class)
 public class NetCDFMetadataStoreTest {
 
     protected static final Logger LOGGER = Logger.getLogger("org.constellation.store.metadata.netcdf");
 
-    private static Path dataDirectory;
-
-    private static boolean initialized = false;
-
     private static NetCDFMetadataStore fsStore1;
-
-     private static final String CONFIG_DIR_NAME = "FileSystemMetadataStoreTest" + UUID.randomUUID().toString();
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-        final Path configDir     = ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
-        final Path CSWDirectory  = configDir.resolve("CSW");
-        final Path instDirectory = CSWDirectory.resolve("default");
-        dataDirectory = instDirectory.resolve("data");
-        Files.createDirectories(dataDirectory);
-
-        writeResourceDataFile(dataDirectory, "org/constellation/netcdf/2005092200_sst_21-24.en.nc", "2005092200_sst_21-24.en.nc");
-        Setup.initialize(null);
-    }
-
-    @PostConstruct
-    public void setUp() {
-        try {
-            if (!initialized) {
-
-                final DataStoreProvider factory = DataStores.getProviderById("NetCDFMetadata");
-                LOGGER.log(Level.INFO, "Metadata Factory choosed:{0}", factory.getClass().getName());
-                final ParameterValueGroup params = factory.getOpenParameters().createValue();
-                params.parameter("folder").setValue(dataDirectory);
-
-                fsStore1 = (NetCDFMetadataStore) factory.open(params);
-                initialized = true;
-            }
-        } catch (Exception ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
+        final FileSystem fs = Jimfs.newFileSystem("netcdf-md-test", Configuration.unix());
+        final Path dataDir = fs.getPath("/").resolve("test");
+        Files.createDirectories(dataDir);
+        try (InputStream dataStream = NetCDFMetadataStore.class.getResourceAsStream("/org/constellation/netcdf/2005092200_sst_21-24.en.nc")) {
+            Files.copy(dataStream, dataDir.resolve("2005092200_sst_21-24.en.nc"));
         }
+
+        Setup.initialize(null);
+
+        final DataStoreProvider factory = DataStores.getProviderById("NetCDFMetadata");
+        LOGGER.log(Level.INFO, "Metadata Factory choosed:{0}", factory.getClass().getName());
+
+        final ParameterValueGroup params = factory.getOpenParameters().createValue();
+        params.parameter("folder").setValue(dataDir);
+
+        fsStore1 = (NetCDFMetadataStore) factory.open(params);
     }
 
     @Test
     public void getMetadataTest() throws Exception {
         RecordInfo result = fsStore1.getMetadata("2005092200_sst_21-24.en", MetadataType.NATIVE);
-        Assert.assertNotNull(result);
+        assertNotNull(result);
         Assert.assertEquals(MetadataType.NATIVE, result.actualFormat);
         Assert.assertEquals(MetadataType.ISO_19115, result.originalFormat);
         Assert.assertEquals("2005092200_sst_21-24.en", result.identifier);
-        Assert.assertNotNull(result.node);
+        assertNotNull(result.node);
         Object obj = NodeUtilities.getMetadataFromNode(result.node, EBRIMMarshallerPool.getInstance());
         Assert.assertTrue(obj instanceof DefaultMetadata);
 
         result = fsStore1.getMetadata("2005092200_sst_21-24.en", MetadataType.DUBLINCORE_CSW202);
-        Assert.assertNotNull(result);
+        assertNotNull(result);
         Assert.assertEquals(MetadataType.DUBLINCORE_CSW202, result.actualFormat);
         Assert.assertEquals(MetadataType.ISO_19115, result.originalFormat);
         Assert.assertEquals("2005092200_sst_21-24.en", result.identifier);
-        Assert.assertNotNull(result.node);
+        assertNotNull(result.node);
         obj = NodeUtilities.getMetadataFromNode(result.node, EBRIMMarshallerPool.getInstance());
         Assert.assertTrue(obj instanceof RecordType);
 
         result = fsStore1.getMetadata("2005092200_sst_21-24.en", MetadataType.DUBLINCORE_CSW300);
-        Assert.assertNotNull(result);
+        assertNotNull(result);
         Assert.assertEquals(MetadataType.DUBLINCORE_CSW300, result.actualFormat);
         Assert.assertEquals(MetadataType.ISO_19115, result.originalFormat);
         Assert.assertEquals("2005092200_sst_21-24.en", result.identifier);
-        Assert.assertNotNull(result.node);
+        assertNotNull(result.node);
         obj = NodeUtilities.getMetadataFromNode(result.node, EBRIMMarshallerPool.getInstance());
         Assert.assertTrue(obj instanceof org.geotoolkit.csw.xml.v300.RecordType);
     }
@@ -134,8 +125,8 @@ public class NetCDFMetadataStoreTest {
     public void getFieldDomainofValuesTest() throws Exception {
         List<DomainValues> result = fsStore1.getFieldDomainofValues("title");
         Assert.assertEquals(1, result.size());
-        Assert.assertNotNull(result.get(0));
-        Assert.assertNotNull(result.get(0).getListOfValues());
+        assertNotNull(result.get(0));
+        assertNotNull(result.get(0).getListOfValues());
         List<String> results = (List<String>) result.get(0).getListOfValues().getValue();
 
         Assert.assertTrue(results.contains("Sea Surface Temperature Analysis Model"));
@@ -150,10 +141,9 @@ public class NetCDFMetadataStoreTest {
     }
 
     @AfterClass
-    public static void tearDownClass() throws Exception {
+    public static void tearDownClass() {
         try {
             fsStore1.close();
-            ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
         }  catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
