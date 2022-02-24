@@ -25,7 +25,6 @@ import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.test.utils.Order;
-import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.util.Util;
 import org.constellation.ws.MimeType;
 import org.geotoolkit.csw.xml.ElementSetType;
@@ -38,7 +37,6 @@ import org.junit.Assume;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.w3c.dom.Node;
 
 import javax.annotation.PostConstruct;
@@ -63,7 +61,6 @@ import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
-import org.constellation.util.NodeUtilities;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Ignore;
@@ -73,7 +70,6 @@ import org.junit.Ignore;
  *
  *  @author Guilhem Legal (Geomatys)
  */
-@RunWith(SpringTestRunner.class)
 public class NetCDFCSWWorker3Test extends CSWWorker3Test {
 
     @Inject
@@ -86,7 +82,7 @@ public class NetCDFCSWWorker3Test extends CSWWorker3Test {
 
     private static boolean initialized = false;
 
-    private static final String confDirName = "NCCSWWorker3Test" + UUID.randomUUID().toString();
+    private static final String confDirName = "NCCSWWorker3Test" + UUID.randomUUID();
 
     @BeforeClass
     public static void setUpClass() throws Exception {

@@ -38,23 +38,16 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.exception.ConstellationException;
 import org.constellation.business.IServiceBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.Service;
 import org.constellation.repository.ServiceRepository;
 import org.constellation.dto.service.config.generic.Automatic;
-import org.constellation.test.utils.SpringTestRunner;
+import org.constellation.test.SpringContextTest;
 import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.csw.xml.CSWMarshallerPool;
 import org.geotoolkit.csw.xml.v202.GetCapabilitiesType;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,11 +57,8 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Guilhem Legal (Geomatys)
  */
-@RunWith(SpringTestRunner.class)
-@TestExecutionListeners({DependencyInjectionTestExecutionListener.class,DirtiesContextTestExecutionListener.class,TransactionalTestExecutionListener.class})
-@DirtiesContext(hierarchyMode = DirtiesContext.HierarchyMode.EXHAUSTIVE,classMode=DirtiesContext.ClassMode.AFTER_CLASS)
-@ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-context.xml"})
-public class CSWorkerInitialisationTest {
+@TestExecutionListeners({ TransactionalTestExecutionListener.class })
+public class CSWorkerInitialisationTest extends SpringContextTest {
 
     private static MarshallerPool pool;
 
@@ -80,13 +70,7 @@ public class CSWorkerInitialisationTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-        ConfigDirectory.setupTestEnvironement("CSWorkerInitialisationTest");
         pool = CSWMarshallerPool.getInstance();
-    }
-
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-        ConfigDirectory.shutdownTestEnvironement("CSWorkerInitialisationTest");
     }
 
     @PostConstruct

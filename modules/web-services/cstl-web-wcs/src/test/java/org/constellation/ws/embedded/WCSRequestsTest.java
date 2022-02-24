@@ -68,15 +68,14 @@ import org.junit.AfterClass;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assume.assumeNoException;
+
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.opengis.util.GenericName;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
-import static org.constellation.ws.embedded.AbstractGrizzlyServer.domCompare;
-import static org.constellation.ws.embedded.AbstractGrizzlyServer.getCurrentPort;
-import static org.constellation.ws.embedded.AbstractGrizzlyServer.unmarshallJsonResponse;
 import org.geotoolkit.coverage.tiff.TiffProvider;
 import org.geotoolkit.image.io.plugin.WorldFileImageReader;
 import org.geotoolkit.image.jai.Registry;
@@ -193,12 +192,16 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
 
     private static boolean initialized = false;
 
-    private static Path CONFIG_DIR;
+    private Path configDir;
 
     @BeforeClass
     public static void initTestDir() {
-        CONFIG_DIR = ConfigDirectory.setupTestEnvironement("WCSRequestsTest");
         controllerConfiguration = WCSControllerConfig.class;
+    }
+
+    @Before
+    public void initConfigDir() {
+        configDir = ConfigDirectory.getConfigDirectory();
     }
 
     /**
@@ -425,37 +428,37 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
         // Creates a valid GetCoverage url.
         URL getCoverageUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_PNG_TIFF_201);
 
-        Path p = CONFIG_DIR.resolve("SST.tif");
+        Path p = configDir.resolve("SST.tif");
         writeInFile(getCoverageUrl, p);
         verifyTiff(p, "CRS:84", new double[]{-180.0, -90.0, 180.0, 90.0});
 
         getCoverageUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_PNG_TIFF_201_OUT3857);
 
-        p = CONFIG_DIR.resolve("SST-3857.tif");
+        p = configDir.resolve("SST-3857.tif");
         writeInFile(getCoverageUrl, p);
         verifyTiff(p, "EPSG:3857", new double[]{-20037508.342789244, -20048966.104014594, 20037508.342789244, 20048966.104014594});
 
         getCoverageUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_PNG_TIFF_201_SUB);
 
-        p = CONFIG_DIR.resolve("SST-SUB.tif");
+        p = configDir.resolve("SST-SUB.tif");
         writeInFile(getCoverageUrl, p);
         verifyTiff(p, "CRS:84", new double[]{-100.0, -90.0, 100.0, 90.0});
 
         getCoverageUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_PNG_TIFF_201_SUB_OUT3857);
 
-        p = CONFIG_DIR.resolve("SST-SUB-3847.tif");
+        p = configDir.resolve("SST-SUB-3847.tif");
         writeInFile(getCoverageUrl, p);
         verifyTiff(p, "EPSG:3857", new double[]{-11153691.167372918, -20048966.104014594, 11153691.167372918, 20048966.104014594});
 
         getCoverageUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_PNG_TIFF_201_SUB3857_OUT3857);
 
-        p = CONFIG_DIR.resolve("SST-SUB-3847-3847.tif");
+        p = configDir.resolve("SST-SUB-3847-3847.tif");
         writeInFile(getCoverageUrl, p);
         verifyTiff(p, "EPSG:3857", new double[]{-11153691.167372918, -20072439.67067411, 11153691.167372918, 20072439.670674134});
 
         getCoverageUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_PNG_TIFF_201_SUB_ANTIMERIDIAN);
 
-        p = CONFIG_DIR.resolve("SST-SUB-ANTI.tif");
+        p = configDir.resolve("SST-SUB-ANTI.tif");
         writeInFile(getCoverageUrl, p);
         verifyTiff(p, "CRS:84", new double[]{-180.0, -90.0, 180.0, 90.0}); // not good
 
@@ -468,31 +471,31 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
 
         URL getCoverageUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_TIFF_TIFF_201);
 
-        Path p = CONFIG_DIR.resolve("marti.tif");
+        Path p = configDir.resolve("marti.tif");
         writeInFile(getCoverageUrl, p);
         verifyTiff(p, "CRS:84", new double[]{-61.6166, 14.25931, -60.6907, 15.0292});
 
         getCoverageUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_TIFF_TIFF_201_OUT3857);
 
-        p = CONFIG_DIR.resolve("marti-3857.tif");
+        p = configDir.resolve("marti-3857.tif");
         writeInFile(getCoverageUrl, p);
         verifyTiff(p, "EPSG:3857", new double[]{-6859137.568050235, 1603984.0704114565, -6756064.723864956, 1692569.0006932162});
 
         getCoverageUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_TIFF_TIFF_201_SUB);
 
-        p = CONFIG_DIR.resolve("marti-SUB.tif");
+        p = configDir.resolve("marti-SUB.tif");
         writeInFile(getCoverageUrl, p);
         verifyTiff(p, "CRS:84", new double[]{-61.5, 14.25931, -61.0, 15.0292});
 
         getCoverageUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_TIFF_TIFF_201_SUB_OUT3857);
 
-        p = CONFIG_DIR.resolve("marti-SUB-3857.tif");
+        p = configDir.resolve("marti-SUB-3857.tif");
         writeInFile(getCoverageUrl, p);
         verifyTiff(p, "EPSG:3857", new double[]{-6846273.562535691, 1603984.0704114565, -6790475.93861636, 1692569.0006932162});
 
         getCoverageUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_TIFF_TIFF_201_SUB3857_OUT3857);
 
-        p = CONFIG_DIR.resolve("marti-SUB-3857-3857.tif");
+        p = configDir.resolve("marti-SUB-3857-3857.tif");
         writeInFile(getCoverageUrl, p);
         verifyTiff(p, "EPSG:3857", new double[]{-6846273.562535691, 1603984.0704114565, -6790475.93861636, 1692569.0006932162});
 

@@ -27,9 +27,9 @@ import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.config.wxs.LayerContext;
+import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.CstlDOMComparator;
 import org.constellation.test.utils.Order;
-import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.test.utils.TestEnvironment;
 import org.constellation.util.Util;
 import org.constellation.wfs.core.DefaultWFSWorker;
@@ -50,12 +50,6 @@ import org.geotoolkit.wfs.xml.v200.QueryExpressionTextType;
 import org.geotoolkit.wfs.xml.v200.StoredQueryDescriptionType;
 import org.geotoolkit.xsd.xml.v2001.*;
 import org.junit.*;
-import org.junit.runner.RunWith;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -88,11 +82,7 @@ import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
  *
  * @author Guilhem Legal (Geomatys)
  */
-@RunWith(SpringTestRunner.class)
-@TestExecutionListeners({DependencyInjectionTestExecutionListener.class,DirtiesContextTestExecutionListener.class})
-@DirtiesContext(hierarchyMode = DirtiesContext.HierarchyMode.EXHAUSTIVE,classMode=DirtiesContext.ClassMode.AFTER_CLASS)
-@ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-context.xml"})
-public class WFSWorkerTest {
+public class WFSWorkerTest extends SpringContextTest {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.wfs");
 
@@ -131,26 +121,25 @@ public class WFSWorkerTest {
                 dataBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                final TestEnvironment.TestResources testResource = initDataDirectory();
                 final List<DataImport> datas = new ArrayList<>();
                 /**
                  * SHAPEFILE DATA
                  */
-                datas.addAll(testResource.createProviders(TestResource.WMS111_SHAPEFILES, providerBusiness, null).datas());
+                datas.addAll(testResources.createProviders(TestResource.WMS111_SHAPEFILES, providerBusiness, null).datas());
 
                 /**
                  * SOS DB DATA
                  */
-                datas.addAll(testResource.createProvider(TestResource.OM2_FEATURE_DB, providerBusiness, null).datas);
+                datas.addAll(testResources.createProvider(TestResource.OM2_FEATURE_DB, providerBusiness, null).datas);
 
                 /**
                  * GEOJSON DATA
                  */
-                datas.addAll(testResource.createProvider(TestResource.JSON_FEATURE, providerBusiness, null).datas);
-                datas.addAll(testResource.createProvider(TestResource.JSON_FEATURE_COLLECTION, providerBusiness, null).datas);
+                datas.addAll(testResources.createProvider(TestResource.JSON_FEATURE, providerBusiness, null).datas);
+                datas.addAll(testResources.createProvider(TestResource.JSON_FEATURE_COLLECTION, providerBusiness, null).datas);
 
                 // for aliased layer
-                DataImport d23 = testResource.createProvider(TestResource.JSON_FEATURE, providerBusiness, null).datas.get(0);
+                DataImport d23 = testResources.createProvider(TestResource.JSON_FEATURE, providerBusiness, null).datas.get(0);
 
                 final LayerContext config = new LayerContext();
                 config.getCustomParameters().put("transactionSecurized", "false");

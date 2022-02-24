@@ -43,7 +43,6 @@ import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import static org.constellation.api.CommonConstants.RESPONSE_MODE;
 import static org.constellation.api.CommonConstants.RESULT_MODEL;
 import org.constellation.business.IProviderBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.constellation.provider.DataProviderFactory;
@@ -114,8 +113,6 @@ public class ObservationStoreProviderTest {
         MarshallerPool pool   = GenericDatabaseMarshallerPool.getInstance();
         Marshaller marshaller =  pool.acquireMarshaller();
 
-        ConfigDirectory.setupTestEnvironement("ObservationStoreProviderTest");
-
         pool.recycle(marshaller);
 
 
@@ -153,7 +150,6 @@ public class ObservationStoreProviderTest {
         if (ds != null) {
             ds.shutdown();
         }
-        ConfigDirectory.shutdownTestEnvironement("ObservationStoreProviderTest");
     }
 
     @Test

@@ -23,6 +23,7 @@ import org.constellation.metadata.core.CSWworker;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.generic.Automatic;
+import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.util.NodeUtilities;
 import org.constellation.ws.MimeType;
@@ -77,11 +78,7 @@ import static org.geotoolkit.metadata.TypeNames.RECORD_202_QNAME;
  * Cause a crash with no closing management of the R-Tree
  * @author Guilhem Legal (Geomatys)
  */
-@RunWith(SpringTestRunner.class)
-@TestExecutionListeners({DependencyInjectionTestExecutionListener.class,DirtiesContextTestExecutionListener.class})
-@DirtiesContext(hierarchyMode = DirtiesContext.HierarchyMode.EXHAUSTIVE,classMode=DirtiesContext.ClassMode.AFTER_CLASS)
-@ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-context.xml"})
-public class TreeCloseTest {
+public class TreeCloseTest extends SpringContextTest {
 
     @Inject
     private IServiceBusiness serviceBusiness;
@@ -123,9 +120,7 @@ public class TreeCloseTest {
                 serviceBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                final TestResources testResource = initDataDirectory();
-
-                Integer pr = testResource.createProviderWithPath(TestResource.METADATA_FILE, dataDirectory, providerBusiness, null).id;
+                Integer pr = testResources.createProviderWithPath(TestResource.METADATA_FILE, dataDirectory, providerBusiness, null).id;
                 fsStore1 = (FileSystemMetadataStore) DataProviders.getProvider(pr).getMainStore();
 
                 //we write the configuration file

@@ -24,14 +24,10 @@ import org.jooq.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.logging.Logger;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.UserWithRole;
 import org.constellation.repository.UserRepository;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 
 public abstract class AbstractRepositoryTest {
 
@@ -42,21 +38,6 @@ public abstract class AbstractRepositoryTest {
 
     @Autowired
     protected UserRepository userRepository;
-
-    private static final String configDir;
-    static {
-        configDir = "RepositoryTest" + UUID.randomUUID().toString();
-    }
-
-    @BeforeClass
-    public static void beforeClass() {
-        ConfigDirectory.setupTestEnvironement(configDir);
-    }
-
-    @AfterClass
-    public static void shutDown() {
-        ConfigDirectory.shutdownTestEnvironement(configDir);
-    }
 
     protected CstlUser getOrCreateUser() {
         return getOrCreateUser(TestSamples.newAdminUser());

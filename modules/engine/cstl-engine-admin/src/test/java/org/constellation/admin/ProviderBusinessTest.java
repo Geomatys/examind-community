@@ -53,11 +53,6 @@ public class ProviderBusinessTest extends org.constellation.test.SpringContextTe
     @Autowired
     private IProviderBusiness pBusiness;
 
-    @BeforeClass
-    public static void initTestDir() {
-        ConfigDirectory.setupTestEnvironement("ProviderBusinessTest");
-    }
-
     @PostConstruct
     public void init() throws Exception {
         clean();
@@ -70,7 +65,6 @@ public class ProviderBusinessTest extends org.constellation.test.SpringContextTe
 
     private static void clean() throws ConstellationException {
         SpringHelper.getBean(IProviderBusiness.class).removeAll();
-        ConfigDirectory.shutdownTestEnvironement("ProviderBusinessTest");
     }
 
     @Test

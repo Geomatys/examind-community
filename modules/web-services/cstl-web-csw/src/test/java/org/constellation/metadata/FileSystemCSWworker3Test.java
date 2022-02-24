@@ -25,13 +25,11 @@ import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.test.utils.Order;
-import org.constellation.test.utils.SpringTestRunner;
 import org.geotoolkit.ebrim.xml.EBRIMMarshallerPool;
 import org.geotoolkit.xml.AnchoredMarshallerPool;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -60,7 +58,6 @@ import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFi
  *
  * @author Guilhem Legal (Geomatys)
  */
-@RunWith(SpringTestRunner.class)
 public class FileSystemCSWworker3Test extends CSWWorker3Test {
 
     @Inject

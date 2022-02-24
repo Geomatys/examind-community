@@ -26,11 +26,9 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.logging.Level;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IServiceBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.sos.ObservationFilter;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.test.utils.Order;
@@ -66,8 +64,6 @@ import org.constellation.exception.ConstellationRuntimeException;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
-import static org.constellation.ws.embedded.AbstractGrizzlyServer.getCurrentPort;
-import static org.constellation.ws.embedded.AbstractGrizzlyServer.unmarshallJsonResponse;
 import static org.junit.Assert.assertFalse;
 
 /**
@@ -77,8 +73,6 @@ import static org.junit.Assert.assertFalse;
 @RunWith(TestRunner.class)
 public class SOSRequestTest extends AbstractGrizzlyServer {
 
-    private static final String CONFIG_DIR_NAME = "SOSRequestTest" + UUID.randomUUID().toString();
-
     private static boolean initialized = false;
 
     private static String getDefaultURL() {
@@ -87,7 +81,6 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
 
     @BeforeClass
     public static void initTestDir() {
-        ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
         controllerConfiguration = SOSControllerConfig.class;
     }
 
@@ -154,7 +147,6 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
             if (f.exists()) {
                 f.delete();
             }
-            ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
         }

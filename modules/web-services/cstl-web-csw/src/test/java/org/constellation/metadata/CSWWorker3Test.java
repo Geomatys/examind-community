@@ -56,6 +56,8 @@ import static org.constellation.metadata.core.CSWConstants.TYPENAMES;
 import org.constellation.metadata.core.CSWworker;
 import static org.constellation.test.utils.MetadataUtilities.ebrimEquals;
 import static org.constellation.test.utils.MetadataUtilities.metadataEquals;
+
+import org.constellation.test.SpringContextTest;
 import org.constellation.util.NodeUtilities;
 import org.constellation.util.Util;
 import org.constellation.ws.CstlServiceException;
@@ -118,16 +120,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import org.junit.Ignore;
 import org.opengis.metadata.Datatype;
 import org.opengis.metadata.ExtendedElementInformation;
 import org.opengis.metadata.citation.Role;
 import org.opengis.metadata.distribution.DigitalTransferOptions;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.geotoolkit.csw.xml.v300.ListOfValuesType.Value;
@@ -138,11 +134,7 @@ import org.opengis.metadata.Metadata;
  *
  * @author guilhem
  */
-@Ignore
-@TestExecutionListeners({DependencyInjectionTestExecutionListener.class,DirtiesContextTestExecutionListener.class})
-@DirtiesContext(hierarchyMode = DirtiesContext.HierarchyMode.EXHAUSTIVE,classMode=DirtiesContext.ClassMode.AFTER_CLASS)
-@ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-context.xml"})
-public class CSWWorker3Test {
+public abstract class CSWWorker3Test extends SpringContextTest {
 
     protected static CSWworker worker;
 

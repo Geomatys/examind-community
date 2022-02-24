@@ -29,6 +29,7 @@ import org.apache.sis.util.SimpleInternationalString;
 import org.apache.sis.xml.MarshallerPool;
 import org.apache.sis.internal.xml.LegacyNamespaces;
 import org.apache.sis.xml.XML;
+import org.constellation.test.SpringContextTest;
 import org.constellation.util.NodeUtilities;
 import org.constellation.util.Util;
 import org.constellation.ws.CstlServiceException;
@@ -79,11 +80,9 @@ import org.geotoolkit.ows.xml.v100.AcceptVersionsType;
 import org.geotoolkit.ows.xml.v100.SectionsType;
 import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.geotoolkit.xml.AnchoredMarshallerPool;
-import org.junit.Ignore;
 import org.opengis.metadata.Datatype;
 import org.opengis.metadata.ExtendedElementInformation;
 import org.opengis.metadata.citation.Role;
-import org.springframework.test.context.ContextConfiguration;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
@@ -131,10 +130,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 import static org.constellation.test.utils.MetadataUtilities.ebrimEquals;
 import static org.constellation.test.utils.MetadataUtilities.metadataEquals;
 import org.opengis.metadata.distribution.DigitalTransferOptions;
@@ -144,11 +139,7 @@ import org.opengis.metadata.distribution.DigitalTransferOptions;
  *
  * @author Guilhem Legal (geomatys)
  */
-@Ignore
-@TestExecutionListeners({DependencyInjectionTestExecutionListener.class,DirtiesContextTestExecutionListener.class})
-@DirtiesContext(hierarchyMode = DirtiesContext.HierarchyMode.EXHAUSTIVE,classMode=DirtiesContext.ClassMode.AFTER_CLASS)
-@ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-context.xml"})
-public class CSWworkerTest {
+public abstract class CSWworkerTest extends SpringContextTest {
 
     protected static CSWworker worker;
 

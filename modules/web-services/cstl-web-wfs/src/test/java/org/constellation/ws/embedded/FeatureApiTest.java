@@ -27,7 +27,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.logging.Level;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
@@ -48,9 +47,6 @@ import org.constellation.test.utils.TestEnvironment.TestResources;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import org.constellation.test.utils.TestRunner;
 import static org.constellation.wfs.core.WFSConstants.FEAT_API_CONFORMS;
-import static org.constellation.ws.embedded.AbstractGrizzlyServer.LOGGER;
-import static org.constellation.ws.embedded.AbstractGrizzlyServer.controllerConfiguration;
-import static org.constellation.ws.embedded.AbstractGrizzlyServer.stopServer;
 import org.geotoolkit.feature.xml.BoundingBox;
 import org.geotoolkit.feature.xml.Collection;
 import org.geotoolkit.feature.xml.Conformance;
@@ -88,12 +84,9 @@ public class FeatureApiTest extends AbstractGrizzlyServer {
 
     private static boolean initialized = false;
 
-    private static final String CONFIG_DIR_NAME = "FEATRequestTest" + UUID.randomUUID().toString();
-
     @BeforeClass
     public static void initTestDir() throws Exception {
         controllerConfiguration = WFSControllerConfig.class;
-        ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
     }
 
     @Before
@@ -162,7 +155,6 @@ public class FeatureApiTest extends AbstractGrizzlyServer {
             LOGGER.log(Level.WARNING, ex.getMessage());
         }
         try {
-            ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
             File f = new File("derby.log");
             if (f.exists()) {
                 f.delete();

@@ -19,12 +19,9 @@
 
 package org.constellation.sos.ws;
 
-import java.nio.file.Path;
 import java.util.List;
-import java.util.UUID;
 import java.util.logging.Level;
 import javax.annotation.PostConstruct;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.Sensor;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.exception.ConfigurationException;
@@ -35,10 +32,9 @@ import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import static org.constellation.test.utils.TestResourceUtils.writeDataFileEPSG;
+
 /**
  * Test a SOS service version 1 with an Lucene observation datasource / Filesystem SML datasource
  *
@@ -47,14 +43,6 @@ import static org.constellation.test.utils.TestResourceUtils.writeDataFileEPSG;
 public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
 
     private static boolean initialized = false;
-    private static final String CONFIG_DIR_NAME = "LUCSOSWorkerTest" + UUID.randomUUID().toString();
-
-    private static Path configDir;
-
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-        configDir          = ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
-    }
 
     @PostConstruct
     public void setUp() {
@@ -109,11 +97,6 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
             if (worker != null) {
                 worker.destroy();
             }
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-        }
-        try {
-            ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }

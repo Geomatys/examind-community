@@ -80,7 +80,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
     @BeforeClass
     public static void initTestDir() {
-        ConfigDirectory.setupTestEnvironement("STSRequestTest").toFile();
         controllerConfiguration = STSControllerConfig.class;
     }
 
@@ -143,7 +142,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         if (f.exists()) {
             f.delete();
         }
-        ConfigDirectory.shutdownTestEnvironement("STSRequestTest");
         stopServer();
     }
 

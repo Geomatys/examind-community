@@ -31,8 +31,8 @@ import org.constellation.configuration.ConfigDirectory;
 import org.constellation.process.ChainProcessRetriever;
 import org.constellation.process.ExamindProcessFactory;
 import org.constellation.process.dynamic.ExamindDynamicProcessFactory;
+import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.Order;
-import org.constellation.test.utils.SpringTestRunner;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
@@ -42,28 +42,18 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.opengis.parameter.GeneralParameterDescriptor;
 import org.opengis.parameter.ParameterValueGroup;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-@TestExecutionListeners({DependencyInjectionTestExecutionListener.class,DirtiesContextTestExecutionListener.class})
-@DirtiesContext(hierarchyMode = DirtiesContext.HierarchyMode.EXHAUSTIVE,classMode=DirtiesContext.ClassMode.AFTER_CLASS)
-@ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-context.xml"})
-@RunWith(SpringTestRunner.class)
-public class HarvesterPreProcessTest {
+public class HarvesterPreProcessTest extends SpringContextTest {
 
     private static final Logger LOGGER = Logger.getLogger("com.examind.process.sos");
 
-    private static final String confDirName = "HarvesterPreProcessTest" + UUID.randomUUID().toString();
+    private static final String confDirName = "HarvesterPreProcessTest" + UUID.randomUUID();
 
     private static boolean initialized = false;
 
@@ -229,7 +219,5 @@ public class HarvesterPreProcessTest {
 
         // column count
         Assert.assertEquals(17, mainParamExt.getValidValues().size());
-
     }
-
 }

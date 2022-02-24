@@ -23,19 +23,16 @@ import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.wxs.LayerContext;
-import org.constellation.test.utils.SpringTestRunner;
+import org.constellation.test.SpringContextTest;
 import org.constellation.wfs.ws.rs.FeatureSetWrapper;
 import org.constellation.wfs.ws.rs.WFSService;
 import org.constellation.ws.rs.AbstractWebService;
 import org.geotoolkit.nio.IOUtilities;
+import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.test.context.ContextConfiguration;
-
-import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.InputStream;
@@ -43,36 +40,23 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.storage.FeatureSet;
 
 import org.constellation.test.utils.TestEnvironment.DataImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
-import org.constellation.test.utils.TestEnvironment.TestResources;
-import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import org.geotoolkit.storage.feature.FeatureStoreUtilities;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import org.junit.BeforeClass;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
-
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-@RunWith(SpringTestRunner.class)
-@TestExecutionListeners({DependencyInjectionTestExecutionListener.class,DirtiesContextTestExecutionListener.class})
-@DirtiesContext(hierarchyMode = DirtiesContext.HierarchyMode.EXHAUSTIVE,classMode=DirtiesContext.ClassMode.AFTER_CLASS)
-@ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-context.xml"})
-public class WFSServiceTest {
+public class WFSServiceTest extends SpringContextTest {
 
     @Inject
     private IServiceBusiness serviceBusiness;
@@ -85,66 +69,48 @@ public class WFSServiceTest {
 
     private static WFSService service;
 
-    private static boolean initialized = false;
-
-    private static final String CONFIG_DIR_NAME = "WFSServiceTest" + UUID.randomUUID().toString();
-
     private static final Logger LOGGER = Logger.getLogger("org.constellation.wfs");
 
-    @BeforeClass
-    public static void initTestDir() {
-        ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
+    @Before
+    public void setUpClass() throws Exception {
+        layerBusiness.removeAll();
+        serviceBusiness.deleteAll();
+        dataBusiness.deleteAll();
+        providerBusiness.removeAll();
+
+        DataImport d = testResources.createProvider(TestResource.OM2_FEATURE_DB, providerBusiness, null).datas.get(0);
+
+        final LayerContext config = new LayerContext();
+        config.getCustomParameters().put("transactionSecurized", "false");
+        config.getCustomParameters().put("transactional", "true");
+
+        Integer defId = serviceBusiness.create("wfs", "default", config, null, null);
+        layerBusiness.add(d.id, null, d.namespace, d.name, defId, null);
+
+        serviceBusiness.start(defId);
+
+        // let the worker start
+        Thread.sleep(2000);
+        service = new WFSService();
+
+        Field privateStringField = AbstractWebService.class.getDeclaredField("postKvpParameters");
+        privateStringField.setAccessible(true);
+        ThreadLocal<Map<String, String[]>> postKvpParameters = (ThreadLocal<Map<String, String[]>>) privateStringField.get(service);
+
+        final Map<String, String[]> kvpMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        kvpMap.put("serviceId", new String[]{"default"});
+        postKvpParameters.set(kvpMap);
+
     }
 
-    @PostConstruct
-    public void setUpClass() {
-        if (!initialized) {
-            try {
-                layerBusiness.removeAll();
-                serviceBusiness.deleteAll();
-                dataBusiness.deleteAll();
-                providerBusiness.removeAll();
-
-                final TestResources testResource = initDataDirectory();
-
-                DataImport d = testResource.createProvider(TestResource.OM2_FEATURE_DB, providerBusiness, null).datas.get(0);
-
-                final LayerContext config = new LayerContext();
-                config.getCustomParameters().put("transactionSecurized", "false");
-                config.getCustomParameters().put("transactional", "true");
-
-                Integer defId = serviceBusiness.create("wfs", "default", config, null, null);
-                layerBusiness.add(d.id, null, d.namespace, d.name, defId, null);
-
-                serviceBusiness.start(defId);
-
-                // let the worker start
-                Thread.sleep(2000);
-                service = new WFSService();
-
-                Field privateStringField = AbstractWebService.class.getDeclaredField("postKvpParameters");
-                privateStringField.setAccessible(true);
-                ThreadLocal<Map<String, String[]>> postKvpParameters = (ThreadLocal<Map<String, String[]>>) privateStringField.get(service);
-
-                final Map<String, String[]> kvpMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-                kvpMap.put("serviceId", new String[]{"default"});
-                postKvpParameters.set(kvpMap);
-
-                initialized = true;
-            } catch (Exception ex) {
-                LOGGER.log(Level.SEVERE, "Error while initializing test:" + ex.getMessage(), ex);
-            }
-        }
+    @After
+    public void disposeService() {
+        service.destroy();
     }
 
     @AfterClass
-    public static void tearDownClass() throws Exception {
+    public static void tearDownClass() {
         try {
-            ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
-
-            if (service != null) {
-                service.destroy();
-            }
             File derbyLog = new File("derby.log");
             if (derbyLog.exists()) {
                 derbyLog.delete();

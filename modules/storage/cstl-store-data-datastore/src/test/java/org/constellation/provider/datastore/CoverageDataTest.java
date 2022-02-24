@@ -18,13 +18,11 @@
  */
 package org.constellation.provider.datastore;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Resource;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.BandDescription;
 import org.constellation.dto.CoverageDataDescription;
 import org.constellation.dto.StatInfo;
@@ -50,7 +48,6 @@ public class CoverageDataTest {
 
     @BeforeClass
     public static void init() throws Exception {
-        ConfigDirectory.setupTestEnvironement("CoverageDataTest");
         final TestEnvironment.TestResources testResource = initDataDirectory();
         DataStore store = testResource.createStore(TestEnvironment.TestResource.TIF);
 
@@ -62,11 +59,6 @@ public class CoverageDataTest {
         r = store.findResource("SSTMDE200305");
         Assert.assertTrue(r instanceof GridCoverageResource);
         sst = new DefaultCoverageData(r.getIdentifier().get(), (GridCoverageResource)r, store);
-    }
-
-    @AfterClass
-    public static void shutDown() {
-        ConfigDirectory.shutdownTestEnvironement("CoverageDataTest");
     }
 
     @Test

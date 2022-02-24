@@ -21,12 +21,10 @@ package org.constellation.admin;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.constellation.business.IStyleBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.exception.ConstellationException;
 import org.geotoolkit.style.DefaultMutableStyle;
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -39,11 +37,6 @@ public class StyleBusinessTest extends org.constellation.test.SpringContextTest 
     @Autowired
     private IStyleBusiness styleBusiness;
 
-    @BeforeClass
-    public static void initTestDir() {
-        ConfigDirectory.setupTestEnvironement("StyleBusinessTest");
-    }
-
     @AfterClass
     public static void tearDown() {
         try {
@@ -51,7 +44,6 @@ public class StyleBusinessTest extends org.constellation.test.SpringContextTest 
             if (style != null) {
                 style.deleteAll();
             }
-            ConfigDirectory.shutdownTestEnvironement("StyleBusinessTest");
         } catch (ConstellationException ex) {
             Logger.getLogger("org.constellation.admin").log(Level.SEVERE, null, ex);
         }

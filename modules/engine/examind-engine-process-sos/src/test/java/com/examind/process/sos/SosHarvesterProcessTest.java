@@ -54,11 +54,9 @@ import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.exception.ConstellationException;
 import org.constellation.process.ExamindProcessFactory;
 import org.constellation.sos.core.SOSworker;
+import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.Order;
-import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.test.utils.TestEnvironment.TestResource;
-import org.constellation.test.utils.TestEnvironment.TestResources;
-import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import static org.constellation.test.utils.TestResourceUtils.getResourceAsString;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.constellation.ws.CstlServiceException;
@@ -106,29 +104,18 @@ import org.junit.Assert;
 import static org.junit.Assert.assertTrue;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.opengis.observation.Observation;
 import org.opengis.observation.ObservationCollection;
 import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.temporal.Period;
 import org.opengis.util.NoSuchIdentifierException;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
-
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-@TestExecutionListeners({DependencyInjectionTestExecutionListener.class,DirtiesContextTestExecutionListener.class})
-@DirtiesContext(hierarchyMode = DirtiesContext.HierarchyMode.EXHAUSTIVE,classMode=DirtiesContext.ClassMode.AFTER_CLASS)
-@ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-context.xml"})
-@RunWith(SpringTestRunner.class)
-public class SosHarvesterProcessTest {
+public class SosHarvesterProcessTest extends SpringContextTest {
 
     private static final Logger LOGGER = Logger.getLogger("com.examind.process.sos");
 
@@ -162,7 +149,7 @@ public class SosHarvesterProcessTest {
     @Inject
     protected WSEngine wsEngine;
 
-    private static final String CONFIG_DIR_NAME = "SosHarvesterProcessTest" + UUID.randomUUID().toString();
+    private static final String CONFIG_DIR_NAME = "SosHarvesterProcessTest" + UUID.randomUUID();
 
     private static final int ORIGIN_NB_SENSOR = 14;
 
@@ -212,35 +199,28 @@ public class SosHarvesterProcessTest {
     }
 
     @PostConstruct
-    public void setUp() {
-        try {
+    public void setUp() throws Exception {
+        if (!initialized) {
+            // clean up
+            serviceBusiness.deleteAll();
+            providerBusiness.removeAll();
+            datasourceBusiness.deleteAll();
 
-            if (!initialized) {
-                // clean up
-                serviceBusiness.deleteAll();
-                providerBusiness.removeAll();
-                datasourceBusiness.deleteAll();
+            Integer pid = testResources.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
 
-                final TestResources testResource = initDataDirectory();
+            //we write the configuration file
+            final SOSConfiguration configuration = new SOSConfiguration();
+            configuration.getParameters().put("transactionSecurized", "false");
 
-                Integer pid = testResource.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
+            Integer sid = serviceBusiness.create("sos", "default", configuration, null, null);
+            serviceBusiness.linkServiceAndProvider(sid, pid);
+            serviceBusiness.start(sid);
 
-                //we write the configuration file
-                final SOSConfiguration configuration = new SOSConfiguration();
-                configuration.getParameters().put("transactionSecurized", "false");
+            sid = serviceBusiness.create("sts", "default", configuration, null, null);
+            serviceBusiness.linkServiceAndProvider(sid, pid);
+            serviceBusiness.start(sid);
 
-                Integer sid = serviceBusiness.create("sos", "default", configuration, null, null);
-                serviceBusiness.linkServiceAndProvider(sid, pid);
-                serviceBusiness.start(sid);
-
-                sid = serviceBusiness.create("sts", "default", configuration, null, null);
-                serviceBusiness.linkServiceAndProvider(sid, pid);
-                serviceBusiness.start(sid);
-
-                initialized = true;
-            }
-        } catch (Exception ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
+            initialized = true;
         }
     }
 

@@ -32,10 +32,6 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.constellation.configuration.ConfigDirectory;
-import org.junit.BeforeClass;
-
-import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.service.ServiceComplete;
 import org.constellation.exception.ConstellationException;
 
@@ -44,11 +40,6 @@ public class ServiceBusinessTest extends org.constellation.test.SpringContextTes
     @Autowired
     private IServiceBusiness serviceBusiness;
 
-    @BeforeClass
-    public static void initTestDir() {
-        ConfigDirectory.setupTestEnvironement("ServiceBusinessTest");
-    }
-
     @AfterClass
     public static void tearDown() {
         try {
@@ -56,7 +47,6 @@ public class ServiceBusinessTest extends org.constellation.test.SpringContextTes
             if (service != null) {
                 service.deleteAll();
             }
-            ConfigDirectory.shutdownTestEnvironement("ServiceBusinessTest");
         } catch (ConstellationException ex) {
             Logger.getLogger("org.constellation.admin").log(Level.SEVERE, null, ex);
         }

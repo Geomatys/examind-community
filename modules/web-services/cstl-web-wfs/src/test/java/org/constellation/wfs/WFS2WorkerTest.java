@@ -48,9 +48,9 @@ import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.FeatureData;
+import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.CstlDOMComparator;
 import org.constellation.test.utils.Order;
-import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.test.utils.TestEnvironment.DataImport;
 import org.constellation.test.utils.TestEnvironment.ProvidersImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
@@ -79,13 +79,7 @@ import org.geotoolkit.wfs.xml.v200.ObjectFactory;
 import org.geotoolkit.wfs.xml.v200.Title;
 import org.geotoolkit.xsd.xml.v2001.*;
 import org.junit.*;
-import org.junit.runner.RunWith;
 import org.opengis.util.GenericName;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
 import static org.constellation.test.utils.TestResourceUtils.getResourceAsString;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.*;
@@ -97,11 +91,8 @@ import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
  *
  * @author Guilhem Legal (Geomatys)
  */
-@RunWith(SpringTestRunner.class)
-@TestExecutionListeners({DependencyInjectionTestExecutionListener.class,DirtiesContextTestExecutionListener.class})
-@DirtiesContext(hierarchyMode = DirtiesContext.HierarchyMode.EXHAUSTIVE,classMode=DirtiesContext.ClassMode.AFTER_CLASS)
-@ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-context.xml"})
-public class WFS2WorkerTest {
+
+public class WFS2WorkerTest extends SpringContextTest {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.wfs");
 
@@ -125,13 +116,6 @@ public class WFS2WorkerTest {
     protected IDataBusiness dataBusiness;
 
     private XmlFeatureWriter featureWriter;
-
-    private static final String CONFIG_DIR_NAME = "WFS2WorkerTest" + UUID.randomUUID().toString();
-
-    @BeforeClass
-    public static void initTestDir() throws IOException, URISyntaxException {
-        ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
-    }
 
     @PostConstruct
     public void setUpClass() {
@@ -243,7 +227,6 @@ public class WFS2WorkerTest {
             LOGGER.log(Level.WARNING, ex.getMessage());
         }
         try {
-            ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
             if (worker != null) {
                 worker.destroy();
             }

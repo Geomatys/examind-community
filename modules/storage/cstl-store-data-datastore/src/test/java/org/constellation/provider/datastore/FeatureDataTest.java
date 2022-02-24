@@ -22,7 +22,6 @@ import java.util.Arrays;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.Resource;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.FeatureDataDescription;
 import org.constellation.dto.PropertyDescription;
 import org.constellation.provider.DefaultFeatureData;
@@ -45,7 +44,6 @@ public class FeatureDataTest {
 
     @BeforeClass
     public static void init() throws Exception {
-        ConfigDirectory.setupTestEnvironement("FeatureDataTest");
         final TestEnvironment.TestResources testResource = initDataDirectory();
         DataStore store = testResource.createStore(TestEnvironment.TestResource.SHAPEFILES);
 
@@ -56,11 +54,6 @@ public class FeatureDataTest {
         r = store.findResource("city");
         Assert.assertTrue(r instanceof FeatureSet);
         city = new DefaultFeatureData(r.getIdentifier().get(), store, (FeatureSet)r, null, null, null, null, null);
-    }
-
-    @AfterClass
-    public static void shutDown() {
-        ConfigDirectory.shutdownTestEnvironement("FeatureDataTest");
     }
 
     @Test

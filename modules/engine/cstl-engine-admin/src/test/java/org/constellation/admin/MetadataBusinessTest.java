@@ -20,10 +20,8 @@ package org.constellation.admin;
 
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IServiceBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -48,11 +46,6 @@ public class MetadataBusinessTest extends org.constellation.test.SpringContextTe
     @Autowired
     private IServiceBusiness serviceBusiness;
 
-    @BeforeClass
-    public static void initTestDir() {
-        ConfigDirectory.setupTestEnvironement("MetadataBusinessTest");
-    }
-
     @PostConstruct
     public void init() {
         clean();
@@ -76,7 +69,6 @@ public class MetadataBusinessTest extends org.constellation.test.SpringContextTe
         } catch (ConstellationException ex) {
             Logger.getLogger("org.constellation.admin").log(Level.SEVERE, null, ex);
         }
-        ConfigDirectory.shutdownTestEnvironement("MetadataBusinessTest");
     }
 
     @Test

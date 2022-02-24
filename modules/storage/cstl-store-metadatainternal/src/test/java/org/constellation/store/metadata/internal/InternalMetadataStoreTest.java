@@ -40,7 +40,6 @@ import org.geotoolkit.metadata.RecordInfo;
 import org.geotoolkit.storage.DataStores;
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.opengis.parameter.ParameterValueGroup;
@@ -70,11 +69,6 @@ public class InternalMetadataStoreTest {
 
     @Autowired
     private IInternalMetadataBusiness InternalMetadataBusiness;
-
-    @BeforeClass
-    public static void initTestDir() {
-        ConfigDirectory.setupTestEnvironement("InternalMetadataStoreTest");
-    }
 
     @PostConstruct
     public void setUpClass() {
@@ -261,7 +255,6 @@ public class InternalMetadataStoreTest {
         if (mdService != null) {
             mdService.deleteAllMetadata();
         }
-        ConfigDirectory.shutdownTestEnvironement("InternalMetadataStoreTest");
     }
 
     public void writeMetadata(String resourceName, String identifier) throws Exception {

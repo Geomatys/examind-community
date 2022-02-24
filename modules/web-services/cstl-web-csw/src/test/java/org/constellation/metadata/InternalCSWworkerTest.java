@@ -34,23 +34,19 @@ import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.test.utils.Order;
-import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.util.Util;
 import org.geotoolkit.ebrim.xml.EBRIMMarshallerPool;
 import org.geotoolkit.xml.AnchoredMarshallerPool;
 import org.constellation.metadata.configuration.CSWConfigurer;
 import org.constellation.util.NodeUtilities;
 import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.w3c.dom.Node;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-@RunWith(SpringTestRunner.class)
 public class InternalCSWworkerTest extends CSWworkerTest {
 
     @Inject
@@ -64,12 +60,7 @@ public class InternalCSWworkerTest extends CSWworkerTest {
 
     private static boolean initialized = false;
 
-    private static final String confDirName = "InternalCSWWorkerTest" + UUID.randomUUID().toString();
-
-    @BeforeClass
-    public static void initTestDir() {
-        ConfigDirectory.setupTestEnvironement(confDirName);
-    }
+    private static final String confDirName = "InternalCSWWorkerTest" + UUID.randomUUID();
 
     @PostConstruct
     public void setUpClass() {
@@ -137,7 +128,6 @@ public class InternalCSWworkerTest extends CSWworkerTest {
             if (mdService != null) {
                 mdService.deleteAllMetadata();
             }
-            ConfigDirectory.shutdownTestEnvironement(confDirName);
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
         }
