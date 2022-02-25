@@ -20,12 +20,15 @@ package org.constellation.provider;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralDirectPosition;
+import org.apache.sis.metadata.iso.citation.Citations;
+import org.apache.sis.referencing.IdentifiedObjects;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
 import org.constellation.exception.ConstellationException;
@@ -34,8 +37,11 @@ import org.constellation.exception.TargetNotFoundException;
 import static org.constellation.provider.DataProviders.LOGGER;
 import static org.constellation.provider.DataProviders.getProviderData;
 import org.constellation.util.CRSUtilities;
+import org.geotoolkit.storage.multires.TileMatrices;
 import org.opengis.geometry.Envelope;
+import org.opengis.metadata.Identifier;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.util.FactoryException;
 
 /**
  *
@@ -131,26 +137,43 @@ public class ScaleUtilities {
             }
             final double geospanX = env.getSpan(0);
             final double baseScale = geospanX / gg.getExtent().getSize(0);
-            final int tileSize = 256;
-            double scale = geospanX / tileSize;
-            final GeneralDirectPosition ul = new GeneralDirectPosition(env.getCoordinateReferenceSystem());
-            ul.setOrdinate(0, env.getMinimum(0));
-            ul.setOrdinate(1, env.getMaximum(1));
-            final List<Double> scalesList = new ArrayList<>();
-            while (true) {
-                if (scale <= baseScale) {
-                    //fit to exact match to preserve base quality.
-                    scale = baseScale;
+
+            //detect common CRS : 3857 PseudoMercator
+            final Identifier id = IdentifiedObjects.getIdentifier(crs, Citations.EPSG);
+            if (id != null && "3857".equals(id.getCode())) {
+                try {
+                    final int lod = TileMatrices.computePseudoMercatorDepthForResolution(baseScale);
+                    final double[] ds = TileMatrices.createMercatorTemplate(lod).getScales();
+                    scales = new Double[ds.length];
+                    for (int i = 0; i < scales.length; i++) scales[i] = ds[i];
+                    //rever order, as expected by callers
+                    Collections.reverse(Arrays.asList(scales));
+                } catch (FactoryException ex) {
+                    throw new ConstellationStoreException(ex);
                 }
-                scalesList.add(scale);
-                if (scale <= baseScale) {
-                    break;
+            // other CRS
+            } else {
+                final int tileSize = 256;
+                double scale = geospanX / tileSize;
+                final GeneralDirectPosition ul = new GeneralDirectPosition(env.getCoordinateReferenceSystem());
+                ul.setOrdinate(0, env.getMinimum(0));
+                ul.setOrdinate(1, env.getMaximum(1));
+                final List<Double> scalesList = new ArrayList<>();
+                while (true) {
+                    if (scale <= baseScale) {
+                        //fit to exact match to preserve base quality.
+                        scale = baseScale;
+                    }
+                    scalesList.add(scale);
+                    if (scale <= baseScale) {
+                        break;
+                    }
+                    scale = scale / 2;
                 }
-                scale = scale / 2;
-            }
-            scales = new Double[scalesList.size()];
-            for (int i = 0; i < scales.length; i++) {
-                scales[i] = scalesList.get(i);
+                scales = new Double[scalesList.size()];
+                for (int i = 0; i < scales.length; i++) {
+                    scales[i] = scalesList.get(i);
+                }
             }
         } else {
             //featurecollection or anything else, scales can not be defined accurately.
@@ -187,7 +210,7 @@ public class ScaleUtilities {
      * @param briefs  List of data.
      * @param crs coordinate reference.
      * @param nbLevel Number of level to compute (used only if a non-coverage data is present in the list)
-     * 
+     *
      * @return scales array for data. (for wmts scales)
      * @throws ConstellationException if no scales can be calculated from any data.
      */
