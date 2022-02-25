@@ -18,7 +18,6 @@
  */
 package org.constellation.database.configuration;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import org.jooq.SQLDialect;
@@ -27,7 +26,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import javax.sql.DataSource;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.exception.ConfigurationRuntimeException;
@@ -44,7 +42,7 @@ import org.jooq.conf.RenderQuotedNames;
 @Configuration
 public class DatabaseRegister {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.database.configuration");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.database.configuration");
     private static final String DEFAULT_TEST_DATABASE_URL = "jdbc:hsqldb:mem:admin";
 
     private DataSource exaDatasource;

@@ -441,7 +441,7 @@ public final class GrizzlyServer {
             grizzly.interrupt();
         }
         deleteDataDirectory();
-        ConfigDirectory.shutdownTestEnvironement("CITE_CONFIGURATION");
+        ConfigDirectory.shutdownTestEnvironement();
     }
 
     /**

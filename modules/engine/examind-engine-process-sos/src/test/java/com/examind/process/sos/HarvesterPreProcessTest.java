@@ -21,19 +21,20 @@ package com.examind.process.sos;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import org.constellation.business.IProcessBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.process.ChainProcessRetriever;
 import org.constellation.process.ExamindProcessFactory;
 import org.constellation.process.dynamic.ExamindDynamicProcessFactory;
 import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.Order;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
+import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
 import org.geotoolkit.processing.chain.model.Chain;
@@ -53,10 +54,9 @@ public class HarvesterPreProcessTest extends SpringContextTest {
 
     private static final Logger LOGGER = Logger.getLogger("com.examind.process.sos");
 
-    private static final String confDirName = "HarvesterPreProcessTest" + UUID.randomUUID();
-
     private static boolean initialized = false;
 
+    private static Path DATA_DIRECTORY;
     private static Path argoDirectory;
     private static Path fmlwDirectory;
     private static Path mooDirectory;
@@ -67,13 +67,13 @@ public class HarvesterPreProcessTest extends SpringContextTest {
     @BeforeClass
     public static void setUpClass() throws Exception {
 
-        final Path configDir = ConfigDirectory.setupTestEnvironement(confDirName);
-        Path dataDirectory  = configDir.resolve("data");
-        argoDirectory       = dataDirectory.resolve("argo-profile");
+        final Path configDir = Paths.get("target");
+        DATA_DIRECTORY       = configDir.resolve("data"  + UUID.randomUUID());
+        argoDirectory       = DATA_DIRECTORY.resolve("argo-profile");
         Files.createDirectories(argoDirectory);
-        fmlwDirectory       = dataDirectory.resolve("fmlw-traj");
+        fmlwDirectory       = DATA_DIRECTORY.resolve("fmlw-traj");
         Files.createDirectories(fmlwDirectory);
-        mooDirectory       = dataDirectory.resolve("moo-ts");
+        mooDirectory       = DATA_DIRECTORY.resolve("moo-ts");
         Files.createDirectories(mooDirectory);
 
         writeResourceDataFile(argoDirectory, "com/examind/process/sos/argo-profiles-2902402-1.csv", "argo-profiles-2902402-1.csv");
@@ -113,7 +113,7 @@ public class HarvesterPreProcessTest extends SpringContextTest {
             if (mappingFile.exists()) {
                 mappingFile.delete();
             }
-            ConfigDirectory.shutdownTestEnvironement(confDirName);
+            IOUtilities.deleteSilently(DATA_DIRECTORY);
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }

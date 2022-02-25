@@ -188,12 +188,10 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
 
     private static boolean localdb_active = true;
 
-    private static final String CONFIG_DIR_NAME = "WFSRequestTest" + UUID.randomUUID().toString();
-
     @BeforeClass
     public static void initTestDir() throws IOException, URISyntaxException {
         controllerConfiguration = WFSControllerConfig.class;
-        ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
+        ConfigDirectory.setupTestEnvironement("WFSRequestTest" + UUID.randomUUID());
     }
     /**
      * Initialize the list of layers from the defined providers in Constellation's configuration.
@@ -331,7 +329,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
             LOGGER.log(Level.WARNING, ex.getMessage());
         }
         try {
-            ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
+            ConfigDirectory.shutdownTestEnvironement();
             File f = new File("derby.log");
             if (f.exists()) {
                 f.delete();

@@ -24,13 +24,11 @@ import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.CstlDOMComparator;
 import org.constellation.test.utils.Order;
-import org.constellation.test.utils.TestEnvironment;
 import org.constellation.util.Util;
 import org.constellation.wfs.core.DefaultWFSWorker;
 import org.constellation.wfs.core.WFSWorker;
@@ -57,9 +55,7 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 import java.io.File;
-import java.io.IOException;
 import java.io.StringWriter;
-import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.List;
@@ -75,7 +71,6 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.*;
 import static org.junit.Assert.*;
 
 import org.geotoolkit.wfs.xml.v200.ObjectFactory;
-import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 
 
 /**
@@ -103,13 +98,6 @@ public class WFSWorkerTest extends SpringContextTest {
     private static String EPSG_VERSION;
 
     private static boolean initialized = false;
-
-    private static final String CONFIG_DIR_NAME = "WFSWorkerTest" + UUID.randomUUID().toString();
-
-    @BeforeClass
-    public static void initTestDir() throws IOException, URISyntaxException {
-        ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
-    }
 
     @PostConstruct
     public void setUpClass() {
@@ -207,8 +195,6 @@ public class WFSWorkerTest extends SpringContextTest {
             LOGGER.log(Level.WARNING, ex.getMessage());
         }
         try {
-            ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
-
             if (worker != null) {
                 worker.destroy();
             }

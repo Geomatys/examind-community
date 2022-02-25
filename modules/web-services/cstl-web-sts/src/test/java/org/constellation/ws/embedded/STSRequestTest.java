@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.logging.Level;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralDirectPosition;
@@ -81,6 +82,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     @BeforeClass
     public static void initTestDir() {
         controllerConfiguration = STSControllerConfig.class;
+        ConfigDirectory.setupTestEnvironement("STSRequestTest" + UUID.randomUUID());
     }
 
     /**
@@ -142,6 +144,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         if (f.exists()) {
             f.delete();
         }
+        ConfigDirectory.shutdownTestEnvironement();
         stopServer();
     }
 

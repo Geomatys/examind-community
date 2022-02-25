@@ -21,10 +21,8 @@ package org.constellation.metadata;
 
 import org.constellation.metadata.core.CSWworker;
 import org.constellation.business.IServiceBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.test.SpringContextTest;
-import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.util.NodeUtilities;
 import org.constellation.ws.MimeType;
 import org.geotoolkit.csw.xml.ElementSetType;
@@ -39,8 +37,6 @@ import org.geotoolkit.ogc.xml.v110.SortByType;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.test.context.ContextConfiguration;
 import org.w3c.dom.Node;
 
 import javax.annotation.PostConstruct;
@@ -49,6 +45,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -62,16 +59,11 @@ import org.constellation.metadata.configuration.CSWConfigurer;
 import org.constellation.provider.DataProviders;
 import org.constellation.store.metadata.filesystem.FileSystemMetadataStore;
 import org.constellation.test.utils.TestEnvironment.TestResource;
-import org.constellation.test.utils.TestEnvironment.TestResources;
-import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 import static org.geotoolkit.metadata.TypeNames.RECORD_202_QNAME;
+import org.geotoolkit.nio.IOUtilities;
 
 /**
  * The purpose of this test is to run a "discovery" CSW and launch a spatial request on it.
@@ -88,29 +80,24 @@ public class TreeCloseTest extends SpringContextTest {
 
     private static CSWworker worker;
 
-    private static Path configDir;
-    private static Path dataDirectory;
+    private static Path DATA_DIRECTORY;
 
     private static FileSystemMetadataStore fsStore1;
 
     private boolean initialized = false;
 
-    private static final String confDirName = "TreeCloseTest" + UUID.randomUUID().toString();
-
     @BeforeClass
     public static void setUpClass() throws Exception {
-        configDir                = ConfigDirectory.setupTestEnvironement(confDirName);
-        final Path CSWDirectory  = configDir.resolve("CSW");
-        final Path instDirectory = CSWDirectory.resolve("default");
-        dataDirectory = instDirectory.resolve("data");
-        Files.createDirectories(dataDirectory);
+        final Path configDir = Paths.get("target");
+        DATA_DIRECTORY = configDir.resolve("TreeCloseTest" + UUID.randomUUID());
+        Files.createDirectories(DATA_DIRECTORY);
 
         //we write the data files
-        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta1.xml", "42292_5p_19900609195600.xml");
-        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta2.xml", "42292_9s_19900610041000.xml");
-        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta3.xml", "39727_22_19750113062500.xml");
-        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta4.xml", "11325_158_19640418141800.xml");
-        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta5.xml", "40510_145_19930221211500.xml");
+        writeResourceDataFile(DATA_DIRECTORY, "org/constellation/xml/metadata/meta1.xml", "42292_5p_19900609195600.xml");
+        writeResourceDataFile(DATA_DIRECTORY, "org/constellation/xml/metadata/meta2.xml", "42292_9s_19900610041000.xml");
+        writeResourceDataFile(DATA_DIRECTORY, "org/constellation/xml/metadata/meta3.xml", "39727_22_19750113062500.xml");
+        writeResourceDataFile(DATA_DIRECTORY, "org/constellation/xml/metadata/meta4.xml", "11325_158_19640418141800.xml");
+        writeResourceDataFile(DATA_DIRECTORY, "org/constellation/xml/metadata/meta5.xml", "40510_145_19930221211500.xml");
     }
 
     @PostConstruct
@@ -120,7 +107,7 @@ public class TreeCloseTest extends SpringContextTest {
                 serviceBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                Integer pr = testResources.createProviderWithPath(TestResource.METADATA_FILE, dataDirectory, providerBusiness, null).id;
+                Integer pr = testResources.createProviderWithPath(TestResource.METADATA_FILE, DATA_DIRECTORY, providerBusiness, null).id;
                 fsStore1 = (FileSystemMetadataStore) DataProviders.getProvider(pr).getMainStore();
 
                 //we write the configuration file
@@ -131,7 +118,7 @@ public class TreeCloseTest extends SpringContextTest {
                 Integer sid = serviceBusiness.create("csw", "default", configuration, null, null);
                 serviceBusiness.linkCSWAndProvider(sid, pr, true);
 
-                if (!Files.isDirectory(dataDirectory)) {
+                if (!Files.isDirectory(DATA_DIRECTORY)) {
                     throw new Exception("the data directory does no longer exist");
                 }
                 worker = new CSWworker("default");
@@ -171,10 +158,10 @@ public class TreeCloseTest extends SpringContextTest {
         }
         try {
             fsStore1.destroyFileIndex();
-            ConfigDirectory.shutdownTestEnvironement(confDirName);
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
+        IOUtilities.deleteSilently(DATA_DIRECTORY);
     }
 
     /**

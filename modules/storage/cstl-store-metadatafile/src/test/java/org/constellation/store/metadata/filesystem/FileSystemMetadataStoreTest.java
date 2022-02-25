@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -31,7 +32,6 @@ import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.DataStoreProvider;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
@@ -43,6 +43,7 @@ import org.geotoolkit.csw.xml.v202.RecordType;
 import org.geotoolkit.ebrim.xml.EBRIMMarshallerPool;
 import org.geotoolkit.metadata.MetadataType;
 import org.geotoolkit.metadata.RecordInfo;
+import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.storage.DataStores;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -69,40 +70,39 @@ public class FileSystemMetadataStoreTest {
 
     private static boolean initialized = false;
 
-    private static Path dataDirectory;
+    private static Path DATA_DIRECTORY;
 
     protected static final Logger LOGGER = Logger.getLogger("org.constellation.store.metadata.filesystem");
 
     private static FileSystemMetadataStore fsStore1;
 
-    private static final String CONFIG_DIR_NAME = "FileSystemMetadataStoreTest" + UUID.randomUUID().toString();
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-        final Path configDir = ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
+        final Path configDir = Paths.get("target");
 
         //we write the data files
-        dataDirectory = configDir.resolve("data");
-        Files.createDirectories(dataDirectory);
-        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta1.xml", "42292_5p_19900609195600.xml");
-        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta2.xml", "42292_9s_19900610041000.xml");
-        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta3.xml", "39727_22_19750113062500.xml");
-        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta4.xml", "11325_158_19640418141800.xml");
-        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta5.xml", "40510_145_19930221211500.xml");
-        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta-19119.xml", "mdweb_2_catalog_CSW Data Catalog_profile_inspire_core_service_4.xml");
-        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/imageMetadata.xml", "gov.noaa.nodc.ncddc. MODXXYYYYJJJ.L3_Mosaic_NOAA_GMX or MODXXYYYYJJJHHMMSS.L3_NOAA_GMX.xml");
-        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/ebrim1.xml", "000068C3-3B49-C671-89CF-10A39BB1B652.xml");
-        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/ebrim2.xml", "urn:uuid:3e195454-42e8-11dd-8329-00e08157d076.xml");
-        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/ebrim3.xml", "urn:motiive:csw-ebrim.xml");
+        DATA_DIRECTORY = configDir.resolve("data" + UUID.randomUUID());
+        Files.createDirectories(DATA_DIRECTORY);
+        writeResourceDataFile(DATA_DIRECTORY, "org/constellation/xml/metadata/meta1.xml", "42292_5p_19900609195600.xml");
+        writeResourceDataFile(DATA_DIRECTORY, "org/constellation/xml/metadata/meta2.xml", "42292_9s_19900610041000.xml");
+        writeResourceDataFile(DATA_DIRECTORY, "org/constellation/xml/metadata/meta3.xml", "39727_22_19750113062500.xml");
+        writeResourceDataFile(DATA_DIRECTORY, "org/constellation/xml/metadata/meta4.xml", "11325_158_19640418141800.xml");
+        writeResourceDataFile(DATA_DIRECTORY, "org/constellation/xml/metadata/meta5.xml", "40510_145_19930221211500.xml");
+        writeResourceDataFile(DATA_DIRECTORY, "org/constellation/xml/metadata/meta-19119.xml", "mdweb_2_catalog_CSW Data Catalog_profile_inspire_core_service_4.xml");
+        writeResourceDataFile(DATA_DIRECTORY, "org/constellation/xml/metadata/imageMetadata.xml", "gov.noaa.nodc.ncddc. MODXXYYYYJJJ.L3_Mosaic_NOAA_GMX or MODXXYYYYJJJHHMMSS.L3_NOAA_GMX.xml");
+        writeResourceDataFile(DATA_DIRECTORY, "org/constellation/xml/metadata/ebrim1.xml", "000068C3-3B49-C671-89CF-10A39BB1B652.xml");
+        writeResourceDataFile(DATA_DIRECTORY, "org/constellation/xml/metadata/ebrim2.xml", "urn:uuid:3e195454-42e8-11dd-8329-00e08157d076.xml");
+        writeResourceDataFile(DATA_DIRECTORY, "org/constellation/xml/metadata/ebrim3.xml", "urn:motiive:csw-ebrim.xml");
         //writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/error-meta.xml", "urn:error:file.xml");
-        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta13.xml", "urn:uuid:1ef30a8b-876d-4828-9246-dcbbyyiioo.xml");
+        writeResourceDataFile(DATA_DIRECTORY, "org/constellation/xml/metadata/meta13.xml", "urn:uuid:1ef30a8b-876d-4828-9246-dcbbyyiioo.xml");
 
         // add DIF metadata
-        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/NO.009_L2-SST.xml", "L2-SST.xml");
-        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/NO.021_L2-LST.xml", "L2-LST.xml");
+        writeResourceDataFile(DATA_DIRECTORY, "org/constellation/xml/metadata/NO.009_L2-SST.xml", "L2-SST.xml");
+        writeResourceDataFile(DATA_DIRECTORY, "org/constellation/xml/metadata/NO.021_L2-LST.xml", "L2-LST.xml");
 
         // prepare an hidden metadata
-        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta7.xml",  "MDWeb_FR_SY_couche_vecteur_258.xml");
+        writeResourceDataFile(DATA_DIRECTORY, "org/constellation/xml/metadata/meta7.xml",  "MDWeb_FR_SY_couche_vecteur_258.xml");
     }
 
     @PostConstruct
@@ -113,7 +113,7 @@ public class FileSystemMetadataStoreTest {
                 final DataStoreProvider factory = DataStores.getProviderById("FilesystemMetadata");
                 LOGGER.log(Level.INFO, "Metadata Factory choosed:{0}", factory.getClass().getName());
                 final ParameterValueGroup params = factory.getOpenParameters().createValue();
-                params.parameter("folder").setValue(dataDirectory);
+                params.parameter("folder").setValue(DATA_DIRECTORY);
                 params.parameter("store-id").setValue("testID");
 
                 fsStore1 = (FileSystemMetadataStore) factory.open(params);
@@ -125,6 +125,16 @@ public class FileSystemMetadataStoreTest {
             LOGGER.log(Level.SEVERE, "Error while initializing test", ex);
         }
 
+    }
+
+    @AfterClass
+    public static void tearDownClass() throws Exception {
+        try {
+            fsStore1.destroyFileIndex();
+            IOUtilities.deleteSilently(DATA_DIRECTORY);
+        }  catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
+        }
     }
 
     @Test
@@ -275,14 +285,4 @@ public class FileSystemMetadataStoreTest {
         "    </gmd:fileIdentifier>\n" +
         "</gmd:MD_ERROR>";
 
-
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-        try {
-            fsStore1.destroyFileIndex();
-            ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
-        }  catch (Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-        }
-    }
 }

@@ -22,7 +22,6 @@ import org.constellation.metadata.core.CSWworker;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.util.ComparisonMode;
 import org.constellation.business.IServiceBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.test.utils.Order;
 import org.constellation.util.Util;
@@ -44,6 +43,7 @@ import javax.inject.Inject;
 import javax.xml.bind.Unmarshaller;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -61,6 +61,7 @@ import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
+import org.geotoolkit.nio.IOUtilities;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Ignore;
@@ -78,22 +79,18 @@ public class NetCDFCSWWorker3Test extends CSWWorker3Test {
     @Inject
     private IProviderBusiness providerBusiness;
 
-    private static Path dataDirectory;
+    private static Path DATA_DIRECTORY;
 
     private static boolean initialized = false;
 
-    private static final String confDirName = "NCCSWWorker3Test" + UUID.randomUUID();
-
     @BeforeClass
     public static void setUpClass() throws Exception {
-        final Path configDir     = ConfigDirectory.setupTestEnvironement(confDirName);
-        final Path CSWDirectory  = configDir.resolve("CSW");
-        final Path instDirectory = CSWDirectory.resolve("default");
-        dataDirectory = instDirectory.resolve("data");
-        Files.createDirectories(dataDirectory);
+        final Path configDir = Paths.get("target");
+        DATA_DIRECTORY = configDir.resolve("NCCSWWorker3Test" + UUID.randomUUID());
+        Files.createDirectories(DATA_DIRECTORY);
 
         //we write the data files
-        writeResourceDataFile(dataDirectory, "org/constellation/netcdf/2005092200_sst_21-24.en.nc", "2005092200_sst_21-24.en.nc");
+        writeResourceDataFile(DATA_DIRECTORY, "org/constellation/netcdf/2005092200_sst_21-24.en.nc", "2005092200_sst_21-24.en.nc");
 
     }
 
@@ -106,7 +103,7 @@ public class NetCDFCSWWorker3Test extends CSWWorker3Test {
 
                 final TestResources testResource = initDataDirectory();
 
-                Integer pr = testResource.createProviderWithPath(TestResource.METADATA_NETCDF, dataDirectory, providerBusiness, null).id;
+                Integer pr = testResource.createProviderWithPath(TestResource.METADATA_NETCDF, DATA_DIRECTORY, providerBusiness, null).id;
 
                 //we write the configuration file
                 Automatic configuration = new Automatic();
@@ -161,10 +158,10 @@ public class NetCDFCSWWorker3Test extends CSWWorker3Test {
             if (mdService != null) {
                 mdService.deleteAllMetadata();
             }
-            ConfigDirectory.shutdownTestEnvironement(confDirName);
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
         }
+        IOUtilities.deleteSilently(DATA_DIRECTORY);
     }
 
     /**

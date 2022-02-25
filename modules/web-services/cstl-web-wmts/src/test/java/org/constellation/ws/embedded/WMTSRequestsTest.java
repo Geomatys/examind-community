@@ -140,7 +140,7 @@ public class WMTSRequestsTest extends AbstractGrizzlyServer {
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getMessage());
         }
-        ConfigDirectory.shutdownTestEnvironement("WMTSRequestTest");
+        ConfigDirectory.shutdownTestEnvironement();
         stopServer();
     }
 

@@ -657,7 +657,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getMessage());
         }
-        ConfigDirectory.shutdownTestEnvironement("WMSRequestTest");
+        ConfigDirectory.shutdownTestEnvironement();
         stopServer();
     }
 

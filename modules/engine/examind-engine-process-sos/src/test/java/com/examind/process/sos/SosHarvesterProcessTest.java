@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -46,7 +47,6 @@ import org.constellation.business.IDatasourceBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IServiceBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.Sensor;
 import org.constellation.dto.process.ServiceProcessReference;
 import org.constellation.dto.service.ServiceComplete;
@@ -68,6 +68,7 @@ import org.geotoolkit.gml.xml.v311.TimePeriodType;
 import org.geotoolkit.gml.xml.v321.PointType;
 import org.geotoolkit.internal.geojson.binding.GeoJSONFeature;
 import org.geotoolkit.internal.geojson.binding.GeoJSONGeometry.GeoJSONPoint;
+import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.process.Process;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
@@ -121,6 +122,8 @@ public class SosHarvesterProcessTest extends SpringContextTest {
 
     private static boolean initialized = false;
 
+    private static Path DATA_DIRECTORY;
+
     // CSV dir
     private static Path argoDirectory;
     private static Path fmlwDirectory;
@@ -149,30 +152,29 @@ public class SosHarvesterProcessTest extends SpringContextTest {
     @Inject
     protected WSEngine wsEngine;
 
-    private static final String CONFIG_DIR_NAME = "SosHarvesterProcessTest" + UUID.randomUUID();
 
     private static final int ORIGIN_NB_SENSOR = 14;
 
     @BeforeClass
     public static void setUpClass() throws Exception {
 
-        final Path configDir = ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
-        Path dataDirectory  = configDir.resolve("data");
-        argoDirectory       = dataDirectory.resolve("argo-profile");
+        final Path configDir = Paths.get("target");
+        DATA_DIRECTORY      = configDir.resolve("data" + UUID.randomUUID());
+        argoDirectory       = DATA_DIRECTORY.resolve("argo-profile");
         Files.createDirectories(argoDirectory);
-        fmlwDirectory       = dataDirectory.resolve("fmlw-traj");
+        fmlwDirectory       = DATA_DIRECTORY.resolve("fmlw-traj");
         Files.createDirectories(fmlwDirectory);
-        mooDirectory       = dataDirectory.resolve("moo-ts");
+        mooDirectory       = DATA_DIRECTORY.resolve("moo-ts");
         Files.createDirectories(mooDirectory);
-        ltDirectory       = dataDirectory.resolve("lt-ts");
+        ltDirectory       = DATA_DIRECTORY.resolve("lt-ts");
         Files.createDirectories(ltDirectory);
-        rtDirectory       = dataDirectory.resolve("rt-ts");
+        rtDirectory       = DATA_DIRECTORY.resolve("rt-ts");
         Files.createDirectories(rtDirectory);
-        multiPlatDirectory = dataDirectory.resolve("multi-plat");
+        multiPlatDirectory = DATA_DIRECTORY.resolve("multi-plat");
         Files.createDirectories(multiPlatDirectory);
-        bigdataDirectory = dataDirectory.resolve("bigdata-profile");
+        bigdataDirectory = DATA_DIRECTORY.resolve("bigdata-profile");
         Files.createDirectories(bigdataDirectory);
-        survalDirectory = dataDirectory.resolve("surval");
+        survalDirectory = DATA_DIRECTORY.resolve("surval");
         Files.createDirectories(survalDirectory);
 
         writeResourceDataFile(argoDirectory, "com/examind/process/sos/argo-profiles-2902402-1.csv", "argo-profiles-2902402-1.csv");
@@ -247,7 +249,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
             if (mappingFile.exists()) {
                 mappingFile.delete();
             }
-            ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
+            IOUtilities.deleteSilently(DATA_DIRECTORY);
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }

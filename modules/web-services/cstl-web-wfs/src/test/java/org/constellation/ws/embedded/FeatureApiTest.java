@@ -27,6 +27,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
@@ -87,6 +88,7 @@ public class FeatureApiTest extends AbstractGrizzlyServer {
     @BeforeClass
     public static void initTestDir() throws Exception {
         controllerConfiguration = WFSControllerConfig.class;
+        ConfigDirectory.setupTestEnvironement("FAPIRequestsTest" + UUID.randomUUID());
     }
 
     @Before
@@ -162,6 +164,7 @@ public class FeatureApiTest extends AbstractGrizzlyServer {
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getMessage());
         }
+        ConfigDirectory.shutdownTestEnvironement();
         stopServer();
     }
 

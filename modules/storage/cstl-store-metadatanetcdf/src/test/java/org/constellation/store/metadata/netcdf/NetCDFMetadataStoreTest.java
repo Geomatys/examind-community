@@ -21,23 +21,14 @@ package org.constellation.store.metadata.netcdf;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URL;
 import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.PostConstruct;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.DataStoreProvider;
-import org.constellation.configuration.ConfigDirectory;
-import org.constellation.test.utils.SpringTestRunner;
-import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import static org.junit.Assert.assertNotNull;
 
 import org.constellation.util.NodeUtilities;
@@ -47,19 +38,12 @@ import org.geotoolkit.ebrim.xml.EBRIMMarshallerPool;
 import org.geotoolkit.lang.Setup;
 import org.geotoolkit.metadata.MetadataType;
 import org.geotoolkit.metadata.RecordInfo;
-import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.storage.DataStores;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.opengis.parameter.ParameterValueGroup;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
 /**
  *

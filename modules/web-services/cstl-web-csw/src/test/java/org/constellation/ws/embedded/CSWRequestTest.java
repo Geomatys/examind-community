@@ -78,7 +78,6 @@ import org.apache.sis.xml.XML;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.AcknowlegementType;
-import org.constellation.dto.metadata.MetadataBrief;
 import org.constellation.dto.service.Instance;
 import org.constellation.dto.service.InstanceReport;
 import org.constellation.dto.service.ServiceProtocol;
@@ -118,11 +117,9 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
     private static FileSystemMetadataStore fsStore1;
     private static FileSystemMetadataStore fsStore2;
 
-    private static final String CONF_DIR_NAME = "CSWRequestTest" + UUID.randomUUID().toString();
-
     @BeforeClass
     public static void initTestDir() {
-        configDirectory = ConfigDirectory.setupTestEnvironement(CONF_DIR_NAME);
+        configDirectory = ConfigDirectory.setupTestEnvironement("CSWRequestTest" + UUID.randomUUID().toString());
         controllerConfiguration = CSWControllerConfig.class;
     }
 
@@ -234,7 +231,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
         try {
-            ConfigDirectory.shutdownTestEnvironement(CONF_DIR_NAME);
+            ConfigDirectory.shutdownTestEnvironement();
 
             File f = new File("derby.log");
             if (f.exists()) {

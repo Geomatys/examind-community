@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
@@ -197,6 +198,7 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
     @BeforeClass
     public static void initTestDir() {
         controllerConfiguration = WCSControllerConfig.class;
+        ConfigDirectory.setupTestEnvironement("WCSRequestsTest" + UUID.randomUUID());
     }
 
     @Before
@@ -297,7 +299,7 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
         } catch (ConstellationException ex) {
             Logger.getAnonymousLogger().log(Level.WARNING, ex.getMessage());
         }
-        ConfigDirectory.shutdownTestEnvironement("WCSRequestsTest");
+        ConfigDirectory.shutdownTestEnvironement();
         stopServer();
     }
 

@@ -19,7 +19,6 @@
 package org.constellation.process.provider;
 
 
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.process.AbstractProcessTest;
 import org.constellation.provider.DataProviders;
@@ -30,9 +29,11 @@ import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 
 import javax.annotation.PostConstruct;
-import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.constellation.api.ProviderType;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.exception.ConstellationException;
@@ -45,6 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public abstract class AbstractProviderTest extends AbstractProcessTest {
 
+    private static Path DATA_DIRECTORY;
     protected static URI EMPTY_CSV;
     // dataStore service
     protected static DataProviderFactory DATASTORE_SERVICE;
@@ -63,19 +65,20 @@ public abstract class AbstractProviderTest extends AbstractProcessTest {
 
     @BeforeClass
     public static void initFolder() throws Exception {
-        final File configDirectory = ConfigDirectory.setupTestEnvironement("ProcessProviderTest").toFile();
-        final File providerDirectory = new File(configDirectory, "provider");
-        providerDirectory.mkdir();
-
-        File csv = new File(configDirectory, "file.csv");
-        IOUtilities.writeString("id;name", csv.toPath());
-        EMPTY_CSV = csv.toURI();
+        final Path configDirectory = Paths.get("target");
+        DATA_DIRECTORY = configDirectory.resolve("provider");
+        Files.createDirectories(DATA_DIRECTORY);
+        Path csv = DATA_DIRECTORY.resolve("file.csv");
+        Files.createFile(csv);
+        
+        IOUtilities.writeString("id;name", csv);
+        EMPTY_CSV = csv.toUri();
 
     }
 
     @AfterClass
     public static void destroyFolder() {
-        ConfigDirectory.shutdownTestEnvironement("ProcessProviderTest");
+        IOUtilities.deleteSilently(DATA_DIRECTORY);
     }
 
     /**

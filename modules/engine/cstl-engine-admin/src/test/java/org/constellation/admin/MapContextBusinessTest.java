@@ -63,8 +63,7 @@ public class MapContextBusinessTest extends SpringContextTest {
             final IMapContextBusiness dbus = SpringHelper.getBean(IMapContextBusiness.class);
             if (dbus != null) {
                 dbus.deleteAll();
-            } else System.out.printf("%n%nMAP CONTEXT BUSINESS IS NULL%n%n");
-            ConfigDirectory.shutdownTestEnvironement("MapContextBusinessTest");
+            }
         } catch (ConstellationException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }

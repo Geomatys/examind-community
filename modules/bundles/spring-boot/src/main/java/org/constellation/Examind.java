@@ -74,8 +74,6 @@ public class Examind extends SpringBootServletInitializer {
     }
 
     public Examind(){
-        // in netbeans set this up to avoid polluting your .constellation
-        //ConfigDirectory.setupTestEnvironement("boot");
     }
 
    /****************************************************************************/

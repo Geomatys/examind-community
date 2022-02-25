@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.util.logging.Logger;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.configuration.ConfigDirectory;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ApplicationEvent;
@@ -15,7 +14,7 @@ import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 
 public class TestDirectoryInit implements ApplicationContextInitializer<ConfigurableApplicationContext>, ApplicationListener<ApplicationEvent> {
 
-    static final Logger LOGGER = Logging.getLogger("com.examind.test");
+    static final Logger LOGGER = Logger.getLogger("com.examind.test");
     public static final String DEFAULT_NAME = "TestEnvironment";
 
     public final String name;
@@ -42,7 +41,7 @@ public class TestDirectoryInit implements ApplicationContextInitializer<Configur
 
     @Override
     public void onApplicationEvent(ApplicationEvent event) {
-        ConfigDirectory.shutdownTestEnvironement(name);
+        ConfigDirectory.shutdownTestEnvironement();
         LOGGER.fine(() -> "Configuration directory shutdown for name " + name);
     }
 }

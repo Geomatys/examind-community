@@ -174,7 +174,7 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getMessage());
         }
-        ConfigDirectory.shutdownTestEnvironement("RestApiRequestsTest");
+        ConfigDirectory.shutdownTestEnvironement();
         stopServer();
     }
 

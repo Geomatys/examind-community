@@ -15,7 +15,6 @@
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.constellation.dto.metadata.ComponentObj" %>
-<%@ page import="org.apache.sis.util.logging.Logging" %>
 <%@ page import="java.util.logging.Level" %>
 <%@ page import="java.util.logging.Logger" %>
 
@@ -23,7 +22,7 @@
 
 
 <%!
-    private static final Logger LOGGER = Logging.getLogger("metadata-view.jsp");
+    private static final Logger LOGGER = Logger.getLogger("metadata-view.jsp");
 
     //method to resolve parameters passed to this page
     public String resolveParams(HttpServletRequest request,String param){

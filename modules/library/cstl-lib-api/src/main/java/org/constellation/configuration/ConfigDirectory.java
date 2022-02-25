@@ -260,7 +260,7 @@ public final class ConfigDirectory {
         return config.home;
     }
 
-    public static void shutdownTestEnvironement(String string) {
+    public static void shutdownTestEnvironement() {
         if (config.testing) {
             deleteDir(config.home);
         }

@@ -88,11 +88,9 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
 
     private static Path configDirectory;
 
-    private static final String CONFIG_DIR_NAME = "WPSRequestTest" + UUID.randomUUID().toString();
-
     @BeforeClass
     public static void initTestDir() {
-        configDirectory = ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
+        configDirectory = ConfigDirectory.setupTestEnvironement("WPSRequestTest" + UUID.randomUUID());
         controllerConfiguration = WPSControllerConfig.class;
     }
 
@@ -144,7 +142,7 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
                 ServiceComplete test = service.getServiceByIdentifierAndType("wps", "test");
                 service.delete(test.getId());
             }
-            ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
+            ConfigDirectory.shutdownTestEnvironement();
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, null, ex);
         }
