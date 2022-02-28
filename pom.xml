@@ -13,7 +13,7 @@
     <parent>
         <groupId>org.geotoolkit</groupId>
         <artifactId>buildset</artifactId>
-        <version>22.02.16</version>
+        <version>22.02.28</version>
     </parent>
 
     <groupId>com.examind.community</groupId>
@@ -30,6 +30,7 @@
     <inceptionYear>2007</inceptionYear>
 
     <properties>
+        <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- Define packages for GUI including -->
         <examind.services.packages>all</examind.services.packages>
@@ -791,7 +792,7 @@
                         <configuration>
                             <rules>
                                 <requireJavaVersion>
-                                    <version>17</version>
+                                    <version>${java.version}</version>
                                 </requireJavaVersion>
                                 <dependencyConvergence/>
                                 <bannedDependencies>
@@ -816,19 +817,17 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <release>8</release>
-                    <source>1.8</source>        <!-- The -source argument for the Java compiler.   -->
-                    <target>1.8</target>        <!-- The -target argument for the Java compiler.   -->
-                    <debug>true</debug>         <!-- Whether to include debugging information.     -->
-                    <optimize>true</optimize>   <!-- Whether to optimize the compiled code.        -->
-                    <encoding>UTF-8</encoding>  <!-- The -encoding argument for the Java compiler. -->
+                    <release>${java.version}</release>
+                    <source>${java.version}</source>        <!-- The -source argument for the Java compiler.   -->
+                    <target>${java.version}</target>        <!-- The -target argument for the Java compiler.   -->
+                    <debug>true</debug>                     <!-- Whether to include debugging information.     -->
+                    <optimize>true</optimize>               <!-- Whether to optimize the compiled code.        -->
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
                 <configuration>
-                    <encoding>UTF-8</encoding>
                     <nonFilteredFileExtensions>
                         <nonFilteredFileExtension>utf</nonFilteredFileExtension>
                         <nonFilteredFileExtension>tif</nonFilteredFileExtension>
@@ -873,7 +872,6 @@
                     <argLine>
                       <!-- @{argLine} necessary for jacoco generation, because we added more parameters -->
                       @{argLine}
-                      --add-opens java.desktop/sun.awt.image=ALL-UNNAMED
                     </argLine>
                     <properties>
                         <!-- for PRTQL generation -->
