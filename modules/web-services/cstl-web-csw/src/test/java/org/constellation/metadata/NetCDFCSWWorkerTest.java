@@ -190,6 +190,8 @@ public class NetCDFCSWWorkerTest extends CSWworkerTest {
         } else if (obj instanceof Node) {
             Node resultNode = (Node) obj;
             Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/2005092200_sst_21-24.en.xml");
+
+            System.out.println(getStringFromNode(resultNode));
             DocumentComparator comparator = new DocumentComparator(expResultNode, resultNode);
             comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
             comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");

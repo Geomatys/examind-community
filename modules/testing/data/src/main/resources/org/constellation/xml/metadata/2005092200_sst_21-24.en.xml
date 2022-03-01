@@ -136,6 +136,9 @@
             <gmd:spatialRepresentationType>
                 <gmd:MD_SpatialRepresentationTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_SpatialRepresentationTypeCode" codeListValue="grid">Grid</gmd:MD_SpatialRepresentationTypeCode>
             </gmd:spatialRepresentationType>
+            <gmd:spatialRepresentationType>
+                <gmd:MD_SpatialRepresentationTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_SpatialRepresentationTypeCode" codeListValue="textTable">Text table</gmd:MD_SpatialRepresentationTypeCode>
+            </gmd:spatialRepresentationType>
             <gmd:resourceFormat>
                 <gmd:MD_Format>
                     <gmd:name>
@@ -214,6 +217,22 @@
             </gmd:extent>
         </gmd:MD_DataIdentification>
     </gmd:identificationInfo>
+    <gmd:contentInfo>        
+        <gmd:MD_FeatureCatalogueDescription>            
+            <gmd:includedWithDataset>                
+                <gcol:Boolean>true</gcol:Boolean>            
+            </gmd:includedWithDataset>            
+            <gmd:featureTypes>                
+                <gcol:LocalName codeSpace="NCEP/SST/Global_5x2p5deg/SST_Global_5x2p5deg_20050922_0000.nc">record</gcol:LocalName>            
+            </gmd:featureTypes>            
+            <gmd:featureTypes>                
+                <gcol:LocalName codeSpace="NCEP/SST/Global_5x2p5deg/SST_Global_5x2p5deg_20050922_0000.nc">nmodels</gcol:LocalName>            
+            </gmd:featureTypes>            
+            <gmd:featureTypes>                
+                <gcol:LocalName codeSpace="NCEP/SST/Global_5x2p5deg/SST_Global_5x2p5deg_20050922_0000.nc">nav</gcol:LocalName>            
+            </gmd:featureTypes>        
+        </gmd:MD_FeatureCatalogueDescription>    
+    </gmd:contentInfo>
     <gmd:contentInfo>
         <gmd:MD_CoverageDescription>
             <gmd:dimension>
