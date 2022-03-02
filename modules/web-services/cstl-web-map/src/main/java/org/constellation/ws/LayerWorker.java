@@ -42,6 +42,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import javax.annotation.PreDestroy;
+import org.constellation.api.WorkerState;
 import org.constellation.business.ClusterMessage;
 import org.constellation.business.IClusterBusiness;
 import org.constellation.business.MessageException;
@@ -51,12 +52,14 @@ import org.constellation.provider.DataProvider;
 import org.geotoolkit.util.NamesExt;
 
 import static org.geotoolkit.ows.xml.OWSExceptionCode.LAYER_NOT_DEFINED;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.STYLE_NOT_DEFINED;
 import org.opengis.util.GenericName;
 import static org.constellation.business.ClusterMessageConstant.*;
 import org.constellation.dto.StyleReference;
 import org.constellation.exception.ConstellationException;
+import org.constellation.map.featureinfo.FeatureInfoFormat;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_FORMAT;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import org.springframework.lang.NonNull;
 
 /**
@@ -64,7 +67,7 @@ import org.springframework.lang.NonNull;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public abstract class LayerWorker extends AbstractWorker {
+public abstract class LayerWorker extends AbstractWorker<LayerContext> {
 
     @Inject
     private ILayerBusiness layerBusiness;
@@ -75,56 +78,44 @@ public abstract class LayerWorker extends AbstractWorker {
     @Inject
     protected IClusterBusiness clusterBusiness;
 
-    private LayerContext layerContext;
-
     protected final List<String> supportedLanguages = new ArrayList<>();
 
-    protected final String defaultLanguage;
+    private String defaultLanguage = null;
 
     private String listenerUid;
 
     public LayerWorker(final String id, final Specification specification) {
         super(id, specification);
-
-        String defaultLanguageCandidate = null;
-
+        if (getState().equals(WorkerState.ERROR)) return;
         try {
-            final Object obj = serviceBusiness.getConfiguration(specification.name().toLowerCase(), id);
-            if (obj instanceof LayerContext) {
-                layerContext = (LayerContext) obj;
-                final String sec = layerContext.getSecurity();
-                // Instantiaties the PDP only if a rule has been discovered.
-                if (sec != null && !sec.isEmpty()) {
-                    pdp = new SimplePDP(sec);
-                }
-                final Languages languages = layerContext.getSupportedLanguages();
-                if (languages != null) {
-                    for (Language language : languages.getLanguages()) {
-                        supportedLanguages.add(language.getLanguageCode());
-                        if (language.getDefault()) {
-                            defaultLanguageCandidate = language.getLanguageCode();
-                        }
+            final String sec = configuration.getSecurity();
+            // Instantiaties the PDP only if a rule has been discovered.
+            if (sec != null && !sec.isEmpty()) {
+                pdp = new SimplePDP(sec);
+            }
+            final Languages languages = configuration.getSupportedLanguages();
+            if (languages != null) {
+                for (Language language : languages.getLanguages()) {
+                    supportedLanguages.add(language.getLanguageCode());
+                    if (language.getDefault()) {
+                        defaultLanguage = language.getLanguageCode();
                     }
                 }
-                // look for capabilities cache flag
-                final String cc = getProperty("cacheCapabilities");
-                if (cc != null && !cc.isEmpty()) {
-                    cacheCapabilities = Boolean.parseBoolean(cc);
-                }
-
-                //Check  FeatureInfo configuration (if exist)
-                FeatureInfoUtilities.checkConfiguration(layerContext);
-
-            } else {
-                startError("The layer context File does not contain a layerContext object", null);
             }
+            // look for capabilities cache flag
+            final String cc = getProperty("cacheCapabilities");
+            if (cc != null && !cc.isEmpty()) {
+                cacheCapabilities = Boolean.parseBoolean(cc);
+            }
+
+            //Check  FeatureInfo configuration (if exist)
+            FeatureInfoUtilities.checkConfiguration(configuration);
+
         } catch (ClassNotFoundException | ConfigurationException ex) {
             startError("Custom FeatureInfo configuration error : " + ex.getMessage(), ex);
         } catch (Exception ex) {
             startError(ex.getMessage(), ex);
         }
-        defaultLanguage = defaultLanguageCandidate;
-
     }
 
     @PostConstruct
@@ -224,39 +215,37 @@ public abstract class LayerWorker extends AbstractWorker {
     }
 
     protected LayerConfig getMainLayer() {
-        if (layerContext == null) {
+        if (configuration == null) {
             return null;
         }
-        return layerContext.getMainLayer();
+        return configuration.getMainLayer();
+    }
+
+    protected String getDefaultLanguage() {
+        return defaultLanguage;
     }
 
     /**
-     * {@inheritDoc}
+     * Return A {@link FeatureInfoFormat} for the specified layer configuration.
+     *
+     * @param config A layer configuration.
+     * @param infoFormat name of the format.
+     *
+     * @return A {@link FeatureInfoFormat} {@code never null}.
+     * @throws CstlServiceException if an error occurs during featureInfo format retrieval or inf the infor format does not exist.
      */
-    @Override
-    public boolean isAuthorized(final String ip, final String referer) {
-        return pdp.isAuthorized(ip, referer);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isSecured() {
-        return (pdp != null);
-    }
-
-    @Override
-    protected final String getProperty(final String key) {
-        if (layerContext != null && layerContext.getCustomParameters() != null) {
-            return layerContext.getCustomParameters().get(key);
+    protected FeatureInfoFormat getFeatureInfo(LayerConfig config, String infoFormat) throws CstlServiceException {
+        FeatureInfoFormat featureInfo = null;
+        try {
+            featureInfo = FeatureInfoUtilities.getFeatureInfoFormat(getConfiguration(), config, infoFormat);
+        } catch (ClassNotFoundException | ConfigurationException ex) {
+            throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
         }
-        return null;
-    }
 
-    @Override
-    public LayerContext getConfiguration() {
-        return layerContext;
+        if (featureInfo == null) {
+            throw new CstlServiceException("INFO_FORMAT=" + infoFormat + " not supported.", INVALID_FORMAT);
+        }
+        return featureInfo;
     }
 
     private Data getData(NameInProvider nip){

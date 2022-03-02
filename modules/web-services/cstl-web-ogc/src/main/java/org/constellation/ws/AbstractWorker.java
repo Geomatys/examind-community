@@ -47,6 +47,7 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.contact.Details;
 import org.constellation.dto.service.ServiceComplete;
+import org.constellation.dto.service.config.AbstractConfigurationObject;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.security.SecurityManagerHolder;
 import org.constellation.ws.security.SimplePDP;
@@ -60,13 +61,13 @@ import org.xml.sax.SAXException;
  * Abstract definition of a {@code Web Map Service} worker called by a facade
  * to perform the logic for a particular WMS instance.
  *
- * @version $Id: AbstractWMSWorker.java 1889 2009-10-14 16:05:52Z eclesia $
- *
  * @author Cédric Briançon (Geomatys)
  * @author Johann Sorel (Geomatys)
  * @author Guilhem Legal (Geomatys)
+ * 
+ * @param <A> Specific worker configuration object class.
  */
-public abstract class AbstractWorker implements Worker {
+public abstract class AbstractWorker<A extends AbstractConfigurationObject> implements Worker {
 
     /**
      * The default logger.
@@ -132,14 +133,33 @@ public abstract class AbstractWorker implements Worker {
     @Inject
     private IWSEngine wsengine;
 
+    protected A configuration;
+
+    protected boolean isTransactionnal;
+
+    private final boolean acceptNullConfig;
+
     public AbstractWorker(final String id, final Specification specification) {
+        this(id, specification, false);
+    }
+
+    public AbstractWorker(final String id, final Specification specification, final boolean acceptNullConfig) {
         this.id = id;
+        this.acceptNullConfig = acceptNullConfig;
         this.specification = specification;
         SpringHelper.injectDependencies(this);
         this.serviceId = serviceBusiness.getServiceIdByIdentifierAndType(specification.name(), id);
         start();
         try {
             applySupportedVersion();
+            //we look if the configuration have been specified
+            configuration = (A) serviceBusiness.getConfiguration(specification.name(), id);
+            if (!acceptNullConfig && configuration == null) {
+                startError("The configuration object is null.", null);
+            }
+            this.isTransactionnal = getTransactionalProperty();
+        } catch (ClassCastException ex) {
+            startError("The configuration object is malformed.", null);
         } catch (ConfigurationException ex) {
             startError(ex.getMessage(), ex);
         }
@@ -346,7 +366,48 @@ public abstract class AbstractWorker implements Worker {
         return serviceId;
     }
 
-    protected abstract String getProperty(final String propertyName);
+    protected String getProperty(final String propertyName) {
+        if (configuration != null) {
+            return configuration.getProperty(propertyName);
+        }
+        return null;
+    }
+
+    protected final boolean getBooleanProperty(final String propertyName, boolean defaultValue) {
+        if (configuration != null) {
+            String value = configuration.getProperty(propertyName);
+            if (value != null) {
+                return Boolean.parseBoolean(value);
+            }
+        }
+        return defaultValue;
+    }
+
+    /**
+     * Extract the transactional profile of the service.
+     *
+     * @return {@code true} if the transactional profile is activated.
+     */
+    protected boolean getTransactionalProperty() {
+        final String isTransactionnalProp = getProperty("transactional");
+        // 1) priority to configuration parameters properties
+        if (isTransactionnalProp != null) {
+           return Boolean.parseBoolean(isTransactionnalProp);
+        } else {
+            // 2) look into instance details
+            boolean t = false;
+            try {
+                final Details details = serviceBusiness.getInstanceDetails(specification.toString().toLowerCase(), id, null);
+                // default to false
+                if (details != null) {
+                    t = details.isTransactional();
+                }
+            } catch (ConstellationException ex) {
+                LOGGER.log(Level.WARNING, null, ex);
+            }
+            return t;
+        }
+    }
 
     /**
      * Returns the file where to read the capabilities document for each service.
@@ -480,7 +541,8 @@ public abstract class AbstractWorker implements Worker {
      */
     @Override
     public boolean isAuthorized(final String ip, final String referer) {
-        return true;
+        if (pdp == null) return true;
+        return pdp.isAuthorized(ip, referer);
     }
 
     /**
@@ -488,7 +550,7 @@ public abstract class AbstractWorker implements Worker {
      */
     @Override
     public boolean isSecured() {
-        return false;
+        return (pdp != null);
     }
 
     /**
@@ -576,12 +638,22 @@ public abstract class AbstractWorker implements Worker {
     }
 
     @Override
-    public Object getConfiguration() {
-        return null;
+    public A getConfiguration() {
+        return configuration;
     }
 
     @Override
     public Object getCapabilities(String version) throws CstlServiceException {
         return null;
+    }
+
+    protected void assertTransactionnal(final String requestName) throws CstlServiceException {
+        if (!isTransactionnal) {
+            throw new CstlServiceException("The operation " + requestName + " is not supported by the service",
+                    INVALID_PARAMETER_VALUE, "request");
+        }
+        if (isTransactionSecurized() && !SecurityManagerHolder.getInstance().isAuthenticated()) {
+            throw new UnauthorizedException("You must be authentified to perform an " + requestName + " request.");
+        }
     }
 }

@@ -96,7 +96,7 @@ public class CSWorkerInitialisationTest extends SpringContextTest {
         service.setDate(new Date(System.currentTimeMillis()));
         service.setType("csw");
         service.setStatus("NOT_STARTED");
-        service.setVersions("1.0.0");
+        service.setVersions("2.0.0");
 
         int id = serviceRepository.create(service);
         assertTrue(id > 0);
@@ -113,7 +113,7 @@ public class CSWorkerInitialisationTest extends SpringContextTest {
             assertEquals(ex.getExceptionCode(), NO_APPLICABLE_CODE);
             assertEquals(
                     ex.getMessage(),
-                    "The service is not running.\nCause: Configuration Object is not an Automatic Object");
+                    "The service is not running.\nCause:The configuration object is null.");
             exceptionLaunched = true;
         }
 

@@ -74,8 +74,10 @@ public abstract class OGCConfigurer extends ServiceConfigurer implements IOGCCon
      * Returns list of service {@link Instance}(s) related to the {@link OGCConfigurer}
      * implementation.
      *
-     * @param spec
-     * @return the {@link Instance} list
+     * @param spec Service specification.
+     * @param lang Request language.
+     * 
+     * @return the {@link Instance} list.
      */
     @Override
     public List<Instance> getInstances(final String spec, String lang) {

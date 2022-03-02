@@ -283,9 +283,9 @@ public class Automatic extends AbstractConfigurationObject {
     }
 
     /**
-     * Return the type of profile as a flag.
-     * @return
+     * @deprecated use getParameter("transactional")
      */
+    @Deprecated
     public int getProfile() {
         if ("discovery".equalsIgnoreCase(profile))
             return 0;
@@ -458,6 +458,11 @@ public class Automatic extends AbstractConfigurationObject {
             customparameters = new HashMap<>();
         }
         this.customparameters.put(key, value);
+    }
+
+    @Override
+    public String getProperty(String key) {
+        return getParameter(key);
     }
 
     public String getParameter(final String key) {

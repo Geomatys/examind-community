@@ -27,6 +27,7 @@ import javax.inject.Named;
 
 // constellation dependencies
 import org.constellation.api.ServiceDef.Specification;
+import org.constellation.api.WorkerState;
 import org.constellation.thesaurus.api.IThesaurusBusiness;
 import org.constellation.thesaurus.api.IThesaurusCSWCounter;
 import org.constellation.ws.AbstractWorker;
@@ -66,7 +67,8 @@ public class THWworker extends AbstractWorker {
     private IThesaurusBusiness thesaurusBusiness;
 
     public THWworker(final String serviceID) {
-        super(serviceID, Specification.THW);
+        super(serviceID, Specification.THW, true);
+        if (getState().equals(WorkerState.ERROR)) return;
         int nbThesaurus = 0;
         try {
 
@@ -347,10 +349,5 @@ public class THWworker extends AbstractWorker {
             cswCounter.close();
         }
         stopped();
-    }
-
-    @Override
-    protected String getProperty(final String propertyName) {
-        return null;
     }
 }

@@ -32,11 +32,9 @@ import org.geotoolkit.metadata.MetadataIoException;
 import org.geotoolkit.metadata.MetadataType;
 import org.constellation.metadata.security.MetadataSecurityFilter;
 import org.constellation.metadata.utils.CSWUtils;
-import org.constellation.security.SecurityManagerHolder;
 import org.constellation.util.Util;
 import org.constellation.ws.AbstractWorker;
 import org.constellation.ws.CstlServiceException;
-import org.constellation.ws.UnauthorizedException;
 import org.geotoolkit.csw.xml.AbstractCapabilities;
 import org.geotoolkit.csw.xml.Acknowledgement;
 import org.geotoolkit.csw.xml.CswXmlFactory;
@@ -114,6 +112,7 @@ import org.apache.sis.storage.DataStoreException;
 
 import static org.constellation.api.QueryConstants.SERVICE_PARAMETER;
 import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
+import org.constellation.api.WorkerState;
 import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.exception.ConstellationException;
@@ -173,7 +172,7 @@ import org.w3._2005.atom.FeedType;
  */
 @Named("CSWWorker")
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
-public class CSWworker extends AbstractWorker implements Refreshable {
+public class CSWworker extends AbstractWorker<Automatic> implements Refreshable {
 
     @Autowired
     private IClusterBusiness clusterBusiness;
@@ -233,14 +232,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
     public static final  int DISCOVERY    = 0;
     public static final int TRANSACTIONAL = 1;
 
-    /**
-     * A flag indicating if the service have to support Transactional operations.
-     */
-    private int profile;
-
     private MetadataSecurityFilter securityFilter;
-
-    private Automatic configuration;
 
     @Autowired
     @Qualifier(value = "indexConfigHandler")
@@ -256,16 +248,9 @@ public class CSWworker extends AbstractWorker implements Refreshable {
      */
     public CSWworker(final String serviceID) {
         super(serviceID, ServiceDef.Specification.CSW);
+        if (getState().equals(WorkerState.ERROR)) return;
+        
         try {
-            //we look if the configuration have been specified
-            final Object obj = serviceBusiness.getConfiguration("csw", serviceID);
-            if (obj instanceof Automatic) {
-                configuration = (Automatic) obj;
-            } else {
-                startError(" Configuration Object is not an Automatic Object", null);
-                return;
-            }
-
             // legacy
             MetadataConfigurationUpgrade upgrader = new MetadataConfigurationUpgrade();
             upgrader.upgradeConfiguration(getServiceId(), serviceID);
@@ -312,7 +297,6 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         }
         mdStore = new MetadataStoreWrapper(getId(), wrappeds, configuration.getCustomparameters());
 
-        profile = configuration.getProfile();
         Lock lock = clusterBusiness.acquireLock("csw-indexation-" + getId());
         lock.lock();
         LOGGER.fine("LOCK Acquired on cluster: csw-indexation-" + getId());
@@ -333,8 +317,8 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         indexSearcher                 = indexHandler.getIndexSearcher(configuration, getId());
         filterParser                  = indexHandler.getFilterParser(configuration);
         securityFilter                = indexHandler.getSecurityFilter();
-        if (profile == TRANSACTIONAL) {
-            catalogueHarvester        = indexHandler.getCatalogueHarvester(configuration, mdStore);
+        catalogueHarvester            = indexHandler.getCatalogueHarvester(configuration, mdStore);
+        if (isTransactionnal) {
             harvestTaskScheduler      = indexHandler.getHavestTaskScheduler(getId(), catalogueHarvester);
         } else {
             indexer.destroy();
@@ -350,6 +334,15 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         initializeRecordSchema();
         initializeAnchorsMap();
         loadCascadedService();
+    }
+
+    @Override
+    protected boolean getTransactionalProperty() {
+        // look into deprecated configuration attribute.
+        if (configuration != null && "transactional".equals(configuration.getProfileValue())) {
+            return true;
+        }
+        return super.getTransactionalProperty();
     }
 
     /**
@@ -496,7 +489,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         final AbstractOperationsMetadata   om  = CSWConstants.OPERATIONS_METADATA.get(currentVersion).clone();
 
         // we remove the operation not supported in this profile (transactional/discovery)
-        if (profile == DISCOVERY) {
+        if (!isTransactionnal) {
             om.removeOperation("Harvest");
             om.removeOperation("Transaction");
         }
@@ -1251,14 +1244,8 @@ public class CSWworker extends AbstractWorker implements Refreshable {
      */
     public TransactionResponse transaction(final Transaction request) throws CstlServiceException {
         LOGGER.log(Level.FINE, "Transaction request processing\n");
-
-        if (profile == DISCOVERY) {
-            throw new CstlServiceException("This method is not supported by this mode of CSW",
-                                          OPERATION_NOT_SUPPORTED, "Request");
-        }
-        if (isTransactionSecurized() && !SecurityManagerHolder.getInstance().isAuthenticated()) {
-            throw new UnauthorizedException("You must be authentified to perform a transaction request.");
-        }
+        assertTransactionnal("Transaction");
+        
         final long startTime = System.currentTimeMillis();
         verifyBaseRequest(request, true, false);
 
@@ -1442,13 +1429,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
      */
     public HarvestResponse harvest(final Harvest request) throws CstlServiceException {
         LOGGER.log(Level.FINE, "Harvest request processing\n");
-        if (profile == DISCOVERY) {
-            throw new CstlServiceException("This method is not supported by this mode of CSW",
-                                          OPERATION_NOT_SUPPORTED, "Request");
-        }
-        if (isTransactionSecurized() && !SecurityManagerHolder.getInstance().isAuthenticated()) {
-            throw new UnauthorizedException("You must be authentified to perform a harvest request.");
-        }
+        assertTransactionnal("Harvest");
         verifyBaseRequest(request, true, false);
         final String version = request.getVersion().toString();
 
@@ -1641,11 +1622,4 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         }
     }
 
-   @Override
-    protected String getProperty(final String key) {
-        if (configuration != null) {
-            return configuration.getParameter(key);
-        }
-        return null;
-    }
 }

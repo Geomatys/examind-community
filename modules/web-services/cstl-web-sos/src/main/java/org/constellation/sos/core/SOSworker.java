@@ -47,7 +47,6 @@ import org.constellation.api.CommonConstants;
 import static org.constellation.api.QueryConstants.SERVICE_PARAMETER_LC;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.contact.Details;
-import org.constellation.security.SecurityManagerHolder;
 import static org.constellation.sos.core.Normalizer.normalizeDocument;
 import static org.constellation.sos.core.Normalizer.regroupObservation;
 import static org.constellation.sos.core.SOSConstants.*;
@@ -75,7 +74,6 @@ import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V100;
 import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V200;
 import org.constellation.sos.legacy.SensorConfigurationUpgrade;
 import org.constellation.ws.CstlServiceException;
-import org.constellation.ws.UnauthorizedException;
 import org.geotoolkit.gml.GmlInstant;
 import org.geotoolkit.gml.xml.AbstractFeature;
 import org.geotoolkit.gml.xml.AbstractGeometry;
@@ -281,9 +279,7 @@ public class SOSworker extends SensorWorker {
         super(id, ServiceDef.Specification.SOS);
         ISO8601_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-        if (getState().equals(WorkerState.ERROR)) {
-            return;
-        }
+        if (getState().equals(WorkerState.ERROR)) return;
         // Database configuration
         try {
 
@@ -291,7 +287,6 @@ public class SOSworker extends SensorWorker {
             SensorConfigurationUpgrade upgrader = new SensorConfigurationUpgrade();
             upgrader.upgradeConfiguration(getServiceId());
 
-            this.isTransactionnal      = configuration.getProfile() == 1;
             this.verifySynchronization = getBooleanProperty(VERIFY_SYNCHRONIZATION, false);
             this.keepCapabilities      = getBooleanProperty(KEEP_CAPABILITIES, false);
 
@@ -349,7 +344,6 @@ public class SOSworker extends SensorWorker {
      */
     private void logInfos() {
         final StringBuilder infos = new StringBuilder();
-
         if (!isTransactionnal) {
             infos.append("Discovery profile loaded.\n");
         } else {
@@ -676,7 +670,7 @@ public class SOSworker extends SensorWorker {
             throw new CstlServiceException("You must specify the sensor ID!", MISSING_PARAMETER_VALUE, PROCEDURE);
         }
 
-        if (!sensorBusiness.isLinkedSensor(getServiceId(), sensorId)) {
+        if (!isLinkedSensor(sensorId)) {
             throw new CstlServiceException("this sensor is not registered in the SOS", INVALID_PARAMETER_VALUE, PROCEDURE);
         }
 
@@ -2202,16 +2196,6 @@ public class SOSworker extends SensorWorker {
         });
         startError("The service has been shutdown", null);
         stopped();
-    }
-
-    private void assertTransactionnal(final String requestName) throws CstlServiceException {
-        if (!isTransactionnal) {
-            throw new CstlServiceException("The operation " + requestName + " is not supported by the service",
-                     INVALID_PARAMETER_VALUE, "request");
-        }
-        if (isTransactionSecurized() && !SecurityManagerHolder.getInstance().isAuthenticated()) {
-            throw new UnauthorizedException("You must be authentified to perform an " + requestName + " request.");
-        }
     }
 
     /**

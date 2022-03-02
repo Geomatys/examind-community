@@ -56,10 +56,8 @@ import org.apache.sis.util.Utilities;
 import org.constellation.api.ServiceDef;
 import org.constellation.dto.StyleReference;
 import org.constellation.dto.contact.Details;
-import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.map.featureinfo.FeatureInfoFormat;
-import org.constellation.map.featureinfo.FeatureInfoUtilities;
 import org.constellation.portrayal.CstlPortrayalService;
 import org.constellation.portrayal.PortrayalUtil;
 import org.constellation.provider.Data;
@@ -658,17 +656,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
             infoFormat = MimeType.TEXT_PLAIN;
         }
 
-        FeatureInfoFormat featureInfo = null;
-        try {
-            featureInfo = FeatureInfoUtilities.getFeatureInfoFormat( getConfiguration(), layer.getConfiguration(), infoFormat);
-        } catch (ClassNotFoundException | ConfigurationException ex) {
-            throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
-        }
-
-        if (featureInfo == null) {
-            throw new CstlServiceException("INFO_FORMAT="+infoFormat+" not supported for layers : "+layerName, NO_APPLICABLE_CODE);
-        }
-
+        final FeatureInfoFormat featureInfo =  getFeatureInfo(layer.getConfiguration(), infoFormat);
         try {
             final Object result = featureInfo.getFeatureInfo(sdef, cdef, selectionArea, request);
             return new AbstractMap.SimpleEntry<>(infoFormat, result);

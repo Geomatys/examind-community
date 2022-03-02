@@ -109,7 +109,7 @@ public class SOSWorkerInitialisationTest extends SpringContextTest {
 
         } catch(CstlServiceException ex) {
             assertEquals(ex.getExceptionCode(), NO_APPLICABLE_CODE);
-            assertEquals(ex.getMessage(), "The service is not running.\nCause:The configuration object is malformed or null.");
+            assertEquals(ex.getMessage(), "The service is not running.\nCause:The configuration object is null.");
             exceptionLaunched = true;
         }
 

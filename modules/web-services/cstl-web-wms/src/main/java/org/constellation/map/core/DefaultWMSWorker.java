@@ -67,7 +67,6 @@ import org.constellation.dto.service.config.wxs.DimensionDefinition;
 import org.constellation.dto.service.config.wxs.FilterAndDimension;
 import org.constellation.dto.service.config.wxs.FormatURL;
 import org.constellation.dto.service.config.wxs.LayerConfig;
-import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
@@ -114,6 +113,7 @@ import org.apache.sis.storage.Query;
 import org.geotoolkit.filter.FilterUtilities;
 import org.apache.sis.util.Version;
 import org.constellation.api.DataType;
+import org.constellation.api.WorkerState;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.dto.DimensionRange;
@@ -121,7 +121,6 @@ import static org.constellation.map.core.WMSConstant.NO_TRANSPARENT_FORMAT;
 import org.geotoolkit.map.MapBuilder;
 import org.geotoolkit.ows.xml.OWSExceptionCode;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.CURRENT_UPDATE_SEQUENCE;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_FORMAT;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_POINT;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_UPDATE_SEQUENCE;
@@ -221,13 +220,13 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
     private WMSPortrayal mapPortrayal;
     public DefaultWMSWorker(final String id) {
         super(id, ServiceDef.Specification.WMS);
+        if (getState().equals(WorkerState.ERROR)) return;
 
         //get all supported GetFeatureInfo mimetypes
         try {
             GFI_MIME_TYPES.clear();
-            final LayerContext config = (LayerContext)getConfiguration();
-            GFI_MIME_TYPES.addAll(FeatureInfoUtilities.allSupportedMimeTypes(config));
-        } catch (ConfigurationException | ClassNotFoundException ex) {
+            GFI_MIME_TYPES.addAll(FeatureInfoUtilities.allSupportedMimeTypes(configuration));
+        } catch (ConfigurationException ex) {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
 
@@ -308,8 +307,8 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         final String currentLanguage;
         if (requestedLanguage != null && supportedLanguages.contains(requestedLanguage)) {
             currentLanguage = requestedLanguage;
-        } else if (requestedLanguage == null && defaultLanguage != null) {
-            currentLanguage = defaultLanguage;
+        } else if (requestedLanguage == null) {
+            currentLanguage = getDefaultLanguage();
         } else {
             currentLanguage = null;
         }
@@ -681,13 +680,13 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
 
                 List<LanguageType> languageList = new ArrayList<>();
                 for (String language : supportedLanguages) {
-                    boolean isDefault = language.equals(defaultLanguage);
+                    boolean isDefault = language.equals(getDefaultLanguage());
                     languageList.add(new LanguageType(language, isDefault));
                 }
                 LanguagesType languages = new LanguagesType(languageList);
                 inspireExtension.setLanguages(languages);
                 if (currentLanguage == null) {
-                    inspireExtension.setCurrentLanguage(defaultLanguage);
+                    inspireExtension.setCurrentLanguage(getDefaultLanguage());
                 } else {
                     inspireExtension.setCurrentLanguage(currentLanguage);
                 }
@@ -1061,17 +1060,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             config = layersCache.get(0).getConfiguration();
         }
 
-        FeatureInfoFormat featureInfo = null;
-        try {
-            featureInfo = FeatureInfoUtilities.getFeatureInfoFormat(getConfiguration(), config, infoFormat);
-        } catch (ClassNotFoundException | ConfigurationException ex) {
-            throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
-        }
-
-        if (featureInfo == null) {
-            throw new CstlServiceException("INFO_FORMAT="+infoFormat+" not supported for layers : "+layerNames, INVALID_FORMAT);
-        }
-
+        final FeatureInfoFormat featureInfo =  getFeatureInfo(config, infoFormat);
         try {
             //give the layerRef list used by some FIF
             featureInfo.setLayers(layersCache);
@@ -1218,7 +1207,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         final List<GenericName> layerNames = getMap.getLayers();
 
         //check layer limit
-        final Details skeleton = getStaticCapabilitiesObject("wms", defaultLanguage);
+        final Details skeleton = getStaticCapabilitiesObject("wms", getDefaultLanguage());
         if (skeleton.getServiceConstraints()!=null) {
             final int layerLimit = skeleton.getServiceConstraints().getLayerLimit();
             if(layerLimit>0 && layerLimit<layerNames.size()) {

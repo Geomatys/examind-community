@@ -98,7 +98,7 @@ public final class FeatureInfoUtilities extends Static {
 
         if (layerConf != null) {
             final List<GetFeatureInfoCfg> infos = layerConf.getGetFeatureInfoCfgs();
-            if (infos != null && infos.size() > 0) {
+            if (infos != null && !infos.isEmpty()) {
                 for (GetFeatureInfoCfg infoCfg : infos) {
                     if (infoCfg.getMimeType().equals(mimeType)) {
                         featureInfo = FeatureInfoUtilities.getFeatureInfoFormatFromConf(infoCfg);
@@ -228,7 +228,7 @@ public final class FeatureInfoUtilities extends Static {
      * @param config service configuration
      * @return a Set of all MimeType from generic list and from layers config without duplicates.
      */
-    public static Set<String> allSupportedMimeTypes (final LayerContext config) throws ConfigurationException, ClassNotFoundException {
+    public static Set<String> allSupportedMimeTypes (final LayerContext config) throws ConfigurationException {
         final Set<String> mimes = new HashSet<>();
         if (config != null) {
             final Set<GetFeatureInfoCfg> generics = getGenericFeatureInfos(config);

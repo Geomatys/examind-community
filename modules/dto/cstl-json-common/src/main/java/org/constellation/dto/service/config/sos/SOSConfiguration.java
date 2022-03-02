@@ -29,7 +29,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.logging.Logger;
 import org.constellation.dto.service.config.DataSourceType;
 
 /**
@@ -40,8 +39,6 @@ import org.constellation.dto.service.config.DataSourceType;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "SOSConfiguration")
 public class SOSConfiguration extends AbstractConfigurationObject {
-
-    private static final Logger LOGGER = Logger.getLogger("org.constellation.dto");
 
     /**
      * Informations about SensorML Datasource.
@@ -280,6 +277,11 @@ public class SOSConfiguration extends AbstractConfigurationObject {
             this.parameters = new HashMap<>();
         }
         return parameters;
+    }
+
+    @Override
+    public String getProperty(final String propertyName) {
+        return getParameter(propertyName);
     }
 
     public String getParameter(final String name) {

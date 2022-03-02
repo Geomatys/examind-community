@@ -31,7 +31,6 @@ import org.constellation.admin.SpringHelper;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.test.utils.Order;
 import org.constellation.util.Util;
@@ -92,6 +91,7 @@ public class InternalCSWworkerTest extends CSWworkerTest {
                 //we write the configuration file
                 Automatic configuration = new Automatic();
                 configuration.putParameter("transactionSecurized", "false");
+                configuration.putParameter("transactional", "true");
 
                 Integer sid = serviceBusiness.create("csw", "default", configuration, null, null);
                 serviceBusiness.linkCSWAndProvider(sid, internalPID, true);

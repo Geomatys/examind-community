@@ -57,12 +57,8 @@ import static org.constellation.api.CommonConstants.RESULT_MODEL;
 import org.constellation.api.ServiceDef;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
-import org.constellation.dto.contact.Details;
-import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
-import org.constellation.security.SecurityManagerHolder;
 import org.constellation.ws.CstlServiceException;
-import org.constellation.ws.UnauthorizedException;
 import org.geotoolkit.geometry.GeometricUtilities;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.gml.GeometrytoJTS;
@@ -164,19 +160,6 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     public DefaultSTSWorker(final String id) {
         super(id, ServiceDef.Specification.STS);
-        final String isTransactionnalProp = getProperty("transactional");
-        if (isTransactionnalProp != null) {
-            isTransactionnal = Boolean.parseBoolean(isTransactionnalProp);
-        } else {
-            boolean t = false;
-            try {
-                final Details details = serviceBusiness.getInstanceDetails("sts", id, null);
-                t = details.isTransactional();
-            } catch (ConstellationException ex) {
-                LOGGER.log(Level.WARNING, null, ex);
-            }
-            isTransactionnal = t;
-        }
         started();
     }
 
@@ -236,7 +219,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                     String sensorId = ((org.geotoolkit.observation.xml.Process)proc).getHref();
                     org.constellation.dto.Sensor s = null;
                     // TODO here if the provider is not "all" linked, there will be issues in the paging
-                    if (sensorBusiness.isLinkedSensor(getServiceId(), sensorId)) {
+                    if (isLinkedSensor(sensorId)) {
                         Thing thing = buildThing(exp, sensorId, null, (org.geotoolkit.observation.xml.Process) proc);
                         things.add(thing);
                     }
@@ -256,7 +239,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             if (req.getId() != null) {
                 final RequestOptions exp = new RequestOptions(req);
                 Process proc = getProcess(req.getId(), "2.0.0");
-                if (sensorBusiness.isLinkedSensor(getServiceId(), req.getId())) {
+                if (isLinkedSensor(req.getId())) {
                     return buildThing(exp, req.getId(), null, (org.geotoolkit.observation.xml.Process) proc);
                 }
             }
@@ -268,7 +251,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     @Override
     public void addThing(Thing thing) throws CstlServiceException {
-        assertTransactionnal();
+        assertTransactionnal("addThing");
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -768,7 +751,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     @Override
     public void addObservation(Observation observation) throws CstlServiceException {
-        assertTransactionnal();
+        assertTransactionnal("addObservation");
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -1164,7 +1147,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     @Override
     public void addDatastream(Datastream datastream) throws CstlServiceException {
-        assertTransactionnal();
+        assertTransactionnal("addDatastream");
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -1350,7 +1333,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     @Override
     public void addObservedProperty(ObservedProperty observedProperty) throws CstlServiceException {
-        assertTransactionnal();
+        assertTransactionnal("addObservedProperty");
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -1380,7 +1363,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 for (Entry<String,Map<Date, org.opengis.geometry.Geometry>> entry : sensorHLocations.entrySet()) {
                     String sensorId = entry.getKey();
                     // TODO here if the provider is not "all" linked, there will be issues in the paging
-                    if (sensorBusiness.isLinkedSensor(getServiceId(), sensorId)) {
+                    if (isLinkedSensor(sensorId)) {
                         if (entry.getValue().containsKey(d)) {
                             Location location = buildLocation(exp, sensorId, null, d, (AbstractGeometry) entry.getValue().get(d));
                             locations.add(location);
@@ -1399,7 +1382,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                     for (Entry<String, org.opengis.geometry.Geometry> entry : locs.entrySet()) {
                         String sensorId = entry.getKey();
                         // TODO here if the provider is not "all" linked, there will be issues in the paging
-                        if (sensorBusiness.isLinkedSensor(getServiceId(), sensorId)) {
+                        if (isLinkedSensor(sensorId)) {
                             Location location = buildLocation(exp, sensorId, null, null, (AbstractGeometry) entry.getValue());
                             locations.add(location);
                         }
@@ -1417,7 +1400,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     @Override
     public void addLocation(Location location) throws CstlServiceException {
-        assertTransactionnal();
+        assertTransactionnal("addLocation");
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -1438,7 +1421,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 for (Process proc : procs) {
                     String sensorId = ((org.geotoolkit.observation.xml.Process)proc).getHref();
                     // TODO here if the provider is not "all" linked, there will be issues in the paging
-                    if (sensorBusiness.isLinkedSensor(getServiceId(), sensorId)) {
+                    if (isLinkedSensor(sensorId)) {
                         Sensor sensor = buildSensor(exp, sensorId, null);
                         sensors.add(sensor);
                     }
@@ -1457,7 +1440,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         try {
             if (req.getId() != null) {
                 final RequestOptions exp = new RequestOptions(req);
-                if (sensorBusiness.isLinkedSensor(getServiceId(), req.getId())) {
+                if (isLinkedSensor(req.getId())) {
                     return buildSensor(exp, req.getId(), null);
                 }
             }
@@ -1587,11 +1570,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             if (req.getId() != null) {
                 final RequestOptions exp = new RequestOptions(req);
                 String locId = req.getId();
-                Date d = null;
                 int pos = locId.lastIndexOf('-');
 
                 // try to find a sensor location
-                if (sensorBusiness.isLinkedSensor(getServiceId(), locId)) {
+                if (isLinkedSensor(locId)) {
                     return buildLocation(exp, locId, null, null, null);
 
                 // try to find a historical location
@@ -1600,9 +1582,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                         final String sensorId = locId.substring(0, pos);
                         String timeStr = locId.substring(pos + 1);
                         try {
-                            d = new Date(Long.parseLong(timeStr));
-
-                            if (sensorBusiness.isLinkedSensor(getServiceId(), sensorId)) {
+                            final Date d = new Date(Long.parseLong(timeStr));
+                            if (isLinkedSensor(sensorId)) {
                                 Map<Date, org.opengis.geometry.Geometry> hLocations = getHistoricalLocationsForSensor(sensorId);
                                 if (hLocations.containsKey(d)) {
                                     return buildLocation(exp, sensorId, null, d, (AbstractGeometry) hLocations.get(d));
@@ -1665,7 +1646,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                     String sensorId = entry.getKey();
                     org.constellation.dto.Sensor s = null;
                     // TODO here if the provider is not "all" linked, there will be issues in the paging
-                    if (sensorBusiness.isLinkedSensor(getServiceId(), sensorId)) {
+                    if (isLinkedSensor(sensorId)) {
                         s = sensorBusiness.getSensor(sensorId);
                     
                         for (Entry<Date, org.opengis.geometry.Geometry> hLocation : entry.getValue().entrySet()) {
@@ -1705,7 +1686,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                             Date d = new Date(Long.parseLong(timeStr));
                             org.opengis.geometry.Geometry geom = hLocations.get(d);
                             if (geom != null) {
-                                if (sensorBusiness.isLinkedSensor(getServiceId(), sensorId)) {
+                                if (isLinkedSensor(sensorId)) {
                                     return buildHistoricalLocation(exp, sensorId, null, d, (AbstractGeometry) geom);
                                 }
                             }
@@ -1723,7 +1704,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     @Override
     public void addSensor(Sensor sensor) throws CstlServiceException {
-        assertTransactionnal();
+        assertTransactionnal("addSensor");
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -1906,23 +1887,14 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     @Override
     public void addFeatureOfInterest(FeatureOfInterest foi) throws CstlServiceException {
-        assertTransactionnal();
+        assertTransactionnal("addFeatureOfInterest");
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public void addHistoricalLocation(HistoricalLocation HistoricalLocation) throws CstlServiceException {
-        assertTransactionnal();
+        assertTransactionnal("addHistoricalLocation");
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    private void assertTransactionnal() throws CstlServiceException {
-        if (!isTransactionnal) {
-            throw new CstlServiceException("The service is not transactionnal", INVALID_PARAMETER_VALUE, "request");
-        }
-        if (isTransactionSecurized() && !SecurityManagerHolder.getInstance().isAuthenticated()) {
-            throw new UnauthorizedException("You must be authentified to perform a transactionnal request.");
-        }
     }
 
     @Override

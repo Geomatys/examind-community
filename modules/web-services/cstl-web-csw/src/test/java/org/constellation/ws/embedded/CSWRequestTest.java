@@ -152,7 +152,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
                 final Automatic config2 = new Automatic();
                 config2.putParameter("partial", "true");
                 config2.putParameter("CSWCascading", "http://localhost:9090/WS/csw/default");
-                Integer csw2Id =serviceBusiness.create("csw", "csw2", config2, null, null);
+                Integer csw2Id = serviceBusiness.create("csw", "csw2", config2, null, null);
                 serviceBusiness.linkCSWAndProvider(csw2Id, pr, true);
                 serviceBusiness.start(csw2Id);
 

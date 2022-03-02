@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import org.apache.sis.storage.FeatureQuery;
 import org.constellation.api.ServiceDef;
+import org.constellation.api.WorkerState;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.exception.ConfigurationException;
@@ -46,15 +47,13 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public abstract class SensorWorker extends AbstractWorker {
+public abstract class SensorWorker extends AbstractWorker<SOSConfiguration> {
 
     /**
      * The sensor business
      */
     @Autowired
     protected ISensorBusiness sensorBusiness;
-
-    protected SOSConfiguration configuration;
 
     /**
      * The sensorML provider identifier (to be removed)
@@ -66,25 +65,12 @@ public abstract class SensorWorker extends AbstractWorker {
      */
     protected ObservationProvider omProvider;
 
-    /**
-     * The profile of the SOS service (transational/discovery).
-     */
-    protected boolean isTransactionnal;
-
-    protected final FilterFactory ff;
+    protected final FilterFactory ff = FilterUtilities.FF;
 
     public SensorWorker(final String id, final ServiceDef.Specification specification) {
         super(id, specification);
-        this.ff = FilterUtilities.FF;
+        if (getState().equals(WorkerState.ERROR)) return;
         try {
-            final Object object = serviceBusiness.getConfiguration(specification.name().toLowerCase(), id);
-            if (object instanceof SOSConfiguration) {
-                configuration = (SOSConfiguration) object;
-            } else {
-                startError("The configuration object is malformed or null.", null);
-                return;
-            }
-
             final List<Integer> providers = serviceBusiness.getLinkedProviders(getServiceId());
 
             // we initialize the reader/writer
@@ -108,19 +94,18 @@ public abstract class SensorWorker extends AbstractWorker {
         }
     }
 
+    /**
+     * Extract the transactional profile of the service.
+     * 
+     * @return {@code true} if the transactional profile is activated.
+     */
     @Override
-    protected final String getProperty(final String propertyName) {
-        if (configuration != null) {
-            return configuration.getParameter(propertyName);
+    protected boolean getTransactionalProperty() {
+        // look into deprecated configuration attribute.
+        if (configuration != null && "transactional".equals(configuration.getProfileValue())) {
+            return true;
         }
-        return null;
-    }
-
-    protected final boolean getBooleanProperty(final String propertyName, boolean defaultValue) {
-        if (configuration != null) {
-            return configuration.getBooleanParameter(propertyName, defaultValue);
-        }
-        return defaultValue;
+        return super.getTransactionalProperty();
     }
 
     protected Phenomenon getPhenomenon(String phenName, String version) throws ConstellationStoreException {
@@ -171,5 +156,9 @@ public abstract class SensorWorker extends AbstractWorker {
         final BinaryComparisonOperator filter = ff.equal(ff.property("offering"), ff.literal(offname));
         subquery.setSelection(filter);
         return omProvider.getProcedures(subquery, Collections.singletonMap("version", version));
+    }
+
+    protected boolean isLinkedSensor(String sensorId) {
+        return sensorBusiness.isLinkedSensor(getServiceId(), sensorId);
     }
 }

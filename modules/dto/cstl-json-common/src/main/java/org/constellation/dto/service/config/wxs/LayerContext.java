@@ -99,6 +99,14 @@ public class LayerContext extends AbstractConfigurationObject {
         this.supportedLanguages = supportedLanguages;
     }
 
+    @Override
+    public String getProperty(String key) {
+        if (customParameters != null) {
+            return customParameters.get(key);
+        }
+        return null;
+    }
+
     /**
      * @return the customParameters
      */

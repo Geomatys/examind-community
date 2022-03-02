@@ -67,6 +67,7 @@ import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.Namespaces;
 import static org.constellation.api.CommonConstants.OUTPUT_FORMAT;
 import org.constellation.api.ServiceDef;
+import org.constellation.api.WorkerState;
 import org.constellation.dto.NameInProvider;
 import org.constellation.dto.contact.Details;
 import org.constellation.dto.service.config.wxs.FormatURL;
@@ -75,7 +76,6 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.Data;
 import org.constellation.provider.FeatureData;
-import org.constellation.security.SecurityManagerHolder;
 import org.constellation.util.NameComparator;
 import org.constellation.util.QNameComparator;
 import org.constellation.util.Util;
@@ -95,7 +95,6 @@ import org.constellation.ws.LayerWorker;
 import org.constellation.ws.MimeType;
 import static org.constellation.ws.MimeType.APP_GML32_XML;
 import static org.constellation.ws.MimeType.TEXT_GML31_XML;
-import org.constellation.ws.UnauthorizedException;
 import org.geotoolkit.storage.feature.FeatureStore;
 import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
 import org.geotoolkit.storage.feature.FeatureStoreUtilities;
@@ -135,7 +134,6 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.VERSION_NEGOTIATION_FAILED;
 import org.geotoolkit.ows.xml.RequestBase;
 import org.geotoolkit.ows.xml.Sections;
@@ -261,27 +259,12 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 
     private List<StoredQueryDescription> storedQueries = new ArrayList<>();
 
-    private final boolean isTransactionnal;
-
     public DefaultWFSWorker(final String id) {
         super(id, ServiceDef.Specification.WFS);
-        final String isTransactionnalProp = getProperty("transactional");
-        if (isTransactionnalProp != null) {
-            isTransactionnal = Boolean.parseBoolean(isTransactionnalProp);
-        } else {
-            boolean t = false;
-            try {
-                final Details details = serviceBusiness.getInstanceDetails("wfs", id, null);
-                t = details.isTransactional();
-            } catch (ConstellationException ex) {
-                LOGGER.log(Level.WARNING, null, ex);
-            }
-            isTransactionnal = t;
-        }
-
+        if (getState().equals(WorkerState.ERROR)) return;
         // loading stored queries
-       loadStoredQueries();
-       started();
+        loadStoredQueries();
+        started();
     }
 
     private void loadStoredQueries() {
@@ -1384,12 +1367,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
     public TransactionResponse transaction(final Transaction request) throws CstlServiceException {
         LOGGER.log(Level.FINE, "Transaction request processing\n");
         final long startTime = System.currentTimeMillis();
-        if (!isTransactionnal) {
-            throw new CstlServiceException("This method is not supported by this mode of WFS", OPERATION_NOT_SUPPORTED, "Request");
-        }
-        if (isTransactionSecurized() && !SecurityManagerHolder.getInstance().isAuthenticated()) {
-            throw new UnauthorizedException("You must be authentified to perform an transaction request.");
-        }
+        assertTransactionnal("Transaction");
         verifyBaseRequest(request, true, false);
 
         // we prepare the report

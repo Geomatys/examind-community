@@ -109,6 +109,7 @@ import org.geotoolkit.wps.xml.v200.GetStatus;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Arrays;
+import org.constellation.api.WorkerState;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IProcessBusiness;
 import org.constellation.configuration.AppProperty;
@@ -185,7 +186,7 @@ import org.springframework.context.annotation.Scope;
  */
 @Named("WPSWorker")
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
-public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
+public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements WPSWorker {
 
     public static final String PATH_PRODUCTS_NAME = "products";
     public static final String PATH_SCHEMA_NAME = "schemas";
@@ -249,18 +250,7 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
      */
     public DefaultWPSWorker(final String id) {
         super(id, ServiceDef.Specification.WPS);
-        ProcessContext context = null;
-        try {
-            final Object obj = serviceBusiness.getConfiguration("WPS", id);
-            if (obj instanceof ProcessContext) {
-                context = (ProcessContext) obj;
-            } else {
-                startError("The process context File does not contain a ProcessContext object", null);
-            }
-        } catch (ConfigurationException ex) {
-            startError(ex.getMessage(), ex);
-        }
-
+        if (getState().equals(WorkerState.ERROR)) return;
         this.supportStorage = false;
         this.productURL = null; //initialize on WPS execute request.
         this.productFolderPath = null;
@@ -269,9 +259,9 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
         Path configPath = configBusiness.getInstanceDirectory("wps", id);
 
         // custom override of the output directory
-        if (context != null && context.getOutputDirectory() != null && !context.getOutputDirectory().isEmpty()) {
+        if (configuration != null && configuration.getOutputDirectory() != null && !configuration.getOutputDirectory().isEmpty()) {
             try {
-                configPath = Paths.get(new URI(context.getOutputDirectory()));
+                configPath = Paths.get(new URI(configuration.getOutputDirectory()));
             } catch (URISyntaxException ex) {
                 LOGGER.log(Level.WARNING,  "Error while reading custom output directory", ex);
             }
@@ -293,12 +283,12 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
 
         //WMS link
         String wmslinkError = "";
-        if (context != null) {
-            if (context.getWmsInstanceName() != null) {
-                this.wmsInstanceName = context.getWmsInstanceName();
+        if (configuration != null) {
+            if (configuration.getWmsInstanceName() != null) {
+                this.wmsInstanceName = configuration.getWmsInstanceName();
 
-                if (context.getFileCoverageProviderId() != null) {
-                    this.wmsProviderId = context.getFileCoverageProviderId();
+                if (configuration.getFileCoverageProviderId() != null) {
+                    this.wmsProviderId = configuration.getFileCoverageProviderId();
 
                     DataProvider provider = null;
                     try {
@@ -336,12 +326,12 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
             LOGGER.log(Level.WARNING, "The WPS worker ({0}) don\'t support WMS outputs : \n " + wmslinkError, id);
         }
 
-        fillProcessList(context);
+        fillProcessList(configuration);
         started();
     }
 
     @PostConstruct
-    private void appyPreConsumers() {
+    private void applyPreConsumers() {
         if (preConsumers != null) {
             Stream<GeotkProcess> stream = (Stream) processList.values().stream()
                 .filter(GeotkProcess.class::isInstance);
@@ -1047,22 +1037,6 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
         return processList.get(id);
     }
 
-
-    @Override
-    protected String getProperty(final String key) {
-        try {
-            final Object obj = serviceBusiness.getConfiguration("WPS", getId());
-            if (obj instanceof ProcessContext) {
-                ProcessContext context = (ProcessContext) obj;
-                if (context.getCustomParameters() != null) {
-                    return context.getCustomParameters().get(key);
-                }
-            }
-        } catch (ConfigurationException ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-        }
-        return null;
-    }
 
     /**
      *  Verify that the bases request attributes are correct.

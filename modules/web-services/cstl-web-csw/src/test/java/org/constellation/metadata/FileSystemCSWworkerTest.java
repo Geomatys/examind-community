@@ -120,6 +120,7 @@ public class FileSystemCSWworkerTest extends CSWworkerTest {
                 //we write the configuration file
                 Automatic configuration = new Automatic();
                 configuration.putParameter("transactionSecurized", "false");
+                configuration.putParameter("transactional", "true");
 
                 Integer sid = serviceBusiness.create("csw", "default", configuration, null, null);
                 serviceBusiness.linkCSWAndProvider(sid, pr, true);

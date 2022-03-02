@@ -18,45 +18,24 @@
  */
 package org.constellation.thesaurus.configuration;
 
-import java.util.logging.Level;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.Instance;
 import org.constellation.ogc.configuration.OGCConfigurer;
-import org.constellation.ws.ITHWConfigurer;
 
 /**
  * {@link OGCConfigurer} implementation for THW service.
  *
  */
-public class ThwServiceConfigurer extends OGCConfigurer implements ITHWConfigurer {
-
-    /**
-     * Create a new {@link ThwServiceConfigurer} instance.
-     */
-    public ThwServiceConfigurer() {
-        super();
-    }
-
+public class ThwServiceConfigurer extends OGCConfigurer {
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Instance getInstance(final Integer serviceId, final String lang) throws ConfigurationException {
-        final Instance instance = super.getInstance(serviceId, lang);
-        try {
-            instance.setLayersNumber(getThesaurusCount(serviceId));
-        } catch (ConfigurationException ex) {
-            LOGGER.log(Level.WARNING, "Error while getting thesaurus count on THW instance:" + serviceId, ex);
-        }
+    public Instance getInstance(final Integer id, final String lang) throws ConfigurationException {
+        final Instance instance = super.getInstance(id, lang);
+        int size = serviceBusiness.getLinkedThesaurusUri(id).size();
+        instance.setLayersNumber(size);
         return instance;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int getThesaurusCount(Integer id) throws ConfigurationException {
-        return serviceBusiness.getLinkedThesaurusUri(id).size();
     }
 }

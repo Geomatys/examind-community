@@ -53,12 +53,10 @@ public class Details {
 
     private AccessConstraint serviceConstraints;
 
-    private boolean transactional;
+    private boolean transactional = false;
 
     public Details() {
     }
-
-
 
     public Details(final String name, final String identifier, final List<String> keywords,
                    final String description, final List<String> versions, final Contact serviceContact,

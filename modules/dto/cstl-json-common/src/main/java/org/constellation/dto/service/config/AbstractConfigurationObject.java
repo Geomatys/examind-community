@@ -42,4 +42,7 @@ import org.constellation.dto.service.config.wxs.LayerContext;
     @JsonSubTypes.Type(value = SOSConfiguration.class, name = "SOSConfiguration")
 })
 public abstract class AbstractConfigurationObject {
+
+   public abstract String getProperty(String key);
+   
 }
