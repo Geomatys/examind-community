@@ -21,7 +21,6 @@ package org.constellation.sos.ws;
 
 import java.io.File;
 import java.util.List;
-import java.util.UUID;
 import java.util.logging.Level;
 import javax.annotation.PostConstruct;
 import org.constellation.dto.service.config.sos.SOSConfiguration;

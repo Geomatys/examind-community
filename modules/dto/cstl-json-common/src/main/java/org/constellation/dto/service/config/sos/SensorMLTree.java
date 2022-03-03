@@ -27,6 +27,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import org.constellation.dto.Sensor;
+import org.constellation.dto.SensorReference;
 import org.constellation.util.NamedId;
 
 /**
@@ -34,13 +36,9 @@ import org.constellation.util.NamedId;
  * @author Guilhem Legal
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class SensorMLTree {
+public class SensorMLTree extends SensorReference {
 
     private String type;
-
-    private Integer id;
-
-    private String identifier;
 
     private String name;
 
@@ -62,14 +60,23 @@ public class SensorMLTree {
 
     public SensorMLTree(final Integer id, final String identifier, final String name,
             final String description, final String type, final String owner, final Date time, Object sml) {
-        this.id   = id;
+        super(id, identifier);
         this.type = type;
         this.owner = owner;
-        this.identifier = identifier;
         this.createDate = time;
         this.sml = sml;
         this.name = name;
         this.description = description;
+    }
+
+    public SensorMLTree(Sensor s) {
+        super(s);
+        if (s != null) {
+            this.type = s.getType();
+            this.createDate = s.getDate();
+            this.name = s.getName();
+            this.description = s.getDescription();
+        }
     }
 
     /**

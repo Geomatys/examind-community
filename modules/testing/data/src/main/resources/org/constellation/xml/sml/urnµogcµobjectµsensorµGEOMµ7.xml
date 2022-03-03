@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <sml1:SensorML xmlns:sml1="http://www.opengis.net/sensorML/1.0" xmlns:gml="http://www.opengis.net/gml" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:swe1="http://www.opengis.net/swe/1.0" xmlns:swe="http://www.opengis.net/swe/1.0.1" xmlns:ns6="http://www.opengis.net/gml/" xmlns:icism="urn:us:gov:ic:ism:v2" xmlns:sml="http://www.opengis.net/sensorML/1.0.1">
     <sml1:member xlink:role="urn:x-ogx:def:sensor:OGC:detector">
-        <sml1:Component>
+        <sml1:Component gml:id="urn:ogc:object:sensor:GEOM:7">
             <gml:name>Capteur Profondeur de FONTESTRAMAR</gml:name>
             <gml:boundedBy xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
             <sml1:keywords/>

@@ -19,14 +19,8 @@
 
 package com.examind.sensor.ws;
 
-import org.apache.sis.internal.feature.jts.JTS;
-import org.locationtech.jts.geom.Geometry;
-import org.apache.sis.referencing.CommonCRS;
-import org.apache.sis.referencing.CRS;
 import org.constellation.dto.service.config.sos.SensorMLTree;
-import org.geotoolkit.gml.GeometrytoJTS;
 import org.geotoolkit.gml.xml.AbstractFeature;
-import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.BoundingShape;
 import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.sml.xml.AbstractComponents;
@@ -41,10 +35,7 @@ import org.geotoolkit.sos.xml.SOSXmlFactory;
 import org.geotoolkit.swe.xml.AbstractEncoding;
 import org.geotoolkit.swe.xml.TextBlock;
 import org.opengis.observation.Observation;
-import org.opengis.referencing.operation.MathTransform;
-import org.opengis.referencing.operation.TransformException;
 import org.opengis.temporal.Period;
-import org.opengis.util.FactoryException;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -62,6 +53,7 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.logging.Logger;
 import org.apache.sis.storage.FeatureQuery;
+import org.constellation.dto.Sensor;
 import org.geotoolkit.gml.xml.FeatureProperty;
 import org.geotoolkit.observation.xml.AbstractObservation;
 
@@ -69,6 +61,7 @@ import static org.geotoolkit.sml.xml.SensorMLUtilities.getSensorMLType;
 import static org.geotoolkit.sml.xml.SensorMLUtilities.getSmlID;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.ObservationProvider;
+import org.constellation.provider.SensorData;
 import org.geotoolkit.filter.FilterUtilities;
 import static org.geotoolkit.sml.xml.SensorMLUtilities.getOMType;
 import org.opengis.filter.FilterFactory;
@@ -299,39 +292,6 @@ public final class SensorUtils {
         return results;
     }
 
-    /**
-     * TODO: This method is duplicated because of inter-dependency problems. We should try to put that in a module with
-     * common dependencies, but we must be cautious to not force some dependencies (Ex: sensor XML bindings) on modules
-     * that should not need it.
-     */
-    public static List<Geometry> getJTSGeometryFromSensor(final SensorMLTree sensor, final ObservationProvider omProvider) throws ConstellationStoreException, FactoryException, TransformException {
-        if ("Component".equals(sensor.getType())) {
-            final AbstractGeometry geom = (AbstractGeometry) omProvider.getSensorLocation(sensor.getIdentifier(), "2.0.0");
-            if (geom != null) {
-                Geometry jtsGeometry = GeometrytoJTS.toJTS(geom);
-                // reproject to CRS:84
-                final MathTransform mt = CRS.findOperation(geom.getCoordinateReferenceSystem(true), CommonCRS.defaultGeographic(), null).getMathTransform();
-                return Arrays.asList(JTS.transform(jtsGeometry, mt));
-            }
-        } else {
-            final List<Geometry> geometries = new ArrayList<>();
-
-            // add the root geometry if there is one
-            final AbstractGeometry geom = (AbstractGeometry) omProvider.getSensorLocation(sensor.getIdentifier(), "2.0.0");
-            if (geom != null) {
-                Geometry jtsGeometry = GeometrytoJTS.toJTS(geom);
-                // reproject to CRS:84
-                final MathTransform mt = CRS.findOperation(geom.getCoordinateReferenceSystem(true), CommonCRS.defaultGeographic(), null).getMathTransform();
-                geometries.add(JTS.transform(jtsGeometry, mt));
-            }
-            for (SensorMLTree child : sensor.getChildren()) {
-                geometries.addAll(getJTSGeometryFromSensor(child, omProvider));
-            }
-            return geometries;
-        }
-        return new ArrayList<>();
-    }
-
     public static Collection<String> getPhenomenonFromSensor(final SensorMLTree sensor, final ObservationProvider provider, boolean decompose) throws ConstellationStoreException {
         final Set<String> phenomenons = getPhenomenonFromSensor(sensor.getIdentifier(), provider, decompose);
         if (!"Component".equals(sensor.getType())) {
@@ -342,7 +302,7 @@ public final class SensorUtils {
         return phenomenons;
     }
 
-    public static Set<String> getPhenomenonFromSensor(final String sensorID, final ObservationProvider provider, boolean decompose) throws ConstellationStoreException {
+    private static Set<String> getPhenomenonFromSensor(final String sensorID, final ObservationProvider provider, boolean decompose) throws ConstellationStoreException {
         final FilterFactory ff = FilterUtilities.FF;
         final Set<String> phenomenons = new HashSet<>();
 
@@ -363,7 +323,7 @@ public final class SensorUtils {
         return phenomenons;
     }
 
-    public static Object unmarshallObservationFile(final Path f) throws JAXBException, ConstellationStoreException, IOException {
+    public static Object unmarshallObservationFile(final Path f) throws ConstellationStoreException {
         try (InputStream stream = Files.newInputStream(f)){
             final Unmarshaller um = SOSMarshallerPool.getInstance().acquireUnmarshaller();
             Object obj = um.unmarshal(stream);
@@ -373,6 +333,8 @@ public final class SensorUtils {
             if (obj != null) {
                 return obj;
             }
+        } catch (JAXBException | IOException ex) {
+            throw new ConstellationStoreException(ex);
         }
         throw new ConstellationStoreException("the observation file does not contain a valid O&M object");
     }
@@ -391,5 +353,14 @@ public final class SensorUtils {
             return featProp.getHref();
         }
         return null;
+    }
+
+    public static Sensor getSensorFromData(SensorData sd, Integer providerId) {
+        final String sensorId    = sd.getName().toString();
+        final String name        = sd.getSensorName();
+        final String description = sd.getDescription();
+        final String type        = sd.getSensorMLType();
+        final String omType      = sd.getOMType();
+        return new Sensor(null, sensorId, name, description, type, null, null, null, providerId, null, omType);
     }
 }

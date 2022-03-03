@@ -41,6 +41,20 @@ public class Sensor extends SensorReference implements Serializable {
     public Sensor() {
 
     }
+
+    public Sensor(Integer id, String identifier, String name, String description, String type,
+            String parent, Integer owner, Date date, Integer providerId, String profile, String omType) {
+        super(id, identifier);
+        this.name = name;
+        this.description = description;
+        this.type = type;
+        this.parent = parent;
+        this.owner = owner;
+        this.date = date;
+        this.providerId = providerId;
+        this.profile = profile;
+        this.omType = omType;
+    }
     
     /**
      * @return the type

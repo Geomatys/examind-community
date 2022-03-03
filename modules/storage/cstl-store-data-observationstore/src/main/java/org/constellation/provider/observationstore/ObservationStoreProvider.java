@@ -34,9 +34,12 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
+import org.apache.sis.internal.feature.jts.JTS;
 import org.apache.sis.internal.storage.ResourceOnFileSystem;
 import org.apache.sis.storage.FeatureQuery;
 import org.apache.sis.metadata.iso.DefaultMetadata;
+import org.apache.sis.referencing.CRS;
+import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
@@ -65,6 +68,7 @@ import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.observation.model.ObservationTemplate;
 import org.constellation.dto.service.config.sos.ExtractionResult;
+import org.constellation.dto.service.config.sos.SensorMLTree;
 import org.geotoolkit.gml.GMLUtilities;
 import org.geotoolkit.gml.xml.AbstractFeature;
 import org.geotoolkit.observation.model.GeoSpatialBound;
@@ -96,6 +100,7 @@ import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.util.GenericName;
 import static org.constellation.provider.observationstore.ObservationProviderUtils.*;
 import org.geotoolkit.filter.FilterUtilities;
+import org.geotoolkit.gml.GeometrytoJTS;
 import org.geotoolkit.ogc.xml.BBOX;
 import org.opengis.filter.BinarySpatialOperator;
 import org.opengis.filter.ComparisonOperatorName;
@@ -109,6 +114,9 @@ import org.geotoolkit.observation.model.OMEntity;
 import static org.geotoolkit.observation.ObservationReader.*;
 import static org.geotoolkit.observation.OMUtils.*;
 import static org.geotoolkit.observation.ObservationFilterFlags.*;
+import org.opengis.referencing.operation.MathTransform;
+import org.opengis.referencing.operation.TransformException;
+import org.opengis.util.FactoryException;
 
 /**
  *
@@ -1227,5 +1235,27 @@ public class ObservationStoreProvider extends IndexedNameDataProvider implements
             }
         }
         return getId();
+    }
+
+    @Override
+    public List<org.locationtech.jts.geom.Geometry> getJTSGeometryFromSensor(SensorMLTree sensor) throws ConstellationStoreException {
+        final List<org.locationtech.jts.geom.Geometry> results = new ArrayList<>();
+        final AbstractGeometry geom = (AbstractGeometry) getSensorLocation(sensor.getIdentifier(), "2.0.0");
+        if (geom != null) {
+            try {
+                org.locationtech.jts.geom.Geometry jtsGeometry = GeometrytoJTS.toJTS(geom);
+                // reproject to CRS:84
+                final MathTransform mt = CRS.findOperation(geom.getCoordinateReferenceSystem(true), CommonCRS.defaultGeographic(), null).getMathTransform();
+                results.add(JTS.transform(jtsGeometry, mt));
+            } catch (FactoryException | TransformException ex) {
+                throw new ConstellationStoreException(ex);
+            }
+        }
+        if (!"Component".equals(sensor.getType())) {
+            for (SensorMLTree child : sensor.getChildren()) {
+                results.addAll(getJTSGeometryFromSensor(child));
+            }
+        }
+        return results;
     }
 }

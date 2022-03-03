@@ -708,7 +708,7 @@ public class SOSworker extends SensorWorker {
         }
         boolean result = false;
         try {
-            final Sensor sensor = sensorBusiness.getSensor(sensorId);
+            final Sensor sensor = getSensor(sensorId);
             if (sensor != null) {
                 sensorBusiness.removeSensorFromService(getServiceId(), sensor.getId());
                 result =  true;

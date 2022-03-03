@@ -29,6 +29,7 @@ import org.constellation.dto.service.config.sos.ExtractionResult;
 import org.constellation.dto.service.config.sos.Offering;
 import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
+import org.constellation.dto.service.config.sos.SensorMLTree;
 import org.constellation.exception.ConstellationStoreException;
 import org.opengis.geometry.Envelope;
 import org.opengis.geometry.Geometry;
@@ -135,5 +136,23 @@ public interface ObservationProvider extends DataProvider {
      */
     String getDatasourceKey();
 
+    /**
+     * Count specific entities.
+     *
+     * @param q A query for filetring the result.
+     * @param hints The parameters for the count.
+     * @return
+     * @throws ConstellationStoreException
+     */
     long getCount(Query q, final Map<String, Object> hints) throws ConstellationStoreException;
+
+    /**
+     * Return JTS geometries extract from a sensor tree.
+     * If the sensor is a System, all its children geometries will be included in the result.
+     *
+     * @param sensor
+     * @return
+     * @throws ConstellationStoreException
+     */
+    List<org.locationtech.jts.geom.Geometry> getJTSGeometryFromSensor(final SensorMLTree sensor) throws ConstellationStoreException;
 }

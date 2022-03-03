@@ -32,8 +32,6 @@ import org.constellation.ws.ISensorConfigurer;
 /**
  * {@link OGCConfigurer} implementation for various Sensor service.
  *
- * TODO: implement specific configuration methods
- *
  * @author Fabien Bernard (Geomatys).
  * @version 0.9
  * @since 0.9

@@ -292,8 +292,8 @@ public abstract class SOSConfigurerTest extends SpringContextTest {
 
     public void getSensorIdTest() throws Exception {
         final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
-        Collection<String> results = sensorServBusiness.getSensorIds(sid);
-        Set<String> expResults = new LinkedHashSet<>();
+        Collection<String> results = new HashSet(sensorServBusiness.getSensorIds(sid));
+        Set<String> expResults = new HashSet<>();
         expResults.add("urn:ogc:object:sensor:GEOM:1");
         expResults.add("urn:ogc:object:sensor:GEOM:10");
         expResults.add("urn:ogc:object:sensor:GEOM:12");

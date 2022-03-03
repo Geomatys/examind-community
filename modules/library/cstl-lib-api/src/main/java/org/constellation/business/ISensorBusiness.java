@@ -32,6 +32,7 @@ import org.constellation.exception.ConstellationException;
 
 /**
  * @author Cédric Briançon (Geomatys)
+ * @author Guilhem Legal (Geomatys)
  */
 public interface ISensorBusiness {
 
@@ -39,8 +40,23 @@ public interface ISensorBusiness {
 
     void linkDataToSensor(int dataId, int sensorId);
 
+    /**
+     * Proceed to remove the link between data and sensor.
+     *
+     * @param name given data name to find the data instance.
+     * @param providerId given provider identifier for data.
+     * @param sensorId given sensor identifier that will be unlinked.
+     *
+     * @throws org.constellation.exception.TargetNotFoundException If the data or the sensor can't be found.
+     */
     void unlinkDataToSensor(QName name, String providerId, String sensorId) throws TargetNotFoundException;
 
+    /**
+     * Proceed to remove the link between data and sensor.
+     *
+     * @param dataId given data name to find the data instance.
+     * @param sensorId given sensor identifier that will be unlinked.
+     */
     void unlinkDataToSensor(int dataId, int sensorId);
 
     List<Sensor> getAll();
@@ -93,6 +109,14 @@ public interface ISensorBusiness {
 
     String marshallSensor(final Object sensorMetadata) throws ConstellationException;
 
+    /**
+     * Return a free sensor identifier for the specified sensor provider.
+     *
+     * @param providerID Identifier of a sensor provider.
+     *
+     * @return A free sensor identifier.
+     * @throws ConfigurationException
+     */
     String getNewSensorId(final Integer providerID) throws ConfigurationException;
 
     /**

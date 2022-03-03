@@ -28,7 +28,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXBException;
 import org.apache.sis.storage.FeatureQuery;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IServiceBusiness;
@@ -43,12 +42,19 @@ import org.constellation.provider.SensorProvider;
 import com.examind.sensor.ws.SensorUtils;
 import java.sql.Timestamp;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.apache.sis.util.collection.BackingStoreException;
 import org.constellation.api.CommonConstants;
 import static org.constellation.api.CommonConstants.OBJECT_TYPE;
 import static org.constellation.api.CommonConstants.PROCEDURE;
+import org.constellation.dto.service.config.sos.ExtractionResult;
 import org.constellation.dto.service.config.sos.ProcedureTree;
+import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.exception.ConstellationException;
+import org.constellation.provider.SensorData;
 import org.constellation.util.NamedId;
 import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.gml.xml.v321.TimeInstantType;
@@ -62,15 +68,13 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.io.WKTWriter;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
-import org.opengis.observation.Process;
 import org.opengis.observation.Observation;
 import org.opengis.observation.ObservationCollection;
 import org.opengis.observation.Phenomenon;
-import org.opengis.referencing.operation.TransformException;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalGeometricPrimitive;
-import org.opengis.util.FactoryException;
+import org.opengis.util.GenericName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -96,19 +100,15 @@ public class SensorServiceBusiness {
 
         final List<Path> files;
         switch (type) {
-            case "zip":
+            case "zip" -> {
                 try  {
                     files = ZipUtilities.unzip(sensorFile, null);
                 } catch (IOException ex) {
                     throw new ConfigurationException(ex);
-                }   break;
-
-            case "xml":
-                files = Arrays.asList(sensorFile);
-                break;
-
-            default:
-                throw new ConfigurationException("Unexpected file extension, accepting zip or xml");
+                }
+            }
+            case "xml" -> files = Arrays.asList(sensorFile);
+            default    -> throw new ConfigurationException("Unexpected file extension, accepting zip or xml");
         }
 
         try {
@@ -150,7 +150,7 @@ public class SensorServiceBusiness {
     }
 
     public boolean removeSensor(final Integer id, final String sensorID) throws ConstellationException {
-        final ObservationProvider pr = getOMProvider(id);
+        final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
         try {
             final SensorMLTree tree = sensorBusiness.getSensorMLTree(sensorID);
 
@@ -171,7 +171,7 @@ public class SensorServiceBusiness {
                 boolean rmFromDatasource = true;
                 List<Integer> serviceIds = sensorBusiness.getLinkedServiceIds(sid.getId());
                 for (Integer serviceId : serviceIds) {
-                    ObservationProvider servProv  = getOMProvider(serviceId);
+                    ObservationProvider servProv  = getSensorProvider(serviceId, ObservationProvider.class);
                     if (servProv.getDatasourceKey().equals(datasourceKey)) {
                         rmFromDatasource = false;
                         break;
@@ -202,7 +202,7 @@ public class SensorServiceBusiness {
     }
 
     public boolean removeAllSensors(final Integer id) throws ConfigurationException {
-        final ObservationProvider pr = getOMProvider(id);
+        final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
         try {
             final Collection<Sensor> sensors = sensorBusiness.getByServiceId(id);
             for (Sensor sensor : sensors) {
@@ -217,54 +217,73 @@ public class SensorServiceBusiness {
     }
 
     public Collection<String> getSensorIds(final Integer id) throws ConfigurationException {
-        final ObservationProvider pr = getOMProvider(id);
-        try {
-            return pr.getProcedureNames(null, Collections.EMPTY_MAP);
-        } catch (ConstellationStoreException ex) {
-            throw new ConfigurationException(ex);
+        if (isDirectProviderMode(id)) {
+            final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
+            try {
+                return pr.getProcedureNames(null, Collections.EMPTY_MAP);
+            } catch (ConstellationStoreException ex) {
+                throw new ConfigurationException(ex);
+            }
+        } else {
+            return sensorBusiness.getLinkedSensorIdentifiers(id, null);
         }
     }
 
     public long getSensorCount(final Integer id) throws ConfigurationException {
-        final ObservationProvider pr = getOMProvider(id);
-        try {
-            return pr.getCount(null, Collections.singletonMap(OBJECT_TYPE, PROCEDURE));
-        } catch (ConstellationStoreException ex) {
-            throw new ConfigurationException(ex);
+        if (isDirectProviderMode(id)) {
+            final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
+            try {
+                return pr.getCount(null, Collections.singletonMap(OBJECT_TYPE, PROCEDURE));
+            } catch (ConstellationStoreException ex) {
+                throw new ConfigurationException(ex);
+            }
+        } else {
+            return sensorBusiness.getCountByServiceId(id);
         }
     }
 
     public Collection<String> getSensorIdsForObservedProperty(final Integer id, final String observedProperty) throws ConfigurationException {
-        final ObservationProvider pr = getOMProvider(id);
+        final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
         try {
             FeatureQuery query = new FeatureQuery();
-            final FilterFactory ff = FilterUtilities.FF;
-            query.setSelection(ff.equal(ff.property("observedProperty"), ff.literal(observedProperty)));
-            List<Process> processes = pr.getProcedures(query, Collections.emptyMap());
-            List<String> results = new ArrayList<>();
-            processes.forEach(p -> results.add(((org.geotoolkit.observation.xml.Process)p).getHref()));
-            return results;
-        } catch (ConstellationStoreException ex) {
-            throw new ConfigurationException(ex);
-        }
-    }
+            query.setSelection(buildFilter(null, null, Arrays.asList(observedProperty), new ArrayList<>()));
+            final List<String> processes = pr.getProcedures(query, Collections.emptyMap())
+                                             .stream()
+                                             .map(p -> ((org.geotoolkit.observation.xml.Process)p).getHref())
+                                             .collect(Collectors.toList());
 
-    public Collection<String> getObservedPropertiesForSensorId(final Integer serviceId, final String sensorID, final boolean decompose) throws ConfigurationException {
-        final ObservationProvider pr = getOMProvider(serviceId);
-        try {
-            final SensorMLTree current = sensorBusiness.getSensorMLTree(sensorID);
-            if (current != null) {
-                return SensorUtils.getPhenomenonFromSensor(current, pr, decompose);
+            if (isDirectProviderMode(id)) {
+                return processes;
             } else {
-                return SensorUtils.getPhenomenonFromSensor(sensorID, pr, decompose);
+                // filter on linked sensors
+                return processes.stream().filter(p -> sensorBusiness.isLinkedSensor(id, p)).collect(Collectors.toList());
             }
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
 
+    public Collection<String> getObservedPropertiesForSensorId(final Integer id, final String sensorID, final boolean decompose) throws ConfigurationException {
+        final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
+        try {
+            final SensorMLTree current;
+            if (isDirectProviderMode(id)) {
+                final SensorProvider sp = getSensorProvider(id, SensorProvider.class);
+                SensorData sd = (SensorData) sp.get(null, sensorID);
+                Sensor s = SensorUtils.getSensorFromData(sd, null);
+                current = new SensorMLTree(s);
+            } else {
+                current = sensorBusiness.getSensorMLTree(sensorID);
+            }
+            return SensorUtils.getPhenomenonFromSensor(current, pr, decompose);
+            
+        } catch (ConstellationStoreException ex) {
+            throw new ConfigurationException(ex);
+        }
+    }
+
     public TemporalGeometricPrimitive getTimeForSensorId(final Integer id, final String sensorID) throws ConfigurationException {
-        final ObservationProvider pr = getOMProvider(id);
+        final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
         try {
             return pr.getTimeForProcedure("2.0.0", sensorID);
         } catch (ConstellationStoreException ex) {
@@ -273,37 +292,27 @@ public class SensorServiceBusiness {
     }
 
     public boolean importObservations(final Integer id, final Path observationFile) throws ConfigurationException {
-        final ObservationProvider writer = getOMProvider(id);
         try {
             final Object objectFile = SensorUtils.unmarshallObservationFile(observationFile);
-            if (objectFile instanceof Observation) {
-                writer.writeObservation((Observation)objectFile);
-            } else if (objectFile instanceof ObservationCollection) {
-                importObservations(id, (ObservationCollection)objectFile);
+            if (objectFile instanceof Observation obs) {
+                importObservations(id, Arrays.asList(obs), new ArrayList<>());
+            } else if (objectFile instanceof ObservationCollection coll) {
+                importObservations(id, coll);
             } else {
                 return false;
             }
             return true;
-        } catch (IOException | JAXBException | ConstellationStoreException ex) {
-            throw new ConfigurationException(ex);
-        }
-    }
-
-    public void importObservations(final Integer id, final ObservationCollection collection) throws ConfigurationException {
-        final ObservationProvider writer = getOMProvider(id);
-        try {
-            final long start = System.currentTimeMillis();
-            for (Observation obs : collection.getMember()) {
-                writer.writeObservation(obs);
-            }
-            LOGGER.log(Level.INFO, "observations imported in :{0} ms", (System.currentTimeMillis() - start));
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
 
+    public void importObservations(final Integer id, final ObservationCollection collection) throws ConfigurationException {
+        importObservations(id, collection.getMember(), new ArrayList<>());
+    }
+
     public void importObservations(final Integer id, final List<Observation> observations, final List<Phenomenon> phenomenons) throws ConfigurationException {
-        final ObservationProvider writer = getOMProvider(id);
+        final ObservationProvider writer = getSensorProvider(id, ObservationProvider.class);
         try {
             final long start = System.currentTimeMillis();
             writer.writePhenomenons(phenomenons);
@@ -317,7 +326,7 @@ public class SensorServiceBusiness {
     }
 
     public boolean removeSingleObservation(final Integer id, final String observationID) throws ConfigurationException {
-        final ObservationProvider pr = getOMProvider(id);
+        final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
         try {
             pr.removeObservation(observationID);
             return true;
@@ -327,8 +336,9 @@ public class SensorServiceBusiness {
     }
 
     public Collection<String> getObservedPropertiesIds(Integer id) throws ConfigurationException {
-        final ObservationProvider pr = getOMProvider(id);
+        final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
         try {
+            // TODO this results are not filtered on linked sensors
             return pr.getPhenomenonNames(null, Collections.EMPTY_MAP);
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
@@ -336,7 +346,7 @@ public class SensorServiceBusiness {
     }
 
     public void writeProcedure(final Integer id, final ProcedureTree procedure) throws ConfigurationException {
-        final ObservationProvider pr = getOMProvider(id);
+        final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
         try {
             pr.writeProcedure(procedure);
         } catch (ConstellationStoreException ex) {
@@ -344,8 +354,8 @@ public class SensorServiceBusiness {
         }
     }
 
-    public boolean updateSensorLocation(final Integer serviceId, final String sensorID, final org.opengis.geometry.Geometry location) throws ConfigurationException {
-        final ObservationProvider pr = getOMProvider(serviceId);
+    public boolean updateSensorLocation(final Integer id, final String sensorID, final org.opengis.geometry.Geometry location) throws ConfigurationException {
+        final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
         try {
             pr.updateProcedureLocation(sensorID, location);
             return true;
@@ -355,11 +365,19 @@ public class SensorServiceBusiness {
     }
 
     public String getWKTSensorLocation(final Integer id, final String sensorID) throws ConfigurationException {
-        final ObservationProvider provider = getOMProvider(id);
+        final ObservationProvider provider = getSensorProvider(id, ObservationProvider.class);
         try {
-            final SensorMLTree current = sensorBusiness.getSensorMLTree(sensorID);
+            final SensorMLTree current;
+            if (isDirectProviderMode(id)) {
+                final SensorProvider sp = getSensorProvider(id, SensorProvider.class);
+                SensorData sd = (SensorData) sp.get(null, sensorID);
+                Sensor s = SensorUtils.getSensorFromData(sd, null);
+                current = new SensorMLTree(s);
+            } else {
+                current = sensorBusiness.getSensorMLTree(sensorID);
+            }
             if (current != null) {
-                final List<Geometry> jtsGeometries = SensorUtils.getJTSGeometryFromSensor(current, provider);
+                final List<Geometry> jtsGeometries = provider.getJTSGeometryFromSensor(current);
                 if (jtsGeometries.size() == 1) {
                     final WKTWriter writer = new WKTWriter();
                     return writer.write(jtsGeometries.get(0));
@@ -371,14 +389,14 @@ public class SensorServiceBusiness {
                 }
             }
             return "";
-        } catch (ConstellationStoreException | FactoryException | TransformException ex) {
+        } catch (ConstellationStoreException | BackingStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
 
     public Object getResultsCsv(final Integer id, final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end, final Integer width, final String resultFormat) throws ConfigurationException {
         try {
-            final ObservationProvider pr = getOMProvider(id);
+            final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
             FeatureQuery query = new FeatureQuery();
             query.setSelection(buildFilter(start, end, observedProperties, foi));
             Map<String, Object> hints = new HashMap<>();
@@ -390,6 +408,100 @@ public class SensorServiceBusiness {
             throw new ConfigurationException(ex);
         }
     }
+
+    public Object getSensorMetadata(final Integer id, final String sensorID) throws ConstellationException {
+        if (isDirectProviderMode(id)) {
+            SensorProvider sp = getSensorProvider(id, SensorProvider.class);
+            SensorData sd = (SensorData) sp.get(null, sensorID);
+            return sd.getSensorMetadata();
+        } else {
+            return sensorBusiness.getSensorMetadata(sensorID);
+        }
+    }
+
+    public Integer generateSensorForData(final int dataID, final ProcedureTree process, Integer serviceID, final String parentID) throws ConfigurationException {
+        Integer smlId = getSensorProviderId(serviceID);
+        return sensorBusiness.generateSensorForData(0, process, smlId, parentID);
+    }
+
+    public boolean importSensor(Integer id, String sensorID) throws ConstellationException {
+        final Sensor sensor               = sensorBusiness.getSensor(sensorID);
+        final List<Sensor> sensorChildren = sensorBusiness.getChildren(sensor.getId());
+        final Collection<String> previous = getSensorIds(id);
+        final List<String> sensorIds      = new ArrayList<>();
+        final List<Integer> dataProviders = new ArrayList<>();
+
+        // hack for not importing already inserted sensor. must be reviewed when the SOS/STS service will share an O&M provider
+        if (!previous.contains(sensorID)) {
+            dataProviders.addAll(sensorBusiness.getLinkedDataProviderIds(sensor.getId()));
+        }
+
+        sensorBusiness.addSensorToService(id, sensor.getId());
+        sensorIds.add(sensorID);
+
+        //import sensor children
+        for (Sensor child : sensorChildren) {
+            // hack for not importing already inserted sensor. must be reviewed when the SOS/STS service will share an O&M provider
+            if (!previous.contains(child.getIdentifier())) {
+                dataProviders.addAll(sensorBusiness.getLinkedDataProviderIds(child.getId()));
+            }
+            sensorBusiness.addSensorToService(id, child.getId());
+            sensorIds.add(child.getIdentifier());
+        }
+
+        // look for provider ids (remove doublon)
+        final Set<Integer> providerIDs = new HashSet<>();
+        for (Integer dataProvider : dataProviders) {
+            providerIDs.add(dataProvider);
+        }
+
+        // import observations
+        for (Integer providerId : providerIDs) {
+            final DataProvider provider = DataProviders.getProvider(providerId);
+            if (provider instanceof ObservationProvider omProvider) {
+                final ExtractionResult result = omProvider.extractResults(sensorID, sensorIds);
+
+                // update sensor location
+                for (ProcedureTree process : result.getProcedures()) {
+                    writeProcedure(id, process);
+                }
+
+                // import in O&M database
+                importObservations(id, result.getObservations(), result.getPhenomenons());
+            } else {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public SensorMLTree getServiceSensorMLTree(Integer id) throws ConstellationException {
+        if (isDirectProviderMode(id)) {
+            SensorProvider sp = getSensorProvider(id, SensorProvider.class);
+            Integer sid       = getSensorProviderId(id);
+            List<SensorMLTree> ss = sp.getKeys().stream()
+                                .map(gn -> getData(sp, gn))
+                                .map(sd -> SensorUtils.getSensorFromData(sd, sid))
+                                .map(s -> new SensorMLTree(s))
+                                .collect(Collectors.toList());
+            return SensorMLTree.buildTree(ss, true);
+        } else {
+            return sensorBusiness.getServiceSensorMLTree(id);
+        }
+    }
+
+    /**
+     * Only here to use the SensorProvider#get in a stream.
+     * Change the ConstellationStoreException into a BackingStoreException.
+     */
+    private static SensorData getData(SensorProvider sp, GenericName gn) {
+        try {
+            return (SensorData)sp.get(gn);
+        } catch (ConstellationStoreException ex) {
+            throw new BackingStoreException("Unable to get sensor data:" + gn);
+        }
+    }
+
 
     private Filter buildFilter(final Date start, final Date end, List<String> observedProperties, List<String> featuresOfInterest)  {
         final List<Filter> filters = new ArrayList<>();
@@ -423,7 +535,7 @@ public class SensorServiceBusiness {
         }
     }
 
-    protected Integer getSensorProviderId(final Integer serviceID) throws ConfigurationException {
+    private Integer getSensorProviderId(final Integer serviceID) throws ConfigurationException {
         final List<Integer> providers = serviceBusiness.getLinkedProviders(serviceID);
         for (Integer providerID : providers) {
             final DataProvider p = DataProviders.getProvider(providerID);
@@ -435,15 +547,31 @@ public class SensorServiceBusiness {
         throw new ConfigurationException("there is no sensor provider linked to this ID:" + serviceID);
     }
 
-    protected ObservationProvider getOMProvider(final Integer serviceID) throws ConfigurationException {
+    private <T> T getSensorProvider(final Integer serviceID, Class<T> c) throws ConfigurationException {
         final List<Integer> providers = serviceBusiness.getLinkedProviders(serviceID);
         for (Integer providerID : providers) {
             final DataProvider p = DataProviders.getProvider(providerID);
-            if(p instanceof ObservationProvider){
+            if(c.isInstance(p)){
                 // TODO for now we only take one provider by type
-                return (ObservationProvider) p;
+                return (T) p;
             }
         }
         throw new ConfigurationException("there is no OM provider linked to this ID:" + serviceID);
+    }
+
+    private boolean isDirectProviderMode(final Integer id) throws ConfigurationException {
+        final SOSConfiguration conf = getServiceConfiguration(id);
+        return conf.getBooleanParameter("directProvider", false);
+    }
+
+    private SOSConfiguration getServiceConfiguration(final Integer id) throws ConfigurationException {
+        try {
+            // we get the CSW configuration file
+            return (SOSConfiguration) serviceBusiness.getConfiguration(id);
+        } catch (ConfigurationException ex) {
+            throw new ConfigurationException("Configuration exception while getting the Sensor configuration for:" + id, ex.getMessage());
+        } catch (IllegalArgumentException ex) {
+            throw new ConfigurationException("IllegalArgumentException: " + ex.getMessage());
+        }
     }
 }

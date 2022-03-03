@@ -217,7 +217,6 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
                 for (Process proc : procs) {
                     String sensorId = ((org.geotoolkit.observation.xml.Process)proc).getHref();
-                    org.constellation.dto.Sensor s = null;
                     // TODO here if the provider is not "all" linked, there will be issues in the paging
                     if (isLinkedSensor(sensorId)) {
                         Thing thing = buildThing(exp, sensorId, null, (org.geotoolkit.observation.xml.Process) proc);
@@ -823,7 +822,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         if (obs.getProcedure() != null && obs.getProcedure().getHref() != null) {
             sensorID = obs.getProcedure().getHref();
             if (exp.sensors.expanded || exp.things.expanded) {
-                 s = sensorBusiness.getSensor(sensorID);
+                 s = getSensor(sensorID);
             }
         }
 
@@ -978,7 +977,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         if (obs.getProcedure() != null && obs.getProcedure().getHref() != null) {
             sensorID = obs.getProcedure().getHref();
             if (exp.sensors.expanded || exp.things.expanded) {
-                 s = sensorBusiness.getSensor(sensorID);
+                 s = getSensor(sensorID);
             }
         }
 
@@ -1454,7 +1453,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         exp = exp.subLevel("Sensors");
 
         if (s == null) {
-            s = sensorBusiness.getSensor(sensorID);
+            s = getSensor(sensorID);
         }
 
         String selfLink = getServiceUrl();
@@ -1465,7 +1464,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         String name = sensorID;
         if (s != null) {
             metadataLink = Application.getProperty(AppProperty.CSTL_URL);
-            if (metadataLink != null) {
+            if (metadataLink != null && s.getId() != null) {
                 if (metadataLink.endsWith("/")) {
                     metadataLink = metadataLink.substring(0, metadataLink.length() - 1);
                 }
@@ -1512,7 +1511,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Things("+ sensorID+ ")";
 
         if (s == null) {
-            s = sensorBusiness.getSensor(sensorID);
+            s = getSensor(sensorID);
         }
         Thing thing = new Thing();
         if (exp.isSelected("properties") && s != null && s.getOmType() != null) {
@@ -1647,7 +1646,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                     org.constellation.dto.Sensor s = null;
                     // TODO here if the provider is not "all" linked, there will be issues in the paging
                     if (isLinkedSensor(sensorId)) {
-                        s = sensorBusiness.getSensor(sensorId);
+                        s = getSensor(sensorId);
                     
                         for (Entry<Date, org.opengis.geometry.Geometry> hLocation : entry.getValue().entrySet()) {
                             HistoricalLocation location = buildHistoricalLocation(exp, sensorId, s, hLocation.getKey(), (AbstractGeometry) hLocation.getValue());
@@ -1753,7 +1752,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         exp = exp.subLevel("Locations");
 
         if (s == null && exp.things.expanded) {
-            s = sensorBusiness.getSensor(sensorID);
+            s = getSensor(sensorID);
         }
 
         String selfLink = getServiceUrl();
@@ -1827,7 +1826,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         exp = exp.subLevel("HistoricalLocations");
 
         if (s == null && (exp.things.expanded || exp.locations.expanded)) {
-            s = sensorBusiness.getSensor(sensorID);
+            s = getSensor(sensorID);
         }
 
         String hlid = sensorID + "-" + d.getTime();

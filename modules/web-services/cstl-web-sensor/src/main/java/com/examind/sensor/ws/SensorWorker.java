@@ -21,10 +21,12 @@ package com.examind.sensor.ws;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 import org.apache.sis.storage.FeatureQuery;
 import org.constellation.api.ServiceDef;
 import org.constellation.api.WorkerState;
 import org.constellation.business.ISensorBusiness;
+import org.constellation.dto.Sensor;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationStoreException;
@@ -33,6 +35,7 @@ import org.constellation.provider.DataProviders;
 import org.constellation.provider.ObservationProvider;
 import org.constellation.provider.SensorProvider;
 import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
+import org.constellation.provider.SensorData;
 import org.constellation.ws.AbstractWorker;
 import org.geotoolkit.filter.FilterUtilities;
 import org.opengis.filter.FilterFactory;
@@ -65,11 +68,25 @@ public abstract class SensorWorker extends AbstractWorker<SOSConfiguration> {
      */
     protected ObservationProvider omProvider;
 
+    /**
+     * The Sensor provider
+     */
+    protected SensorProvider smlProvider;
+
+    /**
+     * The direct provider mode is a mode where sensor are not recorded in examind datasource.
+     * Requests are directly send to the provider instead of using examind SQL datasource.
+     * The mode require that all the sensor of the provider are linked to the service.
+     */
+    private boolean directProvider = false;
+
     protected final FilterFactory ff = FilterUtilities.FF;
 
     public SensorWorker(final String id, final ServiceDef.Specification specification) {
         super(id, specification);
         if (getState().equals(WorkerState.ERROR)) return;
+        
+        this.directProvider = getBooleanProperty("directProvider", false);
         try {
             final List<Integer> providers = serviceBusiness.getLinkedProviders(getServiceId());
 
@@ -78,12 +95,13 @@ public abstract class SensorWorker extends AbstractWorker<SOSConfiguration> {
                 DataProvider p = DataProviders.getProvider(providerID);
                 if (p != null) {
                     // TODO for now we only take one provider by type
-                    if (p instanceof SensorProvider) {
+                    if (p instanceof SensorProvider sp) {
                         smlProviderID = providerID;
+                        smlProvider = sp;
                     }
                     // provider may implements the 2 interface
-                    if (p instanceof ObservationProvider) {
-                        omProvider = (ObservationProvider) p;
+                    if (p instanceof ObservationProvider op) {
+                        omProvider = op;
                     }
                 } else {
                     startError("Unable to instanciate the provider:" + providerID, null);
@@ -158,7 +176,46 @@ public abstract class SensorWorker extends AbstractWorker<SOSConfiguration> {
         return omProvider.getProcedures(subquery, Collections.singletonMap("version", version));
     }
 
+    /**
+     * Return {@code true} if the sensor exist and is linked to the service.
+     * 
+     * @param sensorId Sensor identifier.
+     * @return
+     */
     protected boolean isLinkedSensor(String sensorId) {
-        return sensorBusiness.isLinkedSensor(getServiceId(), sensorId);
+        // in direct provider mode we look for existence in om provider.
+        if (directProvider) {
+            try {
+                return omProvider.existProcedure(sensorId);
+            } catch (ConstellationStoreException ex) {
+                LOGGER.log(Level.FINE, "Error while looking for sensor existence", ex);
+                return false;
+            }
+        } else {
+            return sensorBusiness.isLinkedSensor(getServiceId(), sensorId);
+        }
+    }
+
+    /**
+     * Return a sensor object from the datasource or @{code null} if exist.
+     * 
+     * @param sensorId Sensor identifier.
+     * @return a sensor object.
+     */
+    protected Sensor getSensor(String sensorId) {
+        // in direct provider mode we extract the dto from the sensor provider
+        if (directProvider) {
+            try {
+                final SensorData sData = (SensorData) smlProvider.get(null, sensorId);
+                if (sData != null) {
+                    return SensorUtils.getSensorFromData(sData, smlProviderID);
+                }
+            } catch (ConstellationStoreException ex) {
+                LOGGER.log(Level.FINE, "Error while looking for sensor metadata", ex);
+            }
+            return null;
+        } else {
+            return sensorBusiness.getSensor(sensorId);
+        }
     }
 }

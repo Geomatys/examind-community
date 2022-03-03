@@ -225,11 +225,7 @@ public class SensorBusiness implements ISensorBusiness {
     }
 
     /**
-     * Proceed to remove the link between data and sensor.
-     *
-     * @param dataName given data name to find the data instance.
-     * @param providerId given provider identifier for data.
-     * @param sensorIdentifier given sensor identifier that will be unlinked.
+     * {@inheritDoc}
      */
     @Override
     @Transactional
@@ -255,10 +251,7 @@ public class SensorBusiness implements ISensorBusiness {
     }
 
     /**
-     * Proceed to remove the link between data and sensor.
-     *
-     * @param dataId given data name to find the data instance.
-     * @param sensorId given sensor identifier that will be unlinked.
+     * {@inheritDoc}
      */
     @Override
     @Transactional
@@ -342,8 +335,8 @@ public class SensorBusiness implements ISensorBusiness {
         if (sensor != null) {
             final DataProvider provider = DataProviders.getProvider(sensor.getProviderId());
             Data data = provider.get(null, sensor.getIdentifier());
-            if (data instanceof SensorData) {
-                return ((SensorData)data).getSensorMetadata();
+            if (data instanceof SensorData sd) {
+                return sd.getSensorMetadata();
             }
         }
         return null;
@@ -363,12 +356,12 @@ public class SensorBusiness implements ISensorBusiness {
         if (sensor != null) {
             if (sensor.getProviderId() != null) {
                 final DataProvider provider = DataProviders.getProvider(sensor.getProviderId());
-                if (provider instanceof SensorProvider) {
+                if (provider instanceof SensorProvider sp) {
                     try {
                         if (sensorMetadata instanceof String) {
                             sensorMetadata =  unmarshallSensor((String) sensorMetadata);
                         }
-                        ((SensorProvider)provider).writeSensor(sensor.getIdentifier(), sensorMetadata);
+                        sp.writeSensor(sensor.getIdentifier(), sensorMetadata);
                     } catch (ConstellationException ex) {
                         throw new ConfigurationException(ex);
                     }
@@ -444,19 +437,14 @@ public class SensorBusiness implements ISensorBusiness {
     }
 
     /**
-     * Return a free sensor identifier for the specified sensor provider.
-     *
-     * @param providerID Identifier of a sensor provider.
-     *
-     * @return A free sensor identifier.
-     * @throws ConfigurationException
+     * {@inheritDoc}
      */
     @Override
     public String getNewSensorId(Integer providerID) throws ConfigurationException {
         final DataProvider provider = DataProviders.getProvider(providerID);
-        if (provider instanceof SensorProvider) {
+        if (provider instanceof SensorProvider sp) {
             try {
-                return ((SensorProvider) provider).getNewSensorId();
+                return sp.getNewSensorId();
             } catch (ConstellationStoreException ex) {
                 throw new ConfigurationException(ex);
             }
@@ -492,8 +480,8 @@ public class SensorBusiness implements ISensorBusiness {
             final List<Integer> providers = serviceRepository.getLinkedSensorProviders(serviceID, null);
             for (Integer providerID : providers) {
                 final DataProvider provider = DataProviders.getProvider(providerID);
-                if (provider instanceof SensorProvider) {
-                    final Map<String, List<String>> formats = ((SensorProvider) provider).getAcceptedSensorMLFormats();
+                if (provider instanceof SensorProvider sp) {
+                    final Map<String, List<String>> formats = sp.getAcceptedSensorMLFormats();
 
                     // merge the results
                     for (Entry<String, List<String>> entry : formats.entrySet()) {
@@ -600,7 +588,7 @@ public class SensorBusiness implements ISensorBusiness {
     public SensorMLTree getSensorMLTree(String sensorId) throws TargetNotFoundException {
         Sensor s = sensorRepository.findByIdentifier(sensorId);
         if (s != null) {
-            return getSensorTreeFromSensor(s);
+            return getSensorTreeFromSensor(s, sensorRepository.getChildren(sensorId));
         }
         throw new TargetNotFoundException("Unable to find a sensor:" + sensorId);
     }
@@ -616,30 +604,23 @@ public class SensorBusiness implements ISensorBusiness {
     private SensorMLTree getSensorMLTree(final Collection<Sensor> sensors) {
         final List<SensorMLTree> values = new ArrayList<>();
         for (final Sensor sensor : sensors) {
-            final SensorMLTree t = getSensorTreeFromSensor(sensor);
+            final SensorMLTree t = getSensorTreeFromSensor(sensor, sensorRepository.getChildren(sensor.getIdentifier()));
             values.add(t);
         }
         return SensorMLTree.buildTree(values, true);
     }
 
-    private SensorMLTree getSensorTreeFromSensor(Sensor sensor) {
-        final Optional<CstlUser> optUser = userBusiness.findById(sensor.getOwner());
-        String owner = null;
-        if(optUser.isPresent()){
-            owner = optUser.get().getLogin();
+    private SensorMLTree getSensorTreeFromSensor(Sensor sensor, List<Sensor> children) {
+        String owner = userBusiness.findById(sensor.getOwner()).map(CstlUser::getLogin).orElse(null);
+        
+        final SensorMLTree t = new SensorMLTree(sensor);
+        t.setOwner(owner);
+        final List<SensorMLTree> childrenSMT = new ArrayList<>();
+        for (final Sensor child : children) {
+            // build only two lvl
+            childrenSMT.add(getSensorTreeFromSensor(child, new ArrayList<>()));
         }
-        final SensorMLTree t = new SensorMLTree(sensor.getId(), sensor.getIdentifier(), sensor.getName(), sensor.getDescription(), sensor.getType(), owner, sensor.getDate(), null);
-        final List<SensorMLTree> children = new ArrayList<>();
-        final List<Sensor> records = sensorRepository.getChildren(sensor.getIdentifier());
-        for (final Sensor record : records) {
-            final Optional<CstlUser> optUserChild = userBusiness.findById(record.getOwner());
-            String ownerChild = null;
-            if(optUserChild.isPresent()){
-                ownerChild = optUserChild.get().getLogin();
-            }
-            children.add(new SensorMLTree(record.getId(), record.getName(), record.getDescription(), record.getIdentifier(), record.getType(), ownerChild, record.getDate(), null));
-        }
-        t.setChildren(children);
+        t.setChildren(childrenSMT);
         return t;
     }
 

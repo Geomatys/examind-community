@@ -20,17 +20,10 @@ package org.constellation.api.rest;
 
 import com.examind.sensor.component.SensorServiceBusiness;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import javax.inject.Inject;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IProviderBusiness;
-import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IServiceBusiness;
-import org.constellation.dto.Sensor;
 import org.constellation.dto.AcknowlegementType;
 import org.constellation.dto.service.config.sos.ObservationFilter;
 import org.constellation.dto.SimpleValue;
@@ -40,7 +33,6 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.ObservationProvider;
-import org.constellation.provider.SensorProvider;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.opengis.geometry.Geometry;
 import org.opengis.observation.Observation;
@@ -74,9 +66,6 @@ public class SensorServiceRestAPI {
 
     @Inject
     private IServiceBusiness serviceBusiness;
-
-    @Inject
-    private ISensorBusiness sensorBusiness;
 
     @Inject
     private SensorServiceBusiness sensorServiceBusiness;
@@ -123,15 +112,16 @@ public class SensorServiceRestAPI {
 
     @RequestMapping(value="/SensorService/{id}/sensor/{sensorID:.+}", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getSensorMetadata(final @PathVariable("id") Integer serviceId, final @PathVariable("sensorID") String sensorID) throws Exception {
-        if (sensorBusiness.isLinkedSensor(serviceId, sensorID)) {
-            return new ResponseEntity(sensorBusiness.getSensorMetadata(sensorID), OK);
+        Object sm = sensorServiceBusiness.getSensorMetadata(serviceId, sensorID);
+        if (sm != null) {
+            return new ResponseEntity(sm, OK);
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
     @RequestMapping(value="/SensorService/{id}/sensors", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getSensorTree(final @PathVariable("id") Integer serviceId) throws Exception {
-        return new ResponseEntity(sensorBusiness.getServiceSensorMLTree(serviceId), OK);
+        return new ResponseEntity(sensorServiceBusiness.getServiceSensorMLTree(serviceId), OK);
     }
 
     @RequestMapping(value="/SensorService/{id}/sensors/identifiers", method = GET, produces = APPLICATION_JSON_VALUE)
@@ -146,15 +136,13 @@ public class SensorServiceRestAPI {
 
     @RequestMapping(value="/SensorService/{id}/sensors/count", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getSensortCount(final @PathVariable("id") Integer serviceId) throws Exception {
-        return new ResponseEntity(new SimpleValue(sensorBusiness.getCountByServiceId(serviceId)), OK);
+        return new ResponseEntity(new SimpleValue(sensorServiceBusiness.getSensorCount(serviceId)), OK);
     }
 
     @RequestMapping(value="/SensorService/{id}/sensor/location/{sensorID:.+}", method = PUT, consumes = APPLICATION_XML_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity updateSensorLocation(final @PathVariable("id") Integer serviceId, final @PathVariable("sensorID") String sensorID, final @RequestBody AbstractGeometry gmlLocation) throws Exception {
         AcknowlegementType response;
-        Geometry location = null;
-        if (gmlLocation instanceof Geometry) {
-            location = (Geometry) gmlLocation;
+        if (gmlLocation instanceof Geometry location) {
             if (sensorServiceBusiness.updateSensorLocation(serviceId, sensorID, location)) {
                 response =  new AcknowlegementType("Success", "The sensor location have been updated in the Sensor service");
             } else {
@@ -227,8 +215,7 @@ public class SensorServiceRestAPI {
         if (providerId != null) {
 
             final DataProvider provider = DataProviders.getProvider(providerId);
-            if (provider instanceof ObservationProvider) {
-                final ObservationProvider omProvider = (ObservationProvider) provider;
+            if (provider instanceof ObservationProvider omProvider) {
                 final ExtractionResult result = omProvider.extractResults();
 
                 // import in O&M database
@@ -236,7 +223,7 @@ public class SensorServiceRestAPI {
 
                 // SensorML generation
                 for (ProcedureTree process : result.getProcedures()) {
-                    sensorBusiness.generateSensorForData(dataID, process,  getSensorProviderId(serviceId), null);
+                    sensorServiceBusiness.generateSensorForData(dataID, process, serviceId, null);
                     updateSensorLocation(serviceId, process);
                 }
             } else {
@@ -266,8 +253,7 @@ public class SensorServiceRestAPI {
 
         if (providerId != null) {
             final DataProvider provider = DataProviders.getProvider(providerId);
-            if (provider instanceof ObservationProvider) {
-                final ObservationProvider omProvider = (ObservationProvider) provider;
+            if (provider instanceof ObservationProvider omProvider) {
                 final ExtractionResult result = omProvider.extractResults();
 
                 // remove from O&M database
@@ -288,66 +274,10 @@ public class SensorServiceRestAPI {
 
     @RequestMapping(value="/SensorService/{id}/sensor/import/{sensorID:.+}", method = PUT, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity importSensor(final @PathVariable("id") Integer sid, final @PathVariable("sensorID") String sensorID) throws Exception {
-        final Sensor sensor               = sensorBusiness.getSensor(sensorID);
-        final List<Sensor> sensorChildren = sensorBusiness.getChildren(sensor.getId());
-        final Collection<String> previous = sensorServiceBusiness.getSensorIds(sid);
-        final List<String> sensorIds      = new ArrayList<>();
-        final List<Integer> dataProviders = new ArrayList<>();
-
-        // hack for not importing already inserted sensor. must be reviewed when the SOS/STS service will share an O&M provider
-        if (!previous.contains(sensorID)) {
-            dataProviders.addAll(sensorBusiness.getLinkedDataProviderIds(sensor.getId()));
-        }
-
-        sensorBusiness.addSensorToService(sid, sensor.getId());
-        sensorIds.add(sensorID);
-
-        //import sensor children
-        for (Sensor child : sensorChildren) {
-            // hack for not importing already inserted sensor. must be reviewed when the SOS/STS service will share an O&M provider
-            if (!previous.contains(child.getIdentifier())) {
-                dataProviders.addAll(sensorBusiness.getLinkedDataProviderIds(child.getId()));
-            }
-            sensorBusiness.addSensorToService(sid, child.getId());
-            sensorIds.add(child.getIdentifier());
-        }
-
-        // look for provider ids (remove doublon)
-        final Set<Integer> providerIDs = new HashSet<>();
-        for (Integer dataProvider : dataProviders) {
-            providerIDs.add(dataProvider);
-        }
-
-        // import observations
-        for (Integer providerId : providerIDs) {
-            final DataProvider provider = DataProviders.getProvider(providerId);
-            if (provider instanceof ObservationProvider) {
-                final ObservationProvider omProvider = (ObservationProvider) provider;
-                final ExtractionResult result = omProvider.extractResults(sensorID, sensorIds);
-
-                // update sensor location
-                for (ProcedureTree process : result.getProcedures()) {
-                    sensorServiceBusiness.writeProcedure(sid, process);
-                }
-
-                // import in O&M database
-                sensorServiceBusiness.importObservations(sid, result.getObservations(), result.getPhenomenons());
-            } else {
-                return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider (and netCDF coverage) for now"), OK);
-            }
+        boolean success = sensorServiceBusiness.importSensor(sid, sensorID);
+        if (success) {
+            return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider (and netCDF coverage) for now"), OK);
         }
         return new ResponseEntity(new AcknowlegementType("Success", "The specified sensor has been imported in the Sensor Service"), OK);
-    }
-
-    private Integer getSensorProviderId(final Integer serviceID) throws ConfigurationException {
-        final List<Integer> providers = serviceBusiness.getLinkedProviders(serviceID);
-        for (Integer providerID : providers) {
-            final DataProvider p = DataProviders.getProvider(providerID);
-            if (p instanceof SensorProvider){
-                // TODO for now we only take one provider by type
-                return providerID;
-            }
-        }
-        throw new ConfigurationException("there is no sensor provider linked to this ID:" + serviceID);
     }
 }

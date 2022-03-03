@@ -21,6 +21,13 @@ public class SensorReference extends Identifiable implements Serializable {
         this.identifier = identifier;
     }
 
+    public SensorReference(SensorReference s) {
+        super(s);
+        if (s != null) {
+            this.identifier = s.identifier;
+        }
+    }
+
     public String getIdentifier() {
         return identifier;
     }
