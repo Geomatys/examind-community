@@ -34,9 +34,9 @@ import org.opengis.filter.Expression;
 import org.opengis.filter.Literal;
 import org.opengis.filter.ValueReference;
 import org.geotoolkit.ogc.xml.BBOX;
-import org.geotoolkit.geometry.BoundingBox;
 import org.opengis.filter.BinarySpatialOperator;
 import org.opengis.filter.SpatialOperatorName;
+import org.opengis.geometry.Envelope;
 
 /**
  *
@@ -67,19 +67,14 @@ public class DefaultGeomPropertyVisitor extends DuplicatingFilterVisitor{
                 throw new IllegalArgumentException("Illegal BBOX filter, "
                         + "second expression should have been a literal with a boundingBox value: \n" + filter);
             } else {
-                final Literal l = (Literal) visit(exp2);
-                final Object obj = l.getValue();
-                if (obj instanceof BoundingBox) {
-                    if (filter instanceof UnreprojectedLooseBBox) {
-                        return new UnreprojectedLooseBBox((ValueReference) exp1, ff.literal((BoundingBox) obj));
-                    } else if (filter instanceof LooseBBox) {
-                        return new LooseBBox((ValueReference)exp1, ff.literal((BoundingBox) obj));
-                    } else {
-                        return ff.bbox(exp1, (BoundingBox) obj);
-                    }
+                final Literal<?, ?> l = (Literal) visit(exp2);
+                final Envelope env = l.toValueType(Envelope.class).apply(null);
+                if (filter instanceof UnreprojectedLooseBBox) {
+                    return new UnreprojectedLooseBBox((ValueReference) exp1, ff.literal(env));
+                } else if (filter instanceof LooseBBox) {
+                    return new LooseBBox((ValueReference)exp1, ff.literal(env));
                 } else {
-                    throw new IllegalArgumentException("Illegal BBOX filter, "
-                        + "second expression should have been a literal with a boundingBox value but value was a : \n" + obj.getClass());
+                    return ff.bbox(exp1, env);
                 }
             }
         });

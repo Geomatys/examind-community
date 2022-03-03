@@ -23,7 +23,6 @@ import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.util.Utilities;
 import org.geotoolkit.filter.visitor.DuplicatingFilterVisitor;
-import org.geotoolkit.geometry.BoundingBox;
 import org.geotoolkit.geometry.jts.JTS;
 import org.opengis.filter.Literal;
 import org.opengis.geometry.Envelope;
@@ -45,13 +44,9 @@ public class CrsAdjustFilterVisitor extends DuplicatingFilterVisitor{
             final Literal expression = (Literal) e;
             Object obj = expression.getValue();
             try {
-                if (obj instanceof BoundingBox) {
-                    BoundingBox bbox = (BoundingBox) obj;
+                if (obj instanceof Envelope bbox) {
                     if(Utilities.equalsIgnoreMetadata(bbox.getCoordinateReferenceSystem(), baseCrs)){
-                        final Envelope env = Envelopes.transform(bbox, replacementCrs);
-                        final BoundingBox rbbox = new BoundingBox(replacementCrs);
-                        rbbox.setBounds(new BoundingBox(env));
-                        obj = rbbox;
+                        obj = Envelopes.transform(bbox, replacementCrs);
                     }
                 } else if(obj instanceof Geometry) {
                     Geometry geo = (Geometry) obj;
