@@ -270,6 +270,10 @@ function RemoteSourceController($scope, $translate, Examind, Growl, cfpLoadingBa
                 if (dataSource.type === 'file' && dataSource.url.indexOf('file://') !== 0) {
                     dataSource.url = 'file://' + dataSource.url;
                 }
+                // special case for S3 remote
+                if (dataSource.type === 's3' && self.remote.protocol.readFromRemote) {
+                    dataSource.permanent = true;
+                }
                 explore = true;
                 var reg = new RegExp('file:\/*$');
                 if (dataSource.type === 'file' && reg.test(dataSource.url)) { //do not show root machine

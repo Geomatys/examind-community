@@ -355,6 +355,23 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         dsRepository.deletePath(id, path);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void initializeFilesystems() {
+        List<DataSource> sources = dsRepository.findAll();
+        for (DataSource ds : sources) {
+            if ("s3".equals(ds.getType())) {
+                try {
+                    getFileSystem(ds, true);
+                } catch (Exception ex) {
+                    LOGGER.log(Level.WARNING, "Error while initializing datasource: " + ds.getUrl(), ex);
+                }
+            }
+        }
+    }
+
     private static class S63FileVisitor extends SimpleFileVisitor<Path>  {
 
         private boolean serialPresent = false;
@@ -414,7 +431,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
                         throw new ConstellationException("path does not exist");
                     }
                 } catch (Exception ex) {
-                    LOGGER.warning(ex.getMessage());
+                    LOGGER.log(Level.WARNING, "Error while testing connection to a datasource", ex);
                     return ex.getMessage();
                 } finally {
                     closeFileSystem(ds);

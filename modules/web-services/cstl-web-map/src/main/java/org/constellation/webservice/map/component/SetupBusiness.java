@@ -43,6 +43,7 @@ import org.constellation.api.ProviderType;
 import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IDataCoverageJob;
+import org.constellation.business.IDatasourceBusiness;
 import org.constellation.business.IMapContextBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
@@ -105,6 +106,9 @@ public class SetupBusiness {
 
     @Inject
     private IConfigurationBusiness configurationBusiness;
+
+    @Inject
+    private IDatasourceBusiness datasourceBusiness;
     
     @Inject
     private IDataCoverageJob dataCoverageJob;
@@ -172,6 +176,13 @@ public class SetupBusiness {
         if (doAnalysis) {
             LOGGER.log(Level.FINE, "Start data analysis");
             dataCoverageJob.computeEmptyDataStatistics(true);
+        }
+
+        LOGGER.log(Level.INFO, "initializing filesystems ...");
+        try {
+            datasourceBusiness.initializeFilesystems();
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, "An error occurred when initializing filesystems.", ex);
         }
 
         boolean serviceWarmup = Application.getBooleanProperty(AppProperty.EXA_SERVICE_WARMUP, Boolean.FALSE);

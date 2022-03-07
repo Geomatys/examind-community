@@ -326,4 +326,11 @@ public interface IDatasourceBusiness {
      * @param newStatus the new status of the path.
      */
     void updatePathStatus(int id, String path, String newStatus);
+
+    /**
+     * Some filesystem needs an initialization before being usable.
+     * for S3 for example we need to create a filesystem with the credentials in order that the path created by
+     * geotk or SIS to work.
+     */
+    void initializeFilesystems();
 }

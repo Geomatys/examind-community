@@ -98,16 +98,15 @@ public class FileSystemUtilities {
                 userURI = new URI(userUrl);
                 break;
             case "s3":
-                if (userName != null && !userName.isEmpty()
-                        && password != null && !password.isEmpty()) {
-                    userUrl = baseUrl.replace("s3://", "s3://" + userName + ':' + password + '@');
-                } else if (userName != null) {
+                if (userName != null && !userName.isEmpty()) {
                     userUrl = baseUrl.replace("s3://", "s3://" + userName + '@');
                 } else {
                     userUrl = baseUrl;
                 }
-                baseURI = new URI(baseUrl);
+                baseURI = new URI(userUrl);
                 userURI = new URI(userUrl);
+                prop.put("aws.secretAccessKey", password);
+                //prop.put("aws.region", );
                 break;
             case "database":
                 prop.put("username", userName);
