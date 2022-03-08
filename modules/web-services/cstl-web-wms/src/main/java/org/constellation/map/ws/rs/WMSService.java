@@ -68,6 +68,7 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -80,43 +81,8 @@ import static org.constellation.api.QueryConstants.REQUEST_PARAMETER;
 import static org.constellation.api.QueryConstants.SERVICE_PARAMETER;
 import static org.constellation.api.QueryConstants.UPDATESEQUENCE_PARAMETER;
 import static org.constellation.api.QueryConstants.VERSION_PARAMETER;
-import static org.constellation.map.core.WMSConstant.CAPABILITIES;
-import static org.constellation.map.core.WMSConstant.DESCRIBELAYER;
 import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
-import static org.constellation.map.core.WMSConstant.GETFEATUREINFO;
-import static org.constellation.map.core.WMSConstant.GETLEGENDGRAPHIC;
-import static org.constellation.map.core.WMSConstant.GETMAP;
-import static org.constellation.map.core.WMSConstant.KEY_AZIMUTH;
-import static org.constellation.map.core.WMSConstant.KEY_BBOX;
-import static org.constellation.map.core.WMSConstant.KEY_BGCOLOR;
-import static org.constellation.map.core.WMSConstant.KEY_CRS_V111;
-import static org.constellation.map.core.WMSConstant.KEY_CRS_V130;
-import static org.constellation.map.core.WMSConstant.KEY_ELEVATION;
-import static org.constellation.map.core.WMSConstant.KEY_FEATURE_COUNT;
-import static org.constellation.map.core.WMSConstant.KEY_FORMAT;
-import static org.constellation.map.core.WMSConstant.KEY_HEIGHT;
-import static org.constellation.map.core.WMSConstant.KEY_INFO_FORMAT;
-import static org.constellation.map.core.WMSConstant.KEY_I_V111;
-import static org.constellation.map.core.WMSConstant.KEY_I_V130;
-import static org.constellation.map.core.WMSConstant.KEY_J_V111;
-import static org.constellation.map.core.WMSConstant.KEY_J_V130;
-import static org.constellation.map.core.WMSConstant.KEY_LANGUAGE;
-import static org.constellation.map.core.WMSConstant.KEY_LAYER;
-import static org.constellation.map.core.WMSConstant.KEY_LAYERS;
-import static org.constellation.map.core.WMSConstant.KEY_QUERY_LAYERS;
-import static org.constellation.map.core.WMSConstant.KEY_REMOTE_OWS_URL;
-import static org.constellation.map.core.WMSConstant.KEY_RULE;
-import static org.constellation.map.core.WMSConstant.KEY_SCALE;
-import static org.constellation.map.core.WMSConstant.KEY_SLD;
-import static org.constellation.map.core.WMSConstant.KEY_SLD_BODY;
-import static org.constellation.map.core.WMSConstant.KEY_SLD_VERSION;
-import static org.constellation.map.core.WMSConstant.KEY_STYLE;
-import static org.constellation.map.core.WMSConstant.KEY_STYLES;
-import static org.constellation.map.core.WMSConstant.KEY_TIME;
-import static org.constellation.map.core.WMSConstant.KEY_TRANSPARENT;
-import static org.constellation.map.core.WMSConstant.KEY_WIDTH;
-import static org.constellation.map.core.WMSConstant.KEY_WMTVER;
-import static org.constellation.map.core.WMSConstant.MAP;
+import static org.constellation.map.core.WMSConstant.*;
 import static org.constellation.util.Util.parseLayerNameList;
 import org.constellation.ws.rs.ResponseObject;
 import static org.geotoolkit.client.RequestsUtilities.toDouble;
@@ -129,6 +95,7 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.STYLE_NOT_DEFINED;
 import org.geotoolkit.resources.Errors;
+import org.opengis.filter.Filter;
 import org.opengis.referencing.crs.GeographicCRS;
 import org.opengis.referencing.crs.ProjectedCRS;
 import org.opengis.referencing.operation.MathTransform;
@@ -189,8 +156,7 @@ public class WMSService extends GridWebService<WMSWorker> {
             version = worker.getVersionFromNumber(request.getVersion());
 
             //Handle user's requests.
-            if (request instanceof GetFeatureInfo) {
-                final GetFeatureInfo requestFeatureInfo = (GetFeatureInfo) request;
+            if (request instanceof GetFeatureInfo requestFeatureInfo) {
                 final Map.Entry<String, Object> result  = worker.getFeatureInfo(requestFeatureInfo);
 
                 if (result != null) {
@@ -201,25 +167,19 @@ public class WMSService extends GridWebService<WMSWorker> {
                 //throw an exception if result of GetFeatureInfo visitor is null
                 throw new CstlServiceException("An error occurred during GetFeatureInfo response building.");
             }
-            if (request instanceof GetMap) {
-                final GetMap requestMap     = (GetMap)request;
+            if (request instanceof GetMap requestMap) {
                 final PortrayalResponse map = worker.getMap(requestMap);
                 return new ResponseObject(map, requestMap.getFormat());
             }
-            if (request instanceof GetCapabilities) {
-
-                final GetCapabilities requestCapab         = (GetCapabilities) request;
+            if (request instanceof GetCapabilities requestCapab) {
                 final AbstractWMSCapabilities capabilities = worker.getCapabilities(requestCapab);
-
                 return new ResponseObject(capabilities, requestCapab.getFormat());
             }
-            if (request instanceof GetLegendGraphic) {
-                final GetLegendGraphic requestLegend = (GetLegendGraphic)request;
-                final PortrayalResponse legend       = worker.getLegendGraphic(requestLegend);
+            if (request instanceof GetLegendGraphic requestLegend) {
+                final PortrayalResponse legend = worker.getLegendGraphic(requestLegend);
                 return new ResponseObject(legend, requestLegend.getFormat());
             }
-            if (request instanceof DescribeLayer) {
-                final DescribeLayer describeLayer        = (DescribeLayer)request;
+            if (request instanceof DescribeLayer describeLayer)  {
                 final DescribeLayerResponseType response = worker.describeLayer(describeLayer);
                 return new ResponseObject(response, MediaType.TEXT_XML);
             }
@@ -410,6 +370,10 @@ public class WMSService extends GridWebService<WMSWorker> {
         if (infoFormat == null) {
             infoFormat = MimeType.TEXT_XML;
         }
+        final String pNameStr = getParameter(KEY_PROPERTYNAME, false);
+        final List<List<String>> propertyNames = pNameStr != null ? Util.parseMultipleList(pNameStr) : Collections.EMPTY_LIST;
+        getMap.getParameters().put(KEY_PROPERTYNAME, propertyNames);
+        
         final int x, y;
         try {
             x = RequestsUtilities.toInt(strX);
@@ -679,6 +643,32 @@ public class WMSService extends GridWebService<WMSWorker> {
         Map<String, Object> extraParameters = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         extraParameters.putAll(getParameters());
 
+        boolean hasCQL = false;
+        final String cqlStr = getParameter(KEY_CQL_FILTER, false);
+        if (cqlStr != null) {
+            extraParameters.put(KEY_CQL_FILTER, StringUtilities.toStringList(cqlStr));
+            hasCQL = true;
+        }
+
+        boolean hasFilter = false;
+        final List<Object> xmlFiltersObj  = getComplexParameterList(KEY_FILTER, false);
+        if (!xmlFiltersObj.isEmpty()) {
+            final List<Filter> xmlFilters = new ArrayList<>();
+            for (Object xmlFilter : xmlFiltersObj) {
+                if (xmlFilter instanceof Filter f) {
+                    xmlFilters.add(f);
+                } else {
+                    throw new CstlServiceException("FILTER parameter must contains OGC filter.", INVALID_PARAMETER_VALUE, KEY_FILTER);
+                }
+            }
+            extraParameters.put(KEY_FILTER, xmlFilters);
+            hasFilter = true;
+        }
+
+        if (hasCQL && hasFilter) {
+            throw new CstlServiceException("You can't specify both CQL_FILTER and FILTER.",INVALID_PARAMETER_VALUE);
+        }
+
         final double azimuth;
         try {
             azimuth = (strAzimuth == null) ? 0.0 : RequestsUtilities.toDouble(strAzimuth);
@@ -743,8 +733,8 @@ public class WMSService extends GridWebService<WMSWorker> {
         if (inverted && (crs instanceof ProjectedCRS || crs instanceof GeographicCRS)) {
             try {
                 CoordinateReferenceSystem target = crs;
-                if (crs instanceof ProjectedCRS) {
-                    target = ((ProjectedCRS)crs).getBaseCRS();
+                if (crs instanceof ProjectedCRS pcrs) {
+                    target = pcrs.getBaseCRS();
                 }
                 target = AbstractCRS.castOrCopy(target).forConvention(AxesConvention.NORMALIZED);
                 MathTransform tr = CRS.findOperation(crs, target,null).getMathTransform();
@@ -762,7 +752,7 @@ public class WMSService extends GridWebService<WMSWorker> {
                 coordinates[2] += c;
             }
         }
-        
+
         // Fallthrough in every cases.
         switch (index) {
             default: {
@@ -782,7 +772,7 @@ public class WMSService extends GridWebService<WMSWorker> {
          * Checks the envelope validity. Given that the parameter order in the bounding box
          * is a little-bit counter-intuitive, it is worth to perform this check in order to
          * avoid a NonInvertibleTransformException at some later stage.
-         
+
         for (index = 0; index < dimension; index++) {
             final double minimum = envelope.getMinimum(index);
             final double maximum = envelope.getMaximum(index);

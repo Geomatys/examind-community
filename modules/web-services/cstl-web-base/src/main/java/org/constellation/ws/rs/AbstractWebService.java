@@ -36,6 +36,7 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -64,6 +65,7 @@ import org.constellation.configuration.Application;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.WebServiceUtilities;
 import org.constellation.xml.PrefixMappingInvocationHandler;
+import org.geotoolkit.util.StringUtilities;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -661,12 +663,28 @@ public abstract class AbstractWebService implements WebService{
      * @param mandatory true if this parameter is mandatory, false if its optional.
      *
      * @return the parameter or null if not specified
-     * @throws  CstlServiceException
+     * @throws  CstlServiceException if the parameter is madatory but not present, or if an error occurs while reading xml.
      */
     protected Object getComplexParameter(final String parameterName, final boolean mandatory) throws CstlServiceException {
-        try {
             final String value = getParameter(parameterName, mandatory);
-            final StringReader sr = new StringReader(value);
+            if (value != null) {
+                return unmarshall(value, parameterName);
+            }
+            return null;
+    }
+
+    /**
+     * Use the service marshaller pool to read an XML parameter value.
+     *
+     * @param str the xml value.
+     * @param parameterName Name of the parameter currently read (used for exception message).
+     *
+     * @return An unmarshalled object.
+     * @throws CstlServiceException if an error occurs while reading xml.
+     */
+    private Object unmarshall(String str, String parameterName) throws CstlServiceException {
+        try {
+            final StringReader sr = new StringReader(str);
             final Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
             Object result = unmarshaller.unmarshal(sr);
             marshallerPool.recycle(unmarshaller);
@@ -678,6 +696,31 @@ public abstract class AbstractWebService implements WebService{
              throw new CstlServiceException("The xml object for parameter " + parameterName + " is not well formed:" + '\n' +
                             ex, INVALID_PARAMETER_VALUE);
         }
+    }
+
+    /**
+     * Extract A list in a complex parameter encoded in XML from the query.
+     * If the parameter is mandatory and if it is null it throw an exception.
+     * else it return an empty list.
+     *
+     * @param parameterName The name of the parameter.
+     * @param mandatory true if this parameter is mandatory, false if its optional.
+     *
+     * @return the parameter or an empty list if not specified
+     * @throws  CstlServiceException if the parameter is madatory but not present, or if an error occurs while reading xml.
+     */
+    protected List<Object> getComplexParameterList(final String parameterName, final boolean mandatory) throws CstlServiceException {
+        final String str = getParameter(parameterName, mandatory);
+        if (str != null) {
+            final List<Object> results = new ArrayList<>();
+            final List<String> values = StringUtilities.toStringList(str);
+            for (String value : values) {
+                results.add(unmarshall(value, parameterName));
+            }
+            return results;
+        }
+        return Collections.EMPTY_LIST;
+
     }
 
     /**

@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.TimeZone;
 
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
@@ -159,6 +161,23 @@ public final class Util {
             name = NamesExt.create(layerName);
         }
         return name;
+    }
+
+    /**
+     * Parse a string on the form "a,b,c" or "(a,b,c)(d,e,f)".
+     * 
+     * @param str A string to parse.
+     * @return A list of String list.
+     */
+    public static List<List<String>> parseMultipleList(String str) {
+        List<List<String>> results = new ArrayList<>();
+        final Pattern pa = Pattern.compile("\\(?([^\\)]+)\\)?");
+        final Matcher m  = pa.matcher(str);
+        while (m.find()) {
+            List<String> values = StringUtilities.toStringList(m.group(1));
+            results.add(values);
+        }
+        return results;
     }
 
     public static QName parseQName(String name) {

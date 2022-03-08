@@ -158,6 +158,12 @@ public final class WMSConstant {
     public static final String KEY_EXTRA_PARAMETERS = "EXTRA";
     /** Parameter INSPIRE used to choose the language of the capabilities document */
     public static final String KEY_LANGUAGE = "LANGUAGE";
+     /** Parameter used in getFeatureInfo */
+    public static final String KEY_FILTER = "FILTER";
+     /** Parameter used in getFeatureInfo */
+    public static final String KEY_CQL_FILTER = "CQL_FILTER";
+     /** Parameter used in getFeatureInfo */
+    public static final String KEY_PROPERTYNAME = "PROPERTYNAME";
 
     public static final String KEY_EXCEPTIONS = "EXCEPTIONS";
 
