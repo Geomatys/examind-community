@@ -18,7 +18,6 @@
  */
 package org.constellation.ws;
 
-import org.constellation.dto.service.config.wxs.FilterAndDimension;
 import org.constellation.api.ServiceDef.Specification;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IStyleBusiness;
@@ -165,15 +164,6 @@ public abstract class LayerWorker extends AbstractWorker<LayerContext> {
             LOGGER.log(Level.WARNING, "Error while getting layers names", ex);
         }
         return new ArrayList<>();
-    }
-
-    protected FilterAndDimension getLayerFilterDimensions(final Integer layerId) {
-        try {
-            return layerBusiness.getLayerFilterDimension(layerId);
-        } catch (ConfigurationException ex) {
-            LOGGER.log(Level.WARNING, "Error while getting filter and dimension for layer", ex);
-        }
-        return new FilterAndDimension();
     }
 
     /**

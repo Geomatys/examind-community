@@ -24,7 +24,6 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.dto.service.config.wxs.LayerSummary;
-import org.constellation.dto.service.config.wxs.FilterAndDimension;
 import org.constellation.dto.NameInProvider;
 import org.constellation.dto.StyleReference;
 
@@ -134,17 +133,6 @@ public interface ILayerBusiness {
      * @throws ConfigurationException If the layer does not exist, or if its not allowed for the user to access it.
      */
     LayerConfig getLayer(Integer layerId, String login) throws ConfigurationException;
-
-    /**
-     * Return the specific filter and dimensions of a layer.
-     * If not customized, it will return an empty object.
-     * 
-     * @param layerId layer identifier
-     * @return never {@code null}
-     * 
-     * @throws ConfigurationException If the layer does not exist or if its configuration can not be read.
-     */
-    FilterAndDimension getLayerFilterDimension(Integer layerId) throws ConfigurationException;
 
     /**
      * Return the full layer name, if a layer is matching the parameters.

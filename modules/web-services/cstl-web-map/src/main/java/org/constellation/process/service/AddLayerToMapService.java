@@ -43,7 +43,7 @@ import org.constellation.dto.StyleReference;
 import org.constellation.exception.ConstellationException;
 
 import static org.constellation.process.service.AddLayerToMapServiceDescriptor.*;
-import org.constellation.util.OGCFilterToDTOTransformer;
+import org.constellation.map.util.OGCFilterToDTOTransformer;
 
 /**
  * Process that add a new layer layerContext from a webMapService configuration.

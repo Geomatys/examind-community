@@ -13,6 +13,7 @@
                     <gml:pos>-80.83775386582222 35.24980190252168</gml:pos>
                 </gml:Point>
             </geometry>
+            <elevation>1200</elevation>
             <gml:name>DOUBLE OAKS CENTER</gml:name>
             <address>1326 WOODWARD AV</address>
             <id>fc-gs-002</id>

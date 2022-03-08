@@ -13,6 +13,7 @@
             "properties": {
                 "name": "ABBOTT NEIGHBORHOOD PARK",
                 "address": "1300  SPRUCE ST",
+                "elevation":1300,
                 "id": "fc-gs-001"
             }
         },
@@ -28,6 +29,7 @@
             "properties": {
                 "name": "DOUBLE OAKS CENTER",
                 "address": "1326 WOODWARD AV",
+                "elevation":1200,
                 "id": "fc-gs-002"
             }
         },
@@ -43,6 +45,7 @@
             "properties": {
                 "name": "DOUBLE OAKS NEIGHBORHOOD PARK",
                 "address": "2605  DOUBLE OAKS RD",
+                "elevation":1100,
                 "id": "fc-gs-003"
             }
         },
@@ -58,6 +61,7 @@
             "properties": {
                 "name": "DOUBLE OAKS POOL",
                 "address": "1200 NEWLAND RD",
+                "elevation":1000,
                 "id": "fc-gs-004"
 
             }
@@ -74,6 +78,7 @@
             "properties": {
                 "name": "DAVID B. WAYMER FLYING REGIONAL PARK",
                 "address": "15401 HOLBROOKS RD",
+                "elevation":900,
                 "id": "fc-gs-005"
             }
         },
@@ -89,6 +94,7 @@
             "properties": {
                 "name": "DAVID B. WAYMER COMMUNITY PARK",
                 "address": "302 HOLBROOKS RD",
+                "elevation":800,
                 "id": "fc-gs-006"
             }
         },
@@ -159,6 +165,7 @@
             },
             "properties": {
                 "name": "Plaza Road Park",
+                "elevation":700,
                 "id": "fc-gs-007"
             }
         }

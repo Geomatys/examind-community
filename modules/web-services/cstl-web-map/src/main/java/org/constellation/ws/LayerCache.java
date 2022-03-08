@@ -18,23 +18,48 @@
  */
 package org.constellation.ws;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.SortedSet;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.sis.cql.CQLException;
+import org.apache.sis.geometry.Envelopes;
+import org.apache.sis.measure.Units;
 import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
+import org.apache.sis.referencing.CRS;
+import org.apache.sis.referencing.CommonCRS;
+import org.apache.sis.referencing.crs.DefaultEngineeringCRS;
+import org.apache.sis.referencing.cs.AbstractCS;
+import org.apache.sis.referencing.cs.DefaultCoordinateSystemAxis;
+import org.apache.sis.referencing.datum.DefaultEngineeringDatum;
 import org.constellation.api.DataType;
 import org.constellation.api.ServiceDef;
 import org.constellation.dto.DimensionRange;
 import org.constellation.dto.NameInProvider;
 import org.constellation.dto.StyleReference;
+import org.constellation.dto.service.config.wxs.DimensionDefinition;
 import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.exception.ConstellationStoreException;
+import org.constellation.map.util.DimensionDef;
 import org.constellation.provider.Data;
+import org.constellation.map.util.DtoToOGCFilterTransformer;
+import org.geotoolkit.cql.CQL;
+import org.geotoolkit.filter.FilterFactoryImpl;
+import static org.geotoolkit.filter.FilterUtilities.FF;
+import org.opengis.filter.Expression;
+import org.opengis.filter.Filter;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.cs.AxisDirection;
+import org.opengis.referencing.cs.CoordinateSystemAxis;
+import org.opengis.referencing.datum.EngineeringDatum;
 import org.opengis.referencing.operation.TransformException;
+import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
 
 /**
@@ -61,6 +86,13 @@ public class LayerCache {
 
     public Integer getId() {
         return nip.layerId;
+    }
+
+    public Optional<String> getAlias() {
+        if (nip.alias != null) {
+            return Optional.of(nip.alias);
+        }
+        return Optional.empty();
     }
 
     public GenericName getName() {
@@ -100,7 +132,23 @@ public class LayerCache {
     }
     
     public CoordinateReferenceSystem getCoordinateReferenceSystem() throws ConstellationStoreException {
-        return data.getEnvelope().getCoordinateReferenceSystem();
+        CoordinateReferenceSystem dataCRS = data.getEnvelope().getCoordinateReferenceSystem();
+        // if the data has extra dimension, we need to add them in the crs.
+        if (configuration != null && !configuration.getDimensions().isEmpty()) {
+            try {
+                final int nbExtraDim = configuration.getDimensions().size();
+                CoordinateReferenceSystem[] crss = new CoordinateReferenceSystem[nbExtraDim + 1];
+                crss[0] = dataCRS;
+                for (int i = 0; i < nbExtraDim; i++) {
+                    DimensionDef dd = getDimensionDef(configuration.getDimensions().get(i));
+                    crss[i+1] = dd.crs;
+                }
+                dataCRS = CRS.compound(crss);
+            } catch (CQLException | FactoryException ex) {
+                throw new ConstellationStoreException("Error while building a compound CRS with custom dimensions.", ex);
+            }
+        }
+        return dataCRS;
     }
 
     public Number getFirstElevation() throws ConstellationStoreException {
@@ -133,5 +181,80 @@ public class LayerCache {
     
     public SortedSet<DimensionRange> getSampleValueRanges() throws ConstellationStoreException {
         return data.getSampleValueRanges();
+    }
+
+    public boolean hasFilterAndDimension() {
+        return configuration != null && (configuration.getFilter() != null || !configuration.getDimensions().isEmpty());
+    }
+    
+    public Optional<Filter> getLayerFilter() {
+        if (configuration != null && configuration.getFilter() != null) {
+            try {
+                return Optional.of(new DtoToOGCFilterTransformer(new FilterFactoryImpl()).visitFilter(configuration.getFilter()));
+            } catch (FactoryException e) {
+                LOGGER.log(Level.WARNING, "Error while transforming layer custom filter", e);
+            }
+        }
+        return Optional.empty();
+    }
+
+    public Optional<Filter> getDimensionFilter(Envelope env) {
+        final List<Filter> filters = new ArrayList<>();
+        if (configuration != null && !configuration.getDimensions().isEmpty()) {
+            for (DimensionDefinition ddef : configuration.getDimensions()) {
+                try {
+                    final DimensionDef def = getDimensionDef(ddef);
+
+                    final Envelope dimEnv;
+                    try {
+                        dimEnv = Envelopes.transform(env, def.crs);
+                    } catch (TransformException ex) {
+                        continue;
+                    }
+
+                    final Filter dimFilter = FF.and(
+                            FF.lessOrEqual(FF.literal(dimEnv.getMinimum(0)), def.lower),
+                            FF.greaterOrEqual(FF.literal(dimEnv.getMaximum(0)), def.upper));
+                    filters.add(dimFilter);
+
+                } catch (CQLException ex) {
+                    LOGGER.log(Level.WARNING, "Error while building a dimension filter.", ex);
+                }
+            }
+        }
+        return filters.stream().reduce(FF::and);
+    }
+
+    public List<DimensionDef> getDimensiondefinition() {
+        final List<DimensionDef> results = new ArrayList<>();
+        if (configuration != null && !configuration.getDimensions().isEmpty()) {
+            for (DimensionDefinition ddef : configuration.getDimensions()) {
+                try {
+                    results.add(getDimensionDef(ddef));
+                } catch (CQLException ex) {
+                    LOGGER.log(Level.WARNING, "Error while building a dimension filter.", ex);
+                }
+            }
+        }
+        return results;
+    }
+
+    private static DimensionDef getDimensionDef(DimensionDefinition ddef) throws CQLException {
+        final String crsname = ddef.getCrs();
+        final Expression lower = CQL.parseExpression(ddef.getLower());
+        final Expression upper = CQL.parseExpression(ddef.getUpper());
+        final CoordinateReferenceSystem dimCrs;
+
+        if ("elevation".equalsIgnoreCase(crsname)) {
+            dimCrs = CommonCRS.Vertical.ELLIPSOIDAL.crs();
+        } else if ("temporal".equalsIgnoreCase(crsname)) {
+            dimCrs = CommonCRS.Temporal.JAVA.crs();
+        } else {
+            final EngineeringDatum customDatum = new DefaultEngineeringDatum(Collections.singletonMap("name", crsname));
+            final CoordinateSystemAxis csAxis = new DefaultCoordinateSystemAxis(Collections.singletonMap("name", crsname), "u", AxisDirection.valueOf(crsname), Units.UNITY);
+            final AbstractCS customCs = new AbstractCS(Collections.singletonMap("name", crsname), csAxis);
+            dimCrs = new DefaultEngineeringCRS(Collections.singletonMap("name", crsname), customDatum, customCs);
+        }
+        return new DimensionDef(dimCrs, lower, upper);
     }
 }

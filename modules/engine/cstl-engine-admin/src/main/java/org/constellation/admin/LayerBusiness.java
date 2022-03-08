@@ -45,7 +45,6 @@ import org.constellation.dto.Layer;
 import org.constellation.dto.NameInProvider;
 import org.constellation.dto.StyleReference;
 import org.constellation.dto.service.Service;
-import org.constellation.dto.service.config.wxs.FilterAndDimension;
 import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.dto.service.config.wxs.LayerSummary;
 import org.constellation.exception.ConfigurationException;
@@ -468,24 +467,6 @@ public class LayerBusiness implements ILayerBusiness {
             throw new TargetNotFoundException("Unable to find a layer:" + layerId);
         }
 
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public FilterAndDimension getLayerFilterDimension(final Integer layerId) throws ConfigurationException {
-
-        Layer layer = layerRepository.findById(layerId);
-        if (layer != null) {
-            LayerConfig layerConfig = Util.readConfigurationObject(layer.getConfig(), LayerConfig.class);
-            if (layerConfig != null) {
-                return new FilterAndDimension(layerConfig.getFilter(), layerConfig.getDimensions());
-            }
-        } else {
-             throw new TargetNotFoundException("Unable to find a layer:" + layerId);
-        }
-        return new FilterAndDimension();
     }
 
     /**

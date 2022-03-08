@@ -16,26 +16,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.dto.portrayal;
+package org.constellation.map.util;
 
-public class LayerStyleUpdate {
+import org.opengis.filter.Expression;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
-    private int layerId;
-    private int styleId;
+/**
+ *
+ * @author Guilhem Legal (Geomatys)
+ */
+public class DimensionDef {
 
-    public int getLayerId() {
-        return layerId;
-    }
+    public final CoordinateReferenceSystem crs;
+    public final Expression lower;
+    public final Expression upper;
 
-    public void setLayerId(int layerId) {
-        this.layerId = layerId;
-    }
-
-    public int getStyleId() {
-        return styleId;
-    }
-
-    public void setStyleId(int styleId) {
-        this.styleId = styleId;
+    public DimensionDef(CoordinateReferenceSystem crs, Expression lower, Expression upper) {
+        this.crs = crs;
+        this.lower = lower;
+        this.upper = upper;
     }
 }

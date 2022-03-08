@@ -83,11 +83,14 @@ import org.junit.BeforeClass;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.util.GenericName;
 import org.constellation.dto.AcknowlegementType;
+import org.constellation.dto.Filter;
 import org.constellation.dto.service.Instance;
 import org.constellation.dto.service.InstanceReport;
 import org.constellation.dto.service.ServiceStatus;
 import org.constellation.dto.SimpleValue;
 import org.constellation.dto.service.ServiceComplete;
+import org.constellation.dto.service.config.wxs.DimensionDefinition;
+import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.constellation.test.utils.CstlDOMComparator;
 import org.constellation.test.utils.TestEnvironment;
@@ -102,6 +105,7 @@ import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
+import static org.geotoolkit.ogc.xml.OGCJAXBStatics.FILTER_COMPARISON_ISLESS;
 
 /**
  * A set of methods that request a SpringBoot server which embeds a WMS service.
@@ -480,6 +484,21 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     private static final String WMS_GETMAP_JSON_COLLECTION = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image%2Fpng"
             + "&TRANSPARENT=true&LAYERS=JS2&SLD_VERSION=1.1.0&WIDTH=256&HEIGHT=256&CRS=EPSG%3A3857&STYLES=&"
             + "BBOX=-9001224.450862356%2C4187526.157575095%2C-8962088.692380344%2C4226661.916057105";
+
+    private static final String WMS_GETMAP_130_JCOLL = "request=GetMap&service=WMS&version=1.3.0&"
+            + "format=image/png&width=1024&height=512&"
+            + "crs=CRS:84&bbox=-81,35,-80.5,35.5&"
+            + "layers=JCOL&styles=";
+
+    private static final String WMS_GETMAP_130_JCOLL_FILTER = "request=GetMap&service=WMS&version=1.3.0&"
+            + "format=image/png&width=1024&height=512&"
+            + "crs=CRS:84&bbox=-81,35,-80.5,35.5&"
+            + "layers=JCOLF&styles=";
+
+    private static final String WMS_GETMAP_130_JCOLL_ELEVATION = "request=GetMap&service=WMS&version=1.3.0&"
+            + "format=image/png&width=1024&height=512&"
+            + "crs=CRS:84&bbox=-81,35,-80.5,35.5&"
+            + "layers=JCOLF&styles=&elevation=700";
     
     private static boolean initialized = false;
 
@@ -490,6 +509,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         CONFIG_DIR = ConfigDirectory.setupTestEnvironement("WMSRequestTest");
         controllerConfiguration = WMSControllerConfig.class;
     }
+        
+    private static final int DEF_NB_LAYER = 25;
 
     /**
      * Initialize the list of layers from the defined providers in
@@ -542,11 +563,13 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
                 // we add two times a new geojson provider in order to create 2 layer with same name but different alias
                 DataImport d13 = testResource.createProvider(TestResource.JSON_FEATURE, providerBusiness, null).datas.get(0);
-                DataImport d14 = testResource.createProvider(TestResource.JSON_FEATURE, providerBusiness, null).datas.get(0);
+               // DataImport d14 = testResource.createProvider(TestResource.JSON_FEATURE, providerBusiness, null).datas.get(0);
                 
                 // netcdf datastore
                 datas.addAll(testResource.createProvider(TestResource.NETCDF, providerBusiness, null).datas);
                 datas.addAll(testResource.createProvider(TestResource.NETCDF_WITH_NAN, providerBusiness, null).datas);
+
+                DataImport d15 = testResource.createProvider(TestResource.JSON_FEATURE_COLLECTION, providerBusiness, null).datas.get(0);
 
                 final LayerContext config = new LayerContext();
                 config.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());
@@ -565,7 +588,17 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 }
 
                 layerBusiness.add(d13.id,  "JS1", d13.namespace,  d13.name,    defId, null);
-                layerBusiness.add(d14.id,  "JS2", d14.namespace,  d14.name,    defId, null);
+                layerBusiness.add(d13.id,  "JS2", d13.namespace,  d13.name,    defId, null);
+
+                // add a filter on "elevation" property
+                LayerConfig lconfig = new LayerConfig();
+                lconfig.setFilter(new Filter("elevation", "1000", FILTER_COMPARISON_ISLESS));
+                DimensionDefinition dd = new DimensionDefinition("elevation", "elevation", "elevation");
+                lconfig.setDimensions(Arrays.asList(dd));
+                layerBusiness.add(d15.id, "JCOLF", d15.namespace,  d15.name,    defId, lconfig);
+
+                // add basic layer for comparison
+                layerBusiness.add(d15.id, "JCOL", d15.namespace,  d15.name,    defId, null);
 
                 final LayerContext config2 = new LayerContext();
                 config2.setSupportedLanguages(new Languages(Arrays.asList(new Language("fre"), new Language("eng", true))));
@@ -2194,7 +2227,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
      * @throws java.io.Exception
      */
     @Test
-    @Order(order = 30)
+    @Order(order = 29)
     public void testWMSGetLegendGraphicAlias() throws Exception {
         initLayerList();
         // Creates a valid GetLegendGraphic url.
@@ -2219,6 +2252,59 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertEquals(40, image.getHeight());
     }
 
+    @Test
+    @Order(order = 29)
+    public void testWMSGetMapFilter() throws Exception {
+        initLayerList();
+        // Creates a valid GetLegendGraphic url.
+        URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_130_JCOLL);
+
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        BufferedImage image = getImageFromURL(getMapUrl, "image/png");
+
+        // Test on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(1024, image.getWidth());
+        assertEquals(512, image.getHeight());
+
+        Path p = CONFIG_DIR.resolve("JCOLL-FULL.png");
+        writeInFile(getMapUrl, p);
+
+        getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_130_JCOLL_FILTER);
+
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        image = getImageFromURL(getMapUrl, "image/png");
+
+        // Test on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(1024, image.getWidth());
+        assertEquals(512, image.getHeight());
+
+        p = CONFIG_DIR.resolve("JCOLL-FILTERED.png");
+        writeInFile(getMapUrl, p);
+
+        System.out.println("");
+    }
+
+    @Test
+    @Order(order = 29)
+    public void testWMSGetMapCustomDimension() throws Exception {
+        initLayerList();
+        URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_130_JCOLL_ELEVATION);
+
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        BufferedImage image = getImageFromURL(getMapUrl, "image/png");
+
+        // Test on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(1024, image.getWidth());
+        assertEquals(512, image.getHeight());
+
+        Path p = CONFIG_DIR.resolve("JCOLL-ELEVATION.png");
+        writeInFile(getMapUrl, p);
+        
+        System.out.println("");
+    }
 
     @Test
     @Order(order = 30)
@@ -2263,7 +2349,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.3.0", "1.1.1");
         final List<String> versions2 = Arrays.asList("1.3.0");
-        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 23, ServiceStatus.STARTED, "null/wms/default"));
+        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, DEF_NB_LAYER, ServiceStatus.STARTED, "null/wms/default"));
         instances.add(new Instance(2, "wms1", "this is the default english capabilities", "Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.", "wms", versions, 1, ServiceStatus.STARTED, "null/wms/wms1"));
         instances.add(new Instance(3, "wms2", "wms2", null, "wms", versions2, 13, ServiceStatus.STARTED, "null/wms/wms2"));
         instances.add(new Instance(4, "wms3", "OGC:WMS", "Constellation Map Server", "wms", versions, 0, ServiceStatus.STOPPED, "null/wms/wms3"));
@@ -2321,7 +2407,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.3.0", "1.1.1");
         final List<String> versions2 = Arrays.asList("1.3.0");
-        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 23, ServiceStatus.STARTED, "null/wms/default"));
+        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, DEF_NB_LAYER, ServiceStatus.STARTED, "null/wms/default"));
         instances.add(new Instance(2, "wms1", "this is the default english capabilities", "Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.", "wms", versions, 1, ServiceStatus.STARTED, "null/wms/wms1"));
         instances.add(new Instance(3, "wms2", "wms2", null, "wms", versions2, 13, ServiceStatus.STARTED, "null/wms/wms2"));
         instances.add(new Instance(4, "wms3", "OGC:WMS", "Constellation Map Server", "wms", versions, 0, ServiceStatus.STARTED, "null/wms/wms3"));
@@ -2412,7 +2498,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.3.0", "1.1.1");
         final List<String> versions2 = Arrays.asList("1.3.0");
-        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 23, ServiceStatus.STARTED, "null/wms/default"));
+        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, DEF_NB_LAYER, ServiceStatus.STARTED, "null/wms/default"));
         instances.add(new Instance(2, "wms1", "this is the default english capabilities", "Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.", "wms", versions, 1, ServiceStatus.STARTED, "null/wms/wms1"));
         instances.add(new Instance(3, "wms2", "wms2", null, "wms", versions2, 13, ServiceStatus.STARTED, "null/wms/wms2"));
         instances.add(new Instance(4, "wms3", "OGC:WMS", "Constellation Map Server", "wms", versions, 0, ServiceStatus.STOPPED, "null/wms/wms3"));
@@ -2455,7 +2541,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.3.0", "1.1.1");
         final List<String> versions2 = Arrays.asList("1.3.0");
-        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 23, ServiceStatus.STARTED, "null/wms/default"));
+        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, DEF_NB_LAYER, ServiceStatus.STARTED, "null/wms/default"));
         instances.add(new Instance(2, "wms1", "this is the default english capabilities", "Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.", "wms", versions, 1, ServiceStatus.STARTED, "null/wms/wms1"));
         instances.add(new Instance(3, "wms2", "wms2", null, "wms", versions2, 13, ServiceStatus.STARTED, "null/wms/wms2"));
         InstanceReport expResult2 = new InstanceReport(instances);

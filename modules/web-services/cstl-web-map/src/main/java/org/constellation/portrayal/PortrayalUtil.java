@@ -18,7 +18,7 @@
  */
 package org.constellation.portrayal;
 
-import org.constellation.dto.service.config.wxs.LayerConfig;
+import java.util.ArrayList;
 import org.constellation.provider.Data;
 import org.geotoolkit.map.MapBuilder;
 import org.apache.sis.portrayal.MapLayers;
@@ -28,8 +28,15 @@ import org.geotoolkit.style.MutableStyle;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.logging.Logger;
+import org.apache.sis.portrayal.MapLayer;
+import org.apache.sis.storage.FeatureQuery;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.ws.LayerCache;
+import static org.geotoolkit.filter.FilterUtilities.FF;
+import org.opengis.filter.Filter;
+import org.opengis.geometry.Envelope;
 
 
 /**
@@ -46,50 +53,54 @@ import org.constellation.ws.LayerCache;
  */
 public final class PortrayalUtil {
 
-
     public static MapLayers createContext(LayerCache layerRef, MutableStyle styleRef,
             Map<String,Object> renderingParameters) throws ConstellationStoreException{
-        return createContext(Collections.singletonList(layerRef),
+        return createContext(
+                 Collections.singletonList(layerRef),
                  Collections.singletonList(styleRef),
-                 renderingParameters);
+                 renderingParameters,
+                 null);
 
     }
 
     public static MapLayers createContext(List<LayerCache> layerRefs, List<MutableStyle> styleRefs,
-            Map<String,Object> renderingParameters ) throws ConstellationStoreException {
-
+            Map<String,Object> renderingParameters, Envelope env) throws ConstellationStoreException {
     	assert ( layerRefs.size() == styleRefs.size() );
         final MapLayers context = MapBuilder.createContext();
 
         for (int i = 0; i < layerRefs.size(); i++) {
             final LayerCache layer = layerRefs.get(i);
             if (layer.getData() != null) {
-                final Data layerRef = layer.getData();
+                final Data data = layer.getData();
                 final MutableStyle style = styleRefs.get(i);
 
-                assert (null != layerRef);
                 //style can be null
-
-                final MapItem mapLayer = (MapItem) layerRef.getMapLayer(style, renderingParameters);
-                if (mapLayer == null) {
-                    throw new ConstellationStoreException("Could not create a mapLayer for layer: " + layerRef.getName());
+                final MapItem mapItem = data.getMapLayer(style, renderingParameters);
+                if (mapItem == null) {
+                    throw new ConstellationStoreException("Could not create a mapLayer for layer: " + layer.getName());
                 }
-
-                mapLayer.setVisible(true);
-                final Map<String, Object> userData = mapLayer.getUserProperties();
+                mapItem.setVisible(true);
+                final Map<String, Object> userData = mapItem.getUserProperties();
                 userData.put("layerId", layer.getId());
                 userData.put("layerName", layer.getName());
-                final LayerConfig layerConf = layer.getConfiguration();
-                final String alias;
-                if (layerConf != null && (alias = layerConf.getAlias()) != null) {
-                    userData.put("alias", alias);
+                layer.getAlias().ifPresent(a -> userData.put("alias", a));
+                if (mapItem instanceof MapLayer mapLayer && layer.hasFilterAndDimension()) {
+                    List<Filter> filters = new ArrayList<>();
+                    layer.getLayerFilter().ifPresent(f -> filters.add(f));
+                    layer.getDimensionFilter(env).ifPresent(f -> filters.add(f));
+
+                    Optional<Filter> filter = filters.stream().reduce(FF::and);
+                    if (filter.isPresent()) {
+                        final FeatureQuery query = new FeatureQuery();
+                        query.setSelection(filter.get());
+                        mapLayer.setQuery(query);
+                    }
                 }
-                context.getComponents().add(mapLayer);
+                context.getComponents().add(mapItem);
             } else {
                 throw new ConstellationStoreException("Could not create a Context for a non Geo data: " + layerRefs.get(i).getName());
             }
         }
-
         return context;
     }
 

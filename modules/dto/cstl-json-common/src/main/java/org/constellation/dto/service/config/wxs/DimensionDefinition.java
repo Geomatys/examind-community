@@ -42,6 +42,12 @@ public class DimensionDefinition {
     public DimensionDefinition() {
     }
 
+    public DimensionDefinition(String crs, String lower, String upper) {
+        this.crs = crs;
+        this.lower = lower;
+        this.upper = upper;
+    }
+
     public String getCrs() {
         return crs;
     }

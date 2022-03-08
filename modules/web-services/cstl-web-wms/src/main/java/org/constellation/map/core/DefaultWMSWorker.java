@@ -36,25 +36,17 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Named;
 import javax.xml.bind.JAXBException;
-import org.apache.sis.cql.CQLException;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.storage.FeatureQuery;
-import org.apache.sis.internal.util.UnmodifiableArrayList;
 import org.apache.sis.measure.Range;
-import org.apache.sis.measure.Units;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.IdentifiedObjects;
 import org.apache.sis.referencing.crs.AbstractCRS;
-import org.apache.sis.referencing.crs.DefaultEngineeringCRS;
-import org.apache.sis.referencing.cs.AbstractCS;
 import org.apache.sis.referencing.cs.AxesConvention;
-import org.apache.sis.referencing.cs.DefaultCoordinateSystemAxis;
-import org.apache.sis.referencing.datum.DefaultEngineeringDatum;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
-import org.apache.sis.storage.Resource;
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import static org.constellation.api.CommonConstants.DEFAULT_CRS;
 import org.constellation.api.ServiceDef;
@@ -63,8 +55,6 @@ import org.constellation.dto.StyleReference;
 import org.constellation.dto.contact.Details;
 import org.constellation.dto.portrayal.WMSPortrayal;
 import org.constellation.dto.service.config.wxs.AttributionType;
-import org.constellation.dto.service.config.wxs.DimensionDefinition;
-import org.constellation.dto.service.config.wxs.FilterAndDimension;
 import org.constellation.dto.service.config.wxs.FormatURL;
 import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.exception.ConfigurationException;
@@ -86,13 +76,11 @@ import org.constellation.portrayal.PortrayalResponse;
 import org.constellation.portrayal.PortrayalUtil;
 import org.constellation.provider.CoverageData;
 import org.constellation.provider.Data;
-import org.constellation.util.DtoToOGCFilterTransformer;
 import org.constellation.util.Util;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.LayerCache;
 import org.constellation.ws.LayerWorker;
 import org.constellation.ws.MimeType;
-import org.geotoolkit.cql.CQL;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.ext.legend.DefaultLegendService;
 import org.geotoolkit.display2d.ext.legend.LegendTemplate;
@@ -101,15 +89,12 @@ import org.geotoolkit.display2d.service.DefaultPortrayalService;
 import org.geotoolkit.display2d.service.OutputDef;
 import org.geotoolkit.display2d.service.SceneDef;
 import org.geotoolkit.factory.Hints;
-import org.geotoolkit.filter.FilterFactoryImpl;
 import org.geotoolkit.filter.visitor.ListingPropertyVisitor;
 import org.geotoolkit.inspire.xml.vs.ExtendedCapabilitiesType;
 import org.geotoolkit.inspire.xml.vs.LanguageType;
 import org.geotoolkit.inspire.xml.vs.LanguagesType;
 import org.apache.sis.portrayal.MapLayers;
-import org.apache.sis.portrayal.MapItem;
 import org.apache.sis.portrayal.MapLayer;
-import org.apache.sis.storage.Query;
 import org.geotoolkit.filter.FilterUtilities;
 import org.apache.sis.util.Version;
 import org.constellation.api.DataType;
@@ -118,7 +103,8 @@ import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.dto.DimensionRange;
 import static org.constellation.map.core.WMSConstant.NO_TRANSPARENT_FORMAT;
-import org.geotoolkit.map.MapBuilder;
+import org.constellation.map.util.DimensionDef;
+import org.constellation.provider.FeatureData;
 import org.geotoolkit.ows.xml.OWSExceptionCode;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.CURRENT_UPDATE_SEQUENCE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
@@ -154,16 +140,12 @@ import static org.geotoolkit.wms.xml.WmsXmlFactory.createStyle;
 import org.geotoolkit.wms.xml.v111.LatLonBoundingBox;
 import org.geotoolkit.wms.xml.v130.Capability;
 import org.opengis.feature.Feature;
-import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.Expression;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.crs.VerticalCRS;
-import org.opengis.referencing.cs.AxisDirection;
-import org.opengis.referencing.cs.CoordinateSystemAxis;
-import org.opengis.referencing.datum.EngineeringDatum;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.sld.StyledLayerDescriptor;
 import org.opengis.util.FactoryException;
@@ -204,13 +186,6 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
     static {
         ISO8601_NO_MS_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
-
-    /**
-     * Only Elevation dimension.
-     */
-    private static final List<String> VERTICAL_DIM = UnmodifiableArrayList.wrap(new String[] {"UP", "DOWN"});
-
-    private static final String PROP_EXTRADIMENSIONS = "extraDims";
 
     /**
      * List of FeatureInfo mimeTypes
@@ -492,8 +467,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             //-- execute only if it is a CoverageData
             Double nativeResolutionX = null;
             Double nativeResolutionY = null;
-            if (data instanceof CoverageData) {
-                final CoverageData covdata = (CoverageData) data;
+            if (data instanceof CoverageData covdata) {
                 try {
                     for (org.constellation.dto.Dimension d : covdata.getSpecialDimensions()) {
                         dimensions.add(createDimension(queryVersion, d.getValue(), d.getName(), d.getUnits(),
@@ -509,46 +483,11 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             }
 
             // Verify extra dimensions
-            if (!layer.getConfiguration().getDimensions().isEmpty()) {
-
-                try {
-                    final MapItem mi = data.getMapLayer(null, null);
-                    applyLayerFiltersAndDims(mi, userLogin);
-
-                    if (mi instanceof MapLayers) {
-                        final MapLayers mc = (MapLayers) mi;
-                        final List<AbstractDimension> dimensionsToAdd = new ArrayList<>();
-                        for (final MapLayer candidateLayer : MapBuilder.getLayers(mc)) {
-                            if (candidateLayer.getData() instanceof FeatureSet) {
-                                final List<AbstractDimension> extraDimsToAdd = getExtraDimensions(candidateLayer, queryVersion);
-                                for (AbstractDimension newExtraDim : extraDimsToAdd) {
-                                    boolean exist = false;
-                                    for (AbstractDimension oldExtraDim : dimensionsToAdd) {
-                                        if (oldExtraDim.getName().equalsIgnoreCase(newExtraDim.getName())) {
-                                            mergeValues(oldExtraDim, newExtraDim);
-                                            exist = true;
-                                            break;
-                                        }
-                                    }
-                                    if (!exist) {
-                                        dimensionsToAdd.add(newExtraDim);
-                                    }
-                                }
-                            }
-                        }
-
-                        if (!dimensionsToAdd.isEmpty()) {
-                            dimensions.addAll(dimensionsToAdd);
-                        }
-                    } else if (mi instanceof MapLayer) {
-                        final MapLayer ml = (MapLayer) mi;
-                        if (ml.getData() instanceof FeatureSet) dimensions.addAll(getExtraDimensions(ml, queryVersion));
-                    }
-
-                } catch (ConstellationStoreException | DataStoreException ex) {
-                    LOGGER.log(Level.INFO, ex.getMessage(), ex);
-                    break;
-                }
+            try {
+                dimensions.addAll(getExtraDimensions(layer, queryVersion));
+            } catch (DataStoreException ex) {
+                LOGGER.log(Level.INFO, ex.getMessage(), ex);
+                break;
             }
 
             /*
@@ -695,77 +634,46 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         return inCapabilities;
     }
 
-    private String sortValues(final String... vals) {
-        final List<String> finalVals = new ArrayList<>();
-        for (final String s : vals) {
-            finalVals.add(s);
-        }
-
-        boolean isDoubleValues = false;
-        List<Double> finalValsDouble = null;
-        try {
-            Double.valueOf(finalVals.get(0));
-            // It is a double!
-            isDoubleValues = true;
-            finalValsDouble = new ArrayList<>();
-            for (String s : finalVals) {
-                finalValsDouble.add(Double.valueOf(s));
+    private String printValues(Set<Range> refs) {
+        boolean isAllDouble = true;
+        List<Double> doubleValues = new ArrayList<>();
+        List<String> stringValues = new ArrayList<>();
+        for (Range r : refs) {
+            try {
+                if (isAllDouble && r.getMinValue().compareTo(r.getMaxValue()) != 0) {
+                    stringValues.add(r.getMinValue().toString());
+                    doubleValues.add(Double.parseDouble(r.getMinValue().toString()));
+                } else {
+                    isAllDouble = false;
+                    stringValues.add(r.getMinValue().toString() + "-" + r.getMaxValue().toString());
+                }
+            } catch (NumberFormatException ex) {
+                isAllDouble = false;
+                break;
             }
-        } catch (NumberFormatException ex) {
         }
+        
 
-        if (isDoubleValues) {
-            Collections.sort(finalValsDouble);
-            finalVals.clear();
-            for (Double d : finalValsDouble) {
-                finalVals.add(String.valueOf(d));
+        if (isAllDouble) {
+            Collections.sort(doubleValues);
+            stringValues.clear();
+            for (Double d : doubleValues) {
+                stringValues.add(String.valueOf(d));
             }
         } else {
-            Collections.sort(finalVals);
+            Collections.sort(stringValues);
         }
 
         final StringBuilder sb = new StringBuilder();
         boolean first = true;
-        for (String val : finalVals) {
+        for (String val : stringValues) {
             if (!first) {
                 sb.append(",");
             }
             sb.append(val);
             first = false;
         }
-
         return sb.toString();
-    }
-
-    /**
-     * Merge old and new values in the old dimension. Try to sort its values.
-     *
-     * @param oldExtraDim
-     * @param newExtraDim
-     */
-    private void mergeValues(final AbstractDimension oldExtraDim, final AbstractDimension newExtraDim) {
-        final Set<String> valsSet = new HashSet<>();
-        final String oldVals = oldExtraDim.getValue();
-        final String[] oldValsSplit = oldVals.split(",");
-        for (final String o : oldValsSplit) {
-            valsSet.add(o);
-        }
-
-        final String newVals = newExtraDim.getValue();
-        final String[] newValsSplit = newVals.split(",");
-        for (final String n : newValsSplit) {
-            valsSet.add(n);
-        }
-
-        final List<String> finalVals = new ArrayList<>();
-        finalVals.addAll(valsSet);
-
-        if (finalVals.isEmpty()) {
-            return;
-        }
-
-        final String finalValSorted = sortValues(finalVals.toArray(new String[0]));
-        oldExtraDim.setValue(finalValSorted);
     }
 
     /**
@@ -776,55 +684,43 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
      * @return A list of extra dimensions, never {@code null}
      * @throws DataStoreException
      */
-    private List<AbstractDimension> getExtraDimensions(final MapLayer fml, final String queryVersion) throws DataStoreException {
-        final Resource resource = fml.getData();
-        final List<DimensionDef> dims = (List<DimensionDef>) fml.getUserProperties().get(PROP_EXTRADIMENSIONS);
-        if (dims == null || !(resource instanceof FeatureSet)) return new ArrayList<>();
+    private List<AbstractDimension> getExtraDimensions(final LayerCache layer, final String queryVersion) throws DataStoreException {
+        // TODO handle the mapcontxt data case where we should merge the dimensions values
 
-        final List<AbstractDimension> dimensions = new ArrayList<>(dims.size());
-        final FeatureSet fs = (FeatureSet) resource;
+        if (!(layer.getData() instanceof FeatureData)) return new ArrayList<>();
 
-        for (DimensionDef ddef : dims) {
-            final Collection<Range> collRefs;
-            collRefs = getDimensionRange(fs, ddef.lower, ddef.upper);
+        final List<AbstractDimension> dimensions = new ArrayList<>();
+        if (layer.hasFilterAndDimension()) {
+            final FeatureSet fs = (FeatureSet) layer.getData().getOrigin();
+            final List<DimensionDef> dims = layer.getDimensiondefinition();
+            for (DimensionDef ddef : dims) {
+                final Collection<Range> collRefs = getDimensionRange(fs, ddef.lower, ddef.upper);
 
-            // Transform it to a set in order to filter same values
-            final Set<Range> refs = new HashSet<>();
-            for (Range ref : collRefs) {
-                refs.add(ref);
-            }
-
-            if (refs.isEmpty()) {
-                // Dimension applied on a layer which has no values: just skip this dimension
-                continue;
-            }
-
-            final StringBuilder values = new StringBuilder();
-            int index = 0;
-            for (final Range val : refs) {
-                values.append(val.getMinValue());
-                if(val.getMinValue().compareTo(val.getMaxValue()) != 0){
-                    values.append('-');
-                    values.append(val.getMaxValue());
+                // Transform it to a set in order to filter same values
+                final Set<Range> refs = new HashSet<>();
+                for (Range ref : collRefs) {
+                    refs.add(ref);
                 }
-                if (index++ < refs.size()-1) {
-                    values.append(",");
+
+                if (refs.isEmpty()) {
+                    // Dimension applied on a layer which has no values: just skip this dimension
+                    continue;
                 }
+
+                final String sortedValues = printValues(refs);
+                final String unitSymbol = ddef.crs.getCoordinateSystem().getAxis(0).getUnit().toString();
+                final String unit = unitSymbol;
+                final String axisName = ddef.crs.getCoordinateSystem().getAxis(0).getName().getCode();
+                final String defaut = "";
+
+                final AbstractDimension adim = (queryVersion.equals(ServiceDef.WMS_1_1_1_SLD.version.toString())) ?
+                    new org.geotoolkit.wms.xml.v111.Dimension(sortedValues, axisName, unit,
+                        unitSymbol, defaut, null, null, null) :
+                    new org.geotoolkit.wms.xml.v130.Dimension(sortedValues, axisName, unit,
+                        unitSymbol, defaut, null, null, null);
+
+                dimensions.add(adim);
             }
-
-            final String sortedValues = sortValues(values.toString().split(","));
-            final String unitSymbol = ddef.crs.getCoordinateSystem().getAxis(0).getUnit().toString();
-            final String unit = unitSymbol;
-            final String axisName = ddef.crs.getCoordinateSystem().getAxis(0).getName().getCode();
-            final String defaut = "";
-
-            final AbstractDimension dim = (queryVersion.equals(ServiceDef.WMS_1_1_1_SLD.version.toString())) ?
-                new org.geotoolkit.wms.xml.v111.Dimension(sortedValues, axisName, unit,
-                    unitSymbol, defaut, null, null, null) :
-                new org.geotoolkit.wms.xml.v130.Dimension(sortedValues, axisName, unit,
-                    unitSymbol, defaut, null, null, null);
-
-            dimensions.add(dim);
         }
         return dimensions;
     }
@@ -964,7 +860,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         //
         // Note this is almost the same logic as in getMap
         //
-        // 1. SCENE
+
         //       -- get the List of layer references
         final String userLogin             = getUserLogin();
         final List<GenericName> layerNames = getFI.getQueryLayers();
@@ -982,6 +878,11 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             }
         }
 
+        // 1. VIEW
+        final Envelope refEnv = buildRequestedViewEnvelope(getFI, layersCache);
+        final double azimuth = getFI.getAzimuth();
+
+        // 2. SCENE
         //       -- build an equivalent style List
         //TODO: clean up the SLD vs. style logic
         final List<String> styleNames   = getFI.getStyles();
@@ -998,17 +899,11 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         final SceneDef sdef = new SceneDef();
 
         try {
-            final MapLayers context = PortrayalUtil.createContext(layersCache, styles, params);
+            final MapLayers context = PortrayalUtil.createContext(layersCache, styles, params, refEnv);
             sdef.setContext(context);
-            //apply layercontext filters
-            applyLayerFiltersAndDims(context, userLogin);
-        } catch (ConstellationStoreException | DataStoreException ex) {
+        } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
         }
-
-        // 2. VIEW
-        final Envelope refEnv = buildRequestedViewEnvelope(getFI, layersCache);
-        final double azimuth = getFI.getAzimuth();
 
         // 3. CANVAS
         final Dimension canvasDimension = getFI.getSize();
@@ -1199,9 +1094,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             errorBlank = EXCEPTION_111_BLANK.equalsIgnoreCase(errorType);
         }
 
-
-        // 1. SCENE
-        //       -- get the List of layer references
+        // get the List of layer references
         final List<GenericName> layerNames = getMap.getLayers();
 
         //check layer limit
@@ -1224,6 +1117,12 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                         layer.getName() +"\".", LAYER_NOT_QUERYABLE, KEY_LAYERS.toLowerCase());
             }
         }
+
+        // 1. VIEW
+        final Envelope refEnv = buildRequestedViewEnvelope(getMap, layersCache);
+        final double azimuth = getMap.getAzimuth();
+
+        // 1. SCENE
         //       -- build an equivalent style List
         //TODO: clean up the SLD vs. style logic
         final List<String> styleNames = getMap.getStyles();
@@ -1252,25 +1151,12 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         }
 
         try {
-            final MapLayers context = PortrayalUtil.createContext(layersCache, styles, params);
-            //apply layercontext filters
-            applyLayerFiltersAndDims(context, userLogin);
-
+            final MapLayers context = PortrayalUtil.createContext(layersCache, styles, params, refEnv);
             sdef.setContext(context);
-        } catch (ConstellationStoreException | DataStoreException ex) {
+        } catch (ConstellationStoreException ex) {
             return handleExceptions(getMap, errorInImage, errorBlank, ex, NO_APPLICABLE_CODE, null);
         }
-
-        // 2. VIEW
-        final Envelope refEnv = buildRequestedViewEnvelope(getMap, layersCache);
-        final double azimuth = getMap.getAzimuth();
-        //apply extra dimension filters
-        try {
-            applyDimFilter(sdef.getContext(), refEnv);
-        } catch (DataStoreException ex) {
-            return handleExceptions(getMap, errorInImage, errorBlank, ex, NO_APPLICABLE_CODE, null);
-        }
-
+        
         // 3. CANVAS
         final Dimension canvasDimension = getMap.getSize();
         final Color background;
@@ -1482,8 +1368,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             // If it matches, then we return it.
             if (layerName.tip().toString().equals(sldLayerName)) {
                 for (final MutableLayerStyle mls : mnl.styles()) {
-                    if (mls instanceof MutableNamedStyle) {
-                        final MutableNamedStyle mns = (MutableNamedStyle) mls;
+                    if (mls instanceof MutableNamedStyle mns) {
                         final String namedStyle = mns.getName();
                         final StyleReference styleRef = Util.findStyleReference(namedStyle, layerStyles);
                         return getStyle(styleRef);
@@ -1543,121 +1428,6 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
     }
 
     /**
-     * Apply and transform recursively configuration {@link org.opengis.filter.Filter} and
-     * {@link org.constellation.dto.service.config.wxs.DimensionDefinition} to all {@link MapLayer map layers}
-     * whose data is a {@link FeatureSet} in input {@link org.apache.sis.portrayal.MapItem}.
-     *
-     * @param item root mapItem
-     * @param userLogin login used to get configuration.
-     */
-    private void applyLayerFiltersAndDims(final MapItem item, final String userLogin) throws DataStoreException {
-        if (item instanceof MapLayer) {
-            final MapLayer fml = (MapLayer)item;
-            if (!(fml.getData() instanceof FeatureSet)) return;
-            Integer lid = (Integer) fml.getUserProperties().get("layerId");
-            if (lid != null) {
-                final FilterAndDimension layerFnD = getLayerFilterDimensions(lid);
-                if (layerFnD.getFilter() != null) {
-                    Filter filterGt = Filter.include();
-                    try {
-                        filterGt = new DtoToOGCFilterTransformer(new FilterFactoryImpl()).visitFilter(layerFnD.getFilter());
-                    } catch (FactoryException e) {
-                        LOGGER.log(Level.INFO, e.getLocalizedMessage(), e);
-                    }
-                    final FeatureQuery query = new FeatureQuery();
-                    query.setSelection(filterGt);
-                    fml.setQuery(query);
-                }
-
-                final List<DimensionDef> defs = new ArrayList<>();
-                for (DimensionDefinition ddef : layerFnD.getDimensions()) {
-                    try {
-                        final String crsname = ddef.getCrs();
-                        final Expression lower = CQL.parseExpression(ddef.getLower());
-                        final Expression upper = CQL.parseExpression(ddef.getUpper());
-                        final CoordinateReferenceSystem dimCrs;
-
-                        if ("elevation".equalsIgnoreCase(crsname)) {
-                            dimCrs = CommonCRS.Vertical.ELLIPSOIDAL.crs();
-                        } else if ("temporal".equalsIgnoreCase(crsname)) {
-                            dimCrs = CommonCRS.Temporal.JAVA.crs();
-                        } else {
-                            final EngineeringDatum customDatum = new DefaultEngineeringDatum(Collections.singletonMap("name", crsname));
-                            final CoordinateSystemAxis csAxis = new DefaultCoordinateSystemAxis(Collections.singletonMap("name", crsname), "u", AxisDirection.valueOf(crsname), Units.UNITY);
-                            final AbstractCS customCs = new AbstractCS(Collections.singletonMap("name", crsname), csAxis);
-                            dimCrs = new DefaultEngineeringCRS(Collections.singletonMap("name", crsname), customDatum, customCs);
-                        }
-
-                        defs.add(new DimensionDef(dimCrs, lower, upper));
-                    } catch (CQLException ex) {
-                        LOGGER.log(Level.WARNING, null, ex);
-                    }
-                }
-
-                fml.getUserProperties().put(PROP_EXTRADIMENSIONS, defs);
-            }
-        } else if (item instanceof MapLayers) {
-            for (MapItem layer : ((MapLayers) item).getComponents()) {
-                applyLayerFiltersAndDims(layer, userLogin);
-            }
-        }
-    }
-
-    /**
-     * Apply extra dimension filters.
-     */
-    private static void applyDimFilter(MapItem item, Envelope box) throws DataStoreException {
-        if (item instanceof MapLayers) {
-            for (MapItem mi : ((MapLayers) item).getComponents()) {
-                applyDimFilter(mi, box);
-            }
-        } else if (item instanceof MapLayer) {
-            applyDimFilter((MapLayer) item, box);
-        }
-    }
-    /**
-     * Apply extra dimension filters.
-     */
-    private static void applyDimFilter(MapLayer layer, Envelope box) throws DataStoreException {
-        Resource resource = layer.getData();
-        if (!(resource instanceof FeatureSet)) return;
-
-        final List<DimensionDef> defs = (List<DimensionDef>) layer.getUserProperties().get(PROP_EXTRADIMENSIONS);
-        if (defs == null || defs.isEmpty()) return;
-
-        FeatureSet fs = (FeatureSet) resource;
-
-        final FilterFactory ff = FilterUtilities.FF;
-        Filter filter = Filter.include();
-        for (final DimensionDef def : defs) {
-            final Envelope dimEnv;
-            try {
-                dimEnv = Envelopes.transform(box, def.crs);
-            } catch (TransformException ex) {
-                continue;
-            }
-
-            final Filter dimFilter = ff.and(
-                    ff.lessOrEqual(ff.literal(dimEnv.getMinimum(0)), def.lower),
-                    ff.greaterOrEqual(ff.literal(dimEnv.getMaximum(0)), def.upper));
-            filter = ff.and(filter, dimFilter);
-        }
-
-        //combine with previous query
-        Query query = layer.getQuery();
-        if (query == null) {
-            fs = fs.subset(query);
-        } else if (query instanceof FeatureQuery) {
-            FeatureQuery q = (FeatureQuery) query;
-            FeatureQuery cp = q.clone();
-            cp.setSelection(ff.and(cp.getSelection(), filter));
-            layer.setQuery(cp);
-        } else {
-            LOGGER.log(Level.WARNING, "Can not combine dimension filter with query " + query);
-        }
-    }
-
-    /**
      * Get all values of given extra dimension.
      * @return collection never null, can be empty.
      */
@@ -1713,19 +1483,6 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             return false;
         } catch(NumberFormatException ex) {
             throw new CstlServiceException("The update sequence must be an integer", ex, INVALID_PARAMETER_VALUE, "updateSequence");
-        }
-
-    }
-
-    private static final class DimensionDef {
-        private final CoordinateReferenceSystem crs;
-        private final Expression lower;
-        private final Expression upper;
-
-        public DimensionDef(CoordinateReferenceSystem crs, Expression lower, Expression upper) {
-            this.crs = crs;
-            this.lower = lower;
-            this.upper = upper;
         }
     }
 }
