@@ -1,8 +1,0 @@
-CSW 2.0.2 Test Suite Release Notes
-
-
-Changes included in latest revision:
-
-2009-07-09 (kstegemoller):
-- tag r0
-

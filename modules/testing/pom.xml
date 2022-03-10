@@ -17,26 +17,10 @@
     <description>
         Regroup some standard tests on the Examind's OGC webservices.
     </description>
-
-    <profiles>
-        <profile>
-            <id>all</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <modules>
-                <module>data</module>
-                <module>embedded</module>
-            </modules>
-        </profile>
-        <profile>
-            <id>wfs</id>
-            <modules>
-                <module>data</module>
-            </modules>
-        </profile>
-    </profiles>
-
-    <modules/>
-
+    
+    <modules>
+        <module>data</module>
+        <module>embedded</module>
+    </modules>
+    
 </project>
