@@ -55,7 +55,7 @@ public class FileSystemUtilities {
         String userUrl;
         URI baseURI;
         URI userURI;
-        switch (type) {
+        switch (type.toLowerCase()) {
             case "ftp":
                 if (userName != null && !userName.isEmpty()) {
                     prop.put("username", userName);
@@ -99,7 +99,7 @@ public class FileSystemUtilities {
                 break;
             case "s3":
                 if (userName != null && !userName.isEmpty()) {
-                    userUrl = baseUrl.replace("s3://", "s3://" + userName + '@');
+                    userUrl = baseUrl.replace("://", "://" + userName + '@');
                 } else {
                     userUrl = baseUrl;
                 }
@@ -154,7 +154,7 @@ public class FileSystemUtilities {
     }
 
     public static void closeFileSystem(String type, String baseUrl, String userName, String password, Integer refId) {
-        switch (type) {
+        switch (type.toLowerCase()) {
             case "smb":
             case "ftp":
             case "s3":
@@ -287,7 +287,7 @@ public class FileSystemUtilities {
 
     public static Path getPath(final FileSystemReference fs, final String subPath) throws IOException {
         final String url;
-        switch (fs.scheme) {
+        switch (fs.scheme.toLowerCase()) {
             case "smb":
             case "ftp":
             case "s3":

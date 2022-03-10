@@ -145,6 +145,11 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         if (ds.getAnalysisState() == null) {
             ds.setAnalysisState("NOT_STARTED");
         }
+        // ensure that datasource type is in lower case
+        if (ds.getType() == null) {
+            throw new ConfigurationException("Datasource type must be filled.");
+        }
+        ds.setType(ds.getType().toLowerCase());
         return dsRepository.create(ds);
     }
 
@@ -393,7 +398,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
      */
     @Override
     public String testDatasource(DataSource ds) {
-        switch (ds.getType()) {
+        switch (ds.getType().toLowerCase()) {
             case "database":
                 if (ds.getUrl() == null) return "Missing url.";
                 String dbURL = ds.getUrl().replace("postgres://", "jdbc:postgresql://");
@@ -462,6 +467,18 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         if (!ds.getReadFromRemote()) {
             FileSystemUtilities.closeFileSystem(ds.getType(), ds.getUrl(), ds.getUsername(), ds.getPwd(), ds.getId());
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Path getDatasourcePath(final int id, final String subPath) throws ConstellationException {
+        DataSource ds = dsRepository.findById(id);
+        if (ds != null) {
+            return getDataSourcePath(ds, subPath);
+        }
+        throw new TargetNotFoundException("Unexisting datasource with id:" + id);
     }
 
     private Path getDataSourcePath(final DataSource ds, final String subPath) throws ConstellationException {

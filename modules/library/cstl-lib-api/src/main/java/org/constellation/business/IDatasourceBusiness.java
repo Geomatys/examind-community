@@ -18,6 +18,7 @@
  */
 package org.constellation.business;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -333,4 +334,14 @@ public interface IDatasourceBusiness {
      * geotk or SIS to work.
      */
     void initializeFilesystems();
+
+    /**
+     * Instanciate a sub path for the specified datasource.
+     *
+     * @param id datasource identifier.
+     * @param subPath the subpath.
+     *
+     * @return  A Path.
+     */
+    Path getDatasourcePath(int id, final String subPath) throws ConstellationException;
 }
