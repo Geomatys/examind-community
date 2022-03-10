@@ -187,8 +187,9 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final URI dataUri = URI.create(sourceFolderStr);
 
         final int dsId;
-        DataSource ds = datasourceBusiness.getByUrl(sourceFolderStr);
-        if (ds == null) {
+        DataSource ds;
+        List<DataSource> dss = datasourceBusiness.search(sourceFolderStr, storeId, format);
+        if (dss.isEmpty()) {
             try {
                 LOGGER.info("Creating new datasource");
                 ds = new DataSource();
@@ -207,6 +208,10 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             }
         } else {
             LOGGER.info("Using already created datasource");
+            if (dss.size() > 1) {
+                LOGGER.warning("Multiple datasource found. using the first we found");
+            }
+            ds   = dss.get(0);
             dsId = ds.getId();
         }
 

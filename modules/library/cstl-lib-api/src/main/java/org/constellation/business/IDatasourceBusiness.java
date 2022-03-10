@@ -108,13 +108,16 @@ public interface IDatasourceBusiness {
     DataSource getDatasource(int id);
 
     /**
-     * Find a datasource by its utl.
+     * Search permanent datasources by its url.
+     * The can also be filtered on store id and format
      *
      * @param url the searched datasource url.
+     * @param storeId filter on store id can be {@code null}
+     * @param format filter on format can be {@code null}
      *
-     * @return A Datasource or {@code null}
+     * @return A List of Datasources (never {@code null})
      */
-    DataSource getByUrl(String url);
+    List<DataSource> search(String url, String storeId, String format);
 
     /**
      * Test if the url pointed by the datasource is reachable.

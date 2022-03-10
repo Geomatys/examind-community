@@ -265,8 +265,8 @@ public class DatasourceBusiness implements IDatasourceBusiness {
      * {@inheritDoc}
      */
     @Override
-    public DataSource getByUrl(String url) {
-        return dsRepository.findByUrl(url);
+    public List<DataSource> search(String url, String storeId, String format) {
+        return dsRepository.search(url, storeId, format);
     }
 
     /**
@@ -367,7 +367,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
     public void initializeFilesystems() {
         List<DataSource> sources = dsRepository.findAll();
         for (DataSource ds : sources) {
-            if ("s3".equals(ds.getType())) {
+            if ("s3".equals(ds.getType().toLowerCase())) {
                 try {
                     getFileSystem(ds, true);
                 } catch (Exception ex) {

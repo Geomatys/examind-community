@@ -45,6 +45,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.constellation.repository.DatasourceRepository;
+import org.jooq.Record;
 import org.jooq.SelectConditionStep;
 import org.springframework.context.annotation.DependsOn;
 
@@ -73,8 +74,17 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
     }
 
     @Override
-    public DataSource findByUrl(String url) {
-        return convertToDto(dsl.select().from(DATASOURCE).where(DATASOURCE.URL.eq(url)).fetchOneInto(Datasource.class));
+    public List<DataSource> search(String url, String storeId, String format) {
+        SelectConditionStep<Record> query = dsl.select().from(DATASOURCE)
+                                               .where(DATASOURCE.URL.eq(url))
+                                               .and(DATASOURCE.PERMANENT.isTrue());
+        if (storeId != null) {
+            query = query.and(DATASOURCE.STORE_ID.eq(storeId));
+        }
+        if (format != null) {
+            query = query.and(DATASOURCE.FORMAT.eq(format));
+        }
+        return convertListToDto(query.fetchInto(Datasource.class));
     }
 
     @Override

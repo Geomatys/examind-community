@@ -71,11 +71,15 @@ public class HarvesterCleanerProcess extends AbstractCstlProcess {
         final String observationType = inputParameters.getValue(OBS_TYPE);
         
         final int dsId;
-        DataSource ds = datasourceBusiness.getByUrl(sourceFolderStr);
-        if (ds == null) {
+        List<DataSource> dss = datasourceBusiness.search(sourceFolderStr, storeId, null);
+        if (dss.isEmpty()) {
             LOGGER.log(Level.INFO, "No datasource existing for path: {0}", sourceFolderStr);
             return;
         } else {
+            if (dss.size() > 1) {
+                LOGGER.warning("Multiple datasource found. using the first we found");
+            }
+            DataSource ds = dss.get(0);
             dsId = ds.getId();
         }
 
@@ -100,16 +104,13 @@ public class HarvesterCleanerProcess extends AbstractCstlProcess {
 
             // remove sensors
             for (SensorReference sid : sensors) {
-
                 // unlink from SOS
                 for (Integer service : sensorBusiness.getLinkedServiceIds(sid.getId())) {
                     sensorServBusiness.removeSensor(service, sid.getIdentifier());
                 }
-
                 // remove sensor
                 sensorBusiness.delete(sid.getId());
             }
-
             datasourceBusiness.clearSelectedPaths(dsId);
 
             // remove datasource
@@ -118,8 +119,5 @@ public class HarvesterCleanerProcess extends AbstractCstlProcess {
         } catch (ConstellationException ex) {
             throw new ProcessException("Error while removing previous insertion.", this, ex);
         }
-    
     }
-    
-    
 }

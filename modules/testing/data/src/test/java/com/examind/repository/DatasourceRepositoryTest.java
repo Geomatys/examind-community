@@ -80,7 +80,9 @@ public class DatasourceRepositoryTest extends AbstractRepositoryTest {
         /**
          * datasource verification
          */
-        DataSource ds = datasourceRepository.findByUrl("file:///home/test");
+        List<DataSource> dss = datasourceRepository.search("file:///home/test", null, null);
+        Assert.assertEquals(1, dss.size());
+        DataSource ds = dss.get(0);
         Assert.assertNotNull(ds);
 
         Assert.assertEquals("PENDING", datasourceRepository.getAnalysisState(did));
@@ -107,7 +109,9 @@ public class DatasourceRepositoryTest extends AbstractRepositoryTest {
         dpc = datasourceRepository.getAnalyzedPath(did, "/file1");
         Assert.assertNull(dpc);
 
-        ds = datasourceRepository.findByUrl("file:///home/tes't");
+        dss = datasourceRepository.search("file:///home/tes't", null, null);
+        Assert.assertEquals(1, dss.size());
+        ds = dss.get(0);
         Assert.assertNotNull(ds);
 
 

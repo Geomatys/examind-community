@@ -76,7 +76,7 @@ public class DatasourceBusinessTest extends SpringContextTest {
         LOGGER.info("TEST CREATE");
         DataSource ds = new DataSource();
         ds.setUrl(rootDir.toUri().toString());
-        ds.setPermanent(false);
+        ds.setPermanent(true);
         ds.setDateCreation(System.currentTimeMillis());
         ds.setReadFromRemote(Boolean.TRUE);
         ds.setType("files");
@@ -88,7 +88,9 @@ public class DatasourceBusinessTest extends SpringContextTest {
     @Order(order=2)
     public void analyseTest() throws Exception {
         LOGGER.info("TEST ANALYSE");
-        DataSource ds = datasourceBusiness.getByUrl(rootDir.toUri().toString());
+        List<DataSource> dss = datasourceBusiness.search(rootDir.toUri().toString(), null, null);
+        Assert.assertEquals(1, dss.size());
+        DataSource ds = dss.get(0);
         Assert.assertNotNull(ds);
 
         String state = datasourceBusiness.getDatasourceAnalysisState(ds.getId());
@@ -110,7 +112,9 @@ public class DatasourceBusinessTest extends SpringContextTest {
     @Order(order=3)
     public void selectPathTest() throws Exception {
         LOGGER.info("TEST SELECT");
-        DataSource ds = datasourceBusiness.getByUrl(rootDir.toUri().toString());
+        List<DataSource> dss = datasourceBusiness.search(rootDir.toUri().toString(), null, null);
+        Assert.assertEquals(1, dss.size());
+        DataSource ds = dss.get(0);
         Assert.assertNotNull(ds);
 
         ds.setStoreId("shapefile");
@@ -129,7 +133,9 @@ public class DatasourceBusinessTest extends SpringContextTest {
     @Order(order=4)
     public void treatSelectedPathTest() throws Exception {
         LOGGER.info("TEST TREAT PATH");
-        DataSource ds = datasourceBusiness.getByUrl(rootDir.toUri().toString());
+        List<DataSource> dss = datasourceBusiness.search(rootDir.toUri().toString(), null, null);
+        Assert.assertEquals(1, dss.size());
+        DataSource ds = dss.get(0);
         Assert.assertNotNull(ds);
 
         DataSourceSelectedPath path = datasourceBusiness.getSelectedPath(ds.getId(), "/org/constellation/ws/embedded/wms111/shapefiles/BasicPolygons.shp");
