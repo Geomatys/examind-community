@@ -19,16 +19,22 @@ package com.examind.store.observation;
 
 import static com.examind.store.observation.FileParsingUtils.buildFOIByGeom;
 import static com.examind.store.observation.FileParsingUtils.buildGeom;
+import static com.examind.store.observation.FileParsingUtils.extractWithRegex;
 import static com.examind.store.observation.FileParsingUtils.getDataRecordProfile;
 import static com.examind.store.observation.FileParsingUtils.getDataRecordTrajectory;
 import static com.examind.store.observation.FileParsingUtils.parseDouble;
+import com.opencsv.CSVReader;
+import java.io.IOException;
 import java.net.MalformedURLException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -36,6 +42,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.data.csv.CSVStore;
 import org.geotoolkit.nio.IOUtilities;
@@ -50,6 +58,7 @@ import org.geotoolkit.observation.model.ExtractionResult;
 import org.geotoolkit.observation.model.ExtractionResult.ProcedureTree;
 import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.FieldType;
+import org.geotoolkit.observation.model.GeoSpatialBound;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 import org.geotoolkit.swe.xml.AbstractDataRecord;
 import org.geotoolkit.swe.xml.Phenomenon;
@@ -57,6 +66,7 @@ import org.geotoolkit.util.NamesExt;
 import org.opengis.observation.Process;
 import org.opengis.feature.FeatureType;
 import org.opengis.geometry.DirectPosition;
+import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.util.GenericName;
 
 /**
@@ -107,12 +117,14 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
     protected final String procedureNameColumn;
     protected final String procedureDescColumn;
 
-    protected final boolean extractUom;
+    protected final String uomRegex;
+    protected final String obsPropRegex;
 
     public FileParsingObservationStore(final Path f, final char separator, final char quotechar, FeatureType ft, 
             final String mainColumn, final String dateColumn, final String dateTimeformat, final String longitudeColumn,
             final String latitudeColumn, final Set<String> measureColumns, String observationType, String foiColumn,
-            final String procedureId, final String procedureColumn, final String procedureNameColumn, final String procedureDescColumn, final String zColumn, final boolean extractUom) throws MalformedURLException, DataStoreException{
+            final String procedureId, final String procedureColumn, final String procedureNameColumn, final String procedureDescColumn, 
+            final String zColumn, final String uomRegex, final String obsPropRegex) throws MalformedURLException, DataStoreException{
         super(f, separator, ft);
         this.dataFile = f;
         this.delimiter = separator;
@@ -129,7 +141,8 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
         this.procedureNameColumn = procedureNameColumn;
         this.procedureDescColumn = procedureDescColumn;
         this.zColumn = zColumn;
-        this.extractUom = extractUom;
+        this.uomRegex = uomRegex;
+        this.obsPropRegex = obsPropRegex;
 
         if (procedureId == null && procedureColumn == null) {
             this.procedureId = IOUtilities.filenameWithoutExtension(dataFile);
@@ -212,22 +225,6 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
         return tree;
     }
 
-    protected boolean verifyEmptyLine(String[] line, int lineNumber, List<Integer> doubleFields) {
-        boolean empty = true;
-        for (int i : doubleFields) {
-            try {
-                parseDouble(line[i]);
-                empty = false;
-                break;
-            } catch (NumberFormatException | ParseException ex) {
-                if (!line[i].isEmpty()) {
-                    LOGGER.fine(String.format("Problem parsing double value at line %d and column %d (value='%s')", lineNumber, i, line[i]));
-                }
-            }
-        }
-        return empty;
-    }
-
     protected final Map<String, ObservationBlock> observationBlock = new HashMap<>();
 
     protected ObservationBlock getOrCreateObservationBlock(String procedureId, String procedureName, String procedureDesc, String foiID, Long time, List<String> measureColumns, String mainColumn, String observationType) {
@@ -258,17 +255,12 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
         int i = 1;
         for (final Entry<String, MeasureField> field : filteredMeasure.entrySet()) {
             String name  = field.getKey();
-            String label = field.getValue().label != null ? field.getValue().label : name;
             String uom   = field.getValue().uom;
-            int b = name.indexOf('(');
-            int o = name.indexOf(')');
+            
+            uom  = extractWithRegex(uomRegex, name, uom);
+            name = extractWithRegex(obsPropRegex, name, name);
 
-            // if extract uom is set, we are in csv mode, so there is no observed properties name column
-            if (extractUom && b != -1 && o != -1 && b < o) {
-                name  = field.getKey().substring(0, b).trim();
-                uom   = field.getKey().substring(b + 1, o);
-                label = name;
-            }
+            String label = field.getValue().label != null ? field.getValue().label : name;
             fields.add(new Field(i, FieldType.QUANTITY, name, label, null, uom));
             i++;
         }
@@ -330,5 +322,46 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
             procedure.spatialBound.addLocation(new Date(entry.getKey()), buildGeom(entry.getValue()));
         }
         procedure.spatialBound.merge(ob.currentSpaBound);
+    }
+
+    @Override
+    public TemporalGeometricPrimitive getTemporalBounds() throws DataStoreException {
+
+        final GeoSpatialBound result = new GeoSpatialBound();
+        // open csv file
+        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), delimiter, quotechar)) {
+
+            final Iterator<String[]> it = reader.iterator();
+
+            // at least one line is expected to contain headers information
+            if (it.hasNext()) {
+
+                // prepare time column indices
+                int dateIndex = -1;
+
+                // read headers
+                final String[] headers = it.next();
+                for (int i = 0; i < headers.length; i++) {
+                    final String header = headers[i];
+                    if (dateColumn.equals(header)) {
+                        dateIndex = i;
+                    }
+                }
+
+                while (it.hasNext()) {
+                    final String[] line = it.next();
+                    // update temporal information
+                    if (dateIndex != -1) {
+                        final Date dateParse = new SimpleDateFormat(this.dateFormat).parse(line[dateIndex]);
+                        result.addDate(dateParse);
+                    }
+                }
+                return result.getTimeObject("2.0.0");
+            }
+            throw new DataStoreException("csv headers not found");
+        } catch (IOException | ParseException ex) {
+            LOGGER.log(Level.WARNING, "problem reading csv file", ex);
+            throw new DataStoreException(ex);
+        }
     }
 }

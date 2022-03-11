@@ -206,19 +206,19 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(false)
             .create(String.class, null);
 
+     public static final String UOM_REGEX_NAME = "uom_regex";
+    public static final String UOM_REGEX_DESC = "extract uom from uom column applying a regular expression";
+    public static final ParameterDescriptor<String> UOM_REGEX = PARAM_BUILDER
+            .addName(UOM_REGEX_NAME)
+            .setRemarks(UOM_REGEX_DESC)
+            .setRequired(false)
+            .create(String.class, null);
+
     public static final String REMOVE_PREVIOUS_NAME = "remove_previous_integration";
     public static final String REMOVE_PREVIOUS_DESC = "remove previous integration";
     public static final ParameterDescriptor<Boolean> REMOVE_PREVIOUS = PARAM_BUILDER
             .addName(REMOVE_PREVIOUS_NAME)
             .setRemarks(REMOVE_PREVIOUS_DESC)
-            .setRequired(false)
-            .create(Boolean.class, false);
-
-    public static final String EXTRACT_UOM_NAME = "extract_uom";
-    public static final String EXTRACT_UOM_DESC = "extract uom from headers";
-    public static final ParameterDescriptor<Boolean> EXTRACT_UOM = PARAM_BUILDER
-            .addName(EXTRACT_UOM_NAME)
-            .setRemarks(EXTRACT_UOM_DESC)
             .setRequired(false)
             .create(Boolean.class, false);
 
@@ -275,6 +275,14 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
                 String.class,
                 null, null, null
                 );
+
+    public static final String OBS_PROP_REGEX_NAME = "observed_properties_regex";
+    public static final String OBS_PROP_REGEX_DESC = "extract observed properties label from column applying a regular expression";
+    public static final ParameterDescriptor<String> OBS_PROP_REGEX = PARAM_BUILDER
+            .addName(OBS_PROP_REGEX_NAME)
+            .setRemarks(OBS_PROP_REGEX_DESC)
+            .setRequired(false)
+            .create(String.class, null);
     
     public static final String TYPE_COLUMN_NAME = "type_column";
     public static final String TYPE_COLUMN_DESC = "type column";
@@ -294,8 +302,8 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
 
     public static final ParameterDescriptorGroup INPUT_DESC =
             PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, REMOTE_READ, SERVICE_ID, DATASET_IDENTIFIER, THING_ID, THING_COLUMN, THING_NAME_COLUMN, THING_DESC_COLUMN, OBS_TYPE,
-                    SEPARATOR, CHARQUOTE, MAIN_COLUMN, Z_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, UOM_COLUMN, EXTRACT_UOM, REMOVE_PREVIOUS,
-                    STORE_ID, FORMAT, RESULT_COLUMN, OBS_PROP_COLUMN, OBS_PROP_NAME_COLUMN, OBS_PROP_COLUMNS_FILTER, TYPE_COLUMN);
+                    SEPARATOR, CHARQUOTE, MAIN_COLUMN, Z_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, UOM_COLUMN, UOM_REGEX, REMOVE_PREVIOUS,
+                    STORE_ID, FORMAT, RESULT_COLUMN, OBS_PROP_COLUMN, OBS_PROP_NAME_COLUMN, OBS_PROP_COLUMNS_FILTER, OBS_PROP_REGEX, TYPE_COLUMN);
 
     public static final String FILE_INSERTED_NAME = "files_inserted_count";
     public static final String FILE_INSERTED_DESC = "Number of files inserted ";

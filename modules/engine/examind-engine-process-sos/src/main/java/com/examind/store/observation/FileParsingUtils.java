@@ -23,6 +23,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.GMLXmlFactory;
 import org.geotoolkit.observation.model.Field;
@@ -43,8 +46,65 @@ import org.opengis.geometry.Geometry;
  */
 public class FileParsingUtils {
 
+    private static final Logger LOGGER = Logger.getLogger("com.examind.store.observation");
+
     private static final NumberFormat FR_FORMAT = NumberFormat.getInstance(Locale.FRANCE);
     
+    /**
+     * Return the value int the csv line if the supplied index is different from -1.
+     * Else return the default value specified.
+     * 
+     * @param index column index
+     * @param line parsed CSV line.
+     * @param defaultValue value to returne if column == -1
+     * 
+     * @return The value of the column or the default value.
+     */
+    public static String getColumnValue(int index, String[] line, String defaultValue) {
+        String result = defaultValue;
+        if (index != -1) {
+            result = line[index];
+        }
+        return result;
+    }
+
+    /**
+     * Verify if the line is empty, meaning no measure field is filled.
+     * 
+     * @param line parsed CSV line.
+     * @param lineNumber line number in the file (for logging purpose).
+     * @param doubleFields List of column index where to look for Double value.
+     *
+     * @return {@code true} if the line is considered empty.
+     */
+    public static boolean verifyEmptyLine(String[] line, int lineNumber, List<Integer> doubleFields) {
+        boolean empty = true;
+        for (int i : doubleFields) {
+            try {
+                parseDouble(line[i]);
+                empty = false;
+                break;
+            } catch (NumberFormatException | ParseException ex) {
+                if (!line[i].isEmpty()) {
+                    LOGGER.fine(String.format("Problem parsing double value at line %d and column %d (value='%s')", lineNumber, i, line[i]));
+                }
+            }
+        }
+        return empty;
+    }
+
+    public static String extractWithRegex(String regex, String value, String defaultValue) {
+        String result = defaultValue;
+         if (regex != null && value != null) {
+            final Pattern pa = Pattern.compile(regex);
+            final Matcher m = pa.matcher(value);
+            if (m.find() && m.groupCount() >= 1) {
+                result = m.group(1).trim();
+            }
+        }
+        return result;
+    }
+
     /**
      * Parse a string double with dot or comma separator.
      * @param s string value of a double.

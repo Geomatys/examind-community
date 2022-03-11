@@ -171,7 +171,6 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
                         Set<String> currentCodes = extractCodes(child, obsPropColumns, separator.charAt(0));
                         codes.addAll(currentCodes);
                     }
-                    Arrays.sort(headers);
                 }
             } else {
                 throw new ProcessException("The source folder does not point to a directory", this);
@@ -235,13 +234,14 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         inputs.add(new Parameter(LATITUDE_COLUMN_NAME,  String.class,  LATITUDE_COLUMN_DESC,  LATITUDE_COLUMN_DESC,  1, 1, guessColumn(headers, Arrays.asList("latitude", "lat")), headers));
         inputs.add(new Parameter(FOI_COLUMN_NAME,       String.class,  FOI_COLUMN_DESC,       FOI_COLUMN_DESC,       0, 1, null, headers));
         inputs.add(new Parameter(UOM_COLUMN_NAME,       String.class,  UOM_COLUMN_DESC,       UOM_COLUMN_DESC,       0, 1, null, headers));
-        inputs.add(new Parameter(EXTRACT_UOM_NAME,      Boolean.class, EXTRACT_UOM_DESC,      EXTRACT_UOM_DESC,      0, 1, false));
+        inputs.add(new Parameter(UOM_REGEX_NAME,        String.class,  UOM_REGEX_DESC,        UOM_REGEX_DESC,        0, 1, null));
 
         inputs.add(new Parameter(REMOVE_PREVIOUS_NAME, Boolean.class, REMOVE_PREVIOUS_DESC, REMOVE_PREVIOUS_DESC, 0, 1, false));
 
         if ("csv".equals(format)) {
 
             inputs.add(new Parameter(OBS_PROP_COLUMN_NAME, String.class, OBS_PROP_COLUMN_DESC, OBS_PROP_COLUMN_DESC, 0, 92, null, headers));
+            inputs.add(new Parameter(OBS_PROP_REGEX_NAME,  String.class, OBS_PROP_REGEX_DESC,  OBS_PROP_REGEX_DESC,  0, 1, null));
             inputs.add(new Parameter(STORE_ID_NAME,        String.class, STORE_ID_DESC,        STORE_ID_DESC,        1, 1, "observationCsvFile"));
             inputs.add(new Parameter(FORMAT_NAME,          String.class, FORMAT_DESC,          FORMAT_DESC,          1, 1, "text/csv; subtype=\"om\""));
 

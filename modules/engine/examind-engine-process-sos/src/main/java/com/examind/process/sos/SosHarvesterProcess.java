@@ -122,7 +122,6 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final String user = inputParameters.getValue(USER);
         final String pwd  = inputParameters.getValue(PWD);
         final boolean remoteRead = inputParameters.getValue(REMOTE_READ);
-        final boolean extractUom = inputParameters.getValue(EXTRACT_UOM);
 
         final List<ServiceProcessReference> services = new ArrayList<>();
         for (GeneralParameterValue param : inputParameters.values()) {
@@ -152,12 +151,13 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         // csv-flat special
         final String typeColumn = inputParameters.getValue(TYPE_COLUMN);
         final String valueColumn = inputParameters.getValue(RESULT_COLUMN);
-        final List<String> ObsPropColumns = new ArrayList<>();
+        final List<String> obsPropColumns = new ArrayList<>();
         for (GeneralParameterValue param : inputParameters.values()) {
             if (param.getDescriptor().getName().getCode().equals(OBS_PROP_COLUMN.getName().getCode())) {
-                ObsPropColumns.add(((ParameterValue)param).stringValue());
+                obsPropColumns.add(((ParameterValue)param).stringValue());
             }
         }
+        final String obsPropRegex = inputParameters.getValue(OBS_PROP_REGEX);
 
         final List<String> ObsPropNameColumns = new ArrayList<>();
         for (GeneralParameterValue param : inputParameters.values()) {
@@ -167,6 +167,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         }
 
         final String uomColumn    = inputParameters.getValue(UOM_COLUMN);
+        final String uomRegex    = inputParameters.getValue(UOM_REGEX);
 
         // prepare the results
         int nbFileInserted = 0;
@@ -305,13 +306,14 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_FILTER_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(obsPropFilterColumns));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBSERVATION_TYPE.getName().toString(), observationType);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_ID.getName().toString(), procedureId);
-            provConfig.getParameters().put(FileParsingObservationStoreFactory.EXTRACT_UOM.getName().toString(), Boolean.toString(extractUom));
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.UOM_REGEX.getName().toString(), uomRegex);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_COLUMN.getName().toString(), procedureColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_NAME_COLUMN.getName().toString(), procedureNameColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_DESC_COLUMN.getName().toString(), procedureDescColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.RESULT_COLUMN.getName().toString(), valueColumn);
-            provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(ObsPropColumns));
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(obsPropColumns));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_NAME_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(ObsPropNameColumns));
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_REGEX.getName().toString(), obsPropRegex);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.TYPE_COLUMN.getName().toString(), typeColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.Z_COLUMN.getName().toString(), zColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.UOM_COLUMN.getName().toString(), uomColumn);

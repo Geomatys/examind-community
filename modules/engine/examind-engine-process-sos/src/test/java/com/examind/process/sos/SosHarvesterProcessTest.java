@@ -424,12 +424,13 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         Assert.assertEquals(3209, nbMeasure);
 
         /*
-         * remove the new file and reinsert with REMOVE PREVIOUS and extracting uom
+         * remove the new file and reinsert with REMOVE PREVIOUS and uom/obsprop regex extraction
          */
         Path p = argoDirectory.resolve("argo-profiles-2902402-2.csv");
         Files.delete(p);
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(true);
-        in.parameter(SosHarvesterProcessDescriptor.EXTRACT_UOM_NAME).setValue(true);
+        in.parameter(SosHarvesterProcessDescriptor.UOM_REGEX_NAME).setValue("\\(([^\\)]+)\\)?");
+        in.parameter(SosHarvesterProcessDescriptor.OBS_PROP_REGEX_NAME).setValue("([\\w\\s]+)");
 
         proc = desc.createProcess(in);
         proc.call();
@@ -479,6 +480,24 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         Assert.assertEquals("TEMP", obsProp2.getIotId());
         Assert.assertEquals("TEMP", obsProp2.getName());
         Assert.assertEquals("", obsProp2.getDescription());
+
+        MultiDatastream mds = stsWorker.getMultiDatastreamById(new GetMultiDatastreamById("urn:ogc:object:observation:template:GEOM:" + sensorId));
+        Assert.assertNotNull(mds);
+
+        assertTrue(mds.getUnitOfMeasurement() instanceof List);
+
+        List listUom = (List) mds.getUnitOfMeasurement();
+
+        Assert.assertEquals(3, listUom.size());
+
+        List<String> expectedUoms = Arrays.asList("decibar", "psu", "degree_Celsius");
+        for (Object uomObj : listUom) {
+            assertTrue(uomObj instanceof UnitOfMeasure);
+            UnitOfMeasure uom = (UnitOfMeasure) uomObj;
+            String uomName = uom.getName();
+            Assert.assertNotNull(uomName);
+            Assert.assertTrue("unexpected uom:" + uomName, expectedUoms.contains(uomName));
+        }
     }
 
     @Test
