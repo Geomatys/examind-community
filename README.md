@@ -30,6 +30,11 @@ resources to operate a platform of sensors that feeds back information in real t
   * Grib
   * Images with .tfw and .prj files for projection and transformation informations
 
+## Java version support
+
+ * 1.0.23 is the last stable version supporting java **8**.
+ * Any version after that are based upon Java **17**
+
 ## Get started
 
 ### Build from sources
