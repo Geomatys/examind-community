@@ -498,10 +498,26 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "crs=CRS:84&bbox=-81,35,-80.5,35.5&"
             + "layers=JCOL&styles=";
 
-    private static final String WMS_GETMAP_130_JCOLL_FILTER = "request=GetMap&service=WMS&version=1.3.0&"
+    private static final String WMS_GETMAP_130_JCOLL_LAYER_FILTER = "request=GetMap&service=WMS&version=1.3.0&"
             + "format=image/png&width=1024&height=512&"
             + "crs=CRS:84&bbox=-81,35,-80.5,35.5&"
             + "layers=JCOLF&styles=";
+
+    private static final String WMS_GETMAP_130_JCOLL_REQUEST_CQL_FILTER = "request=GetMap&service=WMS&version=1.3.0&"
+            + "format=image/png&width=1024&height=512&"
+            + "crs=CRS:84&bbox=-81,35,-80.5,35.5&"
+            + "layers=JCOL&styles=&CQL_FILTER=elevation%20%3C%201000";
+
+    private static final String WMS_GETMAP_130_JCOLL_REQUEST_FILTER = "request=GetMap&service=WMS&version=1.3.0&"
+            + "format=image/png&width=1024&height=512&"
+            + "crs=CRS:84&bbox=-81,35,-80.5,35.5&"
+            + "layers=JCOL&styles=&"
+            + "filter=%3Cogc:Filter%20xmlns:ogc=%22http://www.opengis.net/ogc%22%20xmlns:gml=%22http://www.opengis.net/gml%22%3E"
+            + "%3Cogc:PropertyIsLessThan%3E"
+            + "%3Cogc:PropertyName%3Eelevation%3C/ogc:PropertyName%3E"
+            + "%3Cogc:Literal%3E1000%3C/ogc:Literal%3E"
+            + "%3C/ogc:PropertyIsLessThan%3E"
+            + "%3C/ogc:Filter%3E";
 
     private static final String WMS_GETMAP_130_JCOLL_ELEVATION = "request=GetMap&service=WMS&version=1.3.0&"
             + "format=image/png&width=1024&height=512&"
@@ -2287,7 +2303,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         Path p = CONFIG_DIR.resolve("JCOLL-FULL.png");
         writeInFile(getMapUrl, p);
 
-        getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_130_JCOLL_FILTER);
+        getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_130_JCOLL_LAYER_FILTER);
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         image = getImageFromURL(getMapUrl, "image/png");
@@ -2297,7 +2313,35 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertEquals(1024, image.getWidth());
         assertEquals(512, image.getHeight());
 
-        p = CONFIG_DIR.resolve("JCOLL-FILTERED.png");
+        p = CONFIG_DIR.resolve("JCOLL-LAYER-FILTERED.png");
+        writeInFile(getMapUrl, p);
+
+        // this request must be equivalent to the last one, but the filter is passed throught the request in CQL instead of the configuration
+        getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_130_JCOLL_REQUEST_CQL_FILTER);
+
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        image = getImageFromURL(getMapUrl, "image/png");
+
+        // Test on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(1024, image.getWidth());
+        assertEquals(512, image.getHeight());
+
+        p = CONFIG_DIR.resolve("JCOLL-REQUEST-CQL-FILTERED.png");
+        writeInFile(getMapUrl, p);
+
+        // this request must be equivalent to the last one, but the filter is passed throught the request in XML instead of the configuration
+        getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_130_JCOLL_REQUEST_FILTER);
+
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        image = getImageFromURL(getMapUrl, "image/png");
+
+        // Test on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(1024, image.getWidth());
+        assertEquals(512, image.getHeight());
+
+        p = CONFIG_DIR.resolve("JCOLL-REQUEST-FILTERED.png");
         writeInFile(getMapUrl, p);
 
         System.out.println("");

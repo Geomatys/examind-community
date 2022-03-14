@@ -21,7 +21,6 @@ package org.constellation.provider;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.Logger;
@@ -230,9 +229,11 @@ public abstract class AbstractData<T extends Resource> implements Data<T> {
     /**
      * Create a default representation showing the bounds of the data.
      * Must be overriden by sub-classes that need a proper display.
+     *
+     * @param styleI A style to apply or {@code null}.
      */
     @Override
-    public MapItem getMapLayer(Style styleI, final Map<String, Object> params) throws ConstellationStoreException {
+    public MapItem getMapLayer(Style styleI) throws ConstellationStoreException {
         String name = getName().tip().toString();
         final FeatureTypeBuilder ftb = new FeatureTypeBuilder();
         ftb.setName(name);

@@ -36,18 +36,16 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Named;
 import javax.xml.bind.JAXBException;
+import org.apache.sis.cql.CQLException;
 import org.apache.sis.geometry.Envelopes;
-import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.storage.FeatureQuery;
 import org.apache.sis.measure.Range;
 import org.apache.sis.referencing.CRS;
-import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.IdentifiedObjects;
 import org.apache.sis.referencing.crs.AbstractCRS;
 import org.apache.sis.referencing.cs.AxesConvention;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
-import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import static org.constellation.api.CommonConstants.DEFAULT_CRS;
 import org.constellation.api.ServiceDef;
 import org.constellation.dto.Reference;
@@ -64,11 +62,8 @@ import static org.constellation.map.core.WMSConstant.EXCEPTION_111_BLANK;
 import static org.constellation.map.core.WMSConstant.EXCEPTION_111_INIMAGE;
 import static org.constellation.map.core.WMSConstant.EXCEPTION_130_BLANK;
 import static org.constellation.map.core.WMSConstant.EXCEPTION_130_INIMAGE;
-import static org.constellation.map.core.WMSConstant.KEY_ELEVATION;
-import static org.constellation.map.core.WMSConstant.KEY_EXTRA_PARAMETERS;
 import static org.constellation.map.core.WMSConstant.KEY_LAYER;
 import static org.constellation.map.core.WMSConstant.KEY_LAYERS;
-import static org.constellation.map.core.WMSConstant.KEY_TIME;
 import org.constellation.map.featureinfo.FeatureInfoFormat;
 import org.constellation.map.featureinfo.FeatureInfoUtilities;
 import org.constellation.portrayal.CstlPortrayalService;
@@ -101,20 +96,25 @@ import org.constellation.api.WorkerState;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.dto.DimensionRange;
+import static org.constellation.map.core.WMSConstant.KEY_PROPERTYNAME;
 import static org.constellation.map.core.WMSConstant.NO_TRANSPARENT_FORMAT;
 import org.constellation.map.util.DimensionDef;
+import org.constellation.map.util.MapUtils;
+import static org.constellation.map.util.MapUtils.combine;
+import static org.constellation.map.util.MapUtils.transformJAXBFilter;
 import org.constellation.provider.FeatureData;
+import org.geotoolkit.cql.CQL;
 import org.geotoolkit.ows.xml.OWSExceptionCode;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.CURRENT_UPDATE_SEQUENCE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_POINT;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_UPDATE_SEQUENCE;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.LAYER_NOT_DEFINED;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.LAYER_NOT_QUERYABLE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.STYLE_NOT_DEFINED;
 import org.geotoolkit.referencing.ReferencingUtilities;
-import org.geotoolkit.se.xml.v110.OnlineResourceType;
 import org.geotoolkit.sld.MutableLayer;
 import org.geotoolkit.sld.MutableLayerStyle;
 import org.geotoolkit.sld.MutableNamedLayer;
@@ -124,7 +124,6 @@ import org.geotoolkit.sld.xml.GetLegendGraphic;
 import org.geotoolkit.sld.xml.StyleXmlIO;
 import org.geotoolkit.sld.xml.v110.DescribeLayerResponseType;
 import org.geotoolkit.sld.xml.v110.LayerDescriptionType;
-import org.geotoolkit.sld.xml.v110.TypeNameType;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.temporal.util.PeriodUtilities;
 import org.geotoolkit.wms.xml.*;
@@ -140,6 +139,7 @@ import org.geotoolkit.wms.xml.v111.LatLonBoundingBox;
 import org.geotoolkit.wms.xml.v130.Capability;
 import org.opengis.feature.Feature;
 import org.opengis.filter.Expression;
+import org.opengis.filter.Filter;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -228,13 +228,12 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
      */
     @Override
     public DescribeLayerResponseType describeLayer(final DescribeLayer descLayer) throws CstlServiceException {
-        final OnlineResourceType or = new OnlineResourceType(getServiceUrl());
+        final String serviceUrl = getServiceUrl();
 
         final List<LayerDescriptionType> layerDescriptions = new ArrayList<>();
         final List<String> layerNames = descLayer.getLayers();
         for (String layerName : layerNames) {
-            final TypeNameType t = new TypeNameType(layerName.trim());
-            final LayerDescriptionType outputLayer = new LayerDescriptionType(or, t);
+            final LayerDescriptionType outputLayer = new LayerDescriptionType(serviceUrl, layerName);
             layerDescriptions.add(outputLayer);
         }
         return new DescribeLayerResponseType("1.1.1", layerDescriptions);
@@ -829,7 +828,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         final LegendTemplate lt = mapPortrayal.getDefaultLegendTemplate();
         final Dimension dimension;
         try {
-            dimension = DefaultLegendService.legendPreferredSize(lt, data.getMapLayer(ms, null));
+            dimension = DefaultLegendService.legendPreferredSize(lt, data.getMapLayer(ms));
         } catch (ConstellationStoreException ex) {
             LOGGER.log(Level.INFO, ex.getLocalizedMessage(), ex);
             return null;
@@ -886,19 +885,23 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         final List<String> styleNames   = getFI.getStyles();
         final StyledLayerDescriptor sld = getFI.getSld();
 
-        final List<MutableStyle> styles        = getStyles(layersCache, sld, styleNames);
-        //       -- create the rendering parameter Map
-        final Double elevation                 = getFI.getElevation();
-        final List<Date> time                  = getFI.getTime();
-        final Map<String, Object> params       = new HashMap<>();
-        params.put(KEY_ELEVATION, elevation);
-        params.put(KEY_TIME, time);
-        params.put(KEY_EXTRA_PARAMETERS, getFI.getParameters());
+        final List<MutableStyle> styles = getStyles(layersCache, sld, styleNames);
+        List<List<String>> propertyNames = Collections.EMPTY_LIST;
+        if (getFI.getParameters().containsKey(KEY_PROPERTYNAME)) {
+            if (getFI.getParameters().get(KEY_PROPERTYNAME) instanceof List pname) {
+                propertyNames = pname;
+            } else {
+                throw new CstlServiceException("Expecting a list of propertyName", INVALID_VALUE, KEY_PROPERTYNAME);
+            }
+        }
+        
+        // Build additional filters
+        List<Filter> extraFilters = extractAdditionalFilters(getFI);
+
         final SceneDef sdef = new SceneDef();
 
-        final List<List<String>> propertyNames = getFI.getPropertyNames();
         try {
-            final MapLayers context = PortrayalUtil.createContext(layersCache, styles, propertyNames, Collections.EMPTY_LIST, params, refEnv);
+            final MapLayers context = PortrayalUtil.createContext(layersCache, styles, propertyNames, extraFilters, refEnv);
             sdef.setContext(context);
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
@@ -1053,7 +1056,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                     ms = getStyle(styleRef);
                 }
             }
-            image = WMSUtilities.getLegendGraphic(data.getMapLayer(ms, null), dims, mapPortrayal.getDefaultLegendTemplate(), ms, rule, scale);
+            image = WMSUtilities.getLegendGraphic(data.getMapLayer(ms), dims, mapPortrayal.getDefaultLegendTemplate(), ms, rule, scale);
         } catch (PortrayalException | ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
@@ -1133,9 +1136,10 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         } catch (CstlServiceException ex) {
             return handleExceptions(getMap, errorInImage, errorBlank, ex, STYLE_NOT_DEFINED, null);
         }
-        //       -- create the rendering parameter Map
-        final Map<String, Object> params = new HashMap<>();
-        params.put(KEY_EXTRA_PARAMETERS, getMap.getParameters());
+
+        // Build additional filters
+        List<Filter> extraFilters = extractAdditionalFilters(getMap);
+
         final SceneDef sdef = new SceneDef();
         sdef.extensions().add(mapPortrayal.getExtension());
         final Hints hints = mapPortrayal.getHints();
@@ -1150,7 +1154,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         }
 
         try {
-            final MapLayers context = PortrayalUtil.createContext(layersCache, styles, params, refEnv);
+            final MapLayers context = PortrayalUtil.createContext(layersCache, styles, Collections.EMPTY_LIST, extraFilters, refEnv);
             sdef.setContext(context);
         } catch (ConstellationStoreException ex) {
             return handleExceptions(getMap, errorInImage, errorBlank, ex, NO_APPLICABLE_CODE, null);
@@ -1192,6 +1196,45 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         return response;
     }
 
+
+    /**
+     * Extract additional filters contained in the request.
+     * It will extract the filters in 3 way:
+     * - extra dimension filter passed through parameters starting with "dim_"
+     * - filter passed in XML the "filter" parameter
+     * - filter passed in CQL the "cql_filter" parameter
+     *
+     * @param getMap A getMap/getFeatureInfo request.
+     *
+     * @return A filter list.
+     * @throws CstlServiceException If an error occurs in filter parsing.
+     */
+    private List<Filter> extractAdditionalFilters(GetMap getMap) throws CstlServiceException {
+        // Build additional filters
+        List<Filter> extraFilters = new ArrayList<>();
+
+        Map<String, Object> extraParams = getMap.getParameters();
+        extraFilters.addAll(MapUtils.resolveExtraFilters(extraParams));
+
+        // - extract  either cql_filter or filter (mutually exclusive)
+        List<Filter> filters = (List<Filter>) extraParams.getOrDefault(WMSConstant.KEY_FILTER, Collections.EMPTY_LIST);
+        for (Filter f : filters) {
+            f = transformJAXBFilter(f, null, null, "1.1.0");
+            if (f != null) {
+                extraFilters.add(f);
+            }
+        }
+        List<String> cqlFilters = (List<String>) extraParams.getOrDefault(WMSConstant.KEY_CQL_FILTER, Collections.EMPTY_LIST);
+        for (String cqlFilter : cqlFilters) {
+            try {
+                extraFilters.add(CQL.parseFilter(cqlFilter));
+            } catch (CQLException e) {
+                throw new CstlServiceException("Error while parsing CQL filter", e);
+            }
+        }
+        return extraFilters;
+    }
+
     /**
      * Build request view envelope from request parameters and requested layers.
      * Limitation : generate an envelope only with TIME and ELEVATION dimensions, all layers default values
@@ -1204,7 +1247,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
      * @return view Envelope 2D, 3D or 4D depending of dimensions of layers and request.
      * @throws CstlServiceException
      */
-    public Envelope buildRequestedViewEnvelope(GetMap request, List<LayerCache> layers) throws CstlServiceException {
+    private Envelope buildRequestedViewEnvelope(GetMap request, List<LayerCache> layers) throws CstlServiceException {
         final Envelope refEnv;
         try {
             /*check envelope has positive span only if not a GetFeatureInfo request.
@@ -1268,43 +1311,6 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             throw new CstlServiceException(ex);
         }
         return refEnv;
-    }
-
-    private Envelope combine(Envelope env, Date[] temporal, Double[] elevation, VerticalCRS vCrs) throws FactoryException {
-        assert env.getDimension() == 2 : "Input envelope should be the 2D bbox parameter from WMS request";
-        assert elevation != null && elevation.length == 2 : "Elevation array should contains 2 nullable values";
-        assert temporal != null && temporal.length == 2 : "Time array should contains 2 nullable values";
-
-        CoordinateReferenceSystem crs = env.getCoordinateReferenceSystem();
-        assert crs != null : "Input envelope CRS should be set according to related GetMap parameter";
-        boolean hasElevation = elevation[0] != null || elevation[1] != null;
-        if (hasElevation) {
-            ensureNonNull("Vertical CRS", vCrs);
-            crs = CRS.compound(crs, vCrs);
-        }
-
-        boolean hasTime = temporal[0] != null || temporal[1] != null;
-        if (hasTime) {
-            crs = CRS.compound(crs, CommonCRS.Temporal.JAVA.crs());
-        }
-
-        if (hasTime || hasElevation) {
-            final GeneralEnvelope combination = new GeneralEnvelope(crs);
-            combination.subEnvelope(0, 2).setEnvelope(env);
-            int nextDim = 2;
-            if (hasElevation) combination.setRange(nextDim++,
-                    elevation[0] == null? elevation[1] : elevation[0],
-                    elevation[1] == null? elevation[0] : elevation[1]
-            );
-            if (hasTime) {
-                combination.setRange(nextDim,
-                        (temporal[0] == null? temporal[1] : temporal[0]).getTime(),
-                        (temporal[1] == null? temporal[0] : temporal[1]).getTime()
-                );
-            }
-            env = combination;
-        }
-        return env;
     }
 
     private PortrayalResponse handleExceptions(GetMap getMap, boolean errorInImage, boolean errorBlank,

@@ -32,10 +32,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
@@ -117,6 +115,7 @@ import org.geotoolkit.gmlcov.xml.v100.AbstractDiscreteCoverageType;
 import org.geotoolkit.gmlcov.xml.v100.ObjectFactory;
 import org.geotoolkit.image.io.metadata.SpatialMetadata;
 import org.apache.sis.portrayal.MapLayers;
+import static org.constellation.map.util.MapUtils.combine;
 import org.constellation.util.Util;
 import org.constellation.util.CRSUtilities;
 import org.geotoolkit.ows.xml.AbstractCapabilitiesCore;
@@ -792,9 +791,11 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             return getCoverage200(request, layer);
         }
 
-        Date date = null;
+        Date[] dates = null;
         try {
-            date = TimeParser.toDate(request.getTime());
+            // another parser should be used allowing to parse multiple date.
+            Date d = TimeParser.toDate(request.getTime());
+            dates = new Date[] {d,d};
         } catch (ParseException ex) {
             throw new CstlServiceException("Parsing of the date failed. Please verify that the specified" +
                     " date is compliant with the ISO-8601 standard.", ex, INVALID_PARAMETER_VALUE,
@@ -867,7 +868,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             } catch (ConstellationStoreException ex) {
                 throw new CstlServiceException(ex, NO_APPLICABLE_CODE, KEY_BBOX.toLowerCase());
             }
-        } else if (date == null) {
+        } else if (dates == null) {
 
             throw new CstlServiceException("One of Time or Envelope has to be specified", MISSING_PARAMETER_VALUE);
 
@@ -923,6 +924,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             size = new Dimension(newWidth, newHeight);
         }
 
+        // TODO this values is not used
         final Double elevation = (envelope.getDimension() > 2) ? envelope.getMedian(2) : null;
 
         /*
@@ -935,8 +937,8 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             //NOTE ADRIAN HACKED HERE
             final RenderedImage image;
             try {
-                if (date != null) {
-                    refEnvel = combine(refEnvel, date);
+                if (dates != null) {
+                    refEnvel = combine(refEnvel, dates, null, null);
                 }
                 final GridCoverage gridCov = data.getCoverage(refEnvel, size);
                 image = gridCov.render(null);
@@ -954,8 +956,8 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
 
         } else if (format.equalsIgnoreCase(GEOTIFF) || format.equalsIgnoreCase(TIFF) || format.equalsIgnoreCase(TIF)) {
             try {
-                if (date != null) {
-                    refEnvel = combine(refEnvel, date);
+                if (dates != null) {
+                    refEnvel = combine(refEnvel, dates, null, null);
                 }
                 GeotiffResponse response = new GeotiffResponse();
                 response.metadata = data.getSpatialMetadata();
@@ -968,12 +970,6 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         } else {
             // We are in the case of an image format requested.
             //NOTE: ADRIAN HACKED HERE
-
-            // SCENE
-            final Map<String, Object> renderParameters = new HashMap<>();
-
-            renderParameters.put(KEY_TIME, date);
-            renderParameters.put("ELEVATION", elevation);
             final SceneDef sdef = new SceneDef();
 
             final MutableStyle style;
@@ -985,7 +981,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 style = null;
             }
             try {
-                final MapLayers context = PortrayalUtil.createContext(layer, style, renderParameters);
+                final MapLayers context = PortrayalUtil.createContext(layer, style);
                 sdef.setContext(context);
             } catch (ConstellationStoreException ex) {
                 throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
@@ -1242,7 +1238,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 style = null;
             }
             try {
-                final MapLayers context = PortrayalUtil.createContext(layer, style, new HashMap<>());
+                final MapLayers context = PortrayalUtil.createContext(layer, style);
                 sdef.setContext(context);
             } catch (ConstellationStoreException ex) {
                 throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
@@ -1275,35 +1271,6 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
 
             return img;
         }
-    }
-
-    /**
-     * Add a time dimension to an envelope.
-     * 
-     * @param env
-     * @param temporal
-     * @return
-     * @throws FactoryException
-     */
-    private Envelope combine(Envelope env, Date temporal) throws FactoryException {
-        int nbDim = env.getDimension();
-
-        CoordinateReferenceSystem crs = env.getCoordinateReferenceSystem();
-        assert crs != null : "Input envelope CRS should be set according to related GetCoverage parameter";
-       
-
-        if (temporal != null) {
-            crs = CRS.compound(crs, CommonCRS.Temporal.JAVA.crs());
-            final GeneralEnvelope combination = new GeneralEnvelope(crs);
-            combination.subEnvelope(0, nbDim).setEnvelope(env);
-            int nextDim = nbDim;
-            combination.setRange(nextDim,
-                    temporal.getTime(),
-                    temporal.getTime()
-            );
-            env = combination;
-        }
-        return env;
     }
 
     /**

@@ -23,11 +23,11 @@ import java.awt.RenderingHints;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import javax.inject.Inject;
 import javax.xml.bind.JAXBException;
+import org.apache.sis.cql.CQL;
+import org.apache.sis.cql.CQLException;
 
 import org.opengis.style.Style;
 import org.opengis.util.FactoryException;
@@ -43,6 +43,8 @@ import org.geotoolkit.factory.Hints;
 import org.geotoolkit.map.MapBuilder;
 import org.apache.sis.portrayal.MapLayers;
 import org.apache.sis.portrayal.MapItem;
+import org.apache.sis.portrayal.MapLayer;
+import org.apache.sis.storage.FeatureQuery;
 import org.geotoolkit.sld.xml.Specification;
 import org.geotoolkit.sld.xml.StyleXmlIO;
 import org.geotoolkit.style.MutableStyle;
@@ -62,6 +64,7 @@ import static org.apache.sis.util.ArgumentChecks.ensureDimensionMatches;
 import static org.apache.sis.util.ArgumentChecks.ensureExpectedCount;
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import org.geotoolkit.util.StringUtilities;
+import org.opengis.filter.Filter;
 
 /**
  *
@@ -251,15 +254,16 @@ public class MapBusiness {
                 if (d == null) throw new ConstellationStoreException("Unable to find a provider data for name:{" + data.getNamespace() +  "}:" +  data.getName());
 
                 // Map item.
-                MapItem mapItem;
-                if (filter != null && !filter.isEmpty()) {
-                    final Map<String,Object> params = new HashMap<>();
-                    params.put("CQL_FILTER", filter);
-                    final Map<String,Object> extraParams = new HashMap<>();
-                    extraParams.put(Data.KEY_EXTRA_PARAMETERS, params);
-                    mapItem = (MapItem) d.getMapLayer(style, extraParams);
-                } else {
-                    mapItem = (MapItem) d.getMapLayer(style, null);
+                MapItem mapItem = d.getMapLayer(style);
+                if (filter != null && !filter.isEmpty() && mapItem instanceof MapLayer ml) {
+                    try {
+                        Filter f = CQL.parseFilter(filter);
+                        FeatureQuery query = new FeatureQuery();
+                        query.setSelection(f);
+                        ml.setQuery(query);
+                    } catch (CQLException e) {
+                        throw new CstlServiceException("Error while parsing cql filter", e);
+                    }
                 }
                 mapContext.getComponents().add(mapItem);
             }

@@ -207,7 +207,7 @@ public class PyramidBusiness implements IPyramidBusiness {
                 }
 
                 try {
-                    context.getComponents().add(inData.getMapLayer(style, null));
+                    context.getComponents().add(inData.getMapLayer(style));
                 } catch (ConstellationStoreException ex) {
                     LOGGER.log(Level.WARNING, "Failed to create map layer for data " + ex.getMessage() +  "Moving to next data.", ex);
                     continue;
@@ -217,7 +217,7 @@ public class PyramidBusiness implements IPyramidBusiness {
                 if (!(inData instanceof CoverageData)) {
                     throw new ConstellationException("Cannot create pyramid conform for no raster data, it is not supported yet!");
                 }
-                context.getComponents().add(((CoverageData)inData).getMapLayer(null, null, true));
+                context.getComponents().add(((CoverageData)inData).getMapLayer(null, true));
             }
 
             if (coordsys != null) {
@@ -287,7 +287,7 @@ public class PyramidBusiness implements IPyramidBusiness {
 
         Integer mcDataId = mapContextBusiness.getMapContextDataId(mc.getId()).getId();
         Data d = DataProviders.getProviderData(mcDataId);
-        final MapLayers context =  (MapLayers) d.getMapLayer(null, null);
+        final MapLayers context =  (MapLayers) d.getMapLayer(null);
 
         return generatePyramidAndProcess(userId, context, pyramidDataName, tilingMode, crs, globalEnv, tileSize, scales, Arrays.asList(mcDataId));
     }

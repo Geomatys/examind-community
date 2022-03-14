@@ -591,7 +591,6 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
 
 
         GridCoverage c = null;
-        //       -- create the rendering parameter Map
         Double elevation =  null;
         Date time        = null;
         final List<DimensionNameValue> dimensions = getTile.getDimensionNameValue();
@@ -611,20 +610,23 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                 }
             }
         }
+
+        // TODO elevation and time are not taken in count yet
         final Map<String, Object> params = new HashMap<>();
         params.put("ELEVATION", elevation);
         params.put("TIME", time);
+        
         final SceneDef sdef = new SceneDef();
 
         try {
-            final MapLayers context = PortrayalUtil.createContext(layer, style, params);
+            final MapLayers context = PortrayalUtil.createContext(layer, style);
             sdef.setContext(context);
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
         }
 
-
         // 3. CANVAS
+        // this part does not work and throw a null pointer exception TODO
         final JTSEnvelope2D refEnv = new JTSEnvelope2D(c.getGridGeometry().getEnvelope());
         final double azimuth       = 0;//request.getAzimuth();
         final java.awt.Dimension canvasDimension = null;//request.getSize();

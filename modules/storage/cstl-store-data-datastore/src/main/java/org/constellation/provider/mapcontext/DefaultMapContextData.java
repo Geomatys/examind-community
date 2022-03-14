@@ -54,7 +54,7 @@ public class DefaultMapContextData extends AbstractData<Resource> implements Dat
     }
 
     @Override
-    public MapItem getMapLayer(Style style, Map<String, Object> params) throws ConstellationStoreException {
+    public MapItem getMapLayer(Style style) throws ConstellationStoreException {
         return mp;
     }
 

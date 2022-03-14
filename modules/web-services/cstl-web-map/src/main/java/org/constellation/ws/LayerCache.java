@@ -187,38 +187,37 @@ public class LayerCache {
         return configuration != null && (configuration.getFilter() != null || !configuration.getDimensions().isEmpty());
     }
     
-    public Optional<Filter> getLayerFilter() {
-        if (configuration != null && configuration.getFilter() != null) {
-            try {
-                return Optional.of(new DtoToOGCFilterTransformer(new FilterFactoryImpl()).visitFilter(configuration.getFilter()));
-            } catch (FactoryException e) {
-                LOGGER.log(Level.WARNING, "Error while transforming layer custom filter", e);
-            }
-        }
-        return Optional.empty();
-    }
-
-    public Optional<Filter> getDimensionFilter(Envelope env) {
+    public Optional<Filter> getLayerFilter(Envelope env, Filter extraFilter) {
         final List<Filter> filters = new ArrayList<>();
-        if (configuration != null && !configuration.getDimensions().isEmpty()) {
-            for (DimensionDefinition ddef : configuration.getDimensions()) {
+        if (extraFilter != null) {
+            filters.add(extraFilter);
+        }
+        if (configuration != null) {
+            if (configuration.getFilter() != null) {
                 try {
-                    final DimensionDef def = getDimensionDef(ddef);
-
-                    final Envelope dimEnv;
+                    filters.add(new DtoToOGCFilterTransformer(new FilterFactoryImpl()).visitFilter(configuration.getFilter()));
+                } catch (FactoryException e) {
+                    LOGGER.log(Level.WARNING, "Error while transforming layer custom filter", e);
+                }
+            }
+            if (!configuration.getDimensions().isEmpty() && env != null) {
+                for (DimensionDefinition ddef : configuration.getDimensions()) {
                     try {
-                        dimEnv = Envelopes.transform(env, def.crs);
-                    } catch (TransformException ex) {
-                        continue;
+                        final DimensionDef def = getDimensionDef(ddef);
+                        final Envelope dimEnv;
+                        try {
+                            dimEnv = Envelopes.transform(env, def.crs);
+                        } catch (TransformException ex) {
+                            continue;
+                        }
+
+                        final Filter dimFilter = FF.and(
+                                FF.lessOrEqual(FF.literal(dimEnv.getMinimum(0)), def.lower),
+                                FF.greaterOrEqual(FF.literal(dimEnv.getMaximum(0)), def.upper));
+                        filters.add(dimFilter);
+                    } catch (CQLException ex) {
+                        LOGGER.log(Level.WARNING, "Error while building a dimension filter.", ex);
                     }
-
-                    final Filter dimFilter = FF.and(
-                            FF.lessOrEqual(FF.literal(dimEnv.getMinimum(0)), def.lower),
-                            FF.greaterOrEqual(FF.literal(dimEnv.getMaximum(0)), def.upper));
-                    filters.add(dimFilter);
-
-                } catch (CQLException ex) {
-                    LOGGER.log(Level.WARNING, "Error while building a dimension filter.", ex);
                 }
             }
         }

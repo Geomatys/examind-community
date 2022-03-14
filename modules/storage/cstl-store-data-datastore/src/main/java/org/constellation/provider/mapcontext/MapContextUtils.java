@@ -91,8 +91,7 @@ public class MapContextUtils {
     */
    public static MapItem load(final AbstractMCLayerDTO layer, IDataBusiness dataBusiness, IStyleBusiness styleBusiness, ILayerBusiness layerBusiness) throws ConstellationException {
 
-        if (layer instanceof InternalServiceMCLayerDTO) {
-            InternalServiceMCLayerDTO isLayer = (InternalServiceMCLayerDTO) layer;
+        if (layer instanceof InternalServiceMCLayerDTO isLayer) {
             final Integer layerId = isLayer.getLayerId();
             final Layer layerConf = layerBusiness.getLayer(layerId, null);
 
@@ -107,10 +106,9 @@ public class MapContextUtils {
             }
 
             final Data realData = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
-            return realData.getMapLayer(layerStyle, null);
+            return realData.getMapLayer(layerStyle);
 
-        } else if (layer instanceof DataMCLayerDTO) {
-            DataMCLayerDTO dtLayer = (DataMCLayerDTO) layer;
+        } else if (layer instanceof DataMCLayerDTO dtLayer) {
             final Integer dataId = dtLayer.getDataId();
             final org.constellation.dto.Data data;
             try {
@@ -128,10 +126,9 @@ public class MapContextUtils {
             }
 
             final Data realData = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
-            return realData.getMapLayer(layerStyle, null);
+            return realData.getMapLayer(layerStyle);
 
-        } else if (layer instanceof ExternalServiceMCLayerDTO) {
-             ExternalServiceMCLayerDTO extLayer = (ExternalServiceMCLayerDTO) layer;
+        } else if (layer instanceof ExternalServiceMCLayerDTO extLayer) {
              String serviceUrl = extLayer.getExternalServiceUrl();
             if (serviceUrl != null) {
                 try {

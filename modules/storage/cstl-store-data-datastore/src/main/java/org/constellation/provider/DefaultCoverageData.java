@@ -45,6 +45,7 @@ import org.apache.sis.internal.util.UnmodifiableArrayList;
 import org.apache.sis.measure.NumberRange;
 import org.apache.sis.parameter.Parameters;
 import org.apache.sis.portrayal.MapItem;
+import org.apache.sis.portrayal.MapLayer;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.operation.transform.MathTransforms;
@@ -121,12 +122,19 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
      * {@inheritDoc}
      */
     @Override
-    public MapItem getMapLayer(Style style, Map<String, Object> params, boolean forceSampleDimensions) throws ConstellationStoreException {
+    public MapItem getMapLayer(Style styleI, boolean forceSampleDimensions) throws ConstellationStoreException {
         if (!forceSampleDimensions) {
-            return getMapLayer(style, params);
+            return getMapLayer(styleI);
         } else {
-            GridCoverageResource resource = forceSampleDimensions(origin);
-            return MapBuilder.createLayer(resource);
+            MapLayer layer = MapBuilder.createLayer(forceSampleDimensions(origin));
+            if (styleI == null) {
+                styleI = getDefaultStyle();
+            }
+            layer.setStyle(styleI);
+            final String title = getName().tip().toString();
+            layer.setIdentifier(title);
+            layer.setTitle(title);
+            return layer;
         }
     }
 

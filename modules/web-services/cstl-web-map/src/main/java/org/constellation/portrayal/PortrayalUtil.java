@@ -18,7 +18,6 @@
  */
 package org.constellation.portrayal;
 
-import java.util.ArrayList;
 import org.constellation.provider.Data;
 import org.geotoolkit.map.MapBuilder;
 import org.apache.sis.portrayal.MapLayers;
@@ -33,7 +32,6 @@ import org.apache.sis.portrayal.MapLayer;
 import org.apache.sis.storage.FeatureQuery;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.ws.LayerCache;
-import static org.geotoolkit.filter.FilterUtilities.FF;
 import org.opengis.filter.Filter;
 import org.opengis.geometry.Envelope;
 
@@ -52,25 +50,17 @@ import org.opengis.geometry.Envelope;
  */
 public final class PortrayalUtil {
 
-    public static MapLayers createContext(LayerCache layerRef, MutableStyle styleRef,
-            Map<String,Object> renderingParameters) throws ConstellationStoreException{
+    public static MapLayers createContext(LayerCache layerRef, MutableStyle styleRef) throws ConstellationStoreException{
         return createContext(
                  Collections.singletonList(layerRef),
                  Collections.singletonList(styleRef),
                  Collections.EMPTY_LIST,
                  Collections.EMPTY_LIST,
-                 renderingParameters,
                  null);
 
     }
 
-    public static MapLayers createContext(List<LayerCache> layerRefs, List<MutableStyle> styleRefs,
-            Map<String,Object> renderingParameters, Envelope env) throws ConstellationStoreException {
-        return createContext(layerRefs, styleRefs, Collections.EMPTY_LIST, Collections.EMPTY_LIST, renderingParameters, env);
-    }
-
-    public static MapLayers createContext(List<LayerCache> layers, List<MutableStyle> styles, List<List<String>> propertiess, List<Filter> extraFilters,
-            Map<String,Object> renderingParameters, Envelope env) throws ConstellationStoreException {
+    public static MapLayers createContext(List<LayerCache> layers, List<MutableStyle> styles, List<List<String>> propertiess, List<Filter> extraFilters, Envelope env) throws ConstellationStoreException {
         final MapLayers context = MapBuilder.createContext();
 
         for (int i = 0; i < layers.size(); i++) {
@@ -90,7 +80,7 @@ public final class PortrayalUtil {
                     properties = propertiess.get(i);
                 }
 
-                final MapItem mapItem = data.getMapLayer(style, renderingParameters);
+                final MapItem mapItem = data.getMapLayer(style);
                 if (mapItem == null) {
                     throw new ConstellationStoreException("Could not create a mapLayer for layer: " + layer.getName());
                 }
@@ -102,11 +92,7 @@ public final class PortrayalUtil {
                 if (mapItem instanceof MapLayer mapLayer) {
 
                     // extra filters
-                    List<Filter> filters = new ArrayList<>();
-                    layer.getLayerFilter().ifPresent(f -> filters.add(f));
-                    layer.getDimensionFilter(env).ifPresent(f -> filters.add(f));
-                    if (extraFilter != null) filters.add(extraFilter);
-                    Optional<Filter> filter = filters.stream().reduce(FF::and);
+                    Optional<Filter> filter = layer.getLayerFilter(env, extraFilter);
 
                     if (filter.isPresent() || properties != null) {
                         final FeatureQuery query = new FeatureQuery();

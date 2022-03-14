@@ -181,9 +181,8 @@ public interface Data<T extends Resource> {
      * if style is null, the favorite style of this layer will be used.
      *
      * @param style Style to apply to the data. Can be null.
-     * @param params Extra parameters usable by specific implementations. No more details available at API level. Can be null.
      */
-    MapItem getMapLayer(Style style, final Map<String, Object> params) throws ConstellationStoreException;
+    MapItem getMapLayer(Style style) throws ConstellationStoreException;
 
 
     /**

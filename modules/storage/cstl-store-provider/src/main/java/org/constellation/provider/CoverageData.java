@@ -82,10 +82,9 @@ public interface CoverageData extends Data<GridCoverageResource> {
     /**
      * 
      * @param style Style to apply to the data. Can be null.
-     * @param params Extra parameters usable by specific implementations. No more details available at API level. Can be null.
      * @param forceSampleDimensions if set to {@code true} the sample dimensions will be overriden.
      *
      * @return A map Item.
      */
-    MapItem getMapLayer(Style style, final Map<String, Object> params, boolean forceSampleDimensions) throws ConstellationStoreException;
+    MapItem getMapLayer(Style style, boolean forceSampleDimensions) throws ConstellationStoreException;
 }

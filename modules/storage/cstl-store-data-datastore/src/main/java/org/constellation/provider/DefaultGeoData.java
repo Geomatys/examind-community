@@ -51,86 +51,19 @@ public abstract class DefaultGeoData<T extends Resource> extends AbstractData<T>
         super(name, origin, store);
     }
 
-    protected Filter buildDimFilter(final String dimName, final String dimValue) {
-        final DefaultFilterFactory factory = FilterUtilities.FF;
-        Object value = dimValue;
-        try {
-            value = Double.parseDouble(dimValue);
-        } catch (NumberFormatException ex) {
-            // not a number
-            LOGGER.log(Level.FINER, "Received dimension value is not a number", ex);
-        }
-
-        return factory.equal(factory.property(dimName), factory.literal(value));
-    }
-
-    private Filter toFilter(Map.Entry param) {
-        final Object rawKey = param.getKey();
-        if (!(rawKey instanceof String)) return null;
-        final String key = (String) rawKey;
-        if (key.equalsIgnoreCase("cql_filter")) {
-            final String cqlFilter = extractStringValue(param.getValue());
-            if (cqlFilter != null) {
-                try {
-                    return CQL.parseFilter(cqlFilter);
-                } catch (CQLException e) {
-                    throw new BackingStoreException(e);
-                }
-            }
-        } else if (key.startsWith("dim_") || key.startsWith("DIM_")) {
-            final String dimValue = extractStringValue(param.getValue());
-            final String dimName = key.substring(4);
-            return buildDimFilter(dimName, dimValue);
-        }
-        return null;
-    }
-
-    private String extractStringValue(Object valueOrContainer) {
-        if (valueOrContainer instanceof Iterable) {
-            final Iterator it = ((Iterable) valueOrContainer).iterator();
-            if (it.hasNext()) valueOrContainer = it.next();
-        }
-
-        if (valueOrContainer instanceof String) return (String) valueOrContainer;
-        else return null;
-    }
-
-    protected Optional<Query> resolveQuery(final Map portrayParameters) throws ConstellationStoreException {
-        try {
-            if (portrayParameters == null) return Optional.empty();
-        final Object rawValues = portrayParameters.get(KEY_EXTRA_PARAMETERS);
-        if (rawValues == null) return Optional.empty();
-        if (!(rawValues instanceof Map)) throw new IllegalArgumentException(KEY_EXTRA_PARAMETERS+" parameter must be a Map");
-        final Map<?, ?> extras = (Map) rawValues;
-        return extras.entrySet().stream()
-                .map(this::toFilter)
-                .filter(Objects::nonNull)
-                .reduce(FilterUtilities.FF::and)
-                .map(filter-> {
-                    final FeatureQuery query = new FeatureQuery();
-                    query.setSelection((Filter) filter);
-                    return query;
-                });
-        } catch (BackingStoreException ex) {
-            throw new ConstellationStoreException(ex);
-        }
-    }
-
     /**
      * {@inheritDoc}
      */
     @Override
-    public MapItem getMapLayer(Style styleI, final Map<String, Object> params) throws ConstellationStoreException {
+    public MapItem getMapLayer(Style styleI) throws ConstellationStoreException {
+        final MapLayer layer = MapBuilder.createLayer(origin);
         if (styleI == null) {
             styleI = getDefaultStyle();
         }
-        final MapLayer layer = MapBuilder.createLayer(origin);
-        if (styleI != null) layer.setStyle(styleI);
-
+        layer.setStyle(styleI);
         final String title = getName().tip().toString();
         layer.setIdentifier(title);
         layer.setTitle(title);
-        resolveQuery(params).ifPresent(query -> layer.setQuery(query));
         return layer;
     }
 

@@ -74,6 +74,7 @@ import org.constellation.dto.service.config.wxs.FormatURL;
 import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
+import static org.constellation.map.util.MapUtils.transformJAXBFilter;
 import org.constellation.provider.Data;
 import org.constellation.provider.FeatureData;
 import org.constellation.util.NameComparator;
@@ -999,7 +1000,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             }
 
             //decode filter-----------------------------------------------------
-            final Filter filter = extractJAXBFilter(query.getFilter(), Filter.include(), namespaceMapping, currentVersion);
+            final Filter filter = transformJAXBFilter(query.getFilter(), Filter.include(), namespaceMapping, currentVersion);
 
             //decode crs--------------------------------------------------------
             final CoordinateReferenceSystem queryCRS = extractCRS(query.getSrsName());
@@ -1215,7 +1216,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             }
 
             //decode filter-----------------------------------------------------
-            final Filter filter = extractJAXBFilter(query.getFilter(), Filter.include(), namespaceMapping, currentVersion);
+            final Filter filter = transformJAXBFilter(query.getFilter(), Filter.include(), namespaceMapping, currentVersion);
 
             //decode crs--------------------------------------------------------
             final CoordinateReferenceSystem crs = extractCRS(query.getSrsName());
@@ -1528,7 +1529,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 if (deleteRequest.getFilter() == null) {
                     throw new CstlServiceException("The filter must be specified.", MISSING_PARAMETER_VALUE, "filter");
                 }
-                final Filter filter = extractJAXBFilter(deleteRequest.getFilter(), Filter.exclude(), namespaceMapping, currentVersion);
+                final Filter filter = transformJAXBFilter(deleteRequest.getFilter(), Filter.exclude(), namespaceMapping, currentVersion);
 
                 final LayerCache layer;
                 try {
@@ -1576,7 +1577,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 }
 
                 //decode filter-----------------------------------------------------
-                final Filter filter = extractJAXBFilter(updateRequest.getFilter(),Filter.exclude(), namespaceMapping, currentVersion);
+                final Filter filter = transformJAXBFilter(updateRequest.getFilter(),Filter.exclude(), namespaceMapping, currentVersion);
 
                 //decode crs--------------------------------------------------------
                 final CoordinateReferenceSystem crs = extractCRS(updateRequest.getSrsName());
@@ -1623,13 +1624,13 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                             LOGGER.log(Level.FINER, ">> updating : {0}   => {1}", new Object[]{updatePropertyName, strValue});
                         } else {
                             value = updateProperty.getValue();
-                            if (value instanceof AbstractGeometryType) {
+                            if (value instanceof AbstractGeometryType geom) {
                                 try {
                                     final String defaultCRS = getCRSCode(ft);
                                     final CoordinateReferenceSystem exposedCrs = CRS.forCode(defaultCRS);
                                     final CoordinateReferenceSystem trueCrs = FeatureExt.getCRS(propertyType);
 
-                                    value = GeometrytoJTS.toJTS((AbstractGeometryType) value);
+                                    value = GeometrytoJTS.toJTS(geom);
                                     if(trueCrs != null && !Utilities.equalsIgnoreMetadata(exposedCrs, trueCrs)){
                                         value = JTS.transform((Geometry)value, CRS.findOperation(exposedCrs, trueCrs, null).getMathTransform());
                                     }
@@ -1639,11 +1640,10 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                                 } catch (IllegalArgumentException ex) {
                                     throw new CstlServiceException(ex);
                                 }
-                            } else if (value instanceof DirectPosition) {
-                                final DirectPosition dp = (DirectPosition) value;
+                            } else if (value instanceof DirectPosition dp) {
                                 value = new GeometryFactory().createPoint(new Coordinate(dp.getOrdinate(0), dp.getOrdinate(1)));
-                            } else if (value instanceof String) {
-                                value = featureReader.readValue((String) value, (AttributeType) propertyType);
+                            } else if (value instanceof String sval) {
+                                value = JAXPStreamFeatureReader.readValue(sval, (AttributeType) propertyType);
                             }
                             LOGGER.log(Level.FINER, ">> updating : {0} => {1}", new Object[]{updatePropertyName, value});
                             if (value != null) {
@@ -1664,8 +1664,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     totalUpdated = totalUpdated + (int) FeatureStoreUtilities.getCount(fs.subset(query)).intValue();
 
                     final FeatureSet origin = data.getOrigin();
-                    if (origin instanceof WritableFeatureSet) {
-                        final WritableFeatureSet wfs = (WritableFeatureSet) origin;
+                    if (origin instanceof WritableFeatureSet wfs) {
                         wfs.replaceIf(filter, new UnaryOperator<Feature>() {
                             @Override
                             public Feature apply(Feature feat) {
@@ -1695,7 +1694,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 }
 
                 //decode filter-----------------------------------------------------
-                final Filter filter = extractJAXBFilter(replaceRequest.getFilter(),Filter.exclude(), namespaceMapping, currentVersion);
+                final Filter filter = transformJAXBFilter(replaceRequest.getFilter(),Filter.exclude(), namespaceMapping, currentVersion);
 
                 //decode crs--------------------------------------------------------
                 final CoordinateReferenceSystem crs = extractCRS(replaceRequest.getSrsName());
@@ -1710,8 +1709,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 
                         featureObject = featureReader.read(featureObject);
 
-                    } else if (featureObject instanceof FeatureCollectionType) {
-                        final FeatureCollectionType xmlCollection = (FeatureCollectionType) featureObject;
+                    } else if (featureObject instanceof FeatureCollectionType xmlCollection) {
                         final String id = xmlCollection.getId();
                         final List<Feature> features = new ArrayList<>();
                         FeatureType ft = null;
@@ -1730,13 +1728,12 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 final GenericName typeName;
                 FeatureSet featureCollection;
 
-                if (featureObject instanceof Feature) {
-                    final Feature feature = (Feature) featureObject;
+                if (featureObject instanceof Feature feature) {
                     typeName = feature.getType().getName();
                     featureCollection = FeatureStoreUtilities.collection(feature);
-                } else if (featureObject instanceof FeatureSet) {
+                } else if (featureObject instanceof FeatureSet fs) {
                     try {
-                        typeName = ((FeatureSet) featureObject).getType().getName();
+                        typeName = fs.getType().getName();
                         featureCollection = (FeatureSet) featureObject;
                     } catch (DataStoreException ex) {
                         throw new CstlServiceException(ex);
@@ -1746,8 +1743,8 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     if (featureObject == null) {
                         featureType = "null";
                     } else {
-                        if (featureObject instanceof JAXBElement) {
-                            featureType = "JAXBElement<" + ((JAXBElement) featureObject).getValue().getClass().getName() + ">";
+                        if (featureObject instanceof JAXBElement jb) {
+                            featureType = "JAXBElement<" + jb.getValue().getClass().getName() + ">";
                         } else {
                             featureType = featureObject.getClass().getName();
                         }
@@ -1784,10 +1781,10 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     }
 
                     DataStore store = data.getStore();
-                    if (store instanceof FeatureStore) {
+                    if (store instanceof FeatureStore fst) {
                         try (Stream<Feature> stream = featureCollection.features(false)) {
                             List<Feature> collected = stream.collect(Collectors.toList());
-                            final List<ResourceId> features = ((FeatureStore) store).addFeatures(layerName, collected);
+                            final List<ResourceId> features = fst.addFeatures(layerName, collected);
 
                             for (ResourceId fid : features) {
                                 replaced.put(fid.getIdentifier(), handle);// get the id of the replaced feature
@@ -1900,33 +1897,6 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
         }
         if (!node.getNodeName().equals("#text")) {temp.append("</").append(node.getNodeName()).append(">");}
         return temp;
-    }
-
-    /**
-     * Extract an OGC filter usable by the dataStore from the request filter
-     * unmarshalled by JAXB.
-     *
-     * @param jaxbFilter an OGC JAXB filter.
-     * @return An OGC filter
-     * @throws CstlServiceException
-     */
-    private Filter extractJAXBFilter(final Filter jaxbFilter, final Filter defaultFilter, final Map<String, String> namespaceMapping, final String currentVersion) throws CstlServiceException {
-        final StyleXmlIO util = new StyleXmlIO();
-        final Filter filter;
-        try {
-            if (jaxbFilter != null) {
-                if ("2.0.0".equals(currentVersion)) {
-                    filter = util.getTransformer200(namespaceMapping).visitFilter((org.geotoolkit.ogc.xml.v200.FilterType)jaxbFilter);
-                } else {
-                    filter = util.getTransformer110(namespaceMapping).visitFilter((org.geotoolkit.ogc.xml.v110.FilterType)jaxbFilter);
-                }
-            } else {
-                filter = defaultFilter;
-            }
-        } catch (Exception ex) {
-            throw new CstlServiceException(ex, INVALID_PARAMETER_VALUE);
-        }
-        return filter;
     }
 
     /**
@@ -2093,16 +2063,14 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 
     private static void applyParameterOnFilter(final Filter filter, final List<? extends Parameter> parameters) throws CstlServiceException {
         final Object filterObject;
-        if (filter instanceof XMLFilter) {
-            filterObject = ((XMLFilter)filter).getFilterObject();
+        if (filter instanceof XMLFilter xmf) {
+            filterObject = xmf.getFilterObject();
         } else {
             filterObject = filter;
         }
 
-        if (filterObject instanceof BBOXType) {
-           final BBOXType bb = (BBOXType) filterObject;
-           if (bb.getAny() != null && bb.getAny() instanceof String) {
-               String s = (String)bb.getAny();
+        if (filterObject instanceof BBOXType bb) {
+           if (bb.getAny() != null && bb.getAny() instanceof String s) {
                for (Parameter param : parameters) {
                    if (s.contains("${" + param.getName() + '}')) {
                        bb.setAny(param.getContent().get(0));
@@ -2110,12 +2078,9 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                }
            }
 
-       } else if (filterObject instanceof BinarySpatialOperator) {
-           final BinarySpatialOperator binary = (BinarySpatialOperator) filterObject;
-           if (binary.getOperand2() != null && binary.getOperand2() instanceof XMLLiteral) {
-               final XMLLiteral lit = (XMLLiteral) binary.getOperand2();
-               if (lit.getValue() instanceof String) {
-                   String s = (String)lit.getValue();
+       } else if (filterObject instanceof BinarySpatialOperator binary) {
+           if (binary.getOperand2() != null && binary.getOperand2() instanceof XMLLiteral lit) {
+               if (lit.getValue() instanceof String s) {
                    for (Parameter param : parameters) {
                        if (s.contains("${" + param.getName() + '}')) {
                            s = s.replace("${" + param.getName()+ '}', (String)param.getContent().get(0));
@@ -2126,12 +2091,9 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                }
            }
 
-       } else if (filterObject instanceof BinaryComparisonOperator) {
-           final BinaryComparisonOperator binary = (BinaryComparisonOperator) filterObject;
-           if (binary.getOperand2() != null && binary.getOperand2() instanceof XMLLiteral) {
-               final XMLLiteral lit = (XMLLiteral) binary.getOperand2();
-               if (lit.getValue() instanceof String) {
-                   String s = (String)lit.getValue();
+       } else if (filterObject instanceof BinaryComparisonOperator binary) {
+           if (binary.getOperand2() != null && binary.getOperand2() instanceof XMLLiteral lit) {
+               if (lit.getValue() instanceof String s) {
                    for (Parameter param : parameters) {
                        if (s.contains("${"  + param.getName()+ '}')) {
                            s = s.replace("${"  + param.getName()+ '}', (String)param.getContent().get(0));
@@ -2147,7 +2109,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
            for (Filter child : binary.getOperands()) {
                applyParameterOnFilter(child, parameters);
            }
-       } else  if (filter != null) {
+       } else  if (filterObject != null) {
            throw new CstlServiceException("Unimplemented filter implementation:" + filterObject.getClass().getName(), NO_APPLICABLE_CODE);
        }
     }
