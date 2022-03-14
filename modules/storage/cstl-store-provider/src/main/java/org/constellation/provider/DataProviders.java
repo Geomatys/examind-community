@@ -31,10 +31,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.measure.Unit;
-import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.feature.Features;
 import org.apache.sis.geometry.Envelopes;
-import org.apache.sis.geometry.GeneralDirectPosition;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.internal.storage.ResourceOnFileSystem;
 import org.apache.sis.internal.system.DefaultFactories;
@@ -44,7 +42,6 @@ import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
-import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.StorageConnector;
@@ -56,7 +53,6 @@ import org.constellation.dto.DataCustomConfiguration;
 import org.constellation.dto.DataDescription;
 import org.constellation.dto.ProviderBrief;
 import org.constellation.exception.ConfigurationException;
-import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.exception.TargetNotFoundException;
 import org.constellation.repository.DataRepository;
@@ -88,7 +84,6 @@ import org.opengis.parameter.GeneralParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.referencing.crs.CRSAuthorityFactory;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.style.Description;
@@ -210,12 +205,7 @@ public final class DataProviders extends Static{
      * @throws ConfigurationException If the Provider does not exist.
      */
     public synchronized static Data getProviderData(final int providerId, final String namespace, final String name) throws ConfigurationException {
-        final DataProvider inProvider;
-        try {
-            inProvider = DataProviders.getProvider(providerId);
-        } catch (ConfigurationException ex) {
-            throw new TargetNotFoundException("Provider " + providerId + " does not exist");
-        }
+        final DataProvider inProvider = DataProviders.getProvider(providerId);
         try {
             return inProvider.get(namespace, name);
         } catch (ConstellationStoreException ex) {
