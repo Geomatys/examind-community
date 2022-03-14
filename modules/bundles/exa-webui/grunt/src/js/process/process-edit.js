@@ -35,6 +35,12 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
             .put('double', {
                 templateUrl: 'views/tasks/editor/number.html'
             })
+            .put('java.lang.Float', {
+                templateUrl: 'views/tasks/editor/number.html'
+            })
+            .put('float', {
+                templateUrl: 'views/tasks/editor/number.html'
+            })
             .put('java.lang.Integer', {
                 templateUrl: 'views/tasks/editor/number.html'
             })
