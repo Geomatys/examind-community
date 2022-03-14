@@ -37,7 +37,6 @@ import java.util.logging.Level;
 
 import org.apache.sis.storage.GridCoverageResource;
 import org.constellation.map.featureinfo.dto.LayerError;
-import org.apache.sis.portrayal.MapLayer;
 import org.opengis.feature.Feature;
 import org.opengis.util.GenericName;
 
@@ -83,7 +82,7 @@ import org.constellation.ws.MimeType;
  *
  * @author Alexis Manin (Geomatys)
  */
-public class JSONFeatureInfoFormat extends AbstractFeatureInfoFormat {
+public class JSONFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
 
     private static final ObjectWriter WRITER;
     static {
@@ -130,34 +129,33 @@ public class JSONFeatureInfoFormat extends AbstractFeatureInfoFormat {
     }
 
     @Override
-    protected void nextProjectedFeature(MapLayer layer, Feature candidate, RenderingContext2D context, SearchAreaJ2D queryArea) {
-        final String layerName = getNameForFeatureLayer(layer).tip().toString();
+    protected void nextProjectedFeature(GenericName layerName, Feature candidate, RenderingContext2D context, SearchAreaJ2D queryArea) {
+        final String layerNameStr = layerName.tip().toString();
         try {
-            infoQueue.add(new FeatureInfo(layerName, candidate));
+            infoQueue.add(new FeatureInfo(layerNameStr, candidate));
         } catch (Exception e) {
             final LayerError err = new LayerError();
             err.setError(e);
-            err.setLayer(layerName);
+            err.setLayer(layerNameStr);
             infoQueue.add(err);
         }
     }
 
     @Override
-    protected void nextProjectedCoverage(MapLayer layer, GridCoverageResource resource, RenderingContext2D context, SearchAreaJ2D queryArea) {
-        final GenericName fullLayerName = getNameForCoverageLayer(layer);
+    protected void nextProjectedCoverage(GenericName layerName, GridCoverageResource resource, RenderingContext2D context, SearchAreaJ2D queryArea) {
         try {
             final List<Map.Entry<SampleDimension, Object>> results =
                     FeatureInfoUtilities.getCoverageValues(resource, context, queryArea);
 
             if (results == null || results.isEmpty()) return;
 
-            final CoverageInfo info = buildCoverageInfo(fullLayerName, getLayer(fullLayerName, DataType.COVERAGE), gfi);
+            final CoverageInfo info = buildCoverageInfo(layerName, getLayer(layerName, DataType.COVERAGE), gfi);
             fill(info, results);
             infoQueue.add(info);
         } catch (Exception e) {
             final LayerError err = new LayerError();
             err.setError(e);
-            err.setLayer(fullLayerName.tip().toString());
+            err.setLayer(layerName.tip().toString());
             infoQueue.add(err);
         }
     }

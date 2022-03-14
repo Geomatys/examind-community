@@ -34,7 +34,6 @@ import org.geotoolkit.display2d.canvas.RenderingContext2D;
 import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
-import org.apache.sis.portrayal.MapLayer;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
 import org.opengis.feature.AttributeType;
 import org.opengis.feature.Feature;
@@ -69,20 +68,20 @@ public class CSVFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
      * {@inheritDoc}
      */
     @Override
-    protected void nextProjectedFeature(MapLayer layer, final Feature feature, RenderingContext2D context, SearchAreaJ2D queryArea) {
+    protected void nextProjectedFeature(GenericName layerName, final Feature feature, RenderingContext2D context, SearchAreaJ2D queryArea) {
 
-        final String layerName = getNameForFeatureLayer(layer).tip().toString();
+        final String layerNameStr = layerName.tip().toString();
 
         final Collection<? extends PropertyType> descs = feature.getType().getProperties(true);
 
-        LayerResult result = results.get(layerName);
-        if(result==null){
+        LayerResult result = results.get(layerNameStr);
+        if (result == null) {
             //first feature of this type
             result = new LayerResult();
-            result.layerName = layerName;
+            result.layerName = layerNameStr;
             //feature type
             final StringBuilder typeBuilder = new StringBuilder();
-            for(PropertyType pt : descs){
+            for (PropertyType pt : descs) {
                 if (pt instanceof AttributeType) {
                     final GenericName propName = pt.getName();
                     typeBuilder.append(propName.toString());
@@ -92,7 +91,7 @@ public class CSVFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
                 } 
             }
             result.layerType = typeBuilder.toString();
-            results.put(layerName, result);
+            results.put(layerNameStr, result);
         }
 
 
@@ -126,19 +125,19 @@ public class CSVFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
     }
 
     @Override
-    protected void nextProjectedCoverage(MapLayer layer, final GridCoverageResource resource, RenderingContext2D context, SearchAreaJ2D queryArea) {
+    protected void nextProjectedCoverage(GenericName layerName, final GridCoverageResource resource, RenderingContext2D context, SearchAreaJ2D queryArea) {
         final List<Map.Entry<SampleDimension,Object>> covResults = FeatureInfoUtilities.getCoverageValues(resource, context, queryArea);
 
         if (covResults == null) {
             return;
         }
 
-        final String layerName = getNameForCoverageLayer(layer).tip().toString();
-        LayerResult result = results.get(layerName);
+        final String layerNameStr = layerName.tip().toString();
+        LayerResult result = results.get(layerNameStr);
         if(result==null){
             //first feature of this type
             result = new LayerResult();
-            result.layerName = layerName;
+            result.layerName = layerNameStr;
             //coverage type
             final StringBuilder typeBuilder = new StringBuilder();
             for (final Map.Entry<SampleDimension,Object> entry : covResults) {
@@ -155,7 +154,7 @@ public class CSVFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
                 typeBuilder.append(';');
             }
             result.layerType = typeBuilder.toString();
-            results.put(layerName, result);
+            results.put(layerNameStr, result);
         }
 
         //the coverage values

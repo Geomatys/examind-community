@@ -46,9 +46,9 @@ import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
 import org.geotoolkit.feature.FeatureExt;
-import org.apache.sis.portrayal.MapLayer;
+import static org.constellation.metadata.utils.Utils.encodeXML;
+import static org.constellation.metadata.utils.Utils.encodeXMLMark;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
-import org.geotoolkit.util.DateRange;
 import org.locationtech.jts.geom.Geometry;
 import org.opengis.feature.AttributeType;
 import org.opengis.feature.Feature;
@@ -78,42 +78,39 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
      * {@inheritDoc}
      */
     @Override
-    protected void nextProjectedCoverage(MapLayer layer, final GridCoverageResource resource, RenderingContext2D context, SearchAreaJ2D queryArea) {
-        final List<Map.Entry<SampleDimension,Object>> results =
-                FeatureInfoUtilities.getCoverageValues(resource, context, queryArea);
+    protected void nextProjectedCoverage(GenericName layerName, final GridCoverageResource resource, RenderingContext2D context, SearchAreaJ2D queryArea) {
+        final List<Map.Entry<SampleDimension,Object>> results = FeatureInfoUtilities.getCoverageValues(resource, context, queryArea);
 
         if (results == null) {
             return;
         }
 
-        final GenericName fullLayerName = getNameForCoverageLayer(layer);
-        String layerName = fullLayerName.tip().toString();
+        String layerNameStr = layerName.tip().toString();
 
         StringBuilder builder = new StringBuilder();
         String margin = "\t";
 
         builder.append(margin).append("<Coverage>\n");
         margin += "\t";
-        builder.append(margin).append("<Layer>").append(encodeXML(layerName)).append("</Layer>\n");
+        builder.append(margin).append("<Layer>").append(encodeXML(layerNameStr)).append("</Layer>\n");
 
-        builder.append(coverageToXML(layer, results, margin, gfi, getLayer(fullLayerName, DataType.COVERAGE)));
+        builder.append(coverageToXML(results, margin, gfi, getLayer(layerName, DataType.COVERAGE)));
 
         margin = margin.substring(1);
         builder.append(margin).append("</Coverage>\n");
 
         if (builder.length() > 0) {
-            List<String> strs = coverages.get(fullLayerName);
+            List<String> strs = coverages.get(layerName);
             if (strs == null) {
                 strs = new ArrayList<>();
-                coverages.put(fullLayerName, strs);
+                coverages.put(layerName, strs);
             }
             strs.add(builder.toString());
         }
 
     }
 
-    protected String coverageToXML(final MapLayer maplayer, final List<Map.Entry<SampleDimension,Object>> results,
-                                          String margin, final GetFeatureInfo gfi, final Optional<LayerCache> layerO) {
+    protected String coverageToXML(final List<Map.Entry<SampleDimension,Object>> results, String margin, final GetFeatureInfo gfi, final Optional<LayerCache> layerO) {
 
         StringBuilder builder = new StringBuilder();
         LayerCache layer = layerO.orElse(null);
@@ -273,10 +270,9 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
      * {@inheritDoc}
      */
     @Override
-    protected void nextProjectedFeature(MapLayer layer, final Feature feature, RenderingContext2D context, SearchAreaJ2D queryArea) {
+    protected void nextProjectedFeature(GenericName layerName, final Feature feature, RenderingContext2D context, SearchAreaJ2D queryArea) {
 
         final StringBuilder builder   = new StringBuilder();
-        final GenericName layerName   = getNameForFeatureLayer(layer);
         String margin                 = "\t";
 
         // feature member  mark
@@ -287,7 +283,7 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         if (layerName != null) {
             String ftLocal = layerName.tip().toString();
 
-            builder.append(margin).append("<Layer>").append(encodeXML(layer.getIdentifier())).append("</Layer>\n");
+            builder.append(margin).append("<Layer>").append(encodeXML(layerName.tip().toString())).append("</Layer>\n");
             builder.append(margin).append("<Name>").append(encodeXML(ftLocal)).append("</Name>\n");
             builder.append(margin).append("<ID>").append(encodeXML(FeatureExt.getId(feature).getIdentifier())).append("</ID>\n");
 

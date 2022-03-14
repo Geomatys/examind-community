@@ -29,7 +29,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.logging.Logger;
 import org.apache.sis.portrayal.MapLayer;
 import org.apache.sis.storage.FeatureQuery;
 import org.constellation.exception.ConstellationStoreException;
@@ -58,6 +57,8 @@ public final class PortrayalUtil {
         return createContext(
                  Collections.singletonList(layerRef),
                  Collections.singletonList(styleRef),
+                 Collections.EMPTY_LIST,
+                 Collections.EMPTY_LIST,
                  renderingParameters,
                  null);
 
@@ -65,16 +66,30 @@ public final class PortrayalUtil {
 
     public static MapLayers createContext(List<LayerCache> layerRefs, List<MutableStyle> styleRefs,
             Map<String,Object> renderingParameters, Envelope env) throws ConstellationStoreException {
-    	assert ( layerRefs.size() == styleRefs.size() );
+        return createContext(layerRefs, styleRefs, Collections.EMPTY_LIST, Collections.EMPTY_LIST, renderingParameters, env);
+    }
+
+    public static MapLayers createContext(List<LayerCache> layers, List<MutableStyle> styles, List<List<String>> propertiess, List<Filter> extraFilters,
+            Map<String,Object> renderingParameters, Envelope env) throws ConstellationStoreException {
         final MapLayers context = MapBuilder.createContext();
 
-        for (int i = 0; i < layerRefs.size(); i++) {
-            final LayerCache layer = layerRefs.get(i);
+        for (int i = 0; i < layers.size(); i++) {
+            final LayerCache layer = layers.get(i);
             if (layer.getData() != null) {
                 final Data data = layer.getData();
-                final MutableStyle style = styleRefs.get(i);
+                MutableStyle style = null;
+                if (i < styles.size()) {
+                    style = styles.get(i);
+                }
+                Filter extraFilter = null;
+                if (i < extraFilters.size()) {
+                    extraFilter = extraFilters.get(i);
+                }
+                List<String> properties = null;
+                if (i < propertiess.size()) {
+                    properties = propertiess.get(i);
+                }
 
-                //style can be null
                 final MapItem mapItem = data.getMapLayer(style, renderingParameters);
                 if (mapItem == null) {
                     throw new ConstellationStoreException("Could not create a mapLayer for layer: " + layer.getName());
@@ -84,21 +99,29 @@ public final class PortrayalUtil {
                 userData.put("layerId", layer.getId());
                 userData.put("layerName", layer.getName());
                 layer.getAlias().ifPresent(a -> userData.put("alias", a));
-                if (mapItem instanceof MapLayer mapLayer && layer.hasFilterAndDimension()) {
+                if (mapItem instanceof MapLayer mapLayer) {
+
+                    // extra filters
                     List<Filter> filters = new ArrayList<>();
                     layer.getLayerFilter().ifPresent(f -> filters.add(f));
                     layer.getDimensionFilter(env).ifPresent(f -> filters.add(f));
-
+                    if (extraFilter != null) filters.add(extraFilter);
                     Optional<Filter> filter = filters.stream().reduce(FF::and);
-                    if (filter.isPresent()) {
+
+                    if (filter.isPresent() || properties != null) {
                         final FeatureQuery query = new FeatureQuery();
-                        query.setSelection(filter.get());
+                        if (properties != null) {
+                            query.setProjection(properties.toArray(String[]::new));
+                        }
+                        if (filter.isPresent()) {
+                            query.setSelection(filter.get());
+                        }
                         mapLayer.setQuery(query);
                     }
                 }
                 context.getComponents().add(mapItem);
             } else {
-                throw new ConstellationStoreException("Could not create a Context for a non Geo data: " + layerRefs.get(i).getName());
+                throw new ConstellationStoreException("Could not create a Context for a non Geo data: " + layers.get(i).getName());
             }
         }
         return context;

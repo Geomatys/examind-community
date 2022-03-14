@@ -208,11 +208,11 @@ import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.LogicalOperator;
 import org.opengis.filter.LogicalOperatorName;
 import org.opengis.filter.Filter;
-import org.opengis.filter.FilterFactory;
 import org.geotoolkit.filter.capability.FilterCapabilities;
 import org.opengis.filter.ResourceId;
 import org.opengis.filter.SortProperty;
 import org.opengis.filter.BinarySpatialOperator;
+import org.opengis.filter.FilterFactory;
 import org.opengis.geometry.Envelope;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -270,9 +270,8 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
     private void loadStoredQueries() {
         try {
             final Object obj = serviceBusiness.getExtraConfiguration("WFS", getId(), "StoredQueries.xml",  WFSMarshallerPool.getInstance());
-            if (obj instanceof StoredQueries) {
-                StoredQueries candidate = (StoredQueries) obj;
-                this.storedQueries = candidate.getStoredQuery();
+            if (obj instanceof StoredQueries sq) {
+                this.storedQueries = sq.getStoredQuery();
             } else if (obj != null) {
                 LOGGER.log(Level.WARNING, "The storedQueries File does not contains proper object");
             }
@@ -389,8 +388,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
         for (final LayerCache layer : layers) {
             final Data data = layer.getData();
 
-            if (data instanceof FeatureData) {
-                final FeatureData fld = (FeatureData) data;
+            if (data instanceof FeatureData fld) {
                 final FeatureType type;
                 try {
                     type  = fld.getType();
@@ -1039,16 +1037,17 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 subquery.setSelection(cleanFilter);
 
                 // we ensure that the property names are contained in the feature type and add the mandatory attribute to the list
-                final FilterFactory ff = FilterUtilities.FF;
                 String[] properties = verifyPropertyNames(typeName, ft, requestPropNames);
                 if (properties != null) {
+                    // here we can't use subquery.setProjection(String[]) because the filterFactory of sis does not support Xpath
+                    final FilterFactory ff = FilterUtilities.FF;
                     FeatureQuery.NamedExpression[] columns = new FeatureQuery.NamedExpression[properties.length];
                     for (int i=0; i<properties.length; i++) {
                         final String t = properties[i];
                         columns[i] = new FeatureQuery.NamedExpression(ff.property(t));
                     }
                     subquery.setProjection(columns);
-                }
+                 }
 
                 // look for matching count before pagination
                 try {
@@ -1273,16 +1272,17 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 }
 
                 // we ensure that the property names are contained in the feature type and add the mandatory attribute to the list
-                final FilterFactory ff = FilterUtilities.FF;
                 String[] properties = verifyPropertyNames(typeName, ft, requestPropNames);
                 if (properties != null) {
+                    // here we can't use subquery.setProjection because the filterFactory of sis does not support Xpath
+                    final FilterFactory ff = FilterUtilities.FF;
                     FeatureQuery.NamedExpression[] columns = new FeatureQuery.NamedExpression[properties.length];
                     for (int i=0; i<properties.length; i++) {
                         final String t = properties[i];
                         columns[i] = new FeatureQuery.NamedExpression(ff.property(t));
                     }
                     subquery.setProjection(columns);
-                }
+                 }
 
                 // we verify that all the properties contained in the filter are known by the feature type.
                 verifyFilterProperty(NameOverride.wrap(ft, typeName), cleanFilter, aliases);
@@ -1388,8 +1388,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             /*
              * Features insertion.
              */
-            if (transaction instanceof InsertElement) {
-                final InsertElement insertRequest = (InsertElement)transaction;
+            if (transaction instanceof InsertElement insertRequest) {
 
                 final String handle = insertRequest.getHandle();
 
@@ -1433,15 +1432,14 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     }
                     Collection<Feature> featureCollection;
 
-                    if (featureObject instanceof Feature) {
-                        final Feature feature = (Feature) featureObject;
+                    if (featureObject instanceof Feature feature) {
                         ft = feature.getType();
                         featureCollection = Arrays.asList(feature);
                     } else if (featureObject instanceof List) {
                         featureCollection = (List) featureObject;
-                    } else if (featureObject instanceof FeatureSet) {
+                    } else if (featureObject instanceof FeatureSet fs) {
                         try {
-                            featureCollection = ((FeatureSet) featureObject).features(false).collect(Collectors.toList());
+                            featureCollection = fs.features(false).collect(Collectors.toList());
                             ft = ((FeatureSet) featureObject).getType();
                         } catch (DataStoreException ex) {
                             throw new CstlServiceException(ex);
@@ -1452,8 +1450,8 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                         if (featureObject == null) {
                             featureType = "null";
                         } else {
-                            if (featureObject instanceof JAXBElement) {
-                                featureType = "JAXBElement<" + ((JAXBElement)featureObject).getValue().getClass().getName() + ">";
+                            if (featureObject instanceof JAXBElement jb) {
+                                featureType = "JAXBElement<" + jb.getValue().getClass().getName() + ">";
                             } else {
                                 featureType = featureObject.getClass().getName();
                             }
@@ -1524,9 +1522,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             /*
              * Features remove.
              */
-            } else if (transaction instanceof DeleteElement) {
-
-                final DeleteElement deleteRequest = (DeleteElement) transaction;
+            } else if (transaction instanceof DeleteElement deleteRequest) {
 
                 //decode filter-----------------------------------------------------
                 if (deleteRequest.getFilter() == null) {
@@ -1555,8 +1551,8 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 
                     totalDeleted = totalDeleted + (int) FeatureStoreUtilities.getCount(fs.subset(query)).intValue();
 
-                    if (fs instanceof WritableFeatureSet) {
-                        ((WritableFeatureSet) fs).removeIf((f)-> filter.test(f));
+                    if (fs instanceof WritableFeatureSet wfs) {
+                        wfs.removeIf((f)-> filter.test(f));
                     } else {
                         throw new CstlServiceException("This feature set is not Writable");
                     }
@@ -1570,9 +1566,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             /*
              * Features updates.
              */
-            } else if (transaction instanceof UpdateElement) {
-
-                final UpdateElement updateRequest = (UpdateElement) transaction;
+            } else if (transaction instanceof UpdateElement updateRequest) {
 
                 // we verify the input format
                 if (updateRequest.getInputFormat() != null && !(updateRequest.getInputFormat().equals(TEXT_GML31_XML)

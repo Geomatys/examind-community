@@ -38,7 +38,6 @@ import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
 import org.geotoolkit.feature.FeatureExt;
-import org.apache.sis.portrayal.MapLayer;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
 import org.opengis.feature.AttributeType;
 import org.opengis.feature.Feature;
@@ -82,9 +81,7 @@ public class HTMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
      * {@inheritDoc}
      */
     @Override
-    protected void nextProjectedFeature(MapLayer layer, final Feature feature, RenderingContext2D context, SearchAreaJ2D queryArea) {
-
-        final GenericName layerName = getNameForFeatureLayer(layer);
+    protected void nextProjectedFeature(GenericName layerName, final Feature feature, RenderingContext2D context, SearchAreaJ2D queryArea) {
 
         LayerResult result = results.get(layerName);
         if(result==null){
@@ -187,14 +184,12 @@ public class HTMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
     }
 
     @Override
-    protected void nextProjectedCoverage(MapLayer layer, final GridCoverageResource resource, RenderingContext2D context, SearchAreaJ2D queryArea) {
+    protected void nextProjectedCoverage(GenericName layerName, final GridCoverageResource resource, RenderingContext2D context, SearchAreaJ2D queryArea) {
         final List<Map.Entry<SampleDimension,Object>> covResults = FeatureInfoUtilities.getCoverageValues(resource, context, queryArea);
 
         if (covResults == null) {
             return;
         }
-
-        final GenericName layerName = getNameForCoverageLayer(layer);
 
         LayerResult result = results.get(layerName);
         if(result==null){

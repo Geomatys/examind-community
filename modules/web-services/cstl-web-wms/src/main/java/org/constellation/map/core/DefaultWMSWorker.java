@@ -95,7 +95,6 @@ import org.geotoolkit.inspire.xml.vs.LanguageType;
 import org.geotoolkit.inspire.xml.vs.LanguagesType;
 import org.apache.sis.portrayal.MapLayers;
 import org.apache.sis.portrayal.MapLayer;
-import org.geotoolkit.filter.FilterUtilities;
 import org.apache.sis.util.Version;
 import org.constellation.api.DataType;
 import org.constellation.api.WorkerState;
@@ -140,7 +139,6 @@ import static org.geotoolkit.wms.xml.WmsXmlFactory.createStyle;
 import org.geotoolkit.wms.xml.v111.LatLonBoundingBox;
 import org.geotoolkit.wms.xml.v130.Capability;
 import org.opengis.feature.Feature;
-import org.opengis.filter.FilterFactory;
 import org.opengis.filter.Expression;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.extent.GeographicBoundingBox;
@@ -898,8 +896,9 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         params.put(KEY_EXTRA_PARAMETERS, getFI.getParameters());
         final SceneDef sdef = new SceneDef();
 
+        final List<List<String>> propertyNames = getFI.getPropertyNames();
         try {
-            final MapLayers context = PortrayalUtil.createContext(layersCache, styles, params, refEnv);
+            final MapLayers context = PortrayalUtil.createContext(layersCache, styles, propertyNames, Collections.EMPTY_LIST, params, refEnv);
             sdef.setContext(context);
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
@@ -1372,8 +1371,8 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                         final String namedStyle = mns.getName();
                         final StyleReference styleRef = Util.findStyleReference(namedStyle, layerStyles);
                         return getStyle(styleRef);
-                    } else if (mls instanceof MutableStyle) {
-                        return (MutableStyle) mls;
+                    } else if (mls instanceof MutableStyle ms) {
+                        return ms;
                     }
 
                 }
@@ -1438,12 +1437,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         ListingPropertyVisitor.VISITOR.visit(upper, properties);
 
         final FeatureQuery qb = new FeatureQuery();
-        final List<FeatureQuery.NamedExpression> columns = new ArrayList<>();
-        final FilterFactory ff = FilterUtilities.FF;
-        for (String property : properties) {
-            columns.add(new FeatureQuery.NamedExpression(ff.property(property)));
-        }
-        qb.setProjection(columns.toArray(new FeatureQuery.NamedExpression[0]));
+        qb.setProjection(properties.toArray(String[]::new));
         final FeatureSet col = fs.subset(qb);
 
         try (Stream<Feature> stream = col.features(false)) {

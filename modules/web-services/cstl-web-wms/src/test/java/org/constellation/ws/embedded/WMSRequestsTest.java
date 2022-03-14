@@ -105,6 +105,7 @@ import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
+import static org.constellation.test.utils.TestResourceUtils.getResourceAsString;
 import static org.geotoolkit.ogc.xml.OGCJAXBStatics.FILTER_COMPARISON_ISLESS;
 
 /**
@@ -336,6 +337,13 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "VeRsIoN=1.1.1&InFo_fOrMaT=application/json&"
             + "X=60&StYlEs=&LaYeRs=JS2&"
             + "SrS=EPSG:4326&WiDtH=200&HeIgHt=100&Y=60";
+
+    private static final String WMS_GETFEATUREINFO_JSON_FEAT_PROPNAME = "QuErY_LaYeRs=JS2&BbOx=-80.72487831115721,35.2553619492954,-80.70324897766113,35.27035945142482&"
+            + "FoRmAt=image/gif&ReQuEsT=GetFeatureInfo&"
+            + "VeRsIoN=1.1.1&InFo_fOrMaT=application/json&"
+            + "X=60&StYlEs=&LaYeRs=JS2&"
+            + "SrS=EPSG:4326&WiDtH=200&HeIgHt=100&Y=60&"
+            + "PROPERTYNAME=name";
 
     private static final String WMS_GETFEATUREINFO_JSON_COV = "request=GetFeatureInfo&service=WMS&version=1.1.1&"
             + "format=image/png&width=256&height=256&"
@@ -2143,21 +2151,30 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         // Creates a valid GetFeatureInfo url.
         URL gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_FEAT_ALIAS);
 
-        String expResult
-                = "[{\"type\":\"feature\",\"layer\":\"JS1\",\"feature\":{\"type\":\"feature\",\"envelope\":{\"lowerCorner\":[-80.72487831115721,35.2553619492954],\"upperCorner\":[-80.70324897766113,35.27035945142482]},\"name\":\"Plaza Road Park\",\"geometry\":\"POLYGON ((-80.72487831115721 35.26545403190955, -80.72135925292969 35.26727607954368, -80.71517944335938 35.26769654625573, -80.7125186920166 35.27035945142482, -80.70857048034668 35.268257165144064, -80.70479393005371 35.268397319259996, -80.70324897766113 35.26503355355979, -80.71088790893555 35.2553619492954, -80.71681022644043 35.2553619492954, -80.7150936126709 35.26054831539319, -80.71869850158691 35.26026797976481, -80.72032928466797 35.26061839914875, -80.72264671325684 35.26033806376283, -80.72487831115721 35.26545403190955))\",\"id\":\"feat-gs-001\"}}]";
-
+        String expResult = getResourceAsString("org/constellation/ws/embedded/gfi1.json");
         String result = getStringResponse(gfi);
         assertNotNull(result);
-        assertEquals(expResult, result);
+        compareJSON(expResult, result);
 
         gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_FEAT_ALIAS2);
 
-        expResult
-                = "[{\"type\":\"feature\",\"layer\":\"JS2\",\"feature\":{\"type\":\"feature\",\"envelope\":{\"lowerCorner\":[-80.72487831115721,35.2553619492954],\"upperCorner\":[-80.70324897766113,35.27035945142482]},\"name\":\"Plaza Road Park\",\"geometry\":\"POLYGON ((-80.72487831115721 35.26545403190955, -80.72135925292969 35.26727607954368, -80.71517944335938 35.26769654625573, -80.7125186920166 35.27035945142482, -80.70857048034668 35.268257165144064, -80.70479393005371 35.268397319259996, -80.70324897766113 35.26503355355979, -80.71088790893555 35.2553619492954, -80.71681022644043 35.2553619492954, -80.7150936126709 35.26054831539319, -80.71869850158691 35.26026797976481, -80.72032928466797 35.26061839914875, -80.72264671325684 35.26033806376283, -80.72487831115721 35.26545403190955))\",\"id\":\"feat-gs-001\"}}]";
-
+        expResult= getResourceAsString("org/constellation/ws/embedded/gfi2.json");
         result = getStringResponse(gfi);
         assertNotNull(result);
-        assertEquals(expResult, result);
+        compareJSON(expResult, result);
+    }
+
+     @Test
+    @Order(order = 28)
+    public void testWMSGetFeatureInfoJSONPropertyName() throws Exception {
+        initLayerList();
+        // Creates a valid GetFeatureInfo url.
+        URL gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_FEAT_PROPNAME);
+
+        String expResult = getResourceAsString("org/constellation/ws/embedded/gfi3.json");
+        String result = getStringResponse(gfi);
+        assertNotNull(result);
+        compareJSON(expResult, result);
     }
 
     @Test

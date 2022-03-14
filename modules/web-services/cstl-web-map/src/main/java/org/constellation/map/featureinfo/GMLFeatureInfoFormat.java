@@ -55,8 +55,9 @@ import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.geometry.isoonjts.JTSUtils;
 import org.geotoolkit.geometry.jts.JTSEnvelope2D;
 import org.geotoolkit.internal.jaxb.ObjectFactory;
-import org.apache.sis.portrayal.MapLayer;
 import org.constellation.dto.DimensionRange;
+import static org.constellation.metadata.utils.Utils.encodeXML;
+import static org.constellation.metadata.utils.Utils.encodeXMLMark;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
 import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.util.NamesExt;
@@ -138,29 +139,28 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
      * {@inheritDoc}
      */
     @Override
-    protected void nextProjectedCoverage(MapLayer maplayer, final GridCoverageResource resource, RenderingContext2D context, SearchAreaJ2D queryArea) {
+    protected void nextProjectedCoverage(GenericName layerName, final GridCoverageResource resource, RenderingContext2D context, SearchAreaJ2D queryArea) {
         final List<Map.Entry<SampleDimension,Object>> results =
                 FeatureInfoUtilities.getCoverageValues(resource, context, queryArea);
 
         if (results == null) {
             return;
         }
-        final GenericName fullLayerName = getNameForCoverageLayer(maplayer);
-        String layerName = fullLayerName.tip().toString();
+        String layerNameStr = layerName.tip().toString();
 
-        List<String> strs = coverages.get(fullLayerName);
+        List<String> strs = coverages.get(layerName);
         if (strs == null) {
             strs = new ArrayList<>();
-            coverages.put(fullLayerName, strs);
+            coverages.put(layerName, strs);
         }
 
         StringBuilder builder = new StringBuilder();
 
         final String endMark = ">\n";
-        layerName = layerName.replaceAll("\\W", "");
-        builder.append("\t<").append(layerName).append("_feature").append(endMark);
+        layerNameStr = layerNameStr.replaceAll("\\W", "");
+        builder.append("\t<").append(layerNameStr).append("_feature").append(endMark);
 
-        LayerCache layer = getLayer(fullLayerName, DataType.COVERAGE).orElse(null);
+        LayerCache layer = getLayer(layerName, DataType.COVERAGE).orElse(null);
 
         final Envelope objEnv;
         final List<Date> time;
@@ -294,7 +294,7 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         }
         builder.append("\t\t<value>").append(result)
                 .append("</value>").append("\n")
-                .append("\t</").append(layerName).append("_feature").append(endMark);
+                .append("\t</").append(layerNameStr).append("_feature").append(endMark);
 
         strs.add(builder.toString());
     }
@@ -303,10 +303,9 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
      * {@inheritDoc}
      */
     @Override
-    protected void nextProjectedFeature(MapLayer layer, final Feature feature, RenderingContext2D context, SearchAreaJ2D queryArea) {
+    protected void nextProjectedFeature(GenericName layerName, final Feature feature, RenderingContext2D context, SearchAreaJ2D queryArea) {
 
         final StringBuilder builder   = new StringBuilder();
-        final GenericName layerName   = getNameForFeatureLayer(layer);
         String margin                 = "\t";
 
         if (mode == 0) {

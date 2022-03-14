@@ -162,14 +162,12 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                     ruleFound = true;
                     for (final Symbolizer symbolizer : mutableRule.symbolizers()) {
                         // search raster symbolizer and return function
-                        if (symbolizer instanceof RasterSymbolizer) {
-                            final RasterSymbolizer rasterSymbolizer = (RasterSymbolizer) symbolizer;
-                            if(rasterSymbolizer.getColorMap() != null){
+                        if (symbolizer instanceof RasterSymbolizer rasterSymbolizer) {
+                            if (rasterSymbolizer.getColorMap() != null){
                                 function = rasterSymbolizer.getColorMap().getFunction();
                                 break search;
                             }
-                        } else if (symbolizer instanceof IsolineSymbolizer) {
-                            final IsolineSymbolizer isolineSymbolizer = (IsolineSymbolizer) symbolizer;
+                        } else if (symbolizer instanceof IsolineSymbolizer isolineSymbolizer) {
                             if (isolineSymbolizer.getLineSymbolizer() != null &&
                                 isolineSymbolizer.getLineSymbolizer().getStroke() != null &&
                                 isolineSymbolizer.getLineSymbolizer().getStroke().getColor() instanceof Expression) {
@@ -185,13 +183,11 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                 return new ErrorMessage(HttpStatus.UNPROCESSABLE_ENTITY).i18N(I18nCodes.Style.RULE_NOT_FOUND).build();
             }
 
-            if(function instanceof Categorize){
-                final Categorize categ = (Categorize) function;
+            if (function instanceof Categorize categ) {
                 final org.constellation.json.binding.Categorize categorize = new org.constellation.json.binding.Categorize(categ);
                 final List<InterpolationPoint> points = categorize.reComputePoints(interval);
                 return new ResponseEntity(new Repartition(points),OK);
-            }else if(function instanceof Interpolate){
-                final Interpolate interpolateFunc = (Interpolate) function;
+            } else if(function instanceof Interpolate interpolateFunc) {
                 final org.constellation.json.binding.Interpolate interpolate =new org.constellation.json.binding.Interpolate(interpolateFunc);
                 final List<InterpolationPoint> points = interpolate.reComputePoints(interval);
                 return new ResponseEntity(new Repartition(points),OK);
@@ -248,8 +244,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
             final Data dataP      = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
             final Resource rs     = dataP.getOrigin();
 
-            if (rs instanceof FeatureSet) {
-                final FeatureSet fs = (FeatureSet) rs;
+            if (rs instanceof FeatureSet fs) {
 
                /*
                 * II - Search extreme values.
@@ -264,7 +259,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                 final ValueReference property = FF.property(attribute);
 
                 final FeatureQuery query = new FeatureQuery();
-                query.setProjection(new FeatureQuery.NamedExpression(FF.property(attribute)));
+                query.setProjection(attribute);
 
                 try (final Stream<Feature> featureSet = fs.subset(query).features(false)) {
                     Iterator<Feature> it = featureSet.iterator();
@@ -285,7 +280,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                 /*
                 * III - Analyze values.
                 */
-                final Double[] allValues = values.toArray(new Double[values.size()]);
+                final Double[] allValues = values.toArray(Double[]::new);
                 double[] interValues = new double[0];
                 if ("equidistant".equals(method)) {
                     interValues = new double[intervals + 1];
@@ -414,21 +409,18 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
 
     private Symbolizer derivateSymbolizer(final Symbolizer symbol, final Color color) {
         final MutableStyleFactory SF = GO2Utilities.STYLE_FACTORY;
-        if (symbol instanceof PolygonSymbolizer) {
-            final PolygonSymbolizer ps = (PolygonSymbolizer) symbol;
+        if (symbol instanceof PolygonSymbolizer ps) {
             final Fill fill = SF.fill(SF.literal(color), ps.getFill().getOpacity());
             return SF.polygonSymbolizer(ps.getName(), ps.getGeometryPropertyName(),
                     ps.getDescription(), ps.getUnitOfMeasure(), ps.getStroke(),
                     fill, ps.getDisplacement(), ps.getPerpendicularOffset());
-        } else if (symbol instanceof LineSymbolizer) {
-            final LineSymbolizer ls = (LineSymbolizer) symbol;
+        } else if (symbol instanceof LineSymbolizer ls) {
             final Stroke oldStroke = ls.getStroke();
             final Stroke stroke = SF.stroke(SF.literal(color), oldStroke.getOpacity(), oldStroke.getWidth(),
                     oldStroke.getLineJoin(), oldStroke.getLineCap(), oldStroke.getDashArray(), oldStroke.getDashOffset());
             return SF.lineSymbolizer(ls.getName(), ls.getGeometryPropertyName(),
                     ls.getDescription(), ls.getUnitOfMeasure(), stroke, ls.getPerpendicularOffset());
-        } else if (symbol instanceof PointSymbolizer) {
-            final PointSymbolizer ps = (PointSymbolizer) symbol;
+        } else if (symbol instanceof PointSymbolizer ps) {
             final Graphic oldGraphic = ps.getGraphic();
             final Mark oldMark = (Mark) oldGraphic.graphicalSymbols().get(0);
             final Fill fill = SF.fill(SF.literal(color), oldMark.getFill().getOpacity());
@@ -480,8 +472,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
             final Data dataP      = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
             final Resource rs     = dataP.getOrigin();
 
-            if (rs instanceof FeatureSet) {
-                final FeatureSet fs = (FeatureSet) rs;
+            if (rs instanceof FeatureSet fs) {
 
                 /*
                 * II - Extract all different values.
@@ -492,7 +483,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                 final List<Object> differentValues = new ArrayList<>();
 
                 final FeatureQuery query = new FeatureQuery();
-                query.setProjection(new FeatureQuery.NamedExpression(FF.property(attribute)));
+                query.setProjection(attribute);
 
                 try (final Stream<Feature> featureSet = fs.subset(query).features(false)) {
                     Iterator<Feature> it = featureSet.iterator();
@@ -590,15 +581,14 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
             final Data dataP      = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
             final Resource rs     = dataP.getOrigin();
 
-            if (rs instanceof FeatureSet) {
-                FeatureSet fs = (FeatureSet) rs;
+            if (rs instanceof FeatureSet fs) {
 
                 final Map<Object,Long> mapping = new LinkedHashMap<>();
                 final DefaultFilterFactory FF = FilterUtilities.FF;
                 final ValueReference property = FF.property(attribute);
 
                 final FeatureQuery query = new FeatureQuery();
-                query.setProjection(new FeatureQuery.NamedExpression(FF.property(attribute)));
+                query.setProjection(attribute);
                 fs = fs.subset(query);
 
                 //check if property is numeric
@@ -606,8 +596,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                 // otherwise put each (string value, count) into the map
 
                 final PropertyType p = fs.getType().getProperty(attribute);
-                if (p instanceof AttributeType) {
-                    final AttributeType at = (AttributeType) p;
+                if (p instanceof AttributeType at) {
                     final Class cl = at.getValueClass();
                     result.setNumberField(Number.class.isAssignableFrom(cl));
                 }
@@ -626,9 +615,9 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                             }
                         }
 
-                        final Double[] allValues = values.toArray(new Double[values.size()]);
-                        double maximum=0,minimum=0;
-                        if(allValues.length>0) {
+                        final Double[] allValues = values.toArray(Double[]::new);
+                        double maximum = 0, minimum = 0;
+                        if (allValues.length > 0) {
                             Arrays.sort(allValues);
                             minimum = allValues[0];
                             maximum = allValues[allValues.length-1];
@@ -775,25 +764,23 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
             }
         }
 
-        if(sld != null){
-            for(MutableLayer sldLayer : sld.layers()){
-                if(sldLayer instanceof NamedLayer){
-                    final NamedLayer nl = (NamedLayer) sldLayer;
-                    for(LayerStyle ls : nl.styles()){
-                        if(ls instanceof MutableStyle){
-                            styles.add((MutableStyle)ls);
+        if (sld != null) {
+            for (MutableLayer sldLayer : sld.layers()) {
+                if(sldLayer instanceof NamedLayer nl) {
+                    for (LayerStyle ls : nl.styles()) {
+                        if (ls instanceof MutableStyle ms) {
+                            styles.add(ms);
                         }
                     }
-                }else if(sldLayer instanceof UserLayer){
-                    final UserLayer ul = (UserLayer) sldLayer;
-                    for(org.opengis.style.Style ls : ul.styles()){
-                        if(ls instanceof MutableStyle){
-                            styles.add((MutableStyle)ls);
+                } else if (sldLayer instanceof UserLayer ul) {
+                    for (org.opengis.style.Style ls : ul.styles()){
+                        if (ls instanceof MutableStyle ms) {
+                            styles.add(ms);
                         }
                     }
                 }
             }
-            if(!styles.isEmpty()){
+            if (!styles.isEmpty()) {
                 style = styles.remove(0);
             }
         }else{
@@ -803,7 +790,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
             } catch (JAXBException | FactoryException ex) {
                 LOGGER.log(Level.FINEST, ex.getMessage(),ex);
             }
-            if(style==null){
+            if (style==null) {
                 try {
                     style = io.readStyle(new ByteArrayInputStream(buffer), Specification.SymbologyEncoding.SLD_1_0_0);
                 } catch (JAXBException | FactoryException ex) {
@@ -860,9 +847,9 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
         }
         try {
             final boolean exists = styleBusiness.existsStyle(type,style.getName());
-            if(!exists) {
+            if (!exists) {
                 return new ResponseEntity(styleBusiness.createStyle(type, style),OK);
-            }else {
+            } else {
                 return new ErrorMessage(UNPROCESSABLE_ENTITY).i18N(I18nCodes.Style.ALREADY_EXIST).build();
             }
         } catch(Exception ex) {
