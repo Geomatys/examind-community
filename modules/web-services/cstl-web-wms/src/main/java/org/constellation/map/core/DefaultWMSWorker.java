@@ -307,10 +307,8 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         final String currentLanguage;
         if (requestedLanguage != null && supportedLanguages.contains(requestedLanguage)) {
             currentLanguage = requestedLanguage;
-        } else if (requestedLanguage == null) {
-            currentLanguage = getDefaultLanguage();
         } else {
-            currentLanguage = null;
+            currentLanguage = getDefaultLanguage();
         }
 
         //set the current updateSequence parameter

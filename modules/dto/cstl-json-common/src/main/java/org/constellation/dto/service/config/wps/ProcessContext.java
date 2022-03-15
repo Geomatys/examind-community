@@ -197,6 +197,9 @@ public class ProcessContext extends AbstractConfigurationObject {
         this.fileCoverageProviderId = fileCoverageProviderId;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getProperty(String key) {
         if (customParameters != null) {

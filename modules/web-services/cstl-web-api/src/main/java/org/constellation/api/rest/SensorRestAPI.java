@@ -26,7 +26,7 @@ import org.locationtech.jts.io.WKTWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
@@ -259,7 +259,7 @@ public class SensorRestAPI extends AbstractRestAPI {
                 response.addHeader("Content-Disposition","attachment; filename=" + id + ".xml");
                 response.setContentType(MediaType.APPLICATION_XML.toString());
                 response.flushBuffer();
-                IOUtils.write(xml, response.getOutputStream(), Charset.forName("UTF-8"));
+                IOUtils.write(xml, response.getOutputStream(), StandardCharsets.UTF_8);
                 return new ResponseEntity(OK);
             } else {
                 return new ErrorMessage().message("SensorML not found").build();

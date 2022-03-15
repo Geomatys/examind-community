@@ -34,6 +34,7 @@ import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import org.constellation.admin.SpringHelper;
+import static org.constellation.api.CommonConstants.TRANSACTIONAL;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.Sensor;
@@ -107,7 +108,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
                 testResource.generateSensors(sensorBusiness, omPid, smlPid);
 
                 final SOSConfiguration sosconf = new SOSConfiguration();
-                sosconf.setProfile("transactional");
+                sosconf.setProfile(TRANSACTIONAL);
 
                 Integer defId = serviceBusiness.create("sts", "default", sosconf, null, null);
                 serviceBusiness.linkServiceAndProvider(defId, smlPid);

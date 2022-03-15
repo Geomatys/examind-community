@@ -23,6 +23,7 @@ import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
+import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.sos.core.SOSworker;
 import org.constellation.test.utils.Order;
@@ -54,7 +55,7 @@ public class GenericPostgridSOS2WorkerTest extends SOS2WorkerTest {
                 //we write the configuration file
                 final SOSConfiguration configuration = new SOSConfiguration();
                 configuration.setProfile("discovery");
-                configuration.getParameters().put("transactionSecurized", "false");
+                configuration.getParameters().put(TRANSACTION_SECURIZED, "false");
 
                 Integer sid = serviceBusiness.create("sos", "default", configuration, null, null);
                 serviceBusiness.linkServiceAndProvider(sid, omPid);

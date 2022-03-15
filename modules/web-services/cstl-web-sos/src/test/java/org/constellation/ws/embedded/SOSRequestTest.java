@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import org.constellation.admin.SpringHelper;
+import static org.constellation.api.CommonConstants.TRANSACTIONAL;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.service.config.sos.ObservationFilter;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
@@ -107,7 +108,7 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
                 testResource.generateSensors(sensorBusiness, omPid, smlPid);
                 
                 final SOSConfiguration sosconf = new SOSConfiguration();
-                sosconf.setProfile("transactional");
+                sosconf.setProfile(TRANSACTIONAL);
 
                 Integer sid = serviceBusiness.create("sos", "default", sosconf, null, null);
                 serviceBusiness.linkServiceAndProvider(sid, omPid);

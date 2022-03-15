@@ -43,6 +43,13 @@ import org.constellation.dto.service.config.wxs.LayerContext;
 })
 public abstract class AbstractConfigurationObject {
 
+    /**
+     * Return a named property. can be {@code null}
+     *
+     * @param key name of the property we look for.
+     *
+     * @return The property avec or {@code null}
+     */
    public abstract String getProperty(String key);
    
 }

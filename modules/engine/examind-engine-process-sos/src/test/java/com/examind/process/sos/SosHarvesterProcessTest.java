@@ -42,6 +42,7 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import org.constellation.admin.SpringHelper;
 import org.constellation.admin.WSEngine;
+import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IDatasourceBusiness;
 import org.constellation.business.IProviderBusiness;
@@ -212,7 +213,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
 
             //we write the configuration file
             final SOSConfiguration configuration = new SOSConfiguration();
-            configuration.getParameters().put("transactionSecurized", "false");
+            configuration.getParameters().put(TRANSACTION_SECURIZED, "false");
 
             Integer sid = serviceBusiness.create("sos", "default", configuration, null, null);
             serviceBusiness.linkServiceAndProvider(sid, pid);

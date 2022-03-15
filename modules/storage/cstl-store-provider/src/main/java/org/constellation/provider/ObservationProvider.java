@@ -138,11 +138,20 @@ public interface ObservationProvider extends DataProvider {
 
     /**
      * Count specific entities.
+     * the hints map contains various parameters for filtering the request.
+     * it must contains at least a parameter "objectType" which identify the entities we want to count.
      *
-     * @param q A query for filetring the result.
-     * @param hints The parameters for the count.
-     * @return
-     * @throws ConstellationStoreException
+     * In the case of "observation" entity, you can specify the following hints:
+     *  - "responseMode" an SOS response mode type (INLINE, ATTACHED, OUT_OF_BAND, RESULT_TEMPLATE)
+     *  - "resultModel" a Qname determining the observation model (default to om:Observation).
+     *
+     * others hints may vary depending on the filter implementation and the entity type.
+     *
+     * @param q A query for filetring the result (can be {@code null}).
+     * @param hints The parameters for the count (can be empty but not {@code null}).
+     * 
+     * @return A filtered count of the entities.
+     * @throws ConstellationStoreException If the count can not be processed.
      */
     long getCount(Query q, final Map<String, Object> hints) throws ConstellationStoreException;
 
@@ -150,9 +159,10 @@ public interface ObservationProvider extends DataProvider {
      * Return JTS geometries extract from a sensor tree.
      * If the sensor is a System, all its children geometries will be included in the result.
      *
-     * @param sensor
-     * @return
-     * @throws ConstellationStoreException
+     * @param sensor A sensor with all its children.
+     * 
+     * @return A list of JTS geometries for the sensor and all its children.
+     * @throws ConstellationStoreException If the sensor geometr can not be retrieved, or of the transformation to JTS fail.
      */
     List<org.locationtech.jts.geom.Geometry> getJTSGeometryFromSensor(final SensorMLTree sensor) throws ConstellationStoreException;
 }

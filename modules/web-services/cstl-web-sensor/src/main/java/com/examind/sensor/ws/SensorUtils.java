@@ -53,6 +53,7 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.logging.Logger;
 import org.apache.sis.storage.FeatureQuery;
+import org.apache.sis.util.ArgumentChecks;
 import org.constellation.dto.Sensor;
 import org.geotoolkit.gml.xml.FeatureProperty;
 import org.geotoolkit.observation.xml.AbstractObservation;
@@ -356,6 +357,7 @@ public final class SensorUtils {
     }
 
     public static Sensor getSensorFromData(SensorData sd, Integer providerId) {
+        ArgumentChecks.ensureNonNull("Sensor Data", sd);
         final String sensorId    = sd.getName().toString();
         final String name        = sd.getSensorName();
         final String description = sd.getDescription();

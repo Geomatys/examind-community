@@ -876,6 +876,9 @@ public class ObservationStoreProvider extends IndexedNameDataProvider implements
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public long getCount(Query q, Map<String, Object> hints) throws ConstellationStoreException {
         hints = new HashMap<>(hints);
@@ -1237,10 +1240,13 @@ public class ObservationStoreProvider extends IndexedNameDataProvider implements
         return getId();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<org.locationtech.jts.geom.Geometry> getJTSGeometryFromSensor(SensorMLTree sensor) throws ConstellationStoreException {
         final List<org.locationtech.jts.geom.Geometry> results = new ArrayList<>();
-        final AbstractGeometry geom = (AbstractGeometry) getSensorLocation(sensor.getIdentifier(), "2.0.0");
+        final AbstractGeometry geom = getSensorLocation(sensor.getIdentifier(), "2.0.0");
         if (geom != null) {
             try {
                 org.locationtech.jts.geom.Geometry jtsGeometry = GeometrytoJTS.toJTS(geom);
@@ -1248,7 +1254,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider implements
                 final MathTransform mt = CRS.findOperation(geom.getCoordinateReferenceSystem(true), CommonCRS.defaultGeographic(), null).getMathTransform();
                 results.add(JTS.transform(jtsGeometry, mt));
             } catch (FactoryException | TransformException ex) {
-                throw new ConstellationStoreException(ex);
+                throw new ConstellationStoreException("Sensor geometry cannot be converted to geographic coordinates", ex);
             }
         }
         if (!"Component".equals(sensor.getType())) {

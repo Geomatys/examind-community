@@ -30,6 +30,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
+import static org.constellation.api.CommonConstants.TRANSACTIONAL;
+import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IServiceBusiness;
@@ -122,8 +124,8 @@ public class OM2STSWorkerTest extends SpringContextTest {
 
                 //we write the configuration file
                 final SOSConfiguration configuration = new SOSConfiguration();
-                configuration.setProfile("transactional");
-                configuration.getParameters().put("transactionSecurized", "false");
+                configuration.setProfile(TRANSACTIONAL);
+                configuration.getParameters().put(TRANSACTION_SECURIZED, "false");
 
                 Integer sid = serviceBusiness.create("sts", "default", configuration, null, null);
                 serviceBusiness.linkServiceAndProvider(sid, omPid);

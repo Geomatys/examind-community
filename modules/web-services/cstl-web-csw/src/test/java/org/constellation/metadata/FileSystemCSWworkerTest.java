@@ -40,6 +40,8 @@ import java.nio.file.Paths;
 import java.util.UUID;
 import java.util.logging.Level;
 import org.constellation.admin.SpringHelper;
+import static org.constellation.api.CommonConstants.TRANSACTIONAL;
+import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.metadata.MetadataLightBrief;
@@ -119,8 +121,8 @@ public class FileSystemCSWworkerTest extends CSWworkerTest {
 
                 //we write the configuration file
                 Automatic configuration = new Automatic();
-                configuration.putParameter("transactionSecurized", "false");
-                configuration.putParameter("transactional", "true");
+                configuration.putParameter(TRANSACTION_SECURIZED, "false");
+                configuration.putParameter(TRANSACTIONAL, "true");
 
                 Integer sid = serviceBusiness.create("csw", "default", configuration, null, null);
                 serviceBusiness.linkCSWAndProvider(sid, pr, true);

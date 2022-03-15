@@ -250,7 +250,7 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
      */
     public DefaultWPSWorker(final String id) {
         super(id, ServiceDef.Specification.WPS);
-        if (getState().equals(WorkerState.ERROR)) return;
+        if (WorkerState.ERROR == getState()) return;
         this.supportStorage = false;
         this.productURL = null; //initialize on WPS execute request.
         this.productFolderPath = null;

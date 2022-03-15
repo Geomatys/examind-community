@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import org.constellation.admin.SpringHelper;
+import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
 import static org.constellation.metadata.CSWworkerTest.LOGGER;
@@ -113,7 +114,7 @@ public class TreeCloseTest extends SpringContextTest {
                 //we write the configuration file
                 Automatic configuration = new Automatic();
                 configuration.setProfile("discovery");
-                configuration.putParameter("transactionSecurized", "false");
+                configuration.putParameter(TRANSACTION_SECURIZED, "false");
 
                 Integer sid = serviceBusiness.create("csw", "default", configuration, null, null);
                 serviceBusiness.linkCSWAndProvider(sid, pr, true);

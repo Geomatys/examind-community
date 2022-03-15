@@ -109,6 +109,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
+import static org.constellation.api.CommonConstants.TRANSACTIONAL;
 
 import static org.constellation.api.QueryConstants.SERVICE_PARAMETER;
 import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
@@ -229,9 +230,6 @@ public class CSWworker extends AbstractWorker<Automatic> implements Refreshable 
      */
     private List<String> cascadedCSWservers;
 
-    public static final  int DISCOVERY    = 0;
-    public static final int TRANSACTIONAL = 1;
-
     private MetadataSecurityFilter securityFilter;
 
     @Autowired
@@ -318,7 +316,7 @@ public class CSWworker extends AbstractWorker<Automatic> implements Refreshable 
         filterParser                  = indexHandler.getFilterParser(configuration);
         securityFilter                = indexHandler.getSecurityFilter();
         catalogueHarvester            = indexHandler.getCatalogueHarvester(configuration, mdStore);
-        if (isTransactionnal) {
+        if (isTransactional) {
             harvestTaskScheduler      = indexHandler.getHavestTaskScheduler(getId(), catalogueHarvester);
         } else {
             indexer.destroy();
@@ -339,7 +337,7 @@ public class CSWworker extends AbstractWorker<Automatic> implements Refreshable 
     @Override
     protected boolean getTransactionalProperty() {
         // look into deprecated configuration attribute.
-        if (configuration != null && "transactional".equals(configuration.getProfileValue())) {
+        if (configuration != null && TRANSACTIONAL.equals(configuration.getProfileValue())) {
             return true;
         }
         return super.getTransactionalProperty();
@@ -489,7 +487,7 @@ public class CSWworker extends AbstractWorker<Automatic> implements Refreshable 
         final AbstractOperationsMetadata   om  = CSWConstants.OPERATIONS_METADATA.get(currentVersion).clone();
 
         // we remove the operation not supported in this profile (transactional/discovery)
-        if (!isTransactionnal) {
+        if (!isTransactional) {
             om.removeOperation("Harvest");
             om.removeOperation("Transaction");
         }

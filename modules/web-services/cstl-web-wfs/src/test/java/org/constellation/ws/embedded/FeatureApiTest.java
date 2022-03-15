@@ -35,6 +35,7 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 import org.constellation.admin.SpringHelper;
+import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
@@ -111,7 +112,7 @@ public class FeatureApiTest extends AbstractGrizzlyServer {
                 DataImport di = testResource.createProvider(TestResource.JSON_FEATURE, providerBusiness, null).datas.get(0);
 
                 final LayerContext config = new LayerContext();
-                config.getCustomParameters().put("transactionSecurized", "false");
+                config.getCustomParameters().put(TRANSACTION_SECURIZED, "false");
                 Integer defId = serviceBusiness.create("wfs", "default", config, null, null);
 
                 for (DataImport d : datas) {

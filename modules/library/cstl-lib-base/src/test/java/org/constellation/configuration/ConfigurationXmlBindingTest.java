@@ -56,6 +56,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
 import org.constellation.dto.importdata.BatchAnalysis;
 import org.constellation.dto.DataCustomConfiguration;
 import org.constellation.dto.service.ServiceProtocol;
@@ -633,7 +634,7 @@ public class ConfigurationXmlBindingTest {
         result = (LayerContext) unmarshaller.unmarshal(new StringReader(xml));
 
         expresult = new LayerContext();
-        expresult.getCustomParameters().put("transactionSecurized", "false");
+        expresult.getCustomParameters().put(TRANSACTION_SECURIZED, "false");
 
         assertEquals(expresult, result);
 

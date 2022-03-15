@@ -460,6 +460,9 @@ public class Automatic extends AbstractConfigurationObject {
         this.customparameters.put(key, value);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getProperty(String key) {
         return getParameter(key);

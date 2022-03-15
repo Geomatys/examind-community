@@ -119,4 +119,6 @@ public class CommonConstants {
 
     public static final String CSW_CONFIG_ONLY_PUBLISHED = "onlyPublished";
     public static final String CSW_CONFIG_PARTIAL = "partial";
+    public static final String TRANSACTIONAL = "transactional";
+    public static final String TRANSACTION_SECURIZED = "transactionSecurized";
 }

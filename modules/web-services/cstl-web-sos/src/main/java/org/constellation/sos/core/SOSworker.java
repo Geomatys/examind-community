@@ -279,7 +279,7 @@ public class SOSworker extends SensorWorker {
         super(id, ServiceDef.Specification.SOS);
         ISO8601_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-        if (getState().equals(WorkerState.ERROR)) return;
+        if (WorkerState.ERROR == getState()) return;
         // Database configuration
         try {
 
@@ -344,7 +344,7 @@ public class SOSworker extends SensorWorker {
      */
     private void logInfos() {
         final StringBuilder infos = new StringBuilder();
-        if (!isTransactionnal) {
+        if (!isTransactional) {
             infos.append("Discovery profile loaded.\n");
         } else {
             infos.append("Transactional profile loaded.\n");
@@ -453,7 +453,7 @@ public class SOSworker extends SensorWorker {
         }
 
         //we remove the operation not supported in this profile (transactional/discovery)
-        if (!isTransactionnal) {
+        if (!isTransactional) {
             om.removeOperation(INSERT_OBSERVATION);
             om.removeOperation(REGISTER_SENSOR);
             om.removeOperation(INSERT_SENSOR);

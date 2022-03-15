@@ -279,6 +279,9 @@ public class SOSConfiguration extends AbstractConfigurationObject {
         return parameters;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getProperty(final String propertyName) {
         return getParameter(propertyName);

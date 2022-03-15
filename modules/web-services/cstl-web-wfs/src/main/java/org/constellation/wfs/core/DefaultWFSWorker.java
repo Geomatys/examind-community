@@ -461,7 +461,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
         }
         om.updateURL(getServiceUrl());
 
-        if (!isTransactionnal) {
+        if (!isTransactional) {
             om.removeOperation("Transaction");
             final AbstractDomain cst = om.getConstraint("ImplementsTransactionalWFS");
             if (cst != null) {

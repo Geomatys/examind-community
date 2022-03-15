@@ -43,6 +43,8 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.storage.FeatureSet;
+import static org.constellation.api.CommonConstants.TRANSACTIONAL;
+import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
 
 import org.constellation.test.utils.TestEnvironment.DataImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
@@ -81,8 +83,8 @@ public class WFSServiceTest extends SpringContextTest {
         DataImport d = testResources.createProvider(TestResource.OM2_FEATURE_DB, providerBusiness, null).datas.get(0);
 
         final LayerContext config = new LayerContext();
-        config.getCustomParameters().put("transactionSecurized", "false");
-        config.getCustomParameters().put("transactional", "true");
+        config.getCustomParameters().put(TRANSACTION_SECURIZED, "false");
+        config.getCustomParameters().put(TRANSACTIONAL, "true");
 
         Integer defId = serviceBusiness.create("wfs", "default", config, null, null);
         layerBusiness.add(d.id, null, d.namespace, d.name, defId, null);

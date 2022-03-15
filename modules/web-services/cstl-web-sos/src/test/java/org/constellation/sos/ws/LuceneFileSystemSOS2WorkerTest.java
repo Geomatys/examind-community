@@ -22,6 +22,8 @@ package org.constellation.sos.ws;
 import java.util.List;
 import java.util.logging.Level;
 import javax.annotation.PostConstruct;
+import static org.constellation.api.CommonConstants.TRANSACTIONAL;
+import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
 import org.constellation.dto.Sensor;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.exception.ConfigurationException;
@@ -59,8 +61,8 @@ public class LuceneFileSystemSOS2WorkerTest extends SOS2WorkerTest {
 
                 //we write the configuration file
                 final SOSConfiguration configuration = new SOSConfiguration();
-                configuration.setProfile("transactional");
-                configuration.getParameters().put("transactionSecurized", "false");
+                configuration.setProfile(TRANSACTIONAL);
+                configuration.getParameters().put(TRANSACTION_SECURIZED, "false");
 
                 Integer sid = serviceBusiness.create("sos", "default", configuration, null, null);
                 serviceBusiness.linkServiceAndProvider(sid, omPid);

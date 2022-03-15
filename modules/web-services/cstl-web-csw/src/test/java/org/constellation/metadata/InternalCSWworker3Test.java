@@ -28,6 +28,7 @@ import java.util.logging.Level;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import org.constellation.admin.SpringHelper;
+import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
@@ -96,7 +97,7 @@ public class InternalCSWworker3Test extends CSWWorker3Test {
 
                 //we write the configuration file
                 Automatic configuration = new Automatic();
-                configuration.putParameter("transactionSecurized", "false");
+                configuration.putParameter(TRANSACTION_SECURIZED, "false");
 
                 Details d = new Details("Constellation CSW Server", "default", Arrays.asList("CS-W"),
                                         "CS-W 2.0.2/AP ISO19115/19139 for service, datasets and applications",

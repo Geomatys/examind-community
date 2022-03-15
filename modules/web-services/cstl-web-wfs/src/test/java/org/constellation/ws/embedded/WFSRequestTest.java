@@ -72,6 +72,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
+import static org.constellation.api.CommonConstants.TRANSACTIONAL;
+import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
 import org.constellation.dto.service.Instance;
 import org.constellation.dto.service.InstanceReport;
 import org.constellation.dto.service.ServiceStatus;
@@ -234,8 +236,8 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
                 DataImport d23 = testResource.createProvider(TestResource.JSON_FEATURE, providerBusiness, null).datas.get(0);
 
                 final LayerContext config = new LayerContext();
-                config.getCustomParameters().put("transactionSecurized", "false");
-                config.getCustomParameters().put("transactional", "true");
+                config.getCustomParameters().put(TRANSACTION_SECURIZED, "false");
+                config.getCustomParameters().put(TRANSACTIONAL, "true");
 
                 Integer defId = serviceBusiness.create("wfs", "default", config, null, null);
 
@@ -270,8 +272,8 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
                 }
 
                 final LayerContext config2 = new LayerContext();
-                config2.getCustomParameters().put("transactionSecurized", "false");
-                config2.getCustomParameters().put("transactional", "true");
+                config2.getCustomParameters().put(TRANSACTION_SECURIZED, "false");
+                config2.getCustomParameters().put(TRANSACTIONAL, "true");
 
                 Integer test1Id = serviceBusiness.create("wfs", "test1", config, null, null);
                 for (DataImport d : datas) {

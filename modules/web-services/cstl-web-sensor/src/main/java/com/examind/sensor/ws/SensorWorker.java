@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import org.apache.sis.storage.FeatureQuery;
+import static org.constellation.api.CommonConstants.TRANSACTIONAL;
 import org.constellation.api.ServiceDef;
 import org.constellation.api.WorkerState;
 import org.constellation.business.ISensorBusiness;
@@ -120,7 +121,7 @@ public abstract class SensorWorker extends AbstractWorker<SOSConfiguration> {
     @Override
     protected boolean getTransactionalProperty() {
         // look into deprecated configuration attribute.
-        if (configuration != null && "transactional".equals(configuration.getProfileValue())) {
+        if (configuration != null && TRANSACTIONAL.equals(configuration.getProfileValue())) {
             return true;
         }
         return super.getTransactionalProperty();
@@ -197,10 +198,10 @@ public abstract class SensorWorker extends AbstractWorker<SOSConfiguration> {
     }
 
     /**
-     * Return a sensor object from the datasource or @{code null} if exist.
+     * Return a sensor object from the datasource or @{code null} if not existing.
      * 
      * @param sensorId Sensor identifier.
-     * @return a sensor object.
+     * @return a sensor object or @{code null}.
      */
     protected Sensor getSensor(String sensorId) {
         // in direct provider mode we extract the dto from the sensor provider

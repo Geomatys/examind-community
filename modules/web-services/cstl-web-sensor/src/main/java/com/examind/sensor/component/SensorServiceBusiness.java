@@ -46,6 +46,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.sis.util.collection.BackingStoreException;
 import org.constellation.api.CommonConstants;
 import static org.constellation.api.CommonConstants.OBJECT_TYPE;
@@ -116,8 +117,7 @@ public class SensorServiceBusiness {
             for (Path importedFile: files) {
                 if (importedFile != null) {
                     final Object sensor = sensorBusiness.unmarshallSensor(importedFile);
-                    if (sensor instanceof AbstractSensorML) {
-                        final AbstractSensorML sml        = (AbstractSensorML) sensor;
+                    if (sensor instanceof AbstractSensorML sml) {
                         final String sensorID             = SensorMLUtilities.getSmlID(sml);
                         final String smlType              = SensorMLUtilities.getSensorMLType(sml);
                         final String omType               = SensorMLUtilities.getOMType(sml);
@@ -247,17 +247,15 @@ public class SensorServiceBusiness {
         try {
             FeatureQuery query = new FeatureQuery();
             query.setSelection(buildFilter(null, null, Arrays.asList(observedProperty), new ArrayList<>()));
-            final List<String> processes = pr.getProcedures(query, Collections.emptyMap())
-                                             .stream()
-                                             .map(p -> ((org.geotoolkit.observation.xml.Process)p).getHref())
-                                             .collect(Collectors.toList());
+            Stream<String> processes = pr.getProcedures(query, Collections.emptyMap())
+                                         .stream()
+                                         .map(p -> ((org.geotoolkit.observation.xml.Process)p).getHref());
 
-            if (isDirectProviderMode(id)) {
-                return processes;
-            } else {
+            if (!isDirectProviderMode(id)) {
                 // filter on linked sensors
-                return processes.stream().filter(p -> sensorBusiness.isLinkedSensor(id, p)).collect(Collectors.toList());
+                processes = processes.filter(p -> sensorBusiness.isLinkedSensor(id, p));
             }
+             return processes.collect(Collectors.toList());
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
@@ -568,10 +566,8 @@ public class SensorServiceBusiness {
         try {
             // we get the CSW configuration file
             return (SOSConfiguration) serviceBusiness.getConfiguration(id);
-        } catch (ConfigurationException ex) {
-            throw new ConfigurationException("Configuration exception while getting the Sensor configuration for:" + id, ex.getMessage());
-        } catch (IllegalArgumentException ex) {
-            throw new ConfigurationException("IllegalArgumentException: " + ex.getMessage());
+        } catch (Exception ex) {
+            throw new ConfigurationException("Error while getting the Sensor service configuration for:" + id, ex);
         }
     }
 }

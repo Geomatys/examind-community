@@ -32,6 +32,8 @@ import javax.xml.namespace.QName;
 import org.apache.sis.geometry.GeneralDirectPosition;
 import org.apache.sis.storage.FeatureSet;
 import org.constellation.admin.SpringHelper;
+import static org.constellation.api.CommonConstants.TRANSACTIONAL;
+import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
@@ -108,8 +110,8 @@ public class WFSCIteWorkerTest extends SpringContextTest {
                 datas.addAll(testResources.createProvider(TestResource.WFS110_AGGREGATE, providerBusiness, null).datas);
 
                 final LayerContext config = new LayerContext();
-                config.getCustomParameters().put("transactionSecurized", "false");
-                config.getCustomParameters().put("transactional", "true");
+                config.getCustomParameters().put(TRANSACTION_SECURIZED, "false");
+                config.getCustomParameters().put(TRANSACTIONAL, "true");
 
                 Details details = new Details(serviceId, serviceId, null, null, Arrays.asList("1.1.0"), null, null, true, "en");
 

@@ -42,6 +42,8 @@ import org.apache.sis.util.Version;
 import org.constellation.api.ServiceDef;
 import org.constellation.api.ServiceDef.Specification;
 import org.constellation.admin.SpringHelper;
+import static org.constellation.api.CommonConstants.TRANSACTIONAL;
+import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
 import org.constellation.api.WorkerState;
 import org.constellation.exception.ConstellationException;
 import org.constellation.business.IServiceBusiness;
@@ -135,7 +137,7 @@ public abstract class AbstractWorker<A extends AbstractConfigurationObject> impl
 
     protected A configuration;
 
-    protected boolean isTransactionnal;
+    protected boolean isTransactional;
 
     private final boolean acceptNullConfig;
 
@@ -157,7 +159,7 @@ public abstract class AbstractWorker<A extends AbstractConfigurationObject> impl
             if (!acceptNullConfig && configuration == null) {
                 startError("The configuration object is null.", null);
             }
-            this.isTransactionnal = getTransactionalProperty();
+            this.isTransactional = getTransactionalProperty();
         } catch (ClassCastException ex) {
             startError("The configuration object is malformed.", null);
         } catch (ConfigurationException ex) {
@@ -389,7 +391,7 @@ public abstract class AbstractWorker<A extends AbstractConfigurationObject> impl
      * @return {@code true} if the transactional profile is activated.
      */
     protected boolean getTransactionalProperty() {
-        final String isTransactionnalProp = getProperty("transactional");
+        final String isTransactionnalProp = getProperty(TRANSACTIONAL);
         // 1) priority to configuration parameters properties
         if (isTransactionnalProp != null) {
            return Boolean.parseBoolean(isTransactionnalProp);
@@ -403,7 +405,7 @@ public abstract class AbstractWorker<A extends AbstractConfigurationObject> impl
                     t = details.isTransactional();
                 }
             } catch (ConstellationException ex) {
-                LOGGER.log(Level.WARNING, null, ex);
+                LOGGER.log(Level.WARNING, "Cannot determine if service is transactional", ex);
             }
             return t;
         }
@@ -490,7 +492,7 @@ public abstract class AbstractWorker<A extends AbstractConfigurationObject> impl
      * A flag indicating if the transaction methods of the worker are securized.
      */
     protected boolean isTransactionSecurized() {
-        final String value = getProperty("transactionSecurized");
+        final String value = getProperty(TRANSACTION_SECURIZED);
         if (value != null) {
             return Boolean.parseBoolean(value);
         }
@@ -648,12 +650,12 @@ public abstract class AbstractWorker<A extends AbstractConfigurationObject> impl
     }
 
     protected void assertTransactionnal(final String requestName) throws CstlServiceException {
-        if (!isTransactionnal) {
+        if (!isTransactional) {
             throw new CstlServiceException("The operation " + requestName + " is not supported by the service",
                     INVALID_PARAMETER_VALUE, "request");
         }
         if (isTransactionSecurized() && !SecurityManagerHolder.getInstance().isAuthenticated()) {
-            throw new UnauthorizedException("You must be authentified to perform an " + requestName + " request.");
+            throw new UnauthorizedException("You must be authentified to perform " + requestName + " request.");
         }
     }
 }

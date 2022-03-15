@@ -54,6 +54,7 @@ import java.util.logging.Logger;
 import org.apache.sis.test.xml.DocumentComparator;
 
 import org.constellation.admin.SpringHelper;
+import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.metadata.configuration.CSWConfigurer;
@@ -109,7 +110,7 @@ public class NetCDFCSWWorkerTest extends CSWworkerTest {
 
                 //we write the configuration file
                 Automatic configuration = new Automatic();
-                configuration.putParameter("transactionSecurized", "false");
+                configuration.putParameter(TRANSACTION_SECURIZED, "false");
                 configuration.putParameter("locale", "en");
 
                 Integer sid = serviceBusiness.create("csw", "default", configuration, null, null);

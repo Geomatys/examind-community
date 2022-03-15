@@ -63,6 +63,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import static org.constellation.api.CommonConstants.TRANSACTIONAL;
+import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
 import org.constellation.test.utils.TestEnvironment.DataImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import static org.constellation.test.utils.TestResourceUtils.getResourceAsString;
@@ -130,8 +132,8 @@ public class WFSWorkerTest extends SpringContextTest {
                 DataImport d23 = testResources.createProvider(TestResource.JSON_FEATURE, providerBusiness, null).datas.get(0);
 
                 final LayerContext config = new LayerContext();
-                config.getCustomParameters().put("transactionSecurized", "false");
-                config.getCustomParameters().put("transactional", "true");
+                config.getCustomParameters().put(TRANSACTION_SECURIZED, "false");
+                config.getCustomParameters().put(TRANSACTIONAL, "true");
 
                 Integer sid = serviceBusiness.create("wfs", "default", config, null, null);
 

@@ -40,6 +40,8 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.admin.SpringHelper;
+import static org.constellation.api.CommonConstants.TRANSACTIONAL;
+import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
@@ -164,8 +166,8 @@ public class WFS2WorkerTest extends SpringContextTest {
 
 
                 final LayerContext config2 = new LayerContext();
-                config2.getCustomParameters().put("transactionSecurized", "false");
-                config2.getCustomParameters().put("transactional", "true");
+                config2.getCustomParameters().put(TRANSACTION_SECURIZED, "false");
+                config2.getCustomParameters().put(TRANSACTIONAL, "true");
 
                 Integer sid = serviceBusiness.create("wfs", "test1", config2, null, null);
                 for (DataImport d : datas) {
