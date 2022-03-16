@@ -378,6 +378,5 @@ function Step2WizardController($scope, $location, $translate, Examind, Growl,
     };
 
     self.init();
-
 }
 

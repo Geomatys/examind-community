@@ -602,22 +602,24 @@ function Step1WizardController($scope, $rootScope, $translate, $interval, $modal
                 cfpLoadingBar.inc();
                 Examind.dataSources.update(dataSource)
                     .then(function (response) {
-                        cfpLoadingBar.complete();
-                    }, function (reason) {
+                        window.setTimeout(function () {
+                            cfpLoadingBar.complete();
+                            goToStepFn(stepNum);
+                        }, 400);
+                    }, function () {
                         $translate('wiz.data.import.step1.msg.err.update.data.source')
                             .then(function (translatedMsg) {
                                 Growl('error', 'Error', translatedMsg);
                             });
                     });
                 $interval.cancel(self.stores.asyncComputeStoresInterval);
-            }
-
-            // Handle the case of S63
-            if (self.stores.selectedStore && self.stores.selectedStore.store === 'S63') {
+            } else if (self.stores.selectedStore && self.stores.selectedStore.store === 'S63') {
+                // Handle the case of S63
                 self.wizardValues.step1.isS63 = true;
                 WizardAddDataService.s63InitWizard();
+            } else {
+                goToStepFn(stepNum);
             }
-            goToStepFn(stepNum);
         }
     };
 
