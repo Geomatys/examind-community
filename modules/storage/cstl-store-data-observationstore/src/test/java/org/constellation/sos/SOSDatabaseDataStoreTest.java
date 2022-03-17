@@ -17,14 +17,14 @@
 
 package org.constellation.sos;
 
-import java.io.InputStream;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.sql.DataSource;
 import org.apache.sis.feature.builder.AttributeRole;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
 import org.apache.sis.geometry.GeneralEnvelope;
@@ -33,10 +33,10 @@ import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStore;
 import org.constellation.store.observation.db.SOSDatabaseObservationStore;
 import org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory;
+import org.constellation.util.SQLUtilities;
 import org.constellation.util.Util;
 import org.geotoolkit.storage.AbstractReadingTests;
 import org.geotoolkit.feature.xml.GMLConvention;
-import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.internal.sql.ScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.util.NamesExt;
@@ -51,14 +51,14 @@ import org.opengis.util.GenericName;
  */
 public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
 
-    private static DefaultDataSource ds;
+    private static DataSource ds;
     private static DataStore store;
     private static final Set<GenericName> names = new HashSet<>();
     private static final List<ExpectedResult> expecteds = new ArrayList<>();
-    static{
-        try{
+    static {
+        try {
             final String url = "jdbc:derby:memory:TestOM;create=true";
-            ds = new DefaultDataSource(url);
+            ds = SQLUtilities.getDataSource(url);
 
             Connection con = ds.getConnection();
 
@@ -66,7 +66,7 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
             String sql = IOUtilities.toString(Util.getResourceAsStream("org/constellation/om2/structure_observations.sql"));
             sql = sql.replace("$SCHEMA", "");
             exec.run(sql);
-            exec.run(getResourceAsStream("org/constellation/sql/sos-data-om2.sql"));
+            exec.run(Util.getResourceAsStream("org/constellation/sql/sos-data-om2.sql"));
 
             DefaultParameterValueGroup parameters = (DefaultParameterValueGroup) SOSDatabaseObservationStoreFactory.PARAMETERS_DESCRIPTOR.createValue();
             parameters.getOrCreate(SOSDatabaseObservationStoreFactory.SGBDTYPE).setValue("derby");
@@ -97,8 +97,8 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
                     featureTypeBuilder.build(), size, env);
             expecteds.add(res);
 
-        }catch(Exception ex){
-            ex.printStackTrace();
+        } catch(Exception ex) {
+            Logger.getLogger("org.constellation.store.observation.db").log(Level.SEVERE, "Error at test initialization.", ex);
         }
     }
 
@@ -115,19 +115,5 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
     @Override
     protected List<ExpectedResult> getReaderTests() {
         return expecteds;
-    }
-
-    public static InputStream getResourceAsStream(final String url) {
-        final ClassLoader cl = getContextClassLoader();
-        return cl.getResourceAsStream(url);
-    }
-
-    public static ClassLoader getContextClassLoader() {
-        return AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
-            @Override
-            public ClassLoader run() {
-                return Thread.currentThread().getContextClassLoader();
-            }
-        });
     }
 }

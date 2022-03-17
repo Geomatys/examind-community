@@ -57,7 +57,6 @@ import org.constellation.util.Util;
 import org.geotoolkit.storage.event.FeatureStoreContentEvent;
 import org.geotoolkit.data.om.OMFeatureTypes;
 import static org.geotoolkit.data.om.OMFeatureTypes.*;
-import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.gml.xml.AbstractGeometry;

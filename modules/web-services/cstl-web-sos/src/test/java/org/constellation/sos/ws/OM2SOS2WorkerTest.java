@@ -25,7 +25,6 @@ import java.util.logging.Level;
 import javax.annotation.PostConstruct;
 import static org.constellation.api.CommonConstants.TRANSACTIONAL;
 import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.Sensor;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.exception.ConfigurationException;
@@ -35,7 +34,6 @@ import org.constellation.test.utils.Order;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
-import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.junit.AfterClass;
 import org.junit.Test;
 
@@ -45,8 +43,6 @@ import org.junit.Test;
  * @author Guilhem Legal (Geomatys)
  */
 public class OM2SOS2WorkerTest extends SOS2WorkerTest {
-
-    private static DefaultDataSource ds = null;
 
     private static boolean initialized = false;
 
@@ -111,9 +107,6 @@ public class OM2SOS2WorkerTest extends SOS2WorkerTest {
         File mappingFile = new File("mapping.properties");
         if (mappingFile.exists()) {
             mappingFile.delete();
-        }
-        if (ds != null) {
-            ds.shutdown();
         }
     }
 

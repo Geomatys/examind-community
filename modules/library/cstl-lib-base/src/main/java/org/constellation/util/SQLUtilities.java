@@ -34,6 +34,17 @@ import org.constellation.exception.ConfigurationRuntimeException;
 public class SQLUtilities {
 
     /**
+     * Build a SQL datasource (simple version often used for derby datasource).
+     *
+     * @param connectURL JDBC datasource url.
+     *
+     * @return A SQL Datasource.
+     */
+    public static DataSource getDataSource(String connectURL) {
+        return getDataSource(null, connectURL, null, null);
+    }
+    
+    /**
      * Build a SQL datasource.
      * 
      * @param className A JDBC driver class name or {@code null}

@@ -19,15 +19,15 @@
 
 package org.constellation.store.observation.db;
 
-import java.io.InputStream;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
+import javax.sql.DataSource;
 import org.apache.sis.feature.builder.AttributeRole;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
 import org.apache.sis.geometry.GeneralEnvelope;
@@ -35,9 +35,9 @@ import org.apache.sis.parameter.DefaultParameterValueGroup;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStore;
 import org.constellation.test.utils.SpringTestRunner;
+import org.constellation.util.SQLUtilities;
 import org.constellation.util.Util;
 import org.geotoolkit.storage.AbstractReadingTests;
-import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.internal.sql.ScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.util.NamesExt;
@@ -58,7 +58,7 @@ import org.springframework.test.context.ContextConfiguration;
 @RunWith(SpringTestRunner.class)
 public class OM2DataStoreTest extends AbstractReadingTests{
 
-    private static DefaultDataSource ds;
+    private static DataSource ds;
     private static DataStore store;
     private static Set<GenericName> names = new HashSet<>();
     private static List<ExpectedResult> expecteds = new ArrayList<>();
@@ -69,7 +69,7 @@ public class OM2DataStoreTest extends AbstractReadingTests{
         if (!configured) {
             try{
                 final String url = "jdbc:derby:memory:TestOM2;create=true";
-                ds = new DefaultDataSource(url);
+                ds = SQLUtilities.getDataSource(url);
 
                 Connection con = ds.getConnection();
 
@@ -77,7 +77,7 @@ public class OM2DataStoreTest extends AbstractReadingTests{
                 String sql = IOUtilities.toString(Util.getResourceAsStream("org/constellation/om2/structure_observations.sql"));
                 sql = sql.replace("$SCHEMA", "");
                 exec.run(sql);
-                exec.run(getResourceAsStream("org/constellation/sql/sos-data-om2.sql"));
+                exec.run(Util.getResourceAsStream("org/constellation/sql/sos-data-om2.sql"));
 
                 DefaultParameterValueGroup parameters = (DefaultParameterValueGroup) OM2FeatureStoreFactory.PARAMETERS_DESCRIPTOR.createValue();
                 parameters.getOrCreate(OM2FeatureStoreFactory.IDENTIFIER).setValue("om2");
@@ -110,7 +110,7 @@ public class OM2DataStoreTest extends AbstractReadingTests{
                 configured = true;
 
             } catch(Exception ex) {
-                ex.printStackTrace();
+                Logger.getLogger("org.constellation.store.observation.db").log(Level.SEVERE, "Error at test initialization.", ex);
             }
         }
     }
@@ -129,19 +129,5 @@ public class OM2DataStoreTest extends AbstractReadingTests{
     @Override
     protected List<ExpectedResult> getReaderTests() {
         return expecteds;
-    }
-
-    public static InputStream getResourceAsStream(final String url) {
-        final ClassLoader cl = getContextClassLoader();
-        return cl.getResourceAsStream(url);
-    }
-
-    public static ClassLoader getContextClassLoader() {
-        return AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
-            @Override
-            public ClassLoader run() {
-                return Thread.currentThread().getContextClassLoader();
-            }
-        });
     }
 }

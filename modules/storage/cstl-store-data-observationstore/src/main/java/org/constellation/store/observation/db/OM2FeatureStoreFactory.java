@@ -26,17 +26,15 @@ import org.locationtech.jts.geom.MultiPoint;
 import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
-import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.ResourceInternationalString;
-import org.geotoolkit.jdbc.DBCPDataSource;
-import org.geotoolkit.jdbc.ManageableDataSource;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import java.io.IOException;
 import java.util.logging.Level;
+import javax.sql.DataSource;
 import org.apache.sis.internal.storage.Capability;
 import org.apache.sis.internal.storage.StoreMetadata;
 import org.apache.sis.storage.DataStore;
@@ -45,6 +43,7 @@ import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.StorageConnector;
 import org.constellation.provider.DataProviders;
+import org.constellation.util.SQLUtilities;
 import org.geotoolkit.observation.Bundle;
 import org.geotoolkit.storage.ResourceType;
 import org.geotoolkit.storage.StoreMetadataExt;
@@ -212,43 +211,14 @@ public class OM2FeatureStoreFactory extends DataStoreProvider {
         }
         try{
             //create a datasource
-            final BasicDataSource dataSource = new BasicDataSource();
-
-            // some default data source behaviour
-            dataSource.setPoolPreparedStatements(true);
-
-            // driver
-            dataSource.setDriverClassName(getDriverClassName(params));
-
-            // url
-            dataSource.setUrl(getJDBCUrl(params));
-
-            // username
+            final String driverClass = null; //  Hikari don't need a driver className.
+            final String jdbcUrl = getJDBCUrl(params);
             final String user = (String) params.parameter(USER.getName().toString()).getValue();
-            dataSource.setUsername(user);
-
-            // password
             final String passwd = (String) params.parameter(PASSWD.getName().toString()).getValue();
-            if (passwd != null) {
-                dataSource.setPassword(passwd);
-            }
-
-            // some datastores might need this
-            dataSource.setAccessToUnderlyingConnectionAllowed(true);
-
-            final ManageableDataSource source = new DBCPDataSource(dataSource);
-            return new OM2FeatureStore(params,source);
+            final DataSource source = SQLUtilities.getDataSource(driverClass, jdbcUrl, user, passwd);
+            return new OM2FeatureStore(params, source);
         } catch (IOException ex) {
             throw new DataStoreException(ex);
-        }
-    }
-
-    private String getDriverClassName(final ParameterValueGroup params){
-        final String type  = (String) params.parameter(SGBDTYPE.getName().toString()).getValue();
-        if (type.equals("derby")) {
-            return "org.apache.derby.jdbc.EmbeddedDriver";
-        } else {
-            return "org.postgresql.Driver";
         }
     }
 

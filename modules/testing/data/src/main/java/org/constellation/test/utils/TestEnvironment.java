@@ -19,6 +19,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.sql.DataSource;
 import javax.xml.bind.Unmarshaller;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStore;
@@ -37,10 +38,10 @@ import org.constellation.provider.ObservationProvider;
 import org.constellation.provider.ProviderParameters;
 import static org.constellation.provider.ProviderParameters.getOrCreate;
 import static org.constellation.test.utils.TestResourceUtils.unmarshallSensorResource;
+import org.constellation.util.SQLUtilities;
 import org.constellation.util.Util;
 import org.geotoolkit.coverage.worldfile.FileCoverageProvider;
 import org.geotoolkit.data.shapefile.ShapefileFolderProvider;
-import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.nio.ZipUtilities;
@@ -757,7 +758,7 @@ public class TestEnvironment {
 
     private static String buildDerbyOM2Database(String providerIdentifier) throws Exception {
         final String url = "jdbc:derby:memory:" + providerIdentifier;
-        final DefaultDataSource ds = new DefaultDataSource(url + ";create=true");
+        final DataSource ds = SQLUtilities.getDataSource(url + ";create=true");
         try (final Connection con = ds.getConnection()) {
             final DerbySqlScriptRunner sr = new DerbySqlScriptRunner(con);
             String sql = IOUtilities.toString(Util.getResourceAsStream("org/constellation/om2/structure_observations.sql"));
@@ -765,7 +766,6 @@ public class TestEnvironment {
             sr.run(sql);
             sr.run(Util.getResourceAsStream("org/constellation/sql/sos-data-om2.sql"));
         }
-        ds.shutdown();
         return url;
     }
 

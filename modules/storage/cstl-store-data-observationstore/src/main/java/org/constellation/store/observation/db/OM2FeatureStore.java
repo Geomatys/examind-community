@@ -37,6 +37,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import javax.sql.DataSource;
 import org.apache.sis.feature.builder.AttributeRole;
 import org.apache.sis.feature.builder.AttributeTypeBuilder;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
@@ -60,7 +61,6 @@ import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
 import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.storage.feature.GenericNameIndex;
-import org.geotoolkit.jdbc.ManageableDataSource;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.util.collection.CloseableIterator;
@@ -96,7 +96,7 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
     private final Parameters parameters;
     private final GenericNameIndex<FeatureType> types = new GenericNameIndex<>();
 
-    private final ManageableDataSource source;
+    private final DataSource source;
 
     private final String sensorIdBase = "urn:ogc:object:sensor:GEOM:"; // TODO
 
@@ -106,7 +106,7 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
 
     private final List<Resource> components = new ArrayList<>();
 
-    public OM2FeatureStore(final ParameterValueGroup params, final ManageableDataSource source) throws DataStoreException {
+    public OM2FeatureStore(final ParameterValueGroup params, final DataSource source) throws DataStoreException {
         this.parameters = Parameters.castOrWrap(params);
         this.source = source;
         Object sgbdtype = parameters.getMandatoryValue(SGBDTYPE);
@@ -167,13 +167,7 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
      * {@inheritDoc }
      */
     @Override
-    public void close() {
-        try {
-            source.close();
-        } catch (SQLException ex) {
-            LOGGER.info("SQL Exception while closing O&M2 datastore");
-        }
-    }
+    public void close() {}
 
     public ResourceId getNewFeatureId() {
         Connection cnx = null;

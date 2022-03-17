@@ -33,10 +33,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.xml.bind.Marshaller;
+import javax.sql.DataSource;
 import org.apache.sis.storage.FeatureQuery;
 import org.apache.sis.storage.DataStoreProvider;
-import org.apache.sis.xml.MarshallerPool;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBJECT_TYPE;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
@@ -44,14 +43,13 @@ import static org.constellation.api.CommonConstants.RESPONSE_MODE;
 import static org.constellation.api.CommonConstants.RESULT_MODEL;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.service.config.sos.ProcedureTree;
-import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.ObservationProvider;
+import org.constellation.util.SQLUtilities;
 import org.constellation.util.Util;
 import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.gml.xml.v321.TimeInstantType;
 import org.geotoolkit.gml.xml.v321.TimePeriodType;
-import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
 import static org.geotoolkit.observation.ObservationFilterFlags.*;
@@ -86,7 +84,7 @@ public class ObservationStoreProviderTest {
 
     private static FilterFactory ff;
 
-    private static DefaultDataSource ds = null;
+    private static DataSource ds = null;
 
     private static String url;
 
@@ -97,7 +95,7 @@ public class ObservationStoreProviderTest {
     @BeforeClass
     public static void setUpClass() throws Exception {
         url = "jdbc:derby:memory:OM2Test2;create=true";
-        ds = new DefaultDataSource(url);
+        ds = SQLUtilities.getDataSource(url);
 
         ff = FilterUtilities.FF;
 
@@ -109,12 +107,6 @@ public class ObservationStoreProviderTest {
         sql = sql.replace("$SCHEMA", "");
         sr.run(sql);
         sr.run(Util.getResourceAsStream("org/constellation/sql/sos-data-om2.sql"));
-
-        MarshallerPool pool   = GenericDatabaseMarshallerPool.getInstance();
-        Marshaller marshaller =  pool.acquireMarshaller();
-
-        pool.recycle(marshaller);
-
 
         final DataStoreProvider factory = DataStores.getProviderById("observationSOSDatabase");
         final ParameterValueGroup dbConfig = factory.getOpenParameters().createValue();
@@ -146,9 +138,6 @@ public class ObservationStoreProviderTest {
         File mappingFile = new File("mapping.properties");
         if (mappingFile.exists()) {
             mappingFile.delete();
-        }
-        if (ds != null) {
-            ds.shutdown();
         }
     }
 
