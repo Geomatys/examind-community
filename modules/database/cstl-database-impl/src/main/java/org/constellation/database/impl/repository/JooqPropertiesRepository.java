@@ -26,14 +26,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.examind.database.api.jooq.Tables;
 import com.examind.database.api.jooq.tables.pojos.Property;
 import com.examind.database.api.jooq.tables.records.PropertyRecord;
 import org.constellation.repository.PropertyRepository;
-import org.jooq.DeleteConditionStep;
 import org.jooq.Record1;
-import org.jooq.SelectQuery;
-import org.jooq.UpdateConditionStep;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,11 +47,12 @@ public class JooqPropertiesRepository extends AbstractJooqRespository<PropertyRe
 
     @Override
     public Entry<String, String> findOne(String key) {
-        SelectQuery<PropertyRecord> selectQuery = dsl.selectQuery(PROPERTY);
-        selectQuery.addConditions(PROPERTY.NAME.equal(key));
-        PropertyRecord fetchOne = dsl.fetchOne(selectQuery);
-        if (fetchOne != null) {
-            return new AbstractMap.SimpleEntry<>(fetchOne.getName(), fetchOne.getValue());
+        Property prop = dsl.select()
+                           .from(PROPERTY)
+                           .where(PROPERTY.NAME.equal(key))
+                           .fetchOneInto(Property.class);
+        if (prop != null) {
+            return new AbstractMap.SimpleEntry<>(prop.getName(), prop.getValue());
         }
         return null;
     }
@@ -63,32 +60,35 @@ public class JooqPropertiesRepository extends AbstractJooqRespository<PropertyRe
     @Override
     @Transactional
     public void update(String key, String value) {
-        final Entry old = findOne(key);
-        if (old == null) {
-            PropertyRecord newRecord = dsl.newRecord(PROPERTY, new Property(key, value));
-            newRecord.store();
+        if (value == null) {
+            delete(key);
         } else {
-            final UpdateConditionStep<PropertyRecord> updateQuery = dsl.update(PROPERTY)
-                    .set(PROPERTY.VALUE, value)
-                    .where(PROPERTY.NAME.eq(key));
-
-            updateQuery.execute();
+            final Entry old = findOne(key);
+            if (old == null) {
+                PropertyRecord newRecord = dsl.newRecord(PROPERTY, new Property(key, value));
+                newRecord.store();
+            } else {
+                dsl.update(PROPERTY)
+                        .set(PROPERTY.VALUE, value)
+                        .where(PROPERTY.NAME.eq(key))
+                        .execute();
+            }
         }
     }
 
     @Override
-    public Map<String, String> startWith(String string) {
-        SelectQuery<PropertyRecord> selectQuery = dsl.selectQuery(Tables.PROPERTY);
-        selectQuery.addConditions(Tables.PROPERTY.NAME.like((string)));
-        return toMap(selectQuery.fetch().into(Property.class));
+    public Map<String, String> startWith(String prefix) {
+        List<Property> props = dsl.select()
+                                  .from(PROPERTY)
+                                  .where(PROPERTY.NAME.like((prefix)))
+                                  .fetchInto(Property.class);
+        return toMap(props);
     }
 
     @Override
     @Transactional
     public void delete(String key) {
-        DeleteConditionStep<PropertyRecord> deleteConditionStep = dsl.delete(PROPERTY).where(
-                PROPERTY.NAME.eq(key));
-        deleteConditionStep.execute();
+        dsl.delete(PROPERTY).where(PROPERTY.NAME.eq(key)).execute();
 
     }
 

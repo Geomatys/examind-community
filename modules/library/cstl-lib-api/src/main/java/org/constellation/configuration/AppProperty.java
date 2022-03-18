@@ -221,7 +221,9 @@ public enum AppProperty {
     /**
      * If set to true, WMS capabilities will not display millisecond (for external tools compatibility)
      */
-    EXA_WMS_NO_MS("examind.wms.no.ms", false, Boolean.class);
+    EXA_WMS_NO_MS("examind.wms.no.ms", false, Boolean.class),
+
+    EXA_WMS_BACKGROUND_URL("examind.wms.background", false, String.class);
 
     private final String key;
     private final boolean secure;
