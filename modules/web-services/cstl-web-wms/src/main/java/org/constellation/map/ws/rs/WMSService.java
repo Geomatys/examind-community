@@ -646,7 +646,7 @@ public class WMSService extends GridWebService<WMSWorker> {
         boolean hasCQL = false;
         final String cqlStr = getParameter(KEY_CQL_FILTER, false);
         if (cqlStr != null) {
-            extraParameters.put(KEY_CQL_FILTER, StringUtilities.toStringList(cqlStr));
+            extraParameters.put(KEY_CQL_FILTER, StringUtilities.toStringList(cqlStr, ';'));
             hasCQL = true;
         }
 

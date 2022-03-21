@@ -93,10 +93,10 @@ public final class PortrayalUtil {
 
                     // extra filters
                     Optional<Filter> filter = layer.getLayerFilter(env, extraFilter);
-
-                    if (filter.isPresent() || properties != null) {
+                    boolean hasProp = properties != null && !properties.isEmpty();
+                    if (filter.isPresent() || hasProp) {
                         final FeatureQuery query = new FeatureQuery();
-                        if (properties != null) {
+                        if (hasProp) {
                             query.setProjection(properties.toArray(String[]::new));
                         }
                         if (filter.isPresent()) {

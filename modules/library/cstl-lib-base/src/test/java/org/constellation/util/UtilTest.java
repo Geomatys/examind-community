@@ -293,7 +293,7 @@ public class UtilTest {
      * @throws java.lang.Exception
      */
     @Test
-    public void ContainsMatchTest() throws Exception {
+    public void containsMatchTest() throws Exception {
         List<String> list = new ArrayList<>();
         list.add("par");
         list.add("le tres grand ");
@@ -313,7 +313,7 @@ public class UtilTest {
      * @throws java.lang.Exception
      */
     @Test
-    public void ContainsIgnoreCaseTest() throws Exception {
+    public void containsIgnoreCaseTest() throws Exception {
         List<String> list = new ArrayList<>();
         list.add("par");
         list.add("le tres grand ");
@@ -330,5 +330,31 @@ public class UtilTest {
         assertFalse(StringUtilities.containsIgnoreCase(list, "GRAND"));
     }
 
+    @Test
+    public void parseMultipleList() throws Exception {
+        String s = "a,b,c";
+        List<List<String>> result = Util.parseMultipleList(s);
+        assertEquals(1, result.size());
+        List<String> result0 = result.get(0);
+        assertEquals(3, result0.size());
+
+        s = "(a,b,c)(d,e,f)";
+        result = Util.parseMultipleList(s);
+        assertEquals(2, result.size());
+        result0 = result.get(0);
+        assertEquals(3, result0.size());
+        List<String> result1 = result.get(1);
+        assertEquals(3, result1.size());
+
+        s = "()()(d,e,f)";
+        result = Util.parseMultipleList(s);
+        assertEquals(3, result.size());
+        result0 = result.get(0);
+        assertEquals(0, result0.size());
+        result1 = result.get(1);
+        assertEquals(0, result1.size());
+        List<String> result2 = result.get(2);
+        assertEquals(3, result2.size());
+    }
 
 }

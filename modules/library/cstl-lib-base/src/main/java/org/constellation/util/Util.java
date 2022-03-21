@@ -171,10 +171,16 @@ public final class Util {
      */
     public static List<List<String>> parseMultipleList(String str) {
         List<List<String>> results = new ArrayList<>();
-        final Pattern pa = Pattern.compile("\\(?([^\\)]+)\\)?");
+        final Pattern pa = Pattern.compile("([^\\)\\(]+)|(?:\\(([^\\)]*)\\))");
         final Matcher m  = pa.matcher(str);
         while (m.find()) {
-            List<String> values = StringUtilities.toStringList(m.group(1));
+            String grp = m.group(1) != null ? m.group(1) : m.group(2);
+            List<String> values;
+            if (!grp.isEmpty()) {
+                values = StringUtilities.toStringList(grp);
+            } else {
+                values = new ArrayList<>();
+            }
             results.add(values);
         }
         return results;
