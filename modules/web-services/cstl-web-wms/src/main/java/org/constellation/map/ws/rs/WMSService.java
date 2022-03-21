@@ -72,6 +72,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.util.ArgumentChecks;
@@ -675,6 +676,8 @@ public class WMSService extends GridWebService<WMSWorker> {
                 throw new CstlServiceException(ex, STYLE_NOT_DEFINED);
             }
         }
+        Map<String, Object> extraParameters = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        extraParameters.putAll(getParameters());
 
         final double azimuth;
         try {
@@ -685,7 +688,7 @@ public class WMSService extends GridWebService<WMSWorker> {
 
         // Builds the request.
         return new GetMap(env, new Version(version), format, namedLayers, styles, sld, elevation,
-                    dates, size, background, transparent, azimuth, strExceptions, getParameters());
+                    dates, size, background, transparent, azimuth, strExceptions, extraParameters);
     }
 
     /**
