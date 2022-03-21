@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind community - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2014 Geomatys.
  *
@@ -18,11 +18,9 @@
  */
 package org.constellation.process.provider;
 
-import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.util.SimpleInternationalString;
-import org.geotoolkit.process.Process;
-import org.geotoolkit.processing.AbstractProcessDescriptor;
-import org.opengis.parameter.ParameterDescriptor;
+import org.constellation.process.AbstractCstlProcess;
+import org.constellation.process.ExamindProcessFactory;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.InternationalString;
@@ -31,47 +29,28 @@ import org.opengis.util.InternationalString;
  *
  * @author Quentin Boileau (Geomatys).
  */
-public class GetConfigProviderDescriptor extends AbstractProcessDescriptor {
+public class GetConfigProviderDescriptor extends AbstractProviderDescriptor {
 
     public static final String NAME = "provider.get_config";
     public static final InternationalString ABSTRACT = new SimpleInternationalString("Return provider configuration.");
-
-    private static final ParameterBuilder BUILDER = new ParameterBuilder();
-
-    public static final String PROVIDER_ID_NAME = "provider_id";
-    private static final String PROVIDER_ID_REMARKS = "Identifier of a provider.";
-    public static final ParameterDescriptor<String> PROVIDER_ID = BUILDER
-            .addName(PROVIDER_ID_NAME)
-            .setRemarks(PROVIDER_ID_REMARKS)
-            .setRequired(true)
-            .create(String.class, null);
 
     /**Input parameters */
     public static final ParameterDescriptorGroup INPUT_DESC = BUILDER.addName("InputParameters").setRequired(true)
                     .createGroup(PROVIDER_ID);
 
-
-    public static final String CONFIG_NAME = "config";
-    private static final String CONFIG_REMARKS = "Returned configuration from a provider.";
-    public static final ParameterDescriptor<ParameterValueGroup> CONFIG = BUILDER
-                    .addName(CONFIG_NAME)
-                    .setRemarks(CONFIG_REMARKS)
-                    .setRequired(true)
-                    .create(ParameterValueGroup.class, null);
-
     /**Output parameters */
     public static final ParameterDescriptorGroup OUTPUT_DESC = BUILDER.addName("OutputParameters").setRequired(true)
-            .createGroup(CONFIG);
+            .createGroup(SOURCE);
 
     /**
      * Public constructor use by the ServiceRegistry to find and instantiate all ProcessDescriptor.
      */
     public GetConfigProviderDescriptor() {
-        super(NAME, ProviderDescriptorConstant.IDENTIFICATION_CSTL, ABSTRACT, INPUT_DESC, OUTPUT_DESC);
+        super(NAME, ExamindProcessFactory.IDENTIFICATION, ABSTRACT, INPUT_DESC, OUTPUT_DESC);
     }
 
     @Override
-    public Process createProcess(ParameterValueGroup input) {
+    public AbstractCstlProcess buildProcess(ParameterValueGroup input) {
         return new GetConfigProvider(this, input);
     }
 

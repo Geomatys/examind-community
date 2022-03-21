@@ -49,7 +49,7 @@ public class RestartProviderTest extends AbstractProviderTest {
         final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, RestartProviderDescriptor.NAME);
 
         final ParameterValueGroup in = desc.getInputDescriptor().createValue();
-        in.parameter(RestartProviderDescriptor.PROVIDER_ID_NAME).setValue("restartProvider1");
+        in.parameter(RestartProviderDescriptor.PROVIDER_ID_NAME).setValue(pid);
 
         final org.geotoolkit.process.Process proc = desc.createProcess(in);
         proc.call();
@@ -69,7 +69,7 @@ public class RestartProviderTest extends AbstractProviderTest {
         final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, RestartProviderDescriptor.NAME);
 
         final ParameterValueGroup in = desc.getInputDescriptor().createValue();
-        in.parameter(RestartProviderDescriptor.PROVIDER_ID_NAME).setValue("unknowProvider");
+        in.parameter(RestartProviderDescriptor.PROVIDER_ID_NAME).setValue(-1);
 
         try {
             final org.geotoolkit.process.Process proc = desc.createProcess(in);
@@ -91,7 +91,7 @@ public class RestartProviderTest extends AbstractProviderTest {
         final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, RestartProviderDescriptor.NAME);
 
         final ParameterValueGroup in = desc.getInputDescriptor().createValue();
-        in.parameter(RestartProviderDescriptor.PROVIDER_ID_NAME).setValue("");
+        in.parameter(RestartProviderDescriptor.PROVIDER_ID_NAME).setValue(-1);
 
         try {
             final org.geotoolkit.process.Process proc = desc.createProcess(in);

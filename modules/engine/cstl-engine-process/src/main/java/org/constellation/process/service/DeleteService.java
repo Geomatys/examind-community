@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind community - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2014 Geomatys.
  *
@@ -18,14 +18,10 @@
  */
 package org.constellation.process.service;
 
-import org.constellation.business.IServiceBusiness;
-import org.constellation.dto.service.ServiceComplete;
 import org.constellation.exception.ConstellationException;
-import org.constellation.process.AbstractCstlProcess;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.opengis.parameter.ParameterValueGroup;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.constellation.process.service.DeleteServiceDescriptor.IDENTIFIER;
 import static org.constellation.process.service.DeleteServiceDescriptor.SERVICE_TYPE;
@@ -34,9 +30,7 @@ import static org.constellation.process.service.DeleteServiceDescriptor.SERVICE_
  *
  * @author Quentin Boileau (Geomatys)
  */
-public class DeleteService extends AbstractCstlProcess {
-    @Autowired
-    public IServiceBusiness serviceBusiness;
+public class DeleteService extends AbstractServiceProcess {
 
     public DeleteService(final ProcessDescriptor desc, final ParameterValueGroup parameter) {
         super(desc, parameter);
@@ -53,12 +47,9 @@ public class DeleteService extends AbstractCstlProcess {
     protected void execute() throws ProcessException {
         final String serviceType = inputParameters.getValue(SERVICE_TYPE);
         final String identifier = inputParameters.getValue(IDENTIFIER);
+        final Integer sid = getServiceId(serviceType, identifier);
         try {
-            ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType(serviceType, identifier);
-            if (s == null) {
-                throw new ProcessException("Unexisting service", this);
-            }
-            serviceBusiness.delete(s.getId());
+            serviceBusiness.delete(sid);
         } catch (ConstellationException ex) {
             throw new ProcessException(ex.getMessage(), this, ex);
         }

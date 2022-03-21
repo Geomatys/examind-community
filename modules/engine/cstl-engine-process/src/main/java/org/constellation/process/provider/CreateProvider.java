@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind community - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2014 Geomatys.
  *
@@ -24,13 +24,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.sis.parameter.Parameters;
-import org.constellation.admin.SpringHelper;
 import org.constellation.api.ProviderType;
 import org.constellation.exception.ConstellationException;
 import org.constellation.business.IProviderBusiness;
-
 import org.constellation.process.AbstractCstlProcess;
-import static org.constellation.process.provider.CreateProviderDescriptor.CREATED_ID;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.DataProviderFactory;
 import org.geotoolkit.process.ProcessDescriptor;
@@ -38,6 +35,8 @@ import org.geotoolkit.process.ProcessException;
 import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.transaction.annotation.Transactional;
+import static org.constellation.process.provider.CreateProviderDescriptor.PROVIDER_ID;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Create a new provider in constellation.
@@ -46,6 +45,9 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Johann Sorel (Geomatys)
  */
 public final class CreateProvider extends AbstractCstlProcess {
+
+    @Autowired
+    private IProviderBusiness providerBusiness;
 
     public CreateProvider(final ProcessDescriptor desc, final ParameterValueGroup parameter) {
         super(desc, parameter);
@@ -87,9 +89,7 @@ public final class CreateProvider extends AbstractCstlProcess {
             //check no other provider with this id exist
             final String id = (String) source.parameter("id").getValue();
 
-            final IProviderBusiness providerBusiness = SpringHelper.getBean(IProviderBusiness.class);
-
-            if(providerBusiness.getIDFromIdentifier(id)!=null){
+            if (providerBusiness.getIDFromIdentifier(id )!= null) {
                 throw new ProcessException("Provider ID is already used : " + id, this, null);
             }
 
@@ -100,12 +100,11 @@ public final class CreateProvider extends AbstractCstlProcess {
                 final Integer pr = providerBusiness.storeProvider(id, ProviderType.LAYER, service.getName(), source);
                 providerBusiness.createOrUpdateData(pr, null, createDataset, false, null);
 
-                outputParameters.getOrCreate(CREATED_ID).setValue(pr);
+                outputParameters.getOrCreate(PROVIDER_ID).setValue(pr);
 
             } catch (ConstellationException ex) {
                 throw new ProcessException("Failed to create provider : " + id+"  "+ex.getMessage(), this, ex);
             }
-
         } else {
             throw new ProcessException("Provider type not found:" + providerType, this, null);
         }

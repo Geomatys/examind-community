@@ -100,7 +100,6 @@ public abstract class AbstractProviderTest extends AbstractProcessTest {
 
             final ParameterValueGroup choiceValue = sourceValue.groups("choice").get(0);
             final ParameterValueGroup csvValue = choiceValue.addGroup("geotk_csv");
-            //csvValue.parameter("identifier").setValue("geotk_csv");
             csvValue.parameter("location").setValue(url);
             csvValue.parameter("separator").setValue(Character.valueOf(separator));
 

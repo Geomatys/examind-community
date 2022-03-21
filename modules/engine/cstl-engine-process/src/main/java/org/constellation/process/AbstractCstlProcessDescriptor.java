@@ -1,6 +1,6 @@
 /*
  *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    https://community.examind.com/
  *
  * Copyright 2014 Geomatys.
  *
@@ -19,6 +19,7 @@
 
 package org.constellation.process;
 
+import org.apache.sis.parameter.ParameterBuilder;
 import org.geotoolkit.processing.AbstractProcessDescriptor;
 import org.opengis.metadata.Identifier;
 import org.opengis.metadata.identification.Identification;
@@ -31,6 +32,12 @@ import org.opengis.util.InternationalString;
  * @author Guilhem Legal (Geomatys)
  */
 public abstract class AbstractCstlProcessDescriptor extends AbstractProcessDescriptor {
+
+    protected static final ParameterBuilder BUILDER = new ParameterBuilder();
+    
+    /**Output parameters */
+    public static final ParameterDescriptorGroup EMPTY_OUTPUT_DESC = BUILDER.addName("OutputParameters").setRequired(true)
+            .createGroup();
 
     public AbstractCstlProcessDescriptor(final String name, final Identification factoryId, final InternationalString abs,
             final ParameterDescriptorGroup inputDesc, final ParameterDescriptorGroup outputdesc) {

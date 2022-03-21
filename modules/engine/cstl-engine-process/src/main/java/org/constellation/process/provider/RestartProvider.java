@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind community - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2014 Geomatys.
  *
@@ -23,9 +23,10 @@ import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.opengis.parameter.ParameterValueGroup;
 
-import org.constellation.admin.SpringHelper;
 import org.constellation.exception.ConstellationException;
 import org.constellation.business.IProviderBusiness;
+import static org.constellation.process.provider.AbstractProviderDescriptor.PROVIDER_ID;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
@@ -34,6 +35,9 @@ import org.constellation.business.IProviderBusiness;
  */
 public class RestartProvider extends AbstractCstlProcess {
 
+    @Autowired
+    private IProviderBusiness providerBusiness;
+    
     public RestartProvider(final ProcessDescriptor desc, final ParameterValueGroup parameter) {
         super(desc, parameter);
     }
@@ -41,18 +45,15 @@ public class RestartProvider extends AbstractCstlProcess {
     @Override
     protected void execute() throws ProcessException {
 
-        final String providerId = inputParameters.getValue(RestartProviderDescriptor.PROVIDER_ID);
-
-        if (providerId == null || providerId.trim().isEmpty()) {
+        final Integer providerId = inputParameters.getValue(PROVIDER_ID);
+        if (providerId == null) {
             throw new ProcessException("Provider ID can't be null or empty.", this, null);
         }
 
-        final IProviderBusiness providerBusiness = SpringHelper.getBean(IProviderBusiness.class);
-        try{
+        try {
             providerBusiness.reload(providerId);
-        }catch(ConstellationException ex){
+        } catch(ConstellationException ex) {
             throw new ProcessException(ex.getMessage(), this, ex);
         }
-
     }
 }

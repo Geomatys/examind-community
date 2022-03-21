@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind community - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2014 Geomatys.
  *
@@ -21,20 +21,18 @@ package org.constellation.process.provider;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.sis.parameter.Parameters;
-import org.constellation.admin.SpringHelper;
 import org.constellation.api.ProviderConstants;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.Data;
 import org.constellation.dto.ProviderBrief;
-import org.constellation.exception.ConstellationException;
 import org.constellation.process.AbstractCstlProcess;
-import org.constellation.provider.DataProviders;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.opengis.parameter.ParameterValueGroup;
 
 import static org.constellation.process.provider.DeleteProviderDescriptor.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Remove one or all providers from Examind.
@@ -45,7 +43,13 @@ import static org.constellation.process.provider.DeleteProviderDescriptor.*;
  * @author Johann Sorel (Geomatys)
  * @author Guilhem Legal (Geomatys)
  */
-public final class DeleteProvider extends AbstractCstlProcess{
+public final class DeleteProvider extends AbstractCstlProcess {
+
+    @Autowired
+    private IProviderBusiness providerBusiness;
+
+    @Autowired
+    private IDataBusiness dataBusiness;
 
     public DeleteProvider(final ProcessDescriptor desc, final ParameterValueGroup parameter) {
         super(desc, parameter);
@@ -69,9 +73,6 @@ public final class DeleteProvider extends AbstractCstlProcess{
     protected void execute() throws ProcessException {
         final Integer providerID  = inputParameters.getValue(PROVIDER_ID);
         final Boolean onlyHidden = inputParameters.getValue(ONLY_HIDDEN_DATA);
-
-        final IProviderBusiness providerBusiness = SpringHelper.getBean(IProviderBusiness.class);
-        final IDataBusiness dataBusiness = SpringHelper.getBean(IDataBusiness.class);
 
         List<Integer> pids = new ArrayList<>();
         if (providerID != null) {

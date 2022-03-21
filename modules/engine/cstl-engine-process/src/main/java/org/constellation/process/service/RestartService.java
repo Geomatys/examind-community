@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind community - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2014 Geomatys.
  *
@@ -18,14 +18,12 @@
  */
 package org.constellation.process.service;
 
-import org.constellation.business.IServiceBusiness;
-import org.constellation.dto.service.ServiceComplete;
+import java.util.Arrays;
+import java.util.List;
 import org.constellation.exception.ConfigurationException;
-import org.constellation.process.AbstractCstlProcess;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.opengis.parameter.ParameterValueGroup;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.constellation.process.service.RestartServiceDescriptor.IDENTIFIER;
 import static org.constellation.process.service.RestartServiceDescriptor.SERVICE_TYPE;
@@ -35,9 +33,7 @@ import static org.constellation.process.service.RestartServiceDescriptor.SERVICE
  *
  * @author Quentin Boileau (Geomatys).
  */
-public final class RestartService extends AbstractCstlProcess {
-    @Autowired
-    public IServiceBusiness serviceBusiness;
+public final class RestartService extends AbstractServiceProcess {
 
     public RestartService(final ProcessDescriptor desc, final ParameterValueGroup parameter) {
         super(desc, parameter);
@@ -47,25 +43,20 @@ public final class RestartService extends AbstractCstlProcess {
     protected void execute() throws ProcessException {
         final String serviceType = inputParameters.getValue(SERVICE_TYPE);
         final String identifier = inputParameters.getValue(IDENTIFIER);
+        final List<Integer> ids;
         if (identifier == null) {
-            for(String id : serviceBusiness.getServiceIdentifiers(serviceType)){
-                try {
-                    ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType(serviceType, id);
-                    serviceBusiness.restart(s.getId());
-                } catch (ConfigurationException ex) {
-                    throw new ProcessException(ex.getMessage(), this, ex);
-                }
+            ids = serviceBusiness.getServiceIdentifiers(serviceType)
+                                 .stream().map(id -> serviceBusiness.getServiceIdByIdentifierAndType(serviceType, id))
+                                 .toList();
+        } else {
+            ids = Arrays.asList(getServiceId(serviceType, identifier));
+        }
+        try {
+            for (Integer sid : ids) {
+                serviceBusiness.restart(sid);
             }
-        }else{
-            try {
-                ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType(serviceType, identifier);
-                if (s == null) {
-                    throw new ProcessException("Unexisting service", this);
-                }
-                serviceBusiness.restart(s.getId());
-            } catch (ConfigurationException ex) {
-                throw new ProcessException(ex.getMessage(), this, ex);
-            }
+        } catch (ConfigurationException ex) {
+            throw new ProcessException(ex.getMessage(), this, ex);
         }
     }
 }

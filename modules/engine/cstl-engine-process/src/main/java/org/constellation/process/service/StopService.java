@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind community - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2014 Geomatys.
  *
@@ -18,14 +18,10 @@
  */
 package org.constellation.process.service;
 
-import org.constellation.business.IServiceBusiness;
-import org.constellation.dto.service.ServiceComplete;
 import org.constellation.exception.ConfigurationException;
-import org.constellation.process.AbstractCstlProcess;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.opengis.parameter.ParameterValueGroup;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.constellation.process.service.StopServiceDescriptor.IDENTIFIER;
 import static org.constellation.process.service.StopServiceDescriptor.SERVICE_TYPE;
@@ -35,10 +31,8 @@ import static org.constellation.process.service.StopServiceDescriptor.SERVICE_TY
  *
  * @author Quentin Boileau (Geomatys).
  */
-public class StopService extends AbstractCstlProcess {
-    @Autowired
-    public IServiceBusiness serviceBusiness;
-
+public class StopService extends AbstractServiceProcess {
+    
     public StopService(final ProcessDescriptor desc, final ParameterValueGroup parameter) {
         super(desc, parameter);
     }
@@ -46,13 +40,10 @@ public class StopService extends AbstractCstlProcess {
     @Override
     protected void execute() throws ProcessException {
         final String serviceType = inputParameters.getValue(SERVICE_TYPE);
-        final String identifier = inputParameters.getValue(IDENTIFIER);
+        final String identifier  = inputParameters.getValue(IDENTIFIER);
+        final Integer sid        = getServiceId(serviceType, identifier);
         try {
-            ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType(serviceType, identifier);
-            if (s == null) {
-                throw new ProcessException("Unexisting service", this);
-            }
-            serviceBusiness.stop(s.getId());
+            serviceBusiness.stop(sid);
         } catch (ConfigurationException ex) {
             throw new ProcessException(ex.getMessage(), this, ex);
         }

@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind community - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2014 Geomatys.
  *
@@ -18,13 +18,9 @@
  */
 package org.constellation.process.service;
 
-import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.util.SimpleInternationalString;
-import org.constellation.api.ServiceDef;
 import org.constellation.process.AbstractCstlProcess;
-import org.constellation.process.AbstractCstlProcessDescriptor;
 import org.constellation.process.ExamindProcessFactory;
-import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.InternationalString;
@@ -33,44 +29,21 @@ import org.opengis.util.InternationalString;
  * Restart an instance for the specified service identifier. Or all service instances if identifier is not specified.
  * @author Quentin Boileau (Geomatys).
  */
-public class RestartServiceDescriptor  extends AbstractCstlProcessDescriptor {
+public class RestartServiceDescriptor  extends AbstractServiceDescriptor {
 
     public static final String NAME = "service.restart";
     public static final InternationalString ABSTRACT = new SimpleInternationalString("Restart an instance for the specified service instance. "
             + "Or all service instances if identifier is not specified.");
 
-    private static final ParameterBuilder BUILDER = new ParameterBuilder();
-
-    public static final String SERVICE_TYPE_NAME = "service_type";
-    private static final String SERVICE_TYPE_REMARKS = "The type of the service.";
-    public static final ParameterDescriptor<String> SERVICE_TYPE = BUILDER
-            .addName(SERVICE_TYPE_NAME)
-            .setRemarks(SERVICE_TYPE_REMARKS)
-            .setRequired(true)
-            .createEnumerated(String.class, ServiceDef.Specification.availableSpecifications(), null);
-
-    public static final String IDENTIFIER_NAME = "identifier";
-    private static final String IDENTIFIER_REMARKS = "Identifier of the service instance to restart. If empty, all service instance will be restarted.";
-    public static final ParameterDescriptor<String> IDENTIFIER = BUILDER
-            .addName(IDENTIFIER_NAME)
-            .setRemarks(IDENTIFIER_REMARKS)
-            .setRequired(false)
-            .create(String.class, null);
-
     /**Input parameters */
     public static final ParameterDescriptorGroup INPUT_DESC = BUILDER.addName("InputParameters").setRequired(true)
             .createGroup(SERVICE_TYPE, IDENTIFIER);
-
-    /**Output parameters */
-    public static final ParameterDescriptorGroup OUTPUT_DESC = BUILDER.addName("OutputParameters").setRequired(true)
-            .createGroup();
-
 
     /**
      * Public constructor use by the ServiceRegistry to find and instantiate all ProcessDescriptor.
      */
     public RestartServiceDescriptor() {
-        super(NAME, ExamindProcessFactory.IDENTIFICATION, ABSTRACT, INPUT_DESC, OUTPUT_DESC);
+        super(NAME, ExamindProcessFactory.IDENTIFICATION, ABSTRACT, INPUT_DESC, EMPTY_OUTPUT_DESC);
     }
 
     @Override

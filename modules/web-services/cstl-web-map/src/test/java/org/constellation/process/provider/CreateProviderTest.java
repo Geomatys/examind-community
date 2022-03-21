@@ -50,12 +50,12 @@ public class CreateProviderTest extends AbstractProviderTest {
         final ParameterValueGroup parameters = buildCSVProvider(DATASTORE_SERVICE, "newProvider", EMPTY_CSV, ';');
         final ParameterValueGroup in = desc.getInputDescriptor().createValue();
         in.parameter("provider_type").setValue(DATASTORE_SERVICE.getName());
-        in.parameter("parameters").setValue(parameters);
+        in.parameter("source").setValue(parameters);
 
         final Process proc = desc.createProcess(in);
         final ParameterValueGroup outputs = proc.call();
 
-        Integer pid = (Integer) outputs.parameter(CreateProviderDescriptor.CREATED_ID_NAME).getValue();
+        Integer pid = (Integer) outputs.parameter(CreateProviderDescriptor.PROVIDER_ID_NAME).getValue();
 
         DataProvider provider = DataProviders.getProvider(pid);
 

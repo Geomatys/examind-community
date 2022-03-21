@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind community - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2014 Geomatys.
  *
@@ -24,21 +24,24 @@ import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.opengis.parameter.ParameterValueGroup;
 
-import org.constellation.admin.SpringHelper;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.exception.ConfigurationException;
 
 import static org.constellation.process.provider.UpdateProviderDescriptor.PROVIDER_ID;
 import static org.constellation.process.provider.UpdateProviderDescriptor.SOURCE;
 import org.constellation.util.ParamUtilities;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Update a provider from constellation.
+ * Update a provider from Examind.
  *
  * @author Quentin Boileau (Geomatys)
  * @author Johann Sorel (Geomatys)
  */
-public class UpdateProvider extends AbstractCstlProcess{
+public class UpdateProvider extends AbstractCstlProcess {
+
+    @Autowired
+    private IProviderBusiness providerBusiness;
 
     public UpdateProvider(final ProcessDescriptor desc, final ParameterValueGroup parameter) {
         super(desc, parameter);
@@ -48,14 +51,10 @@ public class UpdateProvider extends AbstractCstlProcess{
     protected void execute() throws ProcessException {
         final Integer providerID = inputParameters.getValue(PROVIDER_ID);
         final ParameterValueGroup source = (ParameterValueGroup) inputParameters.getValue(SOURCE);
-        final IProviderBusiness providerBusiness = SpringHelper.getBean(IProviderBusiness.class);
-
         try {
             providerBusiness.update(providerID, ParamUtilities.writeParameter(source));
         } catch (ConfigurationException | IOException ex) {
             throw new ProcessException(ex.getMessage(), this, ex);
         }
-
     }
-
 }

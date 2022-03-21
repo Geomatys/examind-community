@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind community - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2014 Geomatys.
  *
@@ -18,13 +18,10 @@
  */
 package org.constellation.process.service;
 
-import org.constellation.business.IServiceBusiness;
 import org.constellation.exception.ConfigurationException;
-import org.constellation.process.AbstractCstlProcess;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.opengis.parameter.ParameterValueGroup;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.constellation.process.service.GetConfigServiceDescriptor.CONFIGURATION;
 import static org.constellation.process.service.GetConfigServiceDescriptor.IDENTIFIER;
@@ -34,9 +31,7 @@ import static org.constellation.process.service.GetConfigServiceDescriptor.SERVI
  *
  * @author Quentin Boileau (Geoamtys)
  */
-public class GetConfigService extends AbstractCstlProcess {
-    @Autowired
-    public IServiceBusiness serviceBusiness;
+public class GetConfigService extends AbstractServiceProcess {
 
     public GetConfigService(final ProcessDescriptor desc, final ParameterValueGroup parameter) {
         super(desc, parameter);
@@ -52,11 +47,11 @@ public class GetConfigService extends AbstractCstlProcess {
      */
     @Override
     protected void execute() throws ProcessException {
-        final String serviceType       = inputParameters.getValue(SERVICE_TYPE);
-        final String identifier        = inputParameters.getValue(IDENTIFIER);
+        final String serviceType = inputParameters.getValue(SERVICE_TYPE);
+        final String identifier  = inputParameters.getValue(IDENTIFIER);
+        final Integer sid        = getServiceId(serviceType, identifier);
         try {
-            serviceBusiness.ensureExistingInstance(serviceType.toLowerCase(), identifier);
-            final Object obj = serviceBusiness.getConfiguration(serviceType.toLowerCase(), identifier);
+            final Object obj = serviceBusiness.getConfiguration(sid);
             outputParameters.getOrCreate(CONFIGURATION).setValue(obj);
         } catch (ConfigurationException ex) {
             throw new ProcessException(ex.getMessage(), this, ex);

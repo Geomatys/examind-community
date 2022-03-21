@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind community - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2014 Geomatys.
  *
@@ -21,7 +21,7 @@ package org.constellation.process.provider;
 import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.process.AbstractCstlProcess;
-import org.constellation.process.AbstractCstlProcessDescriptor;
+import org.constellation.process.ExamindProcessFactory;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
@@ -31,12 +31,10 @@ import org.opengis.util.InternationalString;
  *
  * @author Quentin Boileau (Geomatys).
  */
-public class CreateProviderDescriptor extends AbstractCstlProcessDescriptor {
+public class CreateProviderDescriptor extends AbstractProviderDescriptor {
 
     public static final String NAME = "provider.create";
-    public static final InternationalString ABSTRACT = new SimpleInternationalString("Create a new provider in constellation.");
-
-    private static final ParameterBuilder BUILDER = new ParameterBuilder();
+    public static final InternationalString ABSTRACT = new SimpleInternationalString("Create a new provider in Examind.");
 
     public static final String PROVIDER_TYPE_NAME = "provider_type";
     private static final String PROVIDER_TYPE_REMARKS = "Provider factory name like 'data-store', ... .";
@@ -47,36 +45,19 @@ public class CreateProviderDescriptor extends AbstractCstlProcessDescriptor {
             .create(String.class, null);
 
 
-    public static final String SOURCE_NAME = "parameters";
-    private static final String SOURCE_REMARKS = "ParameterValueGroup use to create provider.";
-    public static final ParameterDescriptor<ParameterValueGroup> SOURCE = BUILDER
-            .addName(SOURCE_NAME)
-            .setRemarks(SOURCE_REMARKS)
-            .setRequired(true)
-            .create(ParameterValueGroup.class, null);
-
     /**Input parameters */
     public static final ParameterDescriptorGroup INPUT_DESC = BUILDER.addName("InputParameters").setRequired(true)
             .createGroup(PROVIDER_TYPE, SOURCE);
 
-     public static final String CREATED_ID_NAME = "domain-id";
-    private static final String CREATED_ID_REMARKS = "Identifier of the domain to add data.";
-    public static final ParameterDescriptor<Integer> CREATED_ID = BUILDER
-            .addName(CREATED_ID_NAME)
-            .setRemarks(CREATED_ID_REMARKS)
-            .setRequired(false)
-            .create(Integer.class, null);
-
-
     /**Output parameters */
     public static final ParameterDescriptorGroup OUTPUT_DESC = new ParameterBuilder().addName("OutputParameters").setRequired(true)
-            .createGroup(CREATED_ID);
+            .createGroup(PROVIDER_ID);
 
     /**
      * Public constructor use by the ServiceRegistry to find and instantiate all ProcessDescriptor.
      */
     public CreateProviderDescriptor() {
-        super(NAME, ProviderDescriptorConstant.IDENTIFICATION_CSTL, ABSTRACT, INPUT_DESC, OUTPUT_DESC);
+        super(NAME, ExamindProcessFactory.IDENTIFICATION, ABSTRACT, INPUT_DESC, OUTPUT_DESC);
     }
 
     public static final CreateProviderDescriptor INSTANCE = new CreateProviderDescriptor();

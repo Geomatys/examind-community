@@ -47,18 +47,18 @@ public class GetConfigProviderTest extends AbstractProviderTest {
         removeProvider("getConfigProvider1");
 
         final ParameterValueGroup parameters = buildCSVProvider(DATASTORE_SERVICE, "getConfigProvider1", EMPTY_CSV, ';');
-        addProvider("getConfigProvider1",parameters);
+        int pid = addProvider("getConfigProvider1",parameters);
 
         final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, GetConfigProviderDescriptor.NAME);
         final ParameterValueGroup in = desc.getInputDescriptor().createValue();
-        in.parameter(GetConfigProviderDescriptor.PROVIDER_ID_NAME).setValue("getConfigProvider1");
+        in.parameter(GetConfigProviderDescriptor.PROVIDER_ID_NAME).setValue(pid);
 
         final Process proc = desc.createProcess(in);
         final ParameterValueGroup outputs = proc.call();
 
         final DefaultParameterValueGroup val0 = (DefaultParameterValueGroup) DATASTORE_SERVICE.getProviderDescriptor().createValue();
         final ParameterValueGroup val1 = DATASTORE_SERVICE.getProviderDescriptor().createValue();
-        Parameters.copy((ParameterValueGroup)outputs.parameter(GetConfigProviderDescriptor.CONFIG_NAME).getValue(), val0);
+        Parameters.copy((ParameterValueGroup)outputs.parameter(GetConfigProviderDescriptor.SOURCE_NAME).getValue(), val0);
         Parameters.copy(parameters, val1);
 
         assertTrue(val0.equals(val1, ComparisonMode.IGNORE_METADATA));
@@ -74,7 +74,7 @@ public class GetConfigProviderTest extends AbstractProviderTest {
 
         final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, GetConfigProviderDescriptor.NAME);
         final ParameterValueGroup in = desc.getInputDescriptor().createValue();
-        in.parameter(GetConfigProviderDescriptor.PROVIDER_ID_NAME).setValue("getConfigProvider2");
+        in.parameter(GetConfigProviderDescriptor.PROVIDER_ID_NAME).setValue(-1);
 
         try {
             final Process proc = desc.createProcess(in);

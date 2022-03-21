@@ -42,7 +42,7 @@ public class GetMetadataProcessDescriptor extends AbstractProcessDescriptor {
     private static final ParameterBuilder BUILDER = new ParameterBuilder();
 
     public static final String SERVICE_IDENTIFIER_NAME = "service_identifier";
-    private static final String SERVICE_IDENTIFIER_REMARKS = "the identifier of the CSW servicer.";
+    private static final String SERVICE_IDENTIFIER_REMARKS = "the identifier of the CSW service.";
     public static final ParameterDescriptor<String> SERVICE_IDENTIFIER = BUILDER
             .addName(SERVICE_IDENTIFIER_NAME)
             .setRemarks(SERVICE_IDENTIFIER_REMARKS)

@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind community - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2014 Geomatys.
  *
@@ -19,13 +19,10 @@
 package org.constellation.process.service;
 
 import org.constellation.exception.ConstellationException;
-import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.contact.Details;
-import org.constellation.process.AbstractCstlProcess;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.opengis.parameter.ParameterValueGroup;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.constellation.process.service.SetConfigServiceDescriptor.CONFIGURATION;
 import static org.constellation.process.service.SetConfigServiceDescriptor.IDENTIFIER;
@@ -36,10 +33,8 @@ import static org.constellation.process.service.SetConfigServiceDescriptor.SERVI
  *
  * @author Quentin Boileau (Geomatys).
  */
-public class SetConfigService extends AbstractCstlProcess {
-    @Autowired
-    public IServiceBusiness serviceBusiness;
-
+public class SetConfigService extends AbstractServiceProcess {
+    
     public SetConfigService(final ProcessDescriptor desc, final ParameterValueGroup parameter) {
         super(desc, parameter);
     }

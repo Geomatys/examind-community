@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind community - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2014 Geomatys.
  *
@@ -18,14 +18,10 @@
  */
 package org.constellation.process.service;
 
-import org.constellation.business.IServiceBusiness;
-import org.constellation.dto.service.ServiceComplete;
 import org.constellation.exception.ConfigurationException;
-import org.constellation.process.AbstractCstlProcess;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.opengis.parameter.ParameterValueGroup;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.constellation.process.service.StartServiceDescriptor.IDENTIFIER;
 import static org.constellation.process.service.StartServiceDescriptor.SERVICE_TYPE;
@@ -34,9 +30,7 @@ import static org.constellation.process.service.StartServiceDescriptor.SERVICE_T
  *
  * @author Quentin Boileau (Geomatys).
  */
-public final class StartService extends AbstractCstlProcess {
-    @Autowired
-    public IServiceBusiness serviceBusiness;
+public final class StartService extends AbstractServiceProcess {
 
     public StartService(final ProcessDescriptor desc, final ParameterValueGroup parameter) {
         super(desc, parameter);
@@ -46,12 +40,9 @@ public final class StartService extends AbstractCstlProcess {
     protected void execute() throws ProcessException {
         final String identifier = inputParameters.getValue(IDENTIFIER);
         final String serviceType = inputParameters.getValue(SERVICE_TYPE);
+        final Integer sid        = getServiceId(serviceType, identifier);
         try {
-            ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType(serviceType, identifier);
-            if (s == null) {
-                throw new ProcessException("Unexisting service", this);
-            }
-            serviceBusiness.start(s.getId());
+            serviceBusiness.start(sid);
         } catch (ConfigurationException ex) {
             throw new ProcessException(ex.getMessage(), this, ex);
         }

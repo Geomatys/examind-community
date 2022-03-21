@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind community - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2014 Geomatys.
  *
@@ -26,12 +26,12 @@ import org.geotoolkit.process.ProcessException;
 import org.opengis.parameter.ParameterValueGroup;
 
 import org.constellation.exception.ConfigurationException;
+import static org.constellation.process.provider.AbstractProviderDescriptor.PROVIDER_ID;
+import static org.constellation.process.provider.AbstractProviderDescriptor.SOURCE;
 
-import static org.constellation.process.provider.GetConfigProviderDescriptor.CONFIG;
-import static org.constellation.process.provider.GetConfigProviderDescriptor.PROVIDER_ID;
 
 /**
- * Remove a provider from constellation. Throw an ProcessException if Provider is not found.
+ * Remove a provider from Examind. Throw an ProcessException if Provider is not found.
  *
  * @author Quentin Boileau (Geomatys)
  * @author Johann Sorel (Geomatys)
@@ -44,15 +44,14 @@ public final class GetConfigProvider extends AbstractCstlProcess {
 
     @Override
     protected void execute() throws ProcessException {
-        final String providerID = inputParameters.getValue(PROVIDER_ID);
-
-        final DataProvider provider;
+        final Integer providerID = inputParameters.getValue(PROVIDER_ID);
+        if (providerID == null) throw new ProcessException("Missing input parameter:" + PROVIDER_ID.getName().getCode(), this);
         try {
-            provider = DataProviders.getProvider(providerID);
+            final DataProvider provider = DataProviders.getProvider(providerID);
+            outputParameters.getOrCreate(SOURCE).setValue(provider.getSource());
         } catch (ConfigurationException ex) {
-            throw new ProcessException("Provider "+providerID+" not found.", this, null);
+            throw new ProcessException("Provider " + providerID + " not found.", this, null);
         }
-        outputParameters.getOrCreate(CONFIG).setValue(provider.getSource());
     }
 
 }

@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind community - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2014 Geomatys.
  *
@@ -19,14 +19,10 @@
 
 package org.constellation.process.service;
 
-import org.constellation.business.IServiceBusiness;
-import org.constellation.dto.service.ServiceComplete;
 import org.constellation.exception.ConfigurationException;
-import org.constellation.process.AbstractCstlProcess;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.opengis.parameter.ParameterValueGroup;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.constellation.process.service.RenameServiceDescriptor.IDENTIFIER;
 import static org.constellation.process.service.RenameServiceDescriptor.NEW_NAME;
@@ -36,9 +32,7 @@ import static org.constellation.process.service.RenameServiceDescriptor.SERVICE_
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class RenameService extends AbstractCstlProcess {
-    @Autowired
-    public IServiceBusiness serviceBusiness;
+public class RenameService extends AbstractServiceProcess {
 
     public RenameService(final ProcessDescriptor desc, final ParameterValueGroup parameter) {
         super(desc, parameter);
@@ -49,12 +43,9 @@ public class RenameService extends AbstractCstlProcess {
         final String serviceType   = inputParameters.getValue(SERVICE_TYPE);
         final String identifier    = inputParameters.getValue(IDENTIFIER);
         final String newIdentifier = inputParameters.getValue(NEW_NAME);
+        final Integer sid          = getServiceId(serviceType, identifier);
         try {
-            ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType(serviceType, identifier);
-            if (s == null) {
-                throw new ProcessException("Unexisting service", this);
-            }
-            serviceBusiness.rename(s.getId(), newIdentifier);
+            serviceBusiness.rename(sid, newIdentifier);
         } catch (ConfigurationException ex) {
             throw new ProcessException(ex.getMessage(), this, ex);
         }
