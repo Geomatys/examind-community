@@ -345,6 +345,13 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "SrS=EPSG:4326&WiDtH=200&HeIgHt=100&Y=60&"
             + "PROPERTYNAME=name";
 
+    private static final String WMS_GETFEATUREINFO_JSON_FEAT_INVERTED_PROPNAME = "QuErY_LaYeRs=JS2&BbOx=-80.72487831115721,35.2553619492954,-80.70324897766113,35.27035945142482&"
+            + "FoRmAt=image/gif&ReQuEsT=GetFeatureInfo&"
+            + "VeRsIoN=1.1.1&InFo_fOrMaT=application/json&"
+            + "X=60&StYlEs=&LaYeRs=JS2&"
+            + "SrS=EPSG:4326&WiDtH=200&HeIgHt=100&Y=60&"
+            + "PROPERTYNAME=-name";
+
     private static final String WMS_GETFEATUREINFO_JSON_MULTI_PROPNAME = "QuErY_LaYeRs=JS1,JS2&BbOx=-80.72487831115721,35.2553619492954,-80.70324897766113,35.27035945142482&"
             + "FoRmAt=image/gif&ReQuEsT=GetFeatureInfo&"
             + "VeRsIoN=1.1.1&InFo_fOrMaT=application/json&"
@@ -2203,6 +2210,14 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_MULTI_PROPNAME);
 
         expResult = getResourceAsString("org/constellation/ws/embedded/gfi4.json");
+        result = getStringResponse(gfi);
+        assertNotNull(result);
+        compareJSON(expResult, result);
+
+        // Creates a valid GetFeatureInfo url.
+        gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_FEAT_INVERTED_PROPNAME);
+
+        expResult = getResourceAsString("org/constellation/ws/embedded/gfi5.json");
         result = getStringResponse(gfi);
         assertNotNull(result);
         compareJSON(expResult, result);

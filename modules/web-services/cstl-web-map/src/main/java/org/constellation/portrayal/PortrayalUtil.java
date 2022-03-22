@@ -18,6 +18,7 @@
  */
 package org.constellation.portrayal;
 
+import java.util.ArrayList;
 import org.constellation.provider.Data;
 import org.geotoolkit.map.MapBuilder;
 import org.apache.sis.portrayal.MapLayers;
@@ -75,9 +76,9 @@ public final class PortrayalUtil {
                 if (i < extraFilters.size()) {
                     extraFilter = extraFilters.get(i);
                 }
-                List<String> properties = null;
+                final List<String> propertiesFilter = new ArrayList<>();
                 if (i < propertiess.size()) {
-                    properties = propertiess.get(i);
+                    propertiesFilter.addAll(propertiess.get(i));
                 }
 
                 final MapItem mapItem = data.getMapLayer(style);
@@ -93,10 +94,10 @@ public final class PortrayalUtil {
 
                     // extra filters
                     Optional<Filter> filter = layer.getLayerFilter(env, extraFilter);
-                    boolean hasProp = properties != null && !properties.isEmpty();
-                    if (filter.isPresent() || hasProp) {
+                    List<String> properties = layer.getLayerProperties(propertiesFilter);
+                    if (filter.isPresent() || !properties.isEmpty()) {
                         final FeatureQuery query = new FeatureQuery();
-                        if (hasProp) {
+                        if (!properties.isEmpty()) {
                             query.setProjection(properties.toArray(String[]::new));
                         }
                         if (filter.isPresent()) {

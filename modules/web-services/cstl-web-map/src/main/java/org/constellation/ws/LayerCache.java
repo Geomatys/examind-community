@@ -39,6 +39,7 @@ import org.apache.sis.referencing.datum.DefaultEngineeringDatum;
 import org.constellation.api.DataType;
 import org.constellation.api.ServiceDef;
 import org.constellation.dto.DimensionRange;
+import org.constellation.dto.FeatureDataDescription;
 import org.constellation.dto.NameInProvider;
 import org.constellation.dto.StyleReference;
 import org.constellation.dto.service.config.wxs.DimensionDefinition;
@@ -222,6 +223,35 @@ public class LayerCache {
             }
         }
         return filters.stream().reduce(FF::and);
+    }
+
+    public List<String> getLayerProperties(List<String> propertyNames) throws ConstellationStoreException {
+        List<String> results = new ArrayList<>();
+        if (propertyNames != null && !propertyNames.isEmpty()) {
+            List<String> inverted = new ArrayList<>();
+            for (String propertyName : propertyNames) {
+                if (propertyName.startsWith("-")) {
+                    inverted.add(propertyName);
+                } else {
+                    results.add(propertyName);
+                }
+            }
+            if (!inverted.isEmpty()) {
+                if (results.isEmpty()) {
+                    if (data.getDataDescription(null) instanceof  FeatureDataDescription fd) {
+                        fd.getProperties().stream()
+                                          .map(p -> p.getName())
+                                          .filter(p -> !inverted.contains("-" + p))
+                                          .forEach(p -> results.add(p));
+                    } else {
+                        LOGGER.warning("properties filter are not yet applicable to Raster data");
+                    }
+                } else {
+                    throw new ConstellationStoreException("Mixed exclusive and inclusive property names");
+                }
+            }
+        }
+        return results;
     }
 
     public List<DimensionDef> getDimensiondefinition() {
