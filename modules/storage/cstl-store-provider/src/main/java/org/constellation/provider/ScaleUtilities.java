@@ -19,18 +19,15 @@
 package org.constellation.provider;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.geometry.Envelopes;
-import org.apache.sis.geometry.GeneralDirectPosition;
 import org.apache.sis.metadata.iso.citation.Citations;
 import org.apache.sis.referencing.IdentifiedObjects;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
+import org.apache.sis.util.ArraysExt;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.exception.TargetNotFoundException;
@@ -80,7 +77,7 @@ public class ScaleUtilities {
      * @return scales array for data. (for wmts scales)
      * @throws ConstellationException if the crs can be decoded or if data retrieval failed.
      */
-    public static Double[] computeScales(final int providerId, final String dataNamespace, final String dataName, final String crs, int nbLevel) throws ConstellationException {
+    public static double[] computeScales(final int providerId, final String dataNamespace, final String dataName, final String crs, int nbLevel) throws ConstellationException {
         CoordinateReferenceSystem c = CRSUtilities.verifyCrs(crs, false).orElse(null);
         return computeScales(providerId, dataNamespace, dataName, c, nbLevel);
     }
@@ -97,10 +94,10 @@ public class ScaleUtilities {
      * @return scales array for data. (for wmts scales)
      * @throws ConstellationException if data retrieval, envelope retrieval/transformation, gridGeometry extraction failed.
      */
-    private static Double[] computeScales(final int providerId, final String dataNamespace, final String dataName, final CoordinateReferenceSystem crs, int nbLevel) throws ConstellationException {
+    private static double[] computeScales(final int providerId, final String dataNamespace, final String dataName, final CoordinateReferenceSystem crs, int nbLevel) throws ConstellationException {
         //get data
         final Data inData = getProviderData(providerId, dataNamespace, dataName);
-        if (inData==null) {
+        if (inData == null) {
             String nmsp = dataNamespace != null ? "{" + dataNamespace + "} " : "";
             throw new TargetNotFoundException("Data " + nmsp + dataName + " does not exist in provider "+providerId);
         }
@@ -112,7 +109,7 @@ public class ScaleUtilities {
             throw new ConstellationException("Failed to extract envelope for data "+dataName, ex);
         }
         final Object origin = inData.getOrigin();
-        final Double[] scales;
+        final double[] scales;
         final Envelope env;
         try {
             if (crs == null) {
@@ -126,12 +123,12 @@ public class ScaleUtilities {
             throw new ConstellationException("Failed to transform envelope to input CRS", ex);
         }
 
-        if (origin instanceof GridCoverageResource) {
-            //calculate pyramid scale levels
-            final GridCoverageResource inRef = (GridCoverageResource) origin;
+        //calculate pyramid scale levels
+        if (origin instanceof GridCoverageResource gcr) {
+            
             final GridGeometry gg;
             try {
-                gg = inRef.getGridGeometry();
+                gg = gcr.getGridGeometry();
             } catch (DataStoreException ex) {
                 throw new ConstellationException("Failed to extract grid geometry for data "+dataName+". ",ex);
             }
@@ -144,10 +141,11 @@ public class ScaleUtilities {
                 try {
                     final int lod = TileMatrices.computePseudoMercatorDepthForResolution(baseScale);
                     final double[] ds = TileMatrices.createMercatorTemplate(lod).getScales();
-                    scales = new Double[ds.length];
-                    for (int i = 0; i < scales.length; i++) scales[i] = ds[i];
+
                     //rever order, as expected by callers
-                    Collections.reverse(Arrays.asList(scales));
+                    scales = new double[ds.length];
+                    for (int i = 0, j = ds.length; i < scales.length; i++, j--) scales[i] = ds[j];
+                    
                 } catch (FactoryException ex) {
                     throw new ConstellationStoreException(ex);
                 }
@@ -155,9 +153,6 @@ public class ScaleUtilities {
             } else {
                 final int tileSize = 256;
                 double scale = geospanX / tileSize;
-                final GeneralDirectPosition ul = new GeneralDirectPosition(env.getCoordinateReferenceSystem());
-                ul.setOrdinate(0, env.getMinimum(0));
-                ul.setOrdinate(1, env.getMaximum(1));
                 final List<Double> scalesList = new ArrayList<>();
                 while (true) {
                     if (scale <= baseScale) {
@@ -170,7 +165,7 @@ public class ScaleUtilities {
                     }
                     scale = scale / 2;
                 }
-                scales = new Double[scalesList.size()];
+                scales = new double[scalesList.size()];
                 for (int i = 0; i < scales.length; i++) {
                     scales[i] = scalesList.get(i);
                 }
@@ -178,13 +173,7 @@ public class ScaleUtilities {
         } else {
             //featurecollection or anything else, scales can not be defined accurately.
             //vectors have virtually an unlimited resolution
-            final double geospanX = env.getSpan(0);
-            final int tileSize = 256;
-            scales = new Double[nbLevel];
-            scales[0] = geospanX / tileSize;
-            for(int i=1;i<scales.length;i++){
-                scales[i] = scales[i-1] / 2.0;
-            }
+            scales = computeScales(env, 256, nbLevel);
         }
         return scales;
     }
@@ -215,43 +204,39 @@ public class ScaleUtilities {
      * @throws ConstellationException if no scales can be calculated from any data.
      */
     public static double[] getBestScales(List<? extends org.constellation.dto.Data> briefs, CoordinateReferenceSystem crs, int nbLevel) throws ConstellationException {
-        final List<Double> mergedScales = new LinkedList<>();
+        double[] mergedScales = new double[0];
         for (final org.constellation.dto.Data db : briefs){
-            final Double[] scales;
+            final double[] scales;
             try {
                 scales = computeScales(db.getProviderId(), db.getNamespace(), db.getName(), crs, nbLevel);
             } catch(Exception ex) {
                 LOGGER.log(Level.WARNING, ex.getMessage(), ex);
                 continue;
             }
-            if (mergedScales.isEmpty()) {
-                mergedScales.addAll(Arrays.asList(scales));
+            if (mergedScales.length == 0) {
+                mergedScales = scales;
             } else {
-                Double max = Math.max(mergedScales.get(0),scales[0]);
-                Double min = Math.min(mergedScales.get(mergedScales.size()-1),scales[scales.length-1]);
-                final List<Double> scalesList = new ArrayList<>();
-                Double scale = max;
+                double max = Math.max(mergedScales[0], scales[0]);
+                double min = Math.min(mergedScales[mergedScales.length - 1], scales[scales.length-1]);
+                double[] scalesList = new double[0];
+                double scale = max;
                 while (true) {
                     if (scale <= min) {
                         scale = min;
                     }
-                    scalesList.add(scale);
+                    scalesList = ArraysExt.resize(scalesList, scalesList.length + 1);
+                    scalesList[scalesList.length -1] = scale;
                     if (scale <= min) {
                         break;
                     }
                     scale = scale / 2;
                 }
-                mergedScales.clear();
-                mergedScales.addAll(scalesList);
+                mergedScales = scalesList;
             }
         }
-        if (mergedScales.isEmpty()) {
+        if (mergedScales.length == 0) {
             throw new ConstellationException("No scale found for supplied datas");
         }
-        double[] results = new double[mergedScales.size()];
-        for (int i = 0; i < results.length; i++) {
-            results[i] = mergedScales.get(i);
-        }
-        return results;
+        return mergedScales;
     }
 }

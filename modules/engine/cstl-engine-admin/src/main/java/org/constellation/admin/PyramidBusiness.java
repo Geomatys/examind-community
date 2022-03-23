@@ -300,7 +300,7 @@ public class PyramidBusiness implements IPyramidBusiness {
         //create the output provider
         final GenericName pGname       = NamesExt.create(pyramidDataName);
         final String tileFormat        = tilingMode.equals(RENDERED) ? "PNG" : "TIFF";
-        final Integer pyramidProvider  = createPyramidProvider(pyramidIdentifier, pGname, true, tilingMode, tileFormat, globalEnv, tileSize, scales);
+        final Integer pyramidProvider  = createPyramidProvider(pyramidIdentifier, pGname, tilingMode, tileFormat, globalEnv, tileSize, scales);
         final Data pyData              = DataProviders.getProviderData(pyramidProvider, null, pyramidDataName);
 
         if (!(pyData instanceof PyramidData)) {
@@ -388,33 +388,9 @@ public class PyramidBusiness implements IPyramidBusiness {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public int createPyramidProvider(String pyramidProviderId, GenericName pyramidGname, boolean cacheTileState, TilingMode mode, String tileFormat, Envelope globalEnv, int tileSize, double[] scales) throws ConstellationException {
+    protected int createPyramidProvider(String pyramidProviderId, GenericName pyramidGname, TilingMode mode, String tileFormat, Envelope globalEnv, int tileSize, double[] scales) throws ConstellationException {
         try {
-            //create the output folder for pyramid
-            final Path pyramidDirectory = configBusiness.getDataIntegratedDirectory(pyramidProviderId);
-
-            final DataProviderFactory factory = DataProviders.getFactory("data-store");
-            final Parameters pparams = Parameters.castOrWrap(factory.getProviderDescriptor().createValue());
-            pparams.getOrCreate(ProviderParameters.SOURCE_ID_DESCRIPTOR).setValue(pyramidProviderId);
-            pparams.getOrCreate(ProviderParameters.SOURCE_TYPE_DESCRIPTOR).setValue("data-store");
-            final String storeChoiceName = factory.getStoreDescriptor().getName().getCode();
-            final ParameterValueGroup choiceParams = pparams.groups(storeChoiceName).stream()
-                    .findFirst()
-                    .orElseGet(() -> pparams.addGroup(storeChoiceName));
-
-            final String xmlParamName = XMLCoverageStoreFactory.PARAMETERS_DESCRIPTOR.getName().getCode();
-            final Parameters xmlParams = choiceParams.groups(xmlParamName).stream()
-                    .findFirst()
-                    .map(Parameters::castOrWrap)
-                    .orElseGet(() -> Parameters.castOrWrap(choiceParams.addGroup(xmlParamName)));
-
-            xmlParams.getOrCreate(XMLCoverageStoreFactory.PATH).setValue(pyramidDirectory.toUri());
-            xmlParams.getOrCreate(XMLCoverageStoreFactory.CACHE_TILE_STATE).setValue(cacheTileState);
-
-            Integer pid = providerBusiness.storeProvider(pyramidProviderId, ProviderType.LAYER, factory.getName(), pparams);
+            Integer pid = buildSpecificPyramidProvider("xml-coverage", null, pyramidProviderId);
 
             final DataProvider outProvider = DataProviders.getProvider(pid);
 
@@ -442,7 +418,43 @@ public class PyramidBusiness implements IPyramidBusiness {
             createTemplate(outRef, globalEnv, tileSize, scales);
 
             return pid;
-        } catch (IOException | DataStoreException ex) {
+        } catch (DataStoreException ex) {
+            throw new ConstellationException(ex);
+        }
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Integer buildSpecificPyramidProvider(String providerType, Path pyramidDirectory, String pyramidProviderId) throws ConstellationException {
+        try {
+            //create the output folder for pyramid if not supplied
+            if (pyramidDirectory == null) {
+                pyramidDirectory = configBusiness.getDataIntegratedDirectory(pyramidProviderId);
+            }
+
+            final DataProviderFactory factory = DataProviders.getFactory("data-store");
+            final Parameters pparams = Parameters.castOrWrap(factory.getProviderDescriptor().createValue());
+            pparams.getOrCreate(ProviderParameters.SOURCE_ID_DESCRIPTOR).setValue(pyramidProviderId);
+            pparams.getOrCreate(ProviderParameters.SOURCE_TYPE_DESCRIPTOR).setValue("data-store");
+            final String storeChoiceName = factory.getStoreDescriptor().getName().getCode();
+            final ParameterValueGroup choiceParams = pparams.groups(storeChoiceName).stream()
+                    .findFirst()
+                    .orElseGet(() -> pparams.addGroup(storeChoiceName));
+
+            final String xmlParamName = XMLCoverageStoreFactory.PARAMETERS_DESCRIPTOR.getName().getCode();
+            final Parameters xmlParams = choiceParams.groups(xmlParamName).stream()
+                    .findFirst()
+                    .map(Parameters::castOrWrap)
+                    .orElseGet(() -> Parameters.castOrWrap(choiceParams.addGroup(xmlParamName)));
+
+            xmlParams.getOrCreate(XMLCoverageStoreFactory.PATH).setValue(pyramidDirectory.toUri());
+            xmlParams.getOrCreate(XMLCoverageStoreFactory.CACHE_TILE_STATE).setValue(true);
+
+            return  providerBusiness.storeProvider(pyramidProviderId, ProviderType.LAYER, factory.getName(), pparams);
+        } catch (IOException ex) {
             throw new ConstellationException(ex);
         }
     }

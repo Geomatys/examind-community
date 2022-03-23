@@ -18,6 +18,7 @@
  */
 package org.constellation.business;
 
+import java.nio.file.Path;
 import java.util.List;
 import org.constellation.api.TilingMode;
 import org.constellation.dto.MapContextLayersDTO;
@@ -71,5 +72,18 @@ public interface IPyramidBusiness {
      *
      */
     void createAllPyramidConformForProvider(final int providerId, int nbLevel) throws ConstellationException;
+
+    /**
+     * Build a pyramider provider dependending on the provider type (GPKG, xml-coverage, ZXY, ...)
+     * 
+     * @param providerType specific provider (GPKG, xml-coverage, ZXY, ...)
+     * @param pyramidFile File or directory (depending on provider type) used to store the pyramid.
+     * if {@code null} a new directory will be created in the integrated directory of Examind.
+     * @param pyramidProviderId Identifier of the created provider.
+     *
+     * @return The assigned provider id.
+     * @throws ConstellationException If an error occurs.
+     */
+    Integer buildSpecificPyramidProvider(String providerType, Path pyramidFile, String pyramidProviderId) throws ConstellationException;
 
 }
