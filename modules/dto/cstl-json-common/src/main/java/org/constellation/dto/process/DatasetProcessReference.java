@@ -19,6 +19,8 @@
 package org.constellation.dto.process;
 
 import java.io.Serializable;
+import java.util.Objects;
+import org.constellation.dto.Identifiable;
 
 /**
  * Lite view of a Constellation Dataset object.
@@ -27,18 +29,9 @@ import java.io.Serializable;
  *
  * @author Quentin Boileau (Geomatys)
  */
-public class DatasetProcessReference implements Serializable {
+public class DatasetProcessReference extends Identifiable implements Serializable {
 
-    private int id;
     private String identifier;
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
 
     public String getIdentifier() {
         return identifier;
@@ -54,11 +47,8 @@ public class DatasetProcessReference implements Serializable {
         if (o == null || getClass() != o.getClass()) return false;
 
         final DatasetProcessReference that = (DatasetProcessReference) o;
-
-        if (id != that.id) return false;
-        if (!identifier.equals(that.identifier)) return false;
-
-        return true;
+        return Objects.equals(this.id, that.id) &&
+               Objects.equals(this.identifier, that.identifier);
     }
 
     @Override
@@ -70,10 +60,8 @@ public class DatasetProcessReference implements Serializable {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("DatasetProcessReference{");
-        sb.append("id=").append(id);
-        sb.append(", identifier='").append(identifier).append('\'');
-        sb.append('}');
+        final StringBuilder sb = new StringBuilder(super.toString());
+        sb.append("identifier:").append(identifier).append('\n');
         return sb.toString();
     }
 }

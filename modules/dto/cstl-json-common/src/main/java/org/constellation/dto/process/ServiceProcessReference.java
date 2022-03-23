@@ -19,6 +19,8 @@
 package org.constellation.dto.process;
 
 import java.io.Serializable;
+import java.util.Objects;
+import org.constellation.dto.Identifiable;
 import org.constellation.dto.service.ServiceComplete;
 
 /**
@@ -28,9 +30,8 @@ import org.constellation.dto.service.ServiceComplete;
  *
  * @author Quentin Boileau (Geomatys)
  */
-public class ServiceProcessReference implements Serializable {
+public class ServiceProcessReference extends Identifiable implements Serializable {
 
-    private int id;
     private String type;
     private String name;
 
@@ -38,25 +39,17 @@ public class ServiceProcessReference implements Serializable {
     }
 
     public ServiceProcessReference(int id, String type, String name) {
-        this.id = id;
+        super(id);
         this.name = name;
         this.type = type;
     }
 
     public ServiceProcessReference(ServiceComplete service) {
+        super(service);
         if (service != null) {
-            this.id = service.getId();
             this.type = service.getType();
             this.name  = service.getIdentifier();
         }
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getType() {
@@ -80,13 +73,10 @@ public class ServiceProcessReference implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        final ServiceProcessReference serviceProcessReference = (ServiceProcessReference) o;
-
-        if (id != serviceProcessReference.id) return false;
-        if (!name.equals(serviceProcessReference.name)) return false;
-        if (!type.equals(serviceProcessReference.type)) return false;
-
-        return true;
+        final ServiceProcessReference spr = (ServiceProcessReference) o;
+        return Objects.equals(id , spr.id) &&
+               Objects.equals(name, spr.name) &&
+               Objects.equals(type, spr.type);
     }
 
     @Override
@@ -99,11 +89,9 @@ public class ServiceProcessReference implements Serializable {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("ServiceDTO{");
-        sb.append("id=").append(id);
-        sb.append(", type='").append(type).append('\'');
-        sb.append(", name='").append(name).append('\'');
-        sb.append('}');
+        final StringBuilder sb = new StringBuilder(super.toString());
+        sb.append("name:").append(name).append('\n');
+        sb.append("type:").append(type).append('\n');
         return sb.toString();
     }
 }

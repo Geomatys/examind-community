@@ -19,38 +19,31 @@
 package org.constellation.dto.process;
 
 import java.io.Serializable;
+import java.util.Objects;
+import org.constellation.dto.Identifiable;
 import org.constellation.dto.MapContextDTO;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class MapContextProcessReference implements Serializable {
+public class MapContextProcessReference extends Identifiable implements Serializable {
     
-    private int id;
     private String name;
 
     public MapContextProcessReference() {
     }
 
     public MapContextProcessReference(int id, String name) {
-        this.id = id;
+        super(id);
         this.name = name;
     }
 
     public MapContextProcessReference(MapContextDTO mp) {
+        super(mp);
         if (mp != null) {
-            this.id = mp.getId();
             this.name  = mp.getName();
         }
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getName() {
@@ -68,10 +61,8 @@ public class MapContextProcessReference implements Serializable {
 
         final MapContextProcessReference that = (MapContextProcessReference) o;
 
-        if (id != that.id) return false;
-        if (!name.equals(that.name)) return false;
-
-        return true;
+        return Objects.equals(this.id, that.id) &&
+               Objects.equals(this.name, that.name);
     }
 
     @Override
@@ -83,10 +74,8 @@ public class MapContextProcessReference implements Serializable {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("MapContextProcessReference{");
-        sb.append("id=").append(id);
-        sb.append(", name='").append(name).append('\'');
-        sb.append('}');
+        final StringBuilder sb = new StringBuilder(super.toString());
+        sb.append("name:").append(name).append('\n');
         return sb.toString();
     }
     

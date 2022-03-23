@@ -19,6 +19,8 @@
 package org.constellation.dto.process;
 
 import java.io.Serializable;
+import java.util.Objects;
+import org.constellation.dto.Identifiable;
 
 /**
  * Lite view of a Constellation Style object.
@@ -27,7 +29,7 @@ import java.io.Serializable;
  *
  * @author Quentin Boileau (Geomatys)
  */
-public class StyleProcessReference implements Serializable {
+public class StyleProcessReference extends Identifiable implements Serializable {
 
     private int id;
     private String name;
@@ -35,14 +37,6 @@ public class StyleProcessReference implements Serializable {
     private int provider;
 
     public StyleProcessReference() {
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getName() {
@@ -74,14 +68,13 @@ public class StyleProcessReference implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        final StyleProcessReference styleProcessReference = (StyleProcessReference) o;
+        final StyleProcessReference other = (StyleProcessReference) o;
 
-        if (id != styleProcessReference.id) return false;
-        if (provider != styleProcessReference.provider) return false;
-        if (!name.equals(styleProcessReference.name)) return false;
-        if (!type.equals(styleProcessReference.type)) return false;
+        return Objects.equals(this.id, other.id) &&
+               Objects.equals(this.name, other.name) &&
+               Objects.equals(this.type, other.type) &&
+               Objects.equals(this.provider, other.provider);
 
-        return true;
     }
 
     @Override
@@ -95,12 +88,10 @@ public class StyleProcessReference implements Serializable {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("StyleDTO{");
-        sb.append("id=").append(id);
-        sb.append(", name='").append(name).append('\'');
-        sb.append(", type='").append(type).append('\'');
-        sb.append(", provider=").append(provider);
-        sb.append('}');
+        final StringBuilder sb = new StringBuilder(super.toString());
+        sb.append("name:").append(name).append('\n');
+        sb.append("provider:").append(provider).append('\n');
+        sb.append("type:").append(type).append('\n');
         return sb.toString();
     }
 }

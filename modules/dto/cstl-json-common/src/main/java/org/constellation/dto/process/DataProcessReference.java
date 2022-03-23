@@ -20,26 +20,18 @@ package org.constellation.dto.process;
 
 import java.io.Serializable;
 import java.util.Objects;
+import org.constellation.dto.Identifiable;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class DataProcessReference implements Serializable {
+public class DataProcessReference extends Identifiable implements Serializable {
     
-    private int id;
     private String name;
     private String namespace;
     private String type;
     private int provider;
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
 
     public String getName() {
         return name;
@@ -106,13 +98,11 @@ public class DataProcessReference implements Serializable {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("DataProcessReference{");
-        sb.append("id=").append(id);
-        sb.append(", name='").append(name).append('\'');
-        sb.append(", namespace='").append(namespace).append('\'');
-        sb.append(", provider='").append(provider).append('\'');
-        sb.append(", type='").append(type).append('\'');
-        sb.append('}');
+        final StringBuilder sb = new StringBuilder(super.toString());
+        sb.append("name:").append(name).append('\n');
+        sb.append("namespace:").append(namespace).append('\n');
+        sb.append("provider:").append(provider).append('\n');
+        sb.append("type:").append(type).append('\n');
         return sb.toString();
     }
 }
