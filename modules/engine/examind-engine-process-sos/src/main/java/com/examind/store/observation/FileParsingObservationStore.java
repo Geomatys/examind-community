@@ -22,7 +22,6 @@ import static com.examind.store.observation.FileParsingUtils.buildGeom;
 import static com.examind.store.observation.FileParsingUtils.extractWithRegex;
 import static com.examind.store.observation.FileParsingUtils.getDataRecordProfile;
 import static com.examind.store.observation.FileParsingUtils.getDataRecordTrajectory;
-import static com.examind.store.observation.FileParsingUtils.parseDouble;
 import com.opencsv.CSVReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -42,8 +41,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.data.csv.CSVStore;
 import org.geotoolkit.nio.IOUtilities;
@@ -327,41 +324,40 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
     @Override
     public TemporalGeometricPrimitive getTemporalBounds() throws DataStoreException {
 
-        final GeoSpatialBound result = new GeoSpatialBound();
-        // open csv file
         try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), delimiter, quotechar)) {
 
             final Iterator<String[]> it = reader.iterator();
 
             // at least one line is expected to contain headers information
-            if (it.hasNext()) {
+            if (!it.hasNext()) throw new DataStoreException("csv headers not found");
 
-                // prepare time column indices
-                int dateIndex = -1;
+            // prepare time column indices
+            int dateIndex = -1;
 
-                // read headers
-                final String[] headers = it.next();
-                for (int i = 0; i < headers.length; i++) {
-                    final String header = headers[i];
-                    if (dateColumn.equals(header)) {
-                        dateIndex = i;
-                    }
+            // read headers
+            final String[] headers = it.next();
+            for (int i = 0; i < headers.length; i++) {
+                final String header = headers[i];
+                if (dateColumn.equals(header)) {
+                    dateIndex = i;
+                    break;
                 }
-
-                while (it.hasNext()) {
-                    final String[] line = it.next();
-                    // update temporal information
-                    if (dateIndex != -1) {
-                        final Date dateParse = new SimpleDateFormat(this.dateFormat).parse(line[dateIndex]);
-                        result.addDate(dateParse);
-                    }
-                }
-                return result.getTimeObject("2.0.0");
             }
-            throw new DataStoreException("csv headers not found");
+            if (dateIndex == -1) return null;
+
+            final GeoSpatialBound result = new GeoSpatialBound();
+            final SimpleDateFormat sdf = new SimpleDateFormat(this.dateFormat);
+            while (it.hasNext()) {
+                final String[] line = it.next();
+                String value = line[dateIndex];
+                if (value != null && !(value = value.trim()).isEmpty()) {
+                    result.addDate(sdf.parse(value));
+                }
+            }
+            return result.getTimeObject("2.0.0");
+            
         } catch (IOException | ParseException ex) {
-            LOGGER.log(Level.WARNING, "problem reading csv file", ex);
-            throw new DataStoreException(ex);
+            throw new DataStoreException("Failed extracting dates from input CSV file", ex);
         }
     }
 }

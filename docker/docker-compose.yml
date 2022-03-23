@@ -38,7 +38,9 @@ services :
          CSTL_REFRESH_URL: "http://localhost:8080/examind/API/auth/extendToken"
          CSTL_URL: "http://localhost:8080/examind"
          CSTL_HOME: /var/examind/
-         CATALINA_OPTS: "-Xms1G -Xmx4G -Dfile.encoding=UTF-8 --add-opens java.desktop/sun.awt.image=ALL-UNNAMED -Dorg.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH=true"
+         # org.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH allow to send value in path with encoded slash
+         # this is needed when some identifiers contains slash, like in STA for example
+         CATALINA_OPTS: "-Xms1G -Xmx4G -Dfile.encoding=UTF-8 -Dorg.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH=true"
          JPDA_ADDRESS: "*:8000"
          JPDA_TRANSPORT: dt_socket
          CSTL_TOKEN_LIFE: 30

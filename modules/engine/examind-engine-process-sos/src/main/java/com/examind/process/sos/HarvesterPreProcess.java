@@ -26,6 +26,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -316,7 +317,7 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
     private String[] extractHeaders(Path dataFile, String format, char separator) throws ProcessException {
         LOGGER.log(Level.INFO, "Extracting headers from : {0}", dataFile.getFileName().toString());
         if ("csv".equals(format) || "csv-flat".equals(format)) {
-            try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile, Charset.forName("UTF-8")), separator)) {
+            try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile, StandardCharsets.UTF_8), separator)) {
 
                 final Iterator<String[]> it = reader.iterator();
 

@@ -81,7 +81,9 @@ public class FileParsingUtils {
         boolean empty = true;
         for (int i : doubleFields) {
             try {
-                parseDouble(line[i]);
+                String value = line[i];
+                if (value == null || (value = value.trim()).isEmpty()) continue;
+                parseDouble(value);
                 empty = false;
                 break;
             } catch (NumberFormatException | ParseException ex) {
