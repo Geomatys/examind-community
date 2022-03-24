@@ -140,9 +140,9 @@ public class PyramidBusiness implements IPyramidBusiness {
     }
 
     @Transactional
-    private TilingContext preparePyramidDatas(Integer userId, String pyramidDataName, List<Integer> dataIds, final String crs, TilingMode tilingMode, final int nbLevel) throws ConstellationException {
+    private TilingContext preparePyramidDatas(Integer userId, String pyramidDataName, List<Integer> dataIds, final String crsId, TilingMode tilingMode, final int nbLevel) throws ConstellationException {
         // verify CRS validity
-        final CoordinateReferenceSystem coordsys = verifyCrs(crs, true).orElse(null);
+        final CoordinateReferenceSystem crs = verifyCrs(crsId, true).orElse(null);
 
         final List<DataBrief> briefs = new ArrayList<>();
         for (Integer dataId : dataIds) {
@@ -157,7 +157,7 @@ public class PyramidBusiness implements IPyramidBusiness {
          * 1) calculate best scales array. loop on each data and determine
          * the largest scales that wrap all data.
          */
-        final double[] scales = ScaleUtilities.getBestScales(briefs, crs, nbLevel);
+        final double[] scales = ScaleUtilities.getBestScales(briefs, crs, 256, nbLevel);
 
         /**
          * 2) - Build the map context that contains all selected layers.
@@ -188,7 +188,7 @@ public class PyramidBusiness implements IPyramidBusiness {
 
             Envelope dataEnv;
             try {
-                dataEnv = inData.getEnvelope();
+                dataEnv = inData.getEnvelope(crs);
             } catch (ConstellationStoreException ex) {
                 LOGGER.log(Level.WARNING, "Failed to extract envelope for data {0}.  Moving to next data.", dataId);
                 continue;
@@ -220,15 +220,6 @@ public class PyramidBusiness implements IPyramidBusiness {
                 context.getComponents().add(((CoverageData)inData).getMapLayer(null, true));
             }
 
-            if (coordsys != null) {
-                try {
-                    //reproject data envelope
-                    dataEnv = Envelopes.transform(dataEnv, coordsys);
-                } catch (TransformException ex) {
-                    LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
-                    throw new ConstellationException("Could not transform data envelope to crs " + crs);
-                }
-            }
             if (globalEnv == null) {
                 globalEnv = new GeneralEnvelope(dataEnv);
             } else {
@@ -236,15 +227,15 @@ public class PyramidBusiness implements IPyramidBusiness {
             }
         }
 
-        if (globalEnv != null && coordsys != null) {
-            Envelope domain = CRS.getDomainOfValidity(coordsys);
+        if (globalEnv != null && crs != null) {
+            Envelope domain = CRS.getDomainOfValidity(crs);
             if (domain != null) {
                 globalEnv.intersect(domain);
             }
         }
 
         final int tileSize = 256;
-        return generatePyramidAndProcess(userId, context, pyramidDataName, tilingMode, crs, globalEnv, tileSize, scales, dataIds);
+        return generatePyramidAndProcess(userId, context, pyramidDataName, tilingMode, crsId, globalEnv, tileSize, scales, dataIds);
     }
 
     @Override

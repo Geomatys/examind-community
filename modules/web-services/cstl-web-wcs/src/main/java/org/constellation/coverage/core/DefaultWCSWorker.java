@@ -319,7 +319,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             /*
              * Spatial metadata
              */
-            final EnvelopeType nativeEnvelope = new EnvelopeType(layer.getEnvelope());
+            final EnvelopeType nativeEnvelope = new EnvelopeType(layer.getEnvelope(null));
             if (!envelopes.contains(nativeEnvelope)) {
                 envelopes.add(nativeEnvelope);
             }
@@ -406,7 +406,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             /*
              * Spatial metadata
              */
-            final BoundingBoxType nativeEnvelope = new BoundingBoxType(layer.getEnvelope());
+            final BoundingBoxType nativeEnvelope = new BoundingBoxType(layer.getEnvelope(null));
 
             GridCrsType grid = null;
             try {
@@ -471,7 +471,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             /*
              * Spatial metadata
              */
-            final org.geotoolkit.gml.xml.v321.EnvelopeType nativeEnvelope = new org.geotoolkit.gml.xml.v321.EnvelopeType(layer.getEnvelope());
+            final org.geotoolkit.gml.xml.v321.EnvelopeType nativeEnvelope = new org.geotoolkit.gml.xml.v321.EnvelopeType(layer.getEnvelope(null));
 
             org.geotoolkit.gml.xml.v321.GridType grid = null;
             try {

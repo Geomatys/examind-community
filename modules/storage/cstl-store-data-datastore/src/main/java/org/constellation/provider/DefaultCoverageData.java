@@ -33,6 +33,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.DoubleStream;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.GridCoverage;
@@ -321,9 +322,25 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
      */
     @Override
     public Envelope getEnvelope() throws ConstellationStoreException {
+        return getEnvelope(null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Envelope getEnvelope(CoordinateReferenceSystem crs) throws ConstellationStoreException {
         GridGeometry ggg = getGeometry();
         if (ggg != null && ggg.isDefined(GridGeometry.ENVELOPE)) {
-            return ggg.getEnvelope();
+            if (crs != null) {
+                try {
+                    return ggg.getEnvelope(crs);
+                } catch (TransformException ex) {
+                    throw new ConstellationStoreException(ex);
+                }
+            } else {
+                return ggg.getEnvelope();
+            }
         }
         LOGGER.log(Level.WARNING, "Unable to get a GridGeometry for coverage data:{0}", name);
         return null;

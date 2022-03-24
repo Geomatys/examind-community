@@ -20,6 +20,8 @@ package org.constellation.provider.datastore;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import javax.imageio.ImageIO;
+import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Resource;
@@ -31,11 +33,11 @@ import org.constellation.provider.util.ImageStatisticSerializer;
 import org.constellation.test.utils.TestEnvironment;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import org.geotoolkit.storage.coverage.ImageStatistics;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.opengis.geometry.Envelope;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
  *
@@ -48,6 +50,10 @@ public class CoverageDataTest {
 
     @BeforeClass
     public static void init() throws Exception {
+        //Initialize geotoolkit
+        ImageIO.scanForPlugins();
+        org.geotoolkit.lang.Setup.initialize(null);
+
         final TestEnvironment.TestResources testResource = initDataDirectory();
         DataStore store = testResource.createStore(TestEnvironment.TestResource.TIF);
 
@@ -64,6 +70,8 @@ public class CoverageDataTest {
     @Test
     public void testGetEnvelope() throws Exception {
 
+        CoordinateReferenceSystem crs = CRS.forCode("EPSG:3857");
+
         Envelope env = martinique.getEnvelope();
         Assert.assertNotNull(env);
         Assert.assertEquals(-61.61, env.getMinimum(0),0.1);
@@ -71,13 +79,28 @@ public class CoverageDataTest {
         Assert.assertEquals(-60.69, env.getMaximum(0),0.1);
         Assert.assertEquals( 15.02, env.getMaximum(1),0.1);
 
+        env = martinique.getEnvelope(crs);
+        Assert.assertNotNull(env);
+        Assert.assertEquals(-6859137.568050235, env.getMinimum(0),0.0001);
+        Assert.assertEquals(1603984.0704114565, env.getMinimum(1),0.0001);
+        Assert.assertEquals(-6756064.723864956, env.getMaximum(0),0.0001);
+        Assert.assertEquals(1692569.0006932162, env.getMaximum(1),0.0001);
+
         env = sst.getEnvelope();
         Assert.assertNotNull(env);
 
-        Assert.assertEquals(-0.5, env.getMinimum(0),0.1);
-        Assert.assertEquals(-0.5, env.getMinimum(1),0.1);
-        Assert.assertEquals(1023.5, env.getMaximum(0),0.1);
-        Assert.assertEquals(511.5, env.getMaximum(1),0.1);
+        Assert.assertEquals(-180.0, env.getMinimum(0),0.1);
+        Assert.assertEquals( -90.0, env.getMinimum(1),0.1);
+        Assert.assertEquals( 180.0, env.getMaximum(0),0.1);
+        Assert.assertEquals(  90.0, env.getMaximum(1),0.1);
+
+        env = sst.getEnvelope(crs);
+        Assert.assertNotNull(env);
+
+        Assert.assertEquals(-20037508.342789244,      env.getMinimum(0),0.0001);
+        Assert.assertEquals(Double.NEGATIVE_INFINITY, env.getMinimum(1),0.0001);
+        Assert.assertEquals( 20037508.342789244,      env.getMaximum(0),0.0001);
+        Assert.assertEquals(Double.POSITIVE_INFINITY, env.getMaximum(1),0.0001);
     }
 
     @Test
@@ -107,11 +130,10 @@ public class CoverageDataTest {
         Assert.assertNotNull(result);
 
         Assert.assertNotNull(result.getBoundingBox());
-        // error at bbox reprojection
-//        Assert.assertEquals(  -0.5, result.getBoundingBox()[0],0.1);
-//        Assert.assertEquals(  -0.5, result.getBoundingBox()[1],0.1);
-//        Assert.assertEquals(1023.5, result.getBoundingBox()[2],0.1);
-//        Assert.assertEquals( 511.5, result.getBoundingBox()[3],0.1);
+        Assert.assertEquals( -180.0, result.getBoundingBox()[0],0.1);
+        Assert.assertEquals(  -90.0, result.getBoundingBox()[1],0.1);
+        Assert.assertEquals(  180.0, result.getBoundingBox()[2],0.1);
+        Assert.assertEquals(   90.0, result.getBoundingBox()[3],0.1);
 
         Assert.assertNotNull(result.getBands());
         Assert.assertEquals(1, result.getBands().size());

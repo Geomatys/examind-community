@@ -57,6 +57,7 @@ import org.geotoolkit.storage.multires.TileMatrix;
 import org.geotoolkit.storage.multires.TileMatrixSet;
 import org.opengis.feature.FeatureType;
 import org.opengis.geometry.Envelope;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.style.Style;
 import org.opengis.util.GenericName;
 
@@ -100,9 +101,14 @@ public interface Data<T extends Resource> {
     SortedSet<Number> getAvailableElevations() throws ConstellationStoreException;
 
     /**
-     * Returns the native envelope of this layer.
+     * Returns the native envelope of this data.
      */
     Envelope getEnvelope() throws ConstellationStoreException;
+
+    /**
+     * Returns the envelope of this layer and reproject it if needed.
+     */
+    Envelope getEnvelope(CoordinateReferenceSystem crs) throws ConstellationStoreException;
 
     /**
      * @return the identifier of the data.

@@ -47,7 +47,6 @@ import javax.inject.Named;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
-import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.internal.feature.AttributeConvention;
 import org.apache.sis.internal.feature.jts.JTS;
 import org.apache.sis.internal.storage.ConcatenatedFeatureSet;
@@ -2011,14 +2010,11 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
      * Extract the WGS84 BBOx from a featureSource.
      * what ? may not be wgs84 exactly ? why is there a CRS attribute on a wgs84 bbox ?
      */
-    private static Object toBBox(final LayerCache layer, final String version) throws CstlServiceException{
+    private static Object toBBox(final LayerCache layer, final String version) throws CstlServiceException {
         try {
-            Envelope env = layer.getEnvelope();
+            final CoordinateReferenceSystem epsg4326 = CRS.forCode("urn:ogc:def:crs:OGC:2:84");
+            Envelope env = layer.getEnvelope(epsg4326);
             if (env != null) {
-                final CoordinateReferenceSystem epsg4326 = CRS.forCode("urn:ogc:def:crs:OGC:2:84");
-                if (!Utilities.equalsIgnoreMetadata(env.getCoordinateReferenceSystem(), epsg4326)) {
-                    env = Envelopes.transform(env, epsg4326);
-                }
                 return buildBBOX(version,
                        "urn:ogc:def:crs:OGC:2:84",
                        env.getMinimum(0),
@@ -2026,7 +2022,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                        env.getMaximum(0),
                        env.getMaximum(1));
             }
-        } catch (ConstellationStoreException | TransformException | FactoryException ex) {
+        } catch (ConstellationStoreException | FactoryException ex) {
             throw new CstlServiceException(ex);
         }
         // return default full BBOX

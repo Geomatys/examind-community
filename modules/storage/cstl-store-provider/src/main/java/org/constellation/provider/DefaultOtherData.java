@@ -26,7 +26,8 @@ import org.apache.sis.storage.Resource;
 import org.constellation.api.DataType;
 
 /**
- *
+ * Fallback for data with a resource we can't handle.
+ * 
  * @author Guilhem Legal(Geomatys)
  */
 public class DefaultOtherData extends AbstractData {

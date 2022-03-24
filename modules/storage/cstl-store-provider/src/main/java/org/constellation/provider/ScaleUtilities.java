@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import org.apache.sis.coverage.grid.GridGeometry;
-import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.metadata.iso.citation.Citations;
 import org.apache.sis.referencing.IdentifiedObjects;
 import org.apache.sis.storage.DataStoreException;
@@ -71,59 +70,31 @@ public class ScaleUtilities {
      * @param providerId Identifier of the provider
      * @param dataNamespace Data namespace.
      * @param dataName Data name.
-     * @param crs coordinate reference system identifier.
-     * @param nbLevel Number of level to compute (used only for non-coverage data)
-     *
-     * @return scales array for data. (for wmts scales)
-     * @throws ConstellationException if the crs can be decoded or if data retrieval failed.
-     */
-    public static double[] computeScales(final int providerId, final String dataNamespace, final String dataName, final String crs, int nbLevel) throws ConstellationException {
-        CoordinateReferenceSystem c = CRSUtilities.verifyCrs(crs, false).orElse(null);
-        return computeScales(providerId, dataNamespace, dataName, c, nbLevel);
-    }
-
-    /**
-     * Returns scales array for a data.(for wmts scales)
-     *
-     * @param providerId Identifier of the provider
-     * @param dataNamespace Data namespace.
-     * @param dataName Data name.
      * @param crs coordinate reference system.
+     * @param tileSize Tile size.
      * @param nbLevel Number of level to compute (used only for non-coverage data)
      *
      * @return scales array for data. (for wmts scales)
      * @throws ConstellationException if data retrieval, envelope retrieval/transformation, gridGeometry extraction failed.
      */
-    private static double[] computeScales(final int providerId, final String dataNamespace, final String dataName, final CoordinateReferenceSystem crs, int nbLevel) throws ConstellationException {
+    private static double[] computeScales(final int providerId, final String dataNamespace, final String dataName, final CoordinateReferenceSystem crs, int tileSize, int nbLevel) throws ConstellationException {
         //get data
         final Data inData = getProviderData(providerId, dataNamespace, dataName);
         if (inData == null) {
             String nmsp = dataNamespace != null ? "{" + dataNamespace + "} " : "";
             throw new TargetNotFoundException("Data " + nmsp + dataName + " does not exist in provider "+providerId);
         }
-        Envelope dataEnv;
+        Envelope env;
         try {
             //use data crs
-            dataEnv = inData.getEnvelope();
+            env = inData.getEnvelope(crs);
         } catch (ConstellationStoreException ex) {
-            throw new ConstellationException("Failed to extract envelope for data "+dataName, ex);
-        }
-        final Object origin = inData.getOrigin();
-        final double[] scales;
-        final Envelope env;
-        try {
-            if (crs == null) {
-                env = dataEnv;
-            } else if (dataEnv.getCoordinateReferenceSystem() == null) {
-                throw new IllegalStateException("Cannot express data envelope in given CRS: input data envelope");
-            } else {
-                env = Envelopes.transform(dataEnv, crs);
-            }
-        } catch (Exception ex) {
-            throw new ConstellationException("Failed to transform envelope to input CRS", ex);
+            throw new ConstellationException("Failed to extract envelope for data " + dataName, ex);
         }
 
         //calculate pyramid scale levels
+        final double[] scales;
+        final Object origin = inData.getOrigin();
         if (origin instanceof GridCoverageResource gcr) {
             
             final GridGeometry gg;
@@ -151,7 +122,6 @@ public class ScaleUtilities {
                 }
             // other CRS
             } else {
-                final int tileSize = 256;
                 double scale = geospanX / tileSize;
                 final List<Double> scalesList = new ArrayList<>();
                 while (true) {
@@ -173,7 +143,7 @@ public class ScaleUtilities {
         } else {
             //featurecollection or anything else, scales can not be defined accurately.
             //vectors have virtually an unlimited resolution
-            scales = computeScales(env, 256, nbLevel);
+            scales = computeScales(env, tileSize, nbLevel);
         }
         return scales;
     }
@@ -183,14 +153,15 @@ public class ScaleUtilities {
      *
      * @param briefs List of data.
      * @param crs coordinate reference system identifier.
+     * @param tileSize Tile size.
      * @param nbLevel Number of level to compute (used only if a non-coverage data is present in the list)
      *
      * @return scales array for data. (for wmts scales)
      * @throws ConstellationException if the crs can be decoded or no scales can be calculated from any data.
      */
-    public static double[] getBestScales(List<? extends org.constellation.dto.Data> briefs, String crs, int nbLevel) throws ConstellationException {
+    public static double[] getBestScales(List<? extends org.constellation.dto.Data> briefs, String crs, int tileSize, int nbLevel) throws ConstellationException {
         CoordinateReferenceSystem c = CRSUtilities.verifyCrs(crs, false).orElse(null);
-        return getBestScales(briefs, c, nbLevel);
+        return getBestScales(briefs, c, tileSize, nbLevel);
     }
 
     /**
@@ -198,17 +169,18 @@ public class ScaleUtilities {
      *
      * @param briefs  List of data.
      * @param crs coordinate reference.
+     * @param tileSize Tile size.
      * @param nbLevel Number of level to compute (used only if a non-coverage data is present in the list)
      *
      * @return scales array for data. (for wmts scales)
      * @throws ConstellationException if no scales can be calculated from any data.
      */
-    public static double[] getBestScales(List<? extends org.constellation.dto.Data> briefs, CoordinateReferenceSystem crs, int nbLevel) throws ConstellationException {
+    public static double[] getBestScales(List<? extends org.constellation.dto.Data> briefs, CoordinateReferenceSystem crs, int tileSize, int nbLevel) throws ConstellationException {
         double[] mergedScales = new double[0];
-        for (final org.constellation.dto.Data db : briefs){
+        for (final org.constellation.dto.Data db : briefs) {
             final double[] scales;
             try {
-                scales = computeScales(db.getProviderId(), db.getNamespace(), db.getName(), crs, nbLevel);
+                scales = computeScales(db.getProviderId(), db.getNamespace(), db.getName(), crs, tileSize, nbLevel);
             } catch(Exception ex) {
                 LOGGER.log(Level.WARNING, ex.getMessage(), ex);
                 continue;

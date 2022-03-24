@@ -330,7 +330,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             // Get default CRS for the layer supported crs.
             final Envelope nativeEnv;
             try {
-                nativeEnv = layer.getEnvelope();
+                nativeEnv = layer.getEnvelope(null);
                 if (nativeEnv == null) {
                     LOGGER.log(Level.WARNING, "Cannot get envelope for layer {0}  (null)", layer.getName());
                     continue;

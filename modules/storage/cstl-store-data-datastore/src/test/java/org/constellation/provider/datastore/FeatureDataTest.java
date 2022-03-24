@@ -19,6 +19,7 @@
 package org.constellation.provider.datastore;
 
 import java.util.Arrays;
+import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.Resource;
@@ -27,7 +28,6 @@ import org.constellation.dto.PropertyDescription;
 import org.constellation.provider.DefaultFeatureData;
 import org.constellation.test.utils.TestEnvironment;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -65,6 +65,13 @@ public class FeatureDataTest {
         Assert.assertEquals( 27.63, env.getMinimum(1),0.1);
         Assert.assertEquals( 31.07, env.getMaximum(0),0.1);
         Assert.assertEquals( 71.15, env.getMaximum(1),0.1);
+
+        env = countries.getEnvelope(CRS.forCode("EPSG:3857"));
+        Assert.assertNotNull(env);
+        Assert.assertEquals(-3483078.8953725756, env.getMinimum(0),0.0001);
+        Assert.assertEquals( 3203346.8471332677, env.getMinimum(1),0.0001);
+        Assert.assertEquals( 3459090.407995744,  env.getMaximum(0),0.0001);
+        Assert.assertEquals( 11455379.365064394, env.getMaximum(1),0.0001);
 
         env = city.getEnvelope();
         Assert.assertNotNull(env);

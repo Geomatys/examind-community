@@ -114,13 +114,13 @@ public class LayerCache {
         return configuration;
     }
 
-    public Envelope getEnvelope() throws ConstellationStoreException {
-        return data.getEnvelope();
+    public Envelope getEnvelope(CoordinateReferenceSystem crs) throws ConstellationStoreException {
+        return data.getEnvelope(crs);
     }
     
     public GeographicBoundingBox getGeographicBoundingBox() throws ConstellationStoreException {
         try {
-            final Envelope env = getEnvelope();
+            final Envelope env = getEnvelope(null);
             if (env != null) {
                 final DefaultGeographicBoundingBox result = new DefaultGeographicBoundingBox();
                 result.setBounds(env);

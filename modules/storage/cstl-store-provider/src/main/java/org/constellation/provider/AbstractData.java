@@ -26,6 +26,7 @@ import java.util.TreeSet;
 import java.util.logging.Logger;
 import org.apache.sis.feature.builder.AttributeRole;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
+import org.apache.sis.geometry.Envelopes;
 
 import org.opengis.geometry.Envelope;
 import org.opengis.util.GenericName;
@@ -49,6 +50,7 @@ import org.locationtech.jts.geom.Polygon;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.TransformException;
 import org.opengis.style.Style;
 
 
@@ -182,6 +184,19 @@ public abstract class AbstractData<T extends Resource> implements Data<T> {
 
     @Override
     public Envelope getEnvelope() throws ConstellationStoreException {
+        return null;
+    }
+
+    @Override
+    public Envelope getEnvelope(CoordinateReferenceSystem crs) throws ConstellationStoreException {
+        Envelope env = getEnvelope();
+        if (env != null) {
+            try {
+                return Envelopes.transform(env, crs);
+            } catch (TransformException ex) {
+                throw new ConstellationStoreException(ex);
+            }
+        }
         return null;
     }
 
