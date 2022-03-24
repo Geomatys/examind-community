@@ -1,0 +1,49 @@
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h3 class="panel-title">Map Background configuration</h3>
+    </div>
+    <div class="panel-body">
+        <div class="panel-body-content">
+            <div style="padding-right:10px;padding-left: 0;margin-top: 5px;margin-left: 15px;">
+                <input type="checkbox"
+                       style="margin-right: 5px;"
+                       ng-change="ctrl.saveMode()"
+                       ng-model="ctrl.offlineMode">
+                <span style="color: #ddd;">Mode offline</span>
+            </div>
+            <form ng-if="ctrl.offlineMode">
+                <div class="form-group">
+                    <label for="name" class="control-label col-sm-3" style="color: #ddd;margin-top: 8px;">WMS Background
+                        URL (*) : </label>
+                    <input id="name" type="text" class="form-control col-sm-7"
+                           ng-model="ctrl.backgroundUrl"
+                           style="width: 70%"
+                           required
+                           placeholder="URL...">
+                </div>
+                <div class="row">
+                    <button class="btn btn-add pull-right" style="margin: 15px 40px 0 0;"
+                            ng-click="ctrl.getCapabilities()">Get Capabilities
+                    </button>
+                </div>
+                <div class="form-group" style="padding-top: 50px;"
+                     ng-if="ctrl.layersArray && ctrl.layersArray.length > 0">
+                    <label for="name" class="control-label col-sm-3" style="color: #ddd;margin-top: 8px;">
+                        WMS Layer (*) :
+                    </label>
+                    <select id="name" class="form-control col-sm-7"
+                            ng-model="ctrl.layer"
+                            style="width: 70%">
+                        <option ng-repeat="option in ctrl.layersArray" ng-value="option.Title">{{option.Name}}</option>
+                    </select>
+                </div>
+
+                <div ng-if="ctrl.layer && ctrl.backgroundUrl">
+                    <button class="btn btn-add pull-right" style="margin: 15px 40px 0 0;"
+                            ng-click="ctrl.saveUrl()">{{'save' | translate}}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

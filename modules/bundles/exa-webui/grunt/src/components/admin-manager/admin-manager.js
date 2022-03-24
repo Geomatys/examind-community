@@ -4,7 +4,8 @@ angular.module('examind.components.admin.manager', [
     'examind.components.admin.manager.system.contact',
     'examind.components.admin.manager.system.providers',
     'examind.components.admin.manager.system.users',
-    'examind.components.admin.manager.build.info'
+    'examind.components.admin.manager.build.info',
+    'examind.components.admin.manager.map.background'
 ])
     .controller('AdminManagerController', AdminManagerController)
     .directive('adminManager', adminManagerDirective);

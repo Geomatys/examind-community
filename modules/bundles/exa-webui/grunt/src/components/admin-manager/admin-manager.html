@@ -28,6 +28,10 @@
                                    href="" ng-click="ctrl.changeView('system_contact')">
                                     {{'global.menu.admin.contact' | translate}}
                                 </a>
+                                <a class="list-group-item" ng-class="{active:ctrl.currentView === 'background-config'}"
+                                   href="" ng-click="ctrl.changeView('background-config')">
+                                    Map Background Configuration
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -68,6 +72,7 @@
                         <system-contact ng-switch-when="system_contact"></system-contact>
                         <system-providers ng-switch-when="system_providers"></system-providers>
                         <system-users ng-switch-when="system_users"></system-users>
+                        <map-background ng-switch-when="background-config"></map-background>
                     </div>
                 </div>
             </div>

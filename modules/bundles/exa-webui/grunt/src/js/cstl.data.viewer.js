@@ -69,16 +69,32 @@ window.buildDataViewer = function () {
                 reprojExtent[3] = this.maxExtent[3];
             }
 
-            if(this.addBackground) {
-                //adding background layer by default OSM
-                var osmOpts = {};
-                if(!this.enableAttributions) {
-                    osmOpts.attributions = null;
+            if (this.addBackground) {
+                var backgroundLayer;
+                if (JSON.parse(window.localStorage.getItem('map-background-offline-mode'))) {
+                    backgroundLayer = new ol.layer.Tile({
+                        source: new ol.source.TileWMS({
+                            url: window.localStorage.getItem('map-background-url'),
+                            params: {
+                                'LAYERS': window.localStorage.getItem('map-background-layer'),
+                                'VERSION': '1.3.0',
+                                'SLD_VERSION': '1.1.0',
+                                'FORMAT': 'image/png',
+                                'TRANSPARENT': 'true'
+                            }
+                        })
+                    });
+                } else {
+                    //adding background layer by default OSM
+                    var osmOpts = {};
+                    if (!this.enableAttributions) {
+                        osmOpts.attributions = null;
+                    }
+                    var sourceOSM = new ol.source.OSM(osmOpts);
+                    backgroundLayer = new ol.layer.Tile({
+                        source: sourceOSM
+                    });
                 }
-                var sourceOSM = new ol.source.OSM(osmOpts);
-                var backgroundLayer = new ol.layer.Tile({
-                    source: sourceOSM
-                });
                 this.layers.unshift(backgroundLayer);
             }
 

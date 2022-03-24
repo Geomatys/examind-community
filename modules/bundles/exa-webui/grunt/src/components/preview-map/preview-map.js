@@ -192,6 +192,26 @@ function previewMapConfig(previewMapOptionsProvider) {
      */
     // Here the default configuration of the preview Map
     function defaultPreviewMapOptionsFactory() {
+        var layers;
+        if (JSON.parse(window.localStorage.getItem('map-background-offline-mode'))) {
+            layers = [new ol.layer.Tile({
+                source: new ol.source.TileWMS({
+                    url: window.localStorage.getItem('map-background-url'),
+                    params: {
+                        'LAYERS': window.localStorage.getItem('map-background-layer'),
+                        'VERSION': '1.3.0',
+                        'SLD_VERSION': '1.1.0',
+                        'FORMAT': 'image/png',
+                        'TRANSPARENT': 'true'
+                    }
+                })
+            })];
+        } else {
+            layers = [new ol.layer.Tile({
+                source: new ol.source.OSM()
+            })];
+        }
+
         return {
             controls: [
                 new ol.control.ScaleLine(),
@@ -200,11 +220,7 @@ function previewMapConfig(previewMapOptionsProvider) {
                 new ol.control.Rotate(),
                 new ol.control.Attribution()
             ],
-            layers: [
-                new ol.layer.Tile({
-                    source: new ol.source.OSM()
-                })
-            ],
+            layers: layers,
             logo: false,
             view: new ol.View({
                 projection: 'EPSG:3857'

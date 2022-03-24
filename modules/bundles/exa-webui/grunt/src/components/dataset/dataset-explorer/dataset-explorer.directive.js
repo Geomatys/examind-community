@@ -90,14 +90,35 @@ function DatasetExplorerController($scope, $rootScope, $element, $timeout, $filt
         style: DatasetExplorerStyle.styleFunction.hover
     });
 
-    var _olMap = new ol.Map({
-        view: _olView,
-        layers: [
+    var layers;
+    if (JSON.parse(window.localStorage.getItem('map-background-offline-mode'))) {
+        layers = [
+            new ol.layer.Tile({
+                source: new ol.source.TileWMS({
+                    url: window.localStorage.getItem('map-background-url'),
+                    params: {
+                        'LAYERS': window.localStorage.getItem('map-background-layer'),
+                        'VERSION': '1.3.0',
+                        'SLD_VERSION': '1.1.0',
+                        'FORMAT': 'image/png',
+                        'TRANSPARENT': 'true'
+                    }
+                })
+            }),
+            _vectorLayer
+        ];
+    } else {
+        layers = [
             new ol.layer.Tile({
                 source: new ol.source.OSM()
             }),
             _vectorLayer
-        ],
+        ];
+    }
+
+    var _olMap = new ol.Map({
+        view: _olView,
+        layers: layers,
         target: $element.find('.ol-container')[0]
     });
 

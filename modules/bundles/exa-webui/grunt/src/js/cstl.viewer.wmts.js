@@ -68,11 +68,27 @@ window.buildWmtsViewer = function () {
             }
 
             if(this.addBackground) {
-                //adding background layer by default OSM
-                var sourceOSM = new ol.source.OSM();
-                var backgroundLayer = new ol.layer.Tile({
-                    source: sourceOSM
-                });
+                var backgroundLayer;
+                if (JSON.parse(window.localStorage.getItem('map-background-offline-mode'))) {
+                    backgroundLayer = new ol.layer.Tile({
+                        source: new ol.source.TileWMS({
+                            url: window.localStorage.getItem('map-background-url'),
+                            params: {
+                                'LAYERS': window.localStorage.getItem('map-background-layer'),
+                                'VERSION': '1.3.0',
+                                'SLD_VERSION': '1.1.0',
+                                'FORMAT': 'image/png',
+                                'TRANSPARENT': 'true'
+                            }
+                        })
+                    });
+                } else {
+                    //adding background layer by default OSM
+                    var sourceOSM = new ol.source.OSM();
+                    backgroundLayer = new ol.layer.Tile({
+                        source: sourceOSM
+                    });
+                }
                 this.layers.unshift(backgroundLayer);
             }
 
