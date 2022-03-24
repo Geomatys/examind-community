@@ -18,7 +18,6 @@
  */
 package org.constellation.provider;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import org.apache.sis.coverage.grid.GridGeometry;
@@ -32,7 +31,6 @@ import org.constellation.exception.ConstellationStoreException;
 import org.constellation.exception.TargetNotFoundException;
 import static org.constellation.provider.DataProviders.LOGGER;
 import static org.constellation.provider.DataProviders.getProviderData;
-import org.constellation.util.CRSUtilities;
 import org.geotoolkit.storage.multires.TileMatrices;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.Identifier;
@@ -54,7 +52,7 @@ public class ScaleUtilities {
      *
      * @return scales array. (for wmts scales)
      */
-    public static double[] computeScales(Envelope globalEnv, int tileSize, int nbLevel) {
+    public static double[] generateScales(Envelope globalEnv, int tileSize, int nbLevel) {
         final double geospanX = globalEnv.getSpan(0);
         final double[] scales = new double[nbLevel];
         scales[0] = geospanX / tileSize;
@@ -122,46 +120,14 @@ public class ScaleUtilities {
                 }
             // other CRS
             } else {
-                double scale = geospanX / tileSize;
-                final List<Double> scalesList = new ArrayList<>();
-                while (true) {
-                    if (scale <= baseScale) {
-                        //fit to exact match to preserve base quality.
-                        scale = baseScale;
-                    }
-                    scalesList.add(scale);
-                    if (scale <= baseScale) {
-                        break;
-                    }
-                    scale = scale / 2;
-                }
-                scales = new double[scalesList.size()];
-                for (int i = 0; i < scales.length; i++) {
-                    scales[i] = scalesList.get(i);
-                }
+                double maxScale = geospanX / tileSize;
+                scales = generateScales(maxScale, baseScale);
             }
         } else {
-            //featurecollection or anything else, scales can not be defined accurately.
-            //vectors have virtually an unlimited resolution
-            scales = computeScales(env, tileSize, nbLevel);
+            //vectors or anything else, scales can not be defined accurately.
+            scales = generateScales(env, tileSize, nbLevel);
         }
         return scales;
-    }
-
-    /**
-     * Returns scales array for a data list.(for wmts scales)
-     *
-     * @param briefs List of data.
-     * @param crs coordinate reference system identifier.
-     * @param tileSize Tile size.
-     * @param nbLevel Number of level to compute (used only if a non-coverage data is present in the list)
-     *
-     * @return scales array for data. (for wmts scales)
-     * @throws ConstellationException if the crs can be decoded or no scales can be calculated from any data.
-     */
-    public static double[] getBestScales(List<? extends org.constellation.dto.Data> briefs, String crs, int tileSize, int nbLevel) throws ConstellationException {
-        CoordinateReferenceSystem c = CRSUtilities.verifyCrs(crs, false).orElse(null);
-        return getBestScales(briefs, c, tileSize, nbLevel);
     }
 
     /**
@@ -176,39 +142,47 @@ public class ScaleUtilities {
      * @throws ConstellationException if no scales can be calculated from any data.
      */
     public static double[] getBestScales(List<? extends org.constellation.dto.Data> briefs, CoordinateReferenceSystem crs, int tileSize, int nbLevel) throws ConstellationException {
-        double[] mergedScales = new double[0];
-        for (final org.constellation.dto.Data db : briefs) {
-            final double[] scales;
-            try {
-                scales = computeScales(db.getProviderId(), db.getNamespace(), db.getName(), crs, tileSize, nbLevel);
-            } catch(Exception ex) {
-                LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-                continue;
-            }
-            if (mergedScales.length == 0) {
-                mergedScales = scales;
-            } else {
-                double max = Math.max(mergedScales[0], scales[0]);
-                double min = Math.min(mergedScales[mergedScales.length - 1], scales[scales.length-1]);
-                double[] scalesList = new double[0];
-                double scale = max;
-                while (true) {
-                    if (scale <= min) {
-                        scale = min;
-                    }
-                    scalesList = ArraysExt.resize(scalesList, scalesList.length + 1);
-                    scalesList[scalesList.length -1] = scale;
-                    if (scale <= min) {
-                        break;
-                    }
-                    scale = scale / 2;
+        double[] mergedScales;
+        if (briefs.isEmpty()) {
+            throw new ConstellationException("Supplied datas can not be empty");
+        } else if (briefs.size() == 1) {
+            org.constellation.dto.Data db = briefs.get(0);
+            return computeScales(db.getProviderId(), db.getNamespace(), db.getName(), crs, tileSize, nbLevel);
+        } else {
+            double max = Double.MIN_VALUE;
+            double min = Double.MAX_VALUE;
+            for (final org.constellation.dto.Data db : briefs) {
+                try {
+                    final double[] scales = computeScales(db.getProviderId(), db.getNamespace(), db.getName(), crs, tileSize, nbLevel);
+                    max = Math.max(max, scales[0]);
+                    min = Math.min(min, scales[scales.length-1]);
+                } catch(Exception ex) {
+                    LOGGER.log(Level.WARNING, ex.getMessage(), ex);
                 }
-                mergedScales = scalesList;
             }
+            // generate scales from min / max
+            mergedScales = generateScales(max, min);
         }
         if (mergedScales.length == 0) {
             throw new ConstellationException("No scale found for supplied datas");
         }
         return mergedScales;
+    }
+
+    private static double[] generateScales(double max, double min) {
+        double[] scalesList = new double[0];
+        double scale = max;
+        while (true) {
+            if (scale <= min) {
+                scale = min;
+            }
+            scalesList = ArraysExt.resize(scalesList, scalesList.length + 1);
+            scalesList[scalesList.length -1] = scale;
+            if (scale <= min) {
+                break;
+            }
+            scale = scale / 2;
+        }
+        return scalesList;
     }
 }

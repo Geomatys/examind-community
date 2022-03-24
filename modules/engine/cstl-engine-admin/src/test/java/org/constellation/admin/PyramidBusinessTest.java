@@ -38,7 +38,6 @@ import org.constellation.business.IProcessBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IPyramidBusiness;
 import org.constellation.dto.DataBrief;
-import org.constellation.dto.MapContextLayersDTO;
 import org.constellation.dto.TilingResult;
 import org.constellation.dto.process.Task;
 import org.constellation.provider.Data;
@@ -240,10 +239,9 @@ public class PyramidBusinessTest extends SpringContextTest {
 
         Integer mpId = mpBusiness.createFromData(1, "my_context", "CRS:84", inD.getEnvelope(), Arrays.asList(db));
 
-        MapContextLayersDTO mapContext = mpBusiness.findMapContextLayers(mpId);
         int nbLevel = 4;
 
-        TilingResult result = pyramidBusiness.pyramidMapContext(1, "my_pyramid_context", "CRS:84", mapContext, TilingMode.RENDERED, nbLevel);
+        TilingResult result = pyramidBusiness.pyramidMapContext(1, "my_pyramid_context", "CRS:84", mpId, TilingMode.RENDERED, nbLevel);
 
         Assert.assertNotNull(result.getPyramidDataId());
         org.constellation.dto.Data d = dataBusiness.getData(result.getPyramidDataId());

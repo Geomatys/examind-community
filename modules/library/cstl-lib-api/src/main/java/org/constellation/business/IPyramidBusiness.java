@@ -21,7 +21,6 @@ package org.constellation.business;
 import java.nio.file.Path;
 import java.util.List;
 import org.constellation.api.TilingMode;
-import org.constellation.dto.MapContextLayersDTO;
 import org.constellation.dto.TilingResult;
 import org.constellation.exception.ConstellationException;
 
@@ -36,7 +35,7 @@ public interface IPyramidBusiness {
      * if mode == CONFORM generated pyramid contains coverage real values, it's not styled for rendering.
      *
      * @param pyramidDataName The given pyramid name.
-     * @param mc The input map context.
+     * @param mcId The input map context .
      * @param crs The given pyramid coordinate reference system.
      * @param userId The pyramids owner.
      * @param mode The tiling mode, RENDERED or CONFORM.
@@ -45,7 +44,7 @@ public interface IPyramidBusiness {
      * @return {@link TilingResult}
      * @throws org.constellation.exception.ConstellationException
      */
-    TilingResult pyramidMapContext(Integer userId, String pyramidDataName, final String crs, final MapContextLayersDTO mc, final TilingMode mode, final int nbLevel) throws ConstellationException;
+    TilingResult pyramidMapContext(Integer userId, String pyramidDataName, final String crs, final Integer mcId, final TilingMode mode, final int nbLevel) throws ConstellationException;
 
     /**
      * Generates a pyramid for a map context. if mode = RENDERED generated pyramid will be styled for rendering.

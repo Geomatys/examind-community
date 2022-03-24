@@ -448,24 +448,17 @@ public class MapContextRestAPI extends AbstractRestAPI {
             HttpServletRequest req) {
 
         final int userId;
-        final MapContextLayersDTO mc;
         try {
             userId = assertAuthentificated(req);
             assertNotNullOrEmpty("CRS code", crs);
             assertNotNullOrEmpty("Layer name", layerName);
             assertNotNullOrEmpty("Context id", contextId);
 
-            mc = contextBusiness.findMapContextLayers(contextId);
         } catch (ConstellationException ex) {
             return new ErrorMessage(ex).build();
         }
-
-        if(mc == null || mc.getLayers() == null || mc.getLayers().isEmpty()) {
-            return new ErrorMessage(OK).message("The given mapcontext to pyramid is empty.").build();
-        }
-
         try {
-            final TilingResult ref = pyramidBusiness.pyramidMapContext(userId, layerName, crs, mc, TilingMode.valueOf(mode), nbLevel);
+            final TilingResult ref = pyramidBusiness.pyramidMapContext(userId, layerName, crs, contextId, TilingMode.valueOf(mode), nbLevel);
             return new ResponseEntity(ref, OK);
 
         } catch (Exception ex) {

@@ -29,7 +29,6 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
-import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.parameter.Parameters;
 import org.apache.sis.referencing.CRS;
@@ -239,10 +238,10 @@ public class PyramidBusiness implements IPyramidBusiness {
     }
 
     @Override
-    public TilingResult pyramidMapContext(Integer userId, String pyramidDataName, final String crs, final MapContextLayersDTO mc, TilingMode mode, int nbLevel) throws ConstellationException {
+    public TilingResult pyramidMapContext(Integer userId, String pyramidDataName, final String crs, final Integer mcId, TilingMode mode, int nbLevel) throws ConstellationException {
 
         // this method need to be executed in a transaction
-        TilingContext t = preparePyramidMapContext(userId, pyramidDataName, crs, mc, mode, nbLevel);
+        TilingContext t = preparePyramidMapContext(userId, pyramidDataName, crs, mcId, mode, nbLevel);
 
         //add task in scheduler (previous transaction must be commited)
         processBusiness.runProcess("Create pyramid from Mapcontext.", t.p, t.taskId, userId);
@@ -251,7 +250,12 @@ public class PyramidBusiness implements IPyramidBusiness {
     }
 
     @Transactional
-    private TilingContext preparePyramidMapContext(Integer userId, String pyramidDataName, final String crs, final MapContextLayersDTO mc, TilingMode tilingMode, int nbLevel) throws ConstellationException {
+    private TilingContext preparePyramidMapContext(Integer userId, String pyramidDataName, final String crs, final Integer mcId, TilingMode tilingMode, int nbLevel) throws ConstellationException {
+
+        final MapContextLayersDTO mc = mapContextBusiness.findMapContextLayers(mcId);
+        if (mc.getLayers().isEmpty()) {
+            throw  new ConstellationException("The given mapcontext to pyramid is empty.");
+        }
 
         // verify CRS validity
         final CoordinateReferenceSystem crsOutput = verifyCrs(crs, true).orElseThrow(() -> new ConstellationException("Missing output CRS parameter."));
@@ -274,9 +278,15 @@ public class PyramidBusiness implements IPyramidBusiness {
 
         // compute scales
         final int tileSize = 256;
-        final double[] scales = ScaleUtilities.computeScales(globalEnv, tileSize, nbLevel);
+        final double[] scales;
+        if (mc.isAllInternalData()) {
+            // TODO
+            scales = ScaleUtilities.generateScales(globalEnv, tileSize, nbLevel);
+        } else {
+            scales = ScaleUtilities.generateScales(globalEnv, tileSize, nbLevel);
+        }
 
-        Integer mcDataId = mapContextBusiness.getMapContextData(mc.getId()).getId();
+        Integer mcDataId = mapContextBusiness.getMapContextData(mcId).getId();
         Data d = DataProviders.getProviderData(mcDataId);
         final MapLayers context =  (MapLayers) d.getMapLayer(null);
 
