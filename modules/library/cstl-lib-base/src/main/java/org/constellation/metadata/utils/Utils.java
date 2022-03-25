@@ -755,7 +755,7 @@ public final class Utils {
     public static String encodeXML(String str) {
         if (str != null && !str.isEmpty()) {
             str = str.trim();
-            final StringBuffer buf = new StringBuffer(str.length() * 2);
+            final StringBuilder buf = new StringBuilder(str.length() * 2);
             int i;
             for (i = 0; i < str.length(); ++i) {
                 char ch = str.charAt(i);

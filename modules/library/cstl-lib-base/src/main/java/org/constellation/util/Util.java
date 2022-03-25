@@ -175,11 +175,9 @@ public final class Util {
         final Matcher m  = pa.matcher(str);
         while (m.find()) {
             String grp = m.group(1) != null ? m.group(1) : m.group(2);
-            List<String> values;
+            List<String> values = new ArrayList<>();
             if (!grp.isEmpty()) {
-                values = StringUtilities.toStringList(grp);
-            } else {
-                values = new ArrayList<>();
+                values.addAll(StringUtilities.toStringList(grp));
             }
             results.add(values);
         }

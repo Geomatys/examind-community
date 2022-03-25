@@ -21,8 +21,10 @@ package org.constellation.ws;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -209,6 +211,7 @@ public class LayerCache {
                         try {
                             dimEnv = Envelopes.transform(env, def.crs);
                         } catch (TransformException ex) {
+                            LOGGER.log(Level.FINER, "Error while reprojecting the envelope to dimension CRS.", ex);
                             continue;
                         }
 
@@ -226,31 +229,40 @@ public class LayerCache {
     }
 
     public List<String> getLayerProperties(List<String> propertyNames) throws ConstellationStoreException {
+        if (propertyNames == null || propertyNames.isEmpty()) return Collections.EMPTY_LIST;
+
         List<String> results = new ArrayList<>();
-        if (propertyNames != null && !propertyNames.isEmpty()) {
-            List<String> inverted = new ArrayList<>();
-            for (String propertyName : propertyNames) {
-                if (propertyName.startsWith("-")) {
-                    inverted.add(propertyName);
-                } else {
-                    results.add(propertyName);
-                }
-            }
-            if (!inverted.isEmpty()) {
-                if (results.isEmpty()) {
-                    if (data.getDataDescription(null) instanceof  FeatureDataDescription fd) {
-                        fd.getProperties().stream()
-                                          .map(p -> p.getName())
-                                          .filter(p -> !inverted.contains("-" + p))
-                                          .forEach(p -> results.add(p));
-                    } else {
-                        LOGGER.warning("properties filter are not yet applicable to Raster data");
-                    }
-                } else {
-                    throw new ConstellationStoreException("Mixed exclusive and inclusive property names");
-                }
+        Set<String> inverted = new HashSet<>();
+
+        for (String propertyName : propertyNames) {
+            if (propertyName == null || propertyName.isEmpty()) continue;
+            if (propertyName.startsWith("-") || propertyName.startsWith("!")) {
+                inverted.add(propertyName.substring(1));
+            } else {
+                results.add(propertyName);
             }
         }
+        if (results.isEmpty() && inverted.isEmpty()) {
+            // Input contained only null or empty names
+            LOGGER.fine("Invalid list of parameters: only null or empty values. Selection ignored.");
+            return Collections.EMPTY_LIST;
+
+         } else if (!results.isEmpty() && !inverted.isEmpty()) {
+             throw new ConstellationStoreException("Mixed exclusive and inclusive property names");
+
+         } else if (!inverted.isEmpty()) {
+           
+            if (data.getDataDescription(null) instanceof  FeatureDataDescription fd) {
+                return fd.getProperties().stream()
+                                  .map(p -> p.getName())
+                                  .filter(p -> !inverted.contains(p))
+                                  .toList();
+            } else {
+                LOGGER.warning("Layer property omission is only supported for Feature data");
+                return Collections.EMPTY_LIST;
+            }
+        }
+        
         return results;
     }
 
