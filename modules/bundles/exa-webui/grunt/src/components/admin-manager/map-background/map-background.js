@@ -14,7 +14,7 @@ function MapBackgroundDirective() {
     };
 }
 
-function MapBackgroundController($http, Growl) {
+function MapBackgroundController($http, Examind, Growl) {
     var self = this;
 
     self.offlineMode = JSON.parse(window.localStorage.getItem('map-background-offline-mode')) || false;
@@ -49,6 +49,8 @@ function MapBackgroundController($http, Growl) {
             self.backgroundUrl = '';
             self.layer = '';
             self.layersArray = [];
+            
+            Examind.admin.setWMSBackground();
             Growl('success', 'Success', 'Background offline mode successfully disabled');
         }
     };
@@ -56,6 +58,8 @@ function MapBackgroundController($http, Growl) {
     self.saveUrl = function () {
         window.localStorage.setItem('map-background-url', self.backgroundUrl);
         window.localStorage.setItem('map-background-layer', self.layer);
+        
+        Examind.admin.setWMSBackground(self.backgroundUrl, self.layer);
         Growl('success', 'Success', 'Background offline mode successfully activated');
     };
 
