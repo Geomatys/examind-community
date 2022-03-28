@@ -1,0 +1,1 @@
+ALTER TABLE "admin"."property" ALTER COLUMN "value" TYPE varchar(1000);

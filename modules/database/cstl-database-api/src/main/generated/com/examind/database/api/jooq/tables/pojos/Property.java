@@ -72,7 +72,7 @@ public class Property implements Serializable {
      * Getter for <code>admin.property.value</code>.
      */
     @NotNull
-    @Size(max = 64)
+    @Size(max = 1000)
     public String getValue() {
         return this.value;
     }

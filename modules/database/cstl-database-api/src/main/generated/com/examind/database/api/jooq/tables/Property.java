@@ -70,7 +70,7 @@ public class Property extends TableImpl<PropertyRecord> {
     /**
      * The column <code>admin.property.value</code>.
      */
-    public final TableField<PropertyRecord, String> VALUE = createField(DSL.name("value"), SQLDataType.VARCHAR(64).nullable(false), this, "");
+    public final TableField<PropertyRecord, String> VALUE = createField(DSL.name("value"), SQLDataType.VARCHAR(1000).nullable(false), this, "");
 
     private Property(Name alias, Table<PropertyRecord> aliased) {
         this(alias, aliased, null);
