@@ -175,6 +175,15 @@
         </div>
     </div>
     <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+        <div class="checkbox">
+            <label>
+                <input type="checkbox"
+                       ng-change="autoPreviewHandler()"
+                       ng-model="autoPreview">
+                <span translate="sldeditor.apercu.autochecked">Automatically preview</span>
+                </input>
+            </label>
+        </div>
         <div id="internalDataSourcePreview" style="height: 500px; width:100%;padding: 0;"></div>
     </div>
 </div>

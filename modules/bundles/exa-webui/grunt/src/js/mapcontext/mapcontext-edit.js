@@ -819,6 +819,7 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
         $scope.wrap.nbbypage = 5;
         $scope.dataSelect = { all : false };
         $scope.searchVisible=false;
+        $scope.autoPreview = true;
 
         $scope.clickFilter = function(ordType){
             $scope.wrap.ordertype = ordType;
@@ -871,7 +872,10 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
 
         $scope.initInternalSourceMapContext = function() {
             Examind.datas.getDataListLight(false).then(function (response) {
-                Dashboard($scope, response.data, true);
+                var data = response.data.filter(function (item) {
+                    return item.type !== "MAPCONTEXT";
+                });
+                Dashboard($scope, data, true);
             });
             $scope.selection.internalData = [];
             setTimeout(function(){
@@ -880,55 +884,57 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
         };
 
         $scope.previewData = function() {
-            //clear the map
-            if (DataViewer.map) {
-                DataViewer.map.setTarget(undefined);
-            }
-            DataViewer.initConfig();
-            if ($scope.selection.internalData.length >0) {
-
-                var cstlUrl = window.localStorage.getItem('cstlUrl');
-                var layerName;
-                for(var i=0;i<$scope.selection.internalData.length;i++){
-                    var dataItem = $scope.selection.internalData[i];
-                    if (dataItem.namespace) {
-                        layerName = '{' + dataItem.namespace + '}' + dataItem.name;
-                    } else {
-                        layerName = dataItem.name;
-                    }
-
-                    var type = dataItem.type?dataItem.type.toLowerCase():null;
-                    var layerData;
-                    if (dataItem.targetStyle && dataItem.targetStyle.length > 0) {
-                        layerData = DataViewer.createLayerWithStyle(cstlUrl,dataItem.id,layerName,
-                            dataItem.targetStyle[0].name,null,null,type!=='vector');
-                    } else {
-                        layerData = DataViewer.createLayer(cstlUrl, dataItem.id,layerName, null,type!=='vector');
-                    }
-                    //to force the browser cache reloading styled layer.
-                    layerData.get('params').ts=new Date().getTime();
-                    DataViewer.layers.push(layerData);
+            if ($scope.autoPreview) {
+                //clear the map
+                if (DataViewer.map) {
+                    DataViewer.map.setTarget(undefined);
                 }
+                DataViewer.initConfig();
+                if ($scope.selection.internalData.length > 0) {
 
-                var dataIds = $scope.selection.internalData.map(function (value) {
-                    return value.id;
-                });
-                Examind.datas.mergedDataExtent(dataIds).then(
-                    function(response) {// on success
-                        DataViewer.initMap('internalDataSourcePreview');
-                        if(response.data && response.data.boundingBox) {
-                            var bbox = response.data.boundingBox;
-                            var extent = [bbox[0],bbox[1],bbox[2],bbox[3]];
-                            DataViewer.zoomToExtent(extent,DataViewer.map.getSize(),false);
+                    var cstlUrl = window.localStorage.getItem('cstlUrl');
+                    var layerName;
+                    for (var i = 0; i < $scope.selection.internalData.length; i++) {
+                        var dataItem = $scope.selection.internalData[i];
+                        if (dataItem.namespace) {
+                            layerName = '{' + dataItem.namespace + '}' + dataItem.name;
+                        } else {
+                            layerName = dataItem.name;
                         }
-                    }, function() {//on error
-                        // failed to calculate an extent, just load the full map
-                        DataViewer.initMap('internalDataSourcePreview');
+
+                        var type = dataItem.type ? dataItem.type.toLowerCase() : null;
+                        var layerData;
+                        if (dataItem.targetStyle && dataItem.targetStyle.length > 0) {
+                            layerData = DataViewer.createLayerWithStyle(cstlUrl, dataItem.id, layerName,
+                                dataItem.targetStyle[0].name, null, null, type !== 'vector');
+                        } else {
+                            layerData = DataViewer.createLayer(cstlUrl, dataItem.id, layerName, null, type !== 'vector');
+                        }
+                        //to force the browser cache reloading styled layer.
+                        layerData.get('params').ts = new Date().getTime();
+                        DataViewer.layers.push(layerData);
                     }
-                );
-            }else {
-                DataViewer.initMap('internalDataSourcePreview');
-                DataViewer.map.getView().setZoom(DataViewer.map.getView().getZoom()+1);
+
+                    var dataIds = $scope.selection.internalData.map(function (value) {
+                        return value.id;
+                    });
+                    Examind.datas.mergedDataExtent(dataIds).then(
+                        function (response) {// on success
+                            DataViewer.initMap('internalDataSourcePreview');
+                            if (response.data && response.data.boundingBox) {
+                                var bbox = response.data.boundingBox;
+                                var extent = [bbox[0], bbox[1], bbox[2], bbox[3]];
+                                DataViewer.zoomToExtent(extent, DataViewer.map.getSize(), false);
+                            }
+                        }, function () {//on error
+                            // failed to calculate an extent, just load the full map
+                            DataViewer.initMap('internalDataSourcePreview');
+                        }
+                    );
+                } else {
+                    DataViewer.initMap('internalDataSourcePreview');
+                    DataViewer.map.getView().setZoom(DataViewer.map.getView().getZoom() + 1);
+                }
             }
         };
 
@@ -941,6 +947,19 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
         $scope.truncate = function(text,length){
             if(text) {
                 return (text.length > length) ? text.substr(0, length) + "..." : text;
+            }
+        };
+
+        $scope.autoPreviewHandler = function () {
+            if ($scope.autoPreview) {
+                $scope.previewData();
+            } else {
+                if (DataViewer.map) {
+                    DataViewer.map.setTarget(undefined);
+                }
+                DataViewer.initConfig();
+                DataViewer.initMap('internalDataSourcePreview');
+                DataViewer.map.getView().setZoom(DataViewer.map.getView().getZoom() + 1);
             }
         };
 
