@@ -278,6 +278,39 @@ function Examind($http, url) {
                 method: 'GET',
                 url: 'admin/property/exa.allowed.fs.path'
             });
+        },
+
+        /**
+         * Get WMS background url
+         *
+         * @returns {Promise}
+         */
+        getWMSBackground: function () {
+            return self.request({
+                method: 'GET',
+                url: 'admin/property/examind.wms.background'
+            });
+        },
+
+        /**
+         * Set WMS background url
+         *
+         * @returns {Promise}
+         */
+        setWMSBackground: function (wmsUrl, wmsLayer) {
+            var val;
+            if (wmsUrl && wmsLayer) {
+                val = wmsUrl + '|' + wmsLayer;
+            } else {
+                val = null;
+            }
+            return self.request({
+                method: 'POST',
+                url: 'admin/property/examind.wms.background',
+                data: {
+                    value: val
+                }
+            });
         }
     };
 
@@ -532,40 +565,7 @@ function Examind($http, url) {
                 headers: {'Accept': 'application/json'}
             });
         },
-        
-        /**
-         * Get WMS background url
-         *
-         * @returns {Promise}
-         */
-        getWMSBackground: function () {
-            return self.request({
-                method: 'GET',
-                url: 'admin/property/examind.wms.background'
-            });
-        },
-        
-        
-        /**
-         * Set WMS background url
-         *
-         * @returns {Promise}
-         */
-        setWMSBackground: function (wmsUrl, wmsLayer) {
-            var val;
-            if (wmsUrl && wmsLayer) {
-                val = wmsUrl + '|' + wmsLayer;
-            } else {
-                val = null;
-            }
-            return self.request({
-                method: 'POST',
-                url: 'admin/property/examind.wms.background',
-                data: {
-                    value: val
-                }
-            });
-        }
+
     };
 
     /**

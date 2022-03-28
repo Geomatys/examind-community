@@ -152,8 +152,8 @@ cstlAdminApp
             $idleProvider.warningDuration(60); //1min for warning
 
         }])
-        .run(['$rootScope', 'AppConfigService', 'StompService','$idle', '$keepalive','Permission', '$translate',
-            function($rootScope, AppConfigService, StompService, $idle, $keepalive, Permission, $translate) {
+        .run(['$rootScope', 'AppConfigService', 'StompService','$idle', '$keepalive','Permission', '$translate', 'Examind', 'Growl',
+            function($rootScope, AppConfigService, StompService, $idle, $keepalive, Permission, $translate, Examind, Growl) {
 
             $rootScope.authenticated=true;
 
@@ -198,6 +198,23 @@ cstlAdminApp
                 var account= Permission.getAccount();
                 $translate.use(account.locale ? account.locale :'en');
             });
+
+            // Get Offline WMS background config
+            var offlineBackgroundMode = JSON.parse(window.localStorage.getItem('map-background-offline-mode'));
+            if (!offlineBackgroundMode) {
+                Examind.admin.getWMSBackground()
+                    .then(function (res) {
+                        if (res.data.value) {
+                            var params = res.data.value.split("|");
+                            window.localStorage.setItem('map-background-offline-mode', 'true');
+                            window.localStorage.setItem('map-background-url', params[0]);
+                            window.localStorage.setItem('map-background-layer', params[1]);
+                        }
+                    }, function (err) {
+                        Growl('error', 'Error', 'Cannot get WMS offline Background config');
+                        console.error(err);
+                    });
+            }
 
         }]);
 
