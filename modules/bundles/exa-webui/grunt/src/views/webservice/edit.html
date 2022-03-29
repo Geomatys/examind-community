@@ -47,9 +47,13 @@
                 <div class="navbar-left col-xs-12 col-sm-7 col-md-12"
                      ng-show="showURL"
                      style="margin-bottom:6px;margin-left: 0;padding-left: 0;">
+                    <button class="btn pull-right" style="border-top-left-radius: 0;border-bottom-left-radius: 0;"
+                            ng-click="copyToClipboard()">
+                        <i class="fa fa-clipboard" aria-hidden="true"></i>
+                    </button>
                     <input type="text"
                            class="form-control service-link"
-                           style="float:right;cursor:text;"
+                           style="float:right;cursor:text;border-top-right-radius: 0;border-bottom-right-radius: 0;"
                            size="{{urlBoxSize}}"
                            value="{{url}}"
                            readonly="readonly"/>

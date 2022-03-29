@@ -227,14 +227,6 @@
                                         </div>
                                         <div class="col-sm-2">
                                             <span class="tooltipicon">
-                                                <button type="button" class="btn btn-process" ng-click="deleteTask(selected.id);"
-                                                        data-placement="bottom" title="{{'tasks.information.delete' | translate }}" tooltip>
-                                                    <i class="glyphicon glyphicon-trash"></i>
-                                                </button>
-                                            </span>
-                                        </div>
-                                        <div class="col-sm-2">
-                                            <span class="tooltipicon">
                                                 <button type="button" class="btn btn-process" ng-click="executeTask(selected.id);"
                                                         ng-disabled="!canExecuteTask(selected.id)"
                                                         data-placement="bottom" title="{{'tasks.information.execute' | translate }}" tooltip>
@@ -255,6 +247,14 @@
                                                 <button type="button" class="btn btn-process" ng-click="showPlanningTaskPopup(selected.id);"
                                                         data-placement="bottom" title="{{'tasks.information.planning' | translate }}" tooltip>
                                                     <i class="fa fa-clock-o"></i>
+                                                </button>
+                                            </span>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <span class="tooltipicon">
+                                                <button type="button" class="btn btn-danger2" ng-click="deleteTask(selected.id);"
+                                                        data-placement="bottom" title="{{'tasks.information.delete' | translate }}" tooltip>
+                                                    <i class="glyphicon glyphicon-trash"></i>
                                                 </button>
                                             </span>
                                         </div>

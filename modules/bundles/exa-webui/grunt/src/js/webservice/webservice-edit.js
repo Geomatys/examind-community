@@ -755,6 +755,12 @@ angular.module('cstl-webservice-edit', [
                 }
             }
         };
+
+        $scope.copyToClipboard = function () {
+            navigator.clipboard.writeText($scope.url).then(function () {
+                Growl("success","Success","Text successfully copied to clipboard");
+            });
+        };
     })
     .controller('LayerInfoModalController', function($scope, $modalInstance,Examind,Growl,
                                                      serviceId,serviceType,serviceIdentifier,selectedLayer){
