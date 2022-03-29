@@ -28,7 +28,7 @@ angular.module('cstl-webservice-edit', [
 
     .controller('WebServiceEditController', function($scope, $routeParams ,
                                                      $modal, textService, Dashboard, Growl, $filter,
-                                                     StyleSharedService, $translate, Examind) {
+                                                     StyleSharedService, $translate, Examind, $location) {
         /**
          * To fix angular bug with nested scope.
          */
@@ -759,6 +759,27 @@ angular.module('cstl-webservice-edit', [
         $scope.copyToClipboard = function () {
             navigator.clipboard.writeText($scope.url).then(function () {
                 Growl("success","Success","Text successfully copied to clipboard");
+            });
+        };
+
+        $scope.deleteService = function () {
+            var dlg = $modal.open({
+                templateUrl: 'views/modal-confirm.html', controller: 'ModalConfirmController', resolve: {
+                    'keyMsg': function () {
+                        return "dialog.message.confirm.delete.service";
+                    }
+                }
+            });
+            dlg.result.then(function (cfrm) {
+                if (cfrm) {
+                    Examind.ogcServices.delete($routeParams.type, $routeParams.id).then(function () {
+                        Growl('success', 'Success', 'Service ' + $routeParams.id + ' successfully deleted');
+
+                        $location.path("/webservice");
+                    }, function () {
+                        Growl('error', 'Error', 'Service ' + $routeParams.id + ' deletion failed');
+                    });
+                }
             });
         };
     })

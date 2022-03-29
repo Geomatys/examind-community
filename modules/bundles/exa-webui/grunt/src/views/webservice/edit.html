@@ -42,6 +42,14 @@
                             <i class="fa"
                                ng-class="{'fa-play':service.status!='STARTED','fa-stop':service.status=='STARTED'}"></i>
                         </button>
+                        <button type="button"
+                                class="btn started btn-sm"
+                                ng-click="deleteService();"
+                                data-placement="bottom"
+                                title="{{'layer.listing.selected.delete.button' | translate }}"
+                                tooltip>
+                            <i class="glyphicon glyphicon-trash"></i>
+                        </button>
                     </div>
                 </form>
                 <div class="navbar-left col-xs-12 col-sm-7 col-md-12"
