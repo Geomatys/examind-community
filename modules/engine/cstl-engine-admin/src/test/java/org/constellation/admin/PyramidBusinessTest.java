@@ -205,15 +205,15 @@ public class PyramidBusinessTest extends SpringContextTest {
         Assert.assertNotNull(dd);
         Assert.assertTrue(dd.getOrigin() instanceof TiledResource);
         TiledResource mr = (TiledResource) dd.getOrigin();
-        
+
         Assert.assertEquals(1, mr.getTileMatrixSets().size());
         TileMatrixSet model = mr.getTileMatrixSets().iterator().next();
-        Assert.assertEquals("image/png", model.getFormat());
-        
+        Assert.assertEquals("image/png", mr.getTileFormat().getMimeType());
+
         Assert.assertTrue(model instanceof TileMatrixSet);
         TileMatrixSet tms = (TileMatrixSet) model;
         Assert.assertEquals(3, tms.getTileMatrices().size());
-        
+
         Assert.assertNotNull(result.getPyramidDataId());
 
         org.constellation.dto.Data db = dataBusiness.getData(result.getPyramidDataId());
@@ -296,12 +296,12 @@ public class PyramidBusinessTest extends SpringContextTest {
 
         Assert.assertEquals(1, mr.getTileMatrixSets().size());
         TileMatrixSet model = mr.getTileMatrixSets().iterator().next();
-        Assert.assertEquals("image/png", model.getFormat());
-        
+        Assert.assertEquals("image/png", mr.getTileFormat().getMimeType());
+
         Assert.assertTrue(model instanceof TileMatrixSet);
         TileMatrixSet tms = (TileMatrixSet) model;
         Assert.assertEquals(nbLevel, tms.getTileMatrices().size());
-        
+
         Assert.assertNotNull(result.getPyramidDataId());
 
         org.constellation.dto.Data da = dataBusiness.getData(result.getPyramidDataId());
@@ -372,14 +372,14 @@ public class PyramidBusinessTest extends SpringContextTest {
         Assert.assertNotNull(d);
         Assert.assertTrue(dd.getOrigin() instanceof TiledResource);
         TiledResource mr = (TiledResource) dd.getOrigin();
-        
+
         Assert.assertEquals(1, mr.getTileMatrixSets().size());
         TileMatrixSet model = mr.getTileMatrixSets().iterator().next();
         //Assert.assertEquals("image/tiff", model.getFormat()); it seems that tiff is not supported....
-        
+
         Assert.assertTrue(model instanceof TileMatrixSet);
         TileMatrixSet tms = (TileMatrixSet) model;
-        
+
         Assert.assertEquals(3, tms.getTileMatrices().size());
 
         Assert.assertNotNull(result.getPyramidDataId());

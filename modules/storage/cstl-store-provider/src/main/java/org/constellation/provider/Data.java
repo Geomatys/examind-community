@@ -328,7 +328,6 @@ public interface Data<T extends Resource> {
                     final Map<String,Object> tf = new LinkedHashMap<>();
                     mms.add(tf);
                     tf.put("identifier", mrm.getIdentifier());
-                    tf.put("format", mrm.getFormat());
 
                     if (mrm instanceof TileMatrixSet) {
                         final TileMatrixSet p = (TileMatrixSet) mrm;
@@ -337,17 +336,14 @@ public interface Data<T extends Resource> {
                         tf.put("pyramid", pf);
 
                         pf.put("crs", p.getCoordinateReferenceSystem().toWKT());
-                        pf.put("envelope", new GeneralEnvelope(p.getEnvelope()).toString());
+                        pf.put("envelope", new GeneralEnvelope(p.getEnvelope().get()).toString());
 
                         final List<Map> moss = new ArrayList<>();
-                        for (TileMatrix m : p.getTileMatrices()) {
+                        for (TileMatrix m : p.getTileMatrices().values()) {
                             final Map<String,Object> mf = new LinkedHashMap<>();
                             moss.add(mf);
                             mf.put("identifier", m.getIdentifier());
-                            mf.put("scale", m.getScale());
-                            mf.put("envelope", new GeneralEnvelope(m.getEnvelope()).toString());
-                            mf.put("grid size width", m.getGridSize().width);
-                            mf.put("grid size height", m.getGridSize().height);
+                            mf.put("tilingScheme", m.getTilingScheme().toString());
                             mf.put("tile size width", m.getTileSize().width);
                             mf.put("tile size height", m.getTileSize().height);
                         }

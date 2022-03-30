@@ -78,6 +78,7 @@ import org.geotoolkit.storage.coverage.DefiningGridCoverageResource;
 import org.geotoolkit.storage.multires.DefiningTileMatrixSet;
 import org.geotoolkit.storage.multires.TiledResource;
 import org.geotoolkit.storage.multires.TileMatrixSetBuilder;
+import org.geotoolkit.storage.multires.WritableTiledResource;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.geometry.Envelope;
@@ -151,7 +152,7 @@ public class PyramidBusiness implements IPyramidBusiness {
         if (briefs.isEmpty()) {
             throw new ConstellationException("The given list of data to pyramid is empty.");
         }
-        
+
         /**
          * 1) calculate best scales array. loop on each data and determine
          * the largest scales that wrap all data.
@@ -409,10 +410,10 @@ public class PyramidBusiness implements IPyramidBusiness {
             //this produces an update event which will create the DataRecord
             outProvider.reload();
 
-            TiledResource outRef;
+            WritableTiledResource outRef;
             Data pyData = outProvider.get(pyramidGname);
             if (pyData != null && pyData.getOrigin() instanceof TiledResource) {
-                outRef = (TiledResource) pyData.getOrigin();
+                outRef = (WritableTiledResource) pyData.getOrigin();
             } else {
                 throw new ConstellationException("No pyramid data created (in provider).");
             }
@@ -460,7 +461,7 @@ public class PyramidBusiness implements IPyramidBusiness {
         }
     }
 
-    protected void createTemplate(TiledResource outRef, Envelope globalEnv, int tileSize, double[] scales) throws ConstellationException {
+    protected void createTemplate(WritableTiledResource outRef, Envelope globalEnv, int tileSize, double[] scales) throws ConstellationException {
         try {
             //prepare the pyramid and mosaics
             final Dimension tileDim = new Dimension(tileSize, tileSize);

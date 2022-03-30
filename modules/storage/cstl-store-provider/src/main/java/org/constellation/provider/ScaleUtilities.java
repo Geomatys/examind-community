@@ -94,7 +94,7 @@ public class ScaleUtilities {
         final double[] scales;
         final Object origin = inData.getOrigin();
         if (origin instanceof GridCoverageResource gcr) {
-            
+
             final GridGeometry gg;
             try {
                 gg = gcr.getGridGeometry();
@@ -109,12 +109,12 @@ public class ScaleUtilities {
             if (id != null && "3857".equals(id.getCode())) {
                 try {
                     final int lod = TileMatrices.computePseudoMercatorDepthForResolution(baseScale);
-                    final double[] ds = TileMatrices.createMercatorTemplate(lod).getScales();
+                    final double[] ds = TileMatrices.getScales(TileMatrices.createMercatorTemplate(lod));
 
                     //rever order, as expected by callers
                     scales = new double[ds.length];
                     for (int i = 0, j = ds.length; i < scales.length; i++, j--) scales[i] = ds[j];
-                    
+
                 } catch (FactoryException ex) {
                     throw new ConstellationStoreException(ex);
                 }

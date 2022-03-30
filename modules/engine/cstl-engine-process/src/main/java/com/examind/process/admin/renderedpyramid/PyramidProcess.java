@@ -43,6 +43,8 @@ import org.geotoolkit.storage.coverage.CoverageTileGenerator;
 import org.geotoolkit.storage.coverage.mosaic.AggregatedCoverageResource;
 import org.geotoolkit.storage.multires.TileMatrices;
 import org.geotoolkit.storage.multires.TileMatrixSet;
+import org.geotoolkit.storage.multires.WritableTileMatrixSet;
+import org.geotoolkit.storage.multires.WritableTiledResource;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
@@ -59,7 +61,7 @@ public class PyramidProcess extends AbstractProcessDescriptor implements AdminPr
 
     public static final String BUNDLE_LOCATION = "com/examind/process/admin/renderedpyramid/bundle";
     protected static final ParameterDescriptor<MapLayers> MAPCONTEXT;
-    protected static final ParameterDescriptor<TiledResource> RESOURCE;
+    protected static final ParameterDescriptor<WritableTiledResource> RESOURCE;
     protected static final ParameterDescriptor<InterpolationCase> INTERPOLATION;
     protected static final ParameterDescriptor<String> MODE;
 
@@ -78,7 +80,7 @@ public class PyramidProcess extends AbstractProcessDescriptor implements AdminPr
 
         RESOURCE = builder.addName("resource")
                 .setRequired(true)
-                .create(TiledResource.class, null);
+                .create(WritableTiledResource.class, null);
 
         INTERPOLATION = builder.addName("interpolation")
                 .setRequired(true)
@@ -114,7 +116,7 @@ public class PyramidProcess extends AbstractProcessDescriptor implements AdminPr
         protected void execute() throws ProcessException {
 
             final MapLayers context = inputParameters.getMandatoryValue(MAPCONTEXT);
-            final TiledResource resource = inputParameters.getMandatoryValue(RESOURCE);
+            final WritableTiledResource resource = inputParameters.getMandatoryValue(RESOURCE);
             final InterpolationCase interpolation = inputParameters.getMandatoryValue(INTERPOLATION);
             final String mode = inputParameters.getMandatoryValue(MODE);
 
@@ -131,7 +133,7 @@ public class PyramidProcess extends AbstractProcessDescriptor implements AdminPr
                             bands.add(singleRes);
                         }
                     }
-                    
+
                     if (bands.isEmpty()) {
                         throw new ProcessException("MapContext must contain at least one coverage layer ", this);
                     } else if (bands.size() > 1) {
@@ -147,7 +149,7 @@ public class PyramidProcess extends AbstractProcessDescriptor implements AdminPr
                             throw new ProcessException(ex.getMessage(), this, ex);
                         }
                     }
-                    
+
                     CoverageTileGenerator ctg;
                     try {
                         ctg = new CoverageTileGenerator(singleRes);
@@ -161,7 +163,7 @@ public class PyramidProcess extends AbstractProcessDescriptor implements AdminPr
             }
 
             try {
-                for (TileMatrixSet pyramid : TileMatrices.getTileMatrixSets(resource)) {
+                for (WritableTileMatrixSet pyramid : resource.getTileMatrixSets()) {
                     final ForwardProcessListener fp = new ForwardProcessListener(this, 1, 99);
                     generator.generate(pyramid, null, null, fp);
                 }
