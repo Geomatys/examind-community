@@ -396,6 +396,8 @@
                         <id>restdoc</id>
                         <phase>generate-resources</phase>
                         <configuration>
+                            <source>${java.version}</source>
+                            <release>${java.version}</release>
                             <doctitle>EXAMIND REST ${project.version} Documentation</doctitle>
                             <windowtitle>EXAMIND REST ${project.version} Documentation</windowtitle>
                             <name>EXAMIND REST Endpoints</name>
