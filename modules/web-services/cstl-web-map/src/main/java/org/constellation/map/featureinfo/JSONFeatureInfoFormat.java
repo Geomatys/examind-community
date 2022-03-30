@@ -30,7 +30,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.SortedSet;
 import java.util.logging.Level;
@@ -144,7 +143,7 @@ public class JSONFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
     @Override
     protected void nextProjectedCoverage(GenericName layerName, GridCoverageResource resource, RenderingContext2D context, SearchAreaJ2D queryArea) {
         try {
-            final List<Map.Entry<SampleDimension, Object>> results =
+            final List<FeatureInfoUtilities.Sample> results =
                     FeatureInfoUtilities.getCoverageValues(resource, context, queryArea);
 
             if (results == null || results.isEmpty()) return;
@@ -216,26 +215,20 @@ public class JSONFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         return new CoverageInfo(layerName.toString(), javaTime, elevation);
     }
 
-    static void fill(CoverageInfo target, final List<Map.Entry<SampleDimension,Object>> results) {
+    static void fill(CoverageInfo target, final List<FeatureInfoUtilities.Sample> results) {
         final List<CoverageInfo.Sample> outValues = target.getValues();
-        for (final Map.Entry<SampleDimension,Object> entry : results) {
-            final Object value = entry.getValue();
-            if (value instanceof Number) {
-                final Number nValue = (Number) value;
-                if (Double.isFinite(nValue.doubleValue())) {
+        for (final FeatureInfoUtilities.Sample entry : results) {
+            if (Double.isFinite(entry.value())) {
 
-                    final SampleDimension sd = entry.getKey();
-                    outValues.add(new CoverageInfo.Sample(
-                            sd.getName().tip().toString(),
-                            nValue,
-                            sd.getUnits().orElse(null)
-                    ));
-                } else {
-                    // Could no-data reach this point ?
-                    LOGGER.log(Level.FINE, "Ignoring non finite value");
-                }
+                final SampleDimension sd = entry.description();
+                outValues.add(new CoverageInfo.Sample(
+                        sd.getName().tip().toString(),
+                        entry.value(),
+                        sd.getUnits().orElse(null)
+                ));
             } else {
-                LOGGER.log(Level.FINE, "Ignoring unsupported data type: {0}", value == null? "null" : value.getClass().getCanonicalName());
+                // Could no-data reach this point ?
+                LOGGER.log(Level.FINE, "Ignoring non finite value");
             }
         }
     }

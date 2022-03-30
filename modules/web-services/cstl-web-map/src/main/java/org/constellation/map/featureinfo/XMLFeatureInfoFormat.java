@@ -38,6 +38,7 @@ import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.storage.GridCoverageResource;
 import org.constellation.api.DataType;
 import org.constellation.exception.ConstellationStoreException;
+import org.constellation.map.featureinfo.FeatureInfoUtilities.Sample;
 import org.constellation.ws.LayerCache;
 import org.constellation.ws.MimeType;
 import org.geotoolkit.display.PortrayalException;
@@ -79,7 +80,7 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
      */
     @Override
     protected void nextProjectedCoverage(GenericName layerName, final GridCoverageResource resource, RenderingContext2D context, SearchAreaJ2D queryArea) {
-        final List<Map.Entry<SampleDimension,Object>> results = FeatureInfoUtilities.getCoverageValues(resource, context, queryArea);
+        final List<Sample> results = FeatureInfoUtilities.getCoverageValues(resource, context, queryArea);
 
         if (results == null) {
             return;
@@ -110,7 +111,7 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
 
     }
 
-    protected String coverageToXML(final List<Map.Entry<SampleDimension,Object>> results, String margin, final GetFeatureInfo gfi, final Optional<LayerCache> layerO) {
+    protected String coverageToXML(final List<Sample> results, String margin, final GetFeatureInfo gfi, final Optional<LayerCache> layerO) {
 
         StringBuilder builder = new StringBuilder();
         LayerCache layer = layerO.orElse(null);
@@ -205,12 +206,8 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         builder.append(margin).append("<values>").append("\n");
         margin += "\t";
         int index = 0;
-        for (final Map.Entry<SampleDimension,Object> entry : results) {
-            final Object value = entry.getValue();
-            if (value == null) {
-                continue;
-            }
-            final SampleDimension dim = entry.getKey();
+        for (final Sample entry : results) {
+            final SampleDimension dim = entry.description();
             String bandName;
             if (dim.getName() != null) {
                 String name = dim.getName().toString();
@@ -231,7 +228,7 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             } else  {
                 builder.append(margin).append("<").append(encodeXMLMark(bandName)).append(">");
             }
-            builder.append(value).append("</").append(encodeXMLMark(bandName)).append(">").append("\n");
+            builder.append(entry.value()).append("</").append(encodeXMLMark(bandName)).append(">").append("\n");
             index++;
         }
         margin = margin.substring(1);

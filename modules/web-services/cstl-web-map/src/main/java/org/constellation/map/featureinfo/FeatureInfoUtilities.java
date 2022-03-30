@@ -18,12 +18,15 @@
  */
 package org.constellation.map.featureinfo;
 
+import java.awt.image.RenderedImage;
+import java.util.function.IntToDoubleFunction;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.coverage.grid.GridRoundingMode;
 import org.apache.sis.geometry.GeneralEnvelope;
+import org.apache.sis.image.PixelIterator;
 import org.apache.sis.internal.referencing.AxisDirections;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
@@ -35,7 +38,6 @@ import org.constellation.exception.ConfigurationException;
 import org.geotoolkit.display2d.canvas.RenderingContext2D;
 import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
 import org.geotoolkit.lang.Static;
-import org.geotoolkit.math.XMath;
 import org.opengis.geometry.DirectPosition;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
@@ -44,8 +46,6 @@ import java.awt.geom.Rectangle2D;
 import java.util.List;
 import java.util.*;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.apache.sis.coverage.grid.GridOrientation;
 import org.apache.sis.geometry.GeneralDirectPosition;
 import org.apache.sis.referencing.CRS;
@@ -53,6 +53,8 @@ import org.apache.sis.util.Utilities;
 import org.opengis.coverage.CannotEvaluateException;
 import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+
+import static org.constellation.map.featureinfo.AbstractFeatureInfoFormat.LOGGER;
 
 /**
  * Set of utilities methods for FeatureInfoFormat and GetFeatureInfoCfg manipulation.
@@ -339,7 +341,7 @@ public final class FeatureInfoUtilities extends Static {
      *
      * @return list : each entry contain a gridsampledimension and value associated.
      */
-    public static List<Map.Entry<SampleDimension,Object>> getCoverageValues(final GridCoverageResource ref,
+    public static List<Sample> getCoverageValues(final GridCoverageResource ref,
                                                                             final RenderingContext2D context,
                                                                             final SearchAreaJ2D queryArea) {
 
@@ -355,8 +357,7 @@ public final class FeatureInfoUtilities extends Static {
             searchEnv.setRange(xAxis+1, bounds2D.getMinY(), bounds2D.getMaxY());
 
             try {
-                return getCoverageValues((GridCoverageResource)ref, searchEnv.getMedian())
-                        .collect(Collectors.toList());
+                return getCoverageValues(ref, searchEnv.getMedian());
             } catch (DataStoreException|FactoryException|TransformException ex) {
 
                 context.getMonitor().exceptionOccured(ex, Level.INFO);
@@ -375,16 +376,13 @@ public final class FeatureInfoUtilities extends Static {
      *
      * @param datasource Coverage data to extract data from.
      * @param location The point in space and time to extract value from.
-     * @return List of all samples present at given location. The list contains a pair whose key is the sample metadata,
-     * and the value is GEOPHYSIC value associated to the input point for this sample. Note that transformation of
-     * values will only occurred on stream consumption. It means that {@link BackingStoreException} can be thrown,
-     * wrapping an underlying {@link TransformException}.
+     * @return List of all samples present at given location.
      * @throws DataStoreException If we cannot inspect given resource (acquire grid geometry or read pixels)
      * @throws FactoryException If analyzed coverage cannot give back a single point, then we try to manually find a
      * transform between wanted location and data grid. If it fails, this error is thrown.
      * @throws TransformException In case of error while manually projecting input location in target grid.
      */
-    public static Stream<Map.Entry<SampleDimension, Object>> getCoverageValues(final GridCoverageResource datasource, DirectPosition location) throws DataStoreException, FactoryException, TransformException {
+    static List<Sample> getCoverageValues(final GridCoverageResource datasource, DirectPosition location) throws DataStoreException, FactoryException, TransformException {
         final GridGeometry pointGeom;
         final GridGeometry dsrcGeom = datasource.getGridGeometry();
         if (dsrcGeom.isDefined(GridGeometry.EXTENT)) {
@@ -415,25 +413,49 @@ public final class FeatureInfoUtilities extends Static {
 
         final GridCoverage cvg = datasource.read(pointGeom).forConvertedValues(true);
         final List<SampleDimension> sampleDimensions = cvg.getSampleDimensions();
-         final Map<SampleDimension, Object> samples = new LinkedHashMap<>();
+        final List<Sample> samples = new ArrayList<>(sampleDimensions.size());
+        IntToDoubleFunction sampleValue;
         try {
             final double[] values = cvg.evaluator().apply(location);
-            for (int i = 0; i < values.length; i++) {
-                samples.put(sampleDimensions.get(i), values[i]);
-            }
+            sampleValue = i -> values[i];
         } catch (CannotEvaluateException ex) {
-            for (int i = 0, n = sampleDimensions.size(); i < n; i++) {
-                samples.put(sampleDimensions.get(i), Double.NaN);
+            // Workaround: If there's a problem with grid evaluator (for example: bad wrap-around management),
+            // but read coverage is a single cell, then there's no ambiguity. The value is the only available pixel.
+            try {
+                final RenderedImage rendering = cvg.render(null);
+                final PixelIterator pxIt = PixelIterator.create(rendering);
+                pxIt.next();
+                final double[] pixel = pxIt.getPixel((double[]) null);
+                sampleValue = i -> pixel[i];
+            } catch (Exception bis) {
+                ex.addSuppressed(bis);
+                LOGGER.log(Level.FINE, "GetFeatureInfo point evaluation fails: point outside domain", ex);
+                sampleValue = idx -> Double.NaN;
             }
         }
-        return samples.entrySet().stream();
+
+        for (int i = 0; i < sampleDimensions.size(); i++) {
+            samples.add(new Sample(sampleDimensions.get(i), sampleValue.applyAsDouble(i)));
+        }
+        return samples;
     }
 
-    private static int clamp(final DirectPosition source, final GridExtent bounds, final int dimension) {
-        return (int) XMath.clamp(
-                Math.round(source.getOrdinate(dimension)),
-                bounds.getLow(dimension),
-                bounds.getHigh(dimension)
-        );
+    // TODO: convert to record once Rest doclet support it
+    public static class Sample {
+        private final SampleDimension description;
+        private final double value;
+
+        public Sample(SampleDimension description, double value) {
+            this.description = description;
+            this.value = value;
+        }
+
+        public SampleDimension description() {
+            return description;
+        }
+
+        public double value() {
+            return value;
+        }
     }
 }

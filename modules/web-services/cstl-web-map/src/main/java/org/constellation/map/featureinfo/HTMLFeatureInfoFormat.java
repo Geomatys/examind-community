@@ -31,6 +31,7 @@ import java.util.Map;
 import javax.measure.Unit;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.storage.GridCoverageResource;
+import org.constellation.map.featureinfo.FeatureInfoUtilities.Sample;
 import org.constellation.ws.MimeType;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.canvas.RenderingContext2D;
@@ -185,7 +186,7 @@ public class HTMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
 
     @Override
     protected void nextProjectedCoverage(GenericName layerName, final GridCoverageResource resource, RenderingContext2D context, SearchAreaJ2D queryArea) {
-        final List<Map.Entry<SampleDimension,Object>> covResults = FeatureInfoUtilities.getCoverageValues(resource, context, queryArea);
+        final List<Sample> covResults = FeatureInfoUtilities.getCoverageValues(resource, context, queryArea);
 
         if (covResults == null) {
             return;
@@ -206,20 +207,12 @@ public class HTMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         typeBuilder.append("<div class=\"left-part\">");
         dataBuilder.append("<div class=\"right-part\">");
         typeBuilder.append("<ul>\n");
-        for(Map.Entry<SampleDimension,Object> entry : covResults){
+        for(Sample entry : covResults){
             typeBuilder.append("<li>\n");
-            final SampleDimension gsd = entry.getKey();
-            final InternationalString title = gsd.getName().toInternationalString();
-            if(title!=null){
-                typeBuilder.append(title);
-            }
-            final Unit unit = gsd.getUnits().orElse(null);
-            if(unit!=null){
-                typeBuilder.append(" (").append(unit.toString()).append(")");
-            }
+            CSVFeatureInfoFormat.getSampleName(typeBuilder, entry.description());
             typeBuilder.append("</li>\n");
 
-            dataBuilder.append(String.valueOf(entry.getValue()));
+            dataBuilder.append(entry.value());
             dataBuilder.append("<br/>\n");
         }
         typeBuilder.append("</ul>\n");

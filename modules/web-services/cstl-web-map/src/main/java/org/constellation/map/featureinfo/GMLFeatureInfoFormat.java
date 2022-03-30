@@ -44,6 +44,7 @@ import org.constellation.api.DataType;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.exception.ConstellationStoreException;
+import org.constellation.map.featureinfo.FeatureInfoUtilities.Sample;
 import org.constellation.ws.LayerCache;
 import org.constellation.ws.MimeType;
 import org.geotoolkit.display.PortrayalException;
@@ -140,7 +141,7 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
      */
     @Override
     protected void nextProjectedCoverage(GenericName layerName, final GridCoverageResource resource, RenderingContext2D context, SearchAreaJ2D queryArea) {
-        final List<Map.Entry<SampleDimension,Object>> results =
+        final List<Sample> results =
                 FeatureInfoUtilities.getCoverageValues(resource, context, queryArea);
 
         if (results == null) {
@@ -249,13 +250,9 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
 
         StringBuilder variableBuilder = new StringBuilder();
         StringBuilder valuesBuilder = new StringBuilder();
-        for (final Map.Entry<SampleDimension,Object> entry : results) {
-            final Object value = entry.getValue();
-            if (value == null) {
-                continue;
-            }
-            variableBuilder.append(entry.getKey().getName().toString()).append(',');
-            valuesBuilder.append(value).append(',');
+        for (final Sample entry : results) {
+            variableBuilder.append(entry.description().getName().toString()).append(',');
+            valuesBuilder.append(entry.value()).append(',');
         }
         if (variableBuilder.length() > 0) {
             variableBuilder.deleteCharAt(variableBuilder.length() - 1);

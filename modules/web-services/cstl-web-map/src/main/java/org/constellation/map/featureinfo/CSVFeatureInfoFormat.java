@@ -28,6 +28,7 @@ import java.util.Map;
 import javax.measure.Unit;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.storage.GridCoverageResource;
+import org.constellation.map.featureinfo.FeatureInfoUtilities.Sample;
 import org.constellation.ws.MimeType;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.canvas.RenderingContext2D;
@@ -126,7 +127,7 @@ public class CSVFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
 
     @Override
     protected void nextProjectedCoverage(GenericName layerName, final GridCoverageResource resource, RenderingContext2D context, SearchAreaJ2D queryArea) {
-        final List<Map.Entry<SampleDimension,Object>> covResults = FeatureInfoUtilities.getCoverageValues(resource, context, queryArea);
+        final List<Sample> covResults = FeatureInfoUtilities.getCoverageValues(resource, context, queryArea);
 
         if (covResults == null) {
             return;
@@ -140,17 +141,10 @@ public class CSVFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             result.layerName = layerNameStr;
             //coverage type
             final StringBuilder typeBuilder = new StringBuilder();
-            for (final Map.Entry<SampleDimension,Object> entry : covResults) {
-                final SampleDimension gsd = entry.getKey();
+            for (final Sample entry : covResults) {
+                final SampleDimension gsd = entry.description();
 
-                final InternationalString title = gsd.getName().toInternationalString();
-                if(title!=null){
-                    typeBuilder.append(title);
-                }
-                final Unit unit = gsd.getUnits().orElse(null);
-                if (unit!=null) {
-                    typeBuilder.append(" (").append(unit.toString()).append(")");
-                }
+                getSampleName(typeBuilder, gsd);
                 typeBuilder.append(';');
             }
             result.layerType = typeBuilder.toString();
@@ -159,13 +153,23 @@ public class CSVFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
 
         //the coverage values
         final StringBuilder dataBuilder = new StringBuilder();
-        for(Map.Entry<SampleDimension,Object> entry : covResults){
-            dataBuilder.append(String.valueOf(entry.getValue()));
+        for(Sample sample : covResults){
+            dataBuilder.append(sample.value());
             dataBuilder.append(';');
         }
         result.values.add(dataBuilder.toString());
     }
 
+    static void getSampleName(StringBuilder typeBuilder, SampleDimension gsd) {
+        final InternationalString title = gsd.getName().toInternationalString();
+        if(title!=null){
+            typeBuilder.append(title);
+        }
+        final Unit unit = gsd.getUnits().orElse(null);
+        if (unit!=null) {
+            typeBuilder.append(" (").append(unit.toString()).append(")");
+        }
+    }
 
 
     /**
