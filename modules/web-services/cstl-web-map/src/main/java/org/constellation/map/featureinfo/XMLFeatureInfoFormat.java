@@ -30,14 +30,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.SortedSet;
 import java.util.TimeZone;
-import java.util.logging.Level;
 import javax.measure.Unit;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.storage.GridCoverageResource;
 import org.constellation.api.DataType;
-import org.constellation.exception.ConstellationStoreException;
 import org.constellation.map.featureinfo.FeatureInfoUtilities.Sample;
 import org.constellation.ws.LayerCache;
 import org.constellation.ws.MimeType;
@@ -130,73 +127,18 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             elevation = null;
         }
 
-//        if (objEnv != null) {
-//            final CoordinateReferenceSystem crs = objEnv.getCoordinateReferenceSystem();
-//            final GeneralDirectPosition pos = getPixelCoordinates(gfi);
-//            if (pos != null) {
-//                builder.append("<gml:boundedBy>").append("\n");
-//                String crsName;
-//                try {
-//                    crsName = IdentifiedObjects.lookupIdentifier(crs, true);
-//                } catch (FactoryException ex) {
-//                    LOGGER.log(Level.INFO, ex.getLocalizedMessage(), ex);
-//                    crsName = crs.getName().getCode();
-//                }
-//                builder.append("\t\t\t\t<gml:Box srsName=\"").append(crsName).append("\">\n");
-//                builder.append("\t\t\t\t\t<gml:coordinates>");
-//                builder.append(pos.getOrdinate(0)).append(",").append(pos.getOrdinate(1)).append(" ")
-//                        .append(pos.getOrdinate(0)).append(",").append(pos.getOrdinate(1));
-//                builder.append("</gml:coordinates>").append("\n");
-//                builder.append("\t\t\t\t</gml:Box>").append("\n");
-//                builder.append("\t\t\t</gml:boundedBy>").append("\n");
-//                builder.append("\t\t\t<x>").append(pos.getOrdinate(0)).append("</x>").append("\n")
-//                        .append("\t\t\t<y>").append(pos.getOrdinate(1)).append("</y>").append("\n");
-//            }
-//        }
-
-        if (time == null) {
-            /*
-             * Get the date of the last slice in this layer. Don't invoke
-             * layerPostgrid.getAvailableTimes().last() because getAvailableTimes() is very
-             * costly. The layerPostgrid.getEnvelope() method is much cheaper, since it can
-             * leverage the database index.
-             */
-            SortedSet<Date> dates = null;
-            if (layer != null) {
-                try {
-                    dates = layer.getDateRange();
-                } catch (ConstellationStoreException ex) {
-                    LOGGER.log(Level.INFO, ex.getLocalizedMessage(), ex);
-                }
-            }
-            if (dates != null && !(dates.isEmpty())) {
-                Date last = dates.last();
-                if (last != null) {
-                    time = Collections.singletonList(last);
-                }
-            }
+        if (time == null || time.isEmpty()) {
+            final Date lastTime = searchLastTime(layer);
+            if (lastTime != null) time = Collections.singletonList(lastTime);
         }
+
+        if (elevation == null) elevation = searchElevation(layer);
 
         if (time != null && !time.isEmpty()) {
             // TODO : Manage periods.
             final DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
             df.setTimeZone(TimeZone.getTimeZone("UTC"));
             builder.append(margin).append("<time>").append(encodeXML(df.format(time.get(time.size()-1)))).append("</time>").append("\n");
-        }
-
-        if (elevation == null) {
-            SortedSet<Number> elevs = null;
-            if (layer != null) {
-                try {
-                    elevs = layer.getAvailableElevations();
-                } catch (ConstellationStoreException ex) {
-                    LOGGER.log(Level.INFO, ex.getLocalizedMessage(), ex);
-                    elevs = null;
-                }
-            }
-            if (elevs != null && !(elevs.isEmpty())) {
-                elevation = elevs.first().doubleValue();
-            }
         }
 
         if (elevation != null) {

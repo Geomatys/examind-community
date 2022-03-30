@@ -18,13 +18,18 @@
  */
 package org.constellation.map.featureinfo;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.SortedSet;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.constellation.api.DataType;
 import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
+import org.constellation.exception.ConstellationStoreException;
 import org.constellation.ws.LayerCache;
 import org.opengis.util.GenericName;
+import org.springframework.lang.Nullable;
 
 /**
  * @author Quentin Boileau (Geomatys)
@@ -84,5 +89,31 @@ public abstract class AbstractFeatureInfoFormat implements FeatureInfoFormat {
         return layers.stream()
                 .filter(layer -> layer.getDataType().equals(type) && layer.getName().equals(name))
                 .findAny();
+    }
+
+    protected static @Nullable Date searchLastTime(@Nullable LayerCache layer) {
+        if (layer == null) return null;
+        try {
+            SortedSet<Date> dates = layer.getDateRange();
+            if (dates == null || dates.isEmpty()) return null;
+            else return dates.last();
+        } catch (ConstellationStoreException ex) {
+            LOGGER.log(Level.FINE, "Cannot fetch time boundary from a layer cache", ex);
+            return null;
+        }
+    }
+
+    protected static @Nullable Double searchElevation(@Nullable LayerCache layer) {
+        if (layer == null) return null;
+        SortedSet<Number> elevs;
+        try {
+            elevs = layer.getAvailableElevations();
+        } catch (ConstellationStoreException ex) {
+            LOGGER.log(Level.INFO, ex.getLocalizedMessage(), ex);
+            elevs = null;
+        }
+
+        if (elevs == null  || elevs.isEmpty()) return null;
+        else return elevs.first().doubleValue();
     }
 }

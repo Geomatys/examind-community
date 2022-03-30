@@ -173,43 +173,12 @@ public class JSONFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             elevation = null;
         }
 
-        if (time == null) {
-            /*
-             * Get the date of the last slice in this layer. Don't invoke
-             * layerPostgrid.getAvailableTimes().last() because getAvailableTimes() is very
-             * costly. The layerPostgrid.getEnvelope() method is much cheaper, since it can
-             * leverage the database index.
-             */
-            SortedSet<Date> dates = null;
-            if (layer != null) {
-                try {
-                    dates = layer.getDateRange();
-                } catch (ConstellationStoreException ex) {
-                    LOGGER.log(Level.INFO, ex.getLocalizedMessage(), ex);
-                }
-            }
-            if (dates != null && !(dates.isEmpty())) {
-                Date last = dates.last();
-                if (last != null) {
-                    time = Collections.singletonList(last);
-                 }
-            }
+        if (time == null || time.isEmpty()) {
+            final Date lastTime = searchLastTime(layer);
+            if (lastTime != null) time = Collections.singletonList(lastTime);
         }
 
-        if (elevation == null) {
-            SortedSet<Number> elevs = null;
-            if (layer != null) {
-                try {
-                    elevs = layer.getAvailableElevations();
-                } catch (ConstellationStoreException ex) {
-                    LOGGER.log(Level.INFO, ex.getLocalizedMessage(), ex);
-                    elevs = null;
-                }
-            }
-            if (elevs != null && !(elevs.isEmpty())) {
-                elevation = elevs.first().doubleValue();
-            }
-        }
+        if (elevation == null) elevation = searchElevation(layer);
 
         final Instant javaTime = time == null || time.isEmpty() ? null : time.get(time.size() - 1).toInstant();
         return new CoverageInfo(layerName.toString(), javaTime, elevation);
