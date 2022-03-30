@@ -69,7 +69,6 @@ import org.constellation.map.featureinfo.FeatureInfoFormat;
 import org.constellation.map.featureinfo.FeatureInfoUtilities;
 import org.constellation.portrayal.CstlPortrayalService;
 import org.constellation.portrayal.PortrayalResponse;
-import org.constellation.portrayal.PortrayalUtil;
 import org.constellation.provider.CoverageData;
 import org.constellation.provider.Data;
 import org.constellation.util.Util;
@@ -894,6 +893,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                 throw new CstlServiceException("Expecting a list of propertyName", INVALID_VALUE, KEY_PROPERTYNAME);
             }
         }
+        final Map<String, Object> extraParams = getFI.getParameters();
         
         // Build additional filters
         List<Filter> extraFilters = extractAdditionalFilters(getFI);
@@ -901,7 +901,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         final SceneDef sdef = new SceneDef();
 
         try {
-            final MapLayers context = PortrayalUtil.createContext(layersCache, styles, propertyNames, extraFilters, refEnv);
+            final MapLayers context = mapBusiness.createContext(layersCache, styles, propertyNames, extraFilters, refEnv, extraParams);
             sdef.setContext(context);
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
@@ -1137,6 +1137,8 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             return handleExceptions(getMap, errorInImage, errorBlank, ex, STYLE_NOT_DEFINED, null);
         }
 
+        final Map<String, Object> extraParams = getMap.getParameters();
+        
         // Build additional filters
         List<Filter> extraFilters = extractAdditionalFilters(getMap);
 
@@ -1154,7 +1156,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         }
 
         try {
-            final MapLayers context = PortrayalUtil.createContext(layersCache, styles, Collections.EMPTY_LIST, extraFilters, refEnv);
+            final MapLayers context = mapBusiness.createContext(layersCache, styles, Collections.EMPTY_LIST, extraFilters, refEnv, extraParams);
             sdef.setContext(context);
         } catch (ConstellationStoreException ex) {
             return handleExceptions(getMap, errorInImage, errorBlank, ex, NO_APPLICABLE_CODE, null);

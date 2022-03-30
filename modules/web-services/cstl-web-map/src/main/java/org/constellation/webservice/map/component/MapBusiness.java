@@ -23,7 +23,10 @@ import java.awt.RenderingHints;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import javax.inject.Inject;
 import javax.xml.bind.JAXBException;
 import org.apache.sis.cql.CQL;
@@ -63,15 +66,18 @@ import org.springframework.stereotype.Component;
 import static org.apache.sis.util.ArgumentChecks.ensureDimensionMatches;
 import static org.apache.sis.util.ArgumentChecks.ensureExpectedCount;
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
+import org.constellation.business.IMapBusiness;
+import org.constellation.ws.LayerCache;
 import org.geotoolkit.util.StringUtilities;
 import org.opengis.filter.Filter;
+import org.opengis.geometry.Envelope;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-@Component
-public class MapBusiness {
+@Component("exaMapBusiness")
+public class MapBusiness implements IMapBusiness {
 
     /**
      * Default rendering options.
@@ -90,29 +96,13 @@ public class MapBusiness {
     private IDataBusiness dataBusiness;
 
     /**
-     * Produces a {@link PortrayalResponse} from the specified parameters.
-     * <br>
-     * This method allows to perform data rendering without WMS layer.
-     *
-     * @param dataId      the data identifier
-     * @param crsCode     the projection code
-     * @param bbox        the bounding box
-     * @param width       the image width
-     * @param height      the image height
-     * @param sldProvider the SLD provider name
-     * @param styleName   the style identifier in the provider
-     * @param filter      the filter on data
-     *
-     * @return a {@link PortrayalResponse} instance
-     * @throws ConstellationException if the {@link PortrayalResponse} can't be produced for
-     * any reason
-     * @throws TargetNotFoundException
-     * @throws JAXBException
+     * {@inheritDoc }
      */
+    @Override
     public PortrayalResponse portray(final Integer dataId, final String crsCode,
                                      final String bbox, final int width, final int height,
                                      final String sldProvider, final String styleName, final String filter)
-                                     throws ConstellationException, TargetNotFoundException, JAXBException {
+                                     throws ConstellationException {
         Style style = null;
         if (sldProvider != null && styleName != null) {
             style = styleBusiness.getStyle(sldProvider, styleName);
@@ -124,28 +114,13 @@ public class MapBusiness {
     }
 
     /**
-     * Produces a {@link PortrayalResponse} from the specified parameters.
-     * <br>
-     * This method allows to perform data rendering without WMS layer.
-     *
-     * @param dataId      the data identifier
-     * @param crsCode     the projection code
-     * @param bbox        the bounding box
-     * @param width       the image width
-     * @param height      the image height
-     * @param styleId     the style identifier
-     * @param filter      the filter on data
-     *
-     * @return a {@link PortrayalResponse} instance
-     * @throws ConstellationException if the {@link PortrayalResponse} can't be produced for
-     * any reason
-     * @throws TargetNotFoundException
-     * @throws JAXBException
+     * {@inheritDoc }
      */
+    @Override
     public PortrayalResponse portray(final Integer dataId, final String crsCode,
                                      final String bbox, final int width, final int height,
                                      final Integer styleId, final String filter)
-                                     throws ConstellationException, TargetNotFoundException, JAXBException {
+                                     throws ConstellationException {
         Style style = null;
         if (styleId != null) {
             style = styleBusiness.getStyle(styleId);
@@ -157,21 +132,9 @@ public class MapBusiness {
     }
 
     /**
-     * Produces a {@link PortrayalResponse} from the specified parameters.
-     * <br>
-     * This method allows to perform data rendering without WMS layer.
-     *
-     * @param dataId      the data identifier
-     * @param crsCode    the projection code
-     * @param bbox       the bounding box
-     * @param width      the image width
-     * @param height     the image height
-     * @param sldBody    the style to apply
-     * @param sldVersion the style version
-     * @return a {@link PortrayalResponse} instance
-     * @throws ConstellationException if the {@link PortrayalResponse} can't be produced for
-     * any reason
+     * {@inheritDoc }
      */
+    @Override
     public PortrayalResponse portraySLD(final Integer dataId, final String crsCode,
                                       final String bbox, final int width, final int height, final String sldBody,
                                       final String sldVersion, final String filter) throws ConstellationException {
@@ -201,6 +164,7 @@ public class MapBusiness {
         return portray(dataId, crsCode, bbox, width, height, style, filter);
     }
 
+    @Override
     public PortrayalResponse portray(final List<Integer> dataIds, final List<Integer> styleIds, final String crsCode,
                                      final String bbox, final int width, final int height,
                                      final String filter) throws ConstellationException {
@@ -298,5 +262,71 @@ public class MapBusiness {
                     StringUtilities.toCommaSeparatedValues(dataIds), bbox, width, height, filter
             ), ex);
         }
+    }
+
+    @Override
+    public MapLayers createContext(LayerCache layerRef, MutableStyle styleRef) throws ConstellationStoreException {
+        return createContext(
+                 Collections.singletonList(layerRef),
+                 Collections.singletonList(styleRef),
+                 Collections.EMPTY_LIST,
+                 Collections.EMPTY_LIST,
+                 null,
+                 Collections.EMPTY_MAP);
+
+    }
+
+    @Override
+    public MapLayers createContext(List<LayerCache> layers, List<MutableStyle> styles, List<List<String>> propertiess, List<Filter> extraFilters, Envelope env, Map<String, Object> extraParams) throws ConstellationStoreException {
+        final MapLayers context = MapBuilder.createContext();
+
+        for (int i = 0; i < layers.size(); i++) {
+            final LayerCache layer = layers.get(i);
+            if (layer.getData() != null) {
+                final Data data = layer.getData();
+                MutableStyle style = null;
+                if (i < styles.size()) {
+                    style = styles.get(i);
+                }
+                Filter extraFilter = null;
+                if (i < extraFilters.size()) {
+                    extraFilter = extraFilters.get(i);
+                }
+                final List<String> propertiesFilter = new ArrayList<>();
+                if (i < propertiess.size()) {
+                    propertiesFilter.addAll(propertiess.get(i));
+                }
+
+                final MapItem mapItem = data.getMapLayer(style);
+                if (mapItem == null) {
+                    throw new ConstellationStoreException("Could not create a mapLayer for layer: " + layer.getName());
+                }
+                mapItem.setVisible(true);
+                final Map<String, Object> userData = mapItem.getUserProperties();
+                userData.put("layerId", layer.getId());
+                userData.put("layerName", layer.getName());
+                layer.getAlias().ifPresent(a -> userData.put("alias", a));
+                if (mapItem instanceof MapLayer mapLayer) {
+
+                    // extra filters
+                    Optional<Filter> filter = layer.getLayerFilter(env, extraFilter);
+                    List<String> properties = layer.getLayerProperties(propertiesFilter);
+                    if (filter.isPresent() || !properties.isEmpty()) {
+                        final FeatureQuery query = new FeatureQuery();
+                        if (!properties.isEmpty()) {
+                            query.setProjection(properties.toArray(String[]::new));
+                        }
+                        if (filter.isPresent()) {
+                            query.setSelection(filter.get());
+                        }
+                        mapLayer.setQuery(query);
+                    }
+                }
+                context.getComponents().add(mapItem);
+            } else {
+                throw new ConstellationStoreException("Could not create a Context for a non Geo data: " + layers.get(i).getName());
+            }
+        }
+        return context;
     }
 }

@@ -87,7 +87,6 @@ import org.constellation.dto.contact.Details;
 import org.constellation.dto.service.config.wxs.FormatURL;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.portrayal.CstlPortrayalService;
-import org.constellation.portrayal.PortrayalUtil;
 import org.constellation.provider.CoverageData;
 import org.constellation.provider.Data;
 import org.constellation.util.WCSUtils;
@@ -981,7 +980,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 style = null;
             }
             try {
-                final MapLayers context = PortrayalUtil.createContext(layer, style);
+                final MapLayers context = mapBusiness.createContext(layer, style);
                 sdef.setContext(context);
             } catch (ConstellationStoreException ex) {
                 throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
@@ -1238,7 +1237,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 style = null;
             }
             try {
-                final MapLayers context = PortrayalUtil.createContext(layer, style);
+                final MapLayers context = mapBusiness.createContext(layer, style);
                 sdef.setContext(context);
             } catch (ConstellationStoreException ex) {
                 throw new CstlServiceException(ex, NO_APPLICABLE_CODE);

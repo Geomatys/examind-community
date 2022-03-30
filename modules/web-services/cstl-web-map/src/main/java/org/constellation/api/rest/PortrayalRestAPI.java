@@ -25,9 +25,9 @@ import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
 import org.constellation.business.IDataBusiness;
+import org.constellation.business.IMapBusiness;
 import org.constellation.dto.DataBrief;
 import org.constellation.util.Util;
-import org.constellation.webservice.map.component.MapBusiness;
 import org.constellation.ws.rs.ResponseObject;
 import static org.springframework.http.HttpStatus.*;
 import org.springframework.http.MediaType;
@@ -47,11 +47,10 @@ public class PortrayalRestAPI {
     private static final Logger LOGGER = Logger.getLogger("org.constellation.api.rest");
 
     @Inject
-    private MapBusiness mapBusiness;
+    private IMapBusiness mapBusiness;
 
     @Inject
     private IDataBusiness dataBusiness;
-
 
     /**
      *

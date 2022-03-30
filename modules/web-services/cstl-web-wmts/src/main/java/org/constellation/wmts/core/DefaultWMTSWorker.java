@@ -56,7 +56,6 @@ import org.constellation.dto.contact.Details;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.map.featureinfo.FeatureInfoFormat;
 import org.constellation.portrayal.CstlPortrayalService;
-import org.constellation.portrayal.PortrayalUtil;
 import org.constellation.provider.Data;
 import org.constellation.util.Util;
 import org.constellation.ws.CstlServiceException;
@@ -617,7 +616,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
         final SceneDef sdef = new SceneDef();
 
         try {
-            final MapLayers context = PortrayalUtil.createContext(layer, style);
+            final MapLayers context = mapBusiness.createContext(layer, style);
             sdef.setContext(context);
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex, NO_APPLICABLE_CODE);

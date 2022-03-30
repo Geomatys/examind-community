@@ -54,6 +54,7 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.LAYER_NOT_DEFINED;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.STYLE_NOT_DEFINED;
 import org.opengis.util.GenericName;
 import static org.constellation.business.ClusterMessageConstant.*;
+import org.constellation.business.IMapBusiness;
 import org.constellation.dto.StyleReference;
 import org.constellation.exception.ConstellationException;
 import org.constellation.map.featureinfo.FeatureInfoFormat;
@@ -73,6 +74,9 @@ public abstract class LayerWorker extends AbstractWorker<LayerContext> {
 
     @Inject
     protected IStyleBusiness styleBusiness;
+
+    @Inject
+    protected IMapBusiness mapBusiness;
 
     @Inject
     protected IClusterBusiness clusterBusiness;
