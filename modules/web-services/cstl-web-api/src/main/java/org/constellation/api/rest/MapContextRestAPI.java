@@ -478,7 +478,7 @@ public class MapContextRestAPI extends AbstractRestAPI {
     public ResponseEntity getMapContextData(@PathVariable("id") final Integer contextId, HttpServletRequest req) {
         try {
             assertNotNullOrEmpty("Context id", contextId);
-            Data d = contextBusiness.getMapContextDataId(contextId);
+            Data d = contextBusiness.getMapContextData(contextId);
             return new ResponseEntity(new TilingResult(null, d.getId()), OK);
 
         } catch (Exception ex) {

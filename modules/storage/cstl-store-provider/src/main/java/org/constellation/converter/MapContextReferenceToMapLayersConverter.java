@@ -74,7 +74,7 @@ public class MapContextReferenceToMapLayersConverter extends SimpleConverter<Map
     private static MapLayers getByMpId(final MapContextProcessReference ref) throws ConstellationException {
         final IMapContextBusiness mpBiz = SpringHelper.getBean(IMapContextBusiness.class);
         if (mpBiz == null) throw new UnconvertibleObjectException("Application context unavailable");
-        final org.constellation.dto.Data data = mpBiz.getMapContextDataId(ref.getId());
+        final org.constellation.dto.Data data = mpBiz.getMapContextData(ref.getId());
         return findData(data.getProviderId(), data.getNamespace(), data.getName());
     }
 

@@ -257,15 +257,12 @@ public class MapContextBusiness implements IMapContextBusiness {
                 continue;
             }
             Integer dataID = null;
-            if (styledLayer instanceof InternalServiceMCLayerDTO) {
-                InternalServiceMCLayerDTO isLayer = (InternalServiceMCLayerDTO) styledLayer;
+            if (styledLayer instanceof InternalServiceMCLayerDTO isLayer) {
                 final Layer layerRecord = layerRepository.findById(isLayer.getLayerId());
                 dataID = layerRecord.getDataId();
-            } else if (styledLayer instanceof DataMCLayerDTO) {
-                DataMCLayerDTO dLayer = (DataMCLayerDTO) styledLayer;
+            } else if (styledLayer instanceof DataMCLayerDTO dLayer) {
                 dataID = dLayer.getDataId();
-            } else if (styledLayer instanceof ExternalServiceMCLayerDTO) {
-                ExternalServiceMCLayerDTO eLayer = (ExternalServiceMCLayerDTO) styledLayer;
+            } else if (styledLayer instanceof ExternalServiceMCLayerDTO eLayer) {
                 final String extLayerExtent = eLayer.getExternalLayerExtent();
                 if (extLayerExtent != null && !extLayerExtent.isEmpty()) {
                     final String[] layExtent = extLayerExtent.split(",");
@@ -391,7 +388,7 @@ public class MapContextBusiness implements IMapContextBusiness {
     }
 
     @Override
-    public Data getMapContextDataId(int id) throws ConstellationException {
+    public Data getMapContextData(int id) throws ConstellationException {
         final MapContextDTO mc = mapContextRepository.findById(id);
         if (mc != null) {
             return dataBusiness.getDataBrief(new QName(mc.getName()), INTERNAL_MAP_CONTEXT_PROVIDER, false, false);

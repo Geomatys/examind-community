@@ -18,6 +18,7 @@
  */
 package org.constellation.dto;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -46,11 +47,18 @@ public class MapContextLayersDTO extends MapContextDTO {
     }
 
     public List<AbstractMCLayerDTO> getLayers() {
+        if (layers == null) {
+            layers = new ArrayList<>();
+        }
         return layers;
     }
 
     public void setLayers(List<AbstractMCLayerDTO> layers) {
         this.layers = layers;
+    }
+
+    public boolean isAllInternalData() {
+        return getLayers().stream().filter(l -> !(l instanceof DataMCLayerDTO)).count() == 0;
     }
 
     @Override

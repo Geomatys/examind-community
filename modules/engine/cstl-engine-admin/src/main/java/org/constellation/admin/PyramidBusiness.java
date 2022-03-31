@@ -285,7 +285,7 @@ public class PyramidBusiness implements IPyramidBusiness {
         final int tileSize = 256;
         final double[] scales = ScaleUtilities.computeScales(globalEnv, tileSize, nbLevel);
 
-        Integer mcDataId = mapContextBusiness.getMapContextDataId(mc.getId()).getId();
+        Integer mcDataId = mapContextBusiness.getMapContextData(mc.getId()).getId();
         Data d = DataProviders.getProviderData(mcDataId);
         final MapLayers context =  (MapLayers) d.getMapLayer(null);
 

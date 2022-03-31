@@ -28,18 +28,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
-import javax.inject.Inject;
 import org.apache.sis.metadata.MetadataCopier;
 import org.apache.sis.metadata.iso.citation.DefaultOrganisation;
 import org.apache.sis.metadata.iso.citation.DefaultResponsibility;
 import org.apache.sis.storage.Resource;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.api.StatisticState;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.CoverageDataDescription;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.FeatureDataDescription;
@@ -52,7 +49,6 @@ import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment;
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.opengis.metadata.Metadata;
 import org.opengis.metadata.citation.Party;
@@ -82,7 +78,6 @@ public class DataBusinessTest extends org.constellation.test.SpringContextTest {
     private static boolean initialized = false;
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
-    private static final String CONFIG_DIR_NAME = "DataBusinessTest" + UUID.randomUUID();
 
     private static int coverage1DID;
     private static int coverage2DID;

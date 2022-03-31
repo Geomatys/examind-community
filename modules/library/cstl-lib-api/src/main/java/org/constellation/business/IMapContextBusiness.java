@@ -60,7 +60,7 @@ public interface IMapContextBusiness {
 
     MapContextDTO getContextById(int id);
 
-    Data getMapContextDataId(int id) throws ConstellationException;
+    Data getMapContextData(int id) throws ConstellationException;
 
     Map.Entry<Integer, List<MapContextDTO>> filterAndGetBrief(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage);
 

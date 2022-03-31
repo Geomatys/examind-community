@@ -22,9 +22,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.PostConstruct;
+import javax.imageio.ImageIO;
+import javax.xml.namespace.QName;
+import org.constellation.business.IDataBusiness;
 import org.constellation.business.IMapContextBusiness;
-import org.constellation.configuration.ConfigDirectory;
+import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.AbstractMCLayerDTO;
+import org.constellation.dto.Data;
+import org.constellation.dto.DataMCLayerDTO;
+import org.constellation.dto.ExternalServiceMCLayerDTO;
 import org.constellation.dto.MapContextDTO;
 import org.constellation.dto.MapContextLayersDTO;
 import org.constellation.dto.ParameterValues;
@@ -32,6 +39,7 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.Order;
+import org.constellation.test.utils.TestEnvironment;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -46,8 +54,40 @@ public class MapContextBusinessTest extends SpringContextTest {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
+    private static boolean initialized = false;
+
     @Autowired
     private IMapContextBusiness mpBusiness;
+
+    @Autowired
+    private IDataBusiness dataBusiness;
+
+    @Autowired
+    protected IProviderBusiness providerBusiness;
+
+    private static int coverage1DID;
+
+    @PostConstruct
+    public void init() {
+        if (!initialized) {
+            try {
+                dataBusiness.deleteAll();
+                providerBusiness.removeAll();
+
+                //Initialize geotoolkit
+                ImageIO.scanForPlugins();
+                org.geotoolkit.lang.Setup.initialize(null);
+
+                // coverage-file datastores
+                coverage1DID = testResources.createProvider(TestEnvironment.TestResource.PNG, providerBusiness, null).datas.get(0).id;
+
+                initialized = true;
+            } catch (Exception ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+
 
     @BeforeClass
     public static void initTestDir() throws Exception {
@@ -93,9 +133,28 @@ public class MapContextBusinessTest extends SpringContextTest {
         mapContext.setNorth(90.0);
         mapContext.setSouth(-90.0);
 
+        Data d = dataBusiness.getData(coverage1DID);
+        Assert.assertNotNull(d);
+
         List<AbstractMCLayerDTO> layers = new ArrayList<>();
+        DataMCLayerDTO dtLayer = new DataMCLayerDTO(new QName("SSTMDE200305"),
+                                                    1, 0, true,
+                                                    d.getDate(), "COVERAGE", null,
+                                                    coverage1DID, null, null);
+        layers.add(dtLayer);
+        Assert.assertTrue(mapContext.isAllInternalData());
+
+        ExternalServiceMCLayerDTO esLayer =
+                   new ExternalServiceMCLayerDTO(new QName("layer1"),
+                                                 0, 0, true,
+                                                 null, null, null,
+                                                 new QName("layer1"), "style1",
+                                                 "http://test.com/wms", "1.3.0", null);
+        layers.add(esLayer);
         mapContext.setLayers(layers);
 
+        Assert.assertFalse(mapContext.isAllInternalData());
+        
         mpBusiness.deleteAll();
         Assert.assertEquals(0, mpBusiness.findAllMapContextLayers().size());
 
@@ -104,6 +163,10 @@ public class MapContextBusinessTest extends SpringContextTest {
         mapContext.setId(mid);
 
         MapContextLayersDTO result = mpBusiness.findMapContextLayers(mid);
+        Assert.assertEquals(mapContext.getLayers().size(), result.getLayers().size());
+        Assert.assertEquals(mapContext.getLayers().get(0), result.getLayers().get(0));
+        Assert.assertEquals(mapContext.getLayers().get(1), result.getLayers().get(1));
+        Assert.assertEquals(mapContext.getLayers(), result.getLayers());
         Assert.assertEquals(mapContext, result);
 
         // try to create a context with an already used name.
