@@ -16,19 +16,18 @@
  */
 package org.constellation.provider.metadatastore;
 
-import org.opengis.geometry.Envelope;
 import org.opengis.util.GenericName;
 
 import org.geotoolkit.metadata.MetadataStore;
 
 import org.constellation.api.DataType;
-import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.AbstractData;
 import org.constellation.provider.MetadataData;
 import org.w3c.dom.Node;
 
 /**
- *
+ * TODO extract envelope/crs from metadata object
+ * 
  * @author Guilhem Legal (Geomatys)
  */
 public class DefaultMetadataData extends AbstractData implements MetadataData {
@@ -41,11 +40,6 @@ public class DefaultMetadataData extends AbstractData implements MetadataData {
     }
 
     @Override
-    public Envelope getEnvelope() throws ConstellationStoreException {
-        return null; // TODO extract from ISO metadata
-    }
-
-    @Override
     public Node getMetadata() {
         return metadata;
     }
@@ -53,10 +47,5 @@ public class DefaultMetadataData extends AbstractData implements MetadataData {
     @Override
     public DataType getDataType() {
         return DataType.METADATA;
-    }
-
-    @Override
-    public String getResourceCRSName() throws ConstellationStoreException {
-        return null; // TODO extract from metadata object?
     }
 }

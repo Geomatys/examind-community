@@ -181,6 +181,11 @@ public abstract class AbstractData<T extends Resource> implements Data<T> {
     }
 
     @Override
+    public Envelope getEnvelope() throws ConstellationStoreException {
+        return null;
+    }
+
+    @Override
     public String getSubType() throws ConstellationStoreException {
         return null;
     }

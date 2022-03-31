@@ -16,7 +16,6 @@
  */
 package org.constellation.provider.sensorstore;
 
-import org.opengis.geometry.Envelope;
 import org.opengis.util.GenericName;
 
 import org.geotoolkit.sensor.AbstractSensorStore;
@@ -24,12 +23,12 @@ import org.geotoolkit.sml.xml.AbstractSensorML;
 import org.geotoolkit.sml.xml.SensorMLUtilities;
 
 import org.constellation.api.DataType;
-import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.AbstractData;
 import org.constellation.provider.SensorData;
 
 /**
- *
+ * TODO extract envelope from SML metadata.
+ * 
  * @author Guilhem Legal (Geomatys)
  */
 public class DefaultSensorData extends AbstractData implements SensorData {
@@ -39,11 +38,6 @@ public class DefaultSensorData extends AbstractData implements SensorData {
     public DefaultSensorData(GenericName name, AbstractSensorStore store, final AbstractSensorML metadata) {
         super(name, null, store);
         this.metadata = metadata;
-    }
-
-    @Override
-    public Envelope getEnvelope() throws ConstellationStoreException {
-        return null; // TODO extract from SML metadata
     }
 
     @Override
@@ -59,11 +53,6 @@ public class DefaultSensorData extends AbstractData implements SensorData {
     @Override
     public String getSensorMLType() {
         return SensorMLUtilities.getSensorMLType(metadata);
-    }
-
-    @Override
-    public String getResourceCRSName() throws ConstellationStoreException {
-        return null; // TODO extract from SML metadata
     }
 
     @Override

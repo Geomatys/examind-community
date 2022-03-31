@@ -18,14 +18,12 @@
  */
 package org.constellation.provider;
 
-import org.opengis.geometry.Envelope;
 import org.opengis.util.GenericName;
 
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.Resource;
 
 import org.constellation.api.DataType;
-import org.constellation.exception.ConstellationStoreException;
 
 /**
  *
@@ -38,18 +36,7 @@ public class DefaultOtherData extends AbstractData {
     }
 
     @Override
-    public Envelope getEnvelope() throws ConstellationStoreException {
-        return null;
-    }
-
-    @Override
     public DataType getDataType() {
         return DataType.OTHER;
     }
-
-    @Override
-    public String getResourceCRSName() throws ConstellationStoreException {
-        return null;
-    }
-
 }
