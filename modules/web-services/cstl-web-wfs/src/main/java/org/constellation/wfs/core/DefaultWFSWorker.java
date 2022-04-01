@@ -67,7 +67,6 @@ import org.apache.sis.xml.Namespaces;
 import static org.constellation.api.CommonConstants.OUTPUT_FORMAT;
 import org.constellation.api.ServiceDef;
 import org.constellation.api.WorkerState;
-import org.constellation.dto.NameInProvider;
 import org.constellation.dto.contact.Details;
 import org.constellation.dto.service.config.wxs.FormatURL;
 import org.constellation.dto.service.config.wxs.LayerConfig;
@@ -288,7 +287,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
            }
        }
        if (!foundID) {
-           final List<QName> typeNames = getConfigurationTypeNames(null).stream().map(gn -> Utils.getQnameFromName(gn)).collect(Collectors.toList());
+           final List<QName> typeNames = getTypeNames(null).stream().map(gn -> Utils.getQnameFromName(gn)).collect(Collectors.toList());
            Collections.sort(typeNames, new QNameComparator());
            final QueryType query = new QueryType(IDENTIFIER_FILTER, typeNames, "2.0.0");
            final QueryExpressionTextType queryEx = new QueryExpressionTextType("urn:ogc:def:queryLanguage:OGC-WFS::WFS_QueryExpression", null, typeNames);
@@ -1204,7 +1203,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             final List<GenericName> typeNames;
             final Map<String, GenericName> aliases = new HashMap<>();
             if (query.getTypeNames().isEmpty()) {
-                typeNames = getConfigurationTypeNames(userLogin);
+                typeNames = getTypeNames(userLogin);
             } else {
                 typeNames = query.getTypeNames().stream().map(tp -> NamesExt.create(tp)).collect(Collectors.toList());
                 if (!query.getAliases().isEmpty()) {
@@ -2297,18 +2296,6 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
     @Override
     public WFSCapabilities getCapabilities(String version) throws CstlServiceException {
        return getCapabilities(WFSXmlFactory.buildGetCapabilities(version, "WFS"));
-    }
-
-    private List<GenericName> getConfigurationTypeNames(String login) {
-        List<GenericName> results = new ArrayList<>();
-        for (NameInProvider nop : getConfigurationLayerNames(login)) {
-            if (nop.alias != null) {
-                results.add(NamesExt.create(nop.alias));
-            } else {
-                results.add(nop.layerName);
-            }
-        }
-        return results;
     }
 
     @Override

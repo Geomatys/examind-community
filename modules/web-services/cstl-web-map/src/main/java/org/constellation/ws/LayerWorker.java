@@ -157,13 +157,21 @@ public abstract class LayerWorker extends AbstractWorker<LayerContext> {
         stopped();
     }
 
-    protected List<NameInProvider> getConfigurationLayerNames(final String login) {
+    protected List<NameInProvider> getLayerNames(final String login) {
         try {
             return layerBusiness.getLayerNames(getServiceId(), login);
         } catch (ConfigurationException ex) {
             LOGGER.log(Level.WARNING, "Error while getting layers names", ex);
         }
         return new ArrayList<>();
+    }
+
+    protected List<String> getStrLayerNames(final String login) {
+       return getLayerNames(login).stream().map(nip -> getStrNameFromNIP(nip)).toList();
+    }
+
+    protected List<GenericName> getTypeNames(String login) {
+        return getLayerNames(login).stream().map(nip -> getNameFromNIP(nip)).toList();
     }
 
     /**
@@ -295,15 +303,32 @@ public abstract class LayerWorker extends AbstractWorker<LayerContext> {
         }
     }
 
+    private GenericName getNameFromNIP(NameInProvider nip) {
+        if (nip.alias != null) {
+            return NamesExt.create(nip.alias);
+        } else {
+            return nip.layerName;
+        }
+    }
+
+    private String getStrNameFromNIP(NameInProvider nip) {
+        if (nip.alias != null) {
+            return nip.alias;
+        } else {
+            final String namespace = NamesExt.getNamespace(nip.layerName);
+            final String localName = nip.layerName.tip().toString();
+            if (namespace == null) {
+                return localName;
+            } else {
+                return namespace + ':' + localName;
+            }
+        }
+    }
+
     private LayerCache getLayerCache(NameInProvider nip, String login) throws CstlServiceException {
         Data data = getData(nip);
         if (data != null) {
-            final GenericName layerName;
-            if (nip.alias != null) {
-                layerName = NamesExt.create(nip.alias);
-            } else {
-                layerName = nip.layerName;
-            }
+            final GenericName layerName = getNameFromNIP(nip);
             List<StyleReference> styles = new ArrayList<>();
             LayerConfig configuration;
             try {
