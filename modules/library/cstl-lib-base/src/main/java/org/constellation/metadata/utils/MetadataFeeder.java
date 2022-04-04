@@ -1234,7 +1234,7 @@ public class MetadataFeeder {
         if (optEnv.isPresent()) {
             final MetadataBuilder builder = new MetadataBuilder();
             builder.addExtent(optEnv.get());
-            final DefaultMetadata md = builder.build(false);
+            final DefaultMetadata md = builder.build();
             final List<? extends Extent> newExtents = getExtents(md).collect(Collectors.toList());
             if (!newExtents.isEmpty()) {
                 mdInit.accept(eater);
@@ -1427,7 +1427,7 @@ public class MetadataFeeder {
                 geometry.getGridToCRS(PixelInCell.CELL_CENTER).toWKT() : null;
         final MetadataBuilder builder = new MetadataBuilder();
         builder.addSpatialRepresentation(description, geometry, geometry.isDefined(GridGeometry.RESOLUTION));
-        return builder.build(false).getSpatialRepresentationInfo().stream()
+        return builder.build().getSpatialRepresentationInfo().stream()
                 .findAny();
     }
     

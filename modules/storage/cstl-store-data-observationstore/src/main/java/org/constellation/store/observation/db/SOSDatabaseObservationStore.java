@@ -41,7 +41,7 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import javax.sql.DataSource;
-import org.apache.sis.internal.storage.AbstractFeatureSet;
+import org.apache.sis.storage.AbstractFeatureSet;
 import org.apache.sis.internal.storage.StoreResource;
 import org.apache.sis.parameter.Parameters;
 import org.apache.sis.storage.Aggregate;

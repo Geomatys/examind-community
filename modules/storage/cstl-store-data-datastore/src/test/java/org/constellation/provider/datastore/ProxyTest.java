@@ -54,7 +54,7 @@ public class ProxyTest {
     static {
         final MetadataBuilder builder = new MetadataBuilder();
         builder.addAuthor("Examind");
-        DEFAULT_METADATA = builder.build(true);
+        DEFAULT_METADATA = builder.buildAndFreeze();
     }
 
     @Test
@@ -96,7 +96,7 @@ public class ProxyTest {
     public void ensureMetadataIsOverriden() throws DataStoreException {
         final MetadataBuilder builder = new MetadataBuilder();
         builder.addAuthor("Not Examind");
-        final DefaultMetadata newMetadata = builder.build(true);
+        final DefaultMetadata newMetadata = builder.buildAndFreeze();
         final MockMetadataBusiness mdBiz = new MockMetadataBusiness();
         mdBiz.toReturn = newMetadata;
         final Resource proxy = createProxy(FIX_ID, new MockResource(), mdBiz);
