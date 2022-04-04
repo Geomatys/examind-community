@@ -18,26 +18,20 @@
  */
 package org.constellation.provider.sensorstore;
 
-import java.nio.file.Path;
-import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
-
-import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.GenericName;
 
-import org.apache.sis.internal.storage.ResourceOnFileSystem;
-import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 
 import org.geotoolkit.sensor.AbstractSensorStore;
 import org.geotoolkit.sml.xml.AbstractSensorML;
-import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.util.NamesExt;
 
-import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.IndexedNameDataProvider;
 import org.constellation.provider.Data;
@@ -48,99 +42,48 @@ import org.constellation.provider.SensorProvider;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class SensorStoreProvider extends IndexedNameDataProvider implements SensorProvider {
-
-    private AbstractSensorStore store;
-
+public class SensorStoreProvider extends IndexedNameDataProvider<AbstractSensorStore> implements SensorProvider {
 
     public SensorStoreProvider(String providerId, DataProviderFactory service, ParameterValueGroup param) throws DataStoreException{
         super(providerId,service,param);
     }
 
     /**
-     * @return the datastore this provider encapsulate.
-     */
-    @Override
-    public synchronized AbstractSensorStore getMainStore(){
-        if(store==null){
-            store = createBaseStore();
-        }
-        return store;
-    }
-
-    /**
      * {@inheritDoc }
      */
     @Override
-    public Data get(GenericName key, Date version) throws ConstellationStoreException {
-        key = fullyQualified(key);
-        if (key == null) {
-            return null;
-        }
-
+    public Data computeData(GenericName key) throws ConstellationStoreException {
         final AbstractSensorStore store = getMainStore();
         try {
             final AbstractSensorML metadata = store.getSensorML(key.toString());
-            return new DefaultSensorData(key, store, metadata);
-
+            return  (metadata != null) ? new DefaultSensorData(key, store, metadata) : null;
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
     }
 
     @Override
-    protected synchronized void visit() {
-        store = createBaseStore();
-
-        try {
-
-            for (final String sensor : store.getSensorNames()) {
-                GenericName name = NamesExt.create(sensor);
-                if (!index.contains(name)) {
-                    index.add(name);
+    protected Set<GenericName> computeKeys() {
+        final Set<GenericName> results = new LinkedHashSet<>();
+        final AbstractSensorStore store = getMainStore();
+        if (store != null) {
+            try {
+                for (final String sensorId : getMainStore().getSensorNames()) {
+                    results.add(NamesExt.create(sensorId));
                 }
+            } catch (DataStoreException ex) {
+                LOGGER.log(Level.SEVERE, "Failed to retrieve list of available sensor names.", ex);
             }
-
-        } catch (DataStoreException ex) {
-            //Looks like we failed to retrieve the list of featuretypes,
-            //the layers won't be indexed and the getCapability
-            //won't be able to find thoses layers.
-            LOGGER.log(Level.SEVERE, "Failed to retrive list of available sensor names.", ex);
         }
+        return results;
     }
 
-    protected AbstractSensorStore createBaseStore() {
-        //parameter is a choice of different types
-        //extract the first one
-        ParameterValueGroup param = getSource();
-        param = param.groups("choice").get(0);
-        ParameterValueGroup factoryconfig = null;
-        for(GeneralParameterValue val : param.values()){
-            if(val instanceof ParameterValueGroup){
-                factoryconfig = (ParameterValueGroup) val;
-                break;
-            }
-        }
-
-        if(factoryconfig == null){
-            LOGGER.log(Level.WARNING, "No configuration for feature store source.");
-            return null;
-        }
-        try {
-            //create the store
-            org.apache.sis.storage.DataStoreProvider provider = DataStores.getProviderById(factoryconfig.getDescriptor().getName().getCode());
-            org.apache.sis.storage.DataStore tmpStore = provider.open(factoryconfig);
-            if (tmpStore == null) {//NOSONAR
-                throw new DataStoreException("Could not create sensor store for parameters : "+factoryconfig);
-            } else if (!(tmpStore instanceof AbstractSensorStore)) {
-                tmpStore.close();
-                throw new DataStoreException("Could not create sensor store for parameters : "+factoryconfig + " (not a sensor store)");
-            }
-            return (AbstractSensorStore) tmpStore;
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-        }
-        return null;
+    /**
+     * {@inheritDoc }
+     */
+    @Override
+    protected Class getStoreClass() {
+        return AbstractSensorStore.class;
     }
 
     @Override
@@ -156,37 +99,6 @@ public class SensorStoreProvider extends IndexedNameDataProvider implements Sens
             LOGGER.log(Level.INFO, "Unable to remove " + key.toString() + " from provider.", ex);
         }
         return result;
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public synchronized void dispose() {
-        if(store != null){
-           store.close();
-        }
-        index.clear();
-    }
-
-    @Override
-    public boolean isSensorAffectable() {
-        return false;
-    }
-
-    @Override
-    public Path[] getFiles() throws ConstellationException {
-        DataStore currentStore = store;
-        if (!(currentStore instanceof ResourceOnFileSystem)) {
-            throw new ConstellationException("Store is not made of files.");
-        }
-
-        final ResourceOnFileSystem fileStore = (ResourceOnFileSystem)currentStore;
-        try {
-            return fileStore.getComponentFiles();
-        } catch (DataStoreException ex) {
-            throw new ConstellationException(ex);
-        }
     }
 
     @Override

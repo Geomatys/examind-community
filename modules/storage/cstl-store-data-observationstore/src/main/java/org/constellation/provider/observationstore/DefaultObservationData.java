@@ -18,8 +18,6 @@
  */
 package org.constellation.provider.observationstore;
 
-import java.util.Arrays;
-
 import org.opengis.geometry.Envelope;
 import org.opengis.util.GenericName;
 
@@ -29,7 +27,6 @@ import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.Resource;
 
 import org.geotoolkit.observation.ObservationStore;
-import org.geotoolkit.observation.model.ExtractionResult;
 import org.geotoolkit.storage.feature.FeatureStoreUtilities;
 
 import org.constellation.api.DataType;

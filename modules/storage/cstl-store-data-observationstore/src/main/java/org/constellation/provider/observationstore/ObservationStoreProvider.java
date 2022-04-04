@@ -18,7 +18,6 @@
  */
 package org.constellation.provider.observationstore;
 
-import java.nio.file.Path;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,18 +25,16 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 import org.apache.sis.internal.feature.jts.JTS;
-import org.apache.sis.internal.storage.ResourceOnFileSystem;
 import org.apache.sis.storage.FeatureQuery;
-import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStore;
@@ -55,7 +52,6 @@ import static org.constellation.api.CommonConstants.RESULT_MODEL;
 import org.constellation.dto.service.config.sos.Offering;
 import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
-import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.IndexedNameDataProvider;
 import org.constellation.provider.Data;
@@ -92,7 +88,6 @@ import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.Process;
 import org.opengis.observation.sampling.SamplingFeature;
-import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
@@ -122,9 +117,7 @@ import org.opengis.util.FactoryException;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class ObservationStoreProvider extends IndexedNameDataProvider implements ObservationProvider {
-
-    private ObservationStore store;
+public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore> implements ObservationProvider {
 
     private SOSProviderCapabilities capabilities = null;
 
@@ -140,102 +133,45 @@ public class ObservationStoreProvider extends IndexedNameDataProvider implements
         super(providerId,service,param);
     }
 
+    /**
+     * {@inheritDoc }
+     */
     @Override
-    public synchronized DataStore getMainStore() throws ConstellationStoreException {
-        if (store==null) {
-            store = createBaseStore();
-        }
-        return (DataStore) store;
-    }
-
-    @Override
-    public Data get(GenericName key, Date version) {
-        key = fullyQualified(key);
-        if (key == null) {
+    public Data computeData(GenericName key) throws ConstellationStoreException {
+        try {
+            final DataStore store = getMainStore();
+            store.findResource(key.toString()); // will throw an exception if not exist.
+            return new DefaultObservationData(key, (ObservationStore) store);
+        } catch (Exception ex) {
+            LOGGER.log(Level.FINE, "Error while looking for resource:" + key.toString() + " in observation store.", ex);
             return null;
         }
-        return new DefaultObservationData(key, store);
     }
 
     @Override
-    public Path[] getFiles() throws ConstellationException {
-        DataStore currentStore = getMainStore();
-        if (!(currentStore instanceof ResourceOnFileSystem)) {
-            throw new ConstellationException("Store is not made of files.");
-        }
-
-        final ResourceOnFileSystem fileStore = (ResourceOnFileSystem)currentStore;
-        try {
-            return fileStore.getComponentFiles();
-        } catch (DataStoreException ex) {
-            throw new ConstellationException(ex);
-        }
-    }
-
-    @Override
-    public DefaultMetadata getStoreMetadata() throws ConstellationStoreException {
-        return null;
-    }
-
-    @Override
-    public String getCRSName() throws ConstellationStoreException {
-        return null;
-    }
-
-    @Override
-    protected synchronized void visit() {
-        try {
-            store = createBaseStore();
-
-            for (final Resource rs : DataStores.flatten((DataStore)store, true)) {
-                Optional<GenericName> name = rs.getIdentifier();
-                if (name.isPresent()) {
+    protected Set<GenericName> computeKeys() {
+        final Set<GenericName> results = new LinkedHashSet<>();
+        final DataStore store = getMainStore();
+        if (store != null) {
+            try {
+                for (final Resource rs : DataStores.flatten((DataStore)store, true)) {
                     if (rs instanceof FeatureSet) {
-                        if (!index.contains(name.get())) {
-                            index.add(name.get());
-                        }
+                        rs.getIdentifier().ifPresent(name -> results.add(name));
                     }
                 }
+            } catch (DataStoreException ex) {
+                LOGGER.log(Level.SEVERE, "Failed to retrieve list of available data names.", ex);
             }
-
-        } catch (Exception ex) {
-            //Looks like we failed to retrieve the list of featuretypes,
-            //the layers won't be indexed and the getCapability
-            //won't be able to find thoses layers.
-            LOGGER.log(Level.SEVERE, "Failed to retrive list of available feature types.", ex);
         }
+        return results;
     }
 
-    protected ObservationStore createBaseStore() throws ConstellationStoreException {
-        //parameter is a choice of different types
-        //extract the first one
-        ParameterValueGroup param = getSource();
-        param = param.groups("choice").get(0);
-        ParameterValueGroup factoryconfig = null;
-        for(GeneralParameterValue val : param.values()){
-            if(val instanceof ParameterValueGroup){
-                factoryconfig = (ParameterValueGroup) val;
-                break;
-            }
-        }
-
-        if (factoryconfig == null) {
-            throw new ConstellationStoreException("No configuration for observation store source.");
-        }
-        try {
-            //create the store
-            org.apache.sis.storage.DataStoreProvider provider = DataStores.getProviderById(factoryconfig.getDescriptor().getName().getCode());
-            org.apache.sis.storage.DataStore tmpStore = provider.open(factoryconfig);
-            if (tmpStore == null) {//NOSONAR
-                throw new ConstellationStoreException("Could not create observation store for parameters : "+factoryconfig);
-            } else if (!(tmpStore instanceof ObservationStore)) {
-                throw new ConstellationStoreException("Could not create observation store for parameters : "+factoryconfig + " (not a observation store)");
-            }
-            return (ObservationStore) tmpStore;
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-            throw new ConstellationStoreException(ex);
-        }
+    /**
+     * {@inheritDoc }
+     */
+    @Override
+    protected Class getStoreClass() {
+        return ObservationStore.class;
     }
 
     @Override
@@ -1208,14 +1144,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider implements
 
     @Override
     public synchronized void dispose() {
-        if(store != null){
-            try {
-                store.close();
-            } catch (DataStoreException ex) {
-                LOGGER.log(Level.SEVERE, null, ex);
-            }
-        }
-        index.clear();
+        super.dispose();
         capabilities = null;
     }
 

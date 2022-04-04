@@ -60,6 +60,9 @@ public final class ProviderParameters {
     public static final ParameterDescriptor<Boolean> SOURCE_NO_NAMESPACE_IN_KEY_DESCRIPTOR =
             BUILDER.addName("no_namespace_in_key").setRemarks("optional internal parameters").setRequired(false).create(Boolean.class, false);
 
+    public static final ParameterDescriptor<Boolean> SOURCE_NO_KEY_CACHE_DESCRIPTOR =
+            BUILDER.addName("no_key_cache").setRemarks("optional internal parameters").setRequired(false).create(Boolean.class, false);
+
     private ProviderParameters(){}
 
     /**
@@ -68,10 +71,10 @@ public final class ProviderParameters {
      *  - config
      *  - layers
      */
-    public static ParameterDescriptorGroup createDescriptor(final GeneralParameterDescriptor sourceConfigDescriptor){
+    public static ParameterDescriptorGroup createDescriptor(final GeneralParameterDescriptor sourceConfigDescriptor) {
         return BUILDER.addName(SOURCE_DESCRIPTOR_NAME).setRequired(true).createGroup(1, Integer.MAX_VALUE,
                 SOURCE_ID_DESCRIPTOR,SOURCE_TYPE_DESCRIPTOR,
-                SOURCE_CREATEDATASET_DESCRIPTOR, SOURCE_NO_NAMESPACE_IN_KEY_DESCRIPTOR, sourceConfigDescriptor);
+                SOURCE_CREATEDATASET_DESCRIPTOR, SOURCE_NO_NAMESPACE_IN_KEY_DESCRIPTOR, SOURCE_NO_KEY_CACHE_DESCRIPTOR, sourceConfigDescriptor);
     }
 
     public static ParameterValueGroup getSourceConfiguration(final ParameterValueGroup group, final ParameterDescriptorGroup desc) {

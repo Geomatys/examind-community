@@ -19,9 +19,7 @@
 package org.constellation.provider.metadatastore;
 
 import java.net.URI;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -29,24 +27,19 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import javax.xml.namespace.QName;
-
-import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.GenericName;
 
-import org.apache.sis.internal.storage.ResourceOnFileSystem;
 import org.apache.sis.storage.DataStoreException;
 
 import org.geotoolkit.metadata.MetadataIoException;
 import org.geotoolkit.metadata.MetadataStore;
 import org.geotoolkit.metadata.MetadataType;
 import org.geotoolkit.metadata.RecordInfo;
-import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.util.collection.CloseableIterator;
 
 import org.constellation.dto.service.config.csw.MetadataProviderCapabilities;
-import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.IndexedNameDataProvider;
 import org.constellation.provider.Data;
@@ -58,24 +51,12 @@ import org.w3c.dom.Node;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class MetadataStoreProvider extends IndexedNameDataProvider implements MetadataProvider {
+public class MetadataStoreProvider extends IndexedNameDataProvider<MetadataStore> implements MetadataProvider {
 
-    private MetadataStore store;
     private MetadataProviderCapabilities capabilities = null;
 
     public MetadataStoreProvider(String providerId, DataProviderFactory service, ParameterValueGroup param) throws DataStoreException{
         super(providerId,service,param);
-    }
-
-    /**
-     * @return the datastore this provider encapsulate.
-     */
-    @Override
-    public synchronized MetadataStore getMainStore(){
-        if (store==null) {
-            store = createBaseStore();
-        }
-        return store;
     }
 
     @Override
@@ -102,81 +83,45 @@ public class MetadataStoreProvider extends IndexedNameDataProvider implements Me
      * {@inheritDoc }
      */
     @Override
-    public Data get(GenericName key, Date version) throws ConstellationStoreException {
-        key = fullyQualified(key);
-        if (key == null) {
-            return null;
-        }
+    public Data computeData(GenericName key) throws ConstellationStoreException {
         final MetadataStore store = getMainStore();
         try {
             final RecordInfo metadata = store.getMetadata(key.toString(), MetadataType.NATIVE);
-            return new DefaultMetadataData(key, store, metadata.node);
-
+            return (metadata != null) ? new DefaultMetadataData(key, store, metadata.node) : null;
         } catch (MetadataIoException ex) {
             throw new ConstellationStoreException(ex);
         }
     }
 
     @Override
-    protected synchronized void visit() {
-       final MetadataStore store = getMainStore();
+    protected Set<GenericName> computeKeys() {
+        final Set<GenericName> results = new LinkedHashSet<>();
+        final MetadataStore store = getMainStore();
         if (store != null) {
-            index.clear();
             Iterator<String> it = null;
             try {
                 it = store.getIdentifierIterator();
                 while (it.hasNext()) {
-                    GenericName name = NamesExt.create(it.next());
-                    if (!index.contains(name)) {
-                        index.add(name);
-                    }
+                    results.add(NamesExt.create(it.next()));
                 }
 
             } catch (MetadataIoException ex) {
-                //Looks like we failed to retrieve the list of featuretypes,
-                //the layers won't be indexed and the getCapability
-                //won't be able to find thoses layers.
-                LOGGER.log(Level.SEVERE, "Failed to retrive list of available metadata names.", ex);
+                LOGGER.log(Level.SEVERE, "Failed to retrieve list of available metadata names.", ex);
             } finally {
                 if (it instanceof CloseableIterator) {
                     ((CloseableIterator)it).close();
                 }
             }
         }
+        return results;
     }
 
-    protected MetadataStore createBaseStore() {
-        //parameter is a choice of different types
-        //extract the first one
-        ParameterValueGroup param = getSource();
-        param = param.groups("choice").get(0);
-        ParameterValueGroup factoryconfig = null;
-        for(GeneralParameterValue val : param.values()){
-            if(val instanceof ParameterValueGroup){
-                factoryconfig = (ParameterValueGroup) val;
-                break;
-            }
-        }
-
-        if(factoryconfig == null){
-            LOGGER.log(Level.WARNING, "No configuration for metadata store source.");
-            return null;
-        }
-        try {
-            //create the store
-            org.apache.sis.storage.DataStoreProvider provider = DataStores.getProviderById(factoryconfig.getDescriptor().getName().getCode());
-            org.apache.sis.storage.DataStore tmpStore = provider.open(factoryconfig);
-            if (tmpStore == null) {//NOSONAR
-                throw new DataStoreException("Could not create metadata store for parameters : "+factoryconfig);
-            } else if (!(tmpStore instanceof MetadataStore)) {
-                tmpStore.close();
-                throw new DataStoreException("Could not create metadata store for parameters : "+factoryconfig + " (not a metadata store)");
-            }
-            return (MetadataStore) tmpStore;
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-        }
-        return null;
+    /**
+     * {@inheritDoc }
+     */
+    @Override
+    protected Class getStoreClass() {
+        return MetadataStore.class;
     }
 
     @Override
@@ -190,41 +135,6 @@ public class MetadataStoreProvider extends IndexedNameDataProvider implements Me
             LOGGER.log(Level.INFO, "Unable to remove " + key.toString() + " from provider.", ex);
         }
         return result;
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public synchronized void dispose() {
-        if(store != null){
-            try {
-                store.close();
-            } catch (DataStoreException ex) {
-                LOGGER.log(Level.SEVERE, null, ex);
-            }
-        }
-        index.clear();
-    }
-
-    @Override
-    public boolean isSensorAffectable() {
-        return false;
-    }
-
-    @Override
-    public Path[] getFiles() throws ConstellationException {
-        MetadataStore currentStore = getMainStore();
-        if (!(currentStore instanceof ResourceOnFileSystem)) {
-            throw new ConstellationException("Store is not made of files.");
-        }
-
-        final ResourceOnFileSystem fileStore = (ResourceOnFileSystem)currentStore;
-        try {
-            return fileStore.getComponentFiles();
-        } catch (DataStoreException ex) {
-            throw new ConstellationException(ex);
-        }
     }
 
     @Override
