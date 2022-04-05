@@ -134,7 +134,7 @@ public class InternalDataRestAPI extends AbstractRestAPI {
         final DataCustomConfiguration all = new DataCustomConfiguration();
 
         //list feature store factories
-        for (DataStoreProvider p : org.apache.sis.storage.DataStores.providers()) {
+        for (DataStoreProvider p : DataProviders.listAcceptedProviders(true)) {
             // if there is a list of provider identifier specified
             final String identifier = p.getOpenParameters().getName().getCode();
             if (storeIds != null && !storeIds.contains(identifier)) {

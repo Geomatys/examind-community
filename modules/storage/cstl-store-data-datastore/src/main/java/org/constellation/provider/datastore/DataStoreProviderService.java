@@ -18,19 +18,13 @@
  */
 package org.constellation.provider.datastore;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import java.util.logging.Level;
-import org.apache.sis.parameter.ParameterBuilder;
-import org.apache.sis.storage.DataStores;
 import org.constellation.provider.AbstractDataProviderFactory;
 import org.constellation.provider.DataProvider;
+import org.constellation.provider.ProviderParameters;
 import static org.constellation.provider.ProviderParameters.createDescriptor;
-import org.opengis.parameter.GeneralParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.util.GenericName;
 
 /**
  *
@@ -42,43 +36,7 @@ public class DataStoreProviderService extends AbstractDataProviderFactory {
      * Service name
      */
     public static final String NAME = "data-store";
-    public static final ParameterDescriptorGroup SOURCE_CONFIG_DESCRIPTOR;
-
-    private static final ParameterBuilder BUILDER = new ParameterBuilder();
-
-    static {
-        final List<ParameterDescriptorGroup> descs = new ArrayList<>();
-        final Iterator<org.apache.sis.storage.DataStoreProvider> ite = DataStores.providers().iterator();
-        while (ite.hasNext()) {
-            org.apache.sis.storage.DataStoreProvider provider = ite.next();
-
-            String name = provider.getClass().getName();
-            // for now we exclude the pure sis internal providers
-            if (name.startsWith("org.apache.sis.internal")) {
-                continue;
-            }
-            //for now exclude stores who use the same identifier as geotoolkit
-            if (name.equals("org.apache.sis.storage.earthobservation.LandsatStoreProvider")) {
-                continue;
-            }
-
-            //copy the descriptor with a minimum number of zero
-            final ParameterDescriptorGroup desc = provider.getOpenParameters();
-
-            BUILDER.addName(desc.getName());
-            for (GenericName alias : desc.getAlias()) {
-                BUILDER.addName(alias);
-            }
-            final ParameterDescriptorGroup mindesc = BUILDER.createGroup(0, 1, desc.descriptors().toArray(new GeneralParameterDescriptor[0]));
-
-            descs.add(mindesc);
-        }
-
-        SOURCE_CONFIG_DESCRIPTOR = BUILDER.addName("choice").setRequired(true)
-                .createGroup(descs.toArray(new GeneralParameterDescriptor[descs.size()]));
-
-    }
-
+    public static final ParameterDescriptorGroup SOURCE_CONFIG_DESCRIPTOR  = ProviderParameters.buildSourceConfigDescriptor();
     public static final ParameterDescriptorGroup SERVICE_CONFIG_DESCRIPTOR = createDescriptor(SOURCE_CONFIG_DESCRIPTOR);
 
     public DataStoreProviderService(){
@@ -97,7 +55,7 @@ public class DataStoreProviderService extends AbstractDataProviderFactory {
 
     @Override
     public DataProvider createProvider(String providerId, ParameterValueGroup ps) {
-        if(!canProcess(ps)){
+        if (!canProcess(ps)) {
             return null;
         }
 

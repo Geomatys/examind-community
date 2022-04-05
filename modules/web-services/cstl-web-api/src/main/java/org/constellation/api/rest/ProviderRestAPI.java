@@ -88,7 +88,7 @@ public class ProviderRestAPI extends AbstractRestAPI {
     @RequestMapping(value="/services",method=GET,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity getServices() {
         final List<String> lst = new ArrayList<>();
-        for (DataStoreProvider dp : DataStores.providers()) {
+        for (DataStoreProvider dp : DataProviders.listAcceptedProviders(true)) {
             lst.add(dp.getClass().getName() + " ("+dp.getShortName()+")");
         }
         return new ResponseEntity(lst,OK);

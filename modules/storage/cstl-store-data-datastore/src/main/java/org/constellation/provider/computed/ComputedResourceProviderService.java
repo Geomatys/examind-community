@@ -57,9 +57,8 @@ public class ComputedResourceProviderService extends AbstractDataProviderFactory
         COMPUTED_DESCRIPTORS = Collections.unmodifiableCollection(cache);
     }
 
-    private static final ParameterBuilder BUILDER = new ParameterBuilder();
-
     static {
+        final ParameterBuilder builder = new ParameterBuilder();
         final List<ParameterDescriptorGroup> descs = new ArrayList<>();
         final Iterator<ComputedResourceProviderDescriptor> ite = COMPUTED_DESCRIPTORS.iterator();
         while (ite.hasNext()) {
@@ -68,16 +67,16 @@ public class ComputedResourceProviderService extends AbstractDataProviderFactory
             //copy the descriptor with a minimum number of zero
             final ParameterDescriptorGroup desc = provider.getOpenParameters();
 
-            BUILDER.addName(desc.getName());
+            builder.addName(desc.getName());
             for (GenericName alias : desc.getAlias()) {
-                BUILDER.addName(alias);
+                builder.addName(alias);
             }
-            final ParameterDescriptorGroup mindesc = BUILDER.createGroup(0, 1, desc.descriptors().toArray(new GeneralParameterDescriptor[0]));
+            final ParameterDescriptorGroup mindesc = builder.createGroup(0, 1, desc.descriptors().toArray(new GeneralParameterDescriptor[0]));
 
             descs.add(mindesc);
         }
 
-        SOURCE_CONFIG_DESCRIPTOR = BUILDER.addName("choice").setRequired(true)
+        SOURCE_CONFIG_DESCRIPTOR = builder.addName("choice").setRequired(true)
                 .createGroup(descs.toArray(new GeneralParameterDescriptor[descs.size()]));
 
     }
@@ -100,7 +99,7 @@ public class ComputedResourceProviderService extends AbstractDataProviderFactory
 
     @Override
     public DataProvider createProvider(String providerId, ParameterValueGroup ps) {
-        if(!canProcess(ps)){
+        if (!canProcess(ps)) {
             return null;
         }
 

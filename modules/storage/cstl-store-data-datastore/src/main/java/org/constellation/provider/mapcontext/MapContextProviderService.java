@@ -38,10 +38,9 @@ public class MapContextProviderService extends AbstractDataProviderFactory {
     public static final String NAME = "mapcontext-provider";
     public static final ParameterDescriptorGroup SOURCE_CONFIG_DESCRIPTOR;
 
-    private static final ParameterBuilder BUILDER = new ParameterBuilder();
-
     static {
-        SOURCE_CONFIG_DESCRIPTOR = BUILDER.addName("MapContextProvider").setRequired(true)
+        final ParameterBuilder builder = new ParameterBuilder();
+        SOURCE_CONFIG_DESCRIPTOR = builder.addName("MapContextProvider").setRequired(true)
             .createGroup();
     }
 

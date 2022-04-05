@@ -59,7 +59,12 @@ public class CRSConverters {
             try {
                 return CRS.forCode(object);
             } catch (FactoryException ex) {
-                throw new UnconvertibleObjectException("Problem while decoding coordinate reference system for identifier " + object, ex);
+                // fallback on WKT
+                try {
+                    return CRS.fromWKT(object);
+                } catch (FactoryException ex2) {
+                    throw new UnconvertibleObjectException("Problem while decoding coordinate reference system for identifier " + object, ex);
+                }
             }
         }
     }

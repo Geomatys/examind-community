@@ -19,6 +19,7 @@
 
 package org.constellation.provider;
 
+import java.util.ArrayList;
 import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.util.ArgumentChecks;
 import org.opengis.parameter.GeneralParameterDescriptor;
@@ -28,6 +29,8 @@ import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterNotFoundException;
 import org.opengis.parameter.ParameterValueGroup;
 import java.util.List;
+import org.apache.sis.storage.DataStoreProvider;
+import org.opengis.util.GenericName;
 
 
 /**
@@ -71,14 +74,32 @@ public final class ProviderParameters {
                 SOURCE_CREATEDATASET_DESCRIPTOR, SOURCE_NO_NAMESPACE_IN_KEY_DESCRIPTOR, sourceConfigDescriptor);
     }
 
-    public static ParameterValueGroup getSourceConfiguration(
-            final ParameterValueGroup group,final ParameterDescriptorGroup desc){
+    public static ParameterValueGroup getSourceConfiguration(final ParameterValueGroup group, final ParameterDescriptorGroup desc) {
         final List<ParameterValueGroup> groups = group.groups(desc.getName().getCode());
-        if(!groups.isEmpty()){
+        if (!groups.isEmpty()) {
             return groups.get(0);
-        }else{
-            return null;
         }
+        return null;
+    }
+
+    public static ParameterDescriptorGroup buildSourceConfigDescriptor() {
+        final ParameterBuilder builder = new ParameterBuilder();
+        final List<ParameterDescriptorGroup> descs = new ArrayList<>();
+        final List<DataStoreProvider> providers = DataProviders.listAcceptedProviders(true);
+        for (DataStoreProvider provider : providers) {
+
+            //copy the descriptor with a minimum number of zero
+            final ParameterDescriptorGroup desc = provider.getOpenParameters();
+
+            builder.addName(desc.getName());
+            for (GenericName alias : desc.getAlias()) {
+                builder.addName(alias);
+            }
+            final ParameterDescriptorGroup mindesc = builder.createGroup(0, 1, desc.descriptors().toArray(new GeneralParameterDescriptor[0]));
+
+            descs.add(mindesc);
+        }
+        return builder.addName("choice").setRequired(true).createGroup(descs.toArray(new GeneralParameterDescriptor[descs.size()]));
     }
 
     public static String getNamespace(final DataProvider provider) {

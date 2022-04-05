@@ -49,6 +49,8 @@ import org.apache.sis.util.Static;
 import org.apache.sis.util.UnconvertibleObjectException;
 import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.admin.SpringHelper;
+import org.constellation.configuration.AppProperty;
+import org.constellation.configuration.Application;
 import org.constellation.dto.DataCustomConfiguration;
 import org.constellation.dto.DataDescription;
 import org.constellation.dto.ProviderBrief;
@@ -414,8 +416,27 @@ public final class DataProviders extends Static{
         return p.getShortName();
     }
 
+    /**
+     * return the list of accepted datastores in examind.
+     * Some store are excluded because they are not ready, relevant or redundant.
+     *
+     * @param obsStore allow pure observation store.
+     * @return A filtered list of datastore.
+     */
+    public static List<DataStoreProvider> listAcceptedProviders(boolean obsStore) {
+        boolean allowSisInternal = Application.getBooleanProperty(AppProperty.EXA_ENABLE_INTERNAL_SIS_STORE, false);
+        return org.apache.sis.storage.DataStores.providers()
+                                                .stream()
+                                                .filter(dp -> obsStore || !isOnlyObservationStore(dp))
+                                                // for now we exclude the pure sis internal providers
+                                                .filter(dp -> allowSisInternal || !dp.getClass().getName().startsWith("org.apache.sis.internal"))
+                                                 //for now exclude stores who use the same identifier as geotoolkit
+                                                .filter(dp -> !dp.getClass().getName().equals("org.apache.sis.storage.earthobservation.LandsatStoreProvider"))
+                                                .toList();
+    }
+
     public static Map<String, String> probeContentAndStoreIds(Path p) throws DataStoreException {
-        List<DataStoreProvider> providers = org.apache.sis.storage.DataStores.providers().stream().filter(dp -> !isOnlyObservationStore(dp)).collect(Collectors.toList());
+        List<DataStoreProvider> providers = listAcceptedProviders(false);
         final Map<String, ProbeResult> results = probeContent(providers, DataProviders::extractName, () -> new StorageConnector(p));
         return results.entrySet().stream()
                 .filter(e -> e.getValue().isSupported())
