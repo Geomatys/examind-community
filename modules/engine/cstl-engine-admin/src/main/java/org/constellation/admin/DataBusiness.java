@@ -126,10 +126,10 @@ public class DataBusiness implements IDataBusiness {
      * Injected user business.
      */
     @Inject
-    private IUserBusiness userBusiness;
+    protected IUserBusiness userBusiness;
 
     @Inject
-    private IConfigurationBusiness configBusiness;
+    protected IConfigurationBusiness configBusiness;
     /**
      * Injected data repository.
      */
@@ -448,6 +448,7 @@ public class DataBusiness implements IDataBusiness {
      * Convert a {@link Data} into a {@link DataBrief}.
      *
      * @param data given list of {@link Data}.
+     * @param crsMap a Map of already unserialized WKT crs. to avoid to perform the unserialization too many times.
 
      * @param fetchDataDescription Flag to add or not data dscription (high cost)
      * @return a {@link DataBrief}  never {@code null}.
@@ -468,7 +469,7 @@ public class DataBusiness implements IDataBusiness {
                     }
                     Envelope cachedEnv = null;
                     if (data.getCachedInfo()) {
-                        cachedEnv = readEnvelope(data.getId(), data.getCrs(), crsMap);
+                        cachedEnv = readEnvelope(data.getId(), data.getCrs(), crsMap).orElse(null);
                     }
                      // List of elevations, times and dim_range values.
                     final List<Dimension> dimensions = new ArrayList<>();
@@ -1091,17 +1092,20 @@ public class DataBusiness implements IDataBusiness {
         return null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public Envelope getEnvelope(int dataId) {
+    public Optional<Envelope> getEnvelope(int dataId) {
         if (dataRepository.isCachedDataInfo(dataId)) {
             final Data data = dataRepository.findById(dataId);
             String crsWKT = data.getCrs();
             return readEnvelope(dataId, crsWKT, new HashMap<>());
         }
-        return null;
+        return Optional.empty();
     }
     
-    private Envelope readEnvelope(int dataId, String crsWKT, Map<String, CoordinateReferenceSystem> crsMap) {
+    private Optional<Envelope> readEnvelope(int dataId, String crsWKT, Map<String, CoordinateReferenceSystem> crsMap) {
         if (crsWKT != null) {
             try {
                 CoordinateReferenceSystem crs;
@@ -1116,30 +1120,40 @@ public class DataBusiness implements IDataBusiness {
                 for (int i = 0; i < crs.getCoordinateSystem().getDimension(); i++) {
                     env.setRange(i, coordinates.get(i)[0], coordinates.get(i)[1]);
                 }
-                return env;
+                return Optional.of(env);
             } catch (FactoryException ex) {
                 LOGGER.log(Level.WARNING, "Unreadable WKT CRS", ex);
             }
         }
-        return null;
+        return Optional.empty();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public SortedSet<Date> getDataTimes(int dataId, boolean range) {
         return dataRepository.getDataTimes(dataId, range);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public SortedSet<Number> getDataElevations(int dataId) {
         return dataRepository.getDataElevations(dataId);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public SortedSet<DimensionRange> getDataDimensionRange(int dataId) {
         return dataRepository.getDataDimensionRange(dataId);
     }
 
     @Override
+    @Transactional
     public void cacheDataInformation(int dataId, boolean refresh) throws ConstellationException {
         DataBrief db = getDataBrief(dataId, false, false);
         if (db == null) {
@@ -1148,10 +1162,10 @@ public class DataBusiness implements IDataBusiness {
         if (db.getCachedInfo() && !refresh) {
             return;
         }
-        Envelope env = null;
-        Set<Date> dates = null;
-        Set<Number> elevations = null;
-        Set<DimensionRange> dims = null;
+        Envelope env             = null;
+        Set<Date> dates          = new HashSet<>();
+        Set<Number> elevations   = new HashSet<>();
+        Set<DimensionRange> dims = new HashSet<>();
         try {
             org.constellation.provider.Data providerData = DataProviders.getProviderData(db.getProviderId(), db.getNamespace(), db.getName());
             if (providerData != null) {
@@ -1180,7 +1194,8 @@ public class DataBusiness implements IDataBusiness {
                     dataRepository.updateDimensionRange(dataId, dims);
                 }
             } catch (UnsupportedOperationException ex) {
-                LOGGER.log(Level.WARNING, "Error while serializing data CRS to WKT: {0}", ex.getMessage());
+                 LOGGER.log(Level.WARNING, "Error while serializing data CRS to WKT. See debug logs for details");
+                 LOGGER.log(Level.FINE, "Error while serializing CRS", ex);
             }
         }
     }

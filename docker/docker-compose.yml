@@ -45,6 +45,7 @@ services :
          JPDA_TRANSPORT: dt_socket
          CSTL_TOKEN_LIFE: 30
          EXAMIND_ENABLE_INTERNAL_SIS_STORE: "false"
+         EXA_CACHE_DATA_INFO: "false"
        entrypoint: catalina.sh jpda run
 volumes:
   exa-db-volume:

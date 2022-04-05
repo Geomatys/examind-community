@@ -284,6 +284,7 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, com.
     }
 
     @Override
+    @Transactional(propagation = Propagation.MANDATORY)
     public void linkDataToData(final int dataId, final int childId) {
         final DataXData dxd = dsl.select().from(DATA_X_DATA).where(DATA_X_DATA.DATA_ID.eq(dataId)).and(DATA_X_DATA.CHILD_ID.eq(childId)).fetchOneInto(DataXData.class);
         if (dxd == null) {
@@ -315,6 +316,7 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, com.
      * {@inheritDoc}
      */
     @Override
+    @Transactional(propagation = Propagation.MANDATORY)
     public void removeLinkedData(int dataId) {
         dsl.delete(DATA_X_DATA).where(DATA_X_DATA.DATA_ID.eq(dataId)).execute();
     }
@@ -574,6 +576,7 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, com.
     }
 
     @Override
+    @Transactional(propagation = Propagation.MANDATORY)
     public void updateDataBBox(int dataId, String crs, List<Double[]> coordinates) {
         dsl.update(DATA)
                 .set(DATA.CRS, crs)
@@ -602,6 +605,7 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, com.
     }
 
     @Override
+    @Transactional(propagation = Propagation.MANDATORY)
     public void updateDataTimes(int dataId, Set<Date> dates) {
         dsl.delete(DATA_TIMES).where(DATA_TIMES.DATA_ID.eq(dataId)).execute();
         for (Date d : dates) {
@@ -636,6 +640,7 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, com.
     }
 
     @Override
+    @Transactional(propagation = Propagation.MANDATORY)
     public void updateDataElevations(int dataId, Set<Number> elevations) {
         dsl.delete(DATA_ELEVATIONS).where(DATA_ELEVATIONS.DATA_ID.eq(dataId)).execute();
         for (Number d : elevations) {
@@ -676,6 +681,7 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, com.
     }
 
     @Override
+    @Transactional(propagation = Propagation.MANDATORY)
     public void updateDimensionRange(int dataId, Set<DimensionRange> dimensions) {
         dsl.delete(DATA_DIM_RANGE).where(DATA_DIM_RANGE.DATA_ID.eq(dataId)).execute();
         for (DimensionRange d : dimensions) {

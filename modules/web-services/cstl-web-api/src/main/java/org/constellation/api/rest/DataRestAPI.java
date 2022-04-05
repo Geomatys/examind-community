@@ -116,9 +116,6 @@ public class DataRestAPI extends AbstractRestAPI{
     private IPyramidBusiness pyramidBusiness;
 
     @Inject
-    private IConfigurationBusiness configBusiness;
-
-    @Inject
     private IDataCoverageJob dataCoverageJob;
 
     @RequestMapping(value="/datas/{dataId}/accept",method=POST, produces=APPLICATION_JSON_VALUE)
@@ -904,7 +901,11 @@ public class DataRestAPI extends AbstractRestAPI{
         try {
             for (Integer pid : providerBusiness.getProviderIdsAsInt()) {
                 for (Integer dataId : providerBusiness.getDataIdsFromProviderId(pid, null, true, false)) {
-                    dataBusiness.cacheDataInformation(dataId, refresh);
+                    try {
+                        dataBusiness.cacheDataInformation(dataId, refresh);
+                    } catch (ConstellationException ex) {
+                        LOGGER.log(Level.WARNING, "Error while caching informations for data: " + dataId, ex);
+                    }
                 }
             }
             return new ResponseEntity(OK);

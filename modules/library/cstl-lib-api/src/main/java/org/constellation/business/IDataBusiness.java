@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import javax.xml.namespace.QName;
@@ -332,13 +333,42 @@ public interface IDataBusiness {
     DataBrief acceptData(int id, int owner, boolean hidden) throws ConstellationException;
 
     Map<String, List> acceptDatas(List<Integer> ids, int owner, boolean hidden) throws ConstellationException;
-    
-    Envelope getEnvelope(final int dataId);
-    
+
+    /**
+     * Return the original data envelope, if it has been stored into the database.
+     * 
+     * @param dataId Data identifier.
+     * @return The original data envelope or Empty.
+     */
+    Optional<Envelope> getEnvelope(final int dataId);
+
+    /**
+     * Return a set of dates, if it has been stored into the database.
+     * If the parameter range is set to {@code true} only the min/max will be returned.
+     *
+     * @param dataId Data identifier.
+     * @param range If set to {@code true}, the min/max will be returned.
+     *
+     * @return A set of dates.
+     */
     SortedSet<Date> getDataTimes(final int dataId, boolean range);
-    
+
+    /**
+     * Return a set of elevations, if it has been stored into the database.
+     *
+     * @param dataId Data identifier.
+     *
+     * @return A set of elevations.
+     */
     SortedSet<Number> getDataElevations(final int dataId);
-    
+
+    /**
+     * Return a set of dimension ranges, if it has been stored into the database.
+     *
+     * @param dataId Data identifier.
+     *
+     * @return A set of dimension ranges.
+     */
     SortedSet<DimensionRange> getDataDimensionRange(final int dataId);
 
     /**

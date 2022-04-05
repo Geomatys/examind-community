@@ -49,7 +49,6 @@ import org.constellation.test.utils.TestEnvironment;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.Metadata;
 import org.opengis.metadata.citation.Party;
@@ -199,12 +198,12 @@ public class DataBusinessTest extends org.constellation.test.SpringContextTest {
         /**
          * Test data info cache
          */
-        Envelope env = dataBusiness.getEnvelope(db.getId());
+        Envelope env = dataBusiness.getEnvelope(db.getId()).orElse(null);
         Assert.assertNull(env);
 
         dataBusiness.cacheDataInformation(db.getId(), false);
 
-        env = dataBusiness.getEnvelope(db.getId());
+        env = dataBusiness.getEnvelope(db.getId()).orElse(null);
         Assert.assertNotNull(env);
     }
 
@@ -233,12 +232,12 @@ public class DataBusinessTest extends org.constellation.test.SpringContextTest {
         /**
          * Test data info cache
          */
-        Envelope env = dataBusiness.getEnvelope(db.getId());
+        Envelope env = dataBusiness.getEnvelope(db.getId()).orElse(null);
         Assert.assertNull(env);
 
         dataBusiness.cacheDataInformation(db.getId(), false);
 
-        env = dataBusiness.getEnvelope(db.getId());
+        env = dataBusiness.getEnvelope(db.getId()).orElse(null);
         Assert.assertNotNull(env);
     }
 

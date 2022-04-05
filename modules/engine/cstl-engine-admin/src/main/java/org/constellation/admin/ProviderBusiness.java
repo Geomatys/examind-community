@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.*;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +43,6 @@ import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.DataBrief;
-import org.constellation.dto.DimensionRange;
 import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.ProviderConfiguration;
 import org.constellation.dto.Sensor;
@@ -68,7 +66,6 @@ import org.constellation.repository.StyleRepository;
 import org.constellation.util.ParamUtilities;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.util.NamesExt;
-import org.opengis.geometry.Envelope;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
@@ -662,22 +659,12 @@ public class ProviderBusiness implements IProviderBusiness {
                 String subType   = null;
                 boolean included = true;
                 Boolean rendered = null;
-                Envelope env = null;
-                Set<Date> dates = null;
-                Set<Number> elevations = null;
-                Set<DimensionRange> dims = null;
                 try {
                     Data providerData = provider.get(key);
                     if (providerData != null) {
                         type     = providerData.getDataType();
                         subType  = providerData.getSubType();
                         rendered = providerData.isRendered();
-                        if (cacheDataInfo) {
-                            env        = providerData.getEnvelope();
-                            dates      = providerData.getAvailableTimes();
-                            elevations = providerData.getAvailableElevations();
-                            dims       = providerData.getSampleValueRanges();
-                        }
                     }
                 } catch (Exception ex) {
                     LOGGER.log(Level.FINER, ex.getMessage(), ex);
@@ -688,25 +675,8 @@ public class ProviderBusiness implements IProviderBusiness {
                         included, rendered, subType, hideNewData, owner);
                 
                 // cache data informations in the database
-                if (Application.getBooleanProperty(AppProperty.EXA_CACHE_DATA_INFO, false)) {
-                    if (env != null) {
-                        String crs;
-                        try {
-                            crs = env.getCoordinateReferenceSystem().toWKT();
-                            if (crs != null) {
-                                List<Double[]> coordinates = new ArrayList<>();
-                                for (int i = 0; i < env.getDimension(); i++) {
-                                    coordinates.add(new Double[]{env.getMinimum(i), env.getMaximum(i)});
-                                }
-                                dataRepository.updateDataBBox(dataId, crs, coordinates);
-                                dataRepository.updateDataTimes(dataId, dates);
-                                dataRepository.updateDataElevations(dataId, elevations);
-                                dataRepository.updateDimensionRange(dataId, dims);
-                            }
-                        } catch (UnsupportedOperationException ex) {
-                            LOGGER.log(Level.WARNING, "Error while serializing data CRS to WKT: {0}", ex.getMessage());
-                        }
-                    }
+                if (cacheDataInfo) {
+                    dataBusiness.cacheDataInformation(dataId, false);
                 }
 
                 if (datasetId != null) {
