@@ -189,6 +189,13 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, com.
     }
 
     @Override
+    public List<Integer> findIdsByDatasetId(Integer id, boolean included, boolean hidden) {
+        SelectConditionStep c = dsl.select(DATA.ID).from(DATA)
+                .where(DATA.DATASET_ID.eq(id)).and(DATA.INCLUDED.eq(included)).and(DATA.HIDDEN.eq(hidden));
+        return c.fetchInto(Integer.class);
+    }
+
+    @Override
     public List<Data> findByDatasetId(Integer id) {
         return convertDataListToDto(dsl.select()
                                    .from(DATA)

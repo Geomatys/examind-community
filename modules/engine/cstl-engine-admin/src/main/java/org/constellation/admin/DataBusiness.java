@@ -298,6 +298,14 @@ public class DataBusiness implements IDataBusiness {
         return getDataBriefFrom(dataList, sensorable, published, fetchDataDescription, fetchAssociations);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<Integer> getDataIdsFromDatasetId(Integer datasetId, boolean included, boolean hidden) {
+       return dataRepository.findIdsByDatasetId(datasetId, included, hidden);
+    }
+
     @Override
     public List<DataBrief> getDataBriefsFromProviderId(Integer providerId, String dataType, boolean included, boolean hidden, Boolean sensorable, Boolean published, boolean fetchDataDescription, boolean fetchAssociations) throws ConstellationException {
         final List<Data> dataList = dataRepository.findByProviderId(providerId, dataType, included, hidden);

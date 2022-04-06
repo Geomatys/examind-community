@@ -18,6 +18,7 @@
  */
 package org.constellation.api.rest;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -41,11 +42,11 @@ import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.referencing.CommonCRS;
 import org.constellation.api.TilingMode;
 import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
-import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDataCoverageJob;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IMetadataBusiness;
+import org.constellation.business.IProcessBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IPyramidBusiness;
 import org.constellation.business.ISensorBusiness;
@@ -61,14 +62,22 @@ import org.constellation.dto.Sort;
 import org.constellation.dto.metadata.MetadataBrief;
 import org.constellation.dto.metadata.MetadataLightBrief;
 import org.constellation.dto.metadata.RootObj;
+import org.constellation.dto.process.DatasetProcessReference;
+import org.constellation.dto.process.TaskParameter;
 import org.constellation.exception.ConstellationException;
 import org.constellation.metadata.utils.Utils;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.PyramidData;
 import org.constellation.util.MetadataMerger;
+import org.constellation.util.ParamUtilities;
+import org.constellation.util.Util;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.nio.ZipUtilities;
+import org.geotoolkit.process.ProcessDescriptor;
+import org.geotoolkit.process.ProcessFinder;
+import org.opengis.parameter.ParameterValueGroup;
+import org.opengis.util.NoSuchIdentifierException;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
 import static org.springframework.http.HttpStatus.*;
@@ -105,6 +114,9 @@ public class DataRestAPI extends AbstractRestAPI{
 
     @Inject
     private IProviderBusiness providerBusiness;
+
+    @Inject
+    private IProcessBusiness processBusiness;
 
     @Inject
     private ISensorBusiness sensorBusiness;
@@ -894,24 +906,58 @@ public class DataRestAPI extends AbstractRestAPI{
      * Compute and store all the data informations into the datasource.
      *
      * @param refresh if set to {@code false} the informations will not be updated if already recorded.
+     * @param dataset if set only the dataset datas will be computed.
      * @return
      */
     @RequestMapping(value = "/datas/compute/info", method = GET)
-    public ResponseEntity computeDatasInfo(@RequestParam("refresh") final boolean refresh) {
+    public ResponseEntity computeDatasInfo(@RequestParam(name = "refresh", required = false) final Boolean refresh, @RequestParam(name = "dataset", required = false) final Integer dataset, HttpServletRequest req) {
         try {
-            for (Integer pid : providerBusiness.getProviderIdsAsInt()) {
-                for (Integer dataId : providerBusiness.getDataIdsFromProviderId(pid, null, true, false)) {
-                    try {
-                        dataBusiness.cacheDataInformation(dataId, refresh);
-                    } catch (ConstellationException ex) {
-                        LOGGER.log(Level.WARNING, "Error while caching informations for data: " + dataId, ex);
-                    }
-                }
-            }
-            return new ResponseEntity(OK);
+            Integer usedId = assertAuthentificated(req);
+            TaskContext tc = buildcomputeInfoProcess(usedId, refresh, dataset);
+
+            processBusiness.runProcess("Compute data informations.", tc.p, tc.taskId, usedId);
+
+            return new ResponseEntity(tc.taskId, OK);
         } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
+        }
+    }
+
+    private static final class TaskContext {
+        public org.geotoolkit.process.Process p;
+        public Integer taskId;
+        public TaskContext(org.geotoolkit.process.Process p,Integer taskId) {
+            this.p = p;
+            this.taskId = taskId;
+        }
+    }
+
+    private TaskContext buildcomputeInfoProcess(Integer userId, Boolean refresh, Integer dataset) throws ConstellationException {
+        try {
+            final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor("examind", "data.cache.info");
+            final ParameterValueGroup input = desc.getInputDescriptor().createValue();
+            input.parameter("refresh").setValue(refresh);
+            if (dataset != null) {
+                input.parameter("dataset").setValue(new DatasetProcessReference(dataset, null));
+            }
+            final org.geotoolkit.process.Process p = desc.createProcess(input);
+
+            //add task in scheduler
+            final String taskName = "compute data info - " + System.currentTimeMillis();
+            TaskParameter taskParameter = new TaskParameter();
+            taskParameter.setProcessAuthority(Util.getProcessAuthorityCode(desc));
+            taskParameter.setProcessCode(desc.getIdentifier().getCode());
+            taskParameter.setDate(System.currentTimeMillis());
+            taskParameter.setInputs(ParamUtilities.writeParameterJSON(input));
+            taskParameter.setOwner(userId);
+            taskParameter.setName(taskName);
+            taskParameter.setType("INTERNAL");
+            Integer taskId = processBusiness.addTaskParameter(taskParameter);
+
+            return new TaskContext(p, taskId);
+        } catch (NoSuchIdentifierException | JsonProcessingException ex) {
+            throw new ConstellationException("Error while tiling data", ex);
         }
     }
 }

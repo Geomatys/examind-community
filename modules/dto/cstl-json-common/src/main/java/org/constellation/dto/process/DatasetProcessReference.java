@@ -33,6 +33,15 @@ public class DatasetProcessReference extends Identifiable implements Serializabl
 
     private String identifier;
 
+    public DatasetProcessReference() {
+
+    }
+
+    public DatasetProcessReference(Integer id, String identifier) {
+        super(id);
+        this.identifier = identifier;
+    }
+
     public String getIdentifier() {
         return identifier;
     }

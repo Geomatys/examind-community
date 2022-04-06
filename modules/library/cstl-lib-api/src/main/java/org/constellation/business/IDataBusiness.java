@@ -23,7 +23,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.SortedSet;
 import javax.xml.namespace.QName;
 import org.constellation.dto.Data;
@@ -200,6 +199,19 @@ public interface IDataBusiness {
      * @throws org.constellation.exception.ConstellationException
      */
     List<DataBrief> getDataBriefsFromDatasetId(final Integer datasetId, boolean included, boolean hidden, Boolean sensorable, Boolean published, boolean fetchDataDescription, boolean fetchAssociations) throws ConstellationException;
+
+    /**
+     *
+     * Returns list of data identifier for given dataSet id, with filter on the hidden and included flags.
+     *
+     * @param datasetId the given dataSet id. Must be not {@code null}
+     * @param included included flag filter
+     * @param hidden hidden flag filter.
+     *
+     * @return the list of data identifiers.
+     */
+    List<Integer> getDataIdsFromDatasetId(final Integer datasetId, boolean included, boolean hidden);
+
 
     /**
      * Returns list of {@link DataBrief} for given dataSet id, with filter on the hidden and included flags.

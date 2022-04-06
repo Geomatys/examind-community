@@ -66,6 +66,8 @@ public interface DataRepository extends AbstractRepository {
 
     List<Integer> findIdsByProviderId(Integer id, String dataType, boolean included, boolean hidden);
 
+    List<Integer> findIdsByDatasetId(Integer id, boolean included, boolean hidden);
+
     List<Data> findByDatasetId(Integer id);
 
     List<Data> findByDatasetId(Integer datasetId, boolean included, boolean hidden);
