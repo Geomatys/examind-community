@@ -777,7 +777,7 @@ function Examind($http, url) {
         explore : function(id, path) {
             return self.request({
                 method: 'GET',
-                url: 'datasources/' + id + '/explore?path=' + path
+                url: 'datasources/' + id + '/explore?path=' + encodeURIComponent(path)
                 });
         },
 
