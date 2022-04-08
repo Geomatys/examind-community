@@ -29,7 +29,9 @@
     "geotk-landsat": "Examind : Landsat",
     "hgt": "Examind : HGT",
     "GeoTIFF":"SIS: TIFF",
+    "ASCII Grid":"SIS: ASCII",
     
+    "ASCII Grid-text/plain":"SIS: ASCII",
     "GeoTIFF-image/tiff":"SIS: TIFF",
     "aixm-application/aixm+xml": "Examind : AIXM",
     "geojson-application/json": "Examind : GeoJSON",
