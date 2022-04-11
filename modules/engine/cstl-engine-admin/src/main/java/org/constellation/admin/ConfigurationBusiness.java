@@ -23,6 +23,7 @@ import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.Service;
+import org.constellation.exception.ConfigurationRuntimeException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.repository.PropertyRepository;
 import org.constellation.repository.ServiceRepository;
@@ -61,6 +62,19 @@ public class ConfigurationBusiness implements IConfigurationBusiness {
     @Override
     public Path getDataDirectory() {
         return ConfigDirectory.getDataDirectory();
+    }
+
+    @Override
+    public Path getAssetsDirectory() {
+        final Path folder = ConfigDirectory.getDataDirectory().resolve("assets");
+        if (!Files.exists(folder)) {
+            try {
+                Files.createDirectories(folder);
+            } catch (IOException ex) {
+                throw new ConfigurationRuntimeException("Could not create: " + folder.toString(), ex);
+            }
+        }
+        return folder;
     }
 
     @Override

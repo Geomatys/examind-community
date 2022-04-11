@@ -59,6 +59,11 @@ public class ErrorMessage {
     public ErrorMessage(Throwable ex) {
         this(null, ex);
     }
+
+    public ErrorMessage(HttpStatus status, String errorMessage) {
+        this.status = status.value();
+        this.errorMessage = errorMessage;
+    }
     
     public ErrorMessage(int status, String errorMessageI18nCode, String errorMessage, String errorStackTrace) {
         this.status = status;

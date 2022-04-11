@@ -30,6 +30,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.configuration.ConfigDirectory;
+import org.constellation.exception.ConfigurationRuntimeException;
 import org.constellation.token.TokenUtils;
 import org.geotoolkit.nio.IOUtilities;
 import org.springframework.transaction.annotation.Transactional;
@@ -85,6 +86,19 @@ public class SimpleConfigurationBusiness implements IConfigurationBusiness {
         return ConfigDirectory.getInstanceDirectory(type, id);
     }
 
+    @Override
+    public Path getAssetsDirectory() {
+        final Path folder = ConfigDirectory.getDataDirectory().resolve("assets");
+        if (!Files.exists(folder)) {
+            try {
+                Files.createDirectories(folder);
+            } catch (IOException ex) {
+                throw new ConfigurationRuntimeException("Could not create: " + folder.toString(), ex);
+            }
+        }
+        return folder;
+    }
+    
     @Override
     public void removeInstanceDirectory(String type, String id) {
         final Path instanceDir = ConfigDirectory.getInstanceDirectory(type, id);

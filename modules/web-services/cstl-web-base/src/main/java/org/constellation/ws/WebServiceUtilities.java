@@ -19,10 +19,16 @@
 
 package org.constellation.ws;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.geotoolkit.nio.IOUtilities;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  *
@@ -97,5 +103,14 @@ public final class WebServiceUtilities {
     static {
         DUMMY_MAPPING.put("swes", "http://www.opengis.net/swes/2.0");
         DUMMY_MAPPING.put("sos", "http://www.opengis.net/sos/2.0");
+    }
+
+    public static byte[] getBufferFromFile(MultipartFile file) throws IOException {
+        try (InputStream fileIs = file.getInputStream()) {
+            final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            IOUtilities.copy(fileIs, bos);
+            fileIs.close();
+            return bos.toByteArray();
+        }
     }
 }

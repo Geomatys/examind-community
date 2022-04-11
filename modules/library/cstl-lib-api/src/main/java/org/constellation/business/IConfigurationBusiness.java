@@ -45,6 +45,14 @@ public interface IConfigurationBusiness {
     Path getDataDirectory();
 
     /**
+     *
+     * Return the asset directory (CSTL_DATA).
+     *
+     * @return never {@code null}.
+     */
+    Path getAssetsDirectory();
+
+    /**
      * Return the specific directory for the specified OGC web service.
      * If the folder does not exist it will be created.
      *

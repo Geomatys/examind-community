@@ -20,9 +20,7 @@ package org.constellation.api.rest;
 
 import java.awt.Color;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -54,7 +52,6 @@ import org.constellation.json.binding.WrapperInterval;
 import org.constellation.provider.DataProviders;
 import org.geotoolkit.display2d.GO2Utilities;
 import org.geotoolkit.storage.coverage.ImageStatistics;
-import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.sld.MutableLayer;
 import org.geotoolkit.sld.MutableStyledLayerDescriptor;
 import org.geotoolkit.sld.xml.Specification;
@@ -66,6 +63,7 @@ import org.constellation.dto.StatInfo;
 import org.constellation.json.util.StyleUtilities;
 import org.constellation.provider.Data;
 import org.constellation.provider.util.StatsUtilities;
+import org.constellation.ws.WebServiceUtilities;
 import org.geotoolkit.display2d.ext.isoline.symbolizer.IsolineSymbolizer;
 import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.internal.InternalUtilities;
@@ -729,14 +727,10 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
         if (file.isEmpty()) {
             return new ErrorMessage().message("SLD file to import is empty!").build();
         }
-        //copy the file content in memory
         final byte[] buffer;
-        try(InputStream fileIs = file.getInputStream()){
-            final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            IOUtilities.copy(fileIs, bos);
-            fileIs.close();
-            buffer = bos.toByteArray();
-        }catch(IOException ex){
+        try {
+           buffer = WebServiceUtilities.getBufferFromFile(file);
+        } catch(IOException ex) {
             LOGGER.log(Level.WARNING, "Error while retrieving SLD input", ex);
             return new ErrorMessage(ex).build();
         }
