@@ -1747,6 +1747,21 @@ function Examind($http, url) {
                 headers: {'Accept': 'application/json'}
             });
         },
+        isCoverageAggregationDatasetCandidate : function (datasetId) {
+            return self.request({
+                method: 'GET',
+                url:'datasets/coverage-aggregation/' + datasetId
+            });
+        },
+        createCoverageAggregation: function (datasetId, dataName) {
+            return self.request({
+                method: 'PUT',
+                url: 'datasets/coverage-aggregation/' + datasetId,
+                params: {
+                    dataName: dataName
+                }
+            });
+        }
     };
 
 

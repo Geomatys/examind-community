@@ -1,0 +1,25 @@
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" ng-click="close()">×</button>
+            <h4 class="modal-title">{{'label.aggregate.generate' | translate}}</h4>
+        </div>
+        <div class="modal-body">
+            <div class="form-group ">
+                <label for="name" class="control-label col-sm-3" style="color: #ddd;margin-top: 8px;">Data name : </label>
+                <input id="name" type="text" class="form-control col-sm-8"
+                       ng-model="wrap.name"
+                       style="width: 75%;"
+                       placeholder="...">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-default" ng-click="close()">
+                {{'data.modal.cancel' | translate}}
+            </button>
+            <button type="button" class="btn btn-primary" ng-click="save()">
+                OK
+            </button>
+        </div>
+    </div>
+</div>

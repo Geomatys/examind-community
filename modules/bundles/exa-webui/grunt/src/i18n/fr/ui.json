@@ -1855,5 +1855,6 @@
   "group.users.back": "Retour",
   "group.new": "Nouveau groupe",
   "msg.data.stats": "Calcul des statistiques de la donnée demandé avec succés",
-  "label.selected data": "données sélectionnées"
+  "label.selected data": "données sélectionnées",
+  "label.aggregate.generate": "Générer une donnée d'agrégation d'un ensemble de données"
 }

@@ -76,6 +76,13 @@ function DatasetDashboardController($rootScope, $scope, $q, $modal, $location, C
             self.selection.dataset = null;
         } else {
             self.selection.dataset = dataset;
+            Examind.datas.isCoverageAggregationDatasetCandidate(self.selection.dataset.id)
+                .then(function (response) {
+                    self.selection.dataset.isCoverageAggregationDataset = (response.data === "true");
+                }, function (e) {
+                    console.error(e);
+                    Growl('error', 'Error', 'Error searching for Coverage Aggregation Dataset compatibility');
+                });
             $rootScope.$broadcast('unselect-dataset', self.selectAllFlag);
         }
 

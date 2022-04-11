@@ -20,6 +20,15 @@
             </button>
         </span>
     </div>
+    <div class="col-sm-2" ng-if="lc.dataset.isCoverageAggregationDataset">
+        <span class="tooltipicon">
+            <button type="button" class="btn btn-info" tooltip-placement="bottom"
+                    tooltip-html-unsafe="{{'label.aggregate.generate' | translate }}"
+                    ng-click="lc.generateAggregationData()">
+                <i class="fa fa-qrcode" aria-hidden="true"></i>
+            </button>
+        </span>
+    </div>
     <div class="col-sm-2">
         <span class="tooltipicon">
             <button id="deleteDataset" type="button" class="btn btn-danger2" tooltip-placement="bottom" tooltip-html-unsafe="{{'layer.listing.selected.delete.button' | translate }}"

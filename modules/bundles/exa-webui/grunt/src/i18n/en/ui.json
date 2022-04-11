@@ -1857,5 +1857,6 @@
   "thesaurus.tooltip.export": "Export",
   "thesaurus.tooltip.import": "Import",
   "msg.data.stats": "Data statistics computation successfully requested",
-  "label.selected data": "selected data"
+  "label.selected data": "selected data",
+  "label.aggregate.generate": "Generate dataset aggregation data"
 }

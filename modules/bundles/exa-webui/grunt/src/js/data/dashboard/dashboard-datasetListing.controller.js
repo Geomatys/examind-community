@@ -1,4 +1,5 @@
 angular.module('cstl-data-dashboard')
+    .controller('GenerateAggregationDataController', GenerateAggregationDataController)
     .controller('DatasetListingController', DatasetListingController);
 
 /**
@@ -11,7 +12,7 @@ angular.module('cstl-data-dashboard')
  * @param {DatasetDashboard} DatasetDashboard
  * @constructor
  */
-function DatasetListingController($rootScope, $scope, $modal, $q, DashboardHelper, Examind, defaultDatasetQuery, Dataset, DatasetDashboard) {
+function DatasetListingController($rootScope, $scope, $modal, $q, $translate, Growl, DashboardHelper, Examind, defaultDatasetQuery, Dataset, DatasetDashboard) {
 
     var self = this;
 
@@ -266,7 +267,39 @@ function DatasetListingController($rootScope, $scope, $modal, $q, DashboardHelpe
         $rootScope.$broadcast('select-all-data', self.selectAllFlag);
     };
 
+    self.generateAggregationData = function () {
+        $modal.open({
+            templateUrl: 'views/data/generate-aggregation-data.html',
+            controller: 'GenerateAggregationDataController'
+        }).result
+            .then(function (name) {
+                if (name) {
+                    Examind.datas.createCoverageAggregation(self.dataset.id, name)
+                        .then(function () {
+                            Growl('success', 'Success', 'Data successfully created');
+                        }, function (e) {
+                            console.error(e);
+                            Growl('error', 'Error', 'Cannot create Coverage Aggregation data');
+                        });
+                }
+            });
+    };
+
     $scope.$on('unselect-dataset', function (evt) {
         self.selectAllFlag = false;
     });
 }
+
+function GenerateAggregationDataController($scope, $modalInstance) {
+    $scope.wrap = {
+        name: ''
+    };
+    $scope.save = function () {
+        $modalInstance.close($scope.wrap.name);
+    };
+
+    $scope.close = function () {
+        $modalInstance.close(null);
+    };
+}
+
