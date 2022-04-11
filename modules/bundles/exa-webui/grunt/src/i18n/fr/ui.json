@@ -1854,5 +1854,6 @@
   "group.users.filter": "Filtrer sur les utilisateurs",
   "group.users.back": "Retour",
   "group.new": "Nouveau groupe",
-  "msg.data.stats": "Calcul des statistiques de la donnée demandé avec succés"
+  "msg.data.stats": "Calcul des statistiques de la donnée demandé avec succés",
+  "label.selected data": "données sélectionnées"
 }
