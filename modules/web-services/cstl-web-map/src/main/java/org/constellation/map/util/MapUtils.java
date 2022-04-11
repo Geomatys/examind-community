@@ -18,6 +18,7 @@
  */
 package org.constellation.map.util;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,7 @@ import org.geotoolkit.filter.FilterUtilities;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.geotoolkit.sld.xml.StyleXmlIO;
 import org.opengis.filter.Filter;
+import org.opengis.filter.SortProperty;
 import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.crs.VerticalCRS;
@@ -126,6 +128,18 @@ public class MapUtils {
             throw new CstlServiceException(ex, INVALID_PARAMETER_VALUE);
         }
         return filter;
+    }
+
+    public static  List<SortProperty> visitJaxbSortBy(final org.geotoolkit.ogc.xml.SortBy jaxbSortby,final Map<String, String> namespaceMapping, final String version) {
+        if (jaxbSortby != null) {
+            final StyleXmlIO util = new StyleXmlIO();
+            if ("2.0.0".equals(version)) {
+                return util.getTransformer200(namespaceMapping).visitSortBy((org.geotoolkit.ogc.xml.v200.SortByType)jaxbSortby);
+            } else {
+                return util.getTransformer110(namespaceMapping).visitSortBy((org.geotoolkit.ogc.xml.v110.SortByType)jaxbSortby);
+            }
+        }
+        return new ArrayList<>();
     }
 
     /**

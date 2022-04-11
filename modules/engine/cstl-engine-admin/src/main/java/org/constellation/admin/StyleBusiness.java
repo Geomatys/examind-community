@@ -30,7 +30,6 @@ import org.constellation.repository.*;
 import org.geotoolkit.display2d.ext.cellular.CellSymbolizer;
 import org.geotoolkit.display2d.ext.dynamicrange.DynamicRangeSymbolizer;
 import org.geotoolkit.display2d.ext.isoline.symbolizer.IsolineSymbolizer;
-import org.geotoolkit.sld.*;
 import org.geotoolkit.sld.xml.Specification;
 import org.geotoolkit.sld.xml.StyleXmlIO;
 import org.geotoolkit.style.MutableFeatureTypeStyle;
@@ -46,7 +45,6 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.inject.Inject;
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.*;
 import java.util.logging.Level;
@@ -63,6 +61,8 @@ import org.apache.sis.internal.system.DefaultFactories;
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import org.constellation.dto.Layer;
 import org.constellation.dto.service.Service;
+import org.geotoolkit.style.StyleUtilities;
+import org.opengis.sld.StyledLayerDescriptor;
 import org.opengis.style.StyleFactory;
 
 /**
@@ -138,15 +138,13 @@ public class StyleBusiness implements IStyleBusiness {
     public List<StyleProcessReference> getAllStyleReferences() {
         final List<StyleProcessReference> servicePRef = new ArrayList<>();
         final List<Style> styles = styleRepository.findAll();
-        if (styles != null) {
-            for(final Style style : styles){
-                final StyleProcessReference ref = new StyleProcessReference();
-                ref.setId(style.getId());
-                ref.setType(style.getType());
-                ref.setName(style.getName());
-                ref.setProvider(style.getProviderId());
-                servicePRef.add(ref);
-            }
+        for(final Style style : styles){
+            final StyleProcessReference ref = new StyleProcessReference();
+            ref.setId(style.getId());
+            ref.setType(style.getType());
+            ref.setName(style.getName());
+            ref.setProvider(style.getProviderId());
+            servicePRef.add(ref);
         }
         return servicePRef;
     }
@@ -192,7 +190,7 @@ public class StyleBusiness implements IStyleBusiness {
             // Retrieve or not the provider instance.
             final int provider = nameToId(providerId);
 
-            final String xmlStyle = writeStyle(styleI);
+            final String xmlStyle = writeStyle(sldParser, styleI);
             
             Integer userId = userBusiness.findOne(securityManager.getCurrentUserLogin()).map((CstlUser input) -> input.getId()).orElse(null);
             final Style newStyle = new Style();
@@ -278,7 +276,7 @@ public class StyleBusiness implements IStyleBusiness {
     @Override
     public org.opengis.style.Style getStyle(final String providerId, final String styleName) throws TargetNotFoundException {
         final Style style = ensureExistingStyle(providerId, styleName);
-        return parseStyle(style.getName(), style.getBody());
+        return parseStyle(style.getName(), style.getBody(), null);
     }
 
     /**
@@ -301,9 +299,9 @@ public class StyleBusiness implements IStyleBusiness {
     public org.opengis.style.Style getStyle(int styleId) throws TargetNotFoundException {
         Style style = styleRepository.findById(styleId);
         if (style == null) {
-            throw new TargetNotFoundException("Style with id"+styleId+" not found.");
+            throw new TargetNotFoundException("Style with id" + styleId + " not found.");
         }
-        return parseStyle(style.getName(), style.getBody());
+        return parseStyle(style.getName(), style.getBody(), null);
     }
 
     /**
@@ -340,7 +338,7 @@ public class StyleBusiness implements IStyleBusiness {
         final Style s = styleRepository.findById(id);
 
         if (s != null) {
-            final String xmlStyle = writeStyle(style);
+            final String xmlStyle = writeStyle(sldParser, style);
             s.setBody(xmlStyle);
             s.setType(getTypeFromMutableStyle((MutableStyle) style));
             s.setName(styleName);
@@ -451,107 +449,80 @@ public class StyleBusiness implements IStyleBusiness {
         clusterBusiness.publish(request);
     }
 
-    protected org.opengis.style.Style parseStyle(final String name, final String xml) {
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public org.opengis.style.Style parseStyle(final String styleName, final Object source, final String fileName) {
         MutableStyle value = null;
-        StringReader sr = new StringReader(xml);
         final String baseErrorMsg = "SLD Style ";
-         // try UserStyle SLD 1.1
+         // 1. try UserStyle
         try {
-            value = sldParser.readStyle(sr, Specification.SymbologyEncoding.V_1_1_0);
+            value = (MutableStyle) readStyle(source, false);
             if (value != null) {
-                value.setName(name);
-                LOGGER.log(Level.FINE, "{0}{1} is a UserStyle SLD 1.1.0", new Object[] { baseErrorMsg, name });
+                if (styleName != null) value.setName(styleName);
+                LOGGER.log(Level.FINE, "{0}{1} is a UserStyle", new Object[] { baseErrorMsg, styleName });
                 return value;
             }
-        } catch (JAXBException | FactoryException ex) { /* dont log */
-        } finally {
-            sr = new StringReader(xml);
-        }
-        // try UserStyle SLD 1.0
+        } catch (ConstellationException ex) { /* no exception should be throw has we set throwEx to false*/ }
+        // 2. try SLD
         try {
-            value = sldParser.readStyle(sr, Specification.SymbologyEncoding.SLD_1_0_0);
-            if (value != null) {
-                value.setName(name);
-                LOGGER.log(Level.FINE, "{0}{1} is a UserStyle SLD 1.0.0", new Object[] { baseErrorMsg, name });
+            final StyledLayerDescriptor sld = readSLD(source, false);
+            List<MutableStyle> styles = StyleUtilities.getStylesFromSLD(sld);
+            if (!styles.isEmpty()) {
+                value = styles.remove(0);
+                if (styleName != null && !styleName.isEmpty()) value.setName(styleName);
+                LOGGER.log(Level.FINE, "{0}{1} is an SLD", new Object[] { baseErrorMsg, styleName });
+                logIgnoredStyles(styles);
                 return value;
             }
-        } catch (JAXBException | FactoryException ex) { /* dont log */
-        } finally {
-            sr = new StringReader(xml);
-        }
-        // try SLD 1.1
+        } catch (ConstellationException ex) { /* no exception should be throw has we set throwEx to false*/ }
+        // 3.1 try FeatureTypeStyle SE 1.1
         try {
-            final MutableStyledLayerDescriptor sld = sldParser.readSLD(sr, Specification.StyledLayerDescriptor.V_1_1_0);
-            value = getFirstStyle(sld);
-            if (value != null) {
-                value.setName(name);
-                LOGGER.log(Level.FINE, "{0}{1} is an SLD 1.1.0", new Object[] { baseErrorMsg, name });
-                return value;
-            }
-        } catch (JAXBException | FactoryException ex) { /* dont log */
-        } finally {
-            sr = new StringReader(xml);
-        }
-        // try SLD 1.0
-        try {
-            final MutableStyledLayerDescriptor sld = sldParser.readSLD(sr, Specification.StyledLayerDescriptor.V_1_0_0);
-            value = getFirstStyle(sld);
-            if (value != null) {
-                value.setName(name);
-                LOGGER.log(Level.FINE, "{0}{1} is an SLD 1.0.0", new Object[] { baseErrorMsg, name });
-                return value;
-            }
-        } catch (JAXBException | FactoryException ex) { /* dont log */
-        } finally {
-            sr = new StringReader(xml);
-        }
-        // try FeatureTypeStyle SE 1.1
-        try {
-            final MutableFeatureTypeStyle fts = sldParser.readFeatureTypeStyle(sr, Specification.SymbologyEncoding.V_1_1_0);
+            final MutableFeatureTypeStyle fts = sldParser.readFeatureTypeStyle(source, Specification.SymbologyEncoding.V_1_1_0);
             value = SF.style();
             value.featureTypeStyles().add(fts);
-            value.setName(name);
-            LOGGER.log(Level.FINE, "{0}{1} is FeatureTypeStyle SE 1.1", new Object[] { baseErrorMsg, name });
+            if (styleName != null && !styleName.isEmpty()) value.setName(styleName);
+            LOGGER.log(Level.FINE, "{0}{1} is FeatureTypeStyle SE 1.1", new Object[] { baseErrorMsg, styleName });
             return value;
 
-        } catch (JAXBException | FactoryException ex) { /* dont log */
-        } finally {
-            sr = new StringReader(xml);
-        }
-        // try FeatureTypeStyle SLD 1.0
+        } catch (JAXBException | FactoryException ex) { /* dont log */ }
+        // 3.2 try FeatureTypeStyle SLD 1.0
         try {
-            final MutableFeatureTypeStyle fts = sldParser.readFeatureTypeStyle(sr, Specification.SymbologyEncoding.SLD_1_0_0);
+            final MutableFeatureTypeStyle fts = sldParser.readFeatureTypeStyle(source, Specification.SymbologyEncoding.SLD_1_0_0);
             value = SF.style();
             value.featureTypeStyles().add(fts);
-            value.setName(name);
-            LOGGER.log(Level.FINE, "{0}{1} is an FeatureTypeStyle SLD 1.0", new Object[] { baseErrorMsg, name });
+            if (styleName != null && !styleName.isEmpty()) value.setName(styleName);
+            LOGGER.log(Level.FINE, "{0}{1} is an FeatureTypeStyle SLD 1.0", new Object[] { baseErrorMsg, styleName });
             return value;
-        } catch (JAXBException | FactoryException ex) { /* dont log */
-        } finally {
-            sr = new StringReader(xml);
-        }
+        } catch (JAXBException | FactoryException ex) { /* dont log */ }
+        // 4 try to build a style from palette
+        try {
+            if (fileName != null) {
+                if (source instanceof String str) {
+                    value = StyleUtilities.getStyleFromPalette(fileName, str);
+                } else if (source instanceof byte[] buffer) {
+                    value = StyleUtilities.getStyleFromPalette(fileName, buffer);
+                }
+                if (value != null) {
+                    if (styleName != null && !styleName.isEmpty()) value.setName(styleName);
+                    LOGGER.log(Level.FINE, "{0}{1} is an Palette", new Object[] { baseErrorMsg, styleName });
+                    return value;
+                }
+            }
+        } catch (IOException ex) { /* dont log */ }
         return value;
     }
 
-    private static MutableStyle getFirstStyle(final MutableStyledLayerDescriptor sld) {
-        if (sld == null)
-            return null;
-        for (final MutableLayer layer : sld.layers()) {
-            if (layer instanceof MutableNamedLayer) {
-                final MutableNamedLayer mnl = (MutableNamedLayer) layer;
-                for (final MutableLayerStyle stl : mnl.styles()) {
-                    if (stl instanceof MutableStyle) {
-                        return (MutableStyle) stl;
-                    }
-                }
-            } else if (layer instanceof MutableUserLayer) {
-                final MutableUserLayer mnl = (MutableUserLayer) layer;
-                if (mnl.styles() != null && !mnl.styles().isEmpty()) {
-                    return mnl.styles().get(0);
-                }
+    private static void logIgnoredStyles(List<MutableStyle> styles) {
+        //log styles which have been ignored
+        if(!styles.isEmpty()){
+            final StringBuilder sb = new StringBuilder("Ignored styles at import :");
+            for(MutableStyle ms : styles){
+                sb.append(' ').append(ms.getName());
             }
+            LOGGER.log(Level.FINEST, sb.toString());
         }
-        return null;
     }
 
     private static String getTypeFromMutableStyle(final MutableStyle style) {
@@ -608,22 +579,102 @@ public class StyleBusiness implements IStyleBusiness {
     /**
      * Transform a {@link org.opengis.style.Style} instance into a {@link String} instance.
      *
-     * @param style
-     *            the style to be written
+     * @param style The style to be written.
      * @return a {@link String} instance
-     * @throws IOException
-     *             on error while writing {@link org.opengis.style.Style} XML
+     * @throws IOException On error while writing {@link org.opengis.style.Style} XML
      */
-    private static String writeStyle(final org.opengis.style.Style style) throws ConfigurationException {
+    private static String writeStyle(final StyleXmlIO sldParser, final org.opengis.style.Style style) throws ConfigurationException {
         ensureNonNull("style", style);
-        final StyleXmlIO util = new StyleXmlIO();
         try {
             final StringWriter sw = new StringWriter();
-            util.writeStyle(sw, style, Specification.StyledLayerDescriptor.V_1_1_0);
+            sldParser.writeStyle(sw, style, Specification.StyledLayerDescriptor.V_1_1_0);
             return sw.toString();
         } catch (JAXBException ex) {
             throw new ConfigurationException("An error occurred while writing MutableStyle XML.", ex);
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public StyledLayerDescriptor readSLD(final Object sldSrc, boolean throwEx) throws ConstellationException {
+        StyledLayerDescriptor sld = null;
+        try {
+            sld = sldParser.readSLD(sldSrc, Specification.StyledLayerDescriptor.V_1_0_0);
+        } catch (JAXBException ex) {
+            // If a JAXBException occurs it can be because it is not parsed in the
+            // good version. Let's just continue with the other version.
+            LOGGER.finest(ex.getLocalizedMessage());
+        } catch (FactoryException ex) {
+            if (throwEx) {
+                throw new ConstellationException(ex);
+            }
+        }
+        if (sld == null) {
+            try {
+                sld = sldParser.readSLD(sldSrc, Specification.StyledLayerDescriptor.V_1_1_0);
+            } catch (JAXBException | FactoryException ex) {
+                if (throwEx) {
+                    throw new ConstellationException(ex);
+                }
+            }
+        }
+        return sld;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public StyledLayerDescriptor readSLD(Object sldSrc, String sldVersion) throws ConstellationException {
+        try {
+            Specification.StyledLayerDescriptor version = Specification.StyledLayerDescriptor.version(sldVersion);
+            return sldParser.readSLD(sldSrc, version);
+        } catch (JAXBException | FactoryException ex) {
+            throw new ConstellationException("Error while reading sld.", ex);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public org.opengis.style.Style readStyle(final Object sldSrc, boolean throwEx) throws ConstellationException {
+        org.opengis.style.Style style = null;
+        try {
+            style = sldParser.readStyle(sldSrc, Specification.SymbologyEncoding.V_1_1_0);
+        } catch (JAXBException ex) {
+            // If a JAXBException occurs it can be because it is not parsed in the
+            // good version. Let's just continue with the other version.
+            LOGGER.finest(ex.getLocalizedMessage());
+        } catch (FactoryException ex) {
+            if (throwEx) {
+                throw new ConstellationException(ex);
+            }
+        }
+        if (style == null) {
+            try {
+                style = sldParser.readStyle(sldSrc, Specification.SymbologyEncoding.SLD_1_0_0);
+            } catch (JAXBException | FactoryException ex) {
+                if (throwEx) {
+                    throw new ConstellationException(ex);
+                }
+            }
+        }
+        return style;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public org.opengis.style.Style readStyle(final Object styleSrc, final String seVersion) throws ConstellationException {
+        try {
+            Specification.SymbologyEncoding version = Specification.SymbologyEncoding.version(seVersion);
+            return sldParser.readStyle(styleSrc, version);
+        } catch (JAXBException | FactoryException ex) {
+            throw new ConstellationException("Error while reading sld.", ex);
+        }
+    }
 }

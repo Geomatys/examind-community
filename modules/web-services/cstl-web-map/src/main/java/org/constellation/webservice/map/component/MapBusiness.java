@@ -20,7 +20,6 @@ package org.constellation.webservice.map.component;
 
 import java.awt.Dimension;
 import java.awt.RenderingHints;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -48,8 +47,6 @@ import org.apache.sis.portrayal.MapLayers;
 import org.apache.sis.portrayal.MapItem;
 import org.apache.sis.portrayal.MapLayer;
 import org.apache.sis.storage.FeatureQuery;
-import org.geotoolkit.sld.xml.Specification;
-import org.geotoolkit.sld.xml.StyleXmlIO;
 import org.geotoolkit.style.MutableStyle;
 
 import org.constellation.business.IDataBusiness;
@@ -142,20 +139,12 @@ public class MapBusiness implements IMapBusiness {
         try {
             // Style.
             if (sldBody != null) {
-                // Use specified style.
-                Specification.SymbologyEncoding version;
-                if ("1.1.0".equals(sldVersion)) {
-                    version = Specification.SymbologyEncoding.V_1_1_0;
-                } else {
-                    version = Specification.SymbologyEncoding.SLD_1_0_0;
-                }
-                final StringReader reader = new StringReader(sldBody);
-                style = new StyleXmlIO().readStyle(reader, version);
+                style = (MutableStyle) styleBusiness.readStyle(sldBody, sldVersion);
             } else {
                 //let portrayal process to apply its own style
                 style= null;
             }
-        } catch (FactoryException | JAXBException ex) {
+        } catch (ConstellationException ex) {
             throw new CstlServiceException(String.format(
                     "Rendering failed for parameters:%nData: %d%nBbox: %s%nWidth: %d%nHeight: %d%nFilter: %s%n(Style ommitted)",
                     dataId, bbox, width, height, filter

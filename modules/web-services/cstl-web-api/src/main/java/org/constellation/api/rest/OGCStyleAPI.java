@@ -18,11 +18,9 @@
  */
 package org.constellation.api.rest;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -33,9 +31,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.xml.bind.JAXBException;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.sis.internal.system.DefaultFactories;
 import org.constellation.api.rest.dto.Resource;
 import org.constellation.api.rest.dto.Resources;
 import org.constellation.business.IConfigurationBusiness;
@@ -45,21 +41,7 @@ import org.constellation.dto.process.StyleProcessReference;
 import org.constellation.exception.ConstellationException;
 import org.constellation.ws.WebServiceUtilities;
 import org.geotoolkit.atom.xml.Link;
-import org.geotoolkit.sld.MutableLayer;
-import org.geotoolkit.sld.MutableStyledLayerDescriptor;
-import org.geotoolkit.sld.xml.Specification;
-import org.geotoolkit.sld.xml.StyleXmlIO;
-import org.geotoolkit.style.MutableStyle;
-import org.geotoolkit.style.MutableStyleFactory;
-import org.geotoolkit.style.io.PaletteReader;
-import org.opengis.sld.LayerStyle;
-import org.opengis.sld.NamedLayer;
-import org.opengis.sld.UserLayer;
-import org.opengis.style.ColorMap;
-import org.opengis.style.RasterSymbolizer;
 import org.opengis.style.Style;
-import org.opengis.style.StyleFactory;
-import org.opengis.util.FactoryException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
@@ -175,87 +157,8 @@ public class OGCStyleAPI {
             return new ErrorMessage(ex).build();
         }
 
-        //try to parse SLD from various form and version
-        final List<MutableStyle> styles = new ArrayList<>();
-        final StyleXmlIO io = new StyleXmlIO();
-        MutableStyle style = null;
-
-        //try to parse an SLD input
-        MutableStyledLayerDescriptor sld = null;
-        try {
-            sld = io.readSLD(new ByteArrayInputStream(buffer), Specification.StyledLayerDescriptor.V_1_1_0);
-        } catch (JAXBException | FactoryException ex) {
-            LOGGER.log(Level.FINEST, ex.getMessage(), ex);
-        }
-        if (sld == null) {
-            try {
-                sld = io.readSLD(new ByteArrayInputStream(buffer), Specification.StyledLayerDescriptor.V_1_0_0);
-            } catch (JAXBException | FactoryException ex) {
-                LOGGER.log(Level.FINEST, ex.getMessage(), ex);
-            }
-        }
-
-        if (sld != null) {
-            for (MutableLayer sldLayer : sld.layers()) {
-                if (sldLayer instanceof NamedLayer nl) {
-                    for (LayerStyle ls : nl.styles()) {
-                        if (ls instanceof MutableStyle ms) {
-                            styles.add(ms);
-                        }
-                    }
-                } else if (sldLayer instanceof UserLayer ul) {
-                    for (org.opengis.style.Style ls : ul.styles()) {
-                        if (ls instanceof MutableStyle ms) {
-                            styles.add(ms);
-                        }
-                    }
-                }
-            }
-            if (!styles.isEmpty()) {
-                style = styles.remove(0);
-            }
-        } else {
-            //try to parse a UserStyle input
-            try {
-                style = io.readStyle(new ByteArrayInputStream(buffer), Specification.SymbologyEncoding.V_1_1_0);
-            } catch (JAXBException | FactoryException ex) {
-                LOGGER.log(Level.FINEST, ex.getMessage(), ex);
-            }
-            if (style == null) {
-                try {
-                    style = io.readStyle(new ByteArrayInputStream(buffer), Specification.SymbologyEncoding.SLD_1_0_0);
-                } catch (JAXBException | FactoryException ex) {
-                    LOGGER.log(Level.FINEST, ex.getMessage(), ex);
-                }
-            }
-            if (style == null) {
-                //test cpt,clr,pal type
-                String originalFilename = file.getOriginalFilename();
-                if (originalFilename != null) {
-                    originalFilename = originalFilename.toLowerCase();
-                    ColorMap colormap = null;
-                    try {
-                        if (originalFilename.endsWith("cpt")) {
-                            PaletteReader reader = new PaletteReader(PaletteReader.PATTERN_CPT);
-                            colormap = reader.read(new String(buffer));
-                        } else if (originalFilename.endsWith("clr")) {
-                            PaletteReader reader = new PaletteReader(PaletteReader.PATTERN_CLR);
-                            colormap = reader.read(new String(buffer));
-                        } else if (originalFilename.endsWith("pal")) {
-                            PaletteReader reader = new PaletteReader(PaletteReader.PATTERN_PAL);
-                            colormap = reader.read(new String(buffer));
-                        }
-                    } catch (IOException ex) {
-                        LOGGER.log(Level.FINEST, ex.getMessage(), ex);
-                    }
-                    if (colormap != null) {
-                        final MutableStyleFactory SF = (MutableStyleFactory) DefaultFactories.forBuildin(StyleFactory.class);
-                        RasterSymbolizer symbol = SF.rasterSymbolizer(null, null, null, null, colormap, null, null, null);
-                        style = SF.style(symbol);
-                    }
-                }
-            }
-        }
+        //try to parse a style from various form and version
+        Style style = styleBusiness.parseStyle(styleName, buffer, file.getOriginalFilename());
 
         if (style == null) {
             final String message = "Failed to import style from file, no UserStyle element defined";
@@ -263,19 +166,6 @@ public class OGCStyleAPI {
             return new ErrorMessage().message(message).build();
         }
 
-        //log styles which have been ignored
-        if (!styles.isEmpty()) {
-            final StringBuilder sb = new StringBuilder("Ignored styles at import :");
-            for (MutableStyle ms : styles) {
-                sb.append(' ').append(ms.getName());
-            }
-            LOGGER.log(Level.FINEST, sb.toString());
-        }
-
-        //store imported style
-        if (styleName != null && !styleName.isEmpty()) {
-            style.setName(styleName);
-        }
         try {
             final boolean exists = styleBusiness.existsStyle(type, style.getName());
             if (!exists) {
@@ -380,86 +270,13 @@ public class OGCStyleAPI {
                 return new ResponseEntity<>(new ErrorMessage(HttpStatus.NOT_FOUND, ex.getMessage()), HttpStatus.NOT_FOUND);
             }
 
-            //try to parse SLD from various form and version
-            final List<MutableStyle> styles = new ArrayList<>();
-            final StyleXmlIO io = new StyleXmlIO();
-            MutableStyle style = null;
-
-            //try to parse an SLD input
-            MutableStyledLayerDescriptor sld = null;
+            //try to parse a style from various form and version
+            Style style;
             try {
-                sld = io.readSLD(new ByteArrayInputStream(buffer), Specification.StyledLayerDescriptor.V_1_1_0);
-            } catch (JAXBException | FactoryException ex) {
-                LOGGER.log(Level.FINEST, ex.getMessage(), ex);
-            }
-            if (sld == null) {
-                try {
-                    sld = io.readSLD(new ByteArrayInputStream(buffer), Specification.StyledLayerDescriptor.V_1_0_0);
-                } catch (JAXBException | FactoryException ex) {
-                    LOGGER.log(Level.FINEST, ex.getMessage(), ex);
-                }
-            }
-
-            if (sld != null) {
-                for (MutableLayer sldLayer : sld.layers()) {
-                    if (sldLayer instanceof NamedLayer nl) {
-                        for (LayerStyle ls : nl.styles()) {
-                            if (ls instanceof MutableStyle ms) {
-                                styles.add(ms);
-                            }
-                        }
-                    } else if (sldLayer instanceof UserLayer ul) {
-                        for (org.opengis.style.Style ls : ul.styles()) {
-                            if (ls instanceof MutableStyle ms) {
-                                styles.add(ms);
-                            }
-                        }
-                    }
-                }
-                if (!styles.isEmpty()) {
-                    style = styles.remove(0);
-                }
-            } else {
-                //try to parse a UserStyle input
-                try {
-                    style = io.readStyle(new ByteArrayInputStream(buffer), Specification.SymbologyEncoding.V_1_1_0);
-                } catch (JAXBException | FactoryException ex) {
-                    LOGGER.log(Level.FINEST, ex.getMessage(), ex);
-                }
-                if (style == null) {
-                    try {
-                        style = io.readStyle(new ByteArrayInputStream(buffer), Specification.SymbologyEncoding.SLD_1_0_0);
-                    } catch (JAXBException | FactoryException ex) {
-                        LOGGER.log(Level.FINEST, ex.getMessage(), ex);
-                    }
-                }
-                if (style == null) {
-                    //test cpt,clr,pal type
-                    String originalFilename = file.getOriginalFilename();
-                    if (originalFilename != null) {
-                        originalFilename = originalFilename.toLowerCase();
-                        ColorMap colormap = null;
-                        try {
-                            if (originalFilename.endsWith("cpt")) {
-                                PaletteReader reader = new PaletteReader(PaletteReader.PATTERN_CPT);
-                                colormap = reader.read(new String(buffer));
-                            } else if (originalFilename.endsWith("clr")) {
-                                PaletteReader reader = new PaletteReader(PaletteReader.PATTERN_CLR);
-                                colormap = reader.read(new String(buffer));
-                            } else if (originalFilename.endsWith("pal")) {
-                                PaletteReader reader = new PaletteReader(PaletteReader.PATTERN_PAL);
-                                colormap = reader.read(new String(buffer));
-                            }
-                        } catch (IOException ex) {
-                            LOGGER.log(Level.FINEST, ex.getMessage(), ex);
-                        }
-                        if (colormap != null) {
-                            final MutableStyleFactory SF = (MutableStyleFactory) DefaultFactories.forBuildin(StyleFactory.class);
-                            RasterSymbolizer symbol = SF.rasterSymbolizer(null, null, null, null, colormap, null, null, null);
-                            style = SF.style(symbol);
-                        }
-                    }
-                }
+                style = styleBusiness.parseStyle(name, buffer, file.getOriginalFilename());
+            } catch (Exception ex) {
+                LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+                return new ResponseEntity<>(new ErrorMessage(HttpStatus.BAD_REQUEST, ex.getMessage()), HttpStatus.BAD_REQUEST);
             }
 
             if (style == null) {
@@ -468,18 +285,7 @@ public class OGCStyleAPI {
                 return new ResponseEntity<>(new ErrorMessage(HttpStatus.BAD_REQUEST, message), HttpStatus.BAD_REQUEST);
             }
 
-            //log styles which have been ignored
-            if (!styles.isEmpty()) {
-                final StringBuilder sb = new StringBuilder("Ignored styles at import :");
-                for (MutableStyle ms : styles) {
-                    sb.append(' ').append(ms.getName());
-                }
-                LOGGER.log(Level.FINEST, sb.toString());
-            }
             try {
-                if (!name.isEmpty()) {
-                    style.setName(name);
-                }
                 styleBusiness.updateStyle(styleId, style);
                 return new ResponseEntity<>(String.format("Style with id %d is successfully updated", styleId), HttpStatus.OK);
             } catch (Exception ex) {

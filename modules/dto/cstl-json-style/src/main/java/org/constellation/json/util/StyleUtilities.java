@@ -131,11 +131,11 @@ public final class StyleUtilities extends Static {
     }
 
     public static <T> List<T> singletonType(final StyleElement<T> elt) {
-        return elt != null ? Collections.singletonList(elt.toType()) : new ArrayList<T>(0);
+        return elt != null ? Collections.singletonList(elt.toType()) : new ArrayList<>(0);
     }
 
     public static <T> List<T> listType(final List<? extends StyleElement<T>> elts) {
-        final List<T> list = new ArrayList<T>();
+        final List<T> list = new ArrayList<>();
         if (elts == null) {
             return list;
         }

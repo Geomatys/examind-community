@@ -35,7 +35,6 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Named;
-import javax.xml.bind.JAXBException;
 import org.apache.sis.cql.CQL;
 import org.apache.sis.cql.CQLException;
 import org.apache.sis.geometry.Envelopes;
@@ -120,7 +119,6 @@ import org.geotoolkit.sld.MutableNamedLayer;
 import org.geotoolkit.sld.MutableNamedStyle;
 import org.geotoolkit.sld.MutableStyledLayerDescriptor;
 import org.geotoolkit.sld.xml.GetLegendGraphic;
-import org.geotoolkit.sld.xml.StyleXmlIO;
 import org.geotoolkit.sld.xml.v110.DescribeLayerResponseType;
 import org.geotoolkit.sld.xml.v110.LayerDescriptionType;
 import org.geotoolkit.style.MutableStyle;
@@ -997,29 +995,28 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         final BufferedImage image;
         final String rule = getLegend.getRule();
         final Double scale = getLegend.getScale();
-        final String sld = getLegend.getSld();
+        final String sldUrl = getLegend.getSld();
         final String style = getLegend.getStyle();
         try {
             MutableStyle ms = null;
             // If a sld file is given, extracts the style from it.
-            if (sld != null && !sld.isEmpty()) {
-                final StyleXmlIO utils = new StyleXmlIO();
+            if (sldUrl != null && !sldUrl.isEmpty()) {
+                if (getLegend.getSldVersion() == null) {
+                    throw new PortrayalException("SLD version must be specified");
+                }
                 final MutableStyledLayerDescriptor mutableSLD;
-
                 try {
-                    mutableSLD = utils.readSLD(new URL(sld), getLegend.getSldVersion());
-                } catch (JAXBException ex) {
+                    mutableSLD = (MutableStyledLayerDescriptor) styleBusiness.readSLD(new URL(sldUrl), getLegend.getSldVersion().name());
+                } catch (ConstellationException ex) {
                     final String message;
-                    if (ex.getLinkedException() instanceof FileNotFoundException) {
-                        message = "The given url \""+ sld +"\" points to an non-existing file.";
+                    if (ex.getCause() instanceof FileNotFoundException) {
+                        message = "The given url \""+ sldUrl +"\" points to an non-existing file.";
                     } else {
                         message = ex.getLocalizedMessage();
                     }
                     throw new PortrayalException(message, ex);
-                } catch (FactoryException ex) {
-                    throw new PortrayalException(ex);
-                } catch (MalformedURLException ex) {
-                    throw new PortrayalException("The given SLD url \""+ sld +"\" is not a valid url", ex);
+                }  catch (MalformedURLException ex) {
+                    throw new PortrayalException("The given SLD url \""+ sldUrl +"\" is not a valid url", ex);
                 }
 
                 final List<MutableLayer> emptyNameMutableLayers = new ArrayList<>();

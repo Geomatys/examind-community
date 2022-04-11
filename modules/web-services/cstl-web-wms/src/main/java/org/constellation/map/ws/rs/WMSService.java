@@ -34,7 +34,6 @@ import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.MimeType;
 import org.constellation.ws.Worker;
 import org.constellation.ws.rs.GridWebService;
-import org.constellation.ws.rs.MapUtilities;
 import org.constellation.ws.rs.provider.SchemaLocatedExceptionResponse;
 import org.geotoolkit.client.RequestsUtilities;
 import org.geotoolkit.display2d.service.DefaultPortrayalService;
@@ -42,10 +41,8 @@ import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.ogc.xml.exception.ServiceExceptionReport;
 import org.geotoolkit.ogc.xml.exception.ServiceExceptionType;
 import org.geotoolkit.ows.xml.RequestBase;
-import org.geotoolkit.sld.MutableStyledLayerDescriptor;
 import org.geotoolkit.sld.xml.GetLegendGraphic;
 import org.geotoolkit.sld.xml.Specification.StyledLayerDescriptor;
-import org.geotoolkit.sld.xml.StyleXmlIO;
 import org.geotoolkit.sld.xml.v110.DescribeLayerResponseType;
 import org.geotoolkit.util.StringUtilities;
 import org.geotoolkit.temporal.util.TimeParser;
@@ -59,13 +56,12 @@ import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
-import javax.xml.bind.JAXBException;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.nio.file.Files;
+import java.net.URL;
+import java.nio.file.Path;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -75,6 +71,7 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.logging.Level;
+import javax.inject.Inject;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.util.ArgumentChecks;
 import static org.constellation.api.QueryConstants.REQUEST_PARAMETER;
@@ -82,6 +79,8 @@ import static org.constellation.api.QueryConstants.SERVICE_PARAMETER;
 import static org.constellation.api.QueryConstants.UPDATESEQUENCE_PARAMETER;
 import static org.constellation.api.QueryConstants.VERSION_PARAMETER;
 import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
+import org.constellation.business.IStyleBusiness;
+import org.constellation.exception.ConstellationException;
 import static org.constellation.map.core.WMSConstant.*;
 import static org.constellation.util.Util.parseLayerNameList;
 import org.constellation.ws.rs.ResponseObject;
@@ -121,6 +120,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class WMSService extends GridWebService<WMSWorker> {
 
     public static boolean writeDTD = true;
+
+    @Inject
+    private IStyleBusiness styleBusiness;
 
     /**
      * Build a new instance of the webService and initialize the JAXB context.
@@ -561,7 +563,6 @@ public class WMSService extends GridWebService<WMSWorker> {
         final List<String> layers  = StringUtilities.toStringList(strLayers);
         final List<GenericName> namedLayers  = parseLayerNameList(layers);
         final List<String> styles = StringUtilities.toStringList(strStyles);
-        MutableStyledLayerDescriptor sld = null;
         final Double elevation;
         try {
             elevation = (strElevation != null) ? RequestsUtilities.toDouble(strElevation) : null;
@@ -592,51 +593,24 @@ public class WMSService extends GridWebService<WMSWorker> {
         final Color background = RequestsUtilities.toColor(strBGColor);
         final boolean transparent = RequestsUtilities.toBoolean(strTransparent);
         queryContext.setOpaque(!transparent);
-
+        org.opengis.sld.StyledLayerDescriptor sld = null;
         if (strRemoteOwsUrl != null) {
             try {
-                java.nio.file.Path strRemoteOwsPath = IOUtilities.toPath(strRemoteOwsUrl);
-                try (InputStream in = Files.newInputStream(strRemoteOwsPath)) {
-
-                    final StyleXmlIO sldparser = new StyleXmlIO();
-                    try {
-                        sld = sldparser.readSLD(in,
-                                StyledLayerDescriptor.V_1_0_0);
-                    } catch (JAXBException ex) {
-                        // If a JAXBException occurs it can be because it is not parsed in the
-                        // good version. Let's just continue with the other version.
-                        LOGGER.finest(ex.getLocalizedMessage());
-                    } catch (FactoryException ex) {
-                        throw new CstlServiceException(ex, STYLE_NOT_DEFINED);
-                    }
-
-                    if (sld == null) {
-                        try {
-                            sld = sldparser.readSLD(in,
-                                    StyledLayerDescriptor.V_1_1_0);
-                        } catch (JAXBException | FactoryException ex) {
-                            throw new CstlServiceException(ex, STYLE_NOT_DEFINED);
-                        }
-                    }
-                }
-            } catch (IOException ex) {
+                Path strRemoteOwsPath = IOUtilities.toPath(strRemoteOwsUrl);
+                sld = styleBusiness.readSLD(strRemoteOwsPath, true);
+                    
+            } catch (IOException | ConstellationException ex) {
                 throw new CstlServiceException(ex, STYLE_NOT_DEFINED);
             }
-        } else {
+        } else if (bodySLD != null || urlSLD != null){
             try {
-                final StyledLayerDescriptor sldVersion;
-                if (strSldVersion == null) {
-                    sldVersion = null;
-                } else if (strSldVersion.equalsIgnoreCase("1.1.0")) {
-                    sldVersion = StyledLayerDescriptor.V_1_1_0;
-                } else if (strSldVersion.equalsIgnoreCase("1.0.0")) {
-                    sldVersion = StyledLayerDescriptor.V_1_0_0;
-                } else {
-                    throw new CstlServiceException("The given sld version "+ strSldVersion +" is not known.",
-                            INVALID_PARAMETER_VALUE, KEY_SLD_VERSION.toLowerCase());
-                }
-                sld = MapUtilities.toSLD(bodySLD, urlSLD, sldVersion);
-            } catch (MalformedURLException ex) {
+                // used to verify that the version is supported
+                StyledLayerDescriptor.version(strSldVersion);
+                Object src = urlSLD != null ? new URL(urlSLD) : bodySLD;
+                sld = styleBusiness.readSLD(src, strSldVersion);
+            } catch (IllegalArgumentException ex) {
+                throw new CstlServiceException("The given sld version " + strSldVersion + " is not known.", INVALID_PARAMETER_VALUE, KEY_SLD_VERSION.toLowerCase());
+            } catch (ConstellationException | MalformedURLException ex) {
                 throw new CstlServiceException(ex, STYLE_NOT_DEFINED);
             }
         }

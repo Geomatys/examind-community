@@ -73,6 +73,7 @@ import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import static org.constellation.map.util.MapUtils.transformJAXBFilter;
+import static org.constellation.map.util.MapUtils.visitJaxbSortBy;
 import org.constellation.provider.Data;
 import org.constellation.provider.FeatureData;
 import org.constellation.util.NameComparator;
@@ -136,7 +137,6 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.VERSION_NEGOTIATION_FAILED;
 import org.geotoolkit.ows.xml.RequestBase;
 import org.geotoolkit.ows.xml.Sections;
-import org.geotoolkit.sld.xml.StyleXmlIO;
 import org.geotoolkit.storage.event.FeatureStoreContentEvent;
 import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.wfs.xml.CreateStoredQuery;
@@ -1329,18 +1329,6 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 
         LOGGER.log(Level.FINE, "GetPropertyValue request processed in {0} ms", (System.currentTimeMillis() - startTime));
         return new FeatureSetWrapper(featureCollection, request.getValueReference(), nbMatched, nbReturned, "3.2.1");
-    }
-
-    private List<SortProperty> visitJaxbSortBy(final org.geotoolkit.ogc.xml.SortBy jaxbSortby,final Map<String, String> namespaceMapping, final String version) {
-        if (jaxbSortby != null) {
-            final StyleXmlIO util = new StyleXmlIO();
-            if ("2.0.0".equals(version)) {
-                return util.getTransformer200(namespaceMapping).visitSortBy((org.geotoolkit.ogc.xml.v200.SortByType)jaxbSortby);
-            } else {
-                return util.getTransformer110(namespaceMapping).visitSortBy((org.geotoolkit.ogc.xml.v110.SortByType)jaxbSortby);
-            }
-        }
-        return new ArrayList<>();
     }
 
     /**

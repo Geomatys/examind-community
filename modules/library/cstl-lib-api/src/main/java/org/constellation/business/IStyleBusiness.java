@@ -26,6 +26,8 @@ import org.constellation.exception.ConstellationException;
 
 import java.util.List;
 import java.util.Map;
+import org.opengis.sld.StyledLayerDescriptor;
+import org.opengis.style.Style;
 
 /**
  * @author Cédric Briançon (Geomatys)
@@ -159,5 +161,68 @@ public interface IStyleBusiness {
     void updateSharedProperty(final int id, final boolean shared) throws ConfigurationException;
     
     void unlinkAllFromLayer(int layerId) throws ConfigurationException;
+
+    /**
+     * Try to extract a style from various input, with all the available known specification.
+     * - User style in Symbology encoding 1.1.0 or 1.O.O
+     * - First style in a SLD in format 1.1.0 or 1.O.O
+     * - Feature type style.
+     * - created style from a palette file.
+     *
+     * For pallete file import, source must be either a String or a byte[], as palette reader only support these two.
+     *
+     * @param styleName Affected style name.
+     * @param source source object containing the xml.
+     * @param fileName Optional parameter used for palette type recognition.
+     *
+     * @return A parsed style
+     */
+    public Style parseStyle(final String styleName, final Object source, final String fileName);
+
+    /**
+     * Read a SLD from either a XML String or from an URL (pointing to an XML file).This method try to read it in all the available version until it succesfully read it.
+     *
+     * @param sldSrc A xml source containing a SLD (can be an input stream, an URL, a String, etc).
+     * @param throwEx If set to false, any read error will be ignored an {@code null} can be returned.
+     *
+     * @return A StyledLayerDescriptor.
+     * @throws ConstellationException If the XML can not be read in any version (and throwEx set to {@code true}).
+     */
+    StyledLayerDescriptor readSLD(final Object sldSrc, boolean throwEx) throws ConstellationException;
+
+
+    /**
+     * Read a SLD from either a XML String or from an URL (pointing to an XML file).
+     * 
+     * @param sldSrc A xml source containing a SLD (can be an input stream, an URL, a String, etc).
+     * @param sldVersion SLD version of the object.
+     *
+     * @return A StyledLayerDescriptor.
+     * @throws ConstellationException If the XML is malformed. If the sldVersion is not supported.
+     */
+    StyledLayerDescriptor readSLD(final Object sldSrc, final String sldVersion) throws ConstellationException;
+
+
+    /**
+     * Read a Style from either a XML String or from an URL (pointing to an XML file).This method try to read it in all the available version until it succesfully read it.
+     *
+     * @param sldSrc A xml source containing a Style (can be an input stream, an URL, a String, etc).
+     * @param throwEx If set to false, any read error will be ignored an {@code null} can be returned.
+     *
+     * @return A Style.
+     * @throws ConstellationException If the XML can not be read in any version (and throwEx set to {@code true}).
+     */
+    Style readStyle(final Object sldSrc, boolean throwEx) throws ConstellationException;
+
+    /**
+     * Read a Style from either a XML String or from an URL (pointing to an XML file).
+     *
+     * @param styleSrc A xml source containing a Style (can be an input stream, an URL, a String, etc).
+     * @param seVersion Symbology encoding version of the object.
+     *
+     * @return A Style.
+     * @throws ConstellationException If the XML is malformed. If the seVersion is not supported.
+     */
+    Style readStyle(final Object styleSrc, final String seVersion) throws ConstellationException;
 
 }
