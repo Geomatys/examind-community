@@ -23,20 +23,26 @@ import org.constellation.dto.DataBrief;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.sis.metadata.iso.DefaultMetadata;
+import org.constellation.api.ProviderType;
 import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
 
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IMetadataBusiness;
+import org.constellation.business.IProviderBusiness;
+import org.constellation.business.IStyleBusiness;
 import org.constellation.dto.Filter;
 import org.constellation.dto.Page;
 import org.constellation.dto.PagedSearch;
@@ -45,6 +51,14 @@ import org.constellation.dto.metadata.RootObj;
 import org.constellation.exception.ConstellationException;
 import org.constellation.json.metadata.Template;
 import org.constellation.json.metadata.bean.TemplateResolver;
+import org.constellation.provider.DataProviderFactory;
+import org.constellation.provider.DataProviders;
+import org.constellation.provider.ProviderParameters;
+import org.opengis.parameter.GeneralParameterDescriptor;
+import org.opengis.parameter.ParameterDescriptorGroup;
+import org.opengis.parameter.ParameterValue;
+import org.opengis.parameter.ParameterValueGroup;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -55,6 +69,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -75,7 +90,15 @@ public class DatasetRestAPI extends AbstractRestAPI {
     private IMetadataBusiness metadataBusiness;
 
     @Inject
+    private IProviderBusiness providerBusiness;
+
+    @Autowired
+    private IStyleBusiness styleBusiness;
+
+    @Inject
     private TemplateResolver templateResolver;
+
+    private static final String AGG_COV_DATASET_NAME = "Aggregated-Coverage-Dataset";
 
     @RequestMapping(value="/datasets",method=GET,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity getDatasetList(@RequestParam(value="includeData", required=true, defaultValue = "false") boolean includeData,
@@ -378,4 +401,111 @@ public class DatasetRestAPI extends AbstractRestAPI {
         return dsb;
     }
 
+    /**
+     * Return {@code true} if the specified dataset contains at least 2 coverages.
+     *
+     * @param datasetId The dataset identifier.
+     * @param req
+     * @return
+     */
+    @RequestMapping(value = "/datasets/coverage-aggregation/{datasetId}", method = GET)
+    public ResponseEntity isCoverageAggregationDatasetCandidate(@PathVariable("datasetId") int datasetId, HttpServletRequest req) {
+        try {
+            int cpt = 0;
+            List<DataBrief> data = dataBusiness.getDataBriefsFromDatasetId(datasetId, true, false, null, null, false, false);
+            for (DataBrief db : data) {
+                if ("COVERAGE".equalsIgnoreCase(db.getType())) {
+                    cpt++;
+                }
+                if (cpt > 1) {
+                    return new ResponseEntity(true, OK);
+                }
+            }
+            return new ResponseEntity(false, OK);
+        } catch(Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
+    }
+
+    /**
+     * Build a new coevrage aggregation from a list of coverage data in the specified dataset.
+     *
+     * @param datasetId The dataset identifier.
+     * @param dataName The assigned data name of the aggregated data.
+     * @param req
+     * @return
+     */
+    @RequestMapping(value = "/datasets/coverage-aggregation/{datasetId}", method = PUT)
+    public ResponseEntity createCoverageAggregation(@PathVariable("datasetId") int datasetId, @RequestParam("dataName") String dataName, HttpServletRequest req) {
+        try {
+            final int userId       = assertAuthentificated(req);
+
+            // 1. extract the S57 data and associatd styles in this dataset.
+            final DataAndStyle dns = getDataIdsToCombine(datasetId);
+
+            // 2. build an Ecdis provider
+            String providerIdentifier = "aggCovSrc" + UUID.randomUUID().toString();
+            final DataProviderFactory factory = DataProviders.getFactory("computed-resource");
+            final ParameterValueGroup source  = factory.getProviderDescriptor().createValue();
+            source.parameter("id").setValue(providerIdentifier);
+            final ParameterValueGroup choice =  ProviderParameters.getOrCreate((ParameterDescriptorGroup) factory.getStoreDescriptor(), source);
+            final ParameterValueGroup config = choice.addGroup("AggregatedCoverageProvider");
+
+            final GeneralParameterDescriptor dataIdsDesc = config.getDescriptor().descriptor("data_ids");
+            for (Integer dataId : dns.dataIds) {
+                ParameterValue p = (ParameterValue) dataIdsDesc.createValue();
+                p.setValue(dataId);
+                config.values().add(p);
+            }
+            config.parameter("DataName").setValue(dataName);
+
+            // 3. store the provider
+            int pid = providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "computed-resource", source);
+
+            // 4. get or create a static dataset for the ecdis products.
+            Integer dsid = datasetBusiness.getDatasetId(AGG_COV_DATASET_NAME);
+            if (dsid == null) {
+                dsid = datasetBusiness.createDataset(AGG_COV_DATASET_NAME, userId, null);
+            }
+
+            // 5. generate the data in the static dataset and link them with the available styles
+            providerBusiness.createOrUpdateData(pid, dsid, false, false, userId);
+            List<Integer> dataIds = providerBusiness.getDataIdsFromProviderId(pid);
+            for (Integer did : dataIds) {
+                for (Integer sid : dns.styleIds) {
+                    styleBusiness.linkToData(sid, did);
+                }
+            }
+            return new ResponseEntity(OK);
+        } catch(Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
+    }
+
+    private static class DataAndStyle {
+        Set<Integer> dataIds  = new HashSet<>();
+        Set<Integer> styleIds = new HashSet<>();
+    }
+
+    /**
+     * Extract all the S57 data in this dataset along with the styles they are associated to.
+     *
+     * @param datasetId The dataset identifier.
+     *
+     * @return A list of data ids and styles ids.
+     * @throws ConstellationException
+     */
+    private DataAndStyle getDataIdsToCombine(int datasetId) throws ConstellationException  {
+        DataAndStyle results = new DataAndStyle();
+        List<DataBrief> data = dataBusiness.getDataBriefsFromDatasetId(datasetId, true, false, null, null, false, true);
+        for (DataBrief db : data) {
+            if ("COVERAGE".equalsIgnoreCase(db.getType())) {
+                results.dataIds.add(db.getId());
+                results.styleIds.addAll(db.getTargetStyle().stream().map(s -> s.getId()).collect(Collectors.toList()));
+            }
+        }
+        return results;
+    }
 }
