@@ -106,22 +106,24 @@ function WizardDataImportController($scope, $location, $interval, $modal, StepOb
     };
 
     self.finish = function () {
-        var finish = self.stepsConfig.stepsList[self.stepsConfig.stepsList.length - 1].finish;
+        var finish = self.stepsConfig.stepsList[self.currentStep - 1].finish;
         if (finish && angular.isFunction(finish)) {
             finish(self.returnToDataDashboard);
         }
     };
 
     self.showBtn = function (btnName) {
-        if (btnName === 'cancel') {
-            return true;
-        } else if (btnName === 'finish') {
-            return self.currentStep === self.stepsConfig.stepsList.length;
-        } else if (btnName === 'next') {
-            return self.currentStep !== self.stepsConfig.stepsList.length && self.stepsConfig.stepsList[self.currentStep - 1].showNextBtn;
-
-        } else if (btnName === 'previous') {
-            return self.currentStep !== 1 && self.stepsConfig.stepsList[self.currentStep - 1].showPreviousBtn;
+        switch (btnName) {
+            case 'cancel':
+                return true;
+            case 'finish':
+                return self.currentStep > 3;
+            case 'next':
+                return self.currentStep !== self.stepsConfig.stepsList.length && self.stepsConfig.stepsList[self.currentStep - 1].showNextBtn;
+            case 'previous':
+                return self.currentStep !== 1 && self.stepsConfig.stepsList[self.currentStep - 1].showPreviousBtn;
+            default:
+                return false;
         }
     };
 
@@ -139,7 +141,8 @@ function WizardDataImportController($scope, $location, $interval, $modal, StepOb
 
     self.clear = function () {
 
-        if (!self.wizardValues.step5 || !self.wizardValues.step5.finished) {
+        if ((!self.wizardValues.step4 || !self.wizardValues.step4.finished)
+            && (!self.wizardValues.step5 || !self.wizardValues.step5.finished)) {
             // Remove datasource
             if (self.wizardValues.step1 && self.wizardValues.step1.dataSource.id) {
                 $interval.cancel(self.wizardValues.step1.stores.asyncComputeStoresInterval);

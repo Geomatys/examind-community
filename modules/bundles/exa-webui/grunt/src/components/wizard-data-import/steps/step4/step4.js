@@ -261,6 +261,100 @@ function Step4WizardController($scope, $location, $translate, Growl, Examind, Wi
         }
     };
 
+    function finishHandler(callback) {
+        // unhide dataset metadata
+        if (self.wizardValues.step3.selection.dataset && self.wizardValues.step3.selection.dataset.metadatas &&
+            self.wizardValues.step3.selection.dataset.metadatas.length === 1) {
+            Examind.metadata.changeHiddenProperty(false, self.wizardValues.step3.selection.dataset.metadatas[0].id);
+        }
+
+        // unhide data
+        if (self.wizardValues.step2.acceptedData) {
+            var dataIds = self.wizardValues.step2.acceptedData.map(function (value) {
+                return value.id;
+            });
+            Examind.datas.changeHiddenFlag(dataIds, false);
+        }
+
+        // remove unselected data
+        if (angular.isArray(self.wizardValues.step2.rejectedData) && self.wizardValues.step2.rejectedData.length > 0) {
+            Examind.datas.removeDatas(self.wizardValues.step2.rejectedData, false);
+        }
+
+        // unhide data metadata
+        if (self.wizardValues.step2.acceptedData) {
+            var metadatas = [];
+            self.wizardValues.step2.acceptedData.forEach(function (data) {
+                data.metadatas.forEach(function (metadata) {
+                    metadatas.push(metadata);
+                });
+            });
+            Examind.metadata.changeHiddenPropertyMulti(false, metadatas);
+        }
+
+        // remove datasource
+        if (self.wizardValues.step1.dataSource) {
+            Examind.dataSources.delete(self.wizardValues.step1.dataSource.id);
+        }
+
+        self.wizardValues.step4.finished = true;
+
+        if (angular.isFunction(callback)) {
+            callback();
+        }
+    }
+
+    self.stepObject.finish = function (callback) {
+        self.wizardValues.step4.finished = true;
+        if (self.wizardValues.step1.advConfig.batchMode || self.wizardValues.step4.batchMode) {
+            self.createMetadataModel(function () {
+                if (self.wizardValues.step1.advConfig.batchMode) {
+                    var params = {
+                        'datasetId': self.wizardValues.step3.selection.dataset.id,
+                        'modelId': self.wizardValues.step4.metadataModelId,
+                        'storeParams': self.wizardValues.step1.formSchema.schema
+                    };
+
+                    Examind.dataSources.getAnalysisBatch(self.wizardValues.step1.dataSource.id, params)
+                        .then(function () {
+                            if (angular.isFunction(callback)) {
+                                callback();
+                            }
+                        }, function (error) {
+                            console.error(error);
+                        });
+
+                    // NORMAL MODE
+                } else {
+                    finishHandler(callback);
+                }
+            });
+        } else {
+            self.saveMdFunction(function () {
+                if (self.wizardValues.step1.advConfig.batchMode) {
+                    var params = {
+                        'datasetId': self.wizardValues.step3.selection.dataset.id,
+                        'modelId': self.wizardValues.step4.metadataModelId,
+                        'storeParams': self.wizardValues.step1.formSchema.schema
+                    };
+
+                    EExamind.dataSources.getAnalysisBatch(self.wizardValues.step1.dataSource.id, params)
+                        .then(function () {
+                            if (angular.isFunction(callback)) {
+                                callback();
+                            }
+                        }, function (error) {
+                            console.error(error);
+                        });
+
+                    // NORMAL MODE
+                } else {
+                    finishHandler(callback);
+                }
+            });
+        }
+    };
+
     self.init = function () {
         /**
          * The initialise Mode of this step
