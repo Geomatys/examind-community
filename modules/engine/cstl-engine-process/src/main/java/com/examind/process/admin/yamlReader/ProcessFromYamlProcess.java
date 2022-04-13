@@ -29,9 +29,8 @@ import org.geotoolkit.process.ProcessException;
 import org.geotoolkit.process.ProcessFinder;
 import org.opengis.parameter.*;
 import org.opengis.util.NoSuchIdentifierException;
+import org.springframework.beans.factory.annotation.Autowired;
 
-
-import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
@@ -44,7 +43,7 @@ public class ProcessFromYamlProcess extends AbstractCstlProcess {
     /**
      * ServiceBusiness used for provider GUI editors data
      */
-    @Inject
+    @Autowired
     private IServiceBusiness serviceBusiness;
 
     private static final String PROCESS_FACTORY_NAME = "factory_name";

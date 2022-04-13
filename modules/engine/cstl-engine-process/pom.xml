@@ -32,22 +32,8 @@
             <artifactId>geotk-processing-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.geotoolkit</groupId>
-            <artifactId>geotk-render2d</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.geotoolkit</groupId>
-            <artifactId>geotk-coverage-xml</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.examind.community</groupId>
             <artifactId>cstl-lib-base</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.examind.community</groupId>
-            <artifactId>cstl-store-data-datastore</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -55,6 +41,23 @@
             <artifactId>cstl-store-provider</artifactId>
             <version>${project.version}</version>
         </dependency>
+        
+        <!-- for pyramid process -->
+        <dependency>
+            <groupId>org.geotoolkit</groupId>
+            <artifactId>geotk-render2d</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.geotoolkit</groupId>
+            <artifactId>geotk-coverage-xml</artifactId>
+        </dependency>
+        
+        <!-- for yaml reader process -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+        </dependency>
+        
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
@@ -78,14 +81,7 @@
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.dataformat</groupId>
-            <artifactId>jackson-dataformat-yaml</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.hk2.external</groupId>
-            <artifactId>javax.inject</artifactId>
-        </dependency>
+
 
     </dependencies>
 

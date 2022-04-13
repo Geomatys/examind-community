@@ -33,11 +33,6 @@
             <artifactId>cstl-lib-api</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.examind.community</groupId>
-            <artifactId>cstl-store-provider</artifactId>
-            <version>${project.version}</version>
-        </dependency>
 
         <dependency>
             <groupId>org.geotoolkit</groupId>

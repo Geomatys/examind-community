@@ -55,6 +55,7 @@ import org.constellation.dto.PagedSearch;
 import org.constellation.dto.SensorReference;
 import org.constellation.dto.StatInfo;
 import org.constellation.provider.DefaultCoverageData;
+import org.constellation.provider.util.StatsUtilities;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import org.geotoolkit.storage.coverage.ImageStatistics;
@@ -191,7 +192,8 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
         String s = getStringResponse(request);
         Assert.assertNotNull(s);
 
-        ImageStatistics is = DefaultCoverageData.getDataStatistics(new StatInfo(STATE_COMPLETED, s));
+        ImageStatistics is = StatsUtilities.getDataStatistics(new StatInfo(STATE_COMPLETED, s)).orElse(null);
+        Assert.assertNotNull(is);
         Assert.assertNotNull(is.getBands());
         Assert.assertEquals(1, is.getBands().length);
     }

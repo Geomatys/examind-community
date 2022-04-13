@@ -65,7 +65,7 @@ import org.constellation.business.IStyleConverterBusiness;
 import org.constellation.dto.StatInfo;
 import org.constellation.json.util.StyleUtilities;
 import org.constellation.provider.Data;
-import org.constellation.provider.DefaultCoverageData;
+import org.constellation.provider.util.StatsUtilities;
 import org.geotoolkit.display2d.ext.isoline.symbolizer.IsolineSymbolizer;
 import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.internal.InternalUtilities;
@@ -704,7 +704,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                 return new ErrorMessage().status(UNPROCESSABLE_ENTITY).i18N(I18nCodes.Style.NOT_FOUND).build();
             }
             if ("COVERAGE".equals(data.getType())) {
-                final ImageStatistics stats = DefaultCoverageData.getDataStatistics(new StatInfo(data.getStatsState(), data.getStatsResult()));
+                final ImageStatistics stats = StatsUtilities.getDataStatistics(new StatInfo(data.getStatsState(), data.getStatsResult())).orElse(null);
                 if (stats != null) {
                     return new ResponseEntity(stats,OK);
                 }
