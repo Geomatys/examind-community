@@ -44,12 +44,13 @@ public class AggregatedCoverageDescriptor extends AbstractDataCombineDescriptor 
      static {
         final ParameterBuilder builder = new ParameterBuilder();
 
-        builder.setRequired(true);
 
         RESULT_CRS = builder.addName("result.crs")
                 .setDescription("Result CRS.")
-                .create(String.class, "EPSG:4326");
+                .setRequired(false)
+                .create(String.class, null);
 
+        builder.setRequired(true);
         MODE = builder.addName("mode")
                 .setDescription("Aggregation ordering mode.")
                 .createEnumerated(String.class, new String[]{"ORDER", "SCALE"}, "ORDER");

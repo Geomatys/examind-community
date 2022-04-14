@@ -51,7 +51,7 @@ public class AggregatedCoverageProcess extends AbstractDataCombineProcess {
         try {
             super.fireProgressing(" Extracting parameter ", 0, false);
             final String dataName            = inputParameters.getMandatoryValue(DATA_NAME);
-            final String resultCRS           = inputParameters.getMandatoryValue(RESULT_CRS);
+            final String resultCRS           = inputParameters.getValue(RESULT_CRS);
             final String mode                = inputParameters.getMandatoryValue(MODE);
             DatasetProcessReference dataset  = inputParameters.getMandatoryValue(TARGET_DATASET);
             final List<Integer> dataIds      = getDataIdsToCombine();
