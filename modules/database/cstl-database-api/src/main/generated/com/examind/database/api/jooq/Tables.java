@@ -35,6 +35,7 @@ import com.examind.database.api.jooq.tables.Provider;
 import com.examind.database.api.jooq.tables.ProviderXCsw;
 import com.examind.database.api.jooq.tables.ProviderXSos;
 import com.examind.database.api.jooq.tables.Role;
+import com.examind.database.api.jooq.tables.Scene;
 import com.examind.database.api.jooq.tables.Sensor;
 import com.examind.database.api.jooq.tables.SensorXSos;
 import com.examind.database.api.jooq.tables.SensoredData;
@@ -46,6 +47,8 @@ import com.examind.database.api.jooq.tables.StyledData;
 import com.examind.database.api.jooq.tables.StyledLayer;
 import com.examind.database.api.jooq.tables.Task;
 import com.examind.database.api.jooq.tables.TaskParameter;
+import com.examind.database.api.jooq.tables.Theater;
+import com.examind.database.api.jooq.tables.TheaterScene;
 import com.examind.database.api.jooq.tables.Thesaurus;
 import com.examind.database.api.jooq.tables.ThesaurusLanguage;
 import com.examind.database.api.jooq.tables.ThesaurusXService;
@@ -214,6 +217,11 @@ public class Tables {
     public static final Role ROLE = Role.ROLE;
 
     /**
+     * The table <code>admin.scene</code>.
+     */
+    public static final Scene SCENE = Scene.SCENE;
+
+    /**
      * The table <code>admin.sensor</code>.
      */
     public static final Sensor SENSOR = Sensor.SENSOR;
@@ -267,6 +275,16 @@ public class Tables {
      * The table <code>admin.task_parameter</code>.
      */
     public static final TaskParameter TASK_PARAMETER = TaskParameter.TASK_PARAMETER;
+
+    /**
+     * The table <code>admin.theater</code>.
+     */
+    public static final Theater THEATER = Theater.THEATER;
+
+    /**
+     * The table <code>admin.theater_scene</code>.
+     */
+    public static final TheaterScene THEATER_SCENE = TheaterScene.THEATER_SCENE;
 
     /**
      * The table <code>admin.thesaurus</code>.

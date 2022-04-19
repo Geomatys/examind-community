@@ -50,6 +50,7 @@ import com.examind.database.api.jooq.tables.Provider;
 import com.examind.database.api.jooq.tables.ProviderXCsw;
 import com.examind.database.api.jooq.tables.ProviderXSos;
 import com.examind.database.api.jooq.tables.Role;
+import com.examind.database.api.jooq.tables.Scene;
 import com.examind.database.api.jooq.tables.Sensor;
 import com.examind.database.api.jooq.tables.SensorXSos;
 import com.examind.database.api.jooq.tables.SensoredData;
@@ -61,6 +62,8 @@ import com.examind.database.api.jooq.tables.StyledData;
 import com.examind.database.api.jooq.tables.StyledLayer;
 import com.examind.database.api.jooq.tables.Task;
 import com.examind.database.api.jooq.tables.TaskParameter;
+import com.examind.database.api.jooq.tables.Theater;
+import com.examind.database.api.jooq.tables.TheaterScene;
 import com.examind.database.api.jooq.tables.Thesaurus;
 import com.examind.database.api.jooq.tables.ThesaurusLanguage;
 import com.examind.database.api.jooq.tables.ThesaurusXService;
@@ -243,6 +246,11 @@ public class Admin extends SchemaImpl {
     public final Role ROLE = Role.ROLE;
 
     /**
+     * The table <code>admin.scene</code>.
+     */
+    public final Scene SCENE = Scene.SCENE;
+
+    /**
      * The table <code>admin.sensor</code>.
      */
     public final Sensor SENSOR = Sensor.SENSOR;
@@ -296,6 +304,16 @@ public class Admin extends SchemaImpl {
      * The table <code>admin.task_parameter</code>.
      */
     public final TaskParameter TASK_PARAMETER = TaskParameter.TASK_PARAMETER;
+
+    /**
+     * The table <code>admin.theater</code>.
+     */
+    public final Theater THEATER = Theater.THEATER;
+
+    /**
+     * The table <code>admin.theater_scene</code>.
+     */
+    public final TheaterScene THEATER_SCENE = TheaterScene.THEATER_SCENE;
 
     /**
      * The table <code>admin.thesaurus</code>.
@@ -388,6 +406,7 @@ public class Admin extends SchemaImpl {
             ProviderXCsw.PROVIDER_X_CSW,
             ProviderXSos.PROVIDER_X_SOS,
             Role.ROLE,
+            Scene.SCENE,
             Sensor.SENSOR,
             SensorXSos.SENSOR_X_SOS,
             SensoredData.SENSORED_DATA,
@@ -399,6 +418,8 @@ public class Admin extends SchemaImpl {
             StyledLayer.STYLED_LAYER,
             Task.TASK,
             TaskParameter.TASK_PARAMETER,
+            Theater.THEATER,
+            TheaterScene.THEATER_SCENE,
             Thesaurus.THESAURUS,
             ThesaurusLanguage.THESAURUS_LANGUAGE,
             ThesaurusXService.THESAURUS_X_SERVICE,

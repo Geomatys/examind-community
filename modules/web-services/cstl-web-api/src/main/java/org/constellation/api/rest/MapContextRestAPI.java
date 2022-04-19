@@ -335,7 +335,7 @@ public class MapContextRestAPI extends AbstractRestAPI {
 
             final EntryType newEntry = new EntryType();
             newEntry.addId(new IdType("Web Map Service Layer"));
-            newEntry.addTitle(new TextType(Arrays.asList(layerName)));
+            newEntry.addTitle(new TextType(Arrays.asList(layerName.toString())));
             newEntry.addContent(new ContentType("html"));
             newEntry.addCategory(new CategoryType("true", "http://www.opengis.net/spec/owc/active"));
 
