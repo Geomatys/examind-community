@@ -20,6 +20,7 @@
 package org.constellation.admin.util;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.constellation.engine.template.TemplateEngine;
 import org.constellation.engine.template.TemplateEngineException;
@@ -52,6 +53,8 @@ import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.opengis.metadata.citation.OnlineResource;
 import org.opengis.metadata.distribution.DigitalTransferOptions;
 import org.opengis.metadata.distribution.Distribution;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
 
 /**
@@ -93,11 +96,14 @@ public final class MetadataUtilities {
         return null;
     }
     
-    public static String getTemplateMetadata(final Properties prop, final String templatePath) {
+    public static @Nullable String getTemplateMetadata(@NonNull final Properties prop, @NonNull final String templatePath) {
         try {
             final TemplateEngine templateEngine = TemplateEngineFactory.getInstance(TemplateEngineFactory.GROOVY_TEMPLATE_ENGINE);
-            final InputStream stream = Util.getResourceAsStream(templatePath);
-            return templateEngine.apply(stream, prop);
+            try (InputStream stream = Util.getResourceAsStream(templatePath)) {
+                return templateEngine.apply(stream, prop);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
         } catch (TemplateEngineException ex) {
            LOGGER.log(Level.WARNING, null, ex);
         }

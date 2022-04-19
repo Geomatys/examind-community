@@ -21,35 +21,35 @@ package org.constellation.engine.template;
 
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyCodeSource;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import org.constellation.util.Util;
-import org.geotoolkit.nio.IOUtilities;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 /** Factory for TemplateEngine
  * Created by christophem on 02/04/14.
  */
 public class TemplateEngineFactory {
     public static final String GROOVY_TEMPLATE_ENGINE = "groovy";
+    private static final String GROOVY_TEMPLATE_PACKAGE = "org/constellation/engine/template/";
+    public static final String GROOVY_TEMPLATE_FILENAME = "TemplateEngine.groovy";
 
     public static TemplateEngine getInstance(String templateEngineType) throws TemplateEngineException {
         try {
             switch (templateEngineType) {
                 case GROOVY_TEMPLATE_ENGINE :
-                    final InputStream stream = Util.getResourceAsStream("org/constellation/engine/template/TemplateEngine.groovy");
-                    Path templateFile = Files.createTempFile("TemplateEngine", ".groovy");
-                    IOUtilities.writeStream(stream, templateFile);
+
                     try (final GroovyClassLoader gcl = new GroovyClassLoader();
-                         final BufferedReader reader = Files.newBufferedReader(templateFile, Charset.forName("UTF-8"))) {
-                        final Class clazz = gcl.parseClass(new GroovyCodeSource(reader, templateFile.getFileName().toString(), ""));
-                        final Object aScript = clazz.newInstance();
+                         final InputStream stream = Util.getResourceAsStream(GROOVY_TEMPLATE_PACKAGE + GROOVY_TEMPLATE_FILENAME);
+                         final InputStreamReader rawReader = new InputStreamReader(stream, StandardCharsets.UTF_8);
+                         final BufferedReader reader = new BufferedReader(rawReader)) {
+
+                        final Class<?> clazz = gcl.parseClass(new GroovyCodeSource(reader, GROOVY_TEMPLATE_FILENAME, ""));
+                        final Object aScript = clazz.getDeclaredConstructor().newInstance();
                         return (TemplateEngine) aScript;
-                    } finally {
-                        Files.deleteIfExists(templateFile);
                     }
 
                 default:
