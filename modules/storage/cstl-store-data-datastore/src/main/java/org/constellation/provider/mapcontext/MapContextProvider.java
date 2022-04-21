@@ -75,7 +75,7 @@ public class MapContextProvider extends AbstractDataProvider {
     public Set<GenericName> getKeys() throws ConstellationStoreException {
         final MapContextRepository repo = SpringHelper.getBean(MapContextRepository.class)
                                                       .orElseThrow(() -> new ConstellationStoreException("No spring context available"));
-        return repo.findAll().stream().map(mc -> NamesExt.create(mc.getName())).collect(Collectors.toSet());
+        return repo.findAll(false).stream().map(mc -> NamesExt.create(mc.getName())).collect(Collectors.toSet());
     }
 
     /**
@@ -96,7 +96,7 @@ public class MapContextProvider extends AbstractDataProvider {
             final IMapContextBusiness repo = SpringHelper.getBean(IMapContextBusiness.class)
                                                          .orElseThrow(() -> new ConstellationStoreException("No spring context available"));
             try {
-                MapContextLayersDTO mc = repo.findByName(key.tip().toString());
+                MapContextLayersDTO mc = repo.findByName(key.tip().toString(), true);
                 if (mc != null) {
                     MapLayers ml = MapContextUtils.getMapLayers(mc);
                     d = dataCreator.createMapContextData(ml);

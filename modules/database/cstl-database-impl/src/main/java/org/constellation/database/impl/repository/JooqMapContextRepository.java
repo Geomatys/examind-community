@@ -38,6 +38,7 @@ import com.examind.database.api.jooq.tables.pojos.Mapcontext;
 import com.examind.database.api.jooq.tables.pojos.MapcontextStyledLayer;
 import com.examind.database.api.jooq.tables.records.MapcontextRecord;
 import com.examind.database.api.jooq.tables.records.MapcontextStyledLayerRecord;
+import java.util.Date;
 import org.constellation.dto.AbstractMCLayerDTO;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.Data;
@@ -93,13 +94,24 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
     @Autowired
     private ServiceRepository serviceRepository;
 
+    private static final Field[] REDUCED = {MAPCONTEXT.ID, MAPCONTEXT.NAME};
+
+    private static final Field[] REDUCED_LAYER = {MAPCONTEXT_STYLED_LAYER.ID,
+                                                  MAPCONTEXT_STYLED_LAYER.DATA_ID,
+                                                  MAPCONTEXT_STYLED_LAYER.LAYER_ID,
+                                                  MAPCONTEXT_STYLED_LAYER.STYLE_ID,
+                                                  MAPCONTEXT_STYLED_LAYER.EXTERNAL_LAYER,
+                                                  MAPCONTEXT_STYLED_LAYER.EXTERNAL_SERVICE_URL,
+                                                  MAPCONTEXT_STYLED_LAYER.EXTERNAL_STYLE};
+
     public JooqMapContextRepository() {
         super(Mapcontext.class, MAPCONTEXT);
     }
 
     @Override
-    public MapContextDTO findById(int id) {
-        return convertToDTO(dsl.select().from(MAPCONTEXT).where(MAPCONTEXT.ID.eq(id)).fetchOneInto(Mapcontext.class));
+    public MapContextDTO findById(int id, boolean full) {
+        final Field[] fields = full ? MAPCONTEXT.fields() : REDUCED;
+        return convertToDTO(dsl.select(fields).from(MAPCONTEXT).where(MAPCONTEXT.ID.eq(id)).fetchOneInto(Mapcontext.class));
     }
 
     @Override
@@ -115,15 +127,16 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
     }
 
     @Override
-    public List<AbstractMCLayerDTO> getLinkedLayers(int mapContextId) {
-        List<MapcontextStyledLayer> mcLayers = dsl.select().from(MAPCONTEXT_STYLED_LAYER)
+    public List<AbstractMCLayerDTO> getLinkedLayers(int mapContextId, boolean full) {
+        final Field[] fields = full ? MAPCONTEXT_STYLED_LAYER.fields() : REDUCED_LAYER;
+        List<MapcontextStyledLayer> mcLayers = dsl.select(fields).from(MAPCONTEXT_STYLED_LAYER)
                 .where(MAPCONTEXT_STYLED_LAYER.MAPCONTEXT_ID.eq(mapContextId))
                 .fetchInto(MapcontextStyledLayer.class);
 
         List<AbstractMCLayerDTO> results = new ArrayList<>();
         for (MapcontextStyledLayer mclayer : mcLayers) {
             try {
-                results.add(convertToDto(mclayer));
+                results.add(convertToDto(mclayer, full));
             } catch (ConfigurationException ex) {
                 LOGGER.log(Level.WARNING, "Error while reading mapcontext layer", ex);
             }
@@ -276,11 +289,12 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
     }
 
     @Override
-    public List<MapContextDTO> findAll() {
-        return convertMCListToDto(dsl.select().from(MAPCONTEXT).fetchInto(Mapcontext.class));
+    public List<MapContextDTO> findAll(boolean full) {
+        final Field[] fields = full ? MAPCONTEXT.fields() : REDUCED;
+        return convertMCListToDto(dsl.select(fields).from(MAPCONTEXT).fetchInto(Mapcontext.class));
     }
 
-    private AbstractMCLayerDTO convertToDto(MapcontextStyledLayer mcSl) throws ConfigurationException {
+    private AbstractMCLayerDTO convertToDto(MapcontextStyledLayer mcSl, boolean full) throws ConfigurationException {
         if (mcSl != null) {
             Layer layer = null;
             Data data = null;
@@ -296,44 +310,68 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
             }
             
             if (layer != null) {
-                final String owner = userRepository.findById(layer.getOwnerId())
+                String owner           = null;
+                String dataType        = null;
+                String styleName       = null;
+                String serviceId       = null;
+                Date creationDate      = null;
+                 List<String> versions = null;
+                if (full) {
+                    owner = userRepository.findById(layer.getOwnerId())
                                                    .map(CstlUser::getLogin)
                                                    .orElse(null);
-                final Service serv = serviceRepository.findById(layer.getService());
+                    creationDate = layer.getDate();
+                    dataType     = data != null ? data.getType() : null;
+                    styleName    = style != null ? style.getName() : null;
+                    final Service serv = serviceRepository.findById(layer.getService());
+                    serviceId = serv.getIdentifier();
+                    versions = Arrays.asList(serv.getVersions().split("µ"));
+                }
 
-                List<String> versions = Arrays.asList(serv.getVersions().split("µ"));
                 final QName layerName = layer.getAlias() != null ? new QName(layer.getAlias()) : layer.getName();
-                return new InternalServiceMCLayerDTO(layerName,
+                return new InternalServiceMCLayerDTO(mcSl.getId(),
+                                                    layerName,
                                                      mcSl.getLayerOrder(),
                                                      mcSl.getLayerOpacity(),
                                                      mcSl.getLayerVisible(),
                                                      mcSl.getLayerId(),
                                                      mcSl.getStyleId(),
-                                                     style != null ? style.getName() : null,
-                                                     layer.getDate(),
-                                                     data != null ? data.getType() : null,
+                                                     styleName,
+                                                     creationDate,
+                                                     dataType,
                                                      owner,
                                                      data != null ? data.getId(): null,
-                                                     serv.getIdentifier(),
+                                                     serviceId,
                                                      versions);
             } else if (data != null) {
-                final String owner = userRepository.findById(data.getOwnerId())
-                                                   .map(CstlUser::getLogin)
-                                                   .orElse(null);
-                return new DataMCLayerDTO(new QName(data.getNamespace(), data.getName()),
+                String owner      = null;
+                String dataType   = null;
+                Date creationDate = null;
+                String styleName  = null;
+                if (full) {
+                    owner = userRepository.findById(data.getOwnerId())
+                                          .map(CstlUser::getLogin)
+                                          .orElse(null);
+                    dataType     = data.getType();
+                    creationDate = data.getDate();
+                    styleName    = style != null ? style.getName() : null;
+                }
+                return new DataMCLayerDTO(mcSl.getId(),
+                                          new QName(data.getNamespace(), data.getName()),
                                           mcSl.getLayerOrder(),
                                           mcSl.getLayerOpacity(),
                                           mcSl.getLayerVisible(),
-                                          data.getDate(),
-                                          data.getType(),
+                                          creationDate,
+                                          dataType,
                                           owner,
                                           mcSl.getDataId(),
                                           mcSl.getStyleId(),
-                                          style != null ? style.getName() : null);
+                                          styleName);
 
             } else if (mcSl.getExternalLayer() != null) {
                 QName layerName = new QName(mcSl.getExternalLayer());
-                return new ExternalServiceMCLayerDTO(layerName,
+                return new ExternalServiceMCLayerDTO(mcSl.getId(),
+                                                     layerName,
                                                      mcSl.getLayerOrder(),
                                                      mcSl.getLayerOpacity(),
                                                      mcSl.getLayerVisible(),

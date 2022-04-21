@@ -133,6 +133,7 @@ public class MapContextBusiness implements IMapContextBusiness {
         for (final DataBrief db : briefs) {
             final StyleBrief style = db.getFirstStyle();
             mapcontextlayers.add(new DataMCLayerDTO(
+                                          null,
                                           new QName(db.getNamespace(), db.getName()),
                                           briefs.indexOf(db),
                                           100,
@@ -150,52 +151,54 @@ public class MapContextBusiness implements IMapContextBusiness {
     }
 
     @Override
-    public List<MapContextLayersDTO> findAllMapContextLayers() throws ConstellationException {
+    public List<MapContextLayersDTO> findAllMapContextLayers(boolean full) throws ConstellationException {
         final List<MapContextLayersDTO> ctxtLayers = new ArrayList<>();
-        final List<MapContextDTO> ctxts = mapContextRepository.findAll();
+        final List<MapContextDTO> ctxts = mapContextRepository.findAll(full);
         for (final MapContextDTO ctxt : ctxts) {
-            final MapContextLayersDTO mapcontext = convertToMapContextLayer(ctxt);
+            final MapContextLayersDTO mapcontext = convertToMapContextLayer(ctxt, full);
             ctxtLayers.add(mapcontext);
         }
         return ctxtLayers;
     }
 
-    private MapContextLayersDTO convertToMapContextLayer(final MapContextDTO ctxt) throws ConstellationException {
-        final List<AbstractMCLayerDTO> styledLayers = mapContextRepository.getLinkedLayers(ctxt.getId());
+    private MapContextLayersDTO convertToMapContextLayer(final MapContextDTO ctxt, boolean full) throws ConstellationException {
+        final List<AbstractMCLayerDTO> styledLayers = mapContextRepository.getLinkedLayers(ctxt.getId(), full);
         //get owner login.
         String userLogin = userBusiness.findById(ctxt.getOwner()).map(CstlUser::getLogin).orElse(null);
         return buildMapContextLayers(ctxt, userLogin, styledLayers);
     }
-
+    
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public MapContextLayersDTO findMapContextLayers(int contextId) throws ConstellationException {
-        final MapContextDTO ctxt = mapContextRepository.findById(contextId);
+    public MapContextLayersDTO findMapContextLayers(int contextId, boolean full) throws ConstellationException {
+        final MapContextDTO ctxt = mapContextRepository.findById(contextId, true);
         if (ctxt != null) {
-            return convertToMapContextLayer(ctxt);
+            return convertToMapContextLayer(ctxt, full);
         }
         throw new TargetNotFoundException("No mapcontext found with id: " + contextId);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public MapContextLayersDTO findByName(String contextName) throws ConstellationException {
+    public MapContextLayersDTO findByName(String contextName, boolean full) throws ConstellationException {
         final MapContextDTO ctxt = mapContextRepository.findByName(contextName);
         if (ctxt != null) {
-            return convertToMapContextLayer(ctxt);
+            return convertToMapContextLayer(ctxt, full);
         }
         throw new TargetNotFoundException("No mapcontext found with name: " + contextName);
     }
 
     /**
-     * Get the extent of all included layers in this map context.
-     *
-     * @param contextId Context identifier
-     * @return
-     * @throws ConstellationException
+     * {@inheritDoc}
      */
     @Override
     public ParameterValues getExtent(int contextId) throws ConstellationException {
         final ParameterValues values = new ParameterValues();
-        final MapContextDTO context = mapContextRepository.findById(contextId);
+        final MapContextDTO context = mapContextRepository.findById(contextId, true);
         GeneralEnvelope env = null;
         if (context.getWest() != null && context.getSouth() != null && context.getEast() != null && context.getNorth() != null && context.getCrs() != null) {
             try {
@@ -208,7 +211,7 @@ public class MapContextBusiness implements IMapContextBusiness {
             }
         }
 
-        final List<AbstractMCLayerDTO> styledLayers = mapContextRepository.getLinkedLayers(contextId);
+        final List<AbstractMCLayerDTO> styledLayers = mapContextRepository.getLinkedLayers(contextId, true);
         env = getEnvelopeForLayers(styledLayers, env);
 
         if (env == null) {
@@ -226,11 +229,7 @@ public class MapContextBusiness implements IMapContextBusiness {
     }
 
     /**
-     * Get the extent for the given layers.
-     *
-     * @param styledLayers Layers to consider.
-     * @return
-     * @throws ConstellationException
+     * {@inheritDoc}
      */
     @Override
     public ParameterValues getExtentForLayers(final List<AbstractMCLayerDTO> styledLayers) throws ConstellationException {
@@ -296,15 +295,15 @@ public class MapContextBusiness implements IMapContextBusiness {
     }
 
     @Override
-    public List<MapContextDTO> getAllContexts() {
-        return mapContextRepository.findAll();
+    public List<MapContextDTO> getAllContexts(boolean full) {
+        return mapContextRepository.findAll(full);
     }
 
     @Override
     @Transactional
     public void updateContext(MapContextLayersDTO mapContext) throws ConstellationException {
         // verify if there is a new name and if it is already used.
-        MapContextDTO old = mapContextRepository.findById(mapContext.getId());
+        MapContextDTO old = mapContextRepository.findById(mapContext.getId(), false);
         if (old == null) {
             throw new TargetNotFoundException("Uable to find a mapcontext with  the id:" + mapContext.getId());
 
@@ -319,12 +318,16 @@ public class MapContextBusiness implements IMapContextBusiness {
         reloadMapContextProvider();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
-    public void delete(int contextId) throws ConstellationException {
+    public int delete(int contextId) throws ConstellationException {
         metadataBusiness.deleteMapContextMetadata(contextId);
-        mapContextRepository.delete(contextId);
+        int result = mapContextRepository.delete(contextId);
         reloadMapContextProvider();
+        return result;
     }
 
     @Override
@@ -364,9 +367,22 @@ public class MapContextBusiness implements IMapContextBusiness {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public MapContextDTO getContextById(int id) {
-        return mapContextRepository.findById(id);
+    public MapContextDTO getContextById(int id, boolean full) throws TargetNotFoundException {
+        MapContextDTO result = mapContextRepository.findById(id, full);
+        if (result != null) return result;
+        throw new TargetNotFoundException("No mapcontext found with id: " + id);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean existById(int id) {
+        return mapContextRepository.existsById(id);
     }
 
     @Override
@@ -381,7 +397,7 @@ public class MapContextBusiness implements IMapContextBusiness {
         final List<MapContextDTO> contextList = entry.getValue();
         if (contextList != null) {
             for (final MapContextDTO mp : contextList) {
-                results.add(convertToMapContextLayer(mp));
+                results.add(convertToMapContextLayer(mp, true));
             }
         }
         return new AbstractMap.SimpleImmutableEntry<>(entry.getKey(), results);
@@ -389,7 +405,7 @@ public class MapContextBusiness implements IMapContextBusiness {
 
     @Override
     public Data getMapContextData(int id) throws ConstellationException {
-        final MapContextDTO mc = mapContextRepository.findById(id);
+        final MapContextDTO mc = mapContextRepository.findById(id, false);
         if (mc != null) {
             return dataBusiness.getDataBrief(new QName(mc.getName()), INTERNAL_MAP_CONTEXT_PROVIDER, false, false);
         }

@@ -253,7 +253,7 @@ public class PyramidBusiness implements IPyramidBusiness {
     @Transactional
     private TilingContext preparePyramidMapContext(Integer userId, String pyramidDataName, final String crs, final Integer mcId, TilingMode tilingMode, int nbLevel) throws ConstellationException {
 
-        final MapContextLayersDTO mc = mapContextBusiness.findMapContextLayers(mcId);
+        final MapContextLayersDTO mc = mapContextBusiness.findMapContextLayers(mcId, true);
         if (mc.getLayers().isEmpty()) {
             throw  new ConstellationException("The given mapcontext to pyramid is empty.");
         }

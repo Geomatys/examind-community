@@ -18,6 +18,7 @@
  */
 package org.constellation.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -57,6 +58,7 @@ public class MapContextLayersDTO extends MapContextDTO {
         this.layers = layers;
     }
 
+    @JsonIgnore
     public boolean isAllInternalData() {
         return getLayers().stream().filter(l -> !(l instanceof DataMCLayerDTO)).count() == 0;
     }

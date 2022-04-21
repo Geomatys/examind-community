@@ -74,7 +74,7 @@ public class MapcontextRepositoryTest extends AbstractRepositoryTest {
         serviceRepository.deleteAll();
         mapcontextRepository.deleteAll();
 
-        List<MapContextDTO> all  = mapcontextRepository.findAll();
+        List<MapContextDTO> all  = mapcontextRepository.findAll(false);
         Assert.assertTrue(all.isEmpty());
 
         int pid = providerRepository.create(TestSamples.newProvider2(owner.getId()));
@@ -89,18 +89,18 @@ public class MapcontextRepositoryTest extends AbstractRepositoryTest {
         Integer mpid1 = mapcontextRepository.create(TestSamples.newMapcontext(owner, "mp", "desc"));
         Assert.assertNotNull(mpid1);
 
-        MapContextDTO mp1 = mapcontextRepository.findById(mpid1);
+        MapContextDTO mp1 = mapcontextRepository.findById(mpid1, true);
         Assert.assertNotNull(mp1);
 
         /*
          * layers
          */
-        AbstractMCLayerDTO mpl =  new InternalServiceMCLayerDTO(l1.getName(), 0, 100, true, l1.getId(), null, null, l1.getDate(), db.getType(), owner.getLogin(), l1.getDataId(), null, null);
+        AbstractMCLayerDTO mpl =  new InternalServiceMCLayerDTO(1, l1.getName(), 0, 100, true, l1.getId(), null, null, l1.getDate(), db.getType(), owner.getLogin(), l1.getDataId(), null, null);
         List<AbstractMCLayerDTO> layers = new ArrayList<>();
         layers.add(mpl);
         mapcontextRepository.setLinkedLayers(mpid1, layers);
 
-        layers = mapcontextRepository.getLinkedLayers(mpid1);
+        layers = mapcontextRepository.getLinkedLayers(mpid1, true);
         Assert.assertNotNull(layers);
         Assert.assertEquals(1, layers.size());
 
@@ -112,7 +112,7 @@ public class MapcontextRepositoryTest extends AbstractRepositoryTest {
         Integer mpid2 = mapcontextRepository.create(TestSamples.newMapcontext(owner, "mp';", "'; delete * from admin.mp;'"));
         Assert.assertNotNull(mpid2);
 
-        MapContextDTO mp2 = mapcontextRepository.findById(mpid2);
+        MapContextDTO mp2 = mapcontextRepository.findById(mpid2, true);
         Assert.assertNotNull(mp2);
 
         /**
@@ -144,7 +144,7 @@ public class MapcontextRepositoryTest extends AbstractRepositoryTest {
          */
         mapcontextRepository.delete(mp1.getId());
 
-        MapContextDTO mp = mapcontextRepository.findById(mp1.getId());
+        MapContextDTO mp = mapcontextRepository.findById(mp1.getId(), true);
         Assert.assertNull(mp);
 
         // cleanup

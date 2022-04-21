@@ -100,12 +100,19 @@ public class MapContextRestAPI extends AbstractRestAPI {
     /**
      * Get all map contexts.
      *
+     * @param full if set to false, a light version of the objects will be returned.
+     * @param includeLayers if set to true, the layers will be included inthe response.
      * @return
      */
     @RequestMapping(value="/mapcontexts",method=GET,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity getMapContexts() {
+    public ResponseEntity getMapContexts(@RequestParam(name = "full", defaultValue = "true") final boolean full,
+            @RequestParam(name = "includeLayers", defaultValue = "false") final boolean includeLayers) {
         try {
-            return new ResponseEntity(contextBusiness.getAllContexts(),OK);
+            if (includeLayers) {
+                return new ResponseEntity(contextBusiness.findAllMapContextLayers(full),OK);
+            } else {
+                return new ResponseEntity(contextBusiness.getAllContexts(full),OK);
+            }
         } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
@@ -116,12 +123,19 @@ public class MapContextRestAPI extends AbstractRestAPI {
      * Get map context with the specified identifier.
      *
      * @param id Map context identifier.
+     * @param full if set to false, a light version of the objects will be returned.
+     * @param includeLayers if set to true, the layers will be included inthe response.
      * @return
      */
     @RequestMapping(value="/mapcontexts/{id}",method=GET,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity getMapContext(@PathVariable("id") final int id) {
+    public ResponseEntity getMapContext(@PathVariable("id") final int id, @RequestParam(name = "full", defaultValue = "true") final boolean full,
+            @RequestParam(name = "includeLayers", defaultValue = "false") final boolean includeLayers) {
         try {
-            return new ResponseEntity(contextBusiness.getContextById(id),OK);
+            if (includeLayers) {
+                return new ResponseEntity(contextBusiness.findMapContextLayers(id, full), OK);
+            } else {
+                return new ResponseEntity(contextBusiness.getContextById(id, full), OK);
+            }
         } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
@@ -203,10 +217,10 @@ public class MapContextRestAPI extends AbstractRestAPI {
             final Integer contextId = contextBusiness.create(mapContext);
 
             // TODO does the front need this response or juste the id  ?
-            MapContextLayersDTO response = contextBusiness.findMapContextLayers(contextId);
+            MapContextLayersDTO response = contextBusiness.findMapContextLayers(contextId, true);
             return new ResponseEntity(response, OK);
         } catch (ConstellationException ex) {
-             return new ErrorMessage().message(ex.getMessage()).build();
+             return new ErrorMessage(ex.getMessage()).build();
         }
     }
 
@@ -219,9 +233,7 @@ public class MapContextRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/mapcontexts/{id}",method=POST,consumes=APPLICATION_JSON_VALUE,produces=APPLICATION_JSON_VALUE)
     @Transactional
-    public ResponseEntity updateContext(
-            @PathVariable("id") final int contextId,
-            @RequestBody final MapContextLayersDTO mapContext) {
+    public ResponseEntity updateContext(@PathVariable("id") final int contextId, @RequestBody final MapContextLayersDTO mapContext) {
         try {
             mapContext.setId(contextId);
             if(mapContext.getLayers()==null) mapContext.setLayers(Collections.EMPTY_LIST);
@@ -229,11 +241,11 @@ public class MapContextRestAPI extends AbstractRestAPI {
             contextBusiness.updateContext(mapContext);
 
             // TODO does the front need this response ?
-            MapContextLayersDTO response = contextBusiness.findMapContextLayers(contextId);
+            MapContextLayersDTO response = contextBusiness.findMapContextLayers(contextId, true);
             return new ResponseEntity(response, OK);
         } catch (ConstellationException ex) {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-            return new ErrorMessage(ex).message("Failed to update for map context "+contextId+". "+ex.getMessage()).build();
+            return new ErrorMessage("Failed to update for map context " + contextId + ". " + ex.getMessage(), ex).build();
         }
     }
 
@@ -245,13 +257,12 @@ public class MapContextRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/mapcontexts/{id}",method=DELETE,produces=APPLICATION_JSON_VALUE)
     @Transactional
-    public ResponseEntity delete(
-            @PathVariable("id") final int contextId) {
+    public ResponseEntity delete(@PathVariable("id") final int contextId) {
         try {
             contextBusiness.delete(contextId);
         } catch (ConstellationException ex) {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-            return new ErrorMessage(ex).message("Failed to remove for context "+contextId+". "+ex.getMessage()).build();
+            return new ErrorMessage("Failed to remove for context " + contextId + ". " + ex.getMessage(), ex).build();
         }
         return new ResponseEntity(NO_CONTENT);
     }
@@ -259,7 +270,7 @@ public class MapContextRestAPI extends AbstractRestAPI {
     @RequestMapping(value="/mapcontexts/{id}/layers",method=GET,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity getLayer(@PathVariable("id") final int id) {
         try {
-            return new ResponseEntity(contextBusiness.findMapContextLayers(id),OK);
+            return new ResponseEntity(contextBusiness.findMapContextLayers(id, true),OK);
         } catch (ConstellationException ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
@@ -269,7 +280,7 @@ public class MapContextRestAPI extends AbstractRestAPI {
     @RequestMapping(value="/mapcontexts/layers",method=GET,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity getLayers() {
         try {
-            return new ResponseEntity(contextBusiness.findAllMapContextLayers(),OK);
+            return new ResponseEntity(contextBusiness.findAllMapContextLayers(true),OK);
         } catch (ConstellationException ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
@@ -277,15 +288,14 @@ public class MapContextRestAPI extends AbstractRestAPI {
     }
 
     @RequestMapping(value="/mapcontexts/{id}/extent",method=GET,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity getContextExtents(
-            @PathVariable("id") final int contextId) {
+    public ResponseEntity getContextExtents(@PathVariable("id") final int contextId) {
 
         final ParameterValues values;
         try {
             values = contextBusiness.getExtent(contextId);
         } catch (ConstellationException ex) {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-            return new ErrorMessage(ex).message("Failed to extract envelope for context "+contextId+". "+ex.getMessage()).build();
+            return new ErrorMessage("Failed to extract envelope for context " + contextId + ". "+ex.getMessage(), ex).build();
         }
         if (values == null) {
             return new ResponseEntity(INTERNAL_SERVER_ERROR);
@@ -298,7 +308,7 @@ public class MapContextRestAPI extends AbstractRestAPI {
 
         final MapContextLayersDTO ctxt;
         try {
-            ctxt = contextBusiness.findMapContextLayers(id);
+            ctxt = contextBusiness.findMapContextLayers(id, true);
         } catch (ConstellationException ex) {
             throw ex.toRuntimeException();
         }
@@ -463,7 +473,7 @@ public class MapContextRestAPI extends AbstractRestAPI {
 
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-            return new ErrorMessage().message("Map context cannot be tiled. " + ex.getMessage()).build();
+            return new ErrorMessage("Map context cannot be tiled. " + ex.getMessage()).build();
         }
     }
 
@@ -476,7 +486,7 @@ public class MapContextRestAPI extends AbstractRestAPI {
 
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-            return new ErrorMessage().message("Map context cannot be tiled. " + ex.getMessage()).build();
+            return new ErrorMessage("Map context cannot be tiled. " + ex.getMessage()).build();
         }
     }
 }

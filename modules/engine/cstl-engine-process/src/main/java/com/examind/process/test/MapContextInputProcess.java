@@ -27,8 +27,6 @@ import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.opengis.parameter.ParameterValueGroup;
 import static com.examind.process.test.MapContextInputDescriptor.SIS_INPUT;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.constellation.business.IMapContextBusiness;
 import org.constellation.dto.MapContextLayersDTO;
 import org.constellation.dto.process.MapContextProcessReference;
@@ -58,7 +56,7 @@ public class MapContextInputProcess  extends AbstractCstlProcess {
         final MapContextProcessReference exaRefInput = inputParameters.getValue(EXA_REF_INPUT);
         if (exaRefInput != null) {
             try {
-                MapContextLayersDTO mp = business.findMapContextLayers(exaRefInput.getId());
+                MapContextLayersDTO mp = business.findMapContextLayers(exaRefInput.getId(), false);
                 nbLayers += mp.getLayers().size();
             } catch (ConstellationException ex) {
                 throw new ProcessException(ex.getMessage(), this, ex);

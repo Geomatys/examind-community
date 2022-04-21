@@ -33,15 +33,15 @@ public interface MapContextRepository extends AbstractRepository {
      */
     boolean existsByName(String name);
 
-    MapContextDTO findById(int id);
+    MapContextDTO findById(int id, boolean full);
 
     MapContextDTO findByName(String name);
 
-    List<MapContextDTO> findAll();
+    List<MapContextDTO> findAll(boolean full);
 
     List<Integer> findAllId();
 
-    List<AbstractMCLayerDTO> getLinkedLayers(int mapContextId);
+    List<AbstractMCLayerDTO> getLinkedLayers(int mapContextId, boolean full);
 
     void setLinkedLayers(int mapContextId, List<AbstractMCLayerDTO> layers);
 

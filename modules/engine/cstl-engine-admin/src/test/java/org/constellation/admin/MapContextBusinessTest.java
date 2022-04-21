@@ -74,7 +74,7 @@ public class MapContextBusinessTest extends AbstractBusinessTest {
     @Order(order = 0)
     public void prepareFreshInstall() throws Exception {
         mpBusiness.deleteAll();
-        final List<MapContextDTO> remaining = mpBusiness.getAllContexts();
+        final List<MapContextDTO> remaining = mpBusiness.getAllContexts(false);
         Assert.assertTrue("No map context should be present", remaining.isEmpty());
     }
 
@@ -98,7 +98,8 @@ public class MapContextBusinessTest extends AbstractBusinessTest {
         Assert.assertNotNull(d);
 
         List<AbstractMCLayerDTO> layers = new ArrayList<>();
-        DataMCLayerDTO dtLayer = new DataMCLayerDTO(new QName(COV_DATA.namespace, COV_DATA.name),
+        DataMCLayerDTO dtLayer = new DataMCLayerDTO(null,
+                                                    new QName(COV_DATA.namespace, COV_DATA.name),
                                                     1, 0, true,
                                                     d.getDate(), "COVERAGE", null,
                                                     COV_DATA.id, null, null);
@@ -106,7 +107,8 @@ public class MapContextBusinessTest extends AbstractBusinessTest {
         Assert.assertTrue(mapContext.isAllInternalData());
 
         ExternalServiceMCLayerDTO esLayer =
-                   new ExternalServiceMCLayerDTO(new QName("layer1"),
+                   new ExternalServiceMCLayerDTO(null,
+                                                 new QName("layer1"),
                                                  0, 0, true,
                                                  null, null, null,
                                                  new QName("layer1"), "style1",
@@ -117,13 +119,17 @@ public class MapContextBusinessTest extends AbstractBusinessTest {
         Assert.assertFalse(mapContext.isAllInternalData());
         
         mpBusiness.deleteAll();
-        Assert.assertEquals(0, mpBusiness.findAllMapContextLayers().size());
+        Assert.assertEquals(0, mpBusiness.findAllMapContextLayers(false).size());
 
         Integer mid = mpBusiness.create(mapContext);
         Assert.assertNotNull(mid);
         mapContext.setId(mid);
 
-        MapContextLayersDTO result = mpBusiness.findMapContextLayers(mid);
+        MapContextLayersDTO result = mpBusiness.findMapContextLayers(mid, true);
+
+        // empty id as they are generated and may vary
+        result.getLayers().forEach(l -> l.setId(null));
+
         Assert.assertEquals(mapContext.getLayers().size(), result.getLayers().size());
         Assert.assertEquals(mapContext.getLayers().get(0), result.getLayers().get(0));
         Assert.assertEquals(mapContext.getLayers().get(1), result.getLayers().get(1));
@@ -168,7 +174,7 @@ public class MapContextBusinessTest extends AbstractBusinessTest {
     @Test
     @Order(order=2)
     public void getExtentTest() throws Exception {
-        List<MapContextLayersDTO> mps = mpBusiness.findAllMapContextLayers();
+        List<MapContextLayersDTO> mps = mpBusiness.findAllMapContextLayers(true);
         Assert.assertEquals(1, mps.size());
 
         int mid = mps.get(0).getId();

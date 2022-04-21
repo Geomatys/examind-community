@@ -346,7 +346,7 @@ public class MetadataBusiness implements IMetadataBusiness {
         }
         MapContextDTO mapContext = null;
         if (mapContextID != null) {
-            mapContext = mapContextRepository.findById(mapContextID);
+            mapContext = mapContextRepository.findById(mapContextID, false);
         }
 
         if (!update) {

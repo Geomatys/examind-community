@@ -18,6 +18,7 @@
  */
 package org.constellation.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.util.Date;
@@ -30,6 +31,7 @@ import javax.xml.namespace.QName;
  * 
  * @author Guilhem Legal (Geomatys)
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
     include = JsonTypeInfo.As.PROPERTY,
@@ -41,9 +43,9 @@ import javax.xml.namespace.QName;
 public abstract class AbstractMCLayerDTO extends Identifiable implements Comparable<AbstractMCLayerDTO> {
 
     private QName name;
-    private int order;
-    private int opacity;
-    private boolean visible;
+    private Integer order;
+    private Integer opacity;
+    private Boolean visible;
 
     private Date date;
     private String type;
@@ -51,7 +53,8 @@ public abstract class AbstractMCLayerDTO extends Identifiable implements Compara
 
     public AbstractMCLayerDTO() {}
 
-    public AbstractMCLayerDTO(QName name, int order, int opacity, boolean visible, Date date, String type, String owner) {
+    public AbstractMCLayerDTO(Integer id, QName name, Integer order, Integer opacity, Boolean visible, Date date, String type, String owner) {
+        super(id);
         this.name = name;
         this.order = order;
         this.opacity = opacity;
@@ -69,7 +72,7 @@ public abstract class AbstractMCLayerDTO extends Identifiable implements Compara
         this.name = name;
     }
 
-    public int getOrder() {
+    public Integer getOrder() {
         return order;
     }
 
@@ -77,7 +80,7 @@ public abstract class AbstractMCLayerDTO extends Identifiable implements Compara
         this.order = order;
     }
 
-    public int getOpacity() {
+    public Integer getOpacity() {
         return opacity;
     }
 
@@ -85,7 +88,7 @@ public abstract class AbstractMCLayerDTO extends Identifiable implements Compara
         this.opacity = opacity;
     }
 
-    public boolean isVisible() {
+    public Boolean isVisible() {
         return visible;
     }
 

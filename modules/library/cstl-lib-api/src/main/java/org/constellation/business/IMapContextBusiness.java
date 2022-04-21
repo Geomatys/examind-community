@@ -27,6 +27,7 @@ import org.constellation.dto.MapContextLayersDTO;
 import org.constellation.exception.ConstellationException;
 import org.constellation.dto.ParameterValues;
 import org.constellation.dto.MapContextDTO;
+import org.constellation.exception.TargetNotFoundException;
 import org.opengis.geometry.Envelope;
 
 /**
@@ -34,7 +35,7 @@ import org.opengis.geometry.Envelope;
  */
 public interface IMapContextBusiness {
 
-    List<MapContextLayersDTO> findAllMapContextLayers() throws ConstellationException;
+    List<MapContextLayersDTO> findAllMapContextLayers(boolean full) throws ConstellationException;
 
     Integer createFromData(Integer userId, String contextName, String crs, Envelope env, List<DataBrief> briefs) throws ConstellationException;
 
@@ -42,23 +43,75 @@ public interface IMapContextBusiness {
 
     void setMapItems(final int contextId, final List<AbstractMCLayerDTO> layers);
 
-    MapContextLayersDTO findMapContextLayers(int contextId) throws ConstellationException;
+    /**
+     * Return a mapcontext with its layers included for the specified id.
+     * If not found a {@link TargetNotFoundException} will be throw.
+     *
+     * @param id The searched mapcontext identifier.
+     * @param full if set to false, a lighter version of the mapcontext will be returned.
+     * @return
+     *
+     * @throws ConstellationException If the the context can't be found.
+     */
+    MapContextLayersDTO findMapContextLayers(int id, boolean full) throws ConstellationException;
 
-    MapContextLayersDTO findByName(String name) throws ConstellationException;
+    /**
+     * Return a mapcontext with its layers included for the specified name.
+     * If not found a {@link TargetNotFoundException} will be throw.
+     *
+     * @param name The searched mapcontext name.
+     * @param full if set to false, a lighter version of the mapcontext will be returned.
+     * @return
+     *
+     * @throws ConstellationException If the the context can't be found.
+     */
+    MapContextLayersDTO findByName(String name, boolean full) throws ConstellationException;
 
-    ParameterValues getExtent(int contextId) throws ConstellationException;
+    /**
+     * Get the extent of all included layers in this map context.
+     *
+     * @param id Context identifier
+     * @return
+     * @throws ConstellationException
+     */
+    ParameterValues getExtent(int id) throws ConstellationException;
 
-    ParameterValues getExtentForLayers(final List<AbstractMCLayerDTO> styledLayers) throws ConstellationException;
+    /**
+     * Get the extent for the given layers.
+     *
+     * @param layers Layers to consider.
+     * @return
+     * @throws ConstellationException
+     */
+    ParameterValues getExtentForLayers(final List<AbstractMCLayerDTO> layers) throws ConstellationException;
 
-    List<MapContextDTO> getAllContexts();
+    List<MapContextDTO> getAllContexts(boolean full);
 
     void updateContext(MapContextLayersDTO mapContext) throws ConstellationException;
 
-    void delete(int contextId) throws ConstellationException;
+    /**
+     * Remove the specified mapcontext and its metadata if there is one.
+     *
+     * @param id mapcontext identifier.
+     *
+     * @return 1 if the context has been removed, 0 else.
+     * @throws ConstellationException If an erros occurs during the metadata/mapcontext removal.
+     */
+    int delete(int id) throws ConstellationException;
 
     void deleteAll()throws ConstellationException;
 
-    MapContextDTO getContextById(int id);
+    /**
+     * Return a mapcontext for the specified id.
+     * If not found a {@link TargetNotFoundException} will be throw.
+     *
+     * @param id The searched mapcontext identifier.
+     * @param full if set to false, a lighter version of the mapcontext will be returned.
+     * @return
+     *
+     * @throws ConstellationException If the the context can't be found.
+     */
+    MapContextDTO getContextById(int id, boolean full) throws ConstellationException;
 
     Data getMapContextData(int id) throws ConstellationException;
 
@@ -67,5 +120,13 @@ public interface IMapContextBusiness {
     Map.Entry<Integer, List<MapContextLayersDTO>> filterAndGetMapContextLayers(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage)throws ConstellationException;
 
     void initializeDefaultMapContextData() throws ConstellationException;
+
+    /**
+     * Return {@code true} if the specified mapcontext exist.
+     * 
+     * @param id The searched mapcontext identifier.
+     * @return  {@code true} if the specified mapcontext exist.
+     */
+    boolean existById(int id);
 
 }

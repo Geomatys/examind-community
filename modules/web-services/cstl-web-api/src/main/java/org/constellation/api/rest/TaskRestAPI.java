@@ -506,7 +506,7 @@ public class TaskRestAPI extends AbstractRestAPI {
     public ResponseEntity getMapContextProcessReferenceList() {
         try {
             final List<MapContextProcessReference> mpRef = new ArrayList<>();
-            final List<MapContextDTO> mps = mapcontextBusiness.getAllContexts();
+            final List<MapContextDTO> mps = mapcontextBusiness.getAllContexts(false);
             if (mps != null) {
                 for (final MapContextDTO mp : mps) {
                     final MapContextProcessReference ref = new MapContextProcessReference(mp);
