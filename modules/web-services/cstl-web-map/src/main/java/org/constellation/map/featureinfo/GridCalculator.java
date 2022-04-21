@@ -2,10 +2,10 @@
 package org.constellation.map.featureinfo;
 
 import java.awt.geom.Point2D;
-import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.geometry.DirectPosition2D;
 import org.apache.sis.internal.referencing.GeodeticObjectBuilder;
+import org.apache.sis.internal.referencing.WraparoundApplicator;
 import org.apache.sis.measure.Units;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
@@ -14,13 +14,14 @@ import org.apache.sis.referencing.operation.transform.TransformSeparator;
 import org.geotoolkit.referencing.cs.PredefinedCS;
 import org.apache.sis.referencing.GeodeticCalculator;
 import org.opengis.geometry.MismatchedDimensionException;
+import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.crs.GeographicCRS;
 import org.opengis.referencing.crs.ProjectedCRS;
 import org.opengis.referencing.cs.CartesianCS;
 import org.opengis.referencing.datum.PixelInCell;
+import org.opengis.referencing.operation.CoordinateOperation;
 import org.opengis.referencing.operation.MathTransform;
-import org.opengis.referencing.operation.NoninvertibleTransformException;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
 
@@ -37,7 +38,7 @@ final class GridCalculator {
     private CoordinateReferenceSystem coverageCrs;
     private GeodeticCalculator calc;
     private MathTransform gridToCrs;
-    private MathTransform gridToWgs;
+    private MathTransform gridToBase;
 
     private DirectPosition2D imgStart;
     private DirectPosition2D imgEnd;
@@ -51,12 +52,14 @@ final class GridCalculator {
     private MathTransform imgToCenteredCrs;
     private DirectPosition2D centeredEnd;
 
+    private final GeographicCRS baseCrs = CommonCRS.defaultGeographic();
+
     private GridCalculator(){
     }
 
-    public GridCalculator(GridGeometry datasourceGeometry) throws NoninvertibleTransformException, FactoryException {
+    public GridCalculator(GridGeometry datasourceGeometry, PixelInCell anchor, GeographicBoundingBox regionOfInterest) throws TransformException, FactoryException {
         this.coverageCrs = datasourceGeometry.getCoordinateReferenceSystem();
-        this.gridToCrs = datasourceGeometry.getGridToCRS(PixelInCell.CELL_CENTER);
+        this.gridToCrs = datasourceGeometry.getGridToCRS(anchor);
 
         //extract 2d part
         this.coverageCrs = CRS.getHorizontalComponent(coverageCrs);
@@ -70,8 +73,19 @@ final class GridCalculator {
         this.imgEnd = new DirectPosition2D(coverageCrs);
         this.covStart = new DirectPosition2D(coverageCrs);
         this.covEnd = new DirectPosition2D(coverageCrs);
-        this.gridToWgs = MathTransforms.concatenate(gridToCrs,
-                CRS.findOperation(coverageCrs, CommonCRS.WGS84.normalizedGeographic(), null).getMathTransform());
+
+        final CoordinateOperation dataCrsToBase = CRS.findOperation(coverageCrs, baseCrs, regionOfInterest);
+        var gridToBaseWithoutWrapAround = MathTransforms.concatenate(gridToCrs, dataCrsToBase.getMathTransform());
+
+        /* Force a wrap-around centered around (0, 0), because we must not overflow the [-180..180] range.
+         * Otherwise, building "centered CRS" failed due to unacceptable value for "Longitude of natural origin".
+         */
+        final WraparoundApplicator wraparound = new WraparoundApplicator(
+                DataProfile.getPointOfInterest(datasourceGeometry),
+                new DirectPosition2D(baseCrs, 0, 0),
+                baseCrs.getCoordinateSystem());
+
+        this.gridToBase = wraparound.forDomainOfUse(gridToBaseWithoutWrapAround);
     }
 
     public GridCalculator copy() {
@@ -79,7 +93,7 @@ final class GridCalculator {
         cp.coverageCrs = this.coverageCrs;
         cp.calc = GeodeticCalculator.create(coverageCrs);
         cp.gridToCrs = this.gridToCrs;
-        cp.gridToWgs = this.gridToWgs;
+        cp.gridToBase = this.gridToBase;
         cp.imgStart = new DirectPosition2D(coverageCrs);
         cp.imgEnd = new DirectPosition2D(coverageCrs);
         cp.covStart = new DirectPosition2D(coverageCrs);
@@ -99,9 +113,8 @@ final class GridCalculator {
         this.imgStart.x = x;
         this.imgStart.y = y;
 
-        gridToWgs.transform(imgStart, covStart);
+        gridToBase.transform(imgStart, covStart);
 
-        final GeographicCRS baseCRS = CommonCRS.WGS84.normalizedGeographic();
         final CartesianCS derivedCS = PredefinedCS.CARTESIAN_2D;
         final GeodeticObjectBuilder builder = new GeodeticObjectBuilder();
         centeredCrs = builder
@@ -110,11 +123,9 @@ final class GridCalculator {
                 .setParameter("Latitude of natural origin",  covStart.y, Units.DEGREE)
                 .setParameter("Longitude of natural origin", covStart.x, Units.DEGREE)
                 .addName("Local")
-                .createProjectedCRS(baseCRS, derivedCS);
+                .createProjectedCRS(baseCrs, derivedCS);
         final MathTransform geoToProj = centeredCrs.getConversionFromBase().getMathTransform();
-        final MathTransform mt = MathTransforms.concatenate(gridToCrs,
-                CRS.findOperation(coverageCrs, baseCRS, null).getMathTransform());
-        imgToCenteredCrs = MathTransforms.concatenate(mt,geoToProj);
+        imgToCenteredCrs = MathTransforms.concatenate(gridToBase, geoToProj);
         centeredEnd = new DirectPosition2D(centeredCrs);
     }
 
@@ -145,5 +156,4 @@ final class GridCalculator {
         // what should we do here ? average?
         return calc.getStartingAzimuth();
     }
-
 }

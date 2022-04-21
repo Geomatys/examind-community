@@ -8,30 +8,32 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 import java.util.Spliterator;
 
 import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.logging.Level;
+import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import org.apache.sis.coverage.grid.GridCoverage;
-import org.apache.sis.coverage.grid.GridCoverageProcessor;
 import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
-import org.apache.sis.coverage.grid.GridRoundingMode;
+import org.apache.sis.coverage.grid.IncompleteGridGeometryException;
 import org.apache.sis.geometry.AbstractEnvelope;
 import org.apache.sis.geometry.DirectPosition2D;
-import org.apache.sis.image.Interpolation;
+import org.apache.sis.geometry.GeneralDirectPosition;
+import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.image.PixelIterator;
+import org.apache.sis.internal.feature.jts.Factory;
+import org.apache.sis.internal.referencing.WraparoundApplicator;
+import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
 import org.apache.sis.referencing.CRS;
-import org.apache.sis.referencing.operation.matrix.Matrices;
-import org.apache.sis.referencing.operation.transform.LinearTransform;
+import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.operation.transform.MathTransforms;
 import org.apache.sis.util.Utilities;
 import org.apache.sis.util.collection.BackingStoreException;
 import org.geotoolkit.coverage.grid.GridCoverageStack;
 import org.geotoolkit.coverage.grid.GridIterator;
-import org.geotoolkit.geometry.jts.JTS;
-import org.geotoolkit.geometry.jts.JTSEnvelope2D;
 import org.geotoolkit.util.grid.GridTraversal;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.CoordinateSequence;
@@ -39,25 +41,33 @@ import org.locationtech.jts.geom.LineString;
 import org.opengis.coverage.grid.GridEnvelope;
 import org.opengis.geometry.DirectPosition;
 import org.opengis.geometry.Envelope;
+import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.cs.CoordinateSystem;
+import org.opengis.referencing.cs.RangeMeaning;
 import org.opengis.referencing.datum.PixelInCell;
 import org.opengis.referencing.operation.CoordinateOperation;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+
+import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
+import static org.constellation.map.featureinfo.AbstractFeatureInfoFormat.LOGGER;
 
 /**
  *
  * @author Alexis Manin (Geomatys)
  */
-public class DataProfile implements Spliterator<DataProfile.DataPoint> {
+class DataProfile implements Spliterator<DataProfile.DataPoint> {
 
     /** 
      * A translation between datasource grid space to rendering.
      * Needed because rendering origin (0, 0) match grid space lower corner,
      * which can be an arbitrary position.
      */
-    private final LinearTransform gridToRendering;
+    private final MathTransform workGridToRendering;
 
     private static class Extractor {
         int[] sliceCoord;
@@ -81,10 +91,9 @@ public class DataProfile implements Spliterator<DataProfile.DataPoint> {
 
     private final CoordinateReferenceSystem lineCrs;
 
-    /** Conversion between datasource grid space (not rendering) to target polyline space. */
-    private final MathTransform gridCornerToLineCrs;
+    private final SpaceConversionContext conversionContext;
 
-    private int[] templateSize;
+    private final int[] templateSize;
 
     private SegmentProfile currentSegment;
     private final int dimension;
@@ -93,10 +102,11 @@ public class DataProfile implements Spliterator<DataProfile.DataPoint> {
     private DataPoint lastPoint;
 
     public DataProfile(GridCoverage datasource, final LineString profile) throws FactoryException, TransformException {
+        final GeneralEnvelope lineEnvelope = Factory.INSTANCE.castOrWrap(profile).getEnvelope();
 
-        this.lineCrs = JTS.findCoordinateReferenceSystem(profile);
+        this.lineCrs = lineEnvelope.getCoordinateReferenceSystem();
         if (lineCrs == null) {
-            throw new IllegalArgumentException("La géométrie envoyée ne stipule pas de système de référencement");
+            throw new IllegalArgumentException("Input geometry does not provide any coordinate system");
         } else if (lineCrs.getCoordinateSystem().getDimension() != 2) {
             throw new IllegalArgumentException("Only 2D geometries accepted.");
         }
@@ -105,11 +115,7 @@ public class DataProfile implements Spliterator<DataProfile.DataPoint> {
 
         //Transformation de la coordonnée dans l'image
         final GridGeometry gridGeometry = datasource.getGridGeometry();
-        // Grid traversal operator works with pixel borders.
-        final MathTransform gridToCRS = gridGeometry.getGridToCRS(PixelInCell.CELL_CORNER);
-        this.gridCornerToLineCrs = getConversion(gridGeometry, lineCrs)
-                .map(op -> MathTransforms.concatenate(gridToCRS, op.getMathTransform()))
-                .orElse(gridToCRS);
+        this.conversionContext = inferConversion(gridGeometry, lineEnvelope);
 
         final CoordinateSequence lineSeq = profile.getCoordinateSequence();
         final int nbPts = lineSeq.size();
@@ -120,19 +126,21 @@ public class DataProfile implements Spliterator<DataProfile.DataPoint> {
             gridPoints[j + 1] = c.y;
         }
 
-        final GridEnvelope globalExtent = gridGeometry.getExtent();
+        conversionContext.profileToWorkGrid.transform(gridPoints, 0, gridPoints, 0, nbPts);
+
         /*
          * Converting values from geographic to coverage rendering must imply translation from coverage grid to rendered
          * image origin. As extractors are built using a null extent on rendering, the translation is to move point from
          * grid minimum to space origin (0).
          */
-        gridToRendering = MathTransforms.translation(
+        final GridEnvelope globalExtent = gridGeometry.getExtent();
+        var dataGridToRendering = MathTransforms.translation(
                 LongStream.of(globalExtent.getLow().getCoordinateValues())
-                        .mapToDouble(v -> v)
+                        .mapToDouble(v -> - v - 0.5)
                         .toArray()
-        ).inverse();
-
-        gridCornerToLineCrs.inverse().transform(gridPoints, 0, gridPoints, 0, nbPts);
+        );
+        this.workGridToRendering = conversionContext.workGridToDataGrid == null ?
+                dataGridToRendering : MathTransforms.concatenate(conversionContext.workGridToDataGrid, dataGridToRendering);
 
         buildExtractors(datasource);
 
@@ -145,7 +153,7 @@ public class DataProfile implements Spliterator<DataProfile.DataPoint> {
             templateSize[i+1] = (int) globalExtent.getSize(i+2);
         }
 
-        distanceCalculatorTemplate = new GridCalculator(gridGeometry);
+        distanceCalculatorTemplate = new GridCalculator(gridGeometry, PixelInCell.CELL_CORNER, conversionContext.regionOfInterest);
         currentSegment = new SegmentProfile(segmentIdx);
     }
 
@@ -180,7 +188,6 @@ public class DataProfile implements Spliterator<DataProfile.DataPoint> {
     public Spliterator<DataProfile.DataPoint> trySplit() {
         return null;
     }
-
 
     @Override
     public boolean tryAdvance(Consumer<? super DataProfile.DataPoint> action) {
@@ -259,23 +266,6 @@ public class DataProfile implements Spliterator<DataProfile.DataPoint> {
     }
 
     /**
-     * Search for a conversion from input GridGeometry to given coordinate reference system.
-     * @param source The grid geometry describing space to start from. If no CRS is defined on it, an empty shell is
-     *               returned.
-     * @param targetCrs The destination coordinate reference system. If null, an empty optional will be returned.
-     * @return an empty shell if both input are in same CRS, or given grid geometry has no CRS defined.
-     */
-    private static Optional<CoordinateOperation> getConversion(final GridGeometry source, final CoordinateReferenceSystem targetCrs) throws TransformException, FactoryException {
-        final CoordinateReferenceSystem sourceCrs = source.isDefined(GridGeometry.CRS) ? source.getCoordinateReferenceSystem() : null;
-
-        if (targetCrs == null || sourceCrs == null || Utilities.equalsIgnoreMetadata(sourceCrs, targetCrs)) {
-            return Optional.empty();
-        }
-
-        return Optional.of(CRS.findOperation(sourceCrs, targetCrs, null));
-    }
-
-    /**
      * Computes intermediate points on a specific segment. The aim is to create "median" points between borders.
      * It does NOT compute neither start nor end points of the segment.
      */
@@ -318,7 +308,7 @@ public class DataProfile implements Spliterator<DataProfile.DataPoint> {
             final DirectPosition2D subPixelMedian = new DirectPosition2D(previous.x + (current.x - previous.x) / 2, previous.y + (current.y - previous.y) / 2);
 
             final DirectPosition2D geoLoc = new DirectPosition2D(lineCrs);
-            gridCornerToLineCrs.transform(subPixelMedian, geoLoc);
+            conversionContext.workGridToProfile.transform(subPixelMedian, geoLoc);
 
             distanceCalculator.setDest(subPixelMedian);
             final double distanceFromSegmentStart = distanceCalculator.getDistance();
@@ -327,7 +317,12 @@ public class DataProfile implements Spliterator<DataProfile.DataPoint> {
             final DataPoint dp = new DataPoint(geoLoc, subPixelMedian, distanceToPreviousPoint);
             dp.value = Array.newInstance(double.class, templateSize);
 
-            gridToRendering.transform(subPixelMedian, subPixelMedian);
+            workGridToRendering.transform(subPixelMedian, subPixelMedian);
+            // Only a cast is performed, because:
+            // 1. pixel intersections have been computed using PixelInCell.CELL_CORNER.
+            // 2. No interpolation is done, we just consider a pixel being a square cell, and take the value of the cell
+            // this point lies into.
+            // Note that, if any criteria above is modified, the pixel corner strategy should be re-evaluated.
             final int px = (int) subPixelMedian.x;
             final int py = (int) subPixelMedian.y;
             for (Extractor ext : extractors) {
@@ -349,6 +344,154 @@ public class DataProfile implements Spliterator<DataProfile.DataPoint> {
                 }
             }
             return dp;
+        }
+    }
+
+    /**
+     * Compute spatial conversion to go forth and back between data grid, profile (input line string) and a continuous
+     * grid space fitted for intersection finding.
+     * For more details about conversion components, look at {@link SpaceConversionContext} documentation.
+     */
+    private static SpaceConversionContext inferConversion(final GridGeometry dataGrid, final Envelope profileRegion) throws TransformException, FactoryException {
+        if (!dataGrid.isDefined(GridGeometry.GRID_TO_CRS)) throw new IllegalArgumentException("Cannot work with a datasource that does not specify conversion from grid to geographic space.");
+
+        // Grid traversal operator works with pixel borders.
+        final MathTransform gridToCRS = dataGrid.getGridToCRS(PixelInCell.CELL_CORNER);
+        final MathTransform crsToGrid = gridToCRS.inverse();
+
+        final CoordinateReferenceSystem dataCrs = dataGrid.isDefined(GridGeometry.CRS) ? dataGrid.getCoordinateReferenceSystem() : null;
+        final CoordinateReferenceSystem profileCrs = profileRegion.getCoordinateReferenceSystem();
+
+        final GeographicBoundingBox regionOfInterest = buildRegionOfInterest(dataGrid, profileRegion);
+        if (profileCrs == null || dataCrs == null) {
+            LOGGER.fine("Incomplete referencing information for coverage profile. Assume given profile and datasource use the same CRS");
+            return new SpaceConversionContext(crsToGrid, gridToCRS, null, regionOfInterest);
+        }
+
+        Predicate<CoordinateSystem> hasWrapAroundAxis = cs -> IntStream.range(0, cs.getDimension())
+                .mapToObj(idx -> cs.getAxis(idx).getRangeMeaning())
+                .anyMatch(RangeMeaning.WRAPAROUND::equals);
+        boolean isWrapAroundApplicable = hasWrapAroundAxis.test(dataCrs.getCoordinateSystem()) || hasWrapAroundAxis.test(profileCrs.getCoordinateSystem());
+
+        if (!isWrapAroundApplicable && Utilities.equalsIgnoreMetadata(dataCrs, profileCrs)) {
+            return new SpaceConversionContext(crsToGrid, gridToCRS, null, regionOfInterest);
+        }
+
+        final CoordinateOperation conversion = CRS.findOperation(profileCrs, dataCrs, regionOfInterest);
+        final MathTransform profileToData = conversion.getMathTransform();
+        final MathTransform profileToWorkGrid = MathTransforms.concatenate(profileToData, crsToGrid);
+
+        // If there's no wrap-around to manage, then work grid and data grid are the same
+        if (!isWrapAroundApplicable) {
+            return new SpaceConversionContext(profileToWorkGrid, profileToWorkGrid.inverse(), null, regionOfInterest);
+        }
+
+        DirectPosition intermediateProfileMedian = AbstractEnvelope.castOrCopy(profileRegion).getMedian();
+        intermediateProfileMedian = profileToData.transform(intermediateProfileMedian, null);
+        GeneralDirectPosition profileMedian = new GeneralDirectPosition(intermediateProfileMedian);
+        profileMedian.setCoordinateReferenceSystem(dataCrs);
+        DirectPosition dataMedian = getPointOfInterest(dataGrid);
+        final WraparoundApplicator wraparound = new WraparoundApplicator(profileMedian, dataMedian, dataCrs.getCoordinateSystem());
+        return new SpaceConversionContext(profileToWorkGrid, profileToWorkGrid.inverse(), MathTransforms.concatenate(wraparound.forDomainOfUse(gridToCRS), crsToGrid), regionOfInterest);
+    }
+
+    /**
+     * Build a "point of interest" in geometry CRS. The point is built either using:
+     * <ol>
+     *     <li>{@link GridExtent#getPointOfInterest()} converted to geographic/projected space</li>
+     *     <li>or using {@link AbstractEnvelope#getMedian()}</li>
+     * </ol>
+     */
+    static @NonNull DirectPosition getPointOfInterest(@NonNull GridGeometry geometry) throws TransformException {
+        if (geometry.isDefined(GridGeometry.EXTENT | GridGeometry.GRID_TO_CRS | GridGeometry.CRS)) {
+            final double[] pointOfInterest = geometry.getExtent().getPointOfInterest();
+            geometry.getGridToCRS(PixelInCell.CELL_CENTER).transform(pointOfInterest, 0, pointOfInterest, 0, 1);
+            var fromGridPoint = new GeneralDirectPosition(pointOfInterest);
+            fromGridPoint.setCoordinateReferenceSystem(geometry.getCoordinateReferenceSystem());
+            return fromGridPoint;
+        } else if (geometry.isDefined(GridGeometry.ENVELOPE)) {
+            return AbstractEnvelope.castOrCopy(geometry.getEnvelope()).getMedian();
+        } else throw new IncompleteGridGeometryException("Not enough information available to compute a point of interest. At least an envelope is needed.");
+    }
+
+    /**
+     * Try to compute the geographic extent intersecting inputs.
+     * If an error occurs, it is silenced, and a {@code null} extent is returned.
+     */
+    private static @Nullable GeographicBoundingBox buildRegionOfInterest(@NonNull final GridGeometry dataGrid, @NonNull final Envelope profileRegion) {
+        try {
+            var regionOfInterest  = new DefaultGeographicBoundingBox();
+            regionOfInterest.setBounds(profileRegion);
+            DefaultGeographicBoundingBox sourceBbox = null;
+            try {
+                if (dataGrid.isDefined(GridGeometry.ENVELOPE)) {
+                    sourceBbox = new DefaultGeographicBoundingBox();
+                    sourceBbox.setBounds(dataGrid.getEnvelope(CommonCRS.defaultGeographic()));
+                }
+            } catch (Exception e) {
+                LOGGER.log(Level.FINER, "Cannot refine area of interest using datasource", e);
+                sourceBbox = null;
+            }
+
+            // Intersection outside of try/catch above, to prevent it to be in a corrupted state if failure happens
+            // while intersecting
+            if (sourceBbox != null) regionOfInterest.intersect(sourceBbox);
+            return regionOfInterest;
+        } catch (Exception e) {
+            LOGGER.log(Level.FINE, "Cannot determine a precise area of interest for space conversions", e);
+            return null;
+        }
+    }
+
+
+    /**
+     * Provides  conversions needed to build transect from an input line string.
+     * It defines an intermediate "work grid", which should be aligned with datasource grid most of the time.
+     * The main difference is that the work grid is expanded infinitely, to allow to browse profile line string without
+     * having to manage potential discontinuities. Example:
+     *
+     * If we receive a segment going from longitude 178 to 182. In a world data grid, we might need to split the segment
+     * in two pieces to properly handle it: one from 178 to 180, and another from -180 to -178.
+     * However, by simply expanding the data grid, we can let {@link GridTraversal} component find points of intersections
+     * in expanded work grid (still aligned with data grid), and then, when we need to retrieve data values for each point,
+     * we can then use a wrap-around operator to manage the discontinuity and find the right location in the grid.
+     *
+     * WARNING: We use pixel corners as anchors, because {@link GridTraversal} search intersections on cell corners.
+     * Depending on usage, it might be needed to shift coordinates to pixel centers to fetch pixel locations or values.
+     */
+     // TODO: convert to record once restdoc is fixed.
+     private static class SpaceConversionContext {
+        /**
+         * Map input linestring CRS to a "working grid", used for computing point of intersections between the line
+         * and the data grid. This transform does not use any wrap-around, to avoid creating discontinuities in the
+         * converted line/segments.
+         * Most of the time, the working grid will be aligned with the data grid, but it will define an infinite and
+         * continuous space, to allow {@link GridTraversal} to compute proper intersections
+         */
+        @NonNull final MathTransform profileToWorkGrid;
+        /**
+         * Reverse {@link #profileToWorkGrid} transform, to get back a geographic coordinate from a point in the
+         * work grid.
+         */
+        @NonNull final MathTransform workGridToProfile;
+        /**
+         * Convert coordinates from the work grid (the grid in which we seek for intersections) to the data grid.
+         * This transform might either:
+         * <ul>
+         *     <li>Be <em>{@code null}</em> if the work grid and data grid are the same (means they're aligned, and no wrap-around correction is needed).</li>
+         *     <li>include a wrap-around correction, to find the right pixel valud in the datasource, even when the anti-meridian is crossed.</li>
+         * </ul>
+         */
+        @Nullable final MathTransform workGridToDataGrid;
+        @Nullable final GeographicBoundingBox regionOfInterest;
+
+        SpaceConversionContext(MathTransform profileToWorkGrid, MathTransform workGridToProfile, MathTransform workGridToDataGrid, GeographicBoundingBox regionOfInterest) {
+            ensureNonNull("Conversion from profile to work grid", profileToWorkGrid);
+            ensureNonNull("Conversion from work grid to profile", workGridToProfile);
+            this.profileToWorkGrid = profileToWorkGrid;
+            this.workGridToProfile = workGridToProfile;
+            this.workGridToDataGrid = workGridToDataGrid;
+            this.regionOfInterest = regionOfInterest;
         }
     }
 }
