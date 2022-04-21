@@ -63,7 +63,7 @@
                 <tbody>
                     <tr ng-repeat="p in wrap.dataList | filter:filter | orderBy:predicate:reverse">
                         <td>{{p.id}}</td>
-                        <td>{{p.identifier}}</td>
+                        <td class="idProv">{{p.identifier}}</td>
                         <td class="buttonsCol">
                             <div>
                                 <button ng-click="showConfig(p)"
