@@ -44,6 +44,8 @@ import org.locationtech.jts.geom.CoordinateSequence;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.impl.PackedCoordinateSequenceFactory;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.crs.GeographicCRS;
 import org.opengis.referencing.datum.PixelInCell;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
@@ -54,10 +56,8 @@ import static org.constellation.map.featureinfo.CoverageProfileInfoFormat.NaNPro
 import static org.constellation.map.featureinfo.CoverageProfileInfoFormat.ReductionMethod.*;
 import static org.constellation.map.featureinfo.CoverageProfileInfoFormat.cleanupNans;
 import static org.constellation.map.featureinfo.CoverageProfileInfoFormat.reduce;
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -65,6 +65,9 @@ import static org.junit.Assert.assertTrue;
  * @author Alexis Manin (Geomatys)
  */
 public class CoverageProfileInfoTest {
+
+    static final GeographicCRS LON_LAT_CRS84 = CommonCRS.defaultGeographic();
+    private static final GeographicCRS LAT_LON_CRS84 = CommonCRS.WGS84.geographic();
 
     @Test
     public void testDecimateSamplingCount() {
@@ -248,13 +251,11 @@ public class CoverageProfileInfoTest {
     }
 
     @Test public void testProfileOnSubset() throws Exception {
-        final GeometryFactory gf = new GeometryFactory();
-        final LineString line = profile(
+        final LineString line = profile(LON_LAT_CRS84,
                 3, 4,
                 4, 4,
                 4, 5
         );
-        line.setUserData(CommonCRS.defaultGeographic());
         int px_3_4 = 8 * 4 + 3;
         int px_4_4 = 8 * 4 + 4;
         int px_4_5 = 8 * 5 + 4;
@@ -287,12 +288,11 @@ public class CoverageProfileInfoTest {
     }
 
     @Test public void testProfileWithReprojection() throws Exception {
-        final GeometryFactory gf = new GeometryFactory();
-        final LineString line = profile(
+        final LineString line = profile(LAT_LON_CRS84,
                 7, 6,
                 6, 5
         );
-        line.setUserData(CommonCRS.WGS84.geographic());
+
         int px_6_7 = 8 * 7 + 6;
         int px_5_6 = 8 * 6 + 5;
         assertProfileEquals(
@@ -307,7 +307,7 @@ public class CoverageProfileInfoTest {
 
     @Test
     public void nanRegionsShouldBePreserved() throws Exception {
-        final LineString profile = profile(
+        final LineString profile = profile(LAT_LON_CRS84,
                 1, 1,
                 2, 1,
                 2, 2
@@ -317,7 +317,7 @@ public class CoverageProfileInfoTest {
     }
 
     @Test
-    public void reductionShouldPreserveNaNBatches() throws Exception {
+    public void reductionShouldPreserveNaNBatches() {
         final List<XY> points = new ArrayList<>();
         points.add(new XY(0, 0));
         points.add(new XY(1, 1));
@@ -362,19 +362,19 @@ public class CoverageProfileInfoTest {
 
     @Test
     public void profileNoIntersection() throws Exception {
-        final LineString line = profile(
+        final LineString line = profile(LAT_LON_CRS84,
                 2, -2,
                 -2, -2,
                 -3, 2
         );
-        line.setUserData(CommonCRS.WGS84.geographic());
+
         DataProfile profile = new DataProfile(createDatasource(0, 0), line);
 
         Consumer<DataProfile.DataPoint> noValueExpected = pt -> Assert.assertNull(pt.value);
-        int i = 0, limit = 20;
-        while (profile.tryAdvance(noValueExpected) && i++ < limit) {
-            // Nothing. Assertion is in loop condition
-        }
+        int i = 0, limit = 20; boolean hasAdvanced;
+        do {
+            hasAdvanced = profile.tryAdvance(noValueExpected);
+        } while (hasAdvanced && i++ < limit);
 
         assertFalse("Too many points returned", profile.tryAdvance(noValueExpected));
     }
@@ -431,7 +431,7 @@ public class CoverageProfileInfoTest {
                 new GridExtent(8, 8).translate(lowX, lowY),
                 PixelInCell.CELL_CENTER,
                 MathTransforms.identity(2),
-                CommonCRS.defaultGeographic()
+                LON_LAT_CRS84
         );
 
         final SampleDimension sampleDim = new SampleDimension.Builder()
@@ -453,7 +453,7 @@ public class CoverageProfileInfoTest {
                 new GridExtent(4, 4),
                 PixelInCell.CELL_CENTER,
                 MathTransforms.identity(2),
-                CommonCRS.defaultGeographic()
+                LON_LAT_CRS84
         );
 
         final SampleDimension sampleDim = new SampleDimension.Builder()
@@ -466,7 +466,7 @@ public class CoverageProfileInfoTest {
         return data.forConvertedValues(true);
     }
 
-    private static void assertProfileEquals(final GridCoverage source, final LineString line, final double... expectedValues) throws FactoryException, TransformException {
+    static void assertProfileEquals(final GridCoverage source, final LineString line, final double... expectedValues) throws FactoryException, TransformException {
         DataProfile profile = new DataProfile(source, line);
         final double[] values = StreamSupport.stream(profile, false)
                 .peek(CoverageProfileInfoTest::errorIfNoValue)
@@ -493,10 +493,10 @@ public class CoverageProfileInfoTest {
         );
     }
 
-    private static LineString profile(double... ordinates) {
+    static LineString profile(CoordinateReferenceSystem crs, double... ordinates) {
         final CoordinateSequence coordinates = PackedCoordinateSequenceFactory.DOUBLE_FACTORY.create(ordinates, 2);
         final LineString line = new GeometryFactory().createLineString(coordinates);
-        line.setUserData(CommonCRS.WGS84.geographic());
+        line.setUserData(crs);
         return line;
     }
 
