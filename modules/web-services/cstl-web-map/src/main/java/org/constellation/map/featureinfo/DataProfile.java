@@ -26,6 +26,7 @@ import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.image.PixelIterator;
 import org.apache.sis.internal.feature.jts.Factory;
 import org.apache.sis.internal.referencing.WraparoundApplicator;
+import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
@@ -48,6 +49,7 @@ import org.opengis.referencing.cs.RangeMeaning;
 import org.opengis.referencing.datum.PixelInCell;
 import org.opengis.referencing.operation.CoordinateOperation;
 import org.opengis.referencing.operation.MathTransform;
+import org.opengis.referencing.operation.MathTransformFactory;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
 import org.springframework.lang.NonNull;
@@ -87,7 +89,7 @@ class DataProfile implements Spliterator<DataProfile.DataPoint> {
      */
     private final double[] gridPoints;
 
-    private final GridCalculator distanceCalculatorTemplate;
+    private final GridCalculator.Template distanceCalculatorTemplate;
 
     private final CoordinateReferenceSystem lineCrs;
 
@@ -136,7 +138,7 @@ class DataProfile implements Spliterator<DataProfile.DataPoint> {
         final GridEnvelope globalExtent = gridGeometry.getExtent();
         var dataGridToRendering = MathTransforms.translation(
                 LongStream.of(globalExtent.getLow().getCoordinateValues())
-                        .mapToDouble(v -> - v - 0.5)
+                        .mapToDouble(v -> - v)
                         .toArray()
         );
         this.workGridToRendering = conversionContext.workGridToDataGrid == null ?
@@ -153,7 +155,8 @@ class DataProfile implements Spliterator<DataProfile.DataPoint> {
             templateSize[i+1] = (int) globalExtent.getSize(i+2);
         }
 
-        distanceCalculatorTemplate = new GridCalculator(gridGeometry, PixelInCell.CELL_CORNER, conversionContext.regionOfInterest);
+        final MathTransformFactory mtf = DefaultFactories.forBuildin(MathTransformFactory.class);
+        distanceCalculatorTemplate = new GridCalculator.Template(mtf, gridGeometry, PixelInCell.CELL_CORNER, conversionContext.regionOfInterest);
         currentSegment = new SegmentProfile(segmentIdx);
     }
 
@@ -282,8 +285,7 @@ class DataProfile implements Spliterator<DataProfile.DataPoint> {
             traversal = GridTraversal.stream(segment, dimension, false, false).iterator();
             start = previous = new Point2D.Double(segment[0], segment[1]);
             end = new Point2D.Double(segment[2], segment[3]);
-            distanceCalculator = distanceCalculatorTemplate.copy();
-            distanceCalculator.setStart(start);
+            distanceCalculator = distanceCalculatorTemplate.start(start);
         }
 
         private DataProfile.DataPoint nextPoint() throws TransformException {
@@ -310,8 +312,7 @@ class DataProfile implements Spliterator<DataProfile.DataPoint> {
             final DirectPosition2D geoLoc = new DirectPosition2D(lineCrs);
             conversionContext.workGridToProfile.transform(subPixelMedian, geoLoc);
 
-            distanceCalculator.setDest(subPixelMedian);
-            final double distanceFromSegmentStart = distanceCalculator.getDistance();
+            final double distanceFromSegmentStart = distanceCalculator.getDistance(subPixelMedian);
             final double distanceToPreviousPoint = distanceFromSegmentStart - distanceToSegmentStart;
 
             final DataPoint dp = new DataPoint(geoLoc, subPixelMedian, distanceToPreviousPoint);
