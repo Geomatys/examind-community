@@ -2055,20 +2055,20 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         assertEquals("9 points should be returned", 5, points.size());
 
-        assertEquals("pt0 X property", 0,      (double)points.get(0).get("x"), 1e-2);
-        assertEquals("pt0 Y property", 200.0,  (double)points.get(0).get("y"), 1e-2);
+        assertEquals("pt0 X property", 0,     (double)points.get(0).get("x"), 1e-1);
+        assertEquals("pt0 Y property", 200.0, (double)points.get(0).get("y"), 1e-1);
 
-        assertEquals("pt1 X property", 6.34,   (double)points.get(1).get("x"), 1e-2);
-        assertEquals("pt1 Y property", 133.33, (double)points.get(1).get("y"), 1e-2);
+        assertEquals("pt1 X property", 6.3,   (double)points.get(1).get("x"), 1e-1);
+        assertEquals("pt1 Y property", 133.3, (double)points.get(1).get("y"), 1e-1);
 
-        assertEquals("pt2 X property", 25.27,  (double)points.get(2).get("x"), 1e-2);
-        assertEquals("pt2 Y property", 0.0,    (double)points.get(2).get("y"), 1e-2);
+        assertEquals("pt2 X property", 25.2,  (double)points.get(2).get("x"), 1e-1);
+        assertEquals("pt2 Y property", 0.0,   (double)points.get(2).get("y"), 1e-1);
 
-        assertEquals("pt3 X property", 39.35,  (double)points.get(3).get("x"), 1e-2);
-        assertEquals("pt3 Y property", 0.0,    (double)points.get(3).get("y"), 1e-2);
+        assertEquals("pt3 X property", 39.3,  (double)points.get(3).get("x"), 1e-1);
+        assertEquals("pt3 Y property", 0.0,   (double)points.get(3).get("y"), 1e-1);
 
-        assertEquals("pt4 X property", 53.47, (double)points.get(4).get("x"), 1e-2);
-        assertEquals("pt4 Y property", 0.0,    (double)points.get(4).get("y"), 1e-2);
+        assertEquals("pt4 X property", 53.4,  (double)points.get(4).get("x"), 1e-1);
+        assertEquals("pt4 Y property", 0.0,   (double)points.get(4).get("y"), 1e-1);
         
         gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PROFILE_COV_ALIAS);
         
