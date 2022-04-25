@@ -37,8 +37,8 @@ import java.util.List;
 import org.apache.sis.filter.DefaultFilterFactory;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CommonCRS;
-import org.constellation.dto.DataReference;
 import org.constellation.dto.StyleReference;
+import org.constellation.dto.process.DataProcessReference;
 import org.constellation.exception.ConstellationException;
 import org.constellation.test.utils.TestEnvironment.DataImport;
 import org.constellation.test.utils.TestEnvironment.ProvidersImport;
@@ -57,7 +57,7 @@ import static org.junit.Assert.assertTrue;
 public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
 
     private static final String PROCESS_NAME = "service.add_layer";
-    private static DataReference COUNTRIES_DATA_REF;
+    private static DataProcessReference COUNTRIES_DATA_REF;
     private static final StyleReference STYLE_DATA_REF = new StyleReference(null, "redBlue", 1, "sld");
     private static final DefaultFilterFactory FF = FilterUtilities.FF;
 
@@ -69,7 +69,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
         final ProvidersImport pis = testResources.createProviders(TestResource.SHAPEFILES, providerBusiness, null);
         final DataImport di = pis.findDataByName("Countries");
         providerIds = pis.pids();
-        COUNTRIES_DATA_REF = new DataReference(di.id, "Countries", null, di.pid);
+        COUNTRIES_DATA_REF = new DataProcessReference(di.id, "Countries", null, null, di.pid);
     }
 
     @After

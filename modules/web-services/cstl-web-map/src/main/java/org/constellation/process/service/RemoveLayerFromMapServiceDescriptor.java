@@ -20,7 +20,6 @@ package org.constellation.process.service;
 
 import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.util.ResourceInternationalString;
-import org.constellation.dto.DataReference;
 import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.process.AbstractCstlProcessDescriptor;
@@ -30,6 +29,7 @@ import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.InternationalString;
 import org.constellation.dto.ServiceReference;
+import org.constellation.dto.process.DataProcessReference;
 
 /**
  * Add a layer to a map service. If service instance doesn't exist, process will create it.
@@ -71,11 +71,11 @@ public class RemoveLayerFromMapServiceDescriptor extends AbstractCstlProcessDesc
      */
     public static final String LAYER_REF_PARAM_NAME = "layer_reference";
     public static final InternationalString LAYER_REF_PARAM_REMARKS = new ResourceInternationalString(BUNDLE, LAYER_REF_PARAM_REMARKS_KEY);
-    public static final ParameterDescriptor<DataReference> LAYER_REF = BUILDER
+    public static final ParameterDescriptor<DataProcessReference> LAYER_REF = BUILDER
             .addName(LAYER_REF_PARAM_NAME)
             .setRemarks(LAYER_REF_PARAM_REMARKS)
             .setRequired(true)
-            .create(DataReference.class, null);
+            .create(DataProcessReference.class, null);
 
     /*
      * Service reference

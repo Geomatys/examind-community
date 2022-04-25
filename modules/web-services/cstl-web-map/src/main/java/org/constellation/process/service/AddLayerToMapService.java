@@ -38,8 +38,8 @@ import org.apache.sis.parameter.Parameters;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.DataBrief;
-import org.constellation.dto.DataReference;
 import org.constellation.dto.StyleReference;
+import org.constellation.dto.process.DataProcessReference;
 import org.constellation.exception.ConstellationException;
 
 import static org.constellation.process.service.AddLayerToMapServiceDescriptor.*;
@@ -67,19 +67,19 @@ public class AddLayerToMapService extends AbstractCstlProcess {
     }
 
     public AddLayerToMapService (final String serviceType, final String serviceInstance,
-                                 final DataReference layerRef, final String layerAlias,
+                                 final DataProcessReference layerRef, final String layerAlias,
                                  final StyleReference layerStyleRef, final Filter layerFilter,
                                  final String layerDimension, final GetFeatureInfoCfg[] customGFI) {
         this(INSTANCE, toParameters(serviceType, serviceInstance, layerRef, layerAlias, layerStyleRef, layerFilter, layerDimension, customGFI));
     }
 
     public AddLayerToMapService (final String serviceType, final String serviceInstance,
-                                 final DataReference layerRef, final StyleReference layerStyleRef) {
+                                 final DataProcessReference layerRef, final StyleReference layerStyleRef) {
         this(INSTANCE, toParameters(serviceType, serviceInstance, layerRef, null, layerStyleRef, null, null, null));
     }
 
     private static ParameterValueGroup toParameters(final String serviceType, final String serviceInstance,
-                                                    final DataReference layerRef, final String layerAlias,
+                                                    final DataProcessReference layerRef, final String layerAlias,
                                                     final StyleReference layerStyleRef, final Filter layerFilter,
                                                     final String layerDimension, final GetFeatureInfoCfg[] customGFI){
         final Parameters params = Parameters.castOrWrap(INSTANCE.getInputDescriptor().createValue());
@@ -97,7 +97,7 @@ public class AddLayerToMapService extends AbstractCstlProcess {
     @Override
     protected void execute() throws ProcessException {
 
-        final DataReference layerRef        = inputParameters.getValue(LAYER_REF);
+        final DataProcessReference layerRef = inputParameters.getValue(LAYER_REF);
         final String layerAlias             = inputParameters.getValue(LAYER_ALIAS);
         final StyleReference layerStyleRef  = inputParameters.getValue(LAYER_STYLE);
         final Object layerFilter            = inputParameters.getValue(LAYER_FILTER);
@@ -112,7 +112,7 @@ public class AddLayerToMapService extends AbstractCstlProcess {
         }
 
         //extract provider identifier and layer name
-        final Integer providerID = layerRef.getProviderId();
+        final Integer providerID = layerRef.getProvider();
         //final Date dataVersion = layerRef.getDataVersion(); no longer used
         final String namespace = layerRef.getNamespace();
         final String name = layerRef.getName();

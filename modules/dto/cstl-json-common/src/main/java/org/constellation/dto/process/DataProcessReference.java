@@ -33,6 +33,18 @@ public class DataProcessReference extends Identifiable implements Serializable {
     private String type;
     private int provider;
 
+    public DataProcessReference() {
+
+    }
+
+    public DataProcessReference(Integer id, String name, String namespace, String type, int provider) {
+        super(id);
+        this.name = name;
+        this.namespace = namespace;
+        this.provider = provider;
+        this.type = type;
+    }
+
     public String getName() {
         return name;
     }

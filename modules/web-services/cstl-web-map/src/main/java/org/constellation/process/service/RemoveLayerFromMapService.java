@@ -20,9 +20,9 @@ package org.constellation.process.service;
 
 import org.apache.sis.parameter.Parameters;
 import org.constellation.business.ILayerBusiness;
-import org.constellation.dto.DataReference;
 import org.constellation.dto.NameInProvider;
 import org.constellation.dto.ServiceReference;
+import org.constellation.dto.process.DataProcessReference;
 import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.exception.ConstellationException;
 import org.constellation.process.AbstractCstlProcess;
@@ -48,12 +48,12 @@ public class RemoveLayerFromMapService extends AbstractCstlProcess {
         super(desc, input);
     }
 
-    public RemoveLayerFromMapService(final ServiceReference serviceRef, final DataReference layerRef) {
+    public RemoveLayerFromMapService(final ServiceReference serviceRef, final DataProcessReference layerRef) {
         this(INSTANCE, toParameters(serviceRef, layerRef));
     }
 
     private static ParameterValueGroup toParameters(final ServiceReference serviceRef,
-                                                    final DataReference layerRef){
+                                                    final DataProcessReference layerRef){
         final Parameters params = Parameters.castOrWrap(INSTANCE.getInputDescriptor().createValue());
         params.getOrCreate(LAYER_REF).setValue(layerRef);
         params.getOrCreate(SERVICE_REF).setValue(serviceRef);
@@ -63,7 +63,7 @@ public class RemoveLayerFromMapService extends AbstractCstlProcess {
     @Override
     protected void execute() throws ProcessException {
 
-        final DataReference layerRef        = inputParameters.getValue(LAYER_REF);
+        final DataProcessReference layerRef = inputParameters.getValue(LAYER_REF);
         final ServiceReference serviceRef   = inputParameters.getValue(SERVICE_REF);
 
         LayerConfig oldLayer = null;
