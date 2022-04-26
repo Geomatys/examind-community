@@ -78,7 +78,6 @@ import org.junit.runner.RunWith;
 import org.opengis.util.GenericName;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import org.geotoolkit.coverage.tiff.TiffProvider;
-import org.geotoolkit.image.io.plugin.WorldFileImageReader;
 import org.geotoolkit.image.jai.Registry;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.referencing.CRS;
@@ -214,8 +213,6 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
         if (!initialized) {
             try {
                 startServer();
-
-                WorldFileImageReader.Spi.registerDefaults(null);
 
                 //reset values, only allow pure java readers
                 for(String jn : ImageIO.getReaderFormatNames()){

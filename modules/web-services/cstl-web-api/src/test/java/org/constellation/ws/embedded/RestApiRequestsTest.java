@@ -45,7 +45,6 @@ import java.util.logging.Level;
 import org.junit.BeforeClass;
 import org.constellation.dto.DataBrief;
 import org.constellation.test.utils.TestRunner;
-import org.geotoolkit.image.io.plugin.WorldFileImageReader;
 import static org.constellation.api.StatisticState.*;
 import org.constellation.business.IUserBusiness;
 import org.constellation.dto.CstlUser;
@@ -110,8 +109,6 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
 
                 // observation-file datastore
                 omPID = testResource.createProvider(TestResource.OM_XML, providerBusiness, null).id;
-
-                WorldFileImageReader.Spi.registerDefaults(null);
 
                 //reset values, only allow pure java readers
                 for(String jn : ImageIO.getReaderFormatNames()){

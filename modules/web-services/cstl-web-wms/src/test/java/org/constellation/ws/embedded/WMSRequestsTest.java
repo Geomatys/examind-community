@@ -33,11 +33,9 @@ import org.constellation.admin.SpringHelper;
 import org.constellation.dto.contact.AccessConstraint;
 import org.constellation.dto.contact.Contact;
 import org.constellation.dto.contact.Details;
-import org.constellation.map.featureinfo.CoverageProfileInfoFormat;
 import org.constellation.map.featureinfo.FeatureInfoUtilities;
 import org.constellation.test.ImageTesting;
 import org.constellation.test.utils.Order;
-import org.geotoolkit.image.io.plugin.WorldFileImageReader;
 import org.geotoolkit.image.jai.Registry;
 import org.geotoolkit.inspire.xml.vs.ExtendedCapabilitiesType;
 import org.geotoolkit.inspire.xml.vs.LanguageType;
@@ -190,7 +188,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "layers=" + LAYER_TEST + "&styles=&"
             + "query_layers=" + LAYER_TEST + "&info_format=text/plain&"
             + "X=169&Y=20";
-    
+
     private static final String WMS_GETFEATUREINFO_PLAIN_COV2 = "request=GetFeatureInfo&service=WMS&version=1.3.0&"
             + "format=image/png"
             + "&I=50&J=50&CRS=EPSG%3A3857&STYLES=&WIDTH=101&HEIGHT=101&BBOX=-6841646.293883737%2C1624185.0768806678%2C-6786056.35298747%2C1679775.0177769344&"
@@ -217,7 +215,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "layers=" + COV_ALIAS + "&styles=&"
             + "query_layers=" + COV_ALIAS + "&info_format=application/vnd.ogc.gml&"
             + "X=169&Y=20";
-    
+
     private static final String WMS_GETFEATUREINFO_GML_COV2 = "request=GetFeatureInfo&service=WMS&version=1.3.0&"
             + "format=image/png"
             + "&I=50&J=50&CRS=EPSG%3A3857&STYLES=&WIDTH=101&HEIGHT=101&BBOX=-6841646.293883737%2C1624185.0768806678%2C-6786056.35298747%2C1679775.0177769344&"
@@ -254,7 +252,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "layers=" + LAYER_TEST + "&styles=&"
             + "query_layers=" + LAYER_TEST + "&info_format=text/html&"
             + "X=169&Y=20";
-     
+
      private static final String WMS_GETFEATUREINFO_HTML_COV2 = "request=GetFeatureInfo&service=WMS&version=1.3.0&"
             + "format=image/png"
             + "&I=50&J=50&CRS=EPSG%3A3857&STYLES=&WIDTH=101&HEIGHT=101&BBOX=-6841646.293883737%2C1624185.0768806678%2C-6786056.35298747%2C1679775.0177769344&"
@@ -372,7 +370,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "layers=" + COV_ALIAS + "&styles=&"
             + "query_layers=" + COV_ALIAS + "&info_format=application/json&"
             + "X=169&Y=20";
-    
+
     private static final String WMS_GETFEATUREINFO_JSON_COV2 = "request=GetFeatureInfo&service=WMS&version=1.3.0&"
             + "format=image/png"
             + "&I=50&J=50&CRS=EPSG%3A3857&STYLES=&WIDTH=101&HEIGHT=101&BBOX=-6841646.293883737%2C1624185.0768806678%2C-6786056.35298747%2C1679775.0177769344&"
@@ -385,26 +383,26 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "layers=" + LAYER_TEST + "&styles=&"
             + "query_layers=" + LAYER_TEST + "&info_format=application/vnd.ogc.xml&"
             + "X=169&Y=20";
-    
+
     private static final String WMS_GETFEATUREINFO_XML_COV_ALIAS = "request=GetFeatureInfo&service=WMS&version=1.1.1&"
             + "format=image/png&width=256&height=256&"
             + "srs=EPSG:4326&bbox=-180,-90,-90,0&"
             + "layers=" + COV_ALIAS + "&styles=&"
             + "query_layers=" + COV_ALIAS + "&info_format=application/vnd.ogc.xml&"
             + "X=169&Y=20";
-    
+
     private static final String WMS_GETFEATUREINFO_XML_COV2 = "request=GetFeatureInfo&service=WMS&version=1.3.0&"
             + "format=image/png"
             + "&I=50&J=50&CRS=EPSG%3A3857&STYLES=&WIDTH=101&HEIGHT=101&BBOX=-6841646.293883737%2C1624185.0768806678%2C-6786056.35298747%2C1679775.0177769344&"
             + "layers=martinique&styles=&"
             + "query_layers=martinique&info_format=application/vnd.ogc.xml";
-    
+
     private static final String WMS_GETFEATUREINFO_XML_FEAT = "QuErY_LaYeRs=Lakes&BbOx=0,-0.0020,0.0040,0&"
             + "FoRmAt=image/gif&ReQuEsT=GetFeatureInfo&"
             + "VeRsIoN=1.1.1&InFo_fOrMaT=application/vnd.ogc.xml&"
             + "X=60&StYlEs=&LaYeRs=Lakes&"
             + "SrS=EPSG:4326&WiDtH=200&HeIgHt=100&Y=60";
-    
+
 
     private static final String WMS_GETLEGENDGRAPHIC = "request=GetLegendGraphic&service=wms&"
             + "width=200&height=40&layer=" + LAYER_TEST + "&format=image/png&version=1.1.0";
@@ -476,7 +474,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "format=image/png&width=1024&height=512&"
             + "crs=CRS:84&bbox=-180,-90,180,90&"
             + "layers=" + LAYER_TEST + "&styles=";
-    
+
     private static final String WMS_GETMAP_TIFF = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image%2Fpng"
             + "&TRANSPARENT=true&LAYERS=martinique"
             + "&SLD_VERSION=1.1.0&WIDTH=256&HEIGHT=256&CRS=EPSG%3A3857&STYLES="
@@ -486,7 +484,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "&TRANSPARENT=${transparent}&LAYERS=martinique"
             + "&SLD_VERSION=1.1.0&WIDTH=256&HEIGHT=256&CRS=EPSG%3A3857&STYLES="
             + "&BBOX=-6887893.4928338025%2C1565430.3392804079%2C-6731350.458905761%2C1721973.3732084488";
-    
+
     private static final String WMS_GETMAP_SHAPE_POINT = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image%2Fpng&"
             + "TRANSPARENT=true&LAYERS=BuildingCenters&SLD_VERSION=1.1.0&WIDTH=256&HEIGHT=256&CRS=EPSG%3A3857&STYLES="
             + "&BBOX=0%2C0%2C305.748113140705%2C305.748113140705";
@@ -494,15 +492,15 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     private static final String WMS_GETMAP_SHAPE_POLYGON = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image%2Fpng"
             + "&TRANSPARENT=true&LAYERS=BasicPolygons&SLD_VERSION=1.1.0&WIDTH=256&HEIGHT=256&CRS=EPSG%3A3857&STYLES="
             + "&BBOX=0%2C0%2C626172.1357121639%2C626172.1357121639";
-    
+
     private static final String WMS_GETMAP_NETCDF = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image%2Fpng"
             + "&TRANSPARENT=true&LAYERS=sea_water_temperature&SLD_VERSION=1.1.0&WIDTH=256&HEIGHT=256&CRS=EPSG%3A3857&STYLES=&"
             + "BBOX=0%2C0%2C20037508.342789244%2C20037508.342789244";
-    
+
     private static final String WMS_GETMAP_JSON_FEATURE = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image%2Fpng"
             + "&TRANSPARENT=true&LAYERS=JS1&SLD_VERSION=1.1.0&WIDTH=256&HEIGHT=256&CRS=EPSG%3A3857&STYLES=&"
             + "BBOX=-8986548.541431602%2C4197310.097195599%2C-8984102.556526477%2C4199756.082100725";
-    
+
     private static final String WMS_GETMAP_JSON_COLLECTION = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image%2Fpng"
             + "&TRANSPARENT=true&LAYERS=JS2&SLD_VERSION=1.1.0&WIDTH=256&HEIGHT=256&CRS=EPSG%3A3857&STYLES=&"
             + "BBOX=-9001224.450862356%2C4187526.157575095%2C-8962088.692380344%2C4226661.916057105";
@@ -537,7 +535,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "format=image/png&width=1024&height=512&"
             + "crs=CRS:84&bbox=-81,35,-80.5,35.5&"
             + "layers=JCOLF&styles=&elevation=700";
-    
+
     private static boolean initialized = false;
 
     private static Path CONFIG_DIR;
@@ -547,7 +545,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         CONFIG_DIR = ConfigDirectory.setupTestEnvironement("WMSRequestTest");
         controllerConfiguration = WMSControllerConfig.class;
     }
-        
+
     private static final int DEF_NB_LAYER = 25;
 
     /**
@@ -568,7 +566,6 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 } catch (Exception ex) {
                 }
 
-                WorldFileImageReader.Spi.registerDefaults(null);
                 WMSPortrayal.setEmptyExtension(true);
 
                 //reset values, only allow pure java readers
@@ -602,7 +599,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 // we add two times a new geojson provider in order to create 2 layer with same name but different alias
                 DataImport d13 = testResource.createProvider(TestResource.JSON_FEATURE, providerBusiness, null).datas.get(0);
                // DataImport d14 = testResource.createProvider(TestResource.JSON_FEATURE, providerBusiness, null).datas.get(0);
-                
+
                 // netcdf datastore
                 datas.addAll(testResource.createProvider(TestResource.NETCDF, providerBusiness, null).datas);
                 datas.addAll(testResource.createProvider(TestResource.NETCDF_WITH_NAN, providerBusiness, null).datas);
@@ -895,7 +892,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     @Order(order = 6)
     public void testWMSGetMapLakeBmp() throws Exception {
         initLayerList();
-        
+
         // Creates a valid GetMap url. with transparent = FALSE
         URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_BMP.replace("${transparent}", "FALSE"));
 
@@ -956,7 +953,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     @Ignore("Pixmap support has been removed. Re-activate if we support it again in the future.")
     public void testWMSGetMapLakePpm() throws Exception {
         initLayerList();
-        
+
         // Creates a valid GetMap url.  with transparent = FALSE
         URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_PPM.replace("${transparent}", "FALSE"));
 
@@ -1193,7 +1190,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         assertNotNull(expResult);
         assertEquals(expResult, result);
-        
+
         gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PLAIN_COV2);
 
         expResult = "martinique\n" +
@@ -1298,7 +1295,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         assertNotNull(result);
         assertEquals(expResult, result);
-        
+
         gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_GML_COV2);
 
         expResult = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
@@ -1347,7 +1344,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertNotNull(result);
         assertEquals(expResult, result);
     }
-    
+
     @Test
     public void testWMSGetFeatureInfoXMLGif() throws Exception {
         initLayerList();
@@ -1408,7 +1405,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         assertNotNull(result);
         assertEquals(expResult, result);
-        
+
         gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_XML_COV2);
 
         expResult = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
@@ -1645,7 +1642,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     @Order(order = 25)
     public void testGetMap130Crs84() throws Exception {
         initLayerList();
-        
+
         // Creates a valid GetMap url.
         final URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_130_CRS_84);
 
@@ -1663,7 +1660,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             assertEquals(sstChecksumGeo.longValue(), Commons.checksum(image));
         }
     }
-    
+
     @Test
     @Order(order = 25)
     public void testGetMap130Tiff() throws Exception {
@@ -1710,7 +1707,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertEquals(256, image.getHeight());
         assertTrue(ImageTesting.getNumColors(image) > 8);
     }
-    
+
     @Test
     @Order(order = 25)
     public void testGetMap130ShapePoint() throws Exception {
@@ -1733,7 +1730,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             assertEquals(sstChecksumGeo.longValue(), Commons.checksum(image));
         }
     }
-    
+
     @Test
     @Order(order = 25)
     public void testGetMap130ShapePolygon() throws Exception {
@@ -1756,7 +1753,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             assertEquals(sstChecksumGeo.longValue(), Commons.checksum(image));
         }
     }
-    
+
     @Test
     @Order(order = 25)
     public void testGetMap130NetCDF() throws Exception {
@@ -1779,7 +1776,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             assertEquals(sstChecksumGeo.longValue(), Commons.checksum(image));
         }
     }
-    
+
     @Test
     @Order(order = 25)
     public void testGetMap130GeoJson() throws Exception {
@@ -1796,7 +1793,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertEquals(256, image.getWidth());
         assertEquals(256, image.getHeight());
         assertTrue(ImageTesting.getNumColors(image) > 8);
-        
+
         getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_JSON_COLLECTION);
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
@@ -1903,7 +1900,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         assertNotNull(result);
         assertEquals(expResult, result);
-        
+
         gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_HTML_COV2);
 
         expResult = "<html>\n" +
@@ -2071,7 +2068,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertEquals("pt4 Y property", 0.0,   (double)points.get(4).get("y"), 1e-1);
         
         gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PROFILE_COV_ALIAS);
-        
+
         result = getStringResponse(gfi);
         assertNotNull(result);
 
@@ -2205,7 +2202,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         String result = getStringResponse(gfi);
         assertNotNull(result);
         compareJSON(expResult, result);
-        
+
         // Creates a valid GetFeatureInfo url.
         gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_MULTI_PROPNAME);
 
@@ -2246,7 +2243,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         result = getStringResponse(gfi);
         assertNotNull(result);
         assertEquals(expResult, result);
-        
+
         gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_COV2);
 
         expResult
@@ -2394,7 +2391,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         Path p = CONFIG_DIR.resolve("JCOLL-ELEVATION.png");
         writeInFile(getMapUrl, p);
-        
+
         System.out.println("");
     }
 

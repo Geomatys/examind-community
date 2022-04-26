@@ -37,7 +37,7 @@
 
         <!-- associated projects dependencies -->
         <sis.build.helper.version>${sis.version}</sis.build.helper.version>
-        
+
         <!-- third party dependencies versions -->
         <codahale.metrics.version>3.0.1</codahale.metrics.version>
         <commons-collections.version>3.2.2</commons-collections.version>
@@ -406,11 +406,6 @@
             <dependency>
                 <groupId>org.geotoolkit</groupId>
                 <artifactId>geotk-coverage-geotiff</artifactId>
-                <version>${geotoolkit.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.geotoolkit</groupId>
-                <artifactId>geotk-coverage-bil</artifactId>
                 <version>${geotoolkit.version}</version>
             </dependency>
             <dependency>
