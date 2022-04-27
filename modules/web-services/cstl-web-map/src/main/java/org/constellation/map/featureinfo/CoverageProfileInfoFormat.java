@@ -671,7 +671,17 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         }
     }
 
-    private static XY reduce(List<XY> values, DoubleBinaryOperator valueAccumulator, DoubleBinaryOperator finalizer, NaNPropagation nanBehavior) {
+    /**
+     *
+     * @param values Values to reduce
+     * @param valueAccumulator The operation that merge two independent values
+     * @param finalizer A final operation that produces final result from merged values (first argument) and number of
+     *                  non NaN merged points.
+     * @param nanBehavior How to handle NaN values in input dataset.
+     * @return Result of reduction: X will be the mean of distances between given values. Y will be the result of value
+     * reduction.
+     */
+    private static XY reduce(List<XY> values, DoubleBinaryOperator valueAccumulator, Finalizer finalizer, NaNPropagation nanBehavior) {
         if (nanBehavior == NaNPropagation.ALL) {
             valueAccumulator = nanOp(valueAccumulator);
         }
@@ -690,10 +700,15 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         if (nanBehavior == NaNPropagation.ALL && nbNaN >= nbPts) {
             reduction.y = Double.NaN;
         } else {
-            reduction.y = finalizer.applyAsDouble(reduction.y, nbPts);
+            reduction.y = finalizer.apply(reduction.y, nbPts - nbNaN);
         }
 
         return reduction;
+    }
+
+    @FunctionalInterface
+    private interface Finalizer {
+        double apply(double accumulation, int count);
     }
 
     /**

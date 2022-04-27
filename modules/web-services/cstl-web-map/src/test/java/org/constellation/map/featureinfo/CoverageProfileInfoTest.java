@@ -361,6 +361,28 @@ public class CoverageProfileInfoTest {
     }
 
     @Test
+    public void reduceWithNaNValuesIgnored() {
+        final List<XY> points = new ArrayList<>();
+        points.add(new XY(0, 0));
+        points.add(new XY(1, 1));
+        points.add(new XY(2, 2));
+        points.add(new XY(3, NaN));
+        points.add(new XY(4, 4));
+        points.add(new XY(5, 5));
+
+        List<XY> reduced = reduce(points, 2, AVG, ALL);
+        double[] expectedMeanDistances = { 0, 1, 4, 5 };
+        double[] expectedValues = {
+                0,   // edge point returned as is
+                1,   // mean from first 3 points
+                4.5, // mean from last 3 points (and NaN removed from the equation)
+                5    // edge point returned as is
+        };
+        assertSeriesEquals("Distance means are wrong", expectedMeanDistances, reduced, XY::getX);
+        assertSeriesEquals("Min values are wrong", expectedValues, reduced, XY::getY);
+    }
+
+    @Test
     public void profileNoIntersection() throws Exception {
         final LineString line = profile(LAT_LON_CRS84,
                 2, -2,
