@@ -151,6 +151,9 @@ public class DatasetBusiness implements IDatasetBusiness {
     @Override
     @Transactional
     public int createDataset(final String identifier, final Integer owner, final String type) throws ConstellationException {
+        if (datasetRepository.existsByName(identifier)) {
+            throw new ConfigurationException("Dataset with name" + identifier + " alsready exist");
+        }
         DataSet ds = new DataSet();
         ds.setIdentifier(identifier);
         ds.setOwnerId(owner);
