@@ -115,7 +115,10 @@ final class DataStoreHandle implements AutoCloseable {
         if (store instanceof FeatureStore) {
             ((FeatureStore) store).deleteFeatureType(data.dataName.toString());
         } else if (store instanceof WritableAggregate) {
-            final Resource sisData = data.getOrCreate(null).getOrigin();
+            Resource sisData = data.getOrCreate(null).getOrigin();
+            if (sisData instanceof ResourceProxy) {
+                sisData = ((ResourceProxy)sisData).getOrigin();
+            }
             ((WritableAggregate) store).remove(sisData);
         } else return false;
 

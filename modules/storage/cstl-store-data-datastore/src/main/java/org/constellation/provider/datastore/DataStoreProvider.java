@@ -148,7 +148,7 @@ public class DataStoreProvider extends AbstractDataProvider {
         } catch (IllegalNameException e) {
             LOGGER.log(Level.FINE, "User asked for removal of an unknown data: " + key, e);
         } catch (DataStoreException e) {
-            LOGGER.log(Level.WARNING, "An error occurred while removing data from provider");
+            LOGGER.log(Level.WARNING, "An error occurred while removing data from provider.", e);
         }
         return false;
     }
