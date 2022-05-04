@@ -247,7 +247,7 @@ public class ProviderBusiness implements IProviderBusiness {
     }
 
     @Override
-    public Set<GenericName> test(final String providerIdentifier, final ProviderConfiguration configuration) throws ConstellationException {
+    public boolean test(final String providerIdentifier, final ProviderConfiguration configuration) throws ConstellationException {
         final String type = configuration.getType();
         final String subType = configuration.getSubType();
         final Map<String, String> inParams = configuration.getParameters();
@@ -258,7 +258,7 @@ public class ProviderBusiness implements IProviderBusiness {
         sources.parameter("id").setValue(providerIdentifier);
         sources.parameter("providerType").setValue(type);
         sources = fillProviderParameter(type, subType, inParams, sources);
-        return DataProviders.testProvider(providerIdentifier, providerService, sources);
+        return !DataProviders.testProvider(providerIdentifier, providerService, sources).isEmpty();
     }
 
     /**

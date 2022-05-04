@@ -57,7 +57,6 @@ import org.constellation.test.utils.TestEnvironment.ProviderImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import org.constellation.test.utils.TestRunner;
-import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.ogc.xml.exception.ServiceExceptionReport;
 import org.geotoolkit.ows.xml.v110.ExceptionReport;
 import org.geotoolkit.wcs.xml.WCSMarshallerPool;
@@ -75,7 +74,6 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.opengis.util.GenericName;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import org.geotoolkit.coverage.tiff.TiffProvider;
 import org.geotoolkit.image.jai.Registry;
@@ -103,10 +101,10 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
     /**
      * The layer to test.
      */
-    private static final GenericName LAYER_TEST = NamesExt.create("SSTMDE200305");
-    private static final GenericName LAYER_ALIAS = NamesExt.create("aliased");
-    private static final GenericName LAYER_TEST2 = NamesExt.create("martinique");
-    private static final GenericName LAYER_NMSP = NamesExt.create("SST:SSTMDE200305");
+    private static final String LAYER_TEST = "SSTMDE200305";
+    private static final String LAYER_ALIAS = "aliased";
+    private static final String LAYER_TEST2 = "martinique";
+    private static final String LAYER_NMSP = "SST:SSTMDE200305";
 
     /**
      * URLs which will be tested on the server.
@@ -559,7 +557,7 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
         boolean layerNmspFound = false;
         for (CoverageOfferingBriefType coverage : coverages) {
             for (JAXBElement<String> elem : coverage.getRest()) {
-                if (elem.getValue().equals(LAYER_TEST.tip().toString())) {
+                if (elem.getValue().equals(LAYER_TEST)) {
                     layerTestFound = true;
                     final LonLatEnvelopeType env = coverage.getLonLatEnvelope();
                     assertEquals(env.getPos().get(0).getValue().get(0), -180d, 0.2);
@@ -567,7 +565,7 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
                     assertEquals(env.getPos().get(1).getValue().get(0),  180d, 0.2);
                     assertEquals(env.getPos().get(1).getValue().get(1),   90d, 0.2);
                 }
-                if (elem.getValue().equals(LAYER_ALIAS.tip().toString())) {
+                if (elem.getValue().equals(LAYER_ALIAS)) {
                     layerAliasFound = true;
                     final LonLatEnvelopeType env = coverage.getLonLatEnvelope();
                     assertEquals(env.getPos().get(0).getValue().get(0), -180d, 0.2);
@@ -575,7 +573,7 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
                     assertEquals(env.getPos().get(1).getValue().get(0),  180d, 0.2);
                     assertEquals(env.getPos().get(1).getValue().get(1),   90d, 0.2);
                 }
-                if (elem.getValue().equals(LAYER_NMSP.tip().toString())) {
+                if (elem.getValue().equals(LAYER_NMSP)) {
                     layerNmspFound = true;
                     final LonLatEnvelopeType env = coverage.getLonLatEnvelope();
                     assertEquals(env.getPos().get(0).getValue().get(0), -180d, 0.2);

@@ -19,7 +19,6 @@
 package org.constellation.business;
 
 import java.util.List;
-import java.util.Set;
 import org.constellation.api.ProviderType;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.ProviderBrief;
@@ -29,7 +28,6 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.util.GenericName;
 
 /**
  * @author Cédric Briançon (Geomatys)
@@ -88,7 +86,7 @@ public interface IProviderBusiness {
      */
     Integer create(final String id, SPI_NAMES spiName, ParameterValueGroup spiConfiguration) throws ConfigurationException;
 
-    Set<GenericName> test(String providerIdentifier, ProviderConfiguration configuration) throws ConstellationException;
+    boolean test(String providerIdentifier, ProviderConfiguration configuration) throws ConstellationException;
 
     void update(final Integer id, String providerConfig) throws ConfigurationException;
 

@@ -28,14 +28,12 @@ import java.util.Set;
 import java.util.logging.Level;
 import javax.inject.Inject;
 import org.apache.sis.storage.DataStoreProvider;
-import org.apache.sis.storage.DataStores;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.ParameterValues;
 import org.constellation.dto.ProviderConfiguration;
 import org.constellation.dto.SimpleValue;
 import org.constellation.exception.ConfigurationException;
-import org.constellation.exception.ConstellationException;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
@@ -126,8 +124,8 @@ public class ProviderRestAPI extends AbstractRestAPI {
             @RequestBody final ProviderConfiguration configuration) {
 
         try {
-            final Set<GenericName> names = providerBusiness.test(providerIdentifier, configuration);
-            if (names.isEmpty()){
+            final boolean dataFound = providerBusiness.test(providerIdentifier, configuration);
+            if (!dataFound){
                 LOGGER.log(Level.WARNING, "non data found for provider: {0}", providerIdentifier);
                 return new ErrorMessage().message("Unable to find any data, please check the database parameters and make sure that the database is properly configured.").build();
             }
