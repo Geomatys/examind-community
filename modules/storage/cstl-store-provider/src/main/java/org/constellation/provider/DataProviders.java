@@ -300,7 +300,7 @@ public final class DataProviders extends Static{
     public synchronized static void dispose() {
         try {
             //sproviders were loaded, dispose each of them
-            for (final Integer key : CACHE.keySet()) {
+            for (final Integer key : new HashSet<Integer>(CACHE.keySet())) {
                 dispose(key);
             }
         } finally {
