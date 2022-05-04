@@ -40,6 +40,7 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.TestEnvironment;
+import org.constellation.test.utils.TestEnvironment.DataImport;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -65,7 +66,7 @@ public class MapContextBusinessTest extends SpringContextTest {
     @Autowired
     protected IProviderBusiness providerBusiness;
 
-    private static int coverage1DID;
+    private static DataImport COV_DATA;
 
     @PostConstruct
     public void init() {
@@ -79,7 +80,7 @@ public class MapContextBusinessTest extends SpringContextTest {
                 org.geotoolkit.lang.Setup.initialize(null);
 
                 // coverage-file datastores
-                coverage1DID = testResources.createProvider(TestEnvironment.TestResource.PNG, providerBusiness, null).datas.get(0).id;
+                COV_DATA = testResources.createProvider(TestEnvironment.TestResource.PNG, providerBusiness, null).datas.get(0);
 
                 initialized = true;
             } catch (Exception ex) {
@@ -133,14 +134,14 @@ public class MapContextBusinessTest extends SpringContextTest {
         mapContext.setNorth(90.0);
         mapContext.setSouth(-90.0);
 
-        Data d = dataBusiness.getData(coverage1DID);
+        Data d = dataBusiness.getData(COV_DATA.id);
         Assert.assertNotNull(d);
 
         List<AbstractMCLayerDTO> layers = new ArrayList<>();
-        DataMCLayerDTO dtLayer = new DataMCLayerDTO(new QName("SSTMDE200305"),
+        DataMCLayerDTO dtLayer = new DataMCLayerDTO(new QName(COV_DATA.namespace, COV_DATA.name),
                                                     1, 0, true,
                                                     d.getDate(), "COVERAGE", null,
-                                                    coverage1DID, null, null);
+                                                    COV_DATA.id, null, null);
         layers.add(dtLayer);
         Assert.assertTrue(mapContext.isAllInternalData());
 
@@ -214,6 +215,6 @@ public class MapContextBusinessTest extends SpringContextTest {
         ParameterValues pv = mpBusiness.getExtent(mid);
         Assert.assertEquals(5, pv.getValues().size());
         Assert.assertTrue(pv.getValues().containsKey("west"));
-        Assert.assertEquals("-180.0", pv.getValues().get("west"));
+        Assert.assertTrue(pv.getValues().get("west").startsWith("-180."));
     }
 }

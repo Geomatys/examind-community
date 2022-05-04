@@ -43,7 +43,6 @@ import org.geotoolkit.display2d.service.SceneDef;
 import org.geotoolkit.display2d.service.VisitDef;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
 import org.geotoolkit.storage.memory.InMemoryFeatureSet;
-import org.geotoolkit.util.NamesExt;
 import org.opengis.feature.Feature;
 import org.opengis.util.GenericName;
 
@@ -158,28 +157,5 @@ public abstract class AbstractTextFeatureInfoFormat extends AbstractFeatureInfoF
             return wmsGFI.getFeatureCount();
         }
         return null;
-    }
-
-    private static GenericName getNameForFeatureLayer(MapLayer ml) {
-        final GenericName layerName ;
-        if (ml.getUserProperties().containsKey("layerName")) {
-            layerName = (GenericName) ml.getUserProperties().get("layerName");
-        } else {
-            layerName = NamesExt.create(ml.getIdentifier());
-        }
-        return layerName;
-    }
-
-    private static GenericName getNameForCoverageLayer(MapLayer ml) {
-        if (ml.getUserProperties().containsKey("layerName")) {
-            return (GenericName) ml.getUserProperties().get("layerName");
-        } else {
-            final Resource ref = ml.getData();
-            try {
-                return ref.getIdentifier().orElseThrow(() -> new RuntimeException("Cannot extract resource identifier"));
-            } catch (DataStoreException e) {
-                throw new RuntimeException("Cannot extract resource identifier", e);
-            }
-        }
     }
 }

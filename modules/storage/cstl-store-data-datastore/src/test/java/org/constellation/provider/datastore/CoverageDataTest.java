@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import javax.imageio.ImageIO;
 import org.apache.sis.referencing.CRS;
+import org.apache.sis.storage.Aggregate;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Resource;
@@ -63,6 +64,10 @@ public class CoverageDataTest {
 
         store = testResource.createStore(TestEnvironment.TestResource.PNG);
         r = store.findResource("SSTMDE200305");
+        Assert.assertTrue(r instanceof Aggregate);
+        Aggregate agg = (Aggregate) r;
+        Assert.assertEquals(1, agg.components().size());
+        r = agg.components().iterator().next();
         Assert.assertTrue(r instanceof GridCoverageResource);
         sst = new DefaultCoverageData(r.getIdentifier().get(), (GridCoverageResource)r, store);
     }
@@ -89,17 +94,18 @@ public class CoverageDataTest {
         env = sst.getEnvelope();
         Assert.assertNotNull(env);
 
-        Assert.assertEquals(-180.0, env.getMinimum(0),0.1);
-        Assert.assertEquals( -90.0, env.getMinimum(1),0.1);
-        Assert.assertEquals( 180.0, env.getMaximum(0),0.1);
-        Assert.assertEquals(  90.0, env.getMaximum(1),0.1);
+        Assert.assertEquals(-180.0, env.getMinimum(0) ,0.2);
+        Assert.assertEquals( -90.0, env.getMinimum(1) ,0.2);
+        Assert.assertEquals( 180.0, env.getMaximum(0) ,0.2);
+        Assert.assertEquals(  90.0, env.getMaximum(1) ,0.2);
 
         env = sst.getEnvelope(crs);
         Assert.assertNotNull(env);
 
-        Assert.assertEquals(-20037508.342789244,      env.getMinimum(0),0.0001);
-        Assert.assertEquals(Double.NEGATIVE_INFINITY, env.getMinimum(1),0.0001);
-        Assert.assertEquals( 20037508.342789244,      env.getMaximum(0),0.0001);
+
+        Assert.assertEquals(-20057076.22203025,       env.getMinimum(0),0.0001);
+        Assert.assertEquals(-41329615.42378936,       env.getMinimum(1),0.0001);
+        Assert.assertEquals( 20017940.463548236,      env.getMaximum(0),0.0001);
         Assert.assertEquals(Double.POSITIVE_INFINITY, env.getMaximum(1),0.0001);
     }
 
@@ -130,15 +136,15 @@ public class CoverageDataTest {
         Assert.assertNotNull(result);
 
         Assert.assertNotNull(result.getBoundingBox());
-        Assert.assertEquals( -180.0, result.getBoundingBox()[0],0.1);
-        Assert.assertEquals(  -90.0, result.getBoundingBox()[1],0.1);
-        Assert.assertEquals(  180.0, result.getBoundingBox()[2],0.1);
-        Assert.assertEquals(   90.0, result.getBoundingBox()[3],0.1);
+        Assert.assertEquals( -180.0, result.getBoundingBox()[0], 0.2);
+        Assert.assertEquals(  -90.0, result.getBoundingBox()[1], 0.2);
+        Assert.assertEquals(  180.0, result.getBoundingBox()[2], 0.2);
+        Assert.assertEquals(   90.0, result.getBoundingBox()[3], 0.2);
 
         Assert.assertNotNull(result.getBands());
         Assert.assertEquals(1, result.getBands().size());
 
-        desc = getBand("0", result);
+        desc = getBand("Color index", result);
         Assert.assertNotNull(desc);
         Assert.assertEquals("0",   desc.getIndice());
         Assert.assertEquals(  0.0, desc.getMinValue(), 0);

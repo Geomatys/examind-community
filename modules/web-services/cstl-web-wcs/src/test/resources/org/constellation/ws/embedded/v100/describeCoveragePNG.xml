@@ -5,7 +5,7 @@
     <ns27:name>SSTMDE200305</ns27:name>
     <ns27:label>SSTMDE200305</ns27:label>
     <ns27:lonLatEnvelope srsName="urn:ogc:def:crs:OGC:1.3:CRS84">
-      <ns24:pos>-180.0 -90.0</ns24:pos>
+      <ns24:pos>-180.0 -89.82421875</ns24:pos>
       <ns24:pos>180.0 90.0</ns24:pos>
     </ns27:lonLatEnvelope>
     <ns27:keywords>
@@ -15,12 +15,12 @@
     <ns27:domainSet>
       <ns27:spatialDomain>
         <ns24:Envelope srsName="urn:ogc:def:crs:EPSG::4326">
-          <ns24:pos>-180.0 -90.0</ns24:pos>
+          <ns24:pos>-180.0 -89.82421875</ns24:pos>
           <ns24:pos>180.0 90.0</ns24:pos>
         </ns24:Envelope>
-        <ns24:Envelope srsName="urn:ogc:def:crs:OGC:1.3:CRS84">
-          <ns24:pos>-180.0 -90.0</ns24:pos>
-          <ns24:pos>180.0 90.0</ns24:pos>
+        <ns24:Envelope srsName="urn:ogc:def:crs:OGC:1.3:CRS84" srsDimension="2">
+          <ns24:pos>-180.17578125 -89.82421875</ns24:pos>
+          <ns24:pos>179.82421875 90.17578125</ns24:pos>
         </ns24:Envelope>
       </ns27:spatialDomain>
       <ns27:temporalDomain/>

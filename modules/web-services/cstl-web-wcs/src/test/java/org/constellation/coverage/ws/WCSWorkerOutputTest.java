@@ -266,7 +266,7 @@ public class WCSWorkerOutputTest extends SpringContextTest {
                                 .getContent().get(1).getValue();
                         // Builds expected spatial domain
                         final List<DirectPositionType> pos = new ArrayList<>();
-                        pos.add(new DirectPositionType(-180.0, -90.0));
+                        pos.add(new DirectPositionType(-180.0, -89.82421875));
                         pos.add(new DirectPositionType(180.0, 90.0));
                         final EnvelopeType expectedEnvelope = new EnvelopeType(pos, "urn:ogc:def:crs:EPSG::4326");
                         // Builds expected temporal domain
@@ -307,7 +307,7 @@ public class WCSWorkerOutputTest extends SpringContextTest {
                                 .getContent().get(1).getValue();
                         // Builds expected spatial domain
                         final List<DirectPositionType> pos = new ArrayList<>();
-                        pos.add(new DirectPositionType(-180.0, -90.0));
+                        pos.add(new DirectPositionType(-180.0, -89.82421875));
                         pos.add(new DirectPositionType(180.0, 90.0));
                         final EnvelopeType expectedEnvelope = new EnvelopeType(pos, "urn:ogc:def:crs:EPSG::4326");
                         // Builds expected temporal domain

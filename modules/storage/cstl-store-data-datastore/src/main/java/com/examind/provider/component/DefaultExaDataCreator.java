@@ -51,7 +51,8 @@ public class DefaultExaDataCreator implements ExaDataCreator {
     @Override
     public Data create(final String dataName, Date version, final DataStore store, final Resource rs) throws DataStoreException {
         if (rs == null) throw new DataStoreException("Unable to find a resource named:" + dataName);
-        final GenericName targetName = rs.getIdentifier().orElseThrow(() -> new DataStoreException("Only named datasets should be available from provider"));
+        GenericName targetName = rs.getIdentifier().orElseThrow(() -> new DataStoreException("Only named datasets should be available from provider"));
+        targetName = targetName.toFullyQualifiedName();
         if (rs instanceof TiledResource && rs instanceof GridCoverageResource) {
             return new DefaultPyramidData(targetName, (GridCoverageResource) rs, store);
         } else if (rs instanceof GridCoverageResource) {

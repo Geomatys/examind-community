@@ -28,7 +28,6 @@ import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
 import javax.inject.Inject;
-import javax.xml.namespace.QName;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.ILayerBusiness;
@@ -44,7 +43,6 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.TestEnvironment.TestResource;
-import org.constellation.test.utils.TestEnvironment.TestResources;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;
@@ -124,8 +122,11 @@ public class LayerBusinessTest extends SpringContextTest {
     @Order(order=1)
     public void createTest() throws Exception {
 
-        QName dataName = new QName("SSTMDE200305");
-        DataBrief db = dataBusiness.getDataBrief(dataName, coveragePID, false, true);
+        List<DataBrief> covBriefs = new ArrayList<>();
+        covBriefs.addAll(dataBusiness.getDataBriefsFromProviderId(coveragePID, null, true, false, null, null, false, true));
+        Assert.assertEquals(1, covBriefs.size());
+
+        DataBrief db = covBriefs.get(0);
         Assert.assertNotNull(db);
 
         final Details frDetails = new Details("name", "identifier", Arrays.asList("keyword1", "keyword2"), "description", Arrays.asList("version1"), new Contact(), new AccessConstraint(), true, "FR");
@@ -135,13 +136,13 @@ public class LayerBusinessTest extends SpringContextTest {
 
         Assert.assertNotNull(lid);
 
-        List<DataBrief> briefs = new ArrayList<>();
+        List<DataBrief> vectBriefs = new ArrayList<>();
         for (Integer vectorPID : vectorPIDs)  {
-            briefs.addAll(dataBusiness.getDataBriefsFromProviderId(vectorPID, null, true, false, null, null, false, true));
+            vectBriefs.addAll(dataBusiness.getDataBriefsFromProviderId(vectorPID, null, true, false, null, null, false, true));
         }
-        Assert.assertEquals(12, briefs.size());
+        Assert.assertEquals(12, vectBriefs.size());
 
-        for (DataBrief vdb : briefs) {
+        for (DataBrief vdb : vectBriefs) {
            layerBusiness.add(vdb.getId(), null, vdb.getNamespace(), vdb.getName(), sid, null);
         }
     }

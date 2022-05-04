@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
 import javax.xml.bind.Unmarshaller;
+import org.apache.sis.internal.storage.image.WorldFileStoreProvider;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.xml.MarshallerPool;
@@ -140,7 +141,7 @@ public class TestEnvironment {
          *  data :
          *  - SSTMDE200305
          */
-        public static final TestResource PNG = new TestResource("org/constellation/data/image/png/SSTMDE200305.png", TestEnvironment::createCoverageFileProvider, TestEnvironment::createFileCoverageStore);
+        public static final TestResource PNG = new TestResource("org/constellation/data/image/png/SSTMDE200305.png", TestEnvironment::createCoverageFileProvider, TestEnvironment::createWorldFileStore);
 
         /**
          * Coverage file datastore with TIF file.
@@ -682,9 +683,9 @@ public class TestEnvironment {
             final ParameterValueGroup source = dataStorefactory.getProviderDescriptor().createValue();
             source.parameter("id").setValue(providerIdentifier);
             final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) dataStorefactory.getStoreDescriptor(), source);
-            final ParameterValueGroup config = choice.addGroup("FileCoverageStoreParameters");
-            config.parameter("path").setValue(pngFile.toUri().toURL());
-            config.parameter("type").setValue("AUTO");
+            final ParameterValueGroup config = choice.addGroup("World file");
+            config.parameter("location").setValue(pngFile.toUri());
+            //config.parameter("type").setValue("AUTO");
 
             return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "data-store", source);
         } catch (Exception ex) {
@@ -715,6 +716,17 @@ public class TestEnvironment {
             FileCoverageProvider provider = new FileCoverageProvider();
             ParameterValueGroup params = provider.getOpenParameters().createValue();
             params.parameter("path").setValue(p);
+            return provider.open(params);
+        } catch (Exception ex) {
+            throw new ConstellationRuntimeException(ex);
+        }
+    }
+
+    private static DataStore createWorldFileStore(Path p) {
+        try {
+            WorldFileStoreProvider provider = new WorldFileStoreProvider();
+            ParameterValueGroup params = provider.getOpenParameters().createValue();
+            params.parameter("location").setValue(p);
             return provider.open(params);
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);

@@ -435,7 +435,7 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
 
         p = configDir.resolve("SST-3857.tif");
         writeInFile(getCoverageUrl, p);
-        verifyTiff(p, "EPSG:3857", new double[]{-20037508.342789244, -20048966.104014594, 20037508.342789244, 20048966.104014594});
+        verifyTiff(p, "EPSG:3857", new double[]{-20037508.342789244, -20048966.104014594, 2.001794046354824E7, 20048966.104014594});
 
         getCoverageUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_PNG_TIFF_201_SUB);
 
@@ -447,13 +447,13 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
 
         p = configDir.resolve("SST-SUB-3847.tif");
         writeInFile(getCoverageUrl, p);
-        verifyTiff(p, "EPSG:3857", new double[]{-11153691.167372918, -20048966.104014594, 11153691.167372918, 20048966.104014594});
+        verifyTiff(p, "EPSG:3857", new double[]{-1.1134123288131913E7, -20048966.104014594, 1.1134123288131913E7, 20048966.104014594});
 
         getCoverageUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_PNG_TIFF_201_SUB3857_OUT3857);
 
         p = configDir.resolve("SST-SUB-3847-3847.tif");
         writeInFile(getCoverageUrl, p);
-        verifyTiff(p, "EPSG:3857", new double[]{-11153691.167372918, -20072439.67067411, 11153691.167372918, 20072439.670674134});
+        verifyTiff(p, "EPSG:3857", new double[]{-1.1173259046613922E7, -2.0304672869860206E7, 1.1173259046613922E7, 2.0304672869860206E7});
 
         getCoverageUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_PNG_TIFF_201_SUB_ANTIMERIDIAN);
 
@@ -562,26 +562,26 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
                 if (elem.getValue().equals(LAYER_TEST.tip().toString())) {
                     layerTestFound = true;
                     final LonLatEnvelopeType env = coverage.getLonLatEnvelope();
-                    assertTrue(env.getPos().get(0).getValue().get(0) == -180d);
-                    assertTrue(env.getPos().get(0).getValue().get(1) ==  -90d);
-                    assertTrue(env.getPos().get(1).getValue().get(0) ==  180d);
-                    assertTrue(env.getPos().get(1).getValue().get(1) ==   90d);
+                    assertEquals(env.getPos().get(0).getValue().get(0), -180d, 0.2);
+                    assertEquals(env.getPos().get(0).getValue().get(1),  -90d, 0.2);
+                    assertEquals(env.getPos().get(1).getValue().get(0),  180d, 0.2);
+                    assertEquals(env.getPos().get(1).getValue().get(1),   90d, 0.2);
                 }
                 if (elem.getValue().equals(LAYER_ALIAS.tip().toString())) {
                     layerAliasFound = true;
                     final LonLatEnvelopeType env = coverage.getLonLatEnvelope();
-                    assertTrue(env.getPos().get(0).getValue().get(0) == -180d);
-                    assertTrue(env.getPos().get(0).getValue().get(1) ==  -90d);
-                    assertTrue(env.getPos().get(1).getValue().get(0) ==  180d);
-                    assertTrue(env.getPos().get(1).getValue().get(1) ==   90d);
+                    assertEquals(env.getPos().get(0).getValue().get(0), -180d, 0.2);
+                    assertEquals(env.getPos().get(0).getValue().get(1),  -90d, 0.2);
+                    assertEquals(env.getPos().get(1).getValue().get(0),  180d, 0.2);
+                    assertEquals(env.getPos().get(1).getValue().get(1),   90d, 0.2);
                 }
                 if (elem.getValue().equals(LAYER_NMSP.tip().toString())) {
                     layerNmspFound = true;
                     final LonLatEnvelopeType env = coverage.getLonLatEnvelope();
-                    assertTrue(env.getPos().get(0).getValue().get(0) == -180d);
-                    assertTrue(env.getPos().get(0).getValue().get(1) ==  -90d);
-                    assertTrue(env.getPos().get(1).getValue().get(0) ==  180d);
-                    assertTrue(env.getPos().get(1).getValue().get(1) ==   90d);
+                    assertEquals(env.getPos().get(0).getValue().get(0), -180d, 0.2);
+                    assertEquals(env.getPos().get(0).getValue().get(1),  -90d, 0.2);
+                    assertEquals(env.getPos().get(1).getValue().get(0),  180d, 0.2);
+                    assertEquals(env.getPos().get(1).getValue().get(1),   90d, 0.2);
                 }
             }
         }

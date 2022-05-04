@@ -161,10 +161,11 @@ public class CSVFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
     }
 
     static void getSampleName(StringBuilder typeBuilder, SampleDimension gsd) {
-        final InternationalString title = gsd.getName().toInternationalString();
-        if(title!=null){
-            typeBuilder.append(title);
-        }
+        // there is a possibility here to get a traduction.
+        // if we want to do so, we must be abale to pass a locale from the request to this method
+        // final InternationalString title = gsd.getName().toInternationalString();
+        typeBuilder.append(gsd.getName().toString());
+        
         final Unit unit = gsd.getUnits().orElse(null);
         if (unit!=null) {
             typeBuilder.append(" (").append(unit.toString()).append(")");

@@ -199,7 +199,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
         }
 
         final AcceptFormatsType formats = requestCapabilities.getAcceptFormats();
-        if (formats != null && formats.getOutputFormat().size() > 0 ) {
+        if (formats != null && !formats.getOutputFormat().isEmpty() ) {
             boolean found = false;
             for (String form: formats.getOutputFormat()) {
                 if (ACCEPTED_OUTPUT_FORMATS.contains(form)) {
@@ -390,14 +390,14 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                                 continue;
                             }
                             final org.geotoolkit.storage.multires.TileMatrix mosaic = mosaicIt.next();
-                            DirectPosition upperLeft = mosaic.getUpperLeftCorner();
-                            double scale = mosaic.getScale();
+                            DirectPosition upperLeft = TileMatrices.getUpperLeftCorner(mosaic);
+                            double scale = TileMatrices.getScale(mosaic);
                             //convert scale in the strange WMTS scale denominator
                             scale = WMTSUtilities.toScaleDenominator(pr.getCoordinateReferenceSystem(), scale);
                             final TileMatrix matrix = new TileMatrix();
                             matrix.setIdentifier(new CodeType(mosaic.getIdentifier().toString()));
                             matrix.setScaleDenominator(scale);
-                            matrix.setMatrixDimension(mosaic.getGridSize());
+                            matrix.setMatrixDimension(TileMatrices.getGridSize(mosaic));
                             matrix.setTileDimension(mosaic.getTileSize());
                             matrix.getTopLeftCorner().add(upperLeft.getOrdinate(xAxis));
                             matrix.getTopLeftCorner().add(upperLeft.getOrdinate(yAxis));
@@ -433,7 +433,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                             }
 
                             while (mosaicIt.hasNext()) {
-                                upperLeft = mosaicIt.next().getUpperLeftCorner();
+                                upperLeft = TileMatrices.getUpperLeftCorner(mosaicIt.next());
                                 for (Map.Entry<Integer, CoordinateReferenceSystem> entry : splittedCRS.entrySet()) {
                                     String strValue = null;
                                     // For temporal values, we convert it into timestamp, then to an ISO 8601 date.
@@ -746,7 +746,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                 // We use a strict finder, because default one (as methods in coverage utilities) return arbitrary data
                 // if it don't find any fitting mosaic...
                 StrictlyCoverageFinder finder = new StrictlyCoverageFinder();
-                mosaic = finder.findMosaic(pyramid, mosaic.getScale(), RESOLUTION_EPSILON, envelope, -1);
+                mosaic = finder.findMosaic(pyramid, TileMatrices.getScale(mosaic), RESOLUTION_EPSILON, envelope, -1);
             }
 
             if (mosaic == null) {
@@ -754,13 +754,13 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                         " undefined matrix: " + level + " for matrixSet: " + matrixSetName,
                         INVALID_PARAMETER_VALUE, "tilematrix");
             }
-
-            if (columnIndex >= mosaic.getGridSize().width) {
-                throw new CstlServiceException("TileCol out of range, expected value < "+mosaic.getGridSize().width+" but got " + columnIndex,
+            java.awt.Dimension gridSize = TileMatrices.getGridSize(mosaic);
+            if (columnIndex >= gridSize.width) {
+                throw new CstlServiceException("TileCol out of range, expected value < " + gridSize.width + " but got " + columnIndex,
                         TILE_OUT_OF_RANGE, "tilecol");
             }
-            if (rowIndex >= mosaic.getGridSize().height) {
-                throw new CstlServiceException("TileRow out of range, expected value < " + mosaic.getGridSize().height + " but got "+rowIndex,
+            if (rowIndex >= gridSize.height) {
+                throw new CstlServiceException("TileRow out of range, expected value < " + gridSize.height + " but got "+rowIndex,
                         TILE_OUT_OF_RANGE, "tilerow");
             }
 

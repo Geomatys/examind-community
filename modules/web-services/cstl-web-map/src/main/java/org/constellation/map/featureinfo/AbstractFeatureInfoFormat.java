@@ -24,10 +24,14 @@ import java.util.Optional;
 import java.util.SortedSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.sis.portrayal.MapLayer;
+import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.Resource;
 import org.constellation.api.DataType;
 import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.ws.LayerCache;
+import org.geotoolkit.util.NamesExt;
 import org.opengis.util.GenericName;
 import org.springframework.lang.Nullable;
 
@@ -115,5 +119,28 @@ public abstract class AbstractFeatureInfoFormat implements FeatureInfoFormat {
 
         if (elevs == null  || elevs.isEmpty()) return null;
         else return elevs.first().doubleValue();
+    }
+
+    protected static GenericName getNameForFeatureLayer(MapLayer ml) {
+        final GenericName layerName ;
+        if (ml.getUserProperties().containsKey("layerName")) {
+            layerName = (GenericName) ml.getUserProperties().get("layerName");
+        } else {
+            layerName = NamesExt.create(ml.getIdentifier());
+        }
+        return layerName;
+    }
+
+    protected static GenericName getNameForCoverageLayer(MapLayer ml) {
+        if (ml.getUserProperties().containsKey("layerName")) {
+            return (GenericName) ml.getUserProperties().get("layerName");
+        } else {
+            final Resource ref = ml.getData();
+            try {
+                return ref.getIdentifier().orElseThrow(() -> new RuntimeException("Cannot extract resource identifier"));
+            } catch (DataStoreException e) {
+                throw new RuntimeException("Cannot extract resource identifier", e);
+            }
+        }
     }
 }

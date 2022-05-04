@@ -3,8 +3,8 @@
     <ns31:CoverageDescription gml:id="aliased">
         <gml:boundedBy>
             <gml:Envelope srsName="urn:ogc:def:crs:OGC:1.3:CRS84" srsDimension="2" axisLabels="λ φ">
-                <gml:lowerCorner>-180.0 -90.0</gml:lowerCorner>
-                <gml:upperCorner>180.0 90.0</gml:upperCorner>
+                <gml:lowerCorner>-180.17578125 -89.82421875</gml:lowerCorner>
+                <gml:upperCorner>179.82421875 90.17578125</gml:upperCorner>
             </gml:Envelope>
         </gml:boundedBy>
         <ns31:CoverageId>aliased</ns31:CoverageId>
@@ -19,7 +19,7 @@
                 <gml:axisLabels>λ φ</gml:axisLabels>
                 <gml:origin>
                     <gml:Point gml:id="pt--1258919745">
-                        <gml:pos>-179.82421875 89.82421875</gml:pos>
+                        <gml:pos>-180.0 90.0</gml:pos>
                     </gml:Point>
                 </gml:origin>
                 <gml:offsetVector>0.3515625 0.0</gml:offsetVector>
@@ -28,7 +28,7 @@
         </gml:gridDomain>
         <ns32:rangeType>
             <ns33:DataRecord>
-                <ns33:field name="0">
+                <ns33:field name="Color index">
                     <ns33:Quantity/>
                 </ns33:field>
             </ns33:DataRecord>

@@ -1056,13 +1056,6 @@
                             <MimeType>image/x-png</MimeType>
                         </Format>
                         <Format>
-                            <MimeType>image/x-raw</MimeType>
-                            <Encoding>base64</Encoding>
-                        </Format>
-                        <Format>
-                            <MimeType>image/x-raw</MimeType>
-                        </Format>
-                        <Format>
                             <MimeType>text/plain</MimeType>
                             <Encoding>base64</Encoding>
                         </Format>
@@ -3009,13 +3002,6 @@
                         </Format>
                         <Format>
                             <MimeType>image/x-png</MimeType>
-                        </Format>
-                        <Format>
-                            <MimeType>image/x-raw</MimeType>
-                            <Encoding>base64</Encoding>
-                        </Format>
-                        <Format>
-                            <MimeType>image/x-raw</MimeType>
                         </Format>
                         <Format>
                             <MimeType>text/plain</MimeType>

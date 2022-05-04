@@ -424,7 +424,7 @@ public final class DataProviders extends Static{
      * @return A filtered list of datastore.
      */
     public static List<DataStoreProvider> listAcceptedProviders(boolean obsStore) {
-        boolean allowSisInternal = Application.getBooleanProperty(AppProperty.EXA_ENABLE_INTERNAL_SIS_STORE, false);
+        boolean allowSisInternal = Application.getBooleanProperty(AppProperty.EXA_ENABLE_INTERNAL_SIS_STORE, true);
         return org.apache.sis.storage.DataStores.providers()
                                                 .stream()
                                                 .filter(dp -> obsStore || !isOnlyObservationStore(dp))

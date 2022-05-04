@@ -90,6 +90,7 @@ import org.constellation.dto.service.ServiceComplete;
 import org.constellation.dto.service.config.wxs.DimensionDefinition;
 import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
+import org.constellation.map.featureinfo.CoverageProfileInfoFormat;
 import org.constellation.test.utils.CstlDOMComparator;
 import org.constellation.test.utils.TestEnvironment;
 import org.constellation.test.utils.TestEnvironment.DataImport;
@@ -121,8 +122,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     /**
      * The layer to test.
      */
-    private static final GenericName LAYER_TEST = NamesExt.create("SSTMDE200305");
-    private static final GenericName COV_ALIAS = NamesExt.create("SST");
+    private static final String LAYER_TEST = "SSTMDE200305";
+    private static final String COV_ALIAS = "SST";
 
     /**
      * Checksum value on the returned image expressed in a geographic CRS for
@@ -281,7 +282,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "FoRmAt=image/gif&ReQuEsT=GetFeatureInfo&"
             + "VeRsIoN=1.1.1&InFo_fOrMaT=application/json;%20subtype=profile&"
             + "X=60&StYlEs=&LaYeRs=" + LAYER_TEST + "&"
-            + "SrS=EPSG:4326&WiDtH=200&HeIgHt=100&Y=60&PROFILE=LINESTRING(-61.132875680921%2014.81104016304,%20-60.973573923109%2014.673711061478,%20-60.946108102796%2014.706670045853,%20-60.915895700453%2014.610539674759,%20-60.882936716078%2014.48145031929)";
+        //    + "SrS=EPSG:4326&WiDtH=200&HeIgHt=100&Y=60&PROFILE=LINESTRING(-61.132875680921%2014.81104016304,%20-60.973573923109%2014.673711061478,%20-60.946108102796%2014.706670045853,%20-60.915895700453%2014.610539674759,%20-60.882936716078%2014.48145031929)";
+            + "SrS=EPSG:4326&WiDtH=200&HeIgHt=100&Y=60&PROFILE=LINESTRING(-61.132875680921%2016.568852663,%20-60.973573923109%2016.431523561,%20-60.946108102796%2016.464482546,%20-60.915895700453%2016.368352175,%20-60.882936716078%2016.239262819)";
 
     private static final String WMS_GETFEATUREINFO_PROFILE_COV_ALIAS = "QuErY_LaYeRs=" + COV_ALIAS + "&BbOx=0,-0.0020,0.0040,0&"
             + "FoRmAt=image/gif&ReQuEsT=GetFeatureInfo&"
@@ -614,9 +616,9 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 details.getServiceConstraints().setLayerLimit(100);
                 serviceBusiness.setInstanceDetails("wms", "default", details, "eng", true);
 
-                layerBusiness.add(did.id,   null,  did.namespace,  did.name,   defId, null);
-                layerBusiness.add(did2.id,  null,  did2.namespace, did2.name,  defId, null);
-                layerBusiness.add(did3.id, "SST",  did3.namespace, did3.name,  defId, null);
+                layerBusiness.add(did.id,       null,            null, LAYER_TEST,   defId, null);
+                layerBusiness.add(did2.id,      null,  did2.namespace,  did2.name,   defId, null);
+                layerBusiness.add(did3.id, COV_ALIAS,  did3.namespace,  did3.name,   defId, null);
 
                 for (DataImport d : datas) {
                     layerBusiness.add(d.id, null, d.namespace, d.name, defId, null);
@@ -1046,15 +1048,15 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertTrue("was:" + obj, obj instanceof WMT_MS_Capabilities);
         WMT_MS_Capabilities responseCaps = (WMT_MS_Capabilities) obj;
 
-        Layer layer = (Layer) responseCaps.getLayerFromName(LAYER_TEST.tip().toString());
+        Layer layer = (Layer) responseCaps.getLayerFromName(LAYER_TEST);
 
         assertNotNull(layer);
         assertEquals("EPSG:4326", layer.getSRS().get(0));
         final LatLonBoundingBox bboxGeo = (LatLonBoundingBox) layer.getLatLonBoundingBox();
-        assertTrue(bboxGeo.getWestBoundLongitude() == -180d);
-        assertTrue(bboxGeo.getSouthBoundLatitude() == -90d);
-        assertTrue(bboxGeo.getEastBoundLongitude() == 180d);
-        assertTrue(bboxGeo.getNorthBoundLatitude() == 90d);
+        assertEquals(bboxGeo.getWestBoundLongitude(),-180.0, 0.2);
+        assertEquals(bboxGeo.getSouthBoundLatitude(), -90.0, 0.2);
+        assertEquals(bboxGeo.getEastBoundLongitude(), 180.0, 0.2);
+        assertEquals(bboxGeo.getNorthBoundLatitude(),  90.0, 0.2);
 
         String currentUrl = responseCaps.getCapability().getRequest().getGetMap().getDCPType().get(0).getHTTP().getGet().getOnlineResource().getHref();
 
@@ -1070,7 +1072,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         responseCaps = (WMT_MS_Capabilities) obj;
 
         // The layer test must be excluded
-        layer = (Layer) responseCaps.getLayerFromName(LAYER_TEST.tip().toString());
+        layer = (Layer) responseCaps.getLayerFromName(LAYER_TEST);
         assertNull(layer);
 
         // The layer lake must be included
@@ -1172,7 +1174,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         URL gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PLAIN_COV);
 
         String expResult = "SSTMDE200305\n"
-                + "0;\n"
+                + "Color index;\n"
                 + "201.0;\n\n";
 
         String result = getStringResponse(gfi);
@@ -1183,7 +1185,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PLAIN_COV_ALIAS);
 
         expResult = "SST\n"
-                + "0;\n"
+                + "Color index;\n"
                 + "201.0;\n\n";
 
         result = getStringResponse(gfi);
@@ -1285,7 +1287,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                     "		</gml:boundedBy>\n" +
                     "		<x>-120.41015625</x>\n" +
                     "		<y>-7.20703125</y>\n" +
-                    "		<variable>0</variable>\n" +
+                    "		<variable>Color index</variable>\n" +
                     "		<value>201.0</value>\n" +
                     "	</SSTMDE200305_feature>\n" +
                     "</SSTMDE200305_layer>\n" +
@@ -1333,7 +1335,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                     "		</gml:boundedBy>\n" +
                     "		<x>-120.41015625</x>\n" +
                     "		<y>-7.20703125</y>\n" +
-                    "		<variable>0</variable>\n" +
+                    "		<variable>Color index</variable>\n" +
                     "		<value>201.0</value>\n" +
                     "	</SST_feature>\n" +
                     "</SST_layer>\n" +
@@ -1379,7 +1381,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                     "	<Coverage>\n" +
                     "		<Layer>SSTMDE200305</Layer>\n" +
                     "		<values>\n" +
-                    "			<band_0>201.0</band_0>\n" +
+                    "			<Color_index>201.0</Color_index>\n" +
                     "		</values>\n" +
                     "	</Coverage>\n" +
                     "</FeatureInfo>";
@@ -1396,7 +1398,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                     "	<Coverage>\n" +
                     "		<Layer>SST</Layer>\n" +
                     "		<values>\n" +
-                    "			<band_0>201.0</band_0>\n" +
+                    "			<Color_index>201.0</Color_index>\n" +
                     "		</values>\n" +
                     "	</Coverage>\n" +
                     "</FeatureInfo>";
@@ -1467,8 +1469,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertFalse(layerDescs.isEmpty());
         final List<TypeNameType> typeNames = layerDescs.get(0).getTypeName();
         assertFalse(typeNames.isEmpty());
-        final GenericName name = NamesExt.create(typeNames.get(0).getCoverageName());
-        assertEquals(LAYER_TEST, name);
+        assertEquals(LAYER_TEST, typeNames.get(0).getCoverageName());
     }
 
     @Test
@@ -1890,7 +1891,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                     "    <body>\n" +
                     "<h2>SSTMDE200305</h2><br/><div><div class=\"left-part\"><ul>\n" +
                     "<li>\n" +
-                    "0</li>\n" +
+                    "Color index</li>\n" +
                     "</ul>\n" +
                     "</div><div class=\"right-part\">201.0<br/>\n" +
                     "</div></div><br/>    </body>\n" +
@@ -1980,7 +1981,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                     "    <body>\n" +
                     "<h2>SST</h2><br/><div><div class=\"left-part\"><ul>\n" +
                     "<li>\n" +
-                    "0</li>\n" +
+                    "Color index</li>\n" +
                     "</ul>\n" +
                     "</div><div class=\"right-part\">201.0<br/>\n" +
                     "</div></div><br/>    </body>\n" +
@@ -2045,27 +2046,27 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertEquals("A single data result should be returned", 1, datas.size());
         Map data = (Map) datas.get(0);
 
-        assertEquals("min property", 0.0, data.get("min"));
-        assertEquals("max property", 200.0, data.get("max"));
+        assertEquals("min property", 199.0, data.get("min"));
+        assertEquals("max property", 201.0, data.get("max"));
 
         List<Map> points = (List) data.get("points");
 
         assertEquals("9 points should be returned", 5, points.size());
 
         assertEquals("pt0 X property", 0,     (double)points.get(0).get("x"), 1e-1);
-        assertEquals("pt0 Y property", 200.0, (double)points.get(0).get("y"), 1e-1);
+        assertEquals("pt0 Y property", 199.0, (double)points.get(0).get("y"), 1e-1);
 
-        assertEquals("pt1 X property", 6.3,   (double)points.get(1).get("x"), 1e-1);
-        assertEquals("pt1 Y property", 133.3, (double)points.get(1).get("y"), 1e-1);
+        assertEquals("pt1 X property", 10.3,  (double)points.get(1).get("x"), 1e-1);
+        assertEquals("pt1 Y property", 199.6, (double)points.get(1).get("y"), 1e-1);
 
         assertEquals("pt2 X property", 25.2,  (double)points.get(2).get("x"), 1e-1);
-        assertEquals("pt2 Y property", 0.0,   (double)points.get(2).get("y"), 1e-1);
+        assertEquals("pt2 Y property", 201.0,  (double)points.get(2).get("y"), 1e-1);
 
-        assertEquals("pt3 X property", 39.3,  (double)points.get(3).get("x"), 1e-1);
-        assertEquals("pt3 Y property", 0.0,   (double)points.get(3).get("y"), 1e-1);
+        assertEquals("pt3 X property", 37.1,  (double)points.get(3).get("x"), 1e-1);
+        assertEquals("pt3 Y property", 201.0, (double)points.get(3).get("y"), 1e-1);
 
         assertEquals("pt4 X property", 53.4,  (double)points.get(4).get("x"), 1e-1);
-        assertEquals("pt4 Y property", 0.0,   (double)points.get(4).get("y"), 1e-1);
+        assertEquals("pt4 Y property", 200.0, (double)points.get(4).get("y"), 1e-1);
         
         gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PROFILE_COV_ALIAS);
 
@@ -2081,7 +2082,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertEquals("A single layer result should be returned", 1, records.size());
         record = (Map) records.get(0);
 
-        assertEquals("layer name property", "SSTMDE200305", record.get("name"));
+        assertEquals("layer name property", "SST", record.get("name"));
         assertEquals("layer alias property", "SST", record.get("alias"));
     }
 
@@ -2229,7 +2230,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         URL gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_COV);
 
         String expResult
-                = "[{\"type\":\"coverage\",\"layer\":\"SSTMDE200305\",\"values\":[{\"name\":\"0\",\"value\":201.0,\"unit\":null}]}]";
+                = "[{\"type\":\"coverage\",\"layer\":\"SSTMDE200305\",\"values\":[{\"name\":\"Color index\",\"value\":201.0,\"unit\":null}]}]";
 
         String result = getStringResponse(gfi);
         assertNotNull(result);
@@ -2238,7 +2239,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_COV_ALIAS);
 
         expResult
-                = "[{\"type\":\"coverage\",\"layer\":\"SST\",\"values\":[{\"name\":\"0\",\"value\":201.0,\"unit\":null}]}]";
+                = "[{\"type\":\"coverage\",\"layer\":\"SST\",\"values\":[{\"name\":\"Color index\",\"value\":201.0,\"unit\":null}]}]";
 
         result = getStringResponse(gfi);
         assertNotNull(result);

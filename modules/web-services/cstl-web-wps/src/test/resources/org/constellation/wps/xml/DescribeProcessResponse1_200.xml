@@ -570,8 +570,6 @@
                     <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/x-png" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/x-png" maximumMegabytes="100"/>
-                    <wps:Format mimeType="image/x-raw" encoding="base64" maximumMegabytes="100"/>
-                    <wps:Format mimeType="image/x-raw" maximumMegabytes="100"/>
                     <wps:Format mimeType="text/plain" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="text/plain" maximumMegabytes="100"/>
                     <wps:Format mimeType="text/x-matrix" encoding="base64" maximumMegabytes="100"/>
@@ -1490,8 +1488,6 @@
                     <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/x-png" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/x-png" maximumMegabytes="100"/>
-                    <wps:Format mimeType="image/x-raw" encoding="base64" maximumMegabytes="100"/>
-                    <wps:Format mimeType="image/x-raw" maximumMegabytes="100"/>
                     <wps:Format mimeType="text/plain" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="text/plain" maximumMegabytes="100"/>
                     <wps:Format mimeType="text/x-matrix" encoding="base64" maximumMegabytes="100"/>
