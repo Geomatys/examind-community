@@ -289,7 +289,7 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
         private final GenericName name;
 
         FeatureView(GenericName name) {
-            super(null);
+            super(null, false);
             listeners = new StoreListeners(null, this);
             this.name = name;
         }

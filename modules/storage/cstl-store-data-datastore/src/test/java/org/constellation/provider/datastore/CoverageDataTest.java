@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import javax.imageio.ImageIO;
 import org.apache.sis.referencing.CRS;
-import org.apache.sis.storage.Aggregate;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Resource;
@@ -64,10 +63,6 @@ public class CoverageDataTest {
 
         store = testResource.createStore(TestEnvironment.TestResource.PNG);
         r = store.findResource("SSTMDE200305");
-        Assert.assertTrue(r instanceof Aggregate);
-        Aggregate agg = (Aggregate) r;
-        Assert.assertEquals(1, agg.components().size());
-        r = agg.components().iterator().next();
         Assert.assertTrue(r instanceof GridCoverageResource);
         sst = new DefaultCoverageData(r.getIdentifier().get(), (GridCoverageResource)r, store);
     }

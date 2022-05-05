@@ -366,7 +366,7 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
         private final GenericName name;
 
         FeatureView(GenericName name) {
-            super(null);
+            super(null, false);
             this.name = name;
         }
 
