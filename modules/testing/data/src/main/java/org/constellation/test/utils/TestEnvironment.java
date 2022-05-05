@@ -238,7 +238,7 @@ public class TestEnvironment {
         public static final TestResource OM_LUCENE = new TestResource("org/constellation/xml/sos",  TestEnvironment::createOMLuceneProvider, null);
 
         // Sensor Providers
-        public static final TestResource SENSOR_FILE = new TestResource("org/constellation/xml/sml", TestEnvironment::createSensorFileProvider);
+        public static final TestResource SENSOR_FILE = new TestResource("org/constellation/xml/sos/sensors", TestEnvironment::createSensorFileProvider);
         public static final TestResource SENSOR_INTERNAL = new TestResource(null, TestEnvironment::createSensorInternalProvider);
 
         // metadata providers
@@ -260,7 +260,6 @@ public class TestEnvironment {
         //xml files
         public static final TestResource XML = new TestResource("org/constellation/xml");
         public static final TestResource XML_METADATA = new TestResource("org/constellation/xml/metadata");
-        public static final TestResource XML_SML = new TestResource("org/constellation/xml/sml");
         public static final TestResource XML_SOS = new TestResource("org/constellation/xml/sos");
 
         /**
@@ -419,10 +418,10 @@ public class TestEnvironment {
             }
 
             // complete some sensor with sml
-            createOrUpdateSensor("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ1.xml", "urn:ogc:object:sensor:GEOM:1", "GEOM 1", "system", "timeseries", smlProviderId, sensorBusiness);
-            createOrUpdateSensor("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ2.xml", "urn:ogc:object:sensor:GEOM:2", "GEOM 2", "component", "profile", smlProviderId, sensorBusiness);
-            createOrUpdateSensor("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµtest-1.xml", "urn:ogc:object:sensor:GEOM:test-1", "test 1", "system", "timeseries", smlProviderId, sensorBusiness);
-            createOrUpdateSensor("org/constellation/xml/sml/urnµogcµobjectµsensorµGEOMµ8.xml", "urn:ogc:object:sensor:GEOM:8", "GEOM 8", "system", "timeseries", smlProviderId, sensorBusiness);
+            createOrUpdateSensor("org/constellation/xml/sos/sensors/urnµogcµobjectµsensorµGEOMµ1.xml", "urn:ogc:object:sensor:GEOM:1", "GEOM 1", "system", "timeseries", smlProviderId, sensorBusiness);
+            createOrUpdateSensor("org/constellation/xml/sos/sensors/urnµogcµobjectµsensorµGEOMµ2.xml", "urn:ogc:object:sensor:GEOM:2", "GEOM 2", "component", "profile", smlProviderId, sensorBusiness);
+            createOrUpdateSensor("org/constellation/xml/sos/sensors/urnµogcµobjectµsensorµGEOMµtest-1.xml", "urn:ogc:object:sensor:GEOM:test-1", "test 1", "system", "timeseries", smlProviderId, sensorBusiness);
+            createOrUpdateSensor("org/constellation/xml/sos/sensors/urnµogcµobjectµsensorµGEOMµ8.xml", "urn:ogc:object:sensor:GEOM:8", "GEOM 8", "system", "timeseries", smlProviderId, sensorBusiness);
         }
 
         private void createOrUpdateSensor(String fileName, String sensorId, String name, String smlType, String omType, int smlProviderId, ISensorBusiness sensorBusiness) throws ConstellationException {
