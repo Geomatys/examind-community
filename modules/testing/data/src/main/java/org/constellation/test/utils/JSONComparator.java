@@ -36,6 +36,11 @@ public class JSONComparator implements Comparator<JsonNode>
         if (o1.equals(o2)) {
             return 0;
         }
+        // special case for dynamic value that we don"t want to compare
+        if ("<whatever>".equals(o1.asText()) ||
+            "<whatever>".equals(o2.asText())) {
+            return 0;
+        }
         if ((o1 instanceof NumericNode) && (o2 instanceof NumericNode)){
             Double d1 = ((NumericNode) o1).asDouble();
             Double d2 = ((NumericNode) o2).asDouble();

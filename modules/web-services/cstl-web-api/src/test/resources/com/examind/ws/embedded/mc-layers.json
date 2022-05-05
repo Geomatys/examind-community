@@ -1,0 +1,25 @@
+[{
+        "id": "MP1",
+        "name": "map-context-1",
+        "layers": []
+    }, {
+        "id": "MP2",
+        "name": "map-context-2",
+        "layers": []
+    }, {
+        "id": "MP3",
+        "name": "map-context-3",
+        "layers": [{
+                "layerType": "internal-data",
+                "id": "<whatever>",
+                "name": "SSTMDE200305",
+                "dataId": "COV_DATA_ID"
+            }, {
+                "layerType": "external-service",
+                "id": "<whatever>",
+                "name": "layer1",
+                "externalLayer": "layer1",
+                "externalStyle": "style1",
+                "externalServiceUrl": "http://test.com/wms"
+            }]
+    }]

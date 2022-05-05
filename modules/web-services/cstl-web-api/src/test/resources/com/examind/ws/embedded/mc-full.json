@@ -1,0 +1,32 @@
+[{
+        "id": "MP1",
+        "name": "map-context-1",
+        "owner": 1,
+        "description": "desc",
+        "crs": "CRS:84",
+        "west": -100.0,
+        "north": 70.0,
+        "east": 100.0,
+        "south": -70.0,
+        "keywords": "kw1,kw2"
+    }, {
+        "id": "MP2",
+        "name": "map-context-2",
+        "owner": 1,
+        "crs": "CRS:84",
+        "west": -180.0,
+        "north": 90.0,
+        "east": 180.0,
+        "south": -90.0
+    }, {
+       "id": "MP3",
+        "name": "map-context-3",
+        "owner": 1,
+        "description": "desc",
+        "crs": "CRS:84",
+        "west": -100.0,
+        "north": 70.0,
+        "east": 100.0,
+        "south": -70.0,
+        "keywords": "kw1,kw2"
+    }]

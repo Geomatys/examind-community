@@ -32,12 +32,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.namespace.QName;
+import org.apache.sis.cql.CQL;
+import org.apache.sis.cql.CQLException;
 import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 import org.constellation.api.TilingMode;
-import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IMapContextBusiness;
 import org.constellation.business.IPyramidBusiness;
+import org.constellation.business.IStyleBusiness;
 import org.constellation.dto.AbstractMCLayerDTO;
 import org.constellation.dto.Data;
 import org.constellation.dto.DataBrief;
@@ -45,6 +47,7 @@ import org.constellation.dto.DataMCLayerDTO;
 import org.constellation.dto.ExternalServiceMCLayerDTO;
 import org.constellation.dto.Filter;
 import org.constellation.dto.InternalServiceMCLayerDTO;
+import org.constellation.dto.MapContextDTO;
 import org.constellation.dto.MapContextLayersDTO;
 import org.constellation.dto.Page;
 import org.constellation.dto.PagedSearch;
@@ -52,6 +55,7 @@ import org.constellation.dto.ParameterValues;
 import org.constellation.dto.TilingResult;
 import org.constellation.dto.Sort;
 import org.constellation.exception.ConstellationException;
+import org.constellation.exception.TargetNotFoundException;
 import org.geotoolkit.georss.xml.v100.WhereType;
 import org.geotoolkit.gml.xml.v311.DirectPositionType;
 import org.geotoolkit.gml.xml.v311.EnvelopeType;
@@ -95,6 +99,9 @@ public class MapContextRestAPI extends AbstractRestAPI {
     private IDataBusiness dataBusiness;
 
     @Inject
+    private IStyleBusiness styleBusiness;
+
+    @Inject
     private IPyramidBusiness pyramidBusiness;
 
     /**
@@ -128,14 +135,19 @@ public class MapContextRestAPI extends AbstractRestAPI {
      * @return
      */
     @RequestMapping(value="/mapcontexts/{id}",method=GET,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity getMapContext(@PathVariable("id") final int id, @RequestParam(name = "full", defaultValue = "true") final boolean full,
+    public ResponseEntity getMapContextById(@PathVariable("id") final int id, @RequestParam(name = "full", defaultValue = "true") final boolean full,
             @RequestParam(name = "includeLayers", defaultValue = "false") final boolean includeLayers) {
         try {
+            MapContextDTO result;
             if (includeLayers) {
-                return new ResponseEntity(contextBusiness.findMapContextLayers(id, full), OK);
+                result = contextBusiness.findMapContextLayers(id, full);
             } else {
-                return new ResponseEntity(contextBusiness.getContextById(id, full), OK);
+                result = contextBusiness.getContextById(id, full);
             }
+            return new ResponseEntity(result, OK);
+
+        } catch(TargetNotFoundException ex) {
+            return new ResponseEntity(NOT_FOUND);
         } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
@@ -211,14 +223,63 @@ public class MapContextRestAPI extends AbstractRestAPI {
     public ResponseEntity createContext(@RequestBody final MapContextLayersDTO mapContext,
             final HttpServletRequest req) {
         try {
+            if (mapContext.getName() == null || mapContext.getName().isEmpty()) {
+                return new ErrorMessage(BAD_REQUEST.value(), null, "Map context should declare at least a name.", null).build();
+            }
             //set owner
             int userId = assertAuthentificated(req);
             mapContext.setOwner(userId);
+
+            //set default bbox/crs if not set, even if the envelope is imcomplete!
+            if (!mapContext.hasEnvelope()) {
+                mapContext.setCrs("CRS:84");
+                mapContext.setEast(180.0);
+                mapContext.setWest(-180.0);
+                mapContext.setNorth(90.0);
+                mapContext.setSouth(-90.0);
+            }
+
+            // verification/complete layers
+            int cpt = 0;
+            for (AbstractMCLayerDTO layer : mapContext.getLayers()) {
+                if (layer.getQuery() != null && !layer.getQuery().isEmpty()) {
+                    //try to parse the query as validation, will raise a CQL error catched bellow.
+                    CQL.parseQuery(layer.getQuery());
+                }
+                if (layer instanceof DataMCLayerDTO dmc) {
+                    if (dmc.getDataId() != null) {
+                        if (!dataBusiness.existsById(dmc.getDataId())) {
+                            return new ErrorMessage(BAD_REQUEST.value(), null, "Internal data layer, data id is invalid.", null).build();
+                        }
+                    } else {
+                        return new ErrorMessage(BAD_REQUEST.value(), null, "Internal data layer, data id is missing.", null).build();
+                    }
+                    if (dmc.getStyleId() != null) {
+                        if (!styleBusiness.existsStyle(dmc.getStyleId())) {
+                            return new ErrorMessage(BAD_REQUEST.value(), null, "Internal data layer, style id is invalid.", null).build();
+                        }
+                    }
+                }
+                if (layer.getOrder() == null) {
+                    layer.setOrder(cpt);
+                    cpt++;
+                }
+                if (layer.getOpacity() == null) {
+                    layer.setOpacity(1);
+                }
+                if (layer.isVisible() == null) {
+                    layer.setVisible(true);
+                }
+            }
+
             final Integer contextId = contextBusiness.create(mapContext);
 
             // TODO does the front need this response or juste the id  ?
             MapContextLayersDTO response = contextBusiness.findMapContextLayers(contextId, true);
-            return new ResponseEntity(response, OK);
+            return new ResponseEntity(response, CREATED);
+        } catch (CQLException ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(BAD_REQUEST.value(), null, "Query syntax is incorrect:" + ex.getMessage(), null).build();
         } catch (ConstellationException ex) {
              return new ErrorMessage(ex.getMessage()).build();
         }
@@ -231,19 +292,56 @@ public class MapContextRestAPI extends AbstractRestAPI {
      * @param mapContext
      * @return
      */
-    @RequestMapping(value="/mapcontexts/{id}",method=POST,consumes=APPLICATION_JSON_VALUE,produces=APPLICATION_JSON_VALUE)
+    @RequestMapping(value="/mapcontexts/{id}",method=PUT,consumes=APPLICATION_JSON_VALUE,produces=APPLICATION_JSON_VALUE)
     @Transactional
     public ResponseEntity updateContext(@PathVariable("id") final int contextId, @RequestBody final MapContextLayersDTO mapContext) {
         try {
+            if (!contextBusiness.existById(contextId)) return new ResponseEntity(NOT_FOUND);
+            
             mapContext.setId(contextId);
-            if(mapContext.getLayers()==null) mapContext.setLayers(Collections.EMPTY_LIST);
+            if (mapContext.getLayers() == null) mapContext.setLayers(Collections.EMPTY_LIST);
 
+            // verification on layers
+            int cpt = 0;
+            for (AbstractMCLayerDTO layer : mapContext.getLayers()) {
+                if (layer.getQuery() != null && !layer.getQuery().isEmpty()) {
+                    //try to parse the query as validation, will raise a CQL error catched bellow.
+                    CQL.parseQuery(layer.getQuery());
+                }
+                if (layer instanceof DataMCLayerDTO dmc) {
+                    if (dmc.getDataId() != null) {
+                        if (!dataBusiness.existsById(dmc.getDataId())) {
+                            return new ErrorMessage(BAD_REQUEST.value(), null, "Internal data layer, data id is invalid.", null).build();
+                        }
+                    } else {
+                        return new ErrorMessage(BAD_REQUEST.value(), null, "Internal data layer, data id is missing.", null).build();
+                    }
+                    if (dmc.getStyleId() != null) {
+                        if (!styleBusiness.existsStyle(dmc.getStyleId())) {
+                            return new ErrorMessage(BAD_REQUEST.value(), null, "Internal data layer, style id is invalid.", null).build();
+                        }
+                    }
+                }
+                if (layer.getOrder() == null) {
+                    layer.setOrder(cpt);
+                    cpt++;
+                }
+                if (layer.getOpacity() == null) {
+                    layer.setOpacity(1);
+                }
+                if (layer.isVisible() == null) {
+                    layer.setVisible(true);
+                }
+            }
             contextBusiness.updateContext(mapContext);
 
             // TODO does the front need this response ?
             MapContextLayersDTO response = contextBusiness.findMapContextLayers(contextId, true);
             return new ResponseEntity(response, OK);
-        } catch (ConstellationException ex) {
+        } catch (CQLException ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(BAD_REQUEST.value(), null, "Query syntax is incorrect:" + ex.getMessage(), null).build();
+        }  catch (ConstellationException ex) {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
             return new ErrorMessage("Failed to update for map context " + contextId + ". " + ex.getMessage(), ex).build();
         }
@@ -259,16 +357,19 @@ public class MapContextRestAPI extends AbstractRestAPI {
     @Transactional
     public ResponseEntity delete(@PathVariable("id") final int contextId) {
         try {
-            contextBusiness.delete(contextId);
+            int result = contextBusiness.delete(contextId);
+            if (result == 1) {
+                return new ResponseEntity(NO_CONTENT);
+            }
+            return new ResponseEntity(NOT_FOUND);
         } catch (ConstellationException ex) {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
             return new ErrorMessage("Failed to remove for context " + contextId + ". " + ex.getMessage(), ex).build();
         }
-        return new ResponseEntity(NO_CONTENT);
     }
 
     @RequestMapping(value="/mapcontexts/{id}/layers",method=GET,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity getLayer(@PathVariable("id") final int id) {
+    public ResponseEntity getLayerById(@PathVariable("id") final int id) {
         try {
             return new ResponseEntity(contextBusiness.findMapContextLayers(id, true),OK);
         } catch (ConstellationException ex) {
