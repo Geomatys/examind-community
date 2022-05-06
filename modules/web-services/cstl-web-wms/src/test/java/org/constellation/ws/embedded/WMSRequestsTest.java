@@ -44,7 +44,6 @@ import org.geotoolkit.ogc.xml.exception.ServiceExceptionReport;
 import org.geotoolkit.sld.xml.v110.DescribeLayerResponseType;
 import org.geotoolkit.sld.xml.v110.LayerDescriptionType;
 import org.geotoolkit.sld.xml.v110.TypeNameType;
-import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.wms.xml.WMSMarshallerPool;
 import org.geotoolkit.wms.xml.v111.LatLonBoundingBox;
 import org.geotoolkit.wms.xml.v111.Layer;
@@ -79,7 +78,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import org.junit.BeforeClass;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.util.GenericName;
 import org.constellation.dto.AcknowlegementType;
 import org.constellation.dto.Filter;
 import org.constellation.dto.service.Instance;
@@ -124,6 +122,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
      */
     private static final String LAYER_TEST = "SSTMDE200305";
     private static final String COV_ALIAS = "SST";
+    private static final String MARTINIQUE = "martinique";
 
     /**
      * Checksum value on the returned image expressed in a geographic CRS for
@@ -193,8 +192,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     private static final String WMS_GETFEATUREINFO_PLAIN_COV2 = "request=GetFeatureInfo&service=WMS&version=1.3.0&"
             + "format=image/png"
             + "&I=50&J=50&CRS=EPSG%3A3857&STYLES=&WIDTH=101&HEIGHT=101&BBOX=-6841646.293883737%2C1624185.0768806678%2C-6786056.35298747%2C1679775.0177769344&"
-            + "layers=martinique&styles=&"
-            + "query_layers=martinique&info_format=text/plain";
+            + "layers=" + MARTINIQUE + "&styles=&"
+            + "query_layers=" + MARTINIQUE + "&info_format=text/plain";
 
     private static final String WMS_GETFEATUREINFO_PLAIN_COV_ALIAS = "request=GetFeatureInfo&service=WMS&version=1.1.1&"
             + "format=image/png&width=256&height=256&"
@@ -220,8 +219,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     private static final String WMS_GETFEATUREINFO_GML_COV2 = "request=GetFeatureInfo&service=WMS&version=1.3.0&"
             + "format=image/png"
             + "&I=50&J=50&CRS=EPSG%3A3857&STYLES=&WIDTH=101&HEIGHT=101&BBOX=-6841646.293883737%2C1624185.0768806678%2C-6786056.35298747%2C1679775.0177769344&"
-            + "layers=martinique&styles=&"
-            + "query_layers=martinique&info_format=application/vnd.ogc.gml";
+            + "layers=" + MARTINIQUE + "&styles=&"
+            + "query_layers=" + MARTINIQUE + "&info_format=application/vnd.ogc.gml";
 
     private static final String WMS_GETFEATUREINFO_PLAIN_FEAT = "request=GetFeatureInfo&service=WMS&version=1.1.1&"
             + "format=image/png&width=200&height=100&"
@@ -257,8 +256,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
      private static final String WMS_GETFEATUREINFO_HTML_COV2 = "request=GetFeatureInfo&service=WMS&version=1.3.0&"
             + "format=image/png"
             + "&I=50&J=50&CRS=EPSG%3A3857&STYLES=&WIDTH=101&HEIGHT=101&BBOX=-6841646.293883737%2C1624185.0768806678%2C-6786056.35298747%2C1679775.0177769344&"
-            + "layers=martinique&styles=&"
-            + "query_layers=martinique&info_format=text/html";
+            + "layers=" + MARTINIQUE + "&styles=&"
+            + "query_layers=" + MARTINIQUE + "&info_format=text/html";
 
      private static final String WMS_GETFEATUREINFO_HTML_COV_ALIAS = "request=GetFeatureInfo&service=WMS&version=1.1.1&"
             + "format=image/png&width=256&height=256&"
@@ -319,7 +318,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
      * does. In such case, the backend should detect disjoint domain, and return empty series.
      */
     private static final String WMS_GETFEATUREINFO_PROFILE_OUTSIDE = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo"
-            + "&LAYERS=martinique&QUERY_LAYERS=martinique&StYlEs="
+            + "&LAYERS=" + MARTINIQUE + "&QUERY_LAYERS=" + MARTINIQUE + "&StYlEs="
             + "&FoRmAt=image/jpeg&INFO_FORMAT=application/json;%20subtype=profile"
             + "&I=0&J=0&WiDtH=256&HeIgHt=256"
             + "&CRS=CRS:84&BBOX=-62%2C14%2C-61%2C16"
@@ -376,8 +375,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     private static final String WMS_GETFEATUREINFO_JSON_COV2 = "request=GetFeatureInfo&service=WMS&version=1.3.0&"
             + "format=image/png"
             + "&I=50&J=50&CRS=EPSG%3A3857&STYLES=&WIDTH=101&HEIGHT=101&BBOX=-6841646.293883737%2C1624185.0768806678%2C-6786056.35298747%2C1679775.0177769344&"
-            + "layers=martinique&styles=&"
-            + "query_layers=martinique&info_format=application/json";
+            + "layers=" + MARTINIQUE + "&styles=&"
+            + "query_layers=" + MARTINIQUE + "&info_format=application/json";
 
     private static final String WMS_GETFEATUREINFO_XML_COV = "request=GetFeatureInfo&service=WMS&version=1.1.1&"
             + "format=image/png&width=256&height=256&"
@@ -396,8 +395,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     private static final String WMS_GETFEATUREINFO_XML_COV2 = "request=GetFeatureInfo&service=WMS&version=1.3.0&"
             + "format=image/png"
             + "&I=50&J=50&CRS=EPSG%3A3857&STYLES=&WIDTH=101&HEIGHT=101&BBOX=-6841646.293883737%2C1624185.0768806678%2C-6786056.35298747%2C1679775.0177769344&"
-            + "layers=martinique&styles=&"
-            + "query_layers=martinique&info_format=application/vnd.ogc.xml";
+            + "layers=" + MARTINIQUE + "&styles=&"
+            + "query_layers=" + MARTINIQUE + "&info_format=application/vnd.ogc.xml";
 
     private static final String WMS_GETFEATUREINFO_XML_FEAT = "QuErY_LaYeRs=Lakes&BbOx=0,-0.0020,0.0040,0&"
             + "FoRmAt=image/gif&ReQuEsT=GetFeatureInfo&"
@@ -478,12 +477,12 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "layers=" + LAYER_TEST + "&styles=";
 
     private static final String WMS_GETMAP_TIFF = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image%2Fpng"
-            + "&TRANSPARENT=true&LAYERS=martinique"
+            + "&TRANSPARENT=true&LAYERS=" + MARTINIQUE
             + "&SLD_VERSION=1.1.0&WIDTH=256&HEIGHT=256&CRS=EPSG%3A3857&STYLES="
             + "&BBOX=-6887893.4928338025%2C1565430.3392804079%2C-6731350.458905761%2C1721973.3732084488";
 
     private static final String WMS_GETMAP_TIFF_TO_JPEG = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image%2Fjpeg"
-            + "&TRANSPARENT=${transparent}&LAYERS=martinique"
+            + "&TRANSPARENT=${transparent}&LAYERS=" + MARTINIQUE 
             + "&SLD_VERSION=1.1.0&WIDTH=256&HEIGHT=256&CRS=EPSG%3A3857&STYLES="
             + "&BBOX=-6887893.4928338025%2C1565430.3392804079%2C-6731350.458905761%2C1721973.3732084488";
 
@@ -617,7 +616,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 serviceBusiness.setInstanceDetails("wms", "default", details, "eng", true);
 
                 layerBusiness.add(did.id,       null,            null, LAYER_TEST,   defId, null);
-                layerBusiness.add(did2.id,      null,  did2.namespace,  did2.name,   defId, null);
+                layerBusiness.add(did2.id, MARTINIQUE,  did2.namespace,  did2.name,   defId, null);
                 layerBusiness.add(did3.id, COV_ALIAS,  did3.namespace,  did3.name,   defId, null);
 
                 for (DataImport d : datas) {
@@ -1195,8 +1194,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PLAIN_COV2);
 
-        expResult = "martinique\n" +
-                    "0;1;2;\n" +
+        expResult =  MARTINIQUE + "\n" +
+                    "1;2;3;\n" +
                     "63.0;92.0;132.0;\n\n";
 
         result = getStringResponse(gfi);
@@ -1302,8 +1301,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         expResult = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                     "<msGMLOutput xmlns:gml=\"http://www.opengis.net/gml\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n" +
-                    "<martinique_layer>\n" +
-                    "	<martinique_feature>\n" +
+                    "<" + MARTINIQUE + "_layer>\n" +
+                    "	<" + MARTINIQUE + "_feature>\n" +
                     "		<gml:boundedBy>\n" +
                     "			<gml:Box srsName=\"EPSG:3857\">\n" +
                     "				<gml:coordinates>-6813851.323435604,1651980.0473288011 -6813851.323435604,1651980.0473288011</gml:coordinates>\n" +
@@ -1311,10 +1310,10 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                     "		</gml:boundedBy>\n" +
                     "		<x>-6813851.323435604</x>\n" +
                     "		<y>1651980.0473288011</y>\n" +
-                    "		<variable>0,1,2</variable>\n" +
+                    "		<variable>1,2,3</variable>\n" +
                     "		<value>63.0,92.0,132.0</value>\n" +
-                    "	</martinique_feature>\n" +
-                    "</martinique_layer>\n" +
+                    "	</" + MARTINIQUE + "_feature>\n" +
+                    "</" + MARTINIQUE + "_layer>\n" +
                     "</msGMLOutput>";
 
         result = getStringResponse(gfi);
@@ -1413,11 +1412,11 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         expResult = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                     "<FeatureInfo>\n" +
                     "	<Coverage>\n" +
-                    "		<Layer>martinique</Layer>\n" +
+                    "		<Layer>" + MARTINIQUE + "</Layer>\n" +
                     "		<values>\n" +
-                    "			<band_0>63.0</band_0>\n" +
-                    "			<band_1>92.0</band_1>\n" +
-                    "			<band_2>132.0</band_2>\n" +
+                    "			<band_1>63.0</band_1>\n" +
+                    "			<band_2>92.0</band_2>\n" +
+                    "			<band_3>132.0</band_3>\n" +
                     "		</values>\n" +
                     "	</Coverage>\n" +
                     "</FeatureInfo>";
@@ -1931,13 +1930,13 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                     "               overflow: hidden;\n" +
                     "           }    </style>\n" +
                     "    <body>\n" +
-                    "<h2>martinique</h2><br/><div><div class=\"left-part\"><ul>\n" +
-                    "<li>\n" +
-                    "0</li>\n" +
+                    "<h2>" + MARTINIQUE + "</h2><br/><div><div class=\"left-part\"><ul>\n" +
                     "<li>\n" +
                     "1</li>\n" +
                     "<li>\n" +
                     "2</li>\n" +
+                    "<li>\n" +
+                    "3</li>\n" +
                     "</ul>\n" +
                     "</div><div class=\"right-part\">63.0<br/>\n" +
                     "92.0<br/>\n" +
@@ -2248,7 +2247,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_COV2);
 
         expResult
-                = "[{\"type\":\"coverage\",\"layer\":\"martinique\",\"values\":[{\"name\":\"0\",\"value\":63.0,\"unit\":null},{\"name\":\"1\",\"value\":92.0,\"unit\":null},{\"name\":\"2\",\"value\":132.0,\"unit\":null}]}]";
+                = "[{\"type\":\"coverage\",\"layer\":\"" + MARTINIQUE + "\",\"values\":[{\"name\":\"1\",\"value\":63.0,\"unit\":null},{\"name\":\"2\",\"value\":92.0,\"unit\":null},{\"name\":\"3\",\"value\":132.0,\"unit\":null}]}]";
 
         result = getStringResponse(gfi);
         assertNotNull(result);

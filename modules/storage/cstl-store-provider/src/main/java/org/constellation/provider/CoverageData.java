@@ -21,6 +21,7 @@ package org.constellation.provider;
 import java.awt.Dimension;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.opengis.geometry.Envelope;
 
@@ -49,7 +50,7 @@ public interface CoverageData extends Data<GridCoverageResource> {
     /**
      * @return The original MIME type of the data.
      */
-    String getImageFormat();
+    Optional<String> getImageFormat();
 
     SpatialMetadata getSpatialMetadata() throws ConstellationStoreException;
 

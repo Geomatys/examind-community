@@ -28,38 +28,19 @@
         </gml:gridDomain>
         <ns32:rangeType>
             <ns33:DataRecord>
-                <ns33:field name="0">
-                    <ns33:Quantity>
-                        <ns33:constraint>
-                            <ns33:AllowedValues id="data">
-                                <ns33:interval>0.0 255.0</ns33:interval>
-                            </ns33:AllowedValues>
-                        </ns33:constraint>
-                    </ns33:Quantity>
-                </ns33:field>
                 <ns33:field name="1">
-                    <ns33:Quantity>
-                        <ns33:constraint>
-                            <ns33:AllowedValues id="data">
-                                <ns33:interval>0.0 255.0</ns33:interval>
-                            </ns33:AllowedValues>
-                        </ns33:constraint>
-                    </ns33:Quantity>
+                    <ns33:Quantity/>
                 </ns33:field>
                 <ns33:field name="2">
-                    <ns33:Quantity>
-                        <ns33:constraint>
-                            <ns33:AllowedValues id="data">
-                                <ns33:interval>0.0 255.0</ns33:interval>
-                            </ns33:AllowedValues>
-                        </ns33:constraint>
-                    </ns33:Quantity>
+                    <ns33:Quantity/>
+                </ns33:field>
+                <ns33:field name="3">
+                    <ns33:Quantity/>
                 </ns33:field>
             </ns33:DataRecord>
         </ns32:rangeType>
         <ns31:ServiceParameters>
             <ns31:CoverageSubtype xmlns="">GridCoverage</ns31:CoverageSubtype>
-            <ns31:nativeFormat></ns31:nativeFormat>
         </ns31:ServiceParameters>
     </ns31:CoverageDescription>
 </ns31:CoverageDescriptions>

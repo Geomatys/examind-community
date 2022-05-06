@@ -19,12 +19,9 @@
 package org.constellation.provider;
 
 import org.constellation.provider.util.StatsUtilities;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import java.awt.Dimension;
 import java.awt.image.DataBuffer;
 import java.awt.image.RenderedImage;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -43,6 +40,8 @@ import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.coverage.grid.GridOrientation;
 import org.apache.sis.coverage.grid.IncompleteGridGeometryException;
 import org.apache.sis.geometry.GeneralEnvelope;
+import org.apache.sis.internal.storage.StoreResource;
+import org.apache.sis.internal.storage.image.WorldFileStore;
 import org.apache.sis.internal.util.UnmodifiableArrayList;
 import org.apache.sis.measure.NumberRange;
 import org.apache.sis.parameter.Parameters;
@@ -66,7 +65,6 @@ import org.constellation.provider.util.DataStatisticsListener;
 import org.constellation.repository.DataRepository;
 import org.geotoolkit.coverage.grid.GridGeometryIterator;
 import org.geotoolkit.coverage.grid.GridIterator;
-import org.geotoolkit.coverage.worldfile.FileCoverageResource;
 import org.geotoolkit.image.io.metadata.SpatialMetadata;
 import org.geotoolkit.map.MapBuilder;
 import org.geotoolkit.processing.coverage.statistics.Statistics;
@@ -137,7 +135,7 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
 
     /**
      * find the type of data we are dealing with, geophysic or photographic
-     * 
+     *
      * @param inRef
      * @return
      * @throws ConstellationException
@@ -346,16 +344,18 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
      * {@inheritDoc}
      */
     @Override
-    public String getImageFormat() {
-         if (origin instanceof FileCoverageResource) {
-            FileCoverageResource fref = (FileCoverageResource) origin;
-            if (fref.getSpi() != null &&
-                fref.getSpi().getMIMETypes() != null &&
-                fref.getSpi().getMIMETypes().length > 0) {
-                return fref.getSpi().getMIMETypes()[0];
+    public Optional<String> getImageFormat() {
+        Object r = origin;
+        if (r instanceof StoreResource sr) {
+            r = sr.getOriginator();
+        }
+        if (r instanceof WorldFileStore wfs) {
+            String[] names = wfs.getImageFormat(true);
+            if (names.length != 0) {
+                return Optional.of(names[0]);
             }
         }
-        return "";
+        return Optional.empty();
     }
 
     /**

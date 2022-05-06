@@ -35,7 +35,7 @@
       <ns27:requestResponseCRSs>urn:ogc:def:crs:EPSG::4326</ns27:requestResponseCRSs>
       <ns27:nativeCRSs>urn:ogc:def:crs:OGC:1.3:CRS84</ns27:nativeCRSs>
     </ns27:supportedCRSs>
-    <ns27:supportedFormats nativeFormat="unknown">
+    <ns27:supportedFormats nativeFormat="png">
       <ns27:formats>png</ns27:formats>
       <ns27:formats>gif</ns27:formats>
       <ns27:formats>jpeg</ns27:formats>

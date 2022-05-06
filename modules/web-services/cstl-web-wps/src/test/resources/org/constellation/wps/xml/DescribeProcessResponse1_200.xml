@@ -570,10 +570,6 @@
                     <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/x-png" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/x-png" maximumMegabytes="100"/>
-                    <wps:Format mimeType="text/plain" encoding="base64" maximumMegabytes="100"/>
-                    <wps:Format mimeType="text/plain" maximumMegabytes="100"/>
-                    <wps:Format mimeType="text/x-matrix" encoding="base64" maximumMegabytes="100"/>
-                    <wps:Format mimeType="text/x-matrix" maximumMegabytes="100"/>
                 </wps:ComplexData>
             </wps:Input>
             <wps:Input minOccurs="1" maxOccurs="1">
@@ -611,10 +607,6 @@
                     <wps:Format mimeType="image/x-geotiff"/>
                     <wps:Format mimeType="image/x-png" encoding="base64"/>
                     <wps:Format mimeType="image/x-png"/>
-                    <wps:Format mimeType="text/plain" encoding="base64"/>
-                    <wps:Format mimeType="text/plain"/>
-                    <wps:Format mimeType="text/x-matrix" encoding="base64"/>
-                    <wps:Format mimeType="text/x-matrix"/>
                 </wps:ComplexData>
             </wps:Output>
         </wps:Process>
@@ -1488,10 +1480,6 @@
                     <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/x-png" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/x-png" maximumMegabytes="100"/>
-                    <wps:Format mimeType="text/plain" encoding="base64" maximumMegabytes="100"/>
-                    <wps:Format mimeType="text/plain" maximumMegabytes="100"/>
-                    <wps:Format mimeType="text/x-matrix" encoding="base64" maximumMegabytes="100"/>
-                    <wps:Format mimeType="text/x-matrix" maximumMegabytes="100"/>
                 </wps:ComplexData>
             </wps:Input>
             <wps:Input minOccurs="1" maxOccurs="1">
@@ -1529,10 +1517,6 @@
                     <wps:Format mimeType="image/x-geotiff"/>
                     <wps:Format mimeType="image/x-png" encoding="base64"/>
                     <wps:Format mimeType="image/x-png"/>
-                    <wps:Format mimeType="text/plain" encoding="base64"/>
-                    <wps:Format mimeType="text/plain"/>
-                    <wps:Format mimeType="text/x-matrix" encoding="base64"/>
-                    <wps:Format mimeType="text/x-matrix"/>
                 </wps:ComplexData>
             </wps:Output>
         </wps:Process>
@@ -3272,7 +3256,7 @@
             </wps:Input>
             <wps:Input minOccurs="0" maxOccurs="1">
                 <ows:Title xml:lang="fr-FR">Endstyle</ows:Title>
-                <ows:Abstract xml:lang="fr-FR">The end cap style used. 1 -> Round, 2 -> Flat, 3 -> Square.</ows:Abstract>
+                <ows:Abstract xml:lang="fr-FR">The end cap style used. 1 -&gt; Round, 2 -&gt; Flat, 3 -&gt; Square.</ows:Abstract>
                 <ows:Identifier>urn:exa:wps:geotoolkit::jts:buffer:input:endstyle</ows:Identifier>
                 <wps:LiteralData>
                     <wps:Format mimeType="text/plain" default="true"/>

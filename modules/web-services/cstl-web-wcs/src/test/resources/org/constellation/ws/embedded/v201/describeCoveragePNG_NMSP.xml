@@ -35,7 +35,7 @@
         </ns32:rangeType>
         <ns31:ServiceParameters>
             <ns31:CoverageSubtype xmlns="">GridCoverage</ns31:CoverageSubtype>
-            <ns31:nativeFormat></ns31:nativeFormat>
+            <ns31:nativeFormat>png</ns31:nativeFormat>
         </ns31:ServiceParameters>
     </ns31:CoverageDescription>
 </ns31:CoverageDescriptions>

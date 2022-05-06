@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import javax.imageio.ImageIO;
 import org.apache.sis.referencing.CRS;
+import org.apache.sis.storage.Aggregate;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Resource;
@@ -57,9 +58,10 @@ public class CoverageDataTest {
         final TestEnvironment.TestResources testResource = initDataDirectory();
         DataStore store = testResource.createStore(TestEnvironment.TestResource.TIF);
 
-        Resource r = store.findResource("martinique");
-        Assert.assertTrue(r instanceof GridCoverageResource);
-        martinique = new DefaultCoverageData(r.getIdentifier().get(), (GridCoverageResource)r, store);
+        Assert.assertTrue(store instanceof Aggregate);
+        Resource r = ((Aggregate) store).components().iterator().next();
+        Assert.assertTrue(r instanceof GridCoverageResource gcr);
+        martinique = new DefaultCoverageData(r.getIdentifier().get(), (GridCoverageResource) r, store);
 
         store = testResource.createStore(TestEnvironment.TestResource.PNG);
         r = store.findResource("SSTMDE200305");
@@ -97,7 +99,6 @@ public class CoverageDataTest {
         env = sst.getEnvelope(crs);
         Assert.assertNotNull(env);
 
-
         Assert.assertEquals(-20057076.22203025,       env.getMinimum(0),0.0001);
         Assert.assertEquals(-41329615.42378936,       env.getMinimum(1),0.0001);
         Assert.assertEquals( 20017940.463548236,      env.getMaximum(0),0.0001);
@@ -119,12 +120,12 @@ public class CoverageDataTest {
         Assert.assertNotNull(result.getBands());
         Assert.assertEquals(3, result.getBands().size());
 
-        BandDescription desc = getBand("0", result);
+        BandDescription desc = getBand("1", result);
         Assert.assertNotNull(desc);
         Assert.assertEquals("0", desc.getIndice());
-        Assert.assertEquals(15.0,  desc.getMinValue(), 0.1);
-        Assert.assertEquals(251.0, desc.getMaxValue(), 0.1);
-        Assert.assertArrayEquals(new double[]{Double.NaN}, desc.getNoDataValues(), 0);
+        Assert.assertEquals( 0,  desc.getMinValue(), 0.1);
+        Assert.assertEquals(255, desc.getMaxValue(), 0.1);
+        Assert.assertArrayEquals(new double[0], desc.getNoDataValues(), 0);
 
         info = getStatInfo(sst);
         result = sst.getDataDescription(info, sst.getEnvelope());
@@ -146,6 +147,15 @@ public class CoverageDataTest {
         Assert.assertEquals(224.0, desc.getMaxValue(), 0);
         Assert.assertArrayEquals(new double[0], desc.getNoDataValues(), 0);
 
+    }
+
+    @Test
+    public void testGetImageFormat() throws Exception {
+        // only world coverage file support this for now
+        Assert.assertFalse(martinique.getImageFormat().isPresent());
+
+        Assert.assertTrue(sst.getImageFormat().isPresent());
+        Assert.assertEquals("image/png", sst.getImageFormat().get());
     }
 
     private static BandDescription getBand(String name, CoverageDataDescription desc)  {

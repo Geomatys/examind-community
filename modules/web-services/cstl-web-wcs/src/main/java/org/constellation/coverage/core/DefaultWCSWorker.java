@@ -365,10 +365,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             }
 
             // supported formats
-            String nativeFormat = data.getImageFormat();
-            if (nativeFormat == null || nativeFormat.isEmpty()) {
-                nativeFormat = "unknown";
-            }
+            final String nativeFormat = toWcsFormat(data.getImageFormat().orElse("unknown"));
             final SupportedFormatsType supForm = new SupportedFormatsType(nativeFormat, SUPPORTED_FORMATS_100);
 
             //supported interpolations
@@ -381,6 +378,13 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
         }
+    }
+
+    private static String toWcsFormat(String mimeType) {
+        if (mimeType != null && mimeType.contains("/")) {
+            return mimeType.substring(mimeType.lastIndexOf('/') + 1);
+        }
+        return mimeType;
     }
 
     /**
@@ -538,7 +542,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 dataRecord = null;
             }
             final DataRecordPropertyType rangeType = new DataRecordPropertyType(dataRecord);
-            final ServiceParametersType serviceParametersType = new ServiceParametersType(new QName("GridCoverage"), data.getImageFormat());
+            final ServiceParametersType serviceParametersType = new ServiceParametersType(new QName("GridCoverage"), toWcsFormat(data.getImageFormat().orElse(null)));
             org.geotoolkit.wcs.xml.v200.CoverageDescriptionType result = new org.geotoolkit.wcs.xml.v200.CoverageDescriptionType(identifier, nativeEnvelope, domain, rangeType, serviceParametersType);
             result.setId(identifier);
             return result;

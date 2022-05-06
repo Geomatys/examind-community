@@ -1055,20 +1055,6 @@
                         <Format>
                             <MimeType>image/x-png</MimeType>
                         </Format>
-                        <Format>
-                            <MimeType>text/plain</MimeType>
-                            <Encoding>base64</Encoding>
-                        </Format>
-                        <Format>
-                            <MimeType>text/plain</MimeType>
-                        </Format>
-                        <Format>
-                            <MimeType>text/x-matrix</MimeType>
-                            <Encoding>base64</Encoding>
-                        </Format>
-                        <Format>
-                            <MimeType>text/x-matrix</MimeType>
-                        </Format>
                     </Supported>
                 </ComplexData>
             </Input>
@@ -1157,20 +1143,6 @@
                         </Format>
                         <Format>
                             <MimeType>image/x-png</MimeType>
-                        </Format>
-                        <Format>
-                            <MimeType>text/plain</MimeType>
-                            <Encoding>base64</Encoding>
-                        </Format>
-                        <Format>
-                            <MimeType>text/plain</MimeType>
-                        </Format>
-                        <Format>
-                            <MimeType>text/x-matrix</MimeType>
-                            <Encoding>base64</Encoding>
-                        </Format>
-                        <Format>
-                            <MimeType>text/x-matrix</MimeType>
                         </Format>
                     </Supported>
                 </ComplexOutput>
@@ -3003,20 +2975,6 @@
                         <Format>
                             <MimeType>image/x-png</MimeType>
                         </Format>
-                        <Format>
-                            <MimeType>text/plain</MimeType>
-                            <Encoding>base64</Encoding>
-                        </Format>
-                        <Format>
-                            <MimeType>text/plain</MimeType>
-                        </Format>
-                        <Format>
-                            <MimeType>text/x-matrix</MimeType>
-                            <Encoding>base64</Encoding>
-                        </Format>
-                        <Format>
-                            <MimeType>text/x-matrix</MimeType>
-                        </Format>
                     </Supported>
                 </ComplexData>
             </Input>
@@ -3105,20 +3063,6 @@
                         </Format>
                         <Format>
                             <MimeType>image/x-png</MimeType>
-                        </Format>
-                        <Format>
-                            <MimeType>text/plain</MimeType>
-                            <Encoding>base64</Encoding>
-                        </Format>
-                        <Format>
-                            <MimeType>text/plain</MimeType>
-                        </Format>
-                        <Format>
-                            <MimeType>text/x-matrix</MimeType>
-                            <Encoding>base64</Encoding>
-                        </Format>
-                        <Format>
-                            <MimeType>text/x-matrix</MimeType>
                         </Format>
                     </Supported>
                 </ComplexOutput>
@@ -7194,7 +7138,7 @@
                 <ows:Abstract xml:lang="fr-FR">Literal input.</ows:Abstract>
                 <LiteralData>
                     <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
-                    <ows:AnyValue></ows:AnyValue>
+                    <ows:AnyValue/>
                 </LiteralData>
             </Input>
             <Input minOccurs="0" maxOccurs="1">

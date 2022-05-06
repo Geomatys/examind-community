@@ -24,6 +24,7 @@ import javax.xml.bind.Unmarshaller;
 import org.apache.sis.internal.storage.image.WorldFileStoreProvider;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStore;
+import org.apache.sis.storage.geotiff.GeoTiffStoreProvider;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.ProviderType;
 import org.constellation.business.IProviderBusiness;
@@ -41,7 +42,6 @@ import static org.constellation.provider.ProviderParameters.getOrCreate;
 import static org.constellation.test.utils.TestResourceUtils.unmarshallSensorResource;
 import org.constellation.util.SQLUtilities;
 import org.constellation.util.Util;
-import org.geotoolkit.coverage.worldfile.FileCoverageProvider;
 import org.geotoolkit.data.shapefile.ShapefileFolderProvider;
 import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
@@ -82,7 +82,7 @@ public class TestEnvironment {
             this.pid = pid;
         }
     }
-    
+
     public static class ProviderImport {
         public final int id;
         public final int datasetId;
@@ -134,14 +134,14 @@ public class TestEnvironment {
          * Full directory of images (needed for proper deployement of all the associated image files)
          */
         public static final TestResource IMAGES = new TestResource("org/constellation/data/image");
-        
+
         /**
          * Coverage file datastore with PNG file.
-         * 
+         *
          *  data :
          *  - SSTMDE200305
          */
-        public static final TestResource PNG = new TestResource("org/constellation/data/image/png/SSTMDE200305.png", TestEnvironment::createCoverageFileProvider, TestEnvironment::createWorldFileStore);
+        public static final TestResource PNG = new TestResource("org/constellation/data/image/png/SSTMDE200305.png", TestEnvironment::createWorldFileProvider, TestEnvironment::createWorldFileStore);
 
         /**
          * Coverage file datastore with TIF file.
@@ -149,7 +149,7 @@ public class TestEnvironment {
          *  data :
          *  - martinique
          */
-        public static final TestResource TIF = new TestResource("org/constellation/data/image/tif/martinique.tif", TestEnvironment::createTifProvider, TestEnvironment::createFileCoverageStore);
+        public static final TestResource TIF = new TestResource("org/constellation/data/image/tif/martinique.tif", TestEnvironment::createTifProvider, TestEnvironment::createTifStore);
 
         /**
          * Netcdf provider.
@@ -205,7 +205,7 @@ public class TestEnvironment {
 
         /**
          * Multiple shapefiles.
-         * 
+         *
          * data :
          * - BuildingCenters
          * - BasicPolygons
@@ -227,7 +227,7 @@ public class TestEnvironment {
 
         /**
          * Observation and mesurement provider.
-         * 
+         *
          * data :
          * - http://www.opengis.net/sampling/1.0 : SamplingPoint
          */
@@ -264,7 +264,7 @@ public class TestEnvironment {
 
         /**
          * GEOJSON file provider.
-         * 
+         *
          * data :
          * - feature
          */
@@ -674,7 +674,7 @@ public class TestEnvironment {
         }
     }
 
-    private static Integer createCoverageFileProvider(IProviderBusiness providerBusiness, Path pngFile) {
+    private static Integer createWorldFileProvider(IProviderBusiness providerBusiness, Path pngFile) {
         final String providerIdentifier = "coverageTestSrc-" + UUID.randomUUID().toString();
         try {
             final DataProviderFactory dataStorefactory = DataProviders.getFactory("data-store");
@@ -684,7 +684,6 @@ public class TestEnvironment {
             final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) dataStorefactory.getStoreDescriptor(), source);
             final ParameterValueGroup config = choice.addGroup("World file");
             config.parameter("location").setValue(pngFile.toUri());
-            //config.parameter("type").setValue("AUTO");
 
             return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "data-store", source);
         } catch (Exception ex) {
@@ -700,9 +699,8 @@ public class TestEnvironment {
             source.parameter("id").setValue(providerIdentifier);
             final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) dsFactory.getStoreDescriptor(), source);
 
-            final ParameterValueGroup config = choice.addGroup("coverage-file");
+            final ParameterValueGroup config = choice.addGroup("GeoTIFF");
             config.parameter("location").setValue(tifFile.toUri().toURL());
-            config.parameter("type").setValue("AUTO");
 
             return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "data-store", source);
         } catch (Exception ex) {
@@ -710,11 +708,11 @@ public class TestEnvironment {
         }
     }
 
-    private static DataStore createFileCoverageStore(Path p) {
+    private static DataStore createTifStore(Path p) {
         try {
-            FileCoverageProvider provider = new FileCoverageProvider();
+            GeoTiffStoreProvider provider = new GeoTiffStoreProvider();
             ParameterValueGroup params = provider.getOpenParameters().createValue();
-            params.parameter("path").setValue(p);
+            params.parameter("location").setValue(p);
             return provider.open(params);
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
@@ -749,7 +747,7 @@ public class TestEnvironment {
             throw new ConstellationRuntimeException(ex);
         }
     }
-    
+
     private static Integer createNCProvider(IProviderBusiness providerBusiness, Path ncFile) {
         final String providerIdentifier = "netcdfSrc-" + UUID.randomUUID().toString();
         try {

@@ -187,7 +187,7 @@ public class SetupBusiness {
                             w.getCapabilities(version);
                         }
                     } catch (Exception ex) {
-                        LOGGER.log(Level.WARNING, "Error while warming up service:" + sc.getType() + " "+ sc.getIdentifier(), ex);
+                        LOGGER.log(Level.WARNING, "Error while warming up service:" + sc.getType() + " " + sc.getIdentifier(), ex);
                     }
                 }
             } catch (Exception ex) {
@@ -326,9 +326,9 @@ public class SetupBusiness {
             }
 
             final Path dst = dataDirectory.resolve("shapes");
-            createProvider(dst.resolve("CNTR_BN_60M_2006.shp"), GENERIC_SHAPE_PROVIDER + "-linestring", "vector", "shapefile");
-            createProvider(dst.resolve("CNTR_LB_2006.shp"),     GENERIC_SHAPE_PROVIDER + "-point",      "vector", "shapefile");
-            createProvider(dst.resolve("CNTR_RG_60M_2006.shp"), GENERIC_SHAPE_PROVIDER + "-polygon",    "vector", "shapefile");
+            createProvider(dst.resolve("CNTR_BN_60M_2006.shp"), GENERIC_SHAPE_PROVIDER + "-linestring", "vector", "shapefile", "path");
+            createProvider(dst.resolve("CNTR_LB_2006.shp"),     GENERIC_SHAPE_PROVIDER + "-point",      "vector", "shapefile", "path");
+            createProvider(dst.resolve("CNTR_RG_60M_2006.shp"), GENERIC_SHAPE_PROVIDER + "-polygon",    "vector", "shapefile", "path");
         }
 
         /**
@@ -337,11 +337,11 @@ public class SetupBusiness {
          */
         private void initializeDefaultRasterData() {
             final Path dst = dataDirectory.resolve("raster");
-            createProvider(dst.resolve("cloudsgrey.tiff"), GENERIC_TIF_PROVIDER, "raster", "coverage-file");
+            createProvider(dst.resolve("cloudsgrey.tiff"), GENERIC_TIF_PROVIDER, "raster", "GeoTIFF", "location");
         }
 
 
-        private void createProvider(final Path shapefile, String providerIdentifier, String dataType, String impl) {
+        private void createProvider(final Path shapefile, String providerIdentifier, String dataType, String impl, String pathParamName) {
             Integer provider = providerBusiness.getIDFromIdentifier(providerIdentifier);
             if (provider == null) {
                 // Acquire provider service instance.
@@ -370,7 +370,7 @@ public class SetupBusiness {
                 }
 
                 final ParameterValueGroup config = choice.addGroup(impl);
-                config.parameter("path").setValue(shapefile.toUri());
+                config.parameter(pathParamName).setValue(shapefile.toUri());
 
                 // Create provider and generate data.
                 try {

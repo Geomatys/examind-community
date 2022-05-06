@@ -97,7 +97,9 @@ public class DatasourceBusinessTest extends SpringContextTest {
         Map<String, Set<String>> analyse = datasourceBusiness.computeDatasourceStores(ds.getId(), false, true);
         Assert.assertNotNull(analyse);
         Assert.assertTrue(analyse.containsKey("shapefile"));
-        Assert.assertTrue(analyse.containsKey("coverage-file"));
+        Assert.assertTrue(analyse.containsKey("GeoTIFF"));
+        Assert.assertTrue(analyse.containsKey("geojson"));
+        Assert.assertTrue(analyse.containsKey("World file"));
 
         state = datasourceBusiness.getDatasourceAnalysisState(ds.getId());
         Assert.assertEquals("COMPLETED", state);

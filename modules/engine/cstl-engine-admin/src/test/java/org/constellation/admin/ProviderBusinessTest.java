@@ -23,21 +23,19 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import javax.annotation.PostConstruct;
+import org.apache.sis.internal.storage.image.WorldFileStoreProvider;
 import org.apache.sis.parameter.DefaultParameterValueGroup;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.ComparisonMode;
 import org.constellation.api.ProviderType;
 import org.constellation.business.IProviderBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.DataProviders;
-import org.geotoolkit.coverage.worldfile.FileCoverageProvider;
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,11 +68,11 @@ public class ProviderBusinessTest extends org.constellation.test.SpringContextTe
     @Test
     public void createFromDataStoreProvider() throws ConfigurationException, IOException, URISyntaxException {
         final String id = "myProvider";
-        final DataStoreProvider cvgFactory = new FileCoverageProvider();
+        final DataStoreProvider cvgFactory = new WorldFileStoreProvider();
         final ParameterValueGroup config = cvgFactory.getOpenParameters().createValue();
         Path path = Files.createTempDirectory("ProviderBusinessTest");
         final URI dataPath = path.toUri();
-        config.parameter(FileCoverageProvider.PATH.getName().getCode()).setValue(dataPath);
+        config.parameter(WorldFileStoreProvider.LOCATION).setValue(dataPath);
         Integer p = pBusiness.create(id, IProviderBusiness.SPI_NAMES.DATA_SPI_NAME, config);
         // TODO : Re-activate when auto-generated equals will be done.
         //Assert.assertEquals("Created provider must be equal to read one.", p, pBusiness.getProvider(id));
@@ -88,19 +86,19 @@ public class ProviderBusinessTest extends org.constellation.test.SpringContextTe
 //                "\nExpected : \n"+config +
 //                "\nFound : \n"+readConf, CRS.equalsApproximatively(config, readConf));
         Assert.assertEquals("Registered URL must be the same as read one.",
-                dataPath, readConf.parameter(FileCoverageProvider.PATH.getName().getCode()).getValue());
+                dataPath, readConf.parameter(WorldFileStoreProvider.LOCATION).getValue());
     }
 
     @Test
     public void createFromProviderFactory() throws ConfigurationException, IOException {
         // Create data store configuration
         final String id = "myProvider2";
-        final DataStoreProvider cvgFactory = new FileCoverageProvider();
+        final DataStoreProvider cvgFactory = new WorldFileStoreProvider();
         final ParameterValueGroup config = cvgFactory.getOpenParameters().createValue();
 
         Path path = Files.createTempDirectory("ProviderBusinessTest");
         final URI dataPath = path.toUri();
-        config.parameter(FileCoverageProvider.PATH.getName().getCode()).setValue(dataPath);
+        config.parameter(WorldFileStoreProvider.LOCATION).setValue(dataPath);
 
         // Embed data store configuration into provider one.
         final DataProviderFactory factory = DataProviders.getFactory(

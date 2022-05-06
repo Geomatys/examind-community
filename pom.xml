@@ -714,11 +714,6 @@
                 <artifactId>geotk-coverage-xml</artifactId>
                 <version>${geotoolkit.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.geotoolkit</groupId>
-                <artifactId>geotk-coverage-worldfile</artifactId>
-                <version>${geotoolkit.version}</version>
-            </dependency>
 
             <!-- TODO: check if it is really needed -->
             <dependency>
