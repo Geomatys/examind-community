@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import javax.xml.namespace.QName;
 import org.apache.sis.storage.GridCoverageResource;
 import org.constellation.map.featureinfo.FeatureInfoUtilities.Sample;
 import org.constellation.ws.MimeType;
@@ -43,7 +44,6 @@ import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureAssociationRole;
 import org.opengis.feature.PropertyNotFoundException;
 import org.opengis.feature.PropertyType;
-import org.opengis.util.GenericName;
 
 /**
  * A generic FeatureInfoFormat that produce HTML output for Features and Coverages.
@@ -62,7 +62,7 @@ public class HTMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         private final List<String> values = new ArrayList<>();
     }
 
-    private final Map<GenericName,LayerResult> results = new HashMap<>();
+    private final Map<QName,LayerResult> results = new HashMap<>();
 
 
     public HTMLFeatureInfoFormat() {
@@ -80,13 +80,13 @@ public class HTMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
      * {@inheritDoc}
      */
     @Override
-    protected void nextProjectedFeature(GenericName layerName, final Feature feature, RenderingContext2D context, SearchAreaJ2D queryArea) {
+    protected void nextProjectedFeature(QName layerName, final Feature feature, RenderingContext2D context, SearchAreaJ2D queryArea) {
 
         LayerResult result = results.get(layerName);
         if(result==null){
             //first feature of this type
             result = new LayerResult();
-            result.layerName = layerName.tip().toString();
+            result.layerName = layerName.getLocalPart();
             results.put(layerName, result);
         }
 
@@ -190,7 +190,7 @@ public class HTMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
     }
 
     @Override
-    protected void nextProjectedCoverage(GenericName layerName, final GridCoverageResource resource, RenderingContext2D context, SearchAreaJ2D queryArea) {
+    protected void nextProjectedCoverage(QName layerName, final GridCoverageResource resource, RenderingContext2D context, SearchAreaJ2D queryArea) {
         final List<Sample> covResults = FeatureInfoUtilities.getCoverageValues(resource, context, queryArea);
 
         if (covResults == null) {
@@ -201,7 +201,7 @@ public class HTMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         if(result==null){
             //first feature of this type
             result = new LayerResult();
-            result.layerName = layerName.tip().toString();
+            result.layerName = layerName.getLocalPart();
             results.put(layerName, result);
         }
 

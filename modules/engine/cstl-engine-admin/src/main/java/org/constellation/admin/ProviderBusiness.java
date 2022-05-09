@@ -66,6 +66,7 @@ import org.constellation.repository.ProviderRepository;
 import org.constellation.repository.SensorRepository;
 import org.constellation.repository.StyleRepository;
 import org.constellation.util.ParamUtilities;
+import org.constellation.util.Util;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.parameter.GeneralParameterValue;
@@ -702,7 +703,7 @@ public class ProviderBusiness implements IProviderBusiness {
 
             // Add new data.
             for (final GenericName key : keys) {
-                final QName name = new QName(NamesExt.getNamespace(key), key.tip().toString());
+                final QName name = Util.getQnameFromName(key);
 
                 DataType type    = DataType.OTHER;
                 String subType   = null;

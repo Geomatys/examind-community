@@ -24,14 +24,15 @@ import java.util.Optional;
 import java.util.SortedSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.namespace.QName;
 import org.apache.sis.portrayal.MapLayer;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.Resource;
 import org.constellation.api.DataType;
 import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
 import org.constellation.exception.ConstellationStoreException;
+import org.constellation.util.Util;
 import org.constellation.ws.LayerCache;
-import org.geotoolkit.util.NamesExt;
 import org.opengis.util.GenericName;
 import org.springframework.lang.Nullable;
 
@@ -88,7 +89,7 @@ public abstract class AbstractFeatureInfoFormat implements FeatureInfoFormat {
      * {@inheritDoc}
      */
     @Override
-    public Optional<LayerCache> getLayer(GenericName name, DataType type) {
+    public Optional<LayerCache> getLayer(QName name, DataType type) {
         if (layers == null) return Optional.empty();
         return layers.stream()
                 .filter(layer -> layer.getDataType().equals(type) && layer.getName().equals(name))
@@ -121,23 +122,24 @@ public abstract class AbstractFeatureInfoFormat implements FeatureInfoFormat {
         else return elevs.first().doubleValue();
     }
 
-    protected static GenericName getNameForFeatureLayer(MapLayer ml) {
-        final GenericName layerName ;
+    protected static QName getNameForFeatureLayer(MapLayer ml) {
+        final QName layerName ;
         if (ml.getUserProperties().containsKey("layerName")) {
-            layerName = (GenericName) ml.getUserProperties().get("layerName");
+            layerName = (QName) ml.getUserProperties().get("layerName");
         } else {
-            layerName = NamesExt.create(ml.getIdentifier());
+            layerName = new QName(ml.getIdentifier());
         }
         return layerName;
     }
 
-    protected static GenericName getNameForCoverageLayer(MapLayer ml) {
+    protected static QName getNameForCoverageLayer(MapLayer ml) {
         if (ml.getUserProperties().containsKey("layerName")) {
-            return (GenericName) ml.getUserProperties().get("layerName");
+            return (QName) ml.getUserProperties().get("layerName");
         } else {
             final Resource ref = ml.getData();
             try {
-                return ref.getIdentifier().orElseThrow(() -> new RuntimeException("Cannot extract resource identifier"));
+                GenericName covName = ref.getIdentifier().orElseThrow(() -> new RuntimeException("Cannot extract resource identifier"));
+                return Util.getQnameFromName(covName);
             } catch (DataStoreException e) {
                 throw new RuntimeException("Cannot extract resource identifier", e);
             }

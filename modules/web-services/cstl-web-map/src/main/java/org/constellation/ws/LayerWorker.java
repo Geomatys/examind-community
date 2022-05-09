@@ -47,11 +47,9 @@ import org.constellation.business.MessageException;
 import org.constellation.business.MessageListener;
 import org.constellation.dto.NameInProvider;
 import org.constellation.provider.DataProvider;
-import org.geotoolkit.util.NamesExt;
 
 import static org.geotoolkit.ows.xml.OWSExceptionCode.LAYER_NOT_DEFINED;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.STYLE_NOT_DEFINED;
-import org.opengis.util.GenericName;
 import static org.constellation.business.ClusterMessageConstant.*;
 import org.constellation.business.IMapBusiness;
 import org.constellation.dto.StyleReference;
@@ -176,7 +174,7 @@ public abstract class LayerWorker extends AbstractWorker<LayerContext> {
        return getLayerNames(login).stream().map(nip -> getStrNameFromNIP(nip)).toList();
     }
 
-    protected List<GenericName> getTypeNames(String login) {
+    protected List<QName> getTypeNames(String login) {
         return getLayerNames(login).stream().map(nip -> getNameFromNIP(nip)).toList();
     }
 
@@ -191,11 +189,11 @@ public abstract class LayerWorker extends AbstractWorker<LayerContext> {
      *
      * @return a complete Name indentifier of the layer or {@code null}
      */
-    private NameInProvider getFullLayerName(final String login, final GenericName name) throws ConfigurationException {
+    private NameInProvider getFullLayerName(final String login, final QName name) throws ConfigurationException {
         if (name == null) {
             return null;
         }
-        return layerBusiness.getFullLayerName(getServiceId(), name.tip().toString(), NamesExt.getNamespace(name), login);
+        return layerBusiness.getFullLayerName(getServiceId(), name.getLocalPart(), name.getNamespaceURI(), login);
     }
 
     private NameInProvider getFullLayerName(final String login, final String name) throws ConfigurationException {
@@ -295,15 +293,23 @@ public abstract class LayerWorker extends AbstractWorker<LayerContext> {
         }
     }
 
-    protected List<LayerCache> getLayerCaches(final String login, final Collection<String> names) throws CstlServiceException {
+    protected List<LayerCache> getLayerCachesStr(final String login, final Collection<String> names) throws CstlServiceException {
         List<LayerCache> results = new ArrayList<>();
         for (String name : names) {
             results.add(getLayerCache(login, name));
         }
         return results;
     }
+    
+    protected List<LayerCache> getLayerCaches(final String login, final Collection<QName> names) throws CstlServiceException {
+        List<LayerCache> results = new ArrayList<>();
+        for (QName name : names) {
+            results.add(getLayerCache(login, name));
+        }
+        return results;
+    }
 
-    protected LayerCache getLayerCache(final String login, GenericName name) throws CstlServiceException {
+    protected LayerCache getLayerCache(final String login, QName name) throws CstlServiceException {
         try {
             NameInProvider nip = getFullLayerName(login, name);
             if (nip != null) {
@@ -329,9 +335,9 @@ public abstract class LayerWorker extends AbstractWorker<LayerContext> {
         }
     }
 
-    private GenericName getNameFromNIP(NameInProvider nip) {
+    private QName getNameFromNIP(NameInProvider nip) {
         if (nip.alias != null) {
-            return NamesExt.create(nip.alias);
+            return new QName(nip.alias);
         } else {
             return nip.layerName;
         }
@@ -341,8 +347,8 @@ public abstract class LayerWorker extends AbstractWorker<LayerContext> {
         if (nip.alias != null) {
             return nip.alias;
         } else {
-            final String namespace = NamesExt.getNamespace(nip.layerName);
-            final String localName = nip.layerName.tip().toString();
+            final String namespace = nip.layerName.getNamespaceURI();
+            final String localName = nip.layerName.getLocalPart();
             if (namespace == null) {
                 return localName;
             } else {
@@ -354,7 +360,7 @@ public abstract class LayerWorker extends AbstractWorker<LayerContext> {
     private LayerCache getLayerCache(NameInProvider nip, String login) throws CstlServiceException {
         Data data = getData(nip);
         if (data != null) {
-            final GenericName layerName = getNameFromNIP(nip);
+            final QName layerName = getNameFromNIP(nip);
             List<StyleReference> styles = new ArrayList<>();
             LayerConfig configuration;
             try {
@@ -370,7 +376,7 @@ public abstract class LayerWorker extends AbstractWorker<LayerContext> {
                     styles,
                     configuration);
         } else {
-            throw new CstlServiceException("Unable to find  the Layer named:{" + NamesExt.getNamespace(nip.layerName) + '}' + nip.layerName.tip().toString() + " in the provider proxy", NO_APPLICABLE_CODE);
+            throw new CstlServiceException("Unable to find  the Layer named:{" + nip.layerName.getNamespaceURI() + '}' + nip.layerName.getLocalPart() + " in the provider proxy", NO_APPLICABLE_CODE);
         }
     }
 
@@ -381,13 +387,11 @@ public abstract class LayerWorker extends AbstractWorker<LayerContext> {
      * @return A identifier including a namespace.
      */
     protected static @NonNull String identifier(@NonNull LayerCache layer) {
-        final GenericName layerName = layer.getName();
-        final String namespace = NamesExt.getNamespace(layerName);
-        final String localName = layerName.tip().toString();
-        if (namespace == null) {
-            return localName;
+        final QName layerName = layer.getName();
+        if (layerName.getNamespaceURI() == null || layerName.getNamespaceURI().isEmpty()) {
+            return layerName.getLocalPart();
         } else {
-            return namespace + ':' + localName;
+            return layerName.getNamespaceURI() + ':' + layerName.getLocalPart();
         }
     }
 }

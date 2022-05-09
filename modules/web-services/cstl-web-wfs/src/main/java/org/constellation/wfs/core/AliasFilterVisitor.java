@@ -26,9 +26,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Function;
+import javax.xml.namespace.QName;
 import org.apache.sis.internal.filter.FunctionNames;
-import org.geotoolkit.util.NamesExt;
-import org.opengis.util.GenericName;
 
 /**
  *
@@ -36,8 +35,8 @@ import org.opengis.util.GenericName;
  */
 public class AliasFilterVisitor extends DuplicatingFilterVisitor {
 
-    public AliasFilterVisitor(final Map<String, GenericName> aliases) {
-        final Map<String, GenericName> fa;
+    public AliasFilterVisitor(final Map<String, QName> aliases) {
+        final Map<String, QName> fa;
         if (aliases != null) {
             fa = aliases;
         } else {
@@ -46,11 +45,11 @@ public class AliasFilterVisitor extends DuplicatingFilterVisitor {
         final Function previous = getExpressionHandler(FunctionNames.ValueReference);
         setExpressionHandler(FunctionNames.ValueReference, (e) -> {
             final ValueReference expression = (ValueReference) e;
-            for (Entry<String, GenericName> entry : fa.entrySet()) {
+            for (Entry<String, QName> entry : fa.entrySet()) {
                 if (expression.getXPath().startsWith(entry.getKey() + "/")) {
-                    String nmsp = NamesExt.getNamespace(entry.getValue());
+                    String nmsp = entry.getValue().getNamespaceURI();
                     if (nmsp == null) nmsp = "";
-                    final String newPropertyName = '{' + nmsp + '}' + entry.getValue().tip().toString() + expression.getXPath().substring(entry.getKey().length());
+                    final String newPropertyName = '{' + nmsp + '}' + entry.getValue().getLocalPart() + expression.getXPath().substring(entry.getKey().length());
                     return ff.property(newPropertyName);
                 }
             }

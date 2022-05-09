@@ -35,7 +35,7 @@ import java.util.logging.Level;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
-import org.apache.sis.coverage.SampleDimension;
+import javax.xml.namespace.QName;
 import org.apache.sis.geometry.GeneralDirectPosition;
 import org.apache.sis.internal.feature.AttributeConvention;
 import org.apache.sis.storage.GridCoverageResource;
@@ -140,14 +140,13 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
      * {@inheritDoc}
      */
     @Override
-    protected void nextProjectedCoverage(GenericName layerName, final GridCoverageResource resource, RenderingContext2D context, SearchAreaJ2D queryArea) {
-        final List<Sample> results =
-                FeatureInfoUtilities.getCoverageValues(resource, context, queryArea);
+    protected void nextProjectedCoverage(QName layerName, final GridCoverageResource resource, RenderingContext2D context, SearchAreaJ2D queryArea) {
+        final List<Sample> results = FeatureInfoUtilities.getCoverageValues(resource, context, queryArea);
 
         if (results == null) {
             return;
         }
-        String layerNameStr = layerName.tip().toString();
+        String layerNameStr = layerName.getLocalPart();
 
         List<String> strs = coverages.get(layerName);
         if (strs == null) {
@@ -300,7 +299,7 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
      * {@inheritDoc}
      */
     @Override
-    protected void nextProjectedFeature(GenericName layerName, final Feature feature, RenderingContext2D context, SearchAreaJ2D queryArea) {
+    protected void nextProjectedFeature(QName layerName, final Feature feature, RenderingContext2D context, SearchAreaJ2D queryArea) {
 
         final StringBuilder builder   = new StringBuilder();
         String margin                 = "\t";
@@ -309,7 +308,7 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
 
             // featureType mark
             if (layerName != null) {
-                final String ftLocal = layerName.tip().toString();
+                final String ftLocal = layerName.getLocalPart();
                 builder.append(margin).append("<").append(encodeXMLMark(ftLocal)).append("_feature").append(">\n");
 
                 margin += "\t";
@@ -330,8 +329,8 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
 
             // featureType mark
             if (layerName != null) {
-                String ftLocal   = layerName.tip().toString();
-                String ftPrefix  = acquirePrefix(NamesExt.getNamespace(layerName));
+                String ftLocal   = layerName.getLocalPart();
+                String ftPrefix  = acquirePrefix(layerName.getNamespaceURI());
 
                 builder.append(margin).append('<').append(ftPrefix).append(ftLocal).append(">\n");
                 margin += "\t";
@@ -502,7 +501,7 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             builder.append(">\n");
         }
 
-        final Map<GenericName, List<String>> values = new HashMap<>();
+        final Map<QName, List<String>> values = new HashMap<>();
         values.putAll(features);
         values.putAll(coverages);
 
@@ -512,8 +511,8 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             maxValue = 1;
         }
 
-        for (GenericName fullLayerName : values.keySet()) {
-            String layerName = fullLayerName.tip().toString();
+        for (QName fullLayerName : values.keySet()) {
+            String layerName = fullLayerName.getLocalPart();
             if (mode == 0) {
                 builder.append("<").append(encodeXMLMark(layerName)).append("_layer").append(">\n");
             }

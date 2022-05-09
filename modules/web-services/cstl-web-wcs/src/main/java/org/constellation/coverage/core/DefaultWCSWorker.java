@@ -186,7 +186,6 @@ import org.opengis.referencing.cs.CoordinateSystemAxis;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.style.Style;
 import org.opengis.util.FactoryException;
-import org.opengis.util.GenericName;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -252,7 +251,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         final List<CoverageInfo> coverageOfferings = new ArrayList<>();
         for (String coverage : request.getIdentifier()) {
 
-            final GenericName name = Util.parseLayerName(coverage);
+            final QName name = Util.parseQName(coverage);
             final LayerCache layer = getLayerCache(userLogin, name);
             if (layer.getDataType().equals(DataType.VECTOR)) {
                 throw new CstlServiceException("The requested layer is vectorial. WCS is not able to handle it.",
@@ -360,9 +359,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             final RangeSetType rangeSet = new RangeSetType(null, identifier, identifier, null, null, null, null);
             //supported CRS
             final SupportedCRSsType supCRS = new SupportedCRSsType("urn:ogc:def:crs:EPSG::4326");
-            if (nativeEnvelope != null) {
-                 supCRS.addNativeCRSs(nativeEnvelope.getSrsName());
-            }
+            supCRS.addNativeCRSs(nativeEnvelope.getSrsName());
 
             // supported formats
             final String nativeFormat = toWcsFormat(data.getImageFormat().orElse("unknown"));
@@ -775,7 +772,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             throw new CstlServiceException("You must specify the parameter: COVERAGE", INVALID_PARAMETER_VALUE,
                     KEY_COVERAGE.toLowerCase());
         }
-        final GenericName tmpName = Util.parseLayerName(request.getCoverage());
+        final QName tmpName = Util.parseQName(request.getCoverage());
         final LayerCache layer = getLayerCache(userLogin, tmpName);
         if (!layer.isQueryable(ServiceDef.Query.WCS_ALL) || layer.getDataType().equals(DataType.VECTOR)) {
             throw new CstlServiceException("You are not allowed to request the layer \"" +
@@ -1070,8 +1067,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             Set<String> usedDimension = new HashSet<>();
             for (DomainSubset subset : request.getDomainSubset()) {
                 String dimension = null;
-                if (subset instanceof DimensionTrimType) {
-                    final DimensionTrimType trim = (DimensionTrimType) subset;
+                if (subset instanceof DimensionTrimType trim) {
                     dimension = trim.getDimension();
                     final int dimIdx = dimensionIndex(trim.getDimension(), crs);
                     if (dimIdx == -1) {
@@ -1099,8 +1095,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                         readEnv.setRange(dimIdx, low, high);
                     }
 
-                } else if (subset instanceof DimensionSliceType) {
-                    final DimensionSliceType slice = (DimensionSliceType) subset;
+                } else if (subset instanceof DimensionSliceType slice) {
                     dimension = slice.getDimension();
                     final int dimIdx = dimensionIndex(slice.getDimension(), crs);
                     if (dimIdx == -1) {
@@ -1155,7 +1150,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 final GridCoverage coverage = data.getCoverage(readEnv, null);
                 final SimpleEntry response = new SimpleEntry(coverage, metadata);
                 if (isMultiPart) {
-                    final File img = File.createTempFile(layer.getName().tip().toString(), ".nc");
+                    final File img = File.createTempFile(layer.getName().getLocalPart(), ".nc");
                     GridCoverageNCWriter.writeInStream(response, new FileOutputStream(img));
                     final String xml = buildXmlPart(describeCoverage200(layer), format);
                     final MultiPart multiPart = new MultiPart();
@@ -1176,8 +1171,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 response.coverage = data.getCoverage(readEnv, null);
                 response.metadata = metadata;
                 response.outputCRS = request.getResponseCRS();
-                if (request.getExtension() instanceof ExtensionType) {
-                    final ExtensionType ext = (ExtensionType) request.getExtension();
+                if (request.getExtension() instanceof ExtensionType ext) {
                     final ParametersType geoExt = ext.getForClass(ParametersType.class);
                     if (geoExt != null) {
                         if (geoExt.getCompression() != null) {
@@ -1308,9 +1302,9 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             try {
                 //check if it's a date
                 final CoordinateReferenceSystem subcrs = CRS.getComponentAt(crs, index, index+1);
-                if (subcrs instanceof TemporalCRS) {
+                if (subcrs instanceof TemporalCRS tempCrs) {
                     final Calendar cal = TemporalUtilities.parseDateCal(value);
-                    return DefaultTemporalCRS.castOrCopy((TemporalCRS) subcrs).toValue(cal.getTime());
+                    return DefaultTemporalCRS.castOrCopy(tempCrs).toValue(cal.getTime());
                 }
             } catch (Exception ex1) {
                 LOGGER.log(Level.FINE, ex1.getMessage(), ex1);

@@ -1,10 +1,12 @@
 package org.constellation.wfs;
 
+import javax.xml.namespace.QName;
 import org.apache.sis.feature.builder.AttributeRole;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.util.iso.Names;
 import org.geotoolkit.feature.FeatureExt;
+import org.geotoolkit.util.NamesExt;
 import org.junit.Assert;
 import org.junit.Test;
 import org.opengis.feature.FeatureType;
@@ -26,10 +28,11 @@ public class NameOverrideTest {
         builder.addAttribute(String.class).setName("an attribute");
         final FeatureType source = builder.setName("Source").build();
 
-        final GenericName overridenName = Names.createLocalName("A namespace", ":", "random name");
+        final QName overridenName = new QName("A namespace", "random name");
         final FeatureType override = NameOverride.wrap(source, overridenName);
 
-        Assert.assertEquals("Name has not been changed as expected", overridenName, override.getName());
+        final GenericName overridenGName = NamesExt.create(overridenName);
+        Assert.assertEquals("Name has not been changed as expected", overridenGName, override.getName());
     }
 
     /**
@@ -48,7 +51,7 @@ public class NameOverrideTest {
 
         final FeatureType sourceCopy = new FeatureTypeBuilder(source).build();
 
-        final GenericName overridenName = Names.createLocalName("A namespace", ":", "random name");
+        final QName overridenName = new QName("A namespace", "random name");
         final FeatureType override = NameOverride.wrap(source, overridenName);
 
         Assert.assertEquals("Source feature type should not be altered", sourceCopy, source);

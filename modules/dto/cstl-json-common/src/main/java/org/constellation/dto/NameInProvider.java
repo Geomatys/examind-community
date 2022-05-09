@@ -20,6 +20,7 @@ package org.constellation.dto;
 
 import java.util.Date;
 import java.util.Objects;
+import javax.xml.namespace.QName;
 import org.opengis.util.GenericName;
 
 /**
@@ -29,14 +30,14 @@ import org.opengis.util.GenericName;
 public class NameInProvider {
 
     public final Integer layerId;
-    public final GenericName layerName;
+    public final QName layerName;
     public final Integer providerID;
     public final String alias;
     public final Date dataVersion;
     public final GenericName dataName;
     public final Integer dataId;
 
-    public NameInProvider(final Integer layerId, final GenericName name, final Integer providerID, final Date dataVersion, final String alias, final GenericName dataName, final Integer dataId) {
+    public NameInProvider(final Integer layerId, final QName name, final Integer providerID, final Date dataVersion, final String alias, final GenericName dataName, final Integer dataId) {
         this.layerId = layerId;
         this.layerName = name;
         this.providerID = providerID;

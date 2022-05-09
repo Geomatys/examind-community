@@ -31,7 +31,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.SortedSet;
 import java.util.logging.Level;
 
 import org.apache.sis.storage.GridCoverageResource;
@@ -54,8 +53,8 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SequenceWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import javax.xml.namespace.QName;
 import org.constellation.api.DataType;
-import org.constellation.exception.ConstellationStoreException;
 import org.constellation.map.featureinfo.dto.CoverageInfo;
 import org.constellation.map.featureinfo.dto.FeatureInfo;
 import org.constellation.map.featureinfo.dto.LayerInfo;
@@ -128,8 +127,8 @@ public class JSONFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
     }
 
     @Override
-    protected void nextProjectedFeature(GenericName layerName, Feature candidate, RenderingContext2D context, SearchAreaJ2D queryArea) {
-        final String layerNameStr = layerName.tip().toString();
+    protected void nextProjectedFeature(QName layerName, Feature candidate, RenderingContext2D context, SearchAreaJ2D queryArea) {
+        final String layerNameStr = layerName.getLocalPart();
         try {
             infoQueue.add(new FeatureInfo(layerNameStr, candidate));
         } catch (Exception e) {
@@ -141,7 +140,7 @@ public class JSONFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
     }
 
     @Override
-    protected void nextProjectedCoverage(GenericName layerName, GridCoverageResource resource, RenderingContext2D context, SearchAreaJ2D queryArea) {
+    protected void nextProjectedCoverage(QName layerName, GridCoverageResource resource, RenderingContext2D context, SearchAreaJ2D queryArea) {
         try {
             final List<FeatureInfoUtilities.Sample> results =
                     FeatureInfoUtilities.getCoverageValues(resource, context, queryArea);
@@ -154,12 +153,12 @@ public class JSONFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         } catch (Exception e) {
             final LayerError err = new LayerError();
             err.setError(e);
-            err.setLayer(layerName.tip().toString());
+            err.setLayer(layerName.getLocalPart());
             infoQueue.add(err);
         }
     }
 
-    protected static CoverageInfo buildCoverageInfo(final GenericName layerName, final Optional<LayerCache> layerO, final GetFeatureInfo gfi) {
+    protected static CoverageInfo buildCoverageInfo(final QName layerName, final Optional<LayerCache> layerO, final GetFeatureInfo gfi) {
 
         LayerCache layer = layerO.orElse(null);
         List<Date> time;
@@ -181,7 +180,7 @@ public class JSONFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         if (elevation == null) elevation = searchElevation(layer);
 
         final Instant javaTime = time == null || time.isEmpty() ? null : time.get(time.size() - 1).toInstant();
-        return new CoverageInfo(layerName.toString(), javaTime, elevation);
+        return new CoverageInfo(layerName.getLocalPart(), javaTime, elevation);
     }
 
     static void fill(CoverageInfo target, final List<FeatureInfoUtilities.Sample> results) {

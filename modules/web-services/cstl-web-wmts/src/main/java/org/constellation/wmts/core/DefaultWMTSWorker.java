@@ -37,6 +37,7 @@ import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
+import javax.xml.namespace.QName;
 import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
@@ -108,7 +109,6 @@ import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.style.Style;
 import org.opengis.util.FactoryException;
-import org.opengis.util.GenericName;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -575,7 +575,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
         //       -- get the List of layer references
         final GetTile getTile       = request.getGetTile();
         final String userLogin      = getUserLogin();
-        final GenericName layerName = Util.parseLayerName(getTile.getLayer());
+        final QName layerName       = Util.parseQName(getTile.getLayer());
         final LayerCache layer      = getLayerCache(userLogin, layerName);
 
         // build an equivalent style List
@@ -668,7 +668,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
     public Tile getTile(final GetTile request) throws CstlServiceException {
 
         //1 LAYER NOT USED FOR NOW
-        final GenericName layerName = Util.parseLayerName(request.getLayer());
+        final QName layerName = Util.parseQName(request.getLayer());
         final String userLogin  = getUserLogin();
 //        final Layer configLayer = getConfigurationLayer(layerName, userLogin);
 

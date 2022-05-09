@@ -337,7 +337,7 @@ public class LayerBusiness implements ILayerBusiness {
         final LayerSecurityFilter securityFilter = getSecurityFilter(serviceId);
         final List<Layer> layers   = layerRepository.findByServiceId(serviceId);
         for (Layer layer : layers) {
-            final GenericName layerName = NamesExt.create(layer.getName());
+            final QName layerName = layer.getName();
             Date version = null;
             /* TODO how to get version?
               if (layer.getVersion() != null) {
@@ -421,7 +421,7 @@ public class LayerBusiness implements ILayerBusiness {
             }
 
             if (layer != null) {
-                final GenericName layerName = NamesExt.create(layer.getName());
+                final QName layerName = layer.getName();
                 final LayerSecurityFilter securityFilter = getSecurityFilter(serviceId);
                 if (securityFilter.allowed(login, layer.getId())) {
                     Date version = null;
@@ -457,7 +457,7 @@ public class LayerBusiness implements ILayerBusiness {
     public NameInProvider getFullLayerName(final Integer serviceId, final Integer layerId, final String login) throws ConfigurationException {
         final Layer layer = layerRepository.findById(layerId);
         if (layer != null) {
-            final GenericName layerName = NamesExt.create(layer.getName());
+            final QName layerName = layer.getName();
             final LayerSecurityFilter securityFilter = getSecurityFilter(serviceId);
             if (securityFilter.allowed(login, layer.getId())) {
                 Date version = null;

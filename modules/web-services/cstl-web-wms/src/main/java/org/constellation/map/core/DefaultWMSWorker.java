@@ -34,6 +34,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import org.apache.sis.cql.CQL;
+import javax.xml.namespace.QName;
 import org.apache.sis.cql.CQLException;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.measure.Range;
@@ -94,7 +95,6 @@ import org.constellation.map.util.MapUtils;
 import static org.constellation.map.util.MapUtils.combine;
 import static org.constellation.map.util.MapUtils.transformJAXBFilter;
 import org.constellation.provider.FeatureData;
-import static org.geotoolkit.filter.FilterUtilities.FF;
 import org.geotoolkit.ows.xml.OWSExceptionCode;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.CURRENT_UPDATE_SEQUENCE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
@@ -780,7 +780,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         final List<String> layerNames = getFI.getQueryLayers();
         final List<LayerCache> layersCache;
         try {
-            layersCache = getLayerCaches(userLogin, layerNames);
+            layersCache = getLayerCachesStr(userLogin, layerNames);
         } catch (CstlServiceException ex) {
             throw new CstlServiceException(ex, LAYER_NOT_DEFINED, KEY_LAYERS.toLowerCase());
         }
@@ -1014,7 +1014,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         }
         final List<LayerCache> layersCache;
         try{
-            layersCache = getLayerCaches(userLogin, layerNames);
+            layersCache = getLayerCachesStr(userLogin, layerNames);
         } catch (CstlServiceException ex) {
             return handleExceptions(getMap, errorInImage, errorBlank, ex, LAYER_NOT_DEFINED,  KEY_LAYERS.toLowerCase());
         }
@@ -1279,7 +1279,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         }
     }
 
-    private org.opengis.style.Style extractStyle(final GenericName layerName, final List<StyleReference> layerStyles, final StyledLayerDescriptor sld) throws CstlServiceException{
+    private org.opengis.style.Style extractStyle(final QName layerName, final List<StyleReference> layerStyles, final StyledLayerDescriptor sld) throws CstlServiceException{
         if(sld == null){
             throw new IllegalArgumentException("SLD should not be null");
         }
@@ -1299,7 +1299,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                 continue;
             }
             // If it matches, then we return it.
-            if (layerName.tip().toString().equals(sldLayerName)) {
+            if (layerName.getLocalPart().equals(sldLayerName)) {
                 for (final MutableLayerStyle mls : mnl.styles()) {
                     if (mls instanceof MutableNamedStyle mns) {
                         final String namedStyle = mns.getName();

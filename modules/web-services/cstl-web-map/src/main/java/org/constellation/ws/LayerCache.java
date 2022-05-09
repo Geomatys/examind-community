@@ -30,6 +30,7 @@ import java.util.logging.Level;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 import org.apache.sis.cql.CQL;
+import javax.xml.namespace.QName;
 import org.apache.sis.cql.CQLException;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.measure.Units;
@@ -71,7 +72,6 @@ import org.opengis.referencing.cs.CoordinateSystemAxis;
 import org.opengis.referencing.datum.EngineeringDatum;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
-import org.opengis.util.GenericName;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -83,7 +83,7 @@ public class LayerCache {
     private static final Logger LOGGER = Logger.getLogger("org.constellation.ws");
 
     private final NameInProvider nip;
-    private final GenericName name;
+    private final QName name;
     private final List<StyleReference> styles;
     private final Data data;
     private final LayerConfig configuration;
@@ -91,7 +91,7 @@ public class LayerCache {
     @Autowired
     private IDataBusiness dataBusiness;
 
-    public LayerCache(final NameInProvider nip, GenericName name, Data d, List<StyleReference> styles, final LayerConfig configuration) {
+    public LayerCache(final NameInProvider nip, QName name, Data d, List<StyleReference> styles, final LayerConfig configuration) {
         SpringHelper.injectDependencies(this);
         this.nip = nip;
         this.data = d;
@@ -111,7 +111,7 @@ public class LayerCache {
         return Optional.empty();
     }
 
-    public GenericName getName() {
+    public QName getName() {
         return name;
     }
 

@@ -36,8 +36,12 @@ public class QNameComparator implements Comparator<QName>{
                 } else {
                     return o1.getNamespaceURI().compareTo(o2.getNamespaceURI());
                 }
+            } else if (o1.getNamespaceURI() == null && o2.getNamespaceURI() == null) {
+                 return o1.getLocalPart().compareTo(o2.getLocalPart());
+            } else {
+                return o1.getNamespaceURI() == null ? 1 : -1;
             }
-            return o1.getLocalPart().compareTo(o2.getLocalPart());
+           
         }
         return -1;
     }

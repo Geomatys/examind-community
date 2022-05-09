@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.measure.Unit;
+import javax.xml.namespace.QName;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.storage.GridCoverageResource;
 import org.constellation.map.featureinfo.FeatureInfoUtilities.Sample;
@@ -40,7 +41,6 @@ import org.opengis.feature.AttributeType;
 import org.opengis.feature.Feature;
 import org.opengis.feature.PropertyType;
 import org.opengis.util.GenericName;
-import org.opengis.util.InternationalString;
 
 /**
  * A generic FeatureInfoFormat that produce CSV output for Features and Coverages.
@@ -69,9 +69,9 @@ public class CSVFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
      * {@inheritDoc}
      */
     @Override
-    protected void nextProjectedFeature(GenericName layerName, final Feature feature, RenderingContext2D context, SearchAreaJ2D queryArea) {
+    protected void nextProjectedFeature(QName layerName, final Feature feature, RenderingContext2D context, SearchAreaJ2D queryArea) {
 
-        final String layerNameStr = layerName.tip().toString();
+        final String layerNameStr = layerName.getLocalPart();
 
         final Collection<? extends PropertyType> descs = feature.getType().getProperties(true);
 
@@ -126,14 +126,14 @@ public class CSVFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
     }
 
     @Override
-    protected void nextProjectedCoverage(GenericName layerName, final GridCoverageResource resource, RenderingContext2D context, SearchAreaJ2D queryArea) {
+    protected void nextProjectedCoverage(QName layerName, final GridCoverageResource resource, RenderingContext2D context, SearchAreaJ2D queryArea) {
         final List<Sample> covResults = FeatureInfoUtilities.getCoverageValues(resource, context, queryArea);
 
         if (covResults == null) {
             return;
         }
 
-        final String layerNameStr = layerName.tip().toString();
+        final String layerNameStr = layerName.getLocalPart();
         LayerResult result = results.get(layerNameStr);
         if(result==null){
             //first feature of this type

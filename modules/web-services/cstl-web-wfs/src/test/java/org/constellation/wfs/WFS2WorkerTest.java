@@ -170,7 +170,7 @@ public class WFS2WorkerTest extends AbstractWFSWorkerTest {
                 worker.setServiceUrl("http://geomatys.com/constellation/WS/");
                 initialized = true;
             } catch (Exception ex) {
-                Logger.getAnonymousLogger().log(Level.SEVERE, "error while initializing test", ex);
+                LOGGER.log(Level.SEVERE, "error while initializing test", ex);
             }
         }
     }
@@ -1155,7 +1155,7 @@ public class WFS2WorkerTest extends AbstractWFSWorkerTest {
         /*
          * Test 1 : transaction replace for Feature type NamedPlaces
          */
-        final GenericName layerName = NamesExt.create("http://www.opengis.net/gml/3.2", "NamedPlaces");
+        final QName layerName = new QName("http://www.opengis.net/gml/3.2", "NamedPlaces");
         final GenericName dataName = NamesExt.create("NamedPlaces");
 
         final FeatureData data = (FeatureData) DataProviders.getProviderData(NamedPlaceDataId);

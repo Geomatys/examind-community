@@ -7,6 +7,7 @@ package org.constellation.wfs;
 
 import java.util.Optional;
 import java.util.stream.Stream;
+import javax.xml.namespace.QName;
 import org.apache.sis.feature.AbstractFeature;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
 import org.apache.sis.metadata.iso.DefaultMetadata;
@@ -15,7 +16,9 @@ import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.event.StoreEvent;
 import org.apache.sis.storage.event.StoreListener;
 import org.apache.sis.util.Static;
+import org.geotoolkit.feature.xml.Utils;
 import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
+import org.geotoolkit.util.NamesExt;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
 import org.opengis.feature.Property;
@@ -70,7 +73,7 @@ public class NameOverride extends Static {
         private final FeatureType nameOverride;
         private final GenericName featureSetId;
 
-        public NameOverrideFeatureSet(FeatureSet originalFC, final GenericName name, final GenericName featureSetId) throws DataStoreException {
+        public NameOverrideFeatureSet(FeatureSet originalFC, final QName name, final GenericName featureSetId) throws DataStoreException {
             this.original = originalFC;
             this.originalType = originalFC.getType();
             this.nameOverride = wrap(originalType, name);
@@ -88,7 +91,8 @@ public class NameOverride extends Static {
             if (originalType.equals(currentType)) {
                 targetType = nameOverride;
             } else {
-                targetType = wrap(currentType, nameOverride.getName());
+                QName name = Utils.getQnameFromName(nameOverride.getName());
+                targetType = wrap(currentType, name);
             }
             return new SimpleDecoratedFeature(original, targetType);
         }
@@ -125,17 +129,18 @@ public class NameOverride extends Static {
         }
     }
 
-    public static FeatureType wrap(final FeatureType toWrap, final GenericName newName) {
+    public static FeatureType wrap(final FeatureType toWrap, final QName newName) {
+        GenericName gname = NamesExt.create(newName);
         final FeatureTypeBuilder ftb = new FeatureTypeBuilder(toWrap);
-        ftb.setName(newName);
+        ftb.setName(gname);
         return ftb.build();
     }
 
-    public static Feature wrap(final Feature source, final GenericName newName) {
+    public static Feature wrap(final Feature source, final QName newName) {
         return new SimpleDecoratedFeature(source, wrap(source.getType(), newName));
     }
 
-    public static FeatureSet wrap(final FeatureSet source, final GenericName newTypeName, final GenericName newFeatureSetId) throws DataStoreException {
+    public static FeatureSet wrap(final FeatureSet source, final QName newTypeName, final GenericName newFeatureSetId) throws DataStoreException {
         return new NameOverrideFeatureSet(source, newTypeName, newFeatureSetId);
     }
 }

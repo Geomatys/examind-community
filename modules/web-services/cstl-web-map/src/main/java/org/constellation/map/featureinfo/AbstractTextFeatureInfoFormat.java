@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.xml.namespace.QName;
 import org.apache.sis.internal.map.Presentation;
 import org.apache.sis.portrayal.MapLayer;
 import org.apache.sis.storage.DataStoreException;
@@ -45,7 +46,6 @@ import org.geotoolkit.feature.ReprojectMapper;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
 import org.geotoolkit.storage.memory.InMemoryFeatureSet;
 import org.opengis.feature.Feature;
-import org.opengis.util.GenericName;
 
 /**
  * @author Quentin Boileau (Geomatys)
@@ -55,9 +55,9 @@ public abstract class AbstractTextFeatureInfoFormat extends AbstractFeatureInfoF
     /**
      * Contains the values for all coverage layers requested.
      */
-    protected final Map<GenericName, List<String>> coverages = new HashMap<>();
+    protected final Map<QName, List<String>> coverages = new HashMap<>();
 
-    protected final Map<GenericName, List<String>> features = new HashMap<>();
+    protected final Map<QName, List<String>> features = new HashMap<>();
 
     /**
      * Visit all intersected Graphic objects and call {link #nextProjectedFeature}
@@ -112,10 +112,10 @@ public abstract class AbstractTextFeatureInfoFormat extends AbstractFeatureInfoF
                     final ReprojectMapper mapper = new ReprojectMapper(feat.getType(), context.getObjectiveCRS2D());
                     feat = mapper.apply(feat);
 
-                    final GenericName layerName = getNameForFeatureLayer(layer);
+                    final QName layerName = getNameForFeatureLayer(layer);
                     nextProjectedFeature(layerName, feat, (RenderingContext2D) context, (SearchAreaJ2D) area);
                 } else if (resource instanceof GridCoverageResource) {
-                    final GenericName layerName = getNameForCoverageLayer(layer);
+                    final QName layerName = getNameForCoverageLayer(layer);
                     nextProjectedCoverage(layerName, (GridCoverageResource) resource, (RenderingContext2D) context, (SearchAreaJ2D) area);
                 }
                 idx++;
@@ -139,17 +139,18 @@ public abstract class AbstractTextFeatureInfoFormat extends AbstractFeatureInfoF
      * @param context rendering context
      * @param queryArea area of the search
      */
-    protected abstract void nextProjectedFeature(GenericName layerName, final Feature feature, final RenderingContext2D context,
+    protected abstract void nextProjectedFeature(QName layerName, final Feature feature, final RenderingContext2D context,
                                         final SearchAreaJ2D queryArea);
 
     /**
      * Store the {@link GridCoverageResource} in a list
      *
      * @param layerName Name of the layer.
+     * @param resource The coverage to process.
      * @param context rendering context
      * @param queryArea area of the search
      */
-    protected abstract void nextProjectedCoverage(GenericName layerName, final GridCoverageResource resource, final RenderingContext2D context,
+    protected abstract void nextProjectedCoverage(QName layerName, final GridCoverageResource resource, final RenderingContext2D context,
                                          final SearchAreaJ2D queryArea);
 
      /**

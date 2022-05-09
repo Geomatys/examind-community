@@ -184,16 +184,45 @@ public final class Util {
         return results;
     }
 
+    /**
+     * Parse a String on the form ({namespace}name ,namespace : name or just name).
+     *
+     * @param name A String on the form ({namespace}name ,namespace : name or just name).
+     * @return The QName corresponding to input text, or null if input text is null or blank
+     */
     public static QName parseQName(String name) {
-        if (name != null) {
-            if (name.startsWith("{}")) {
-                name = name.substring(2);
-            }
-            return QName.valueOf(name);
+         if (name == null || (name = name.trim()).isEmpty()) return null;
+
+        // remove an empty namespace declaration
+        if (name.startsWith("{}")) {
+            return new QName(name.substring(2));
         }
-        return null;
+        if (name.startsWith("{") && name.contains("}")) {
+            return QName.valueOf(name);
+        } else if (name.contains(":")) {
+            int nmspEnd = name.lastIndexOf(':');
+            final String namespace = name.substring(0, nmspEnd);
+            final String localPart = name.substring(nmspEnd+ 1);
+            return new QName(namespace, localPart);
+        } else {
+            return new QName(name);
+        }
     }
 
+    public static List<QName> getQnamesFromNames(final List<GenericName> names) {
+       return names.stream().map(n -> getQnameFromName(n)).toList();
+    }
+
+    public static QName getQnameFromName(final GenericName name) {
+        QName qname;
+        final String ns = NamesExt.getNamespace(name);
+        if (ns == null || ns.isEmpty()) {
+            qname = new QName(name.tip().toString());
+        } else {
+            qname = new QName(ns, name.tip().toString());
+        }
+        return qname;
+    }
 
     public static String getXmlDocumentRoot(final String filePath) throws IOException, XMLStreamException {
 

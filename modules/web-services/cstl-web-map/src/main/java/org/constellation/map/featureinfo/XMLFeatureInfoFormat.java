@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TimeZone;
 import javax.measure.Unit;
+import javax.xml.namespace.QName;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.storage.GridCoverageResource;
 import org.constellation.api.DataType;
@@ -76,14 +77,14 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
      * {@inheritDoc}
      */
     @Override
-    protected void nextProjectedCoverage(GenericName layerName, final GridCoverageResource resource, RenderingContext2D context, SearchAreaJ2D queryArea) {
+    protected void nextProjectedCoverage(QName layerName, final GridCoverageResource resource, RenderingContext2D context, SearchAreaJ2D queryArea) {
         final List<Sample> results = FeatureInfoUtilities.getCoverageValues(resource, context, queryArea);
 
         if (results == null) {
             return;
         }
 
-        String layerNameStr = layerName.tip().toString();
+        String layerNameStr = layerName.getLocalPart();
 
         StringBuilder builder = new StringBuilder();
         String margin = "\t";
@@ -209,7 +210,7 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
      * {@inheritDoc}
      */
     @Override
-    protected void nextProjectedFeature(GenericName layerName, final Feature feature, RenderingContext2D context, SearchAreaJ2D queryArea) {
+    protected void nextProjectedFeature(QName layerName, final Feature feature, RenderingContext2D context, SearchAreaJ2D queryArea) {
 
         final StringBuilder builder   = new StringBuilder();
         String margin                 = "\t";
@@ -220,9 +221,9 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
 
         // featureType mark
         if (layerName != null) {
-            String ftLocal = layerName.tip().toString();
+            String ftLocal = layerName.getLocalPart();
 
-            builder.append(margin).append("<Layer>").append(encodeXML(layerName.tip().toString())).append("</Layer>\n");
+            builder.append(margin).append("<Layer>").append(encodeXML(ftLocal)).append("</Layer>\n");
             builder.append(margin).append("<Name>").append(encodeXML(ftLocal)).append("</Name>\n");
             builder.append(margin).append("<ID>").append(encodeXML(FeatureExt.getId(feature).getIdentifier())).append("</ID>\n");
 
@@ -345,7 +346,7 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         builder.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>").append("\n")
                 .append("<FeatureInfo>").append("\n");
 
-        final Map<GenericName, List<String>> values = new HashMap<>();
+        final Map<QName, List<String>> values = new HashMap<>();
         values.putAll(features);
         values.putAll(coverages);
 
@@ -356,7 +357,7 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         }
 
         int cpt = 0;
-        for (GenericName layerName : values.keySet()) {
+        for (QName layerName : values.keySet()) {
             for (final String record : values.get(layerName)) {
                 builder.append(record);
                 cpt++;
