@@ -124,7 +124,7 @@ fragment HEX_DIGIT : ('0'..'9'|'a'..'f'|'A'..'F') ;
 
 fragment
 ESC_SEQ
-    :   '\\' ('b'|'t'|'n'|'f'|'r'|'\"'|'\''|'\\')
+    :   '\\' ('b'|'t'|'n'|'f'|'r'|'"'|'\''|'\\')
     |   UNICODE_ESC
     |   OCTAL_ESC
     ;
