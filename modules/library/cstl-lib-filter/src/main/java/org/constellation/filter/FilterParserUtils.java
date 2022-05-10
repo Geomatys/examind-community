@@ -18,19 +18,16 @@
  */
 package org.constellation.filter;
 
-import java.util.logging.Level;
-import javax.xml.bind.JAXBException;
+import org.apache.sis.cql.CQL;
 import org.apache.sis.cql.CQLException;
 import static org.constellation.api.CommonConstants.QUERY_CONSTRAINT;
-import static org.constellation.filter.AbstractFilterParser.LOGGER;
-import org.geotoolkit.cql.CQL;
 import org.geotoolkit.csw.xml.QueryConstraint;
 import org.geotoolkit.filter.FilterFactoryImpl;
 import org.geotoolkit.ogc.xml.XMLFilter;
 import org.geotoolkit.ogc.xml.v110.FilterType;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import org.opengis.filter.Filter;
+import org.opengis.filter.FilterFactory;
 import org.opengis.filter.LikeOperator;
 import org.opengis.filter.Literal;
 import org.opengis.filter.ValueReference;
@@ -47,11 +44,11 @@ public class FilterParserUtils {
      * @param cqlQuery A well-formed CQL query .
      * @return An OGC Filter Object.
      *
-     * @throws org.geotoolkit.cql.CQLException
+     * @throws org.apache.sis.cql.CQLException
      */
-    public static FilterType cqlToFilter(final String cqlQuery) throws CQLException, JAXBException {
+    public static FilterType cqlToFilter(final String cqlQuery) throws CQLException {
         final FilterType result;
-        final Object newFilter = CQL.parseFilter(cqlQuery, new FilterFactoryImpl());
+        final Object newFilter = CQL.parseFilter(cqlQuery, (FilterFactory)new FilterFactoryImpl());
 
         if (!(newFilter instanceof FilterType)) {
             result = new FilterType(newFilter);
@@ -67,9 +64,9 @@ public class FilterParserUtils {
      * @param filter A well-formed Filter .
      * @return A CSQL query string
      *
-     * @throws org.geotoolkit.cql.CQLException
+     * @throws org.apache.sis.cql.CQLException
      */
-    public static String filterToCql(final FilterType filter) throws CQLException, JAXBException {
+    public static String filterToCql(final FilterType filter) throws CQLException {
         Filter f = filter;
         if (filter.getSpatialOps() != null) f = filter.getSpatialOps().getValue();
         else if (filter.getTemporalOps() != null) f = filter.getTemporalOps().getValue();
@@ -102,9 +99,6 @@ public class FilterParserUtils {
             try {
                 return FilterParserUtils.cqlToFilter(constraint.getCqlText());
 
-            } catch (JAXBException ex) {
-                LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
-                throw new FilterParserException("JAXBException while parsing CQL query: " + ex.getMessage(), NO_APPLICABLE_CODE, QUERY_CONSTRAINT);
             } catch (CQLException ex) {
                 throw new FilterParserException("The CQL query is malformed: " + ex.getMessage(), INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
             } catch (UnsupportedOperationException ex) {

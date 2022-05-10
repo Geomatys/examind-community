@@ -18,26 +18,13 @@
  */
 package org.constellation.provider;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.logging.Level;
-import org.apache.sis.cql.CQLException;
-import org.apache.sis.filter.DefaultFilterFactory;
-import org.apache.sis.storage.FeatureQuery;
 import org.apache.sis.portrayal.MapItem;
-import org.apache.sis.storage.Query;
 import org.apache.sis.storage.Resource;
-import org.apache.sis.util.collection.BackingStoreException;
 
 import org.constellation.exception.ConstellationStoreException;
-import org.geotoolkit.cql.CQL;
 import org.apache.sis.portrayal.MapLayer;
 import org.apache.sis.storage.DataStore;
 import org.geotoolkit.map.MapBuilder;
-import org.opengis.filter.Filter;
-import org.geotoolkit.filter.FilterUtilities;
 import org.opengis.style.Style;
 import org.opengis.util.GenericName;
 

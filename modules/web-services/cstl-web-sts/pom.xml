@@ -118,6 +118,7 @@
         <dependency>
             <groupId>org.antlr</groupId>
             <artifactId>antlr4-runtime</artifactId>
+            <version>${antlr.version}</version>
             <scope>compile</scope>
         </dependency>
 
@@ -147,7 +148,7 @@
                 <groupId>org.antlr</groupId>
                 <artifactId>antlr4-maven-plugin</artifactId>
                 <!-- TODO: keep in sync with Geotk/SIS (note: maybe move it to geomatys-bom -->
-                <version>4.10.1</version>
+                <version>${antlr.version}</version>
                 <executions>
                     <execution>
                       <id>antlr</id>

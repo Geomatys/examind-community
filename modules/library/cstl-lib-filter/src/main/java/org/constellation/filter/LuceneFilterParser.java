@@ -26,6 +26,7 @@ import javax.xml.namespace.QName;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -373,10 +374,13 @@ public class LuceneFilterParser extends AbstractFilterParser {
         if (literal != null) {
             try {
                 synchronized(luceneDateFormat) {
-                    if (literal instanceof Instant) {
-                        return luceneDateFormat.format(((Instant)literal).getDate());
-                    } else if (literal instanceof Date) {
-                        return luceneDateFormat.format((Date)literal);
+                    if (literal instanceof Instant inst) {
+                        return luceneDateFormat.format(inst.getDate());
+                    } else if (literal instanceof Date dt) {
+                        return luceneDateFormat.format(dt);
+                    } else if (literal instanceof TemporalAccessor ta) {
+                        java.time.Instant inst = java.time.Instant.from(ta);
+                        return luceneDateFormat.format(Date.from(inst));
                     } else {
                         Calendar c = TemporalUtilities.parseDateCal(String.valueOf(literal));
                         c.setTimeZone(TimeZone.getTimeZone("UTC"));

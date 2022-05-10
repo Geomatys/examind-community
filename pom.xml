@@ -52,6 +52,7 @@
         <validation-api.version>2.0.1.Final</validation-api.version>
         <woodstox.version>4.1.2</woodstox.version>
         <xstream.version>1.4.18</xstream.version>
+        <antlr.version>4.10.1</antlr.version>
         <!-- @{argLine} necessary for jacoco generation, we must declare
          an empty property to avoid a surefire exception if we run any other
          maven phase which doesn't activate jacoco -->
