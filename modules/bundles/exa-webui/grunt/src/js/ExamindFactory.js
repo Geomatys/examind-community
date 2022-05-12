@@ -470,13 +470,13 @@ function Examind($http, url) {
          * Create automatic intervals style.
          *
          * @param {doc} parameters
-         * @param {String} type optional
+         * @param {int} id mandatory
          * @returns {undefined}
          */
-        generateAutoInterval : function(parameters, type) {
+        generateAutoInterval : function(parameters, id) {
             return self.request({
                 method: 'POST',
-                url: 'internal/styles/generateAutoInterval/?type='+type,
+                url: 'internal/styles/' + id + '/generateAutoInterval',
                 headers: {'Accept': 'application/json'},
                 data: parameters
                 });
@@ -486,13 +486,13 @@ function Examind($http, url) {
          * Create singular values style.
          *
          * @param {doc} parameters
-         * @param {String} type optional
+         * @param {int} id mandatory
          * @returns {undefined}
          */
-        generateAutoUniqueStyle : function(parameters, type) {
+        generateAutoUniqueStyle : function(parameters, id) {
             return self.request({
                 method: 'POST',
-                url: 'internal/styles/generateAutoUnique/?type='+type,
+                url: 'internal/styles/' + id + '/generateAutoUnique',
                 headers: {'Accept': 'application/json'},
                 data: parameters
                 });

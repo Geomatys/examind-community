@@ -206,17 +206,14 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
      * Creates a style and calculate the rules as palette defined as interval set.
      * Returns the new style object as json.
      *
-     * @param type
+     * @param id Style identifier
      * @param wrapper object that contains the style and the config parameter to generate the palette rules.
      * @return the style as json.
      */
-    @RequestMapping(value="/internal/styles/generateAutoInterval", method=POST, produces=MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity generateAutoIntervalStyle(
-            @RequestParam(value="type",required=false,defaultValue = "sld") String type,
-            @RequestBody WrapperInterval wrapper) {
+    @RequestMapping(value="/internal/styles/{styleId}/generateAutoInterval", method=POST, produces=MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity generateAutoIntervalStyle(@PathVariable("styleId") int id, @RequestBody WrapperInterval wrapper) {
         try {
             //get style and interval params
-            final Style style = wrapper.getStyle();
             final AutoIntervalValues intervalValues = wrapper.getIntervalValues();
 
             final int dataId = wrapper.getDataId();
@@ -342,7 +339,8 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
             }
 
             //add rules to the style
-            final MutableStyle mutableStyle = StyleUtilities.type(style);
+            final Style originalStyle = wrapper.getStyle();
+            final MutableStyle mutableStyle = StyleUtilities.type(originalStyle);
             //remove all auto intervals rules if exists before adding the new list.
             final List<MutableRule> backupRules = new ArrayList<>(mutableStyle.featureTypeStyles().get(0).rules());
             final List<MutableRule> rulesToRemove = new ArrayList<>();
@@ -357,8 +355,9 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
             mutableStyle.featureTypeStyles().get(0).rules().addAll(newRules);
 
             //create the style in server
-            styleBusiness.createStyle(type, mutableStyle);
+            styleBusiness.updateStyle(id, mutableStyle);
             Style json = styleConverterBusiness.getJsonStyle(mutableStyle);
+            json.setId(id);
             return new ResponseEntity(json,OK);
         } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
@@ -438,17 +437,14 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
      * Creates a style and calculate the rules as palette defined as unique values set.
      * Returns the new style object as json.
      *
-     * @param type style provider identifier, 'sld' or 'sld-temp'
+     * @param id Style identifier
      * @param wrapper object that contains the style and the config parameter to generate the palette rules.
      * @return new style as json
      */
-    @RequestMapping(value="/internal/styles/generateAutoUnique", method=POST, produces=MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity generateAutoUniqueStyle(
-            @RequestParam(value="type",required=false,defaultValue = "sld") String type,
-            @RequestBody WrapperInterval wrapper) {
+    @RequestMapping(value="/internal/styles/{styleId}/generateAutoUnique", method=POST, produces=MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity generateAutoUniqueStyle(@PathVariable("styleId") int id, @RequestBody WrapperInterval wrapper) {
         try {
             //get style and interval params
-            final Style style = wrapper.getStyle();
             final AutoUniqueValues autoUniqueValues = wrapper.getUniqueValues();
 
             final org.constellation.dto.Data data = dataBusiness.getData(wrapper.getDataId());
@@ -537,7 +533,8 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
             }
 
             //add rules to the style
-            final MutableStyle mutableStyle = StyleUtilities.type(style);
+            final Style originalStyle = wrapper.getStyle();
+            final MutableStyle mutableStyle = StyleUtilities.type(originalStyle);
             //remove all auto unique values rules if exists before adding the new list.
             final List<MutableRule> backupRules = new ArrayList<>(mutableStyle.featureTypeStyles().get(0).rules());
             final List<MutableRule> rulesToRemove = new ArrayList<>();
@@ -552,7 +549,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
             mutableStyle.featureTypeStyles().get(0).rules().addAll(newRules);
 
             //create the style in server
-            styleBusiness.createStyle(type, mutableStyle);
+            styleBusiness.updateStyle(id, mutableStyle);
             Style json = styleConverterBusiness.getJsonStyle(mutableStyle);
             return new ResponseEntity(json,OK);
         } catch(Exception ex) {

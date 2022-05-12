@@ -1012,7 +1012,7 @@ function VectorStyleController($scope, $modal, $translate, $timeout, AppConfigSe
         };
 
         //Now send all params to server and it will create the temporary style and returns the full style as json object.
-        Examind.styles.generateAutoInterval(wrapper, 'sld_temp')
+        Examind.styles.generateAutoInterval(wrapper, self.newStyle.id)
             .then(function (response) {
                 //push rules array in current newStyle object to trigger the changes on the map.
                 if (response.data.rules && response.data.rules.length > 0) {
@@ -1078,7 +1078,7 @@ function VectorStyleController($scope, $modal, $translate, $timeout, AppConfigSe
         };
 
         //Now send all params to server and it will create the temporary style and returns the full style as json object.
-        Examind.styles.generateAutoUniqueStyle(wrapper, 'sld_temp')
+        Examind.styles.generateAutoUniqueStyle(wrapper, self.newStyle.id)
             .then(function (response) {
                     //push rules array in current newStyle object to trigger the changes on the map.
                     if (response.data.rules && response.data.rules.length > 0) {

@@ -192,14 +192,6 @@ public class StyleBusiness implements IStyleBusiness {
             // Retrieve or not the provider instance.
             final int provider = nameToId(providerId);
 
-            //in case of temp sld provider we need to delete first if style already exists
-            if (provider == 2) {
-                Integer prevId = styleRepository.findIdByNameAndProvider(provider, styleName);
-                if (prevId != null) {
-                    styleRepository.delete(prevId);
-                }
-            }
-
             final String xmlStyle = writeStyle(styleI);
             
             Integer userId = userBusiness.findOne(securityManager.getCurrentUserLogin()).map((CstlUser input) -> input.getId()).orElse(null);

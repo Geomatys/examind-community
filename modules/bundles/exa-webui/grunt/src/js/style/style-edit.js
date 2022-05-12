@@ -1775,7 +1775,15 @@ angular.module('cstl-style-edit', [
             };
 
             //Now send all params to server and it will create the temporary style and returns the full style as json object.
-            Examind.styles.generateAutoInterval(wrapper,'sld_temp').then(
+            var styleId;
+            if ($scope.newStyle.id) {
+                styleId = $scope.newStyle.id;
+            } else if ($scope.optionsSLD && $scope.optionsSLD.temporaryStyleId) {
+                styleId = $scope.optionsSLD.temporaryStyleId;
+            }  /*else {
+                 houston we have a problem
+            }*/
+            Examind.styles.generateAutoInterval(wrapper, styleId).then(
                 function(response){
                     //push rules array in current newStyle object to trigger the changes on the map.
                     if(response.data.rules && response.data.rules.length >0){
@@ -1833,7 +1841,15 @@ angular.module('cstl-style-edit', [
             };
 
             //Now send all params to server and it will create the temporary style and returns the full style as json object.
-            Examind.styles.generateAutoUniqueStyle(wrapper,'sld_temp').then(
+            var styleId;
+            if ($scope.newStyle.id) {
+                styleId = $scope.newStyle.id;
+            } else if ($scope.optionsSLD && $scope.optionsSLD.temporaryStyleId) {
+                styleId = $scope.optionsSLD.temporaryStyleId;
+            } /*else {
+                 houston we have a problem
+            }*/
+            Examind.styles.generateAutoUniqueStyle(wrapper, styleId).then(
                 function(response){
                     //push rules array in current newStyle object to trigger the changes on the map.
                     if(response.data.rules && response.data.rules.length >0){
