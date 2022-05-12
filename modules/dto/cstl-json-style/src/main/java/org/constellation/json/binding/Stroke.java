@@ -28,6 +28,7 @@ import static org.constellation.json.util.StyleFactories.SF;
 import static org.constellation.json.util.StyleUtilities.literal;
 import static org.constellation.json.util.StyleUtilities.parseExpression;
 import static org.constellation.json.util.StyleUtilities.toHex;
+import org.opengis.filter.Literal;
 
 /**
  * @author Fabien Bernard (Geomatys).
@@ -51,11 +52,18 @@ public final class Stroke implements StyleElement<org.opengis.style.Stroke> {
 
     public Stroke(final org.opengis.style.Stroke stroke) {
         ensureNonNull("stroke", stroke);
-        if (stroke.getColor() instanceof org.geotoolkit.style.function.Interpolate) {
-            function = new Interpolate((org.geotoolkit.style.function.Interpolate)stroke.getColor());
-        } else {
-            final Color col = (Color) stroke.getColor().apply(null);
-            color = toHex(col);
+        if (stroke.getColor() instanceof org.geotoolkit.style.function.Interpolate interpolate) {
+            function = new Interpolate(interpolate);
+        } else if (stroke.getColor() instanceof Literal lit) {
+           if (lit.getValue() instanceof Color col) {
+               color = toHex(col);
+           } else if (lit.getValue() instanceof String colStr) {
+               color = colStr;
+           } else {
+               throw new IllegalArgumentException("Expected Color or String value for Stroke color literal");
+           }
+        } else if (stroke.getColor() != null) {
+            throw new IllegalArgumentException("Expected literal or function interpolate for Stroke color");
         }
         final Expression opacityExp = stroke.getOpacity();
         if(opacityExp != null){
@@ -79,6 +87,10 @@ public final class Stroke implements StyleElement<org.opengis.style.Stroke> {
 
     public String getColor() {
         return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
     }
 
     public String getOpacity() {

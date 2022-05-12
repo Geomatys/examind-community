@@ -64,13 +64,20 @@ public class Categorize implements Function {
                 final Expression expression = entry.getKey();
                 final Expression colorHexExp = entry.getValue();
 
-                if (colorHexExp instanceof Literal) {
-                    final Object colorHex = ((Literal) colorHexExp).getValue();
-                    ip.setColor(StyleUtilities.toHex((Color) colorHex));
+                if (colorHexExp instanceof Literal lit) {
+                    String color;
+                    if (lit.getValue() instanceof Color col) {
+                        color = StyleUtilities.toHex(col);
+                     } else if (lit.getValue() instanceof String colStr) {
+                         color = colStr;
+                     } else {
+                         throw new IllegalArgumentException("Expected Color or String value for color literal");
+                     }
+                     ip.setColor(color);
                 }
 
-                if (expression instanceof Literal) {
-                    final Object obj = ((Literal) expression).getValue();
+                if (expression instanceof Literal lit) {
+                    final Object obj = lit.getValue();
                     if (obj instanceof Double) {
                         if (Double.isNaN((double) obj)) {
                             ip.setData(null);
@@ -140,7 +147,7 @@ public class Categorize implements Function {
             // Loop to create values with new point evaluation
             for (int i = 0; i < nbPoints; i++) {
                 double val = min + (coefficient * i);
-                Color color = (Color) categorize.apply(val);
+                Object color = categorize.apply(val);
                 valuesRecompute.put(FF.literal(val), FF.literal(color));
             }
         }
@@ -150,10 +157,17 @@ public class Categorize implements Function {
             final Literal value = (Literal)entry.getKey();
             final Literal color = (Literal)entry.getValue();
 
-            final Color colorObj = (Color) color.getValue();
+            final String colorHex;
+            if (color.getValue() instanceof Color col) {
+                colorHex = StyleUtilities.toHex(col);
+            }  else if (color.getValue() instanceof String colStr) {
+                colorHex = colStr;
+            } else {
+               throw new IllegalArgumentException("Expected Color or String value in literal");
+            }
             final Double valueObj = (Double) value.getValue();
             final InterpolationPoint point = new InterpolationPoint();
-            point.setColor(StyleUtilities.toHex(colorObj));
+            point.setColor(colorHex);
             point.setData(valueObj);
             recomputePoints.add(point);
         }

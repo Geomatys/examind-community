@@ -114,6 +114,33 @@ public class JsonBindingTest {
         // TODO : check Jackson written Json
     }
 
+    @Test
+    public void marshallingTestPolygonSymbolizer() throws Exception {
+        PolygonSymbolizer ps = new PolygonSymbolizer();
+        ps.setName("text-symbolize");
+        Stroke stroke = new Stroke();
+        stroke.setColor("#0000FF");
+        ps.setStroke(stroke);
+
+
+        final StringWriter jsonWriter = new StringWriter(1024);
+        objectMapper.writeValue(jsonWriter, ps);
+        // TODO : check Jackson written Json
+
+        org.opengis.style.PolygonSymbolizer geotkSymb = (org.opengis.style.PolygonSymbolizer) ps.toType();
+        DefaultMutableRule rule = new DefaultMutableRule();
+        rule.symbolizers().add(geotkSymb);
+
+        final StringWriter xmlWriter = new StringWriter(1024);
+        sldParser.writeRule(xmlWriter, rule, Specification.SymbologyEncoding.V_1_1_0);
+        // TODO: use DOMComparator to check written value
+
+        stroke = new Stroke(geotkSymb.getStroke());
+        final StringWriter jsonWriter2 = new StringWriter(1024);
+        objectMapper.writeValue(jsonWriter2, stroke);
+        // TODO : check Jackson written Json
+    }
+
     public static InputStream getResourceAsStream(final String url) {
         final ClassLoader cl = getContextClassLoader();
         return cl.getResourceAsStream(url);

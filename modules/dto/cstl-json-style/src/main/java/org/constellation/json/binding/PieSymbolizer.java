@@ -27,6 +27,8 @@ import java.util.List;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import static org.constellation.json.util.StyleFactories.FF;
+import static org.constellation.json.util.StyleUtilities.toHex;
+import org.opengis.filter.Literal;
 
 /**
  * @author Cédric Briançon (Geomatys)
@@ -59,8 +61,19 @@ public class PieSymbolizer implements Symbolizer {
         if (symbolizer.getColorQuarters() != null) {
             for (final org.geotoolkit.display2d.ext.pie.PieSymbolizer.ColorQuarter colorQuarter : symbolizer.getColorQuarters()) {
                 final ColorQuarter colorQuarterToAdd = new ColorQuarter();
-                final Color color = (Color) colorQuarter.getColor().apply(null);
-                final String colorHex = StyleUtilities.toHex(color);
+
+                String colorHex = null;
+                if (colorQuarter.getColor() instanceof Literal lit) {
+                    if (lit.getValue() instanceof Color col) {
+                        colorHex = toHex(col);
+                    } else if (lit.getValue() instanceof String colStr) {
+                        colorHex = colStr;
+                    } else {
+                        throw new IllegalArgumentException("Expected Color or String value for color quarter literal");
+                    }
+                } else if (colorQuarter.getColor() != null) {
+                    throw new IllegalArgumentException("Expected literal for color quarter");
+                }
                 colorQuarterToAdd.setColor(colorHex);
                 colorQuarterToAdd.setQuarter(colorQuarter.getQuarter().apply(null).toString());
                 colorQuarters.add(colorQuarterToAdd);

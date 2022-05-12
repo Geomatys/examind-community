@@ -29,6 +29,8 @@ import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import static org.constellation.json.util.StyleFactories.SF;
 import static org.constellation.json.util.StyleUtilities.literal;
 import static org.constellation.json.util.StyleUtilities.parseExpression;
+import static org.constellation.json.util.StyleUtilities.toHex;
+import org.opengis.filter.Literal;
 
 /**
  * @author Fabien Bernard (Geomatys).
@@ -45,8 +47,17 @@ public final class Fill implements StyleElement<org.opengis.style.Fill> {
 
     public Fill(final org.opengis.style.Fill fill) {
         ensureNonNull("fill", fill);
-        final Color col = (Color) fill.getColor().apply(null);
-        color = StyleUtilities.toHex(col);
+        if (fill.getColor() instanceof Literal lit) {
+           if (lit.getValue() instanceof Color col) {
+               color = toHex(col);
+           } else if (lit.getValue() instanceof String colStr) {
+               color = colStr;
+           } else {
+               throw new IllegalArgumentException("Expected Color or String value for Fill color literal");
+           }
+        } else if (fill.getColor() != null) {
+            throw new IllegalArgumentException("Expected literal or function interpolate for Fill color");
+        }
         final Expression opacityExp = fill.getOpacity();
         if(opacityExp != null){
             opacity = StyleUtilities.toCQL(opacityExp);

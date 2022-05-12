@@ -22,6 +22,7 @@ import org.constellation.json.util.StyleUtilities;
 import org.opengis.filter.Literal;
 
 import java.awt.*;
+import java.util.logging.Logger;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import static org.constellation.json.util.StyleFactories.SF;
@@ -35,6 +36,8 @@ import static org.constellation.json.util.StyleUtilities.literal;
 public final class InterpolationPoint implements StyleElement<org.geotoolkit.style.function.InterpolationPoint> {
 
     private static final long serialVersionUID = 1L;
+
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.json.binding");
 
     private Number data = null;
     private String color = "#000000";
@@ -57,8 +60,13 @@ public final class InterpolationPoint implements StyleElement<org.geotoolkit.sty
         }
         if (interpolationPoint.getValue() instanceof Literal) {
             final Object obj = ((Literal) interpolationPoint.getValue()).getValue();
-            if (obj instanceof Color) {
-                color = StyleUtilities.toHex((Color) obj);
+            if (obj instanceof Color col) {
+                color = StyleUtilities.toHex(col);
+            } else if (obj instanceof String colStr) {
+                color = colStr;
+            } else if (obj != null) {
+                 // don't throw exception for unexpected
+                LOGGER.warning("Unable to convert interpolation point literal value:" + obj);
             }
         }
     }
