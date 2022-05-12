@@ -80,6 +80,7 @@ public class PyramidBusinessTest extends SpringContextTest {
 
     private static int coverage1PID;
     private static int coverage2PID;
+    private static int vector1PID;
     private static boolean initialized = false;
 
     @PostConstruct
@@ -98,6 +99,8 @@ public class PyramidBusinessTest extends SpringContextTest {
                 // insert data
                 coverage1PID = testResources.createProvider(TestEnvironment.TestResource.TIF, providerBusiness, null).id;
                 coverage2PID = testResources.createProvider(TestEnvironment.TestResource.PNG, providerBusiness, null).id;
+
+                vector1PID = testResources.createProvider(TestEnvironment.TestResource.JSON_FEATURE, providerBusiness, null).id;
 
                 initialized = true;
             } catch (Exception ex) {
@@ -309,15 +312,17 @@ public class PyramidBusinessTest extends SpringContextTest {
         List<Integer> dataIds = new ArrayList<>();
         //dataIds.addAll(providerBusiness.getDataIdsFromProviderId(coverage2PID));
         dataIds.addAll(providerBusiness.getDataIdsFromProviderId(coverage1PID));
+        dataIds.addAll(providerBusiness.getDataIdsFromProviderId(vector1PID));
 
-        Assert.assertEquals(1, dataIds.size());
+        Assert.assertEquals(2, dataIds.size());
 
-        DataBrief db = dataBusiness.getDataBrief(dataIds.get(0), false, true);
+        DataBrief db1 = dataBusiness.getDataBrief(dataIds.get(0), false, true);
+        DataBrief db2 = dataBusiness.getDataBrief(dataIds.get(1), false, true);
 
-        final DataProvider inProvider = DataProviders.getProvider(db.getProviderId());
-        final Data inD = inProvider.get(NamesExt.create(db.getName()));
+        final DataProvider inProvider = DataProviders.getProvider(db1.getProviderId());
+        final Data inD = inProvider.get(NamesExt.create(db1.getName()));
 
-        Integer mpId = mpBusiness.createFromData(1, "my_context", "CRS:84", inD.getEnvelope(), Arrays.asList(db));
+        Integer mpId = mpBusiness.createFromData(1, "my_context", "CRS:84", inD.getEnvelope(), Arrays.asList(db1, db2));
 
         int nbLevel = 4;
 
