@@ -225,6 +225,86 @@ public class PyramidBusinessTest extends SpringContextTest {
 
     @Test
     @Order(order=2)
+    public void pyramidDatasTestMercator() throws Exception {
+        List<Integer> dataIds = new ArrayList<>();
+        dataIds.addAll(providerBusiness.getDataIdsFromProviderId(coverage2PID));
+        //dataIds.addAll(providerBusiness.getDataIdsFromProviderId(coverage1PID));
+
+        Assert.assertEquals(1, dataIds.size());
+        int nbLevel = 4; // will not be used because its coverage data
+
+        TilingResult result = pyramidBusiness.pyramidDatas(1, "my_pyramid_2", dataIds, "EPSG:3857", TilingMode.RENDERED, nbLevel);
+
+        Assert.assertNotNull(result.getPyramidDataId());
+        org.constellation.dto.Data d = dataBusiness.getData(result.getPyramidDataId());
+        Assert.assertNotNull(d);
+        Assert.assertEquals("my_pyramid_2", d.getName());
+        Assert.assertNotNull(result.getTaskId());
+
+        // wait for process to start
+        Thread.sleep(2000);
+
+        // maybe the process is already finished
+        List<Task> tasks = processBusiness.listTaskHistory(result.getTaskId(), 0, 1);
+        if (tasks.isEmpty()) {
+
+            tasks = processBusiness.listRunningTasks(result.getTaskId(), 0, 1);
+
+            Assert.assertEquals(1, tasks.size());
+
+            LOGGER.info("Wait for tiling process to finish");
+            long start = System.currentTimeMillis();
+            int cpt = 0;
+            Task tilingTask = tasks.get(0);
+            while (!tilingTask.getState().equals(TaskState.SUCCEED.name())) {
+                if (tilingTask.getState().equals(TaskState.CANCELLED.name()) ||
+                    tilingTask.getState().equals(TaskState.FAILED.name()) ||
+                    tilingTask.getState().equals(TaskState.PAUSED.name()) ||
+                    tilingTask.getState().equals(TaskState.WARNING.name())) {
+                    throw new Exception("Tiling task does not succeed, final state:" + tilingTask.getState());
+                }
+                if (cpt > 50) {
+                    throw new Exception("Tiling take too much time to finish");
+                }
+                tilingTask = processBusiness.getTask(tilingTask.getIdentifier());
+                LOGGER.log(Level.INFO, "Processing: {0}%", tilingTask.getProgress());
+                Thread.sleep(1000);
+                cpt++;
+            }
+            LOGGER.log(Level.INFO, "Tiling process executed in: {0}ms.", System.currentTimeMillis() - start);
+        } else {
+            Task tilingTask = tasks.get(0);
+            Assert.assertEquals(TaskState.SUCCEED.name(), tilingTask.getState());
+        }
+
+        DataProvider dp = DataProviders.getProvider(d.getProviderId());
+        Assert.assertNotNull(dp);
+
+        Data dd = dp.get(d.getNamespace(), d.getName());
+
+        Assert.assertNotNull(dd);
+        Assert.assertTrue(dd.getOrigin() instanceof TiledResource);
+        TiledResource mr = (TiledResource) dd.getOrigin();
+
+        Assert.assertEquals(1, mr.getTileMatrixSets().size());
+        TileMatrixSet model = mr.getTileMatrixSets().iterator().next();
+        Assert.assertEquals("image/png", mr.getTileFormat().getMimeType());
+
+        Assert.assertTrue(model instanceof TileMatrixSet);
+        TileMatrixSet tms = (TileMatrixSet) model;
+        Assert.assertEquals(4, tms.getTileMatrices().size());
+
+        Assert.assertNotNull(result.getPyramidDataId());
+
+        org.constellation.dto.Data db = dataBusiness.getData(result.getPyramidDataId());
+        Assert.assertNotNull(db);
+
+        Assert.assertTrue(db.getRendered());
+        Assert.assertTrue(db.getHidden());
+    }
+
+    @Test
+    @Order(order=3)
     public void pyramidMapContextTest() throws Exception {
         List<Integer> dataIds = new ArrayList<>();
         //dataIds.addAll(providerBusiness.getDataIdsFromProviderId(coverage2PID));

@@ -113,7 +113,7 @@ public class ScaleUtilities {
 
                     //rever order, as expected by callers
                     scales = new double[ds.length];
-                    for (int i = 0, j = ds.length; i < scales.length; i++, j--) scales[i] = ds[j];
+                    for (int i = 0, j = ds.length - 1; i < scales.length; i++, j--) scales[i] = ds[j];
 
                 } catch (FactoryException ex) {
                     throw new ConstellationStoreException(ex);
