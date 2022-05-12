@@ -72,7 +72,7 @@ public enum ServiceDef {
     PEP(Specification.PEP, Organization.OASIS, null, Profile.NONE, null, null, false, true),
     PDP(Specification.PDP, Organization.OASIS, null, Profile.NONE, null, null, false, true),
     // Thesaurus services definitions
-    THW(Specification.THW, Organization.NONE, null, Profile.NONE, null, "1.1.0", false, true),
+    THW(Specification.THW, Organization.NONE, "1.0.0", Profile.NONE, null, "1.1.0", false, true),
 
     //WPS services definitions
     WPS_1_0_0(Specification.WPS, Organization.OGC, "1.0.0", Profile.NONE, "1.1.0", "1.0.0", true, true),
