@@ -41,11 +41,13 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.Stack;
 
 /**
@@ -59,6 +61,8 @@ public class JsonUtils extends Static {
     private static final JsonFactory JSON_FACTORY = new JsonFactory();
 
     private static SimpleModule CUSTOM_MODULE = null;
+
+    private static Set<Class> RAW_CLASSES = new HashSet<>();
     
     /**
      * Find all json Converters defined in META-INF/service files.
@@ -70,6 +74,7 @@ public class JsonUtils extends Static {
             while (ite.hasNext()) {
                 StdConverter sm = ite.next();
                 Class<?> rawClass = sm.getOutputType(TypeFactory.defaultInstance()).getRawClass();
+                RAW_CLASSES.add(rawClass);
                 CUSTOM_MODULE.addDeserializer(rawClass, new StdDelegatingDeserializer<>(sm));
             }
         }
@@ -169,6 +174,13 @@ public class JsonUtils extends Static {
             // special case with custom converter
             Module module = findCustomConverters();
             mapper.registerModule(module);
+            // Because of jackson converter inheritance, a stdConverter is not called for sub classes of the raw class.
+            // https://github.com/FasterXML/jackson-databind/issues/2596
+            for (Class rawClass : RAW_CLASSES) {
+                if (rawClass.isAssignableFrom(binding)) {
+                    binding = rawClass;
+                }
+            }
             return mapper.treeToValue(node, binding);
             
         } catch (JsonProcessingException ex) {

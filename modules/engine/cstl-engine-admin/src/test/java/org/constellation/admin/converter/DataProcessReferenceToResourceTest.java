@@ -68,7 +68,8 @@ public class DataProcessReferenceToResourceTest extends SpringContextTest {
 
     private static int nbVectorData = -1;
 
-    private static DataImport di;
+    private static DataImport covData;
+    private static DataImport vectData;
 
     private static boolean initialized = false;
 
@@ -83,13 +84,13 @@ public class DataProcessReferenceToResourceTest extends SpringContextTest {
             org.geotoolkit.lang.Setup.initialize(null);
 
             // coverage-file datastore
-            di = testResources.createProvider(TestEnvironment.TestResource.TIF, providerBusiness, null).datas.get(0);
+            covData = testResources.createProvider(TestEnvironment.TestResource.TIF, providerBusiness, null).datas.get(0);
             testResources.createProvider(TestEnvironment.TestResource.PNG, providerBusiness, null);
 
-
-
             // shapefile datastore
-            nbVectorData = testResources.createProviders(TestEnvironment.TestResource.SHAPEFILES, providerBusiness, null).datas().size();
+            List<DataImport> datas = testResources.createProviders(TestEnvironment.TestResource.SHAPEFILES, providerBusiness, null).datas();
+            nbVectorData = datas.size();
+            vectData = datas.get(0);
 
             initialized = true;
         }
@@ -118,22 +119,27 @@ public class DataProcessReferenceToResourceTest extends SpringContextTest {
     }
 
     @Test
-    public void jsonConvertTest() throws Exception {
+    public void jsonConvertGridCoverageTest() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         SimpleModule module = new SimpleModule();
         module.addDeserializer(Resource.class, new StdDelegatingDeserializer<>(new DataProcessReferenceConverter()));
 
         String dataRef = "{" +
-                         "\"id\":" + di.id + "," +
-                         "\"name\":\"" + di.name + "\"," +
-                         "\"namespace\":\"" + di.namespace + "\"," +
-                         "\"provider\":" + di.pid  +
+                         "\"id\":" + covData.id + "," +
+                         "\"name\":\"" + covData.name + "\"," +
+                         "\"namespace\":\"" + covData.namespace + "\"," +
+                         "\"provider\":" + covData.pid  +
                          "}";
         mapper.registerModule(module);
         Resource imm = mapper.readValue(dataRef, Resource.class);
         assertTrue(imm instanceof Resource);
         assertTrue(imm instanceof GridCoverageResource);
 
+
+         /* will fail because of jackson converter inheritance
+            https://github.com/FasterXML/jackson-databind/issues/2596
+        GridCoverageResource gcr = mapper.readValue(dataRef, GridCoverageResource.class);
+        assertTrue(gcr instanceof Resource);*/
 
         // now try to read in the context of a parameter value
         final ParameterBuilder builder = new ParameterBuilder();
@@ -148,6 +154,45 @@ public class DataProcessReferenceToResourceTest extends SpringContextTest {
         Object value = pvalue.parameter("resourceParam").getValue();
         assertTrue(value instanceof Resource);
         assertTrue(value instanceof GridCoverageResource);
+
+    }
+
+    @Test
+    public void jsonConvertFeatureSetTest() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        SimpleModule module = new SimpleModule();
+        module.addDeserializer(Resource.class, new StdDelegatingDeserializer<>(new DataProcessReferenceConverter()));
+
+        String dataRef = "{" +
+                         "\"id\":" + vectData.id + "," +
+                         "\"name\":\"" + vectData.name + "\"," +
+                         "\"namespace\":\"" + vectData.namespace + "\"," +
+                         "\"provider\":" + vectData.pid  +
+                         "}";
+        mapper.registerModule(module);
+        Resource imm = mapper.readValue(dataRef, Resource.class);
+        assertTrue(imm instanceof Resource);
+        assertTrue(imm instanceof FeatureSet);
+
+        /* will fail because of jackson converter inheritance
+            https://github.com/FasterXML/jackson-databind/issues/2596
+
+        FeatureSet fs = mapper.readValue(dataRef, FeatureSet.class);
+        assertTrue(fs instanceof Resource);*/
+
+        // now try to read in the context of a parameter value
+        final ParameterBuilder builder = new ParameterBuilder();
+
+        final ParameterDescriptor<Resource> resParam = builder.addName("resourceParam").setRequired(true).create(Resource.class, null);
+        final ParameterDescriptorGroup descriptor    =  builder.addName("group").setRequired(true).createGroup(resParam);
+
+        String json = "{\"resourceParam\":" +  dataRef + "}";
+
+        ParameterValueGroup pvalue = (ParameterValueGroup) ParamUtilities.readParameterJSON(json, descriptor);
+
+        Object value = pvalue.parameter("resourceParam").getValue();
+        assertTrue(value instanceof Resource);
+        assertTrue(value instanceof FeatureSet);
 
     }
 
