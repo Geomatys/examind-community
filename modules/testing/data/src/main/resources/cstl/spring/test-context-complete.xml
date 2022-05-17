@@ -41,5 +41,13 @@
 
   <import resource="classpath*:/cstl/spring/auto/*-context.xml" />
 
+  <bean id="cstlAuthenticationTokenProcessingFilter" class="org.constellation.engine.security.AuthenticationTokenProcessingFilter">
+    <property name="userDetailsExtractor">
+      <bean class="org.constellation.services.security.DummyUserDetailExtractor"/>
+    </property>
+    <property name="allowUnauthorized" value="true"/>
+  </bean>
+  
+  <import resource="classpath:/cstl/spring/test-security.xml" />
 </beans>
 

@@ -1,0 +1,92 @@
+<beans xmlns:sec="http://www.springframework.org/schema/security" xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+    <bean id="md5PasswordEncoder" class="org.springframework.security.crypto.password.MessageDigestPasswordEncoder">
+        <constructor-arg value="MD5"/>
+    </bean>
+
+    <sec:authentication-manager alias="authenticationManager"/>
+
+    <sec:global-method-security secured-annotations="enabled" jsr250-annotations="enabled" pre-post-annotations="enabled" />
+
+    <bean id="unauthorizedEntryPoint" class="org.constellation.engine.security.UnauthorizedEntryPoint" />
+
+    <alias name="springSecurityFilterChain" alias="securityFilter" />
+  
+    <sec:http pattern="/API/**"
+              create-session="never"
+              request-matcher="ant"
+              use-expressions="true"
+              auto-config="false"
+              entry-point-ref="unauthorizedEntryPoint">
+        <sec:csrf disabled="true"/>
+        <sec:custom-filter ref="cstlAuthenticationTokenProcessingFilter" position="FORM_LOGIN_FILTER" />
+
+        <!-- no authentication on login requests -->
+        <sec:intercept-url pattern="/API/auth/login" access="permitAll" />
+        <sec:intercept-url pattern="/API/auth/forgotPassword" access="permitAll" />
+        <sec:intercept-url pattern="/API/auth/resetPassword" access="permitAll" />
+        <sec:intercept-url pattern="/API/auth/ping" access="permitAll" />
+        <sec:intercept-url pattern="/API/metadata/metadataJson/resolve/**" access="permitAll" />
+
+        <!-- administrator only -->
+        <sec:intercept-url pattern="/API/admin/**" access="hasAuthority('cstl-admin')" />
+        <sec:intercept-url pattern="/API/cluster/**" access="hasAuthority('cstl-admin')" />
+        <sec:intercept-url pattern="/API/user/**" access="hasAuthority('cstl-admin')" />
+        <sec:intercept-url pattern="/API/role/**" access="hasAuthority('cstl-admin')" />
+
+        <!-- other apis requiere authentication -->
+        <sec:intercept-url pattern="/API/**" access="authenticated" />
+
+    </sec:http>
+
+    <sec:http pattern="/**"
+              create-session="never"
+              request-matcher="ant"
+              use-expressions="true"
+              auto-config="false"
+              entry-point-ref="unauthorizedEntryPoint">
+        <sec:csrf disabled="true"/>
+        <sec:access-denied-handler error-page="/login.html"/>
+        <sec:custom-filter ref="cstlAuthenticationTokenProcessingFilter" position="FORM_LOGIN_FILTER" />
+
+        <!--
+            Keep in mind that intercept-url pattern are ordered
+            Higher in list is more specific
+        -->
+
+        <!-- Limited access page/resources -->
+        <sec:intercept-url pattern="/admin.html" access="authenticated"/>
+
+        <!-- Constellation Open resources -->
+        <sec:intercept-url pattern="/**/*.html" access="permitAll"/>
+        <sec:intercept-url pattern="/**/*.js" access="permitAll"/>
+        <sec:intercept-url pattern="/**/*.css" access="permitAll"/>
+        <sec:intercept-url pattern="/**/*.json" access="permitAll"/>
+        <sec:intercept-url pattern="/**/*.jsp" access="permitAll"/>
+
+        <!-- /api specific endpoints -->
+        <!--<sec:intercept-url pattern="/api/1/session/account" access="permitAll"/>-->
+
+        <!-- /WS specific endpoints -->
+        <sec:intercept-url pattern="/WS/configuration/**" access="hasAuthority('cstl-admin')" />
+        <sec:intercept-url pattern="/WS/*/admin/**" access="hasAuthority('cstl-admin')" />
+
+        <!-- generic endpoints -->
+        <sec:intercept-url pattern="/WS/**" access="permitAll" />
+
+        <sec:intercept-url pattern="/img/**" access="permitAll"/>
+        <sec:intercept-url pattern="/images/**" access="permitAll"/>
+        <sec:intercept-url pattern="/icons/**" access="permitAll"/>
+        <sec:intercept-url pattern="/app/**" access="permitAll"/>
+        <sec:intercept-url pattern="/fonts/**" access="permitAll"/>
+
+        <sec:intercept-url pattern="/**" access="hasAuthority('cstl-admin')"/>
+
+    </sec:http>
+    
+</beans>
+
