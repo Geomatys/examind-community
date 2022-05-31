@@ -134,7 +134,7 @@ public class SensorRestAPI extends AbstractRestAPI {
             if (sensor != null) {
                 List<Service> services = serviceBusiness.getSensorLinkedServices(id);
                 for (Service service : services) {
-                    getConfigurer().removeSensor(service.getId(), sensor.getIdentifier());
+                    getConfigurer(service.getType()).removeSensor(service.getId(), sensor.getIdentifier());
                 }
                 if (removeData != null && removeData) {
                     List<Integer> dataIds = sensorBusiness.getLinkedDataIds(id);
@@ -304,7 +304,7 @@ public class SensorRestAPI extends AbstractRestAPI {
             for (ProcedureTree process : procedures) {
                 sensorBusiness.generateSensorForData(dataId, process, smlProviderId, null);
             }
-            IOUtils.write("The sensors has been succesfully generated", response.getOutputStream());
+            IOUtils.write("The sensors has been succesfully generated", response.getOutputStream(), StandardCharsets.UTF_8);
             return new ResponseEntity(OK);
         } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
@@ -593,7 +593,8 @@ public class SensorRestAPI extends AbstractRestAPI {
         }
     }
 
-    private ISensorConfigurer getConfigurer() throws NotRunningServiceException {
-        return (ISensorConfigurer) wsengine.newInstance(ServiceDef.Specification.SOS);
+    private ISensorConfigurer getConfigurer(String type) throws NotRunningServiceException {
+        final ServiceDef.Specification spec = ServiceDef.Specification.fromShortName(type);
+        return (ISensorConfigurer) wsengine.newInstance(spec);
     }
 }

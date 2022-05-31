@@ -20,7 +20,10 @@ package org.constellation.api.rest;
 
 import com.examind.sensor.component.SensorServiceBusiness;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.io.IOUtils;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
@@ -38,6 +41,7 @@ import org.opengis.geometry.Geometry;
 import org.opengis.observation.Observation;
 import org.springframework.http.HttpStatus;
 import static org.springframework.http.HttpStatus.OK;
+import org.springframework.http.MediaType;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import org.springframework.http.ResponseEntity;
@@ -171,14 +175,26 @@ public class SensorServiceRestAPI {
         return new ResponseEntity(sensorServiceBusiness.getTimeForSensorId(serviceId, sensorID), OK);
     }
 
-    @RequestMapping(value="/SensorService/{id}/observations", method = POST, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity getDecimatedObservations(final @PathVariable("id") Integer serviceId, final @RequestBody ObservationFilter filter) throws Exception {
-        return new ResponseEntity(sensorServiceBusiness.getResultsCsv(serviceId, filter.getSensorID(), filter.getObservedProperty(), filter.getFoi(), filter.getStart(), filter.getEnd(), filter.getWidth(), "text/csv"), OK);
+    @RequestMapping(value="/SensorService/{id}/observations", method = POST)
+    public ResponseEntity getDecimatedObservations(final @PathVariable("id") Integer serviceId, final @RequestBody ObservationFilter filter, HttpServletResponse response) throws Exception {
+        Object results = sensorServiceBusiness.getResultsCsv(serviceId, filter.getSensorID(), filter.getObservedProperty(), filter.getFoi(), filter.getStart(), filter.getEnd(), filter.getWidth(), "text/csv");
+        if (results instanceof String) {
+            IOUtils.write((String)results, response.getOutputStream(), StandardCharsets.UTF_8);
+            return ResponseEntity.ok().contentType(MediaType.TEXT_PLAIN).build();
+        } else {
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(results);
+        }
     }
 
     @RequestMapping(value="/SensorService/{id}/observations/raw", method = POST, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity getObservations(final @PathVariable("id") Integer serviceId, final @RequestBody ObservationFilter filter) throws Exception {
-        return new ResponseEntity(sensorServiceBusiness.getResultsCsv(serviceId, filter.getSensorID(), filter.getObservedProperty(), filter.getFoi(), filter.getStart(), filter.getEnd(), null, "text/csv"), OK);
+    public ResponseEntity getObservations(final @PathVariable("id") Integer serviceId, final @RequestBody ObservationFilter filter, HttpServletResponse response) throws Exception {
+        Object results = sensorServiceBusiness.getResultsCsv(serviceId, filter.getSensorID(), filter.getObservedProperty(), filter.getFoi(), filter.getStart(), filter.getEnd(), null, "text/csv");
+        if (results instanceof String) {
+            IOUtils.write((String)results, response.getOutputStream(), StandardCharsets.UTF_8);
+            return ResponseEntity.ok().contentType(MediaType.TEXT_PLAIN).build();
+        } else {
+            return new ResponseEntity(results, OK);
+        }
     }
 
     @RequestMapping(value="/SensorService/{id}/observations", method = PUT, produces = APPLICATION_JSON_VALUE)
