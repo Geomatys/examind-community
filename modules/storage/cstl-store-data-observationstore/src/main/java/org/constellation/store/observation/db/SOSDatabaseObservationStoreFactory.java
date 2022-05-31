@@ -56,12 +56,6 @@ public class SOSDatabaseObservationStoreFactory extends AbstractObservationStore
     public static final ParameterDescriptor<Integer> PORT = BUILDER.addName("port").setRemarks("Port").setRequired(false).create(Integer.class, 5432);
 
     /**
-     * Parameter identifying the OM datastore
-     */
-    public static final ParameterDescriptor<String> DBTYPE =
-             BUILDER.addName("dbtype").setRemarks("DbType").setRequired(true).create(String.class, "OM");
-
-    /**
      * Parameter for database type (postgres, derby, ...)
      */
     public static final ParameterDescriptor<String> SGBDTYPE =
@@ -104,7 +98,7 @@ public class SOSDatabaseObservationStoreFactory extends AbstractObservationStore
              BUILDER.addName("password").setRemarks("Password").setRequired(false).create(String.class, null);
 
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR = BUILDER.addName(NAME).addName("SOSDBParameters").setRequired(true)
-            .createGroup(IDENTIFIER,DBTYPE,HOST,PORT,DATABASE,USER,PASSWD,NAMESPACE, SGBDTYPE, DERBYURL, PHENOMENON_ID_BASE, OBSERVATION_TEMPLATE_ID_BASE, OBSERVATION_ID_BASE, SENSOR_ID_BASE, SCHEMA_PREFIX, TIMESCALEDB);
+            .createGroup(IDENTIFIER,HOST,PORT,DATABASE,USER,PASSWD,NAMESPACE, SGBDTYPE, DERBYURL, PHENOMENON_ID_BASE, OBSERVATION_TEMPLATE_ID_BASE, OBSERVATION_ID_BASE, SENSOR_ID_BASE, SCHEMA_PREFIX, TIMESCALEDB);
 
     @Override
     public ParameterDescriptorGroup getOpenParameters() {

@@ -96,7 +96,7 @@ public class CsvObservationStoreTest {
 
         params.parameter(CsvObservationStoreFactory.OBSERVATION_TYPE.getName().getCode()).setValue("Profile");
         params.parameter(CsvObservationStoreFactory.PROCEDURE_ID.getName().getCode()).setValue("urn:sensor:1");
-        //params.parameter(CsvObservationStoreFactory.FILE_MIME_TYPE.getName().getCode()).setValue("csv");
+        params.parameter(CsvObservationStoreFactory.FILE_MIME_TYPE.getName().getCode()).setValue("csv");
 
         params.parameter(CSVProvider.SEPARATOR.getName().getCode()).setValue(Character.valueOf(','));
 

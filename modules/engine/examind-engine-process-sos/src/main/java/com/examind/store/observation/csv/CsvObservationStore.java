@@ -17,10 +17,9 @@
 
 package com.examind.store.observation.csv;
 
-import com.opencsv.CSVReader;
+import com.examind.store.observation.DataFileReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -87,9 +86,9 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
     public CsvObservationStore(final Path observationFile, final char separator, final char quotechar, final FeatureType featureType,
             final String mainColumn, final String dateColumn, final String dateTimeformat, final String longitudeColumn, final String latitudeColumn,
             final Set<String> measureColumns, String observationType, String foiColumn, final String procedureId, final String procedureColumn, 
-            final String procedureNameColumn, final String procedureDescColumn, final String zColumn, final String uomRegex, String obsPropRegex) throws DataStoreException, MalformedURLException {
+            final String procedureNameColumn, final String procedureDescColumn, final String zColumn, final String uomRegex, String obsPropRegex, String mimeType) throws DataStoreException, MalformedURLException {
         super(observationFile, separator, quotechar, featureType, mainColumn, dateColumn, dateTimeformat, longitudeColumn, latitudeColumn, measureColumns, observationType, 
-              foiColumn, procedureId, procedureColumn, procedureNameColumn, procedureDescColumn, zColumn, uomRegex, obsPropRegex);
+              foiColumn, procedureId, procedureColumn, procedureNameColumn, procedureDescColumn, zColumn, uomRegex, obsPropRegex, mimeType);
     }
 
     @Override
@@ -101,7 +100,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
     protected Set<GenericName> extractProcedures() throws DataStoreException {
         final Set<GenericName> result = new HashSet();
         // open csv file
-        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), delimiter, quotechar)) {
+        try (final DataFileReader reader = getDataFileReader()) {
 
             final Iterator<String[]> it = reader.iterator();
 
@@ -137,7 +136,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
             final Set<org.opengis.observation.Phenomenon> phenomenons, final Set<org.opengis.observation.sampling.SamplingFeature> samplingFeatures) throws DataStoreException {
 
         // open csv file
-        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), delimiter, quotechar)) {
+        try (final DataFileReader reader = getDataFileReader()) {
 
             final Iterator<String[]> it = reader.iterator();
 
@@ -349,17 +348,11 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
 
     @Override
     public Set<String> getPhenomenonNames() throws DataStoreException {
-
         // open csv file
-        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), delimiter, quotechar)) {
-
-            final Iterator<String[]> it = reader.iterator();
-
-            // at least one line is expected to contain headers information
-            if (!it.hasNext()) return Collections.emptySet();
+        try (final DataFileReader reader = getDataFileReader()) {
 
             // read headers
-            final String[] headers = it.next();
+            final String[] headers = reader.getHeaders();
             final Set<String> measureFields = new HashSet<>();
             for (int i = 0; i < headers.length; i++) {
                 final String header = headers[i];
@@ -378,7 +371,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
     @Override
     public List<ExtractionResult.ProcedureTree> getProcedures() throws DataStoreException {
         // open csv file
-        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), delimiter, quotechar)) {
+        try (final DataFileReader reader = getDataFileReader()) {
 
             final Iterator<String[]> it = reader.iterator();
 

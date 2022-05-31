@@ -52,7 +52,7 @@ public class CsvFlatObservationStoreFactory extends FileParsingObservationStoreF
             = PARAM_BUILDER.addName(NAME).addName("ObservationCsvFlatFileParameters").createGroup(IDENTIFIER, NAMESPACE, CSVProvider.PATH, CSVProvider.SEPARATOR,
                     MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, OBSERVATION_TYPE,
                     PROCEDURE_ID, PROCEDURE_COLUMN, PROCEDURE_NAME_COLUMN, PROCEDURE_DESC_COLUMN, Z_COLUMN, UOM_COLUMN, UOM_REGEX, RESULT_COLUMN, OBS_PROP_COLUMN,
-                    OBS_PROP_NAME_COLUMN, OBS_PROP_FILTER_COLUMN, OBS_PROP_REGEX, TYPE_COLUMN, CHARQUOTE);
+                    OBS_PROP_NAME_COLUMN, OBS_PROP_FILTER_COLUMN, OBS_PROP_REGEX, TYPE_COLUMN, CHARQUOTE, FILE_MIME_TYPE);
 
     @Override
     public String getShortName() {
@@ -94,12 +94,13 @@ public class CsvFlatObservationStoreFactory extends FileParsingObservationStoreF
         final String obsPropRegex = (String) params.parameter(OBS_PROP_REGEX.getName().toString()).getValue();
         final String typeColumn = (String) params.parameter(TYPE_COLUMN.getName().toString()).getValue();
         final String uomColumn = (String) params.parameter(UOM_COLUMN.getName().toString()).getValue();
+        final String mimeType = (String) params.parameter(FILE_MIME_TYPE.getName().toString()).getValue();
         try {
             return new CsvFlatObservationStore(Paths.get(uri),
-                    separator, quotechar, readType(uri, separator, quotechar, dateColumn, longitudeColumn, latitudeColumn, obsPropFilterColumns),
+                    separator, quotechar, readType(uri, mimeType, separator, quotechar, dateColumn, longitudeColumn, latitudeColumn, obsPropFilterColumns),
                     mainColumn, dateColumn, dateFormat, longitudeColumn, latitudeColumn, obsPropFilterColumns, observationType,
                     foiColumn, procedureId, procedureColumn, procedureNameColumn, procedureDescColumn, zColumn, uomColumn, uomRegex, valueColumn,
-                    obsPropColumns, obsPropNameColumns, typeColumn, obsPropRegex);
+                    obsPropColumns, obsPropNameColumns, typeColumn, obsPropRegex, mimeType);
         } catch (IOException ex) {
             LOGGER.log(Level.WARNING, "problem opening csv file", ex);
             throw new DataStoreException(ex);
@@ -108,6 +109,6 @@ public class CsvFlatObservationStoreFactory extends FileParsingObservationStoreF
 
     @Override
     public Collection<String> getSuffix() {
-        return Arrays.asList("csv");
+        return Arrays.asList("csv", "xlsx", "xls");
     }
 }

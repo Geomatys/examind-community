@@ -16,9 +16,9 @@
  */
 package com.examind.store.observation.csvflat;
 
-import com.opencsv.CSVReader;
+import com.examind.store.observation.DataFileReader;
+import com.examind.store.observation.FileParsingUtils;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import java.util.*;
@@ -34,8 +34,8 @@ import org.constellation.util.Util;
 public class CsvFlatUtils {
     private static final Logger LOGGER = Logger.getLogger("com.examind.store.observation.csvflat");
 
-    public static Set<String> extractCodes(Path dataFile, Collection<String> measureCodeColumns, char separator) throws ConstellationStoreException {
-        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), separator)) {
+    public static Set<String> extractCodes(String format, Path dataFile, Collection<String> measureCodeColumns, Character separator, Character quoteChar) throws ConstellationStoreException {
+        try (final DataFileReader reader = FileParsingUtils.getDataFileReader(format, dataFile, separator, quoteChar)) {
 
             final Iterator<String[]> it = reader.iterator();
 

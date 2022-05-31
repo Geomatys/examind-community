@@ -1,19 +1,21 @@
 /*
- *    Geotoolkit - An Open Source Java GIS Toolkit
- *    http://www.geotoolkit.org
+ *     Examind Community - An open source and standard compliant SDI
+ *     https://community.examind.com/
  *
- *    (C) 2019, Geomatys
+ *  Copyright 2022 Geomatys.
  *
- *    This library is free software; you can redistribute it and/or
- *    modify it under the terms of the GNU Lesser General Public
- *    License as published by the Free Software Foundation;
- *    version 2.1 of the License.
+ *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *    This library is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *    Lesser General Public License for more details.
- */
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+*/
 package com.examind.store.observation;
 
 import java.io.IOException;
@@ -25,7 +27,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Scanner;
 import java.util.Set;
 import java.util.logging.Logger;
 import static org.apache.sis.feature.AbstractIdentifiedType.NAME_KEY;
@@ -182,6 +183,11 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
             .setRequired(false)
             .create(String.class, null);
 
+    public static final ParameterDescriptor<String> FILE_MIME_TYPE = PARAM_BUILDER
+            .addName("file_mime_type")
+            .setRequired(false)
+            .create(String.class, null);
+
     @Override
     public DataStore open(StorageConnector sc) throws DataStoreException {
         GeneralParameterDescriptor desc;
@@ -238,24 +244,20 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
      * @throws DataStoreException
      * @throws java.io.IOException
      */
-    protected FeatureType readType(final URI file, final char separator, final char charquote, final String dateColumn,
+    protected FeatureType readType(final URI file, final String mimeType, final char separator, final char charquote, final String dateColumn,
             final String longitudeColumn, final String latitudeColumn, final Set<String> measureColumns) throws DataStoreException, IOException {
 
+        // no possibility to open the file with the correct reader.
+        if (mimeType == null) {
+            return null;
+        }
         /*
-        1- read csv file headers
+        1- read file headers
         ======================*/
-        final String line;
-        try (final Scanner scanner = new Scanner(Paths.get(file))) {
-            if (scanner.hasNextLine()) {
-                line = scanner.nextLine();
-            } else {
-                return null;
-            }
+        try (final DataFileReader reader = FileParsingUtils.getDataFileReader(mimeType, Paths.get(file), separator, charquote)) {
 
-            final String[] fields = line.split("" + separator, -1);
-
+            final String[] fields = reader.getHeaders();
             final FeatureTypeBuilder ftb = new FeatureTypeBuilder();
-
 
             /*
             2- build feature type name and id fields
@@ -350,6 +352,8 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
             if (extValid) {
                 switch (extension) {
                     case "csv" :  return new ProbeResult(true, "text/csv; subtype=\"om\"", null);
+                    case "xlsx":  return new ProbeResult(true, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; subtype=\"om\"", null);
+                    case "xls" :  return new ProbeResult(true, "application/vnd.ms-excel; subtype=\"om\"", null);
                     case "dbf" :  return new ProbeResult(true, "application/dbase; subtype=\"om\"", null);
                 }
             }

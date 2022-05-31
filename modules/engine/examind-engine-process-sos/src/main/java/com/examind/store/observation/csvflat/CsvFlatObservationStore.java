@@ -17,8 +17,8 @@
 
 package com.examind.store.observation.csvflat;
 
+import com.examind.store.observation.DataFileReader;
 import com.examind.store.observation.ObservationBlock;
-import com.opencsv.CSVReader;
 import org.apache.sis.geometry.GeneralDirectPosition;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
@@ -35,7 +35,6 @@ import org.opengis.util.GenericName;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -87,9 +86,10 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                                        final String mainColumn, final String dateColumn, final String dateTimeformat, final String longitudeColumn, final String latitudeColumn,
                                        final Set<String> obsPropFilterColumns, String observationType, String foiColumn, final String procedureId, final String procedureColumn, 
                                        final String procedureNameColumn, final String procedureDescColumn, final String zColumn, final String uomColumn, final String uomRegex,
-                                       final String valueColumn, final Set<String> obsPropColumns, final Set<String> obsPropNameColumns, final String typeColumn,  String obsPropRegex) throws DataStoreException, MalformedURLException {
+                                       final String valueColumn, final Set<String> obsPropColumns, final Set<String> obsPropNameColumns, final String typeColumn,  String obsPropRegex,
+                                       final String mimeType) throws DataStoreException, MalformedURLException {
         super(observationFile, separator, quotechar, featureType, mainColumn, dateColumn, dateTimeformat, longitudeColumn, latitudeColumn, obsPropFilterColumns, observationType,
-              foiColumn, procedureId, procedureColumn, procedureNameColumn, procedureDescColumn, zColumn, uomRegex, obsPropRegex);
+              foiColumn, procedureId, procedureColumn, procedureNameColumn, procedureDescColumn, zColumn, uomRegex, obsPropRegex, mimeType);
         this.valueColumn = valueColumn;
         this.obsPropColumns = obsPropColumns;
         this.obsPropNameColumns = obsPropNameColumns;
@@ -97,9 +97,10 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
         this.uomColumn = uomColumn;
 
         // special case for * measure columns
-        if (obsPropFilterColumns.isEmpty()) {
+        // if the store is open with missing mime type we skip this part.
+        if (obsPropFilterColumns.isEmpty() && mimeType != null) {
             try {
-                this.measureColumns = extractCodes(dataFile, obsPropColumns, separator);
+                this.measureColumns = extractCodes(mimeType, dataFile, obsPropColumns, separator, quotechar);
             } catch (ConstellationStoreException ex) {
                 throw new DataStoreException(ex);
             }
@@ -119,7 +120,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
 
         final Set<GenericName> result = new HashSet();
         // open csv file
-        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), delimiter, quotechar)) {
+        try (final DataFileReader reader = getDataFileReader()) {
 
             final Iterator<String[]> it = reader.iterator();
 
@@ -165,7 +166,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             final Set<org.opengis.observation.Phenomenon> phenomenons, final Set<org.opengis.observation.sampling.SamplingFeature> samplingFeatures) throws DataStoreException {
 
         // open csv file with a delimiter set as process SosHarvester input.
-        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), delimiter, quotechar)) {
+        try (final DataFileReader reader = getDataFileReader()) {
 
             final Iterator<String[]> it = reader.iterator();
 
@@ -460,7 +461,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
     @Override
     public List<ProcedureTree> getProcedures() throws DataStoreException {
         // open csv file
-        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), delimiter, quotechar)) {
+        try (final DataFileReader reader = getDataFileReader()) {
 
             final Iterator<String[]> it = reader.iterator();
 

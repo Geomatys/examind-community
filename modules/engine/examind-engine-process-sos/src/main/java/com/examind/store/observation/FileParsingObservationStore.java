@@ -1,20 +1,21 @@
 /*
- *    Geotoolkit - An Open Source Java GIS Toolkit
- *    http://www.geotoolkit.org
+ *     Examind Community - An open source and standard compliant SDI
+ *     https://community.examind.com/
  *
- *    (C) 2021, Geomatys
+ *  Copyright 2022 Geomatys.
  *
- *    This library is free software; you can redistribute it and/or
- *    modify it under the terms of the GNU Lesser General Public
- *    License as published by the Free Software Foundation;
- *    version 2.1 of the License.
+ *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *    This library is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *    Lesser General Public License for more details.
- */
-
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+*/
 package com.examind.store.observation;
 
 import static com.examind.store.observation.FileParsingUtils.buildFOIByGeom;
@@ -23,10 +24,8 @@ import static com.examind.store.observation.FileParsingUtils.extractWithRegex;
 import static com.examind.store.observation.FileParsingUtils.getDataRecordProfile;
 import static com.examind.store.observation.FileParsingUtils.getDataRecordTrajectory;
 import static com.examind.store.observation.FileParsingUtils.parseDouble;
-import com.opencsv.CSVReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -118,11 +117,13 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
     protected final String uomRegex;
     protected final String obsPropRegex;
 
+    protected final String mimeType;
+
     public FileParsingObservationStore(final Path f, final char separator, final char quotechar, FeatureType ft, 
             final String mainColumn, final String dateColumn, final String dateTimeformat, final String longitudeColumn,
             final String latitudeColumn, final Set<String> measureColumns, String observationType, String foiColumn,
             final String procedureId, final String procedureColumn, final String procedureNameColumn, final String procedureDescColumn, 
-            final String zColumn, final String uomRegex, final String obsPropRegex) throws MalformedURLException, DataStoreException{
+            final String zColumn, final String uomRegex, final String obsPropRegex, String mimeType) throws MalformedURLException, DataStoreException{
         super(f, separator, ft);
         this.dataFile = f;
         this.delimiter = separator;
@@ -141,6 +142,7 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
         this.zColumn = zColumn;
         this.uomRegex = uomRegex;
         this.obsPropRegex = obsPropRegex;
+        this.mimeType = mimeType;
 
         if (procedureId == null && procedureColumn == null) {
             this.procedureId = IOUtilities.filenameWithoutExtension(dataFile);
@@ -325,18 +327,13 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
     @Override
     public TemporalGeometricPrimitive getTemporalBounds() throws DataStoreException {
 
-        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile), delimiter, quotechar)) {
-
-            final Iterator<String[]> it = reader.iterator();
-
-            // at least one line is expected to contain headers information
-            if (!it.hasNext()) throw new DataStoreException("csv headers not found");
+        try (final DataFileReader reader = getDataFileReader()) {
 
             // prepare time column indices
             int dateIndex = -1;
 
             // read headers
-            final String[] headers = it.next();
+            final String[] headers = reader.getHeaders();
             for (int i = 0; i < headers.length; i++) {
                 final String header = headers[i];
                 if (dateColumn.equals(header)) {
@@ -345,6 +342,8 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
                 }
             }
             if (dateIndex == -1) return null;
+
+            final Iterator<String[]> it = reader.iterator();
 
             final GeoSpatialBound result = new GeoSpatialBound();
             final SimpleDateFormat sdf = new SimpleDateFormat(this.dateFormat);
@@ -358,7 +357,7 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
             return result.getTimeObject("2.0.0");
             
         } catch (IOException | ParseException ex) {
-            throw new DataStoreException("Failed extracting dates from input CSV file", ex);
+            throw new DataStoreException("Failed extracting dates from input file: " + ex.getMessage(), ex);
         }
     }
 
@@ -382,5 +381,9 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
             return new double[] {latitude, longitude};
         }
         return new double[0];
+    }
+    
+    protected DataFileReader getDataFileReader() throws IOException {
+        return FileParsingUtils.getDataFileReader(mimeType, dataFile, delimiter, quotechar);
     }
 }

@@ -230,6 +230,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRemarks(STORE_ID_DESC)
             .setRequired(true)
             .create(String.class, "observationCsvFile");
+            //.createEnumerated(String.class, new String[]{"observationCsvFile", "observationCsvFlatFile", "observationDbfFile"}, "observationCsvFile");
 
     public static final String FORMAT_NAME = "format";
     public static final String FORMAT_DESC = "Data format (mime type) of the file to insert";
@@ -238,6 +239,11 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRemarks(FORMAT_DESC)
             .setRequired(false)
             .create(String.class, null);
+            /*.createEnumerated(String.class, new String[]{"text/csv; subtype=\"om\"",
+                                                         "application/dbase; subtype=\"om\"",
+                                                         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; subtype=\"om\"",
+                                                         "application/vnd.ms-excel; subtype=\"om\""},
+                                                         "text/csv; subtype=\"om\"");*/
 
     public static final String RESULT_COLUMN_NAME = "result_column";
     public static final String RESULT_COLUMN_DESC = "Column containing result values (used with csv-flat)";

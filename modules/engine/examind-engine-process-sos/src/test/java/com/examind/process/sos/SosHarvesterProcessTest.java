@@ -134,6 +134,9 @@ public class SosHarvesterProcessTest extends SpringContextTest {
     private static Path bigdataDirectory;
     private static Path survalDirectory;
 
+    // XLS dir
+    private static Path xDataDirectory;
+
     // DBF dir
     private static Path ltDirectory;
     private static Path rtDirectory;
@@ -178,6 +181,8 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         Files.createDirectories(bigdataDirectory);
         survalDirectory = DATA_DIRECTORY.resolve("surval");
         Files.createDirectories(survalDirectory);
+        xDataDirectory = DATA_DIRECTORY.resolve("xdata");
+        Files.createDirectories(xDataDirectory);
 
         writeResourceDataFile(argoDirectory, "com/examind/process/sos/argo-profiles-2902402-1.csv", "argo-profiles-2902402-1.csv");
 
@@ -199,6 +204,8 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         writeResourceDataFile(bigdataDirectory, "com/examind/process/sos/bigdata-1.csv", "bigdata-1.csv");
 
         writeResourceDataFile(survalDirectory, "com/examind/process/sos/surval-small.csv", "surval-small.csv");
+
+        writeResourceDataFile(xDataDirectory, "com/examind/process/sos/xdata.xlsx", "xdata.xlsx");
 
     }
 
@@ -2275,6 +2282,106 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         verifyHistoricalLocation(loc1, sdf, "2007-12-18T00:00:00Z", -3.093748, 47.534765);
         int nbMeasure = getNbMeasure(stsWorker, "urn:surval:25049001");
         Assert.assertEquals(791, nbMeasure);
+
+    }
+
+    @Test
+    @Order(order = 8)
+    public void harvesterXLSTSTest() throws Exception {
+
+        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
+        Assert.assertNotNull(sc);
+
+        ServiceComplete sc2 = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
+        Assert.assertNotNull(sc2);
+
+        sensorServBusiness.removeAllSensors(sc.getId());
+        sensorServBusiness.removeAllSensors(sc2.getId());
+
+        SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
+        sosWorker.setServiceUrl("http://localhost/examind/");
+
+        STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
+        stsWorker.setServiceUrl("http://localhost/examind/");
+
+        int prev = getNbOffering(sosWorker, 0);
+
+        Assert.assertEquals(ORIGIN_NB_SENSOR, prev);
+
+        String datasetId = "SOS_DATA_4";
+
+        final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, SosHarvesterProcessDescriptor.NAME);
+
+        final ParameterValueGroup in = desc.getInputDescriptor().createValue();
+        in.parameter(SosHarvesterProcessDescriptor.DATASET_IDENTIFIER_NAME).setValue(datasetId);
+        in.parameter(SosHarvesterProcessDescriptor.DATA_FOLDER_NAME).setValue(xDataDirectory.toUri().toString());
+
+        in.parameter(SosHarvesterProcessDescriptor.STORE_ID_NAME).setValue("observationCsvFile");
+
+        in.parameter(SosHarvesterProcessDescriptor.DATE_COLUMN_NAME).setValue("date_mesure");
+        in.parameter(SosHarvesterProcessDescriptor.MAIN_COLUMN_NAME).setValue("date_mesure");
+
+        in.parameter(SosHarvesterProcessDescriptor.DATE_FORMAT_NAME).setValue("dd/MM/yyyy HH:mm:ss");
+
+         in.parameter(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).setValue("ph");
+
+        in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
+        in.parameter(SosHarvesterProcessDescriptor.THING_COLUMN_NAME).setValue("capteur");
+        in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue("urn:xdata:");
+        in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(true);
+        in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
+
+        ParameterValue s1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
+        s1.setValue(new ServiceProcessReference(sc));
+        in.values().add(s1);
+        ParameterValue s2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
+        s2.setValue(new ServiceProcessReference(sc2));
+        in.values().add(s2);
+
+        org.geotoolkit.process.Process proc = desc.createProcess(in);
+        proc.call();
+
+        // verify that the dataset has been created
+        Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
+
+        // verify that the sensor has been created
+        Sensor sensor = sensorBusiness.getSensor("urn:xdata:cap-90");
+        Assert.assertNotNull(sensor);
+        Assert.assertEquals("urn:xdata:cap-90", sensor.getIdentifier());
+
+        Thing t = getThing(stsWorker, "urn:xdata:cap-90");
+        Assert.assertNotNull(t);
+
+        Assert.assertEquals(2, getNbOffering(sosWorker, prev));
+
+        /*
+        * first extracted procedure
+        */
+
+        ObservationOffering offp = getOffering(sosWorker, "urn:xdata:cap-90");
+        Assert.assertNotNull(offp);
+
+        Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
+        TimePeriodType time = (TimePeriodType) offp.getTime();
+
+        Assert.assertEquals("2021-01-29T06:39:29.000", time.getBeginPosition().getValue());
+        Assert.assertEquals("2021-01-29T06:39:31.000", time.getEndPosition().getValue());
+
+        Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
+        
+        String observedProperty = offp.getObservedProperties().get(0);
+
+        Assert.assertEquals("ph" , observedProperty);
+
+        /*
+        * Verify an inserted data
+        */
+        GetResultResponseType gr = (GetResultResponseType) sosWorker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, null));
+        String expectedResult = getResourceAsString("com/examind/process/sos/xdata-datablock-values.txt");
+        Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
+
+        int nbMeasure = getNbMeasure(stsWorker, "urn:xdata:cap-90");
+        Assert.assertEquals(3, nbMeasure);
 
     }
 

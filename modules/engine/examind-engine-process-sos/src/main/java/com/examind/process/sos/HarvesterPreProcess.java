@@ -19,18 +19,15 @@
 package com.examind.process.sos;
 
 import static com.examind.process.sos.SosHarvesterProcessDescriptor.*;
+import com.examind.store.observation.DataFileReader;
+import com.examind.store.observation.FileParsingUtils;
 import static com.examind.store.observation.csvflat.CsvFlatUtils.extractCodes;
-import com.opencsv.CSVReader;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.channels.SeekableByteChannel;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -45,8 +42,6 @@ import org.constellation.process.ChainProcessRetriever;
 import org.constellation.process.ExamindProcessFactory;
 import org.constellation.util.FileSystemReference;
 import org.constellation.util.FileSystemUtilities;
-import org.geotoolkit.data.dbf.DbaseFileHeader;
-import org.geotoolkit.data.dbf.DbaseFileReader;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.geotoolkit.processing.chain.model.Chain;
@@ -103,12 +98,12 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
             format = "csv";
         }
 
-        final boolean csvFlat = "csv-flat".equals(format);
+        final boolean csvFlat = format.endsWith("-flat");
         
         String ext = '.' + format;
 
         if (csvFlat) {
-            ext = ".csv";
+            ext = '.' + format.substring(0, format.length() - 5);
             if (resultColumn == null || obsPropColumns.isEmpty()) {
                 throw new ProcessException("The result column, obs prop column can't be null", this);
             }
@@ -169,7 +164,7 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
 
                     // extract codes
                     if (csvFlat) {
-                        Set<String> currentCodes = extractCodes(child, obsPropColumns, separator.charAt(0));
+                        Set<String> currentCodes = extractCodes(format, child, obsPropColumns, separator.charAt(0), charquote == null ? null : charquote.charAt(0));
                         codes.addAll(currentCodes);
                     }
                 }
@@ -244,7 +239,6 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
             inputs.add(new Parameter(OBS_PROP_COLUMN_NAME, String.class, OBS_PROP_COLUMN_DESC, OBS_PROP_COLUMN_DESC, 0, 92, null, headers));
             inputs.add(new Parameter(OBS_PROP_REGEX_NAME,  String.class, OBS_PROP_REGEX_DESC,  OBS_PROP_REGEX_DESC,  0, 1, null));
             inputs.add(new Parameter(STORE_ID_NAME,        String.class, STORE_ID_DESC,        STORE_ID_DESC,        1, 1, "observationCsvFile"));
-            inputs.add(new Parameter(FORMAT_NAME,          String.class, FORMAT_DESC,          FORMAT_DESC,          1, 1, "text/csv; subtype=\"om\""));
 
         } else if (csvFlat) {
 
@@ -264,13 +258,19 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
             inputs.add(new Parameter(OBS_PROP_COLUMNS_FILTER_NAME, String.class, OBS_PROP_COLUMNS_FILTER_DESC, OBS_PROP_COLUMNS_FILTER_DESC, 0, 92, null, sortedCodes.toArray()));
 
             inputs.add(new Parameter(STORE_ID_NAME,                String.class, STORE_ID_DESC,                STORE_ID_DESC,                1, 1, "observationCsvFlatFile"));
-            inputs.add(new Parameter(FORMAT_NAME,                  String.class, FORMAT_DESC,                  FORMAT_DESC,                  1, 1, "text/csv; subtype=\"om\""));
             inputs.add(new Parameter(RESULT_COLUMN_NAME,           String.class, RESULT_COLUMN_DESC,           RESULT_COLUMN_DESC,           1, 1, resultColumn));
             inputs.add(new Parameter(TYPE_COLUMN_NAME,             String.class, TYPE_COLUMN_DESC,             TYPE_COLUMN_DESC,             0, 1, typeColumn));
         
         } else if ("dbf".equals(format)) {
             inputs.add(new Parameter(STORE_ID_NAME, String.class, STORE_ID_DESC, STORE_ID_DESC, 1, 1, "observationDbfFile"));
+        }
+
+        if (ext.equals(".csv")) {
+            inputs.add(new Parameter(FORMAT_NAME,                  String.class, FORMAT_DESC,                  FORMAT_DESC,                  1, 1, "text/csv; subtype=\"om\""));
+        } else if (ext.equals(".dbf")) {
             inputs.add(new Parameter(FORMAT_NAME,   String.class, FORMAT_DESC,   FORMAT_DESC,   1, 1, "application/dbase; subtype=\"om\""));
+        } else if (ext.equals(".xlsx")) {
+            inputs.add(new Parameter(FORMAT_NAME,   String.class, FORMAT_DESC,   FORMAT_DESC,   1, 1, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; subtype=\"om\""));
         }
 
         chain.setInputs(inputs);
@@ -316,37 +316,12 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
 
     private String[] extractHeaders(Path dataFile, String format, char separator) throws ProcessException {
         LOGGER.log(Level.INFO, "Extracting headers from : {0}", dataFile.getFileName().toString());
-        if ("csv".equals(format) || "csv-flat".equals(format)) {
-            try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile, StandardCharsets.UTF_8), separator)) {
+        try (final DataFileReader reader = FileParsingUtils.getDataFileReader(format, dataFile, separator, '"')) {
 
-                final Iterator<String[]> it = reader.iterator();
+            return reader.getHeaders();
 
-                // at least one line is expected to contain headers information
-                if (it.hasNext()) {
-
-                    // read headers
-                    final String[] headers = it.next();
-                    return headers;
-                }
-                throw new ProcessException("csv headers not found", this);
-            } catch (IOException ex) {
-                throw new ProcessException("problem reading csv file", this, ex);
-            }
-        } else {
-            try (SeekableByteChannel sbc = Files.newByteChannel(dataFile, StandardOpenOption.READ)){
-
-                final DbaseFileReader reader  = new DbaseFileReader(sbc, true, null);
-                final DbaseFileHeader headers = reader.getHeader();
-
-                final String[] results = new String[headers.getNumFields()];
-                for (int i = 0; i < headers.getNumFields(); i++) {
-                    results[i] = headers.getFieldName(i);
-                }
-                return results;
-
-            } catch (IOException ex) {
-                throw new ProcessException("problem reading dbf file", this, ex);
-            }
+        } catch (IOException ex) {
+            throw new ProcessException("problem extracting headers from file:" + ex.getMessage(), this, ex);
         }
     }
 

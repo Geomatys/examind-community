@@ -55,12 +55,15 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import org.apache.sis.storage.FeatureQuery;
 import org.constellation.business.IDatasourceBusiness.AnalysisState;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.SensorReference;
+import org.constellation.dto.importdata.FileBean;
 import org.constellation.dto.importdata.ResourceAnalysisV3;
+import org.constellation.dto.importdata.StoreFormat;
 import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
@@ -315,13 +318,14 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             provConfig.getParameters().put(FileParsingObservationStoreFactory.TYPE_COLUMN.getName().toString(), typeColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.Z_COLUMN.getName().toString(), zColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.UOM_COLUMN.getName().toString(), uomColumn);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.FILE_MIME_TYPE.getName().toString(), format);
             final Map<String, Object> extraStoreParams = inputParameters.getValue(EXTRA_STORE_PARAMETERS);
             if (extraStoreParams != null) {
                 for (Entry<String, Object> extraStoreParam : extraStoreParams.entrySet()) {
                     provConfig.getParameters().put(extraStoreParam.getKey(), extraStoreParam.getValue().toString());
                 }
             }
-
+            
             try {
                 Integer datasetId = datasetBusiness.getDatasetId(datasetIdentifier);
                 if (datasetId == null)  {
@@ -346,6 +350,20 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                             datasourceBusiness.removePath(dsId, p.getPath());
                         }
                         default -> {
+                            // in the case of a null format, meaning that multiple format are accepted.
+                            // we need to determine the format of each file
+                            if (format == null) {
+                                Optional<FileBean> fb = datasourceBusiness.getAnalyzedPath(dsId, p.getPath());
+                                if (fb.isPresent()) {
+                                    List<StoreFormat> types = fb.get().getTypes();
+                                    for (StoreFormat sf : types) {
+                                        if (storeId.equals(sf.getStore())) {
+                                            provConfig.getParameters().put(FileParsingObservationStoreFactory.FILE_MIME_TYPE.getName().toString(), sf.getFormat());
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
                             fireAndLog("Integrating data file: " + p.getPath(), 0);
                             dataToIntegrate.addAll(integratingDataFile(p, dsId, provConfig, datasetId));
                             nbFileInserted++;
