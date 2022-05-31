@@ -111,25 +111,10 @@ public class OM2BaseReader {
     public OM2BaseReader(final Map<String, Object> properties, final String schemaPrefix, final boolean cacheEnabled, final boolean isPostgres, final boolean timescaleDB) throws DataStoreException {
         this.isPostgres = isPostgres;
         this.timescaleDB = timescaleDB;
-        final String phenID = (String) properties.get(PHENOMENON_ID_BASE_NAME);
-        if (phenID == null) {
-            this.phenomenonIdBase      = "";
-        } else {
-            this.phenomenonIdBase      = phenID;
-        }
-        final String sidBase = (String) properties.get(SENSOR_ID_BASE_NAME);
-        if (sidBase == null) {
-            this.sensorIdBase = "";
-        } else {
-            this.sensorIdBase = sidBase;
-        }
-        this.observationTemplateIdBase = (String) properties.get(OBSERVATION_TEMPLATE_ID_BASE_NAME);
-        final String oidBase           = (String) properties.get(OBSERVATION_ID_BASE_NAME);
-        if (oidBase == null) {
-            this.observationIdBase = "";
-        } else {
-            this.observationIdBase = oidBase;
-        }
+        this.phenomenonIdBase = (String) properties.getOrDefault(PHENOMENON_ID_BASE_NAME, "");
+        this.sensorIdBase = (String) properties.getOrDefault(SENSOR_ID_BASE_NAME, "");
+        this.observationTemplateIdBase = (String) properties.getOrDefault(OBSERVATION_TEMPLATE_ID_BASE_NAME, "urn:observation:template:");
+        this.observationIdBase         = (String) properties.getOrDefault(OBSERVATION_ID_BASE_NAME, "");
         if (schemaPrefix == null) {
             this.schemaPrefix = "";
         } else {
@@ -315,12 +300,10 @@ public class OM2BaseReader {
                                 name = "longitude";
                             } else if (phenID.equals("http://www.opengis.net/def/property/OGC/0/SamplingTime")) {
                                 name = "samplingTime";
-                            } else if (phenID.startsWith(phenomenonIdBase)) {
-                                name = phenID.substring(phenomenonIdBase.length());
                             }
-                        }
-                        if (name == null) {
-                            name = phenID;
+                            if (name == null) {
+                                name = phenID.startsWith(phenomenonIdBase) ? phenID.substring(phenomenonIdBase.length()) : phenID;
+                            }
                         }
                         return buildPhenomenon(version, phenID, name, definition, description);
                     }
