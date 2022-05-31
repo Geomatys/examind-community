@@ -1015,7 +1015,7 @@ function Examind($http, url) {
         removeSensor : function(id, sensorID) {
             return self.request({
                 method: 'DELETE',
-                url: 'SensorService/' + id + '/sensor/' + sensorID
+                url: 'SensorService/' + id + '/sensor/' + encodeURIComponent(sensorID)
                 });
         },
 
@@ -1039,7 +1039,7 @@ function Examind($http, url) {
         getFeatures : function(id, sensorID) {
             return self.request({
                 method: 'GET',
-                 url: 'SensorService/' + id + '/sensor/location/' + sensorID
+                 url: 'SensorService/' + id + '/sensor/location/' + encodeURIComponent(sensorID)
                 });
         },
 
@@ -1051,7 +1051,7 @@ function Examind($http, url) {
         measuresForSensor : function(id, sensorID) {
             return self.request({
                 method: 'GET',
-                 url: 'SensorService/' + id + '/observedProperty/identifiers/' + sensorID
+                 url: 'SensorService/' + id + '/observedProperty/identifiers/' + encodeURIComponent(sensorID)
                 });
         },
 
@@ -1075,7 +1075,7 @@ function Examind($http, url) {
         importSensor : function(id, sensorID) {
             return self.request({
                 method: 'PUT',
-                url: 'SensorService/' + id + '/sensor/import/' + sensorID
+                url: 'SensorService/' + id + '/sensor/import/' + encodeURIComponent(sensorID)
                 });
         },
 
