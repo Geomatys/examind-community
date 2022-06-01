@@ -139,7 +139,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
     public static final ParameterDescriptor<String> SEPARATOR = PARAM_BUILDER
             .addName(SEPARATOR_NAME)
             .setRemarks(SEPARATOR_DESC)
-            .setRequired(true)
+            .setRequired(false)
             .create(String.class, ",");
 
     public static final String MAIN_COLUMN_NAME = FileParsingObservationStoreFactory.MAIN_COLUMN.getName().getCode();
@@ -179,7 +179,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
     public static final ParameterDescriptor<String> LONGITUDE_COLUMN = PARAM_BUILDER
             .addName(LONGITUDE_COLUMN_NAME)
             .setRemarks(LONGITUDE_COLUMN_DESC)
-            .setRequired(true)
+            .setRequired(false)
             .create(String.class, "LONGITUDE (degree_east)");
 
     public static final String LATITUDE_COLUMN_NAME = FileParsingObservationStoreFactory.LATITUDE_COLUMN.getName().getCode();
@@ -187,7 +187,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
     public static final ParameterDescriptor<String> LATITUDE_COLUMN = PARAM_BUILDER
             .addName(LATITUDE_COLUMN_NAME)
             .setRemarks(LATITUDE_COLUMN_DESC)
-            .setRequired(true)
+            .setRequired(false)
             .create(String.class, "LATITUDE (degree_north)");
 
     public static final String FOI_COLUMN_NAME = FileParsingObservationStoreFactory.FOI_COLUMN.getName().getCode();
