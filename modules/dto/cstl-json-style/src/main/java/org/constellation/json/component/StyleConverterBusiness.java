@@ -34,6 +34,7 @@ import org.constellation.json.binding.Rule;
 import org.constellation.json.binding.Style;
 import org.constellation.json.binding.TextSymbolizer;
 import org.constellation.json.util.StyleUtilities;
+import org.geotoolkit.style.MutableFeatureTypeStyle;
 import org.geotoolkit.style.MutableRule;
 import org.geotoolkit.style.MutableStyle;
 import org.opengis.filter.LikeOperator;
@@ -54,11 +55,22 @@ public class StyleConverterBusiness implements IStyleConverterBusiness {
             MutableStyle mStyle = (MutableStyle) style;
             final Style result = new Style();
             final List<MutableRule> mutableRules = new ArrayList<>(0);
+            Boolean multiStyle = false;
             if (!style.featureTypeStyles().isEmpty()) {
-                mutableRules.addAll(mStyle.featureTypeStyles().get(0).rules());
+                /**
+                 * During SIGeoS development we introduced the possibility to have more than one MutableFeatureTypeStyle
+                 * per style. So, instead of fetching the rules from the first of the list only, we will iterate on the entire list
+                 */
+                for (MutableFeatureTypeStyle fts : mStyle.featureTypeStyles()) {
+                    mutableRules.addAll(fts.rules());
+                }
+                if (mStyle.featureTypeStyles().size() > 1) {
+                    multiStyle = true;
+                }
             }
 
             result.setName(mStyle.getName());
+            result.setMultiStyle(multiStyle);
             for (final MutableRule mutableRule : mutableRules) {
                 result.getRules().add(getJsonRule(mutableRule));
             }

@@ -19,6 +19,7 @@
 
 package org.constellation.json.binding;
 
+import org.geotoolkit.style.MutableFeatureTypeStyle;
 import org.geotoolkit.style.MutableStyle;
 
 import java.util.ArrayList;
@@ -27,6 +28,7 @@ import java.util.Objects;
 
 import static org.constellation.json.util.StyleFactories.SF;
 import static org.constellation.json.util.StyleUtilities.listType;
+import static org.constellation.json.util.StyleUtilities.type;
 
 /**
  * @author Fabien Bernard (Geomatys).
@@ -38,6 +40,16 @@ public final class Style implements StyleElement<MutableStyle> {
     private Integer id;
     private String name;
     private List<Rule> rules = new ArrayList<>();
+
+    /**
+     * This boolean has been added during SIGeoS development. This parameter allows the creation of a single Style composed of
+     * multiple FeatureTypeStyle(s). Generally, it is sufficent to create a single style with multiple rules but in some cases
+     * (e.g. GroupSymbolizer) the symbolizers used in the rules do not support this approach. To circunvent this problem, and keep
+     * backward compatibility, the multiStyle parameter was added:
+     *   - when set to true it will create one FeatureTypeStyle per rule
+     *   - when set to false it will create one FeatureTypeStyle with all rules (default behaviour)
+     */
+    private Boolean multiStyle = null;
 
     public Style() {
     }
@@ -66,12 +78,28 @@ public final class Style implements StyleElement<MutableStyle> {
         this.rules = rules;
     }
 
+    public Boolean getMultiStyle() {
+        return multiStyle;
+    }
+
+    public void setMultiStyle(Boolean multiStyle) {
+        this.multiStyle = multiStyle;
+    }
+
     @Override
     public MutableStyle toType() {
         final MutableStyle style = SF.style();
         style.setName(name);
-        style.featureTypeStyles().add(SF.featureTypeStyle());
-        style.featureTypeStyles().get(0).rules().addAll(listType(rules));
+        if (Boolean.TRUE.equals(multiStyle)) {
+            for (Rule rule : rules) {
+                MutableFeatureTypeStyle fts = SF.featureTypeStyle();
+                fts.rules().add(type(rule));
+                style.featureTypeStyles().add(fts);
+            }
+        } else {
+            style.featureTypeStyles().add(SF.featureTypeStyle());
+            style.featureTypeStyles().get(0).rules().addAll(listType(rules));
+        }
         return style;
     }
 
