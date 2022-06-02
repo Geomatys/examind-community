@@ -53,6 +53,8 @@ import com.examind.sensor.component.SensorServiceBusiness;
 import com.google.common.base.Objects;
 import java.net.URI;
 import java.util.Collections;
+import java.util.Map;
+import java.util.Map.Entry;
 import org.apache.sis.storage.FeatureQuery;
 import org.constellation.business.IDatasourceBusiness.AnalysisState;
 import org.constellation.business.IProviderBusiness;
@@ -312,6 +314,12 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             provConfig.getParameters().put(FileParsingObservationStoreFactory.TYPE_COLUMN.getName().toString(), typeColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.Z_COLUMN.getName().toString(), zColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.UOM_COLUMN.getName().toString(), uomColumn);
+            final Map<String, Object> extraStoreParams = inputParameters.getValue(EXTRA_STORE_PARAMETERS);
+            if (extraStoreParams != null) {
+                for (Entry<String, Object> extraStoreParam : extraStoreParams.entrySet()) {
+                    provConfig.getParameters().put(extraStoreParam.getKey(), extraStoreParam.getValue().toString());
+                }
+            }
 
             try {
                 Integer datasetId = datasetBusiness.getDatasetId(datasetIdentifier);

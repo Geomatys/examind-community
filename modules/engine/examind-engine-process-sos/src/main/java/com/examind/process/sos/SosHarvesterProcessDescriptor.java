@@ -21,6 +21,7 @@ package com.examind.process.sos;
 import com.examind.store.observation.FileParsingObservationStoreFactory;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Map;
 import org.apache.sis.parameter.ParameterBuilder;
 import org.geotoolkit.processing.AbstractProcessDescriptor;
 import org.geotoolkit.process.Process;
@@ -300,10 +301,18 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(false)
             .create(String.class, null);
 
+     public static final String EXTRA_STORE_PARAMETERS_NAME = "extra_store_parameter";
+    public static final String EXTRA_STORE_PARAMETERS_DESC = "extra store parameterr";
+    public static final ParameterDescriptor<Map> EXTRA_STORE_PARAMETERS = PARAM_BUILDER
+            .addName(EXTRA_STORE_PARAMETERS_NAME)
+            .setRemarks(EXTRA_STORE_PARAMETERS_DESC)
+            .setRequired(false)
+            .create(Map.class, null);
+
     public static final ParameterDescriptorGroup INPUT_DESC =
             PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, REMOTE_READ, SERVICE_ID, DATASET_IDENTIFIER, THING_ID, THING_COLUMN, THING_NAME_COLUMN, THING_DESC_COLUMN, OBS_TYPE,
                     SEPARATOR, CHARQUOTE, MAIN_COLUMN, Z_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, UOM_COLUMN, UOM_REGEX, REMOVE_PREVIOUS,
-                    STORE_ID, FORMAT, RESULT_COLUMN, OBS_PROP_COLUMN, OBS_PROP_NAME_COLUMN, OBS_PROP_COLUMNS_FILTER, OBS_PROP_REGEX, TYPE_COLUMN);
+                    STORE_ID, FORMAT, RESULT_COLUMN, OBS_PROP_COLUMN, OBS_PROP_NAME_COLUMN, OBS_PROP_COLUMNS_FILTER, OBS_PROP_REGEX, TYPE_COLUMN, EXTRA_STORE_PARAMETERS);
 
     public static final String FILE_INSERTED_NAME = "files_inserted_count";
     public static final String FILE_INSERTED_DESC = "Number of files inserted ";
