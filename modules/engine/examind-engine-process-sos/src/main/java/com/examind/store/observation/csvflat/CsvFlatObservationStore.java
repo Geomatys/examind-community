@@ -402,7 +402,6 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     continue;
                 }
 
-
                 // parse main value
                 Number mainValue;
                 try {
@@ -547,7 +546,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                         procedureTree.spatialBound.addLocation(dateParse, geom);
                     }
                 } catch (NumberFormatException | ParseException ex) {
-                    LOGGER.fine(String.format("Problem parsing lat/lon field at line %d.", count));
+                    LOGGER.fine(String.format("Problem parsing lat/lon field at line %d.(Error msg='%s'). skipping line...", count, ex.getMessage()));
                     continue;
                 }
                 previousProc = currentProc;

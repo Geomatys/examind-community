@@ -301,7 +301,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(false)
             .create(String.class, null);
 
-     public static final String EXTRA_STORE_PARAMETERS_NAME = "extra_store_parameter";
+    public static final String EXTRA_STORE_PARAMETERS_NAME = "extra_store_parameter";
     public static final String EXTRA_STORE_PARAMETERS_DESC = "extra store parameter";
     public static final ParameterDescriptor<Map> EXTRA_STORE_PARAMETERS = PARAM_BUILDER
             .addName(EXTRA_STORE_PARAMETERS_NAME)

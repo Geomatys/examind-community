@@ -108,7 +108,6 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
             // at least one line is expected to contain headers information
             if (!it.hasNext()) throw new DataStoreException("csv headers not found");
 
-            // prepare time column indices
             int procIndex = -1;
 
             // read headers
@@ -122,7 +121,6 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
 
             while (it.hasNext()) {
                 final String[] line = it.next();
-                // update temporal information
                 if (procIndex != -1) {
                     result.add(NamesExt.create(procedureId + line[procIndex]));
                 }
@@ -291,7 +289,6 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                     LOGGER.fine(String.format("Problem parsing lat/lon for date field at line %d (Error msg='%s'). skipping line...", lineNumber, ex.getMessage()));
                     continue;
                 }
-
                 /*
                 b- build measure string
                 =====================*/
