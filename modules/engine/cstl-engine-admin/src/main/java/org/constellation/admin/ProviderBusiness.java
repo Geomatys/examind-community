@@ -423,6 +423,9 @@ public class ProviderBusiness implements IProviderBusiness {
     }
 
 
+    /**
+     * TODO It is now urgent to remove all this hacks
+     */
     protected ParameterValueGroup fillProviderParameter(String type, String subType,
                                                         Map<String, String> inParams,
                                                         ParameterValueGroup sources)throws ConfigurationException {

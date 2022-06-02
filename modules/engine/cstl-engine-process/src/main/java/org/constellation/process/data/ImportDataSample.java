@@ -72,7 +72,7 @@ public class ImportDataSample extends AbstractCstlProcess {
 
         final DataSource ds = datasourceBusiness.getDatasource(datasourceId);
         try {
-             datasourceBusiness.recordSelectedPath(datasourceId);
+             datasourceBusiness.recordSelectedPath(datasourceId, false);
              List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(datasourceId, sampleCount);
              DatasourceAnalysisV3 outputDatas = new DatasourceAnalysisV3();
              for (DataSourceSelectedPath p : paths) {

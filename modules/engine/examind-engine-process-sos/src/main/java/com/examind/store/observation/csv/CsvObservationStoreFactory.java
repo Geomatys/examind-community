@@ -22,17 +22,12 @@ import java.net.URI;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Set;
 import java.util.logging.Level;
 import org.apache.sis.internal.storage.Capability;
 import org.apache.sis.internal.storage.StoreMetadata;
 import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.storage.ProbeResult;
-import org.apache.sis.storage.StorageConnector;
-import org.geotoolkit.storage.feature.FileFeatureStoreFactory;
 import org.geotoolkit.data.csv.CSVProvider;
-import org.geotoolkit.storage.ProviderOnFileSystem;
 import org.geotoolkit.storage.ResourceType;
 import org.geotoolkit.storage.StoreMetadataExt;
 import org.opengis.parameter.ParameterDescriptor;
@@ -47,7 +42,7 @@ import org.opengis.parameter.ParameterValueGroup;
         formatName = CsvObservationStoreFactory.NAME,
         capabilities = Capability.READ)
 @StoreMetadataExt(resourceTypes = ResourceType.SENSOR)
-public class CsvObservationStoreFactory extends FileParsingObservationStoreFactory implements ProviderOnFileSystem {
+public class CsvObservationStoreFactory extends FileParsingObservationStoreFactory {
 
     /** factory identification **/
     public static final String NAME = "observationCsvFile";
@@ -110,15 +105,5 @@ public class CsvObservationStoreFactory extends FileParsingObservationStoreFacto
     @Override
     public Collection<String> getSuffix() {
         return Arrays.asList("csv");
-    }
-
-    @Override
-    public Collection<byte[]> getSignature() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public ProbeResult probeContent(StorageConnector connector) throws DataStoreException {
-        return FileFeatureStoreFactory.probe(this, connector, MIME_TYPE);
     }
 }

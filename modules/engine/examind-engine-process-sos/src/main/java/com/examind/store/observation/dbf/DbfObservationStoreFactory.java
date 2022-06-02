@@ -22,9 +22,7 @@ import java.net.URI;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
@@ -34,17 +32,12 @@ import org.apache.sis.metadata.iso.citation.Citations;
 import org.apache.sis.parameter.DefaultParameterDescriptorGroup;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
-import org.apache.sis.storage.ProbeResult;
-import org.apache.sis.storage.StorageConnector;
-import org.geotoolkit.storage.feature.FileFeatureStoreFactory;
 import org.geotoolkit.data.dbf.DbaseFileProvider;
-import org.geotoolkit.storage.ProviderOnFileSystem;
 import org.geotoolkit.storage.ResourceType;
 import org.geotoolkit.storage.StoreMetadataExt;
 import org.opengis.metadata.Identifier;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
-import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 
 /**
@@ -57,19 +50,16 @@ import org.opengis.parameter.ParameterValueGroup;
         capabilities = Capability.READ,
         resourceTypes = {FeatureSet.class})
 @StoreMetadataExt(resourceTypes = ResourceType.SENSOR)
-public class DbfObservationStoreFactory extends FileParsingObservationStoreFactory implements ProviderOnFileSystem {
+public class DbfObservationStoreFactory extends FileParsingObservationStoreFactory {
 
     /** factory identification **/
     public static final String NAME = "observationDbfFile";
-
-    public static final String MIME_TYPE = "application/dbase; subtype=\"om\"";
 
     public static final ParameterDescriptor<String> IDENTIFIER = createFixedIdentifier(NAME);
 
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR
             = PARAM_BUILDER.addName(NAME).addName("ObservationDbfFileParameters").createGroup(IDENTIFIER, NAMESPACE, DbaseFileProvider.PATH,
                     MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, OBS_PROP_COLUMN, FOI_COLUMN, OBSERVATION_TYPE, PROCEDURE_ID, PROCEDURE_COLUMN);
-
 
     private static ParameterDescriptorGroup parameters(final String name, final int minimumOccurs) {
         final Map<String,Object> properties = new HashMap<>(4);
@@ -114,15 +104,4 @@ public class DbfObservationStoreFactory extends FileParsingObservationStoreFacto
     public Collection<String> getSuffix() {
         return Arrays.asList("dbf");
     }
-
-    @Override
-    public Collection<byte[]> getSignature() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public ProbeResult probeContent(StorageConnector connector) throws DataStoreException {
-        return FileFeatureStoreFactory.probe(this, connector, MIME_TYPE);
-    }
-
 }

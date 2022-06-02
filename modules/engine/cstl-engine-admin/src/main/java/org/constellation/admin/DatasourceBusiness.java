@@ -43,6 +43,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.UUID;
@@ -519,13 +520,25 @@ public class DatasourceBusiness implements IDatasourceBusiness {
      * {@inheritDoc}
      */
     @Override
+    public Optional<FileBean> getAnalyzedPath(Integer dsId, String path) throws ConstellationException {
+        DataSourcePathComplete dpc = dsRepository.getAnalyzedPath(dsId, path);
+        if (dpc != null) {
+            return Optional.of(new FileBean(dpc.getName(), dpc.getFolder(), path, dpc.getParentPath(), dpc.getSize(), dpc.getTypes()));
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     @Transactional
     public DatasourceAnalysisV3 analyseDatasourceV3(Integer dsId, ProviderConfiguration provConfig) throws ConstellationException {
         final DataSource ds = getDatasource(dsId);
         final boolean hidden = true;
         if (ds != null) {
             List<ResourceStoreAnalysisV3> results = new ArrayList<>();
-            recordSelectedPath(ds);
+            recordSelectedPath(ds, false);
             List<DataSourceSelectedPath> selectedPaths = getSelectedPath(ds, Integer.MAX_VALUE);
             for (DataSourceSelectedPath sp : selectedPaths) {
                 ResourceStoreAnalysisV3 rsa = treatDataPath(sp, ds, provConfig, hidden, null, null, null);
@@ -693,6 +706,15 @@ public class DatasourceBusiness implements IDatasourceBusiness {
     @Transactional
     public void clearSelectedPaths(int id) {
         dsRepository.clearSelectedPath(id);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public void clearPaths(int id) {
+        dsRepository.clearAllPath(id);
     }
 
     /**
@@ -884,21 +906,23 @@ public class DatasourceBusiness implements IDatasourceBusiness {
      */
     @Override
     @Transactional
-    public void recordSelectedPath(Integer id) throws TargetNotFoundException {
+    public void recordSelectedPath(Integer id, boolean forceAutocompletion) throws TargetNotFoundException {
         DataSource ds = dsRepository.findById(id);
         if (ds != null) {
-            recordSelectedPath(ds);
+            recordSelectedPath(ds, forceAutocompletion);
         } else {
             throw new TargetNotFoundException("No datasource identified by:" + id);
         }
     }
 
-    private void recordSelectedPath(DataSource ds) {
+    private void recordSelectedPath(DataSource ds, boolean forceAutocompletion) {
         if (!ds.getType().equals("dynamic_url") && !ds.getType().equals("database")) {
-            if (!dsRepository.hasSelectedPath(ds.getId())) {
+            if (!dsRepository.hasSelectedPath(ds.getId()) || forceAutocompletion) {
                 List<String> storePaths = dsRepository.getPathByStoreAndFormat(ds.getId(), ds.getStoreId(), ds.getFormat(), null);
                 for (String dp : storePaths) {
-                    dsRepository.addSelectedPath(ds.getId(), dp);
+                    if (!dsRepository.existSelectedPath(ds.getId(), dp)) {
+                        dsRepository.addSelectedPath(ds.getId(), dp);
+                    }
                 }
             }
         }

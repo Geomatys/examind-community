@@ -20,13 +20,9 @@ import com.examind.store.observation.FileParsingObservationStoreFactory;
 import org.apache.sis.internal.storage.Capability;
 import org.apache.sis.internal.storage.StoreMetadata;
 import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.storage.ProbeResult;
-import org.apache.sis.storage.StorageConnector;
 import org.geotoolkit.data.csv.CSVProvider;
-import org.geotoolkit.storage.ProviderOnFileSystem;
 import org.geotoolkit.storage.ResourceType;
 import org.geotoolkit.storage.StoreMetadataExt;
-import org.geotoolkit.storage.feature.FileFeatureStoreFactory;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
@@ -37,7 +33,6 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.logging.Level;
 
-
 /**
  *
  * @author Samuel Andrés (Geomatys)
@@ -46,12 +41,10 @@ import java.util.logging.Level;
         formatName = CsvFlatObservationStoreFactory.NAME,
         capabilities = Capability.READ)
 @StoreMetadataExt(resourceTypes = ResourceType.SENSOR)
-public class CsvFlatObservationStoreFactory extends FileParsingObservationStoreFactory implements ProviderOnFileSystem {
+public class CsvFlatObservationStoreFactory extends FileParsingObservationStoreFactory {
 
     /** factory identification **/
     public static final String NAME = "observationCsvFlatFile";
-
-    public static final String MIME_TYPE = "text/csv; subtype=\"om\"";
 
     public static final ParameterDescriptor<String> IDENTIFIER = createFixedIdentifier(NAME);
 
@@ -116,15 +109,5 @@ public class CsvFlatObservationStoreFactory extends FileParsingObservationStoreF
     @Override
     public Collection<String> getSuffix() {
         return Arrays.asList("csv");
-    }
-
-    @Override
-    public Collection<byte[]> getSignature() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public ProbeResult probeContent(StorageConnector connector) throws DataStoreException {
-        return FileFeatureStoreFactory.probe(this, connector, MIME_TYPE);
     }
 }

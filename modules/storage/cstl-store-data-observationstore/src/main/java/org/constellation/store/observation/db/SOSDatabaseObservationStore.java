@@ -235,7 +235,7 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
      * {@inheritDoc }
      */
     @Override
-    public ObservationReader getReader() {
+    public synchronized ObservationReader getReader() {
         return reader;
     }
 
@@ -243,7 +243,7 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
      * {@inheritDoc }
      */
     @Override
-    public ObservationWriter getWriter() {
+    public synchronized ObservationWriter getWriter() {
         return writer;
     }
 

@@ -58,6 +58,8 @@ public interface DatasourceRepository extends AbstractRepository {
 
     void clearSelectedPath(int id);
 
+    void clearAllPath(int id);
+
     List<DataSource> findAll();
 
     void update(DataSource ds);

@@ -54,10 +54,10 @@ import com.google.common.base.Objects;
 import java.net.URI;
 import java.util.Collections;
 import org.apache.sis.storage.FeatureQuery;
+import org.constellation.business.IDatasourceBusiness.AnalysisState;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.SensorReference;
-import org.constellation.dto.importdata.FileBean;
 import org.constellation.dto.importdata.ResourceAnalysisV3;
 import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.exception.ConstellationException;
@@ -247,6 +247,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                 }
 
                 datasourceBusiness.clearSelectedPaths(dsId);
+                datasourceBusiness.clearPaths(dsId);
 
                 // update datasource
                 ds.setReadFromRemote(remoteRead);
@@ -261,16 +262,10 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             }
         }
 
-        final String ext = storeId.equals("observationCsvFile") || storeId.equals("observationCsvFlatFile") ? ".csv" : ".dbf";
-
         try {
-            for (FileBean child : datasourceBusiness.exploreDatasource(dsId, "/")) {
-                if (child.getName().endsWith(ext)) {
-                    if (datasourceBusiness.getSelectedPath(dsId, '/' + child.getName()) == null) {
-                        datasourceBusiness.addSelectedPath(dsId, '/' + child.getName());
-                    }
-                }
-            }
+            datasourceBusiness.updateDatasourceAnalysisState(dsId,  AnalysisState.NOT_STARTED.name());
+            datasourceBusiness.computeDatasourceStores(dsId, false, storeId, true);
+            datasourceBusiness.recordSelectedPath(dsId, true);
         } catch (ConstellationException e) {
             throw new ProcessException("Error occurs during directory browsing", this, e);
         }
@@ -319,37 +314,33 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             provConfig.getParameters().put(FileParsingObservationStoreFactory.UOM_COLUMN.getName().toString(), uomColumn);
 
             try {
-                datasourceBusiness.computeDatasourceStores(dsId, false, storeId, true);
-
                 Integer datasetId = datasetBusiness.getDatasetId(datasetIdentifier);
                 if (datasetId == null)  {
                     datasetId = datasetBusiness.createDataset(datasetIdentifier, null, null);
                 }
-
 
                 List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(dsId, Integer.MAX_VALUE);
 
                 for (final DataSourceSelectedPath p : paths) {
 
                     switch (p.getStatus()) {
-                        case "NO_DATA":
-                        case "ERROR":
+                        case "NO_DATA", "ERROR" -> {
                             fireAndLog("No data / Error in file: " + p.getPath(), 0);
-                            break;
-                        case "INTEGRATED":
-                        case "COMPLETED":
+                        }
+                        case "INTEGRATED", "COMPLETED" -> {
                             fireAndLog("File already integrated for file: " + p.getPath(), 0);
-                            break;
-                        case "REMOVED":
+                        }
+                        case "REMOVED" -> {
                             fireAndLog("Removing data for file: " + p.getPath(), 0);
                             providerBusiness.removeProvider(p.getProviderId());
                             // TODO full removal
                             datasourceBusiness.removePath(dsId, p.getPath());
-                            break;
-                        default:
+                        }
+                        default -> {
                             fireAndLog("Integrating data file: " + p.getPath(), 0);
                             dataToIntegrate.addAll(integratingDataFile(p, dsId, provConfig, datasetId));
                             nbFileInserted++;
+                        }
                     }
                 }
 

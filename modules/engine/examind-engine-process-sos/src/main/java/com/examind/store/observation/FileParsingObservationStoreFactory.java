@@ -18,7 +18,9 @@ package com.examind.store.observation;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,6 +34,7 @@ import org.apache.sis.feature.DefaultAttributeType;
 import org.apache.sis.feature.builder.AttributeTypeBuilder;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
 import org.apache.sis.internal.feature.AttributeConvention;
+import org.apache.sis.internal.storage.io.IOUtilities;
 import org.apache.sis.metadata.iso.citation.Citations;
 import org.apache.sis.parameter.DefaultParameterDescriptorGroup;
 import org.apache.sis.parameter.ParameterBuilder;
@@ -39,9 +42,11 @@ import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import static org.apache.sis.storage.DataStoreProvider.LOCATION;
+import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.StorageConnector;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.observation.AbstractObservationStoreFactory;
+import org.geotoolkit.storage.ProviderOnFileSystem;
 import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.util.StringUtilities;
 import org.locationtech.jts.geom.Coordinate;
@@ -66,7 +71,7 @@ import org.opengis.parameter.ParameterValueGroup;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public abstract class FileParsingObservationStoreFactory extends AbstractObservationStoreFactory {
+public abstract class FileParsingObservationStoreFactory extends AbstractObservationStoreFactory implements ProviderOnFileSystem {
 
     protected static final Logger LOGGER = Logger.getLogger("com.examind.process.sos");
 
@@ -75,12 +80,12 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
     public static final ParameterDescriptor<String> MAIN_COLUMN = PARAM_BUILDER
             .addName("main_column")
             .setRequired(true)
-            .create(String.class, "DATE (yyyy-mm-ddThh:mi:ssZ)");
+            .create(String.class, "");
 
     public static final ParameterDescriptor<String> DATE_COLUMN = PARAM_BUILDER
             .addName("date_column")
             .setRequired(true)
-            .create(String.class, "DATE (yyyy-mm-ddThh:mi:ssZ)");
+            .create(String.class, "");
 
     public static final ParameterDescriptor<String> DATE_FORMAT = PARAM_BUILDER
             .addName("date_format")
@@ -89,13 +94,13 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
 
     public static final ParameterDescriptor<String> LONGITUDE_COLUMN = PARAM_BUILDER
             .addName("longitude_column")
-            .setRequired(true)
-            .create(String.class, "LONGITUDE (degree_east)");
+            .setRequired(false)
+            .create(String.class, null);
 
     public static final ParameterDescriptor<String> LATITUDE_COLUMN = PARAM_BUILDER
             .addName("latitude_column")
-            .setRequired(true)
-            .create(String.class, "LATITUDE (degree_north)");
+            .setRequired(false)
+            .create(String.class, null);
 
     public static final ParameterDescriptor<String> FOI_COLUMN = PARAM_BUILDER
             .addName("feature_of_interest_column")
@@ -246,82 +251,82 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
             } else {
                 return null;
             }
-        }
 
-        final String[] fields = line.split("" + separator, -1);
+            final String[] fields = line.split("" + separator, -1);
 
-        final FeatureTypeBuilder ftb = new FeatureTypeBuilder();
+            final FeatureTypeBuilder ftb = new FeatureTypeBuilder();
 
 
-        /*
-        2- build feature type name and id fields
-        ======================================*/
-        final String path = file.toString();
-        final int slash = Math.max(0, path.lastIndexOf('/') + 1);
-        int dot = path.indexOf('.', slash);
-        if (dot < 0) {
-            dot = path.length();
-        }
+            /*
+            2- build feature type name and id fields
+            ======================================*/
+            final String path = file.toString();
+            final int slash = Math.max(0, path.lastIndexOf('/') + 1);
+            int dot = path.indexOf('.', slash);
+            if (dot < 0) {
+                dot = path.length();
+            }
 
-        ftb.setName(path.substring(slash, dot));
+            ftb.setName(path.substring(slash, dot));
+            ftb.addAttribute(Integer.class).setName(AttributeConvention.IDENTIFIER_PROPERTY);
 
-        ftb.addAttribute(Integer.class).setName(AttributeConvention.IDENTIFIER_PROPERTY);
-
-        /*
-        3- map fields to feature type attributes
-        ======================================*/
-        for (String field : fields) {
-            if (field.isEmpty()) continue;
-            if (charquote != 0) {
-                if (field.charAt(0) == charquote) {
-                    field = field.substring(1);
+            /*
+            3- map fields to feature type attributes
+            ======================================*/
+            for (String field : fields) {
+                if (field.isEmpty()) continue;
+                if (charquote != 0) {
+                    if (field.charAt(0) == charquote) {
+                        field = field.substring(1);
+                    }
+                    if (field.charAt(field.length() -1) == charquote) {
+                        field = field.substring(0, field.length() -1);
+                    }
                 }
-                if (field.charAt(field.length() -1) == charquote) {
-                    field = field.substring(0, field.length() -1);
+                final AttributeTypeBuilder atb = ftb.addAttribute(Object.class);
+                atb.setName(NamesExt.create(field));
+
+                if (dateColumn.equals(field)
+               || (!measureColumns.contains(field)
+                && !field.equals(longitudeColumn)
+                && !field.equals(latitudeColumn))) {
+                    atb.setValueClass(String.class);
+                } else {
+                    atb.setValueClass(Double.class);
                 }
             }
-            final AttributeTypeBuilder atb = ftb.addAttribute(Object.class);
-            atb.setName(NamesExt.create(field));
 
-            if (dateColumn.equals(field)
-           || (!measureColumns.contains(field)
-            && !longitudeColumn.equals(field)
-            && !latitudeColumn.equals(field))) {
-                atb.setValueClass(String.class);
-            } else {
-                atb.setValueClass(Double.class);
+            /*
+            4- build a geometry operation property from longitude/latitude fields
+            ===================================================================*/
+            if (latitudeColumn != null && longitudeColumn != null) {
+                ftb.addProperty(new AbstractOperation(Collections.singletonMap(DefaultAttributeType.NAME_KEY, AttributeConvention.GEOMETRY_PROPERTY)) {
+
+                    @Override
+                    public ParameterDescriptorGroup getParameters() {
+                        return EMPTY_PARAMS;
+                    }
+
+                    @Override
+                    public IdentifiedType getResult() {
+                        return TYPE;
+                    }
+
+                    @Override
+                    public Property apply(final Feature ftr, final ParameterValueGroup pvg) throws FeatureOperationException {
+
+                        final Attribute<Point> att = TYPE.newInstance();
+                        Point pt = GF.createPoint(
+                                new Coordinate((Double) ftr.getPropertyValue(longitudeColumn),
+                                        (Double) ftr.getPropertyValue(latitudeColumn)));
+                        JTS.setCRS(pt, CommonCRS.defaultGeographic());
+                        att.setValue(pt);
+                        return att;
+                    }
+                });
             }
+            return ftb.build();
         }
-
-        /*
-        4- build a geometry operation property from longitude/latitude fields
-        ===================================================================*/
-        ftb.addProperty(new AbstractOperation(Collections.singletonMap(DefaultAttributeType.NAME_KEY, AttributeConvention.GEOMETRY_PROPERTY)) {
-
-            @Override
-            public ParameterDescriptorGroup getParameters() {
-                return EMPTY_PARAMS;
-            }
-
-            @Override
-            public IdentifiedType getResult() {
-                return TYPE;
-            }
-
-            @Override
-            public Property apply(final Feature ftr, final ParameterValueGroup pvg) throws FeatureOperationException {
-
-                final Attribute<Point> att = TYPE.newInstance();
-                Point pt = GF.createPoint(
-                        new Coordinate((Double) ftr.getPropertyValue(longitudeColumn),
-                                (Double) ftr.getPropertyValue(latitudeColumn)));
-                JTS.setCRS(pt, CommonCRS.defaultGeographic());
-                att.setValue(pt);
-                return att;
-            }
-        });
-
-        return ftb.build();
     }
 
     protected static Set<String> getMultipleValues(final ParameterValueGroup params, final String descCode) {
@@ -329,4 +334,27 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
         return paramValues.getValue() == null ?
                 Collections.emptySet() : new HashSet<>(StringUtilities.toStringList(paramValues.getValue()));
     }
+
+    @Override
+    public Collection<byte[]> getSignature() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public ProbeResult probeContent(StorageConnector connector) throws DataStoreException {
+        final Path path = connector.getStorageAs(Path.class);
+        final Collection<String> suffix = getSuffix();
+        if (!suffix.isEmpty() && path != null) {
+            final String extension = IOUtilities.extension(path).toLowerCase();
+            final boolean extValid = suffix.contains(extension);
+            if (extValid) {
+                switch (extension) {
+                    case "csv" :  return new ProbeResult(true, "text/csv; subtype=\"om\"", null);
+                    case "dbf" :  return new ProbeResult(true, "application/dbase; subtype=\"om\"", null);
+                }
+            }
+        }
+        return ProbeResult.UNSUPPORTED_STORAGE;
+    }
+
 }

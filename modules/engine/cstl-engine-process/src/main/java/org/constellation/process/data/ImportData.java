@@ -112,7 +112,7 @@ public class ImportData extends AbstractCstlProcess {
 
             fireProgressing("Datasource analysis completed.", 10, false);
 
-             datasourceBusiness.recordSelectedPath(datasourceId);
+             datasourceBusiness.recordSelectedPath(datasourceId, false);
              List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(datasourceId, Integer.MAX_VALUE);
 
              LOGGER.log(Level.INFO, "{0} files to integrate.", paths.size());

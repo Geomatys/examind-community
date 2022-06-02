@@ -22,6 +22,7 @@ import static com.examind.store.observation.FileParsingUtils.buildGeom;
 import static com.examind.store.observation.FileParsingUtils.extractWithRegex;
 import static com.examind.store.observation.FileParsingUtils.getDataRecordProfile;
 import static com.examind.store.observation.FileParsingUtils.getDataRecordTrajectory;
+import static com.examind.store.observation.FileParsingUtils.parseDouble;
 import com.opencsv.CSVReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -359,5 +360,27 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
         } catch (IOException | ParseException ex) {
             throw new DataStoreException("Failed extracting dates from input CSV file", ex);
         }
+    }
+
+    /**
+     * Extract the current location of the specified procedure in the current line.
+     *
+     * Method overriden by sub-classes
+     *
+     * @param latitudeIndex column index of the latitude or {@code -1} if not available
+     * @param longitudeIndex column index of the longitude or {@code -1} if not available
+     * @param procedure current procedure.
+     * @param line The current csv line processed
+     *
+     * @return A LAT / LON double array or an empty array if not found
+     * @throws ParseException if the values of lat or lon column can not be parsed as a double
+     */
+    protected double[] extractLinePosition(int latitudeIndex, int longitudeIndex, String procedure, String[] line) throws ParseException, NumberFormatException {
+        if (latitudeIndex != -1 && longitudeIndex != -1) {
+            final double latitude = parseDouble(line[latitudeIndex]);
+            final double longitude = parseDouble(line[longitudeIndex]);
+            return new double[] {latitude, longitude};
+        }
+        return new double[0];
     }
 }

@@ -148,7 +148,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .addName(MAIN_COLUMN_NAME)
             .setRemarks(MAIN_COLUMN_DESC)
             .setRequired(true)
-            .create(String.class, "DATE (yyyy-mm-ddThh:mi:ssZ)");
+            .create(String.class, null);
     
     public static final String Z_COLUMN_NAME = FileParsingObservationStoreFactory.Z_COLUMN.getName().getCode();
     public static final String Z_COLUMN_DESC = FileParsingObservationStoreFactory.Z_COLUMN.getName().getCode();
@@ -164,7 +164,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .addName(DATE_COLUMN_NAME)
             .setRemarks(DATE_COLUMN_DESC)
             .setRequired(true)
-            .create(String.class, "DATE (yyyy-mm-ddThh:mi:ssZ)");
+            .create(String.class, null);
 
     public static final String DATE_FORMAT_NAME = FileParsingObservationStoreFactory.DATE_FORMAT.getName().getCode();
     public static final String DATE_FORMAT_DESC = FileParsingObservationStoreFactory.DATE_FORMAT.getName().getCode();
@@ -180,7 +180,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .addName(LONGITUDE_COLUMN_NAME)
             .setRemarks(LONGITUDE_COLUMN_DESC)
             .setRequired(false)
-            .create(String.class, "LONGITUDE (degree_east)");
+            .create(String.class, null);
 
     public static final String LATITUDE_COLUMN_NAME = FileParsingObservationStoreFactory.LATITUDE_COLUMN.getName().getCode();
     public static final String LATITUDE_COLUMN_DESC = FileParsingObservationStoreFactory.LATITUDE_COLUMN.getName().getCode();
@@ -188,7 +188,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .addName(LATITUDE_COLUMN_NAME)
             .setRemarks(LATITUDE_COLUMN_DESC)
             .setRequired(false)
-            .create(String.class, "LATITUDE (degree_north)");
+            .create(String.class, null);
 
     public static final String FOI_COLUMN_NAME = FileParsingObservationStoreFactory.FOI_COLUMN.getName().getCode();
     public static final String FOI_COLUMN_DESC = FileParsingObservationStoreFactory.FOI_COLUMN.getName().getCode();
@@ -228,15 +228,15 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .addName(STORE_ID_NAME)
             .setRemarks(STORE_ID_DESC)
             .setRequired(true)
-            .createEnumerated(String.class, new String[]{"observationCsvFile", "observationCsvFlatFile", "observationDbfFile"}, "observationCsvFile");
+            .create(String.class, "observationCsvFile");
 
     public static final String FORMAT_NAME = "format";
     public static final String FORMAT_DESC = "Data format (mime type) of the file to insert";
     public static final ParameterDescriptor<String> FORMAT = PARAM_BUILDER
             .addName(FORMAT_NAME)
             .setRemarks(FORMAT_DESC)
-            .setRequired(true)
-            .createEnumerated(String.class, new String[]{"text/csv; subtype=\"om\"", "application/dbase; subtype=\"om\""}, "text/csv; subtype=\"om\"");
+            .setRequired(false)
+            .create(String.class, null);
 
     public static final String RESULT_COLUMN_NAME = "result_column";
     public static final String RESULT_COLUMN_DESC = "Column containing result values (used with csv-flat)";

@@ -119,7 +119,7 @@ public class DatasourceBusinessTest extends SpringContextTest {
         datasourceBusiness.update(ds);
 
         // select all
-        datasourceBusiness.recordSelectedPath(ds.getId());
+        datasourceBusiness.recordSelectedPath(ds.getId(), false);
 
         List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(ds.getId(), Integer.MAX_VALUE);
         Assert.assertEquals(14, paths.size());

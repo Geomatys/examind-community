@@ -20,6 +20,7 @@ package org.constellation.business;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.constellation.dto.DataSource;
 import org.constellation.dto.DataSourceSelectedPath;
@@ -125,13 +126,16 @@ public interface IDatasourceBusiness {
     String testDatasource(DataSource ds);
 
     /**
-     * If no path have been already selected, automaticaly select all the paths correspounding
-     * to the datasource selected store and format.
+     * Automaticaly select all the paths correspounding
+     * to the datasource selected store and format, If no path have been already selected.
+     * If the flag forceAutoselection is set, the selection will be completed even if there is already some selected paths.
+     *
      *
      * @param id A datasource identifier.
+     * @param forceAutoSelection if set to {@code true} the selection will be completed even if there is already some selected paths.
      * @throws org.constellation.exception.ConstellationException
      */
-    void recordSelectedPath(Integer id) throws ConstellationException;
+    void recordSelectedPath(Integer id, boolean forceAutoSelection) throws ConstellationException;
 
     /**
      * Remove a recorded datasource path from the system.
@@ -179,9 +183,19 @@ public interface IDatasourceBusiness {
      * @param subPath the datasource sub path.
      *
      * @return A list of file informations.
-     * @throws ConstellationException
      */
     List<FileBean> exploreDatasource(final Integer dsId, final String subPath) throws ConstellationException;
+
+    /**
+     * Return an already analyzed path in the datasource if present.
+     *
+     * @param dsId Datasource identifier.
+     * @param path path of the searched file.
+     *
+     * @return An analyzed path if already present.
+     * @throws ConstellationException
+     */
+    Optional<FileBean> getAnalyzedPath(final Integer dsId, final String path) throws ConstellationException;
 
     /**
      * Treat all the selected datasource path, using the specified provider configuration.
@@ -209,6 +223,13 @@ public interface IDatasourceBusiness {
      * @param id The datasource identifier.
      */
     void clearSelectedPaths(int id);
+
+    /**
+     * Clear All the datasource path recorded.
+     *
+     * @param id The datasource identifier.
+     */
+    void clearPaths(int id);
 
     /**
      * Remove all the datasource not permanent and older t han 24 hours.

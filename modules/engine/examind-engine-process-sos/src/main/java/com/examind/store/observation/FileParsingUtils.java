@@ -113,7 +113,7 @@ public class FileParsingUtils {
      * @return : double.
      * @throws ParseException the parse method failed.
      */
-    public static double parseDouble(String s) throws ParseException {
+    public static double parseDouble(String s) throws ParseException, NumberFormatException {
         if (s.contains(",")) {
             synchronized(FR_FORMAT) {
                 Number number = FR_FORMAT.parse(s);

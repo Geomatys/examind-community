@@ -215,6 +215,15 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
+    public void clearAllPath(int id) {
+        dsl.delete(DATASOURCE_SELECTED_PATH).where(DATASOURCE_SELECTED_PATH.DATASOURCE_ID.eq(id)).execute();
+        dsl.delete(DATASOURCE_PATH_STORE).where(DATASOURCE_PATH_STORE.DATASOURCE_ID.eq(id)).execute();
+        dsl.delete(DATASOURCE_PATH).where(DATASOURCE_PATH.DATASOURCE_ID.eq(id)).execute();
+        dsl.delete(DATASOURCE_STORE).where(DATASOURCE_STORE.DATASOURCE_ID.eq(id)).execute();
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
     public void update(DataSource ds) {
         dsl.update(DATASOURCE)
                 //.set(DATASOURCE.DATE_CREATION, ds.getDateCreation()) do not update date creation
@@ -318,9 +327,13 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
     public List<String> getPathByStoreAndFormat(int id, String storeId, String format, Integer limit) {
         SelectConditionStep query = dsl.select(DATASOURCE_PATH_STORE.PATH)
                   .from(DATASOURCE_PATH_STORE)
-                  .where(DATASOURCE_PATH_STORE.STORE.eq(storeId))
-                  .and(DATASOURCE_PATH_STORE.TYPE.eq(format))
-                  .and(DATASOURCE_PATH_STORE.DATASOURCE_ID.eq(id));
+                  .where(DATASOURCE_PATH_STORE.STORE.eq(storeId));
+        if (format != null) {
+            query = query.and(DATASOURCE_PATH_STORE.TYPE.eq(format));
+        }
+        if (storeId != null) {
+            query = query.and(DATASOURCE_PATH_STORE.DATASOURCE_ID.eq(id));
+        }
         if (limit != null) {
             return query.limit(limit).fetchInto(String.class);
         }

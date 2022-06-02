@@ -389,12 +389,19 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 }
 
                 // update spatial information
-                if (latitudeIndex != -1 && longitudeIndex != -1) {
-                    final double longitude = parseDouble(line[longitudeIndex]);
-                    final double latitude = parseDouble(line[latitudeIndex]);
-                    result.spatialBound.addXYCoordinate(longitude, latitude);
-                    currentBlock.addPosition(millis, latitude, longitude);
+                try {
+                    final double[] position = extractLinePosition(latitudeIndex, longitudeIndex, currentProc, line);
+                    if (position.length == 2) {
+                        final double latitude = position[0];
+                        final double longitude = position[1];
+                        result.spatialBound.addXYCoordinate(longitude, latitude);
+                        currentBlock.addPosition(millis, latitude, longitude);
+                    }
+                } catch (NumberFormatException | ParseException ex) {
+                    LOGGER.fine(String.format("Problem parsing lat/lon field at line %d.(Error msg='%s'). skipping line...", lineNumber, ex.getMessage()));
+                    continue;
                 }
+
 
                 // parse main value
                 Number mainValue;
@@ -440,7 +447,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 buildObservation(result, oid, ob, phenomenons, samplingFeatures);
             }
             return result;
-        } catch (IOException | ParseException ex) {
+        } catch (IOException ex) {
             LOGGER.log(Level.WARNING, "problem reading csv file", ex);
             throw new DataStoreException(ex);
         }
@@ -532,15 +539,17 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 }
 
                 // update spatial information
-                if (latitudeIndex != -1 && longitudeIndex != -1) {
-                    try {
-                        DirectPosition dp = new GeneralDirectPosition(parseDouble(line[longitudeIndex]), parseDouble(line[latitudeIndex]));
+                try {
+                    final double[] position = extractLinePosition(latitudeIndex, longitudeIndex, currentProc, line);
+                    if (position.length == 2) {
+                        DirectPosition dp = new GeneralDirectPosition(position[1], position[0]);
                         geom = GMLXmlFactory.buildPoint("3.2.1", null, dp);
-                    } catch (NumberFormatException | ParseException ex) {
-                        LOGGER.fine(String.format("Problem parsing lat/lon field at line %d.", count));
+                        procedureTree.spatialBound.addLocation(dateParse, geom);
                     }
+                } catch (NumberFormatException | ParseException ex) {
+                    LOGGER.fine(String.format("Problem parsing lat/lon field at line %d.", count));
+                    continue;
                 }
-                procedureTree.spatialBound.addLocation(dateParse, geom);
                 previousProc = currentProc;
             }
 
