@@ -161,8 +161,10 @@ public class SensorServiceRestAPI {
     }
 
     @RequestMapping(value="/SensorService/{id}/sensor/location/{sensorID:.+}", method = GET, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity getWKTSensorLocation(final @PathVariable("id") Integer serviceId, final @PathVariable("sensorID") String sensorID) throws Exception {
-        return new ResponseEntity(sensorServiceBusiness.getWKTSensorLocation(serviceId, sensorID), OK);
+    public ResponseEntity getWKTSensorLocation(final @PathVariable("id") Integer serviceId, final @PathVariable("sensorID") String sensorID, HttpServletResponse response) throws Exception {
+        String s = sensorServiceBusiness.getWKTSensorLocation(serviceId, sensorID);
+        IOUtils.write(s, response.getOutputStream(), StandardCharsets.UTF_8);
+        return new ResponseEntity(OK);
     }
 
     @RequestMapping(value="/SensorService/{id}/observedProperty/identifiers/{sensorID:.+}", method = GET, produces = APPLICATION_JSON_VALUE)
