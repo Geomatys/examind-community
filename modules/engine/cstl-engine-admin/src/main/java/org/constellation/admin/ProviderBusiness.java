@@ -203,7 +203,15 @@ public class ProviderBusiness implements IProviderBusiness {
 
         //delete provider folder
         //TODO : not hazelcast compatible
-        configBusiness.removeDataIntegratedDirectory(provider.getIdentifier());
+        try {
+            configBusiness.removeDataIntegratedDirectory(provider.getIdentifier());
+        } catch (InvalidPathException e) {
+            // Note: the provider try to remove an associated integration directory even when none is available.
+            // In case of a provider that does not use any directory, and if its name contains invalid file characters,
+            // An invalid path error could happen here. We swallow it, because an invalid path here means that the
+            // provider cannot have created the directory previously, so it is of no consequence.
+            LOGGER.log(Level.FINE, "Cannot delete provider associated directory: invalid file path", e);
+        }
     }
 
     @Override
