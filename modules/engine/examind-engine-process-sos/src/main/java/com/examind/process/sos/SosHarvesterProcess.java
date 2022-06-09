@@ -68,6 +68,7 @@ import org.constellation.provider.ObservationProvider;
 import org.geotoolkit.observation.xml.AbstractObservation;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.sampling.SamplingFeature;
+import org.opengis.parameter.GeneralParameterDescriptor;
 
 /**
  * Moissonnage de données de capteur au format csv et publication dans un service SOS
@@ -363,13 +364,17 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         /*
         4- Publication des données correspondant à chaque SensorML sur le service SOS
         ===========================================================================*/
-
+        GeneralParameterDescriptor obsInDesc = outputParameters.getDescriptor().descriptor(SosHarvesterProcessDescriptor.GENERATE_DATA_IDS_NAME);
         try {
             double byData = 100.0 / dataToIntegrate.size();
             for (final Integer dataId : dataToIntegrate) {
 
                     int currentNbObs = importSensor(services, dataId, byData);
                     nbObsInserted = nbObsInserted + currentNbObs;
+                    
+                    ParameterValue pv = (ParameterValue) obsInDesc.createValue();
+                    pv.setValue(dataId);
+                    outputParameters.values().add(pv);
             }
 
             // reload service at the end

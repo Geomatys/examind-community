@@ -302,7 +302,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .create(String.class, null);
 
      public static final String EXTRA_STORE_PARAMETERS_NAME = "extra_store_parameter";
-    public static final String EXTRA_STORE_PARAMETERS_DESC = "extra store parameterr";
+    public static final String EXTRA_STORE_PARAMETERS_DESC = "extra store parameter";
     public static final ParameterDescriptor<Map> EXTRA_STORE_PARAMETERS = PARAM_BUILDER
             .addName(EXTRA_STORE_PARAMETERS_NAME)
             .setRemarks(EXTRA_STORE_PARAMETERS_DESC)
@@ -315,7 +315,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
                     STORE_ID, FORMAT, RESULT_COLUMN, OBS_PROP_COLUMN, OBS_PROP_NAME_COLUMN, OBS_PROP_COLUMNS_FILTER, OBS_PROP_REGEX, TYPE_COLUMN, EXTRA_STORE_PARAMETERS);
 
     public static final String FILE_INSERTED_NAME = "files_inserted_count";
-    public static final String FILE_INSERTED_DESC = "Number of files inserted ";
+    public static final String FILE_INSERTED_DESC = "Number of files inserted";
     public static final ParameterDescriptor<Integer> FILE_INSERTED = PARAM_BUILDER
             .addName(FILE_INSERTED_NAME)
             .setRemarks(FILE_INSERTED_DESC)
@@ -331,8 +331,18 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(false)
             .create(Integer.class, 0);
 
+    public static final String GENERATE_DATA_IDS_NAME = "generated_data_ids";
+    public static final String GENERATE_DATA_IDS_DESC = "Generated data identifiers";
+    public static final ParameterDescriptor<Integer> GENERATE_DATA_IDS = new ExtendedParameterDescriptor<>(
+            GENERATE_DATA_IDS_NAME,
+            GENERATE_DATA_IDS_DESC,
+            0, 92,
+            Integer.class,
+            null, null, null
+    );
+
     public static final ParameterDescriptorGroup OUTPUT_DESC =
-            PARAM_BUILDER.addName("OutputParameters").createGroup(FILE_INSERTED, OBSERVATION_INSERTED);
+            PARAM_BUILDER.addName("OutputParameters").createGroup(FILE_INSERTED, OBSERVATION_INSERTED, GENERATE_DATA_IDS);
 
 
     /** Instance */

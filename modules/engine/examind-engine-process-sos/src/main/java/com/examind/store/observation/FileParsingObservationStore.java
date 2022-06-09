@@ -188,7 +188,7 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
      */
     @Override
     public ObservationReader getReader() {
-        return null;
+        return new StoreDelegatingObservationReader(this);
     }
 
     /**
@@ -196,7 +196,7 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
      */
     @Override
     public ObservationFilterReader getFilter() {
-        return null;
+        return new StoreDelegatingObservationFilter(this);
     }
 
     /**
