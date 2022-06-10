@@ -85,13 +85,14 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
     private final String SQL_WRITE_SAMPLING_POINT;
     private final String SQL_GET_LAST_ID;
 
-    private ObservationReader reader;
-    private ObservationWriter writer;
-    private ObservationFilterReader filter;
-    private DataSource source;
+    protected ObservationReader reader;
+    protected ObservationWriter writer;
+    protected ObservationFilterReader filter;
+    protected final DataSource source;
     protected final String schemaPrefix;
+    protected final boolean timescaleDB;
 
-    private final boolean isPostgres;
+    protected final boolean isPostgres;
     protected final GenericNameIndex<FeatureType> types;
     private final List<Resource> components = new ArrayList<>();
 
@@ -110,7 +111,7 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
             config.setDriverClassName(driver);
             isPostgres = driver.startsWith("org.postgresql");
             types = OMFeatureTypes.getFeatureTypes("SamplingPoint");
-            Boolean timescaleDB = (Boolean) params.parameter(SOSDatabaseObservationStoreFactory.TIMESCALEDB.getName().toString()).getValue();
+            timescaleDB = (Boolean) params.parameter(SOSDatabaseObservationStoreFactory.TIMESCALEDB.getName().toString()).getValue();
 
             // url
             config.setJdbcUrl(SOSDatabaseParamsUtils.getJDBCUrl(params));
@@ -126,8 +127,7 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
             }
 
             source =  new HikariDataSource(config);
-            final Map<String,Object> properties = getBasicProperties();
-
+            
             String sp =  (String) params.parameter(SOSDatabaseObservationStoreFactory.SCHEMA_PREFIX.getName().toString()).getValue();
             if (sp == null) {
                 this.schemaPrefix = "";
@@ -141,9 +141,12 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
             // build database structure if needed
             buildDatasource();
 
-            reader = new OM2ObservationReader(source, isPostgres, schemaPrefix, properties, timescaleDB);
-            writer = new OM2ObservationWriter(source, isPostgres, schemaPrefix, properties, timescaleDB);
-            filter = new OM2ObservationFilterReader(source, isPostgres, schemaPrefix, properties, timescaleDB);
+            // Test if the connection is valid
+            try(final Connection c = this.source.getConnection()) {
+                // TODO: add a validation test here (query db metadata ?)
+            } catch (SQLException ex) {
+                throw new DataStoreException(ex);
+            }
         } catch(IOException ex) {
             throw new DataStoreException(ex);
         }
@@ -236,6 +239,15 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
      */
     @Override
     public synchronized ObservationReader getReader() {
+        if (reader == null) {
+            final Map<String,Object> properties = getBasicProperties();
+            try {
+                reader = new OM2ObservationReader(source, isPostgres, schemaPrefix, properties, timescaleDB);
+            } catch (DataStoreException ex) {
+               LOGGER.log(Level.SEVERE, "Unable to instanciate reader", ex);
+               // TODO throw in interface
+            }
+        }
         return reader;
     }
 
@@ -244,6 +256,15 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
      */
     @Override
     public synchronized ObservationWriter getWriter() {
+        if (writer == null) {
+            final Map<String,Object> properties = getBasicProperties();
+            try {
+                writer = new OM2ObservationWriter(source, isPostgres, schemaPrefix, properties, timescaleDB);
+            } catch (DataStoreException ex) {
+                LOGGER.log(Level.SEVERE, "Unable to instanciate writer", ex);
+               // TODO throw in interface
+            }
+        }
         return writer;
     }
 
@@ -251,7 +272,16 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
      * {@inheritDoc }
      */
     @Override
-    public ObservationFilterReader getFilter() {
+    public synchronized ObservationFilterReader getFilter() {
+        if (filter == null) {
+            final Map<String,Object> properties = getBasicProperties();
+            try {
+                filter = new OM2ObservationFilterReader(source, isPostgres, schemaPrefix, properties, timescaleDB);
+            } catch (DataStoreException ex) {
+                LOGGER.log(Level.SEVERE, "Unable to instanciate filter", ex);
+               // TODO throw in interface
+            }
+        }
         return new OM2ObservationFilterReader((OM2ObservationFilter) filter);
     }
 
