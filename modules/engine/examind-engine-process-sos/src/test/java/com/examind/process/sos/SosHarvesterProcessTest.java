@@ -22,6 +22,7 @@ import com.examind.process.admin.AdminProcessRegistry;
 import com.examind.process.admin.yamlReader.ProcessFromYamlProcessDescriptor;
 import com.examind.sensor.component.SensorServiceBusiness;
 import com.examind.sts.core.STSWorker;
+import com.examind.sts.core.temporary.DataArrayResponseExt;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -610,9 +611,10 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         GetHistoricalLocations hl = new GetHistoricalLocations();
         hl.getExtraFilter().put("procedure", sensorId);
         hl.getExpand().add("Locations");
+        hl.setCount(true);
         HistoricalLocationsResponse response = stsWorker.getHistoricalLocations(hl);
 
-        Assert.assertEquals(1236, response.getValue().size());
+        Assert.assertEquals(1236, response.getIotCount().intValue());
 
         int nbMeasure = getNbMeasure(stsWorker, sensorId);
         Assert.assertEquals(1236, nbMeasure);
@@ -2809,8 +2811,8 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         request.getExtraFlag().put("forMDS", "true");
         request.setCount(true);
         request.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:" + sensorId);
-        DataArrayResponse resp = (DataArrayResponse) stsWorker.getObservations(request);
-        return resp.getValue().get(0).getIotCount().toBigInteger().intValue();
+        DataArrayResponseExt resp = (DataArrayResponseExt) stsWorker.getObservations(request);
+        return resp.getIotCount().toBigInteger().intValue();
     }
 
     private static ObservationOffering getOffering(SOSworker worker, String sensorId) throws CstlServiceException {

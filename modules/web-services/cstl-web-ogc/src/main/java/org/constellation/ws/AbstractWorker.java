@@ -385,6 +385,16 @@ public abstract class AbstractWorker<A extends AbstractConfigurationObject> impl
         return defaultValue;
     }
 
+    protected final Integer getIntegerProperty(final String propertyName, Integer defaultValue) {
+        if (configuration != null) {
+            String value = configuration.getProperty(propertyName);
+            if (value != null) {
+                return Integer.parseInt(value);
+            }
+        }
+        return defaultValue;
+    }
+
     /**
      * Extract the transactional profile of the service.
      *

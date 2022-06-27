@@ -887,11 +887,12 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         if (ResponseModeType.OUT_OF_BAND.equals(responseMode)) {
             throw new ObservationStoreException("Out of band response mode has not been implemented yet", NO_APPLICABLE_CODE, RESPONSE_MODE);
         }
-        Integer decimationSize         = getIntegerHint(hints, DECIMATION_SIZE, null);
-        boolean includeTimeForProfile  = getBooleanHint(hints, "includeTimeForProfile", false);
+        final Integer decimationSize   = getIntegerHint(hints, DECIMATION_SIZE, null);
+        final boolean countRequest     = "count".equals(responseFormat);
+        boolean includeTimeForProfile  = !countRequest && getBooleanHint(hints, "includeTimeForProfile", false);
         final boolean profile          = "profile".equals(currentOMType);
         final boolean profileWithTime  = profile && includeTimeForProfile;
-        if (decimationSize != null && !"count".equals(responseFormat)) {
+        if (decimationSize != null && !countRequest) {
             if (timescaleDB) {
                 return getDecimatedResultsTimeScale(decimationSize, includeTimeForProfile);
             } else {
@@ -943,7 +944,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     values = new ResultBuilder(ResultMode.CSV, getCsvTextEncoding("2.0.0"), true);
                     // Add the header
                     values.appendHeaders(fields);
-                } else if ("count".equals(responseFormat)) {
+                } else if (countRequest) {
                     values = new ResultBuilder(ResultMode.COUNT, null, false);
                 } else {
                     values = new ResultBuilder(ResultMode.CSV, getDefaultTextEncoding("2.0.0"), false);

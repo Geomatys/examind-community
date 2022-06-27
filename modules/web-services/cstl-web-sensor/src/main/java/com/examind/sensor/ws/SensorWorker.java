@@ -81,6 +81,8 @@ public abstract class SensorWorker extends AbstractWorker<SOSConfiguration> {
      */
     private boolean directProvider = false;
 
+    protected int maxEntity = 1000;
+
     protected final FilterFactory ff = FilterUtilities.FF;
 
     public SensorWorker(final String id, final ServiceDef.Specification specification) {
@@ -88,11 +90,12 @@ public abstract class SensorWorker extends AbstractWorker<SOSConfiguration> {
         if (getState().equals(WorkerState.ERROR)) return;
         
         this.directProvider = getBooleanProperty("directProvider", false);
+        this.maxEntity      = getIntegerProperty("maxEntity", 1000);
         try {
             final List<Integer> providers = serviceBusiness.getLinkedProviders(getServiceId());
 
             // we initialize the reader/writer
-            for (Integer providerID : providers) {
+            for (Integer providerID : providers) {;
                 DataProvider p = DataProviders.getProvider(providerID);
                 if (p != null) {
                     // TODO for now we only take one provider by type

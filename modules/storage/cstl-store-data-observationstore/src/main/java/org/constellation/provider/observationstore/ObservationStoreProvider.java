@@ -861,6 +861,12 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
                     localOmFilter.init(OMEntity.OBSERVATION, hints);
                     mode = GET_OBS;
                     break;
+                case RESULT:
+                    hints.put(RESPONSE_MODE, responseMode);
+                    hints.put(RESULT_MODEL, resultModel);
+                    localOmFilter.init(OMEntity.RESULT, hints);
+                    mode = GET_RES;
+                    break;
                 default: throw new ConstellationStoreException("unsuported objectType parameter " + objectType + " for getCount()");
             }
             handleQuery(q, localOmFilter, mode, hints);
