@@ -18,7 +18,6 @@
  */
 package org.constellation.process.data;
 
-import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.dto.process.DatasetProcessReference;
 import org.constellation.dto.process.StyleProcessReference;
@@ -39,8 +38,6 @@ public class DatasetStyleLinkerProcessDescriptor extends AbstractCstlProcessDesc
 
     public static final String NAME = "dataset.link.style";
     public static final InternationalString ABSTRACT = new SimpleInternationalString("Link all the data from a dataset to a specified style.");
-
-    private static final ParameterBuilder BUILDER = new ParameterBuilder();
 
     public static final String DATASET_NAME = "dataset";
     private static final String DATASET_REMARKS = "The dataset to process.";

@@ -18,7 +18,6 @@
  */
 package org.constellation.process.dynamic.proactive;
 
-import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.process.AbstractCstlProcessDescriptor;
@@ -39,8 +38,6 @@ public class DeployProactiveDescriptor extends AbstractCstlProcessDescriptor {
 
     public static final String NAME = "proactive.deploy";
     public static final InternationalString ABSTRACT = new SimpleInternationalString("Register a new process hosted by a proactive server in examind");
-
-    private static final ParameterBuilder BUILDER = new ParameterBuilder();
 
     public static final String PROACTIVE_WORKFLOW_NAME = "proactive.workflow.name";
     private static final String PROACTIVE_WORKFLOW_REMARKS = "The proactive workflow name";

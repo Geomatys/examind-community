@@ -18,7 +18,6 @@
  */
 package com.examind.process.test;
 
-import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.process.AbstractCstlProcess;
@@ -39,8 +38,6 @@ public class NbBandDescriptor extends AbstractCstlProcessDescriptor {
 
     public static final String NAME = "test.nb_band";
     public static final InternationalString ABSTRACT = new SimpleInternationalString("Count the number of band in a gridCoverageResource.");
-
-    private static final ParameterBuilder BUILDER = new ParameterBuilder();
 
     public static final String COVERAGE_NAME = "coverage";
     private static final String COVERAGE_REMARKS = "The input coverage.";

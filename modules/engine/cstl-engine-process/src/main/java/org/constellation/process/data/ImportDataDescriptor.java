@@ -19,7 +19,6 @@
 package org.constellation.process.data;
 
 import java.util.List;
-import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.dto.ProviderConfiguration;
 import org.constellation.process.AbstractCstlProcess;
@@ -39,8 +38,6 @@ public class ImportDataDescriptor extends AbstractCstlProcessDescriptor {
 
     public static final String NAME = "data.import";
     public static final InternationalString ABSTRACT = new SimpleInternationalString("Import massively data from a datasource.");
-
-    private static final ParameterBuilder BUILDER = new ParameterBuilder();
 
     public static final String DATASOURCE_ID_NAME = "datasource.id";
     private static final String DATASOURCE_ID_REMARKS = "The datasource identifier.";

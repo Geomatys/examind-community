@@ -18,7 +18,6 @@
  */
 package org.constellation.process.data;
 
-import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.dto.importdata.DatasourceAnalysisV3;
 import org.constellation.dto.ProviderConfiguration;
@@ -38,8 +37,6 @@ public class ImportDataSampleDescriptor extends AbstractCstlProcessDescriptor {
 
     public static final String NAME = "data.import.sample";
     public static final InternationalString ABSTRACT = new SimpleInternationalString("Import sample data from a datasource.");
-
-    private static final ParameterBuilder BUILDER = new ParameterBuilder();
 
     public static final String DATASOURCE_ID_NAME = "datasource.id";
     private static final String DATASOURCE_ID_REMARKS = "The datasource identifier.";

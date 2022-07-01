@@ -41,9 +41,6 @@ public class RunPBSDescriptor extends AbstractDynamicDescriptor {
     public static final String NAME = "pbs.run";
     public static final InternationalString ABSTRACT = new SimpleInternationalString("Run a pbs file process in examind");
 
-    private static final ParameterBuilder BUILDER = new ParameterBuilder();
-    private static final ParameterBuilder BUILDER_CONFIG = new ParameterBuilder();
-
     /////////////// Input Parameters ////////////////////
     public static final String PBS_FILE_NAME = "pbs.file";
     private static final String PBS_FILE_REMARKS = "The pbs file name";

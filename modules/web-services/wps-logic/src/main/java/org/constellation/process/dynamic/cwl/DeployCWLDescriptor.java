@@ -40,8 +40,6 @@ public class DeployCWLDescriptor extends AbstractCstlProcessDescriptor {
     public static final String NAME = "cwl.deploy";
     public static final InternationalString ABSTRACT = new SimpleInternationalString("Register a new process hosted by a CWL file in examind");
 
-    private static final ParameterBuilder BUILDER = new ParameterBuilder();
-
     public static final String CWL_FILE_NAME = "cwl.file";
     private static final String CWL_FILE_REMARKS = "The cwl file";
     public static final ParameterDescriptor<String> CWL_FILE = BUILDER

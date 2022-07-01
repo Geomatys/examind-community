@@ -18,7 +18,6 @@
  */
 package com.examind.process.test;
 
-import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.portrayal.MapLayers;
 import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.dto.MapContextLayersDTO;
@@ -64,7 +63,6 @@ public class MapContextInputDescriptor extends AbstractCstlProcessDescriptor {
     public static final ParameterDescriptorGroup OUTPUT_DESC;
 
     static {
-        final ParameterBuilder BUILDER = new ParameterBuilder();
 
         SIS_INPUT = BUILDER
                 .addName(SIS_INPUT_NAME)

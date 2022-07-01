@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import org.apache.sis.metadata.iso.citation.Citations;
+import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.util.ArgumentChecks;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.opengis.metadata.Identifier;
@@ -34,11 +35,13 @@ import org.opengis.util.InternationalString;
 
 /**
  *
- * @author guilhem
+ * @author Guilhem Legal (Geomatys)
  */
 public abstract class AbstractDynamicDescriptor implements ProcessDescriptor {
 
     private static final String DEFAULT_VERSION = "1.0";
+
+    protected static final ParameterBuilder BUILDER = new ParameterBuilder();
 
     protected final List<ParameterDescriptor> dynamicInput  = new ArrayList<>();
     protected final List<ParameterDescriptor> dynamicOutput = new ArrayList<>();
@@ -48,7 +51,6 @@ public abstract class AbstractDynamicDescriptor implements ProcessDescriptor {
     private final String version;
 
     public AbstractDynamicDescriptor(String name, InternationalString _abstract) {
-
         this.id = new DerivateIdentifier(name, ExamindDynamicProcessFactory.IDENTIFICATION);
         this.displayName = null;
         this._abstract = _abstract;

@@ -41,8 +41,6 @@ public class RunDockerDescriptor extends AbstractDynamicDescriptor {
     public static final String NAME = "docker.run";
     public static final InternationalString ABSTRACT = new SimpleInternationalString("Run a registered docker file process in examind");
 
-    private static final ParameterBuilder BUILDER = new ParameterBuilder();
-
     public static final String DOCKER_IMAGE_NAME = "docker.image";
     private static final String DOCKER_IMAGE_REMARKS = "The docker image name";
     public static final ParameterDescriptor<String> DOCKER_IMAGE = BUILDER

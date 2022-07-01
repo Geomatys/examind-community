@@ -18,7 +18,6 @@
  */
 package org.constellation.process.dynamic.pbs;
 
-import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.process.AbstractCstlProcessDescriptor;
@@ -39,8 +38,6 @@ public class DeployPBSDescriptor extends AbstractCstlProcessDescriptor {
 
     public static final String NAME = "pbs.deploy";
     public static final InternationalString ABSTRACT = new SimpleInternationalString("Register a new process hosted by a pbs script in examind");
-
-    private static final ParameterBuilder BUILDER = new ParameterBuilder();
 
     public static final String PBS_FILE_NAME = "pbs.file";
     private static final String PBS_FILE_REMARKS = "The pbs file name";

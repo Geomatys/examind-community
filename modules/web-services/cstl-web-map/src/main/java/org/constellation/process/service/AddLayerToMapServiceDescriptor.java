@@ -18,7 +18,6 @@
  */
 package org.constellation.process.service;
 
-import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.util.ResourceInternationalString;
 import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
 import org.constellation.dto.service.config.wxs.LayerConfig;
@@ -73,8 +72,6 @@ public class AddLayerToMapServiceDescriptor extends AbstractCstlProcessDescripto
      */
     public static final String NAME = "service.add_layer";
     public static final InternationalString ABSTRACT = new ResourceInternationalString(BUNDLE, ADD_SFLAYER_ABSTRACT_KEY);
-
-    protected static final ParameterBuilder BUILDER = new ParameterBuilder();
 
     /*
      * Layer reference

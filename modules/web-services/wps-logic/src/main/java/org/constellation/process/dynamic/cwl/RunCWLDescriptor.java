@@ -41,8 +41,6 @@ public class RunCWLDescriptor extends AbstractDynamicDescriptor {
     public static final String NAME = "cwl.run";
     public static final InternationalString ABSTRACT = new SimpleInternationalString("Run a cwl file process in examind");
 
-    private static final ParameterBuilder BUILDER = new ParameterBuilder();
-
     public static final String CWL_FILE_NAME = "cwl.file";
     private static final String CWL_FILE_REMARKS = "The cwl file";
     public static final ParameterDescriptor<String> CWL_FILE = BUILDER

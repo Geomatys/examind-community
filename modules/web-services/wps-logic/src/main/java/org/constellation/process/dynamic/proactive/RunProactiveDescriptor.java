@@ -41,8 +41,6 @@ public class RunProactiveDescriptor extends AbstractDynamicDescriptor {
     public static final String NAME = "proactive.run";
     public static final InternationalString ABSTRACT = new SimpleInternationalString("Run a proactive process in examind");
 
-    private static final ParameterBuilder BUILDER = new ParameterBuilder();
-
     public static final String WORKFLOW_NAME_NAME = "workflow.image";
     private static final String WORKFLOW_NAME_REMARKS = "The docker image name";
     public static final ParameterDescriptor<String> WORKFLOW_NAME = BUILDER

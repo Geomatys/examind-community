@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sis.parameter.ParameterBuilder;
 import org.constellation.exception.ConstellationException;
 import org.constellation.process.dynamic.cwl.RunCWLDescriptor;
 import org.constellation.process.dynamic.pbs.RunPBSDescriptor;
@@ -101,7 +100,6 @@ public class ExamindDynamicProcessFactory implements ProcessingRegistry {
 
     private Map<String, ProcessDescriptor> findDynamicDescriptors() {
         final Map<String, ProcessDescriptor> descriptors = new HashMap<>();
-        final ParameterBuilder BUILDER = new ParameterBuilder();
         try {
             final List<Chain> chains = ChainProcessRetriever.getChainModels();
             for (Chain chain : chains) {

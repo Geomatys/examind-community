@@ -39,8 +39,6 @@ public class ClearDynamicFactoryDescriptor extends AbstractCstlProcessDescriptor
     public static final String NAME = "chain.clear";
     public static final InternationalString ABSTRACT = new SimpleInternationalString("Clear all registered docker process in examind");
 
-    private static final ParameterBuilder BUILDER = new ParameterBuilder();
-
     public static final ParameterDescriptor<String> SINGLE_PROCESS = BUILDER
             .addName("single process")
             .setRemarks("single single")

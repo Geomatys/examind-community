@@ -18,7 +18,6 @@
  */
 package org.constellation.process.dynamic.docker;
 
-import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.process.AbstractCstlProcessDescriptor;
@@ -39,8 +38,6 @@ public class DeployDockerDescriptor extends AbstractCstlProcessDescriptor {
 
     public static final String NAME = "docker.deploy";
     public static final InternationalString ABSTRACT = new SimpleInternationalString("Register a new process hosted by a docker file in examind");
-
-    private static final ParameterBuilder BUILDER = new ParameterBuilder();
 
     public static final String DOCKER_IMAGE_NAME = "docker.image";
     private static final String DOCKER_IMAGE_REMARKS = "The docker image name";

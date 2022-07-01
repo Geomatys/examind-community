@@ -18,7 +18,6 @@
  */
 package com.examind.process.test;
 
-import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.process.AbstractCstlProcessDescriptor;
@@ -39,8 +38,6 @@ public class EchoDescriptor extends AbstractCstlProcessDescriptor {
 
     public static final String NAME = "test.echo";
     public static final InternationalString ABSTRACT = new SimpleInternationalString("Echo different input to output.");
-
-    private static final ParameterBuilder BUILDER = new ParameterBuilder();
 
     public static final String LITERAL_INPUT_NAME = "literal.input";
     private static final String LITERAL_INPUT_REMARKS = "Literal input.";

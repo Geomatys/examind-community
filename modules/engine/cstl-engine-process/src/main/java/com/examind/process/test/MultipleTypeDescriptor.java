@@ -20,7 +20,6 @@ package com.examind.process.test;
 
 import java.io.File;
 import java.nio.file.Path;
-import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.process.AbstractCstlProcessDescriptor;
@@ -40,8 +39,6 @@ public class MultipleTypeDescriptor extends AbstractCstlProcessDescriptor {
 
     public static final String NAME = "test.multiple.type";
     public static final InternationalString ABSTRACT = new SimpleInternationalString("Test multiple types.");
-
-    private static final ParameterBuilder BUILDER = new ParameterBuilder();
 
     public static final String DOUBLE_ARRAY_INPUT_NAME = "double.array.input";
     private static final String DOUBLE_ARRAY_INPUT_REMARKS = "Double array input.";

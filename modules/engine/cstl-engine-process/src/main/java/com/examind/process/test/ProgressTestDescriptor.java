@@ -18,7 +18,6 @@
  */
 package com.examind.process.test;
 
-import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.process.AbstractCstlProcessDescriptor;
@@ -41,9 +40,6 @@ public class ProgressTestDescriptor extends AbstractCstlProcessDescriptor {
 
     public static final String NAME = "test.progress";
     public static final InternationalString ABSTRACT = new SimpleInternationalString("Test the execution progress of a process.");
-
-    private static final ParameterBuilder BUILDER = new ParameterBuilder();
-
 
     /**Input parameters */
     public static final ParameterDescriptorGroup INPUT_DESC = BUILDER.addName("InputParameters").setRequired(true)

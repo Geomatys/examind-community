@@ -18,7 +18,6 @@
  */
 package com.examind.process.test;
 
-import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.process.AbstractCstlProcess;
@@ -39,8 +38,6 @@ public class NbFeatureDescriptor extends AbstractCstlProcessDescriptor {
 
     public static final String NAME = "test.nb_feature";
     public static final InternationalString ABSTRACT = new SimpleInternationalString("Count the number of feature in a featureSet.");
-
-    private static final ParameterBuilder BUILDER = new ParameterBuilder();
 
     public static final String FEATURESET_NAME = "featureset";
     private static final String FEATURESET_REMARKS = "The input featureSet.";

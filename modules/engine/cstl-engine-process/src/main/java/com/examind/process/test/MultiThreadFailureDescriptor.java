@@ -18,7 +18,6 @@
  */
 package com.examind.process.test;
 
-import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.process.AbstractCstlProcessDescriptor;
@@ -37,8 +36,6 @@ public class MultiThreadFailureDescriptor extends AbstractCstlProcessDescriptor 
 
     public static final String NAME = "test.multithread.failure";
     public static final InternationalString ABSTRACT = new SimpleInternationalString("Test multiple thread failure.");
-
-    private static final ParameterBuilder BUILDER = new ParameterBuilder();
 
     public static final String THROW_EX_NAME = "throw.ex";
     private static final String THROW_EX_REMARKS = "Runtime exception are throw by child tread.";
