@@ -142,11 +142,23 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final String procedureNameColumn = inputParameters.getValue(THING_NAME_COLUMN);
         final String procedureDescColumn = inputParameters.getValue(THING_DESC_COLUMN);
         final boolean removePrevious = inputParameters.getValue(REMOVE_PREVIOUS);
+        final boolean directColumnIndex = inputParameters.getValue(DIRECT_COLUMN_INDEX);
+        final boolean noHeader = inputParameters.getValue(NO_HEADER);
 
         final String separator = inputParameters.getValue(SEPARATOR);
         final String charQuote = inputParameters.getValue(CHARQUOTE);
-        final String mainColumn = inputParameters.getValue(MAIN_COLUMN);
-        final String dateColumn = inputParameters.getValue(DATE_COLUMN);
+        final List<String> mainColumns = new ArrayList<>();
+        for (GeneralParameterValue param : inputParameters.values()) {
+            if (param.getDescriptor().getName().getCode().equals(MAIN_COLUMN.getName().getCode())) {
+                mainColumns.add(((ParameterValue)param).stringValue());
+            }
+        }
+        final List<String> dateColumns = new ArrayList<>();
+        for (GeneralParameterValue param : inputParameters.values()) {
+            if (param.getDescriptor().getName().getCode().equals(DATE_COLUMN.getName().getCode())) {
+                dateColumns.add(((ParameterValue)param).stringValue());
+            }
+        }
         final String dateFormat = inputParameters.getValue(DATE_FORMAT);
         final String longitudeColumn = inputParameters.getValue(LONGITUDE_COLUMN);
         final String latitudeColumn = inputParameters.getValue(LATITUDE_COLUMN);
@@ -155,8 +167,9 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final String zColumn    = inputParameters.getValue(Z_COLUMN);
 
         // csv-flat special
-        final String typeColumn = inputParameters.getValue(TYPE_COLUMN);
+        final String typeColumn  = inputParameters.getValue(TYPE_COLUMN);
         final String valueColumn = inputParameters.getValue(RESULT_COLUMN);
+        final String obsPropId   = inputParameters.getValue(OBS_PROP_ID);
         final List<String> obsPropColumns = new ArrayList<>();
         for (GeneralParameterValue param : inputParameters.values()) {
             if (param.getDescriptor().getName().getCode().equals(OBS_PROP_COLUMN.getName().getCode())) {
@@ -164,6 +177,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             }
         }
         final String obsPropRegex = inputParameters.getValue(OBS_PROP_REGEX);
+        final String obsPropName  = inputParameters.getValue(OBS_PROP_NAME);
 
         final List<String> ObsPropNameColumns = new ArrayList<>();
         for (GeneralParameterValue param : inputParameters.values()) {
@@ -172,7 +186,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             }
         }
 
-        final String uomColumn    = inputParameters.getValue(UOM_COLUMN);
+        final String uomColumn   = inputParameters.getValue(UOM_COLUMN);
         final String uomRegex    = inputParameters.getValue(UOM_REGEX);
 
         // prepare the results
@@ -298,8 +312,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
             provConfig.getParameters().put(CSVProvider.SEPARATOR.getName().toString(), separator);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.CHARQUOTE.getName().toString(), charQuote);
-            provConfig.getParameters().put(FileParsingObservationStoreFactory.MAIN_COLUMN.getName().toString(), mainColumn);
-            provConfig.getParameters().put(FileParsingObservationStoreFactory.DATE_COLUMN.getName().toString(), dateColumn);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.MAIN_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(mainColumns));
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.DATE_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(dateColumns));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.DATE_FORMAT.getName().toString(), dateFormat);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.LONGITUDE_COLUMN.getName().toString(), longitudeColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.LATITUDE_COLUMN.getName().toString(), latitudeColumn);
@@ -312,13 +326,19 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_NAME_COLUMN.getName().toString(), procedureNameColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_DESC_COLUMN.getName().toString(), procedureDescColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.RESULT_COLUMN.getName().toString(), valueColumn);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_ID.getName().toString(), obsPropId);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(obsPropColumns));
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_NAME.getName().toString(), obsPropName);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_NAME_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(ObsPropNameColumns));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_REGEX.getName().toString(), obsPropRegex);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.TYPE_COLUMN.getName().toString(), typeColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.Z_COLUMN.getName().toString(), zColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.UOM_COLUMN.getName().toString(), uomColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.FILE_MIME_TYPE.getName().toString(), format);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.DIRECT_COLUMN_INDEX.getName().toString(), Boolean.toString(directColumnIndex));
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.NO_HEADER.getName().toString(), Boolean.toString(noHeader));
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.FILE_MIME_TYPE.getName().toString(), format);
+            
             final Map<String, Object> extraStoreParams = inputParameters.getValue(EXTRA_STORE_PARAMETERS);
             if (extraStoreParams != null) {
                 for (Entry<String, Object> extraStoreParam : extraStoreParams.entrySet()) {

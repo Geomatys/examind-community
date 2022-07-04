@@ -22,10 +22,12 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -153,8 +155,18 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
             .setRequired(false)
             .create(String.class, null);
 
+    public static final ParameterDescriptor<String> OBS_PROP_ID = PARAM_BUILDER
+            .addName("observed_properties_id")
+            .setRequired(false)
+            .create(String.class, null);
+
     public static final ParameterDescriptor<String> OBS_PROP_NAME_COLUMN = PARAM_BUILDER
             .addName("observed_properties_name_columns")
+            .setRequired(false)
+            .create(String.class, null);
+
+    public static final ParameterDescriptor<String> OBS_PROP_NAME = PARAM_BUILDER
+            .addName("observed_properties_name")
             .setRequired(false)
             .create(String.class, null);
 
@@ -187,6 +199,16 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
             .addName("file_mime_type")
             .setRequired(false)
             .create(String.class, null);
+
+    public static final ParameterDescriptor<Boolean> DIRECT_COLUMN_INDEX = PARAM_BUILDER
+            .addName("direct_column_index")
+            .setRequired(false)
+            .create(Boolean.class, false);
+
+    public static final ParameterDescriptor<Boolean> NO_HEADER = PARAM_BUILDER
+            .addName("no_header")
+            .setRequired(false)
+            .create(Boolean.class, false);
 
     @Override
     public DataStore open(StorageConnector sc) throws DataStoreException {
@@ -244,7 +266,7 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
      * @throws DataStoreException
      * @throws java.io.IOException
      */
-    protected FeatureType readType(final URI file, final String mimeType, final char separator, final char charquote, final String dateColumn,
+    protected FeatureType readType(final URI file, final String mimeType, final char separator, final char charquote, final List<String> dateColumn,
             final String longitudeColumn, final String latitudeColumn, final Set<String> measureColumns) throws DataStoreException, IOException {
 
         // no possibility to open the file with the correct reader.
@@ -288,7 +310,7 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
                 final AttributeTypeBuilder atb = ftb.addAttribute(Object.class);
                 atb.setName(NamesExt.create(field));
 
-                if (dateColumn.equals(field)
+                if (dateColumn.contains(field)     // i'm not sure about the list of date columns TODO
                || (!measureColumns.contains(field)
                 && !field.equals(longitudeColumn)
                 && !field.equals(latitudeColumn))) {
@@ -334,7 +356,13 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
     protected static Set<String> getMultipleValues(final ParameterValueGroup params, final String descCode) {
         final ParameterValue<String> paramValues = (ParameterValue<String>) params.parameter(descCode);
         return paramValues.getValue() == null ?
-                Collections.emptySet() : new HashSet<>(StringUtilities.toStringList(paramValues.getValue()));
+                new HashSet<>() : new HashSet<>(StringUtilities.toStringList(paramValues.getValue()));
+    }
+
+    protected static List<String> getMultipleValuesList(final ParameterValueGroup params, final String descCode) {
+        final ParameterValue<String> paramValues = (ParameterValue<String>) params.parameter(descCode);
+        return paramValues.getValue() == null ?
+                new ArrayList<>() : StringUtilities.toStringList(paramValues.getValue());
     }
 
     @Override

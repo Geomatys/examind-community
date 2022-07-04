@@ -28,7 +28,7 @@ import java.util.Iterator;
  */
 public interface DataFileReader extends Closeable {
 
-    Iterator<String[]> iterator();
+    Iterator<String[]> iterator(boolean skipHeaders);
 
     String[] getHeaders() throws IOException;
 

@@ -46,21 +46,21 @@ public class MeasureBuilder {
      
     private final Map<String, MeasureField> measureColumns = new LinkedHashMap<>();
 
-    private final String mainColumn;
+    private final List<String> mainColumns;
 
-    public MeasureBuilder(boolean isProfile, List<String> measureColumns, String mainColumn) {
+    public MeasureBuilder(boolean isProfile, List<String> measureColumns, List<String> mainColumns) {
         this.isProfile = isProfile;
         // initialize description
         for (String mc : measureColumns) {
             this.measureColumns.put(mc, new MeasureField(mc));
         }
-        this.mainColumn = mainColumn;
+        this.mainColumns = mainColumns;
     }
 
     public MeasureBuilder(MeasureBuilder cmb, boolean isProfile) {
         this.isProfile = isProfile;
         this.measureColumns.putAll(cmb.measureColumns);
-        this.mainColumn =  cmb.mainColumn;
+        this.mainColumns =  new ArrayList<>(cmb.mainColumns);
     }
      
      public void appendValue(Number mainValue, String measureCode, Double measureValue, int lineNumber) {
@@ -101,7 +101,10 @@ public class MeasureBuilder {
         // On complète les champs de mesures seulement avec celles trouvées dans la donnée
         Map<String, MeasureField> filteredMeasure = new LinkedHashMap<>();
         if (isProfile) {
-            filteredMeasure.put(mainColumn, new MeasureField(mainColumn));
+            if (mainColumns.size() > 1) {
+                throw new IllegalArgumentException("Multiple main columns is not yet supported for Profile");
+            }
+            filteredMeasure.put(mainColumns.get(0), new MeasureField(mainColumns.get(0)));
         }
         for (Entry<String, MeasureField> m : measureColumns.entrySet()) {
             if (measureColumnFound.contains(m.getKey())) {

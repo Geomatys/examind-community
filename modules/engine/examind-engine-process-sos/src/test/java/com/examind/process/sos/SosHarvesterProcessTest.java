@@ -133,6 +133,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
     private static Path multiPlatDirectory;
     private static Path bigdataDirectory;
     private static Path survalDirectory;
+    private static Path noHeadDirectory;
 
     // XLS dir
     private static Path xDataDirectory;
@@ -183,29 +184,24 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         Files.createDirectories(survalDirectory);
         xDataDirectory = DATA_DIRECTORY.resolve("xdata");
         Files.createDirectories(xDataDirectory);
+        noHeadDirectory = DATA_DIRECTORY.resolve("noHead");
+        Files.createDirectories(noHeadDirectory);
 
         writeResourceDataFile(argoDirectory, "com/examind/process/sos/argo-profiles-2902402-1.csv", "argo-profiles-2902402-1.csv");
-
         writeResourceDataFile(fmlwDirectory, "com/examind/process/sos/tsg-FMLW-1.csv", "tsg-FMLW-1.csv");
         writeResourceDataFile(fmlwDirectory, "com/examind/process/sos/tsg-FMLW-2.csv", "tsg-FMLW-2.csv");
         writeResourceDataFile(fmlwDirectory, "com/examind/process/sos/tsg-FMLW-3.csv", "tsg-FMLW-3.csv");
-
         writeResourceDataFile(mooDirectory,  "com/examind/process/sos/mooring-buoys-time-series-62069.csv", "mooring-buoys-time-series-62069.csv");
-
         writeResourceDataFile(ltDirectory,   "com/examind/process/sos/LakeTile_001.dbf", "LakeTile_001.dbf");
         writeResourceDataFile(ltDirectory,   "com/examind/process/sos/LakeTile_002.dbf", "LakeTile_002.dbf");
-
         writeResourceDataFile(rtDirectory,   "com/examind/process/sos/rivertile_001.dbf", "rivertile_001.dbf");
         writeResourceDataFile(rtDirectory,   "com/examind/process/sos/rivertile_002.dbf", "rivertile_002.dbf");
-
         writeResourceDataFile(multiPlatDirectory,   "com/examind/process/sos/multiplatform-1.csv", "multiplatform-1.csv");
         writeResourceDataFile(multiPlatDirectory,   "com/examind/process/sos/multiplatform-2.csv", "multiplatform-2.csv");
-
         writeResourceDataFile(bigdataDirectory, "com/examind/process/sos/bigdata-1.csv", "bigdata-1.csv");
-
         writeResourceDataFile(survalDirectory, "com/examind/process/sos/surval-small.csv", "surval-small.csv");
-
         writeResourceDataFile(xDataDirectory, "com/examind/process/sos/xdata.xlsx", "xdata.xlsx");
+        writeResourceDataFile(noHeadDirectory, "com/examind/process/sos/nohead.csv", "nohead.csv");
 
     }
 
@@ -2381,6 +2377,119 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
 
         int nbMeasure = getNbMeasure(stsWorker, "urn:xdata:cap-90");
+        Assert.assertEquals(3, nbMeasure);
+
+    }
+
+    @Test
+    @Order(order = 8)
+    public void harvesterCSVNoHeaderTSTest() throws Exception {
+
+        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
+        Assert.assertNotNull(sc);
+
+        ServiceComplete sc2 = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
+        Assert.assertNotNull(sc2);
+
+        sensorServBusiness.removeAllSensors(sc.getId());
+        sensorServBusiness.removeAllSensors(sc2.getId());
+
+        SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
+        sosWorker.setServiceUrl("http://localhost/examind/");
+
+        STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
+        stsWorker.setServiceUrl("http://localhost/examind/");
+
+        int prev = getNbOffering(sosWorker, 0);
+
+        Assert.assertEquals(ORIGIN_NB_SENSOR, prev);
+
+        String datasetId = "SOS_DATA_5";
+        String sensorID = "NHSensor";
+        String observedProperty = "Conductivité";
+
+        final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, SosHarvesterProcessDescriptor.NAME);
+
+        final ParameterValueGroup in = desc.getInputDescriptor().createValue();
+        in.parameter(SosHarvesterProcessDescriptor.DATASET_IDENTIFIER_NAME).setValue(datasetId);
+        in.parameter(SosHarvesterProcessDescriptor.DATA_FOLDER_NAME).setValue(noHeadDirectory.toUri().toString());
+
+        in.parameter(SosHarvesterProcessDescriptor.STORE_ID_NAME).setValue("observationCsvFile");
+        in.parameter(SosHarvesterProcessDescriptor.DIRECT_COLUMN_INDEX_NAME).setValue(true);
+        in.parameter(SosHarvesterProcessDescriptor.NO_HEADER_NAME).setValue(true);
+        in.parameter(SosHarvesterProcessDescriptor.SEPARATOR_NAME).setValue(";");
+
+        ParameterValue main1 = (ParameterValue) SosHarvesterProcessDescriptor.MAIN_COLUMN.createValue();
+        main1.setValue("0");
+        in.values().add(main1);
+        ParameterValue main2 = (ParameterValue) SosHarvesterProcessDescriptor.MAIN_COLUMN.createValue();
+        main2.setValue("1");
+        in.values().add(main2);
+
+        ParameterValue date1 = (ParameterValue) SosHarvesterProcessDescriptor.DATE_COLUMN.createValue();
+        date1.setValue("0");
+        in.values().add(date1);
+        ParameterValue date2 = (ParameterValue) SosHarvesterProcessDescriptor.DATE_COLUMN.createValue();
+        date2.setValue("1");
+        in.values().add(date2);
+
+        in.parameter(SosHarvesterProcessDescriptor.DATE_FORMAT_NAME).setValue("yyyy-MM-ddHH:mm:ss");
+        in.parameter(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).setValue("2");
+
+        in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
+        in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue(sensorID);
+        in.parameter(SosHarvesterProcessDescriptor.OBS_PROP_ID_NAME).setValue(observedProperty);
+        
+        in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(true);
+        in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
+
+        ParameterValue s1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
+        s1.setValue(new ServiceProcessReference(sc));
+        in.values().add(s1);
+        ParameterValue s2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
+        s2.setValue(new ServiceProcessReference(sc2));
+        in.values().add(s2);
+
+        org.geotoolkit.process.Process proc = desc.createProcess(in);
+        proc.call();
+
+        // verify that the dataset has been created
+        Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
+
+        // verify that the sensor has been created
+        Sensor sensor = sensorBusiness.getSensor(sensorID);
+        Assert.assertNotNull(sensor);
+
+        Thing t = getThing(stsWorker, sensorID);
+        Assert.assertNotNull(t);
+
+        Assert.assertEquals(1, getNbOffering(sosWorker, prev));
+
+        /*
+        * first extracted procedure
+        */
+
+        ObservationOffering offp = getOffering(sosWorker, sensorID);
+        Assert.assertNotNull(offp);
+
+        Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
+        TimePeriodType time = (TimePeriodType) offp.getTime();
+
+        Assert.assertEquals("2002-01-01T01:24:22.000", time.getBeginPosition().getValue());
+        Assert.assertEquals("2002-01-03T13:47:59.000", time.getEndPosition().getValue());
+
+        Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
+
+        Assert.assertEquals(observedProperty, offp.getObservedProperties().get(0));
+
+        /*
+        * Verify an inserted data
+        */
+        GetResultResponseType gr = (GetResultResponseType) sosWorker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, null));
+        String expectedResult = getResourceAsString("com/examind/process/sos/nohead-datablock-values.txt");
+        Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
+
+        int nbMeasure = getNbMeasure(stsWorker, sensorID);
         Assert.assertEquals(3, nbMeasure);
 
     }

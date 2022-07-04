@@ -81,6 +81,22 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(false)
             .create(Boolean.class, false);
 
+    public static final String DIRECT_COLUMN_INDEX_NAME = "direct_column_index";
+    public static final String DIRECT_COLUMN_INDEX_DESC = "Use directly the column index instead of column name extracted fom headers.";
+    public static final ParameterDescriptor<Boolean> DIRECT_COLUMN_INDEX = PARAM_BUILDER
+            .addName(DIRECT_COLUMN_INDEX_NAME)
+            .setRemarks(DIRECT_COLUMN_INDEX_DESC)
+            .setRequired(false)
+            .create(Boolean.class, false);
+
+    public static final String NO_HEADER_NAME = "no_header";
+    public static final String NO_HEADER_DESC = "the file has no header. Must be used with direct_column_index";
+    public static final ParameterDescriptor<Boolean> NO_HEADER = PARAM_BUILDER
+            .addName(NO_HEADER_NAME)
+            .setRemarks(NO_HEADER_DESC)
+            .setRequired(false)
+            .create(Boolean.class, false);
+
     public static final String SERVICE_ID_NAME = "sensor_service";
     public static final String SERVICE_ID_DESC = "Sensor service where to publish the sensors.";
     public static final ParameterDescriptor<ServiceProcessReference> SERVICE_ID =
@@ -145,11 +161,13 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
 
     public static final String MAIN_COLUMN_NAME = FileParsingObservationStoreFactory.MAIN_COLUMN.getName().getCode();
     public static final String MAIN_COLUMN_DESC = FileParsingObservationStoreFactory.MAIN_COLUMN.getName().getCode();
-    public static final ParameterDescriptor<String> MAIN_COLUMN = PARAM_BUILDER
-            .addName(MAIN_COLUMN_NAME)
-            .setRemarks(MAIN_COLUMN_DESC)
-            .setRequired(true)
-            .create(String.class, null);
+    public static final ParameterDescriptor<String> MAIN_COLUMN = new ExtendedParameterDescriptor<>(
+            MAIN_COLUMN_NAME,
+            MAIN_COLUMN_DESC,
+            1, 92,
+            String.class,
+            null, null, null
+    );
     
     public static final String Z_COLUMN_NAME = FileParsingObservationStoreFactory.Z_COLUMN.getName().getCode();
     public static final String Z_COLUMN_DESC = FileParsingObservationStoreFactory.Z_COLUMN.getName().getCode();
@@ -161,11 +179,13 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
 
     public static final String DATE_COLUMN_NAME = FileParsingObservationStoreFactory.DATE_COLUMN.getName().getCode();
     public static final String DATE_COLUMN_DESC = FileParsingObservationStoreFactory.DATE_COLUMN.getName().getCode();
-    public static final ParameterDescriptor<String> DATE_COLUMN = PARAM_BUILDER
-            .addName(DATE_COLUMN_NAME)
-            .setRemarks(DATE_COLUMN_DESC)
-            .setRequired(true)
-            .create(String.class, null);
+    public static final ParameterDescriptor<String> DATE_COLUMN = new ExtendedParameterDescriptor<>(
+            DATE_COLUMN_NAME,
+            DATE_COLUMN_DESC,
+            1, 92,
+            String.class,
+            null, null, null
+    );
 
     public static final String DATE_FORMAT_NAME = FileParsingObservationStoreFactory.DATE_FORMAT.getName().getCode();
     public static final String DATE_FORMAT_DESC = FileParsingObservationStoreFactory.DATE_FORMAT.getName().getCode();
@@ -253,6 +273,14 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(false)
             .create(String.class, null);
 
+    public static final String OBS_PROP_ID_NAME = "observed_properties_id";
+    public static final String OBS_PROP_ID_DESC = "Fixed observed property identifier (used with csv-flat)";
+    public static final ParameterDescriptor<String> OBS_PROP_ID = PARAM_BUILDER
+            .addName(OBS_PROP_ID_NAME)
+            .setRemarks(OBS_PROP_ID_DESC)
+            .setRequired(false)
+            .create(String.class, null);
+
     public static final String OBS_PROP_COLUMN_NAME = "observed_properties_columns";
     public static final String OBS_PROP_COLUMN_DESC = "Columns containing the observed property (used with csv-flat)";
     public static final ParameterDescriptor<String> OBS_PROP_COLUMN = new ExtendedParameterDescriptor<>(
@@ -262,6 +290,14 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             String.class,
             null, null, null
     );
+
+    public static final String OBS_PROP_NAME_NAME = "observed_properties_name";
+    public static final String OBS_PROP_NAME_DESC = "Fixed observed property name (used with csv-flat)";
+    public static final ParameterDescriptor<String> OBS_PROP_NAME = PARAM_BUILDER
+            .addName(OBS_PROP_NAME_NAME)
+            .setRemarks(OBS_PROP_NAME_DESC)
+            .setRequired(false)
+            .create(String.class, null);
 
     public static final String OBS_PROP_NAME_COLUMN_NAME = "observed_properties_name_columns";
     public static final String OBS_PROP_NAME_COLUMN_DESC = "Columns containing the observed property description (used with csv-flat)";
@@ -318,7 +354,8 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
     public static final ParameterDescriptorGroup INPUT_DESC =
             PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, REMOTE_READ, SERVICE_ID, DATASET_IDENTIFIER, THING_ID, THING_COLUMN, THING_NAME_COLUMN, THING_DESC_COLUMN, OBS_TYPE,
                     SEPARATOR, CHARQUOTE, MAIN_COLUMN, Z_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, UOM_COLUMN, UOM_REGEX, REMOVE_PREVIOUS,
-                    STORE_ID, FORMAT, RESULT_COLUMN, OBS_PROP_COLUMN, OBS_PROP_NAME_COLUMN, OBS_PROP_COLUMNS_FILTER, OBS_PROP_REGEX, TYPE_COLUMN, EXTRA_STORE_PARAMETERS);
+                    STORE_ID, FORMAT, RESULT_COLUMN, OBS_PROP_ID, OBS_PROP_COLUMN, OBS_PROP_NAME, OBS_PROP_NAME_COLUMN, OBS_PROP_COLUMNS_FILTER, OBS_PROP_REGEX, TYPE_COLUMN, EXTRA_STORE_PARAMETERS, DIRECT_COLUMN_INDEX,
+                    NO_HEADER);
 
     public static final String FILE_INSERTED_NAME = "files_inserted_count";
     public static final String FILE_INSERTED_DESC = "Number of files inserted";

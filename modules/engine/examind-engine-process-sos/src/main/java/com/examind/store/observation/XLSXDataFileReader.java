@@ -53,9 +53,16 @@ public class XLSXDataFileReader implements DataFileReader {
     }
 
     @Override
-    public Iterator<String[]> iterator() {
+    public Iterator<String[]> iterator(boolean skipHeaders) {
         final Sheet sheet = workbook.getSheetAt(0);
         final Iterator<Row> it = sheet.rowIterator();
+
+        if (skipHeaders) {
+            if (it.hasNext()) {
+                // skip headers
+                it.next();
+            }
+        }
 
         return new Iterator<String[]>() {
             @Override
@@ -100,7 +107,7 @@ public class XLSXDataFileReader implements DataFileReader {
 
     @Override
     public String[] getHeaders() throws IOException {
-        final Iterator<String[]> it = iterator();
+        final Iterator<String[]> it = iterator(false);
 
         // at least one line is expected to contain headers information
         if (it.hasNext()) {
@@ -108,7 +115,7 @@ public class XLSXDataFileReader implements DataFileReader {
             // read headers
             return it.next();
         }
-        throw new IOException("csv headers not found");
+        throw new IOException("xls headers not found");
     }
 
 }

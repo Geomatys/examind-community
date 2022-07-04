@@ -31,13 +31,30 @@ import java.util.Iterator;
 public class CSVDataFileReader implements DataFileReader {
 
     private final CSVReader reader;
+    private boolean headerAlreadyRead = false;
+    private Iterator<String[]> it = null;
+
     public CSVDataFileReader(Path dataFile, char delimiter, char quote) throws IOException {
         this.reader = new CSVReader(Files.newBufferedReader(dataFile), delimiter, quote);
     }
 
+    private Iterator<String[]> getIterator() {
+        if (it == null) {
+            it = reader.iterator();
+        }
+        return it;
+    }
+
     @Override
-    public Iterator<String[]> iterator() {
-        return reader.iterator();
+    public Iterator<String[]> iterator(boolean skipHeaders) {
+        final Iterator<String[]> it = getIterator();
+        if (skipHeaders && !headerAlreadyRead) {
+            if (it.hasNext()) {
+                // skip headers
+                it.next();
+            }
+        }
+        return it;
     }
 
     @Override
@@ -47,8 +64,8 @@ public class CSVDataFileReader implements DataFileReader {
 
     @Override
     public String[] getHeaders() throws IOException {
-        final Iterator<String[]> it = reader.iterator();
-
+        final Iterator<String[]> it = getIterator();
+        headerAlreadyRead = true;
         // at least one line is expected to contain headers information
         if (it.hasNext()) {
 

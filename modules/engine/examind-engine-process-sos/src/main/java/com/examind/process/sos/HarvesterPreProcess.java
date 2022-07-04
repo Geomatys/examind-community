@@ -81,9 +81,9 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         String format                = inputParameters.getValue(HarvesterPreProcessDescriptor.FORMAT);
 
         final String resultColumn    = inputParameters.getValue(HarvesterPreProcessDescriptor.RESULT_COLUMN);
-        final String typeColumn     = inputParameters.getValue(HarvesterPreProcessDescriptor.TYPE_COLUMN);
-        final String separator      = inputParameters.getValue(HarvesterPreProcessDescriptor.SEPARATOR);
-        final String charquote      = inputParameters.getValue(HarvesterPreProcessDescriptor.CHARQUOTE);
+        final String typeColumn      = inputParameters.getValue(HarvesterPreProcessDescriptor.TYPE_COLUMN);
+        final String separator       = inputParameters.getValue(HarvesterPreProcessDescriptor.SEPARATOR);
+        final String charquote       = inputParameters.getValue(HarvesterPreProcessDescriptor.CHARQUOTE);
 
         final List<String> obsPropColumns = new ArrayList<>();
         for (GeneralParameterValue param : inputParameters.values()) {
@@ -164,7 +164,7 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
 
                     // extract codes
                     if (csvFlat) {
-                        Set<String> currentCodes = extractCodes(format, child, obsPropColumns, separator.charAt(0), charquote == null ? null : charquote.charAt(0));
+                        Set<String> currentCodes = extractCodes(format, child, obsPropColumns, separator.charAt(0), charquote == null ? null : charquote.charAt(0), false, false);
                         codes.addAll(currentCodes);
                     }
                 }

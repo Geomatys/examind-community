@@ -22,6 +22,7 @@ import java.net.URI;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import org.apache.sis.internal.storage.Capability;
@@ -51,8 +52,8 @@ public class CsvObservationStoreFactory extends FileParsingObservationStoreFacto
 
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR
             = PARAM_BUILDER.addName(NAME).addName("ObservationCsvFileParameters").createGroup(IDENTIFIER, NAMESPACE, CSVProvider.PATH, CSVProvider.SEPARATOR,
-                    MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, OBS_PROP_COLUMN, FOI_COLUMN, OBSERVATION_TYPE, PROCEDURE_ID,
-                    PROCEDURE_COLUMN, PROCEDURE_NAME_COLUMN, PROCEDURE_DESC_COLUMN, Z_COLUMN, UOM_REGEX, CHARQUOTE, OBS_PROP_REGEX, FILE_MIME_TYPE);
+                    MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, OBS_PROP_COLUMN, OBS_PROP_ID, OBS_PROP_NAME, FOI_COLUMN, OBSERVATION_TYPE, PROCEDURE_ID,
+                    PROCEDURE_COLUMN, PROCEDURE_NAME_COLUMN, PROCEDURE_DESC_COLUMN, Z_COLUMN, UOM_REGEX, CHARQUOTE, OBS_PROP_REGEX, FILE_MIME_TYPE, NO_HEADER, DIRECT_COLUMN_INDEX);
 
     @Override
     public String getShortName() {
@@ -74,8 +75,8 @@ public class CsvObservationStoreFactory extends FileParsingObservationStoreFacto
         if (quotecharString != null) {
             quotechar = quotecharString.charAt(0);
         }
-        final String mainColumn = (String) params.parameter(MAIN_COLUMN.getName().toString()).getValue();
-        final String dateColumn = (String) params.parameter(DATE_COLUMN.getName().toString()).getValue();
+        final List<String> mainColumns = getMultipleValuesList(params, MAIN_COLUMN.getName().toString());
+        final List<String> dateColumns = getMultipleValuesList(params, DATE_COLUMN.getName().toString());
         final String dateFormat = (String) params.parameter(DATE_FORMAT.getName().toString()).getValue();
         final String longitudeColumn = (String) params.parameter(LONGITUDE_COLUMN.getName().toString()).getValue();
         final String latitudeColumn = (String) params.parameter(LATITUDE_COLUMN.getName().toString()).getValue();
@@ -89,13 +90,17 @@ public class CsvObservationStoreFactory extends FileParsingObservationStoreFacto
         final String uomRegex = (String) params.parameter(UOM_REGEX.getName().toString()).getValue();
         final Set<String> obsPropColumns = getMultipleValues(params, OBS_PROP_COLUMN.getName().getCode());
         final String obsPropRegex = (String) params.parameter(OBS_PROP_REGEX.getName().toString()).getValue();
+        final String obsPropId = (String) params.parameter(OBS_PROP_ID.getName().toString()).getValue();
+        final String obsPropName = (String) params.parameter(OBS_PROP_NAME.getName().toString()).getValue();
         final String mimeType = (String) params.parameter(FILE_MIME_TYPE.getName().toString()).getValue();
+        final boolean noHeader = (boolean) params.parameter(NO_HEADER.getName().toString()).getValue();
+        final boolean directColumnIndex = (boolean) params.parameter(DIRECT_COLUMN_INDEX.getName().toString()).getValue();
         try {
             return new CsvObservationStore(Paths.get(uri),
-                    separator, quotechar, readType(uri, mimeType, separator, quotechar, dateColumn, longitudeColumn, latitudeColumn, obsPropColumns),
-                    mainColumn, dateColumn, dateFormat, longitudeColumn, latitudeColumn, obsPropColumns, observationType,
+                    separator, quotechar, readType(uri, mimeType, separator, quotechar, dateColumns, longitudeColumn, latitudeColumn, obsPropColumns),
+                    mainColumns, dateColumns, dateFormat, longitudeColumn, latitudeColumn, obsPropColumns, observationType,
                     foiColumn, procedureId, procedureColumn, procedureNameColumn, procedureDescColumn, zColumn, uomRegex, obsPropRegex,
-                    mimeType);
+                    mimeType, obsPropId, obsPropName, noHeader, directColumnIndex);
         } catch (IOException ex) {
             LOGGER.log(Level.WARNING, "problem opening csv file", ex);
             throw new DataStoreException(ex);

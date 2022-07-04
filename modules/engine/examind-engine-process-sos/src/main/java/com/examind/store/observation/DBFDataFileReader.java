@@ -41,7 +41,7 @@ public class DBFDataFileReader implements DataFileReader {
     }
 
     @Override
-    public Iterator<String[]> iterator() {
+    public Iterator<String[]> iterator(boolean skipHeaders) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 

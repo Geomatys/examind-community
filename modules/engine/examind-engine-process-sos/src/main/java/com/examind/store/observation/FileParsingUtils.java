@@ -118,6 +118,7 @@ public class FileParsingUtils {
      * @throws ParseException the parse method failed.
      */
     public static double parseDouble(String s) throws ParseException, NumberFormatException {
+        s = s.trim();
         if (s.contains(",")) {
             synchronized(FR_FORMAT) {
                 Number number = FR_FORMAT.parse(s);

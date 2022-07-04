@@ -83,24 +83,27 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
      * @throws MalformedURLException
      */
     public CsvFlatObservationStore(final Path observationFile, final char separator, final char quotechar, final FeatureType featureType,
-                                       final String mainColumn, final String dateColumn, final String dateTimeformat, final String longitudeColumn, final String latitudeColumn,
+                                       final List<String> mainColumn, final List<String> dateColumn, final String dateTimeformat, final String longitudeColumn, final String latitudeColumn,
                                        final Set<String> obsPropFilterColumns, String observationType, String foiColumn, final String procedureId, final String procedureColumn, 
                                        final String procedureNameColumn, final String procedureDescColumn, final String zColumn, final String uomColumn, final String uomRegex,
                                        final String valueColumn, final Set<String> obsPropColumns, final Set<String> obsPropNameColumns, final String typeColumn,  String obsPropRegex,
-                                       final String mimeType) throws DataStoreException, MalformedURLException {
+                                       final String mimeType, final String obsPropId, final String obsPropName, final boolean noHeader, final boolean directColumnIndex) throws DataStoreException, MalformedURLException {
         super(observationFile, separator, quotechar, featureType, mainColumn, dateColumn, dateTimeformat, longitudeColumn, latitudeColumn, obsPropFilterColumns, observationType,
-              foiColumn, procedureId, procedureColumn, procedureNameColumn, procedureDescColumn, zColumn, uomRegex, obsPropRegex, mimeType);
+              foiColumn, procedureId, procedureColumn, procedureNameColumn, procedureDescColumn, zColumn, uomRegex, obsPropRegex, obsPropId, obsPropName, mimeType, noHeader, directColumnIndex);
         this.valueColumn = valueColumn;
         this.obsPropColumns = obsPropColumns;
         this.obsPropNameColumns = obsPropNameColumns;
         this.typeColumn = typeColumn;
         this.uomColumn = uomColumn;
 
+        // special case for hard coded observed property
+        if (obsPropId != null && !obsPropId.isEmpty()) {
+            this.measureColumns = Collections.singleton(obsPropId);
         // special case for * measure columns
         // if the store is open with missing mime type we skip this part.
-        if (obsPropFilterColumns.isEmpty() && mimeType != null) {
+        } else if (obsPropFilterColumns.isEmpty() && mimeType != null) {
             try {
-                this.measureColumns = extractCodes(mimeType, dataFile, obsPropColumns, separator, quotechar);
+                this.measureColumns = extractCodes(mimeType, dataFile, obsPropColumns, separator, quotechar, noHeader, directColumnIndex);
             } catch (ConstellationStoreException ex) {
                 throw new DataStoreException(ex);
             }
@@ -122,25 +125,17 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
         // open csv file
         try (final DataFileReader reader = getDataFileReader()) {
 
-            final Iterator<String[]> it = reader.iterator();
-
-            // at least one line is expected to contain headers information
-            if (!it.hasNext()) throw new DataStoreException("csv headers not found");
+            String[] headers = null;
+            if (!noHeader) {
+                headers = reader.getHeaders();
+            }
 
             // prepare procedure/type column indices
-            int procIndex = -1;
-            int typeColumnIndex = -1;
+            int procIndex       = getColumnIndex(procedureColumn, headers);
+            int typeColumnIndex = getColumnIndex(typeColumn, headers);
 
-            // read headers
-            final String[] headers = it.next();
-            for (int i = 0; i < headers.length; i++) {
-                final String header = headers[i];
-                if (header.equals(procedureColumn)) {
-                    procIndex = i;
-                } else if (header.equals(typeColumn)) {
-                    typeColumnIndex = i;
-                }
-            }
+
+            final Iterator<String[]> it = reader.iterator(!noHeader);
 
             final List<String> obsTypeCodes = getObsTypeCodes();
             while (it.hasNext()) {
@@ -168,81 +163,31 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
         // open csv file with a delimiter set as process SosHarvester input.
         try (final DataFileReader reader = getDataFileReader()) {
 
-            final Iterator<String[]> it = reader.iterator();
-
-            // at least one line is expected to contain headers information
-            if (!it.hasNext()) throw new DataStoreException("csv headers not found");
+            String[] headers = null;
+            if (!noHeader) {
+                headers = reader.getHeaders();
+            }
 
             /*
             1- filter prepare spatial/time column indices from ordinary fields
             ================================================================*/
-            int mainIndex = -1;
-            int dateIndex = -1;
-            int latitudeIndex = -1;
-            int longitudeIndex = -1;
-            int foiIndex = -1;
-            int zIndex = -1;
-            int procIndex = -1;
-            int procNameIndex = -1;
-            int procDescIndex = -1;
-            int valueColumnIndex = -1;
-            int uomColumnIndex = -1;
-            List<Integer> obsPropColumnIndexes = new ArrayList<>();
-            List<Integer> obsPropNameColumnIndexes = new ArrayList<>();
-            int typeColumnIndex = -1;
-
-            // read headers
-            final String[] headers = it.next();
             final List<Integer> doubleFields = new ArrayList<>();
+            
+            int latitudeIndex    = getColumnIndex(latitudeColumn, headers, doubleFields);
+            int longitudeIndex   = getColumnIndex(longitudeColumn, headers, doubleFields);
+            int foiIndex         = getColumnIndex(foiColumn, headers);
+            int zIndex           = getColumnIndex(zColumn, headers);
+            int procIndex        = getColumnIndex(procedureColumn, headers);
+            int procNameIndex    = getColumnIndex(procedureNameColumn, headers);
+            int procDescIndex    = getColumnIndex(procedureDescColumn, headers);
+            int valueColumnIndex = getColumnIndex(valueColumn, headers, doubleFields);
+            int uomColumnIndex   = getColumnIndex(uomColumn, headers);
+            int typeColumnIndex  = getColumnIndex(typeColumn, headers);
 
-            for (int i = 0; i < headers.length; i++) {
-                final String header = headers[i];
-                if (header.equals(mainColumn)) {
-                    mainIndex = i;
-                }
-                if (header.equals(foiColumn)) {
-                    foiIndex = i;
-                }
-                if (header.equals(dateColumn)) {
-                    dateIndex = i;
-                }
-                if (header.equals(latitudeColumn)) {
-                    latitudeIndex = i;
-                    doubleFields.add(i);
-                }
-                if (header.equals(longitudeColumn)) {
-                    longitudeIndex = i;
-                    doubleFields.add(i);
-                }
-                if (header.equals(valueColumn)) {
-                    valueColumnIndex = i;
-                    doubleFields.add(i);
-                }
-                if (obsPropColumns.contains(header)) {
-                    obsPropColumnIndexes.add(i);
-                }
-                if (obsPropNameColumns.contains(header)) {
-                    obsPropNameColumnIndexes.add(i);
-                }
-                if (header.equals(typeColumn)) {
-                    typeColumnIndex = i;
-                }
-                if (header.equals(procedureColumn)) {
-                    procIndex = i;
-                }
-                if (header.equals(procedureNameColumn)) {
-                    procNameIndex = i;
-                }
-                if (header.equals(procedureDescColumn)) {
-                    procDescIndex = i;
-                }
-                if (header.equals(zColumn)) {
-                    zIndex = i;
-                }
-                if (header.equals(uomColumn)) {
-                    uomColumnIndex = i;
-                }
-            }
+            List<Integer> dateIndexes              = getColumnIndexes(dateColumns, headers);
+            List<Integer> mainIndexes              = getColumnIndexes(mainColumns, headers);;
+            List<Integer> obsPropColumnIndexes     = getColumnIndexes(obsPropColumns, headers);
+            List<Integer> obsPropNameColumnIndexes = getColumnIndexes(obsPropNameColumns, headers);
 
             if (obsPropColumnIndexes.isEmpty()) {
                 throw new DataStoreException("Unexpected columns code:" + Arrays.toString(obsPropColumns.toArray()));
@@ -250,8 +195,8 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             if (valueColumnIndex == -1) {
                 throw new DataStoreException("Unexpected column value:" + valueColumn);
             }
-            if (mainIndex == -1 && observationType != null) {
-                throw new DataStoreException("Unexpected column main:" + mainColumn);
+            if (mainIndexes.isEmpty() && observationType != null) {
+                throw new DataStoreException("Unexpected column main:" + mainColumns);
             }
 
             // add measure column
@@ -273,10 +218,11 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             String currentProc;
             Long currentTime;
             String currentFoi                     = null;
-            String currentMainColumn              = mainColumn;
+            List<String> currentMainColumns       = mainColumns;
             String currentObstType                = observationType;
             final List<String> obsTypeCodes       = getObsTypeCodes();
 
+            final Iterator<String[]> it = reader.iterator(!noHeader);
             while (it.hasNext()) {
                 lineNumber++;
                 final String[] line = it.next();
@@ -293,11 +239,11 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     if (observationType == null) {
                         currentObstType = getObservationTypeFromCode(line[typeColumnIndex]);
                         if (currentObstType.equals("Profile")) {
-                            mainIndex = zIndex;
-                            currentMainColumn = zColumn;
+                            mainIndexes = Arrays.asList(zIndex);
+                            currentMainColumns = Arrays.asList(zColumn);
                         } else {
-                            mainIndex = dateIndex;
-                            currentMainColumn = dateColumn;
+                            mainIndexes = dateIndexes;
+                            currentMainColumns = dateColumns;
                         }
                     }
                 }
@@ -323,26 +269,36 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 currentFoi = getColumnValue(foiIndex, line, currentFoi);
 
                 // look for current date (for profile observation separation)
-                if (dateIndex != mainIndex) {
+                if (!dateIndexes.equals(mainIndexes) ) {
+                    String value = "";
                     try {
-                        currentTime = sdf.parse(line[dateIndex]).getTime();
+                        for (Integer dateIndex : dateIndexes) {
+                            value += line[dateIndex];
+                        }
+                        currentTime = sdf.parse(value).getTime();
                     } catch (ParseException ex) {
-                        LOGGER.fine(String.format("Problem parsing date for date field at line %d and column %d (value='%s'). skipping line...", lineNumber, dateIndex, line[dateIndex]));
+                        LOGGER.fine(String.format("Problem parsing date for date field at line %d (value='%s'). skipping line...", lineNumber, value));
                         continue;
                     }
                 } else {
                     currentTime = null;
                 }
 
-                // Concatenate observedProperty from input code columns
+                
                 String observedProperty = "";
-                boolean first = true;
-                for (Integer codeColumnIndex : obsPropColumnIndexes) {
-                    if (!first) {
-                        observedProperty += "-";
+                if (obsPropId != null && !obsPropId.isEmpty()) {
+                    // Use fixed value
+                    observedProperty = obsPropId;
+                } else {
+                    // Concatenate observedProperty from input code columns
+                    boolean first = true;
+                    for (Integer codeColumnIndex : obsPropColumnIndexes) {
+                        if (!first) {
+                            observedProperty += "-";
+                        }
+                        observedProperty += line[codeColumnIndex];
+                        first = false;
                     }
-                    observedProperty += line[codeColumnIndex];
-                    first = false;
                 }
 
                 // checks if row matches the observed properties wanted
@@ -350,17 +306,22 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     continue;
                 }
 
-                ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentProcName, currentProcDesc, currentFoi, currentTime, sortedMeasureColumns, currentMainColumn, currentObstType);
+                ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentProcName, currentProcDesc, currentFoi, currentTime, sortedMeasureColumns, currentMainColumns, currentObstType);
 
-                // Concatenate observedProperty name
                 String observedPropertyName = "";
-                boolean dfirst = true;
-                for (Integer index : obsPropNameColumnIndexes) {
-                    if (!dfirst) {
-                        observedPropertyName += "-";
+                if (obsPropName != null && !obsPropName.isEmpty()) {
+                    // Use fixed value
+                    observedProperty = obsPropName;
+                } else {
+                    // Concatenate observedProperty name
+                    boolean first = true;
+                    for (Integer index : obsPropNameColumnIndexes) {
+                        if (!first) {
+                            observedPropertyName += "-";
+                        }
+                        observedPropertyName += line[index];
+                        first = false;
                     }
-                    observedPropertyName += line[index];
-                    dfirst = false;
                 }
 
                 if (!observedPropertyName.isEmpty()) {
@@ -374,17 +335,21 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
 
                 // update temporal interval
                 Long millis = null;
-                if (dateIndex != -1) {
+                if (!dateIndexes.isEmpty()) {
+                    String value = "";
                     try {
                         if (currentTime != null) {
                             millis = currentTime;
                         } else {
-                            millis = sdf.parse(line[dateIndex]).getTime();
+                            for (Integer dateIndex : dateIndexes) {
+                                value += line[dateIndex];
+                            }
+                            millis = sdf.parse(value).getTime();
                         }
                         result.spatialBound.addDate(millis);
                         currentBlock.addDate(millis);
                     } catch (ParseException ex) {
-                        LOGGER.fine(String.format("Problem parsing date for date field at line %d and column %d (value='%s'). skipping line...", lineNumber, dateIndex, line[dateIndex]));
+                        LOGGER.fine(String.format("Problem parsing date for date field at line %d (value='%s'). skipping line...", lineNumber, value));
                         continue;
                     }
                 }
@@ -405,10 +370,15 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
 
                 // parse main value
                 Number mainValue;
+                String value = "";
                 try {
                      // assume that for profile main field is a double
                     if (currentObstType.equals("Profile")) {
-                        mainValue = parseDouble(line[mainIndex]);
+                        if (mainIndexes.size() > 1) {
+                            throw new DataStoreException("Multiple main columns is not yet supported for Profile");
+                        }
+                        value = line[mainIndexes.get(0)];
+                        mainValue = parseDouble(value);
 
                     // assume that is a date otherwise
                     } else {
@@ -416,11 +386,14 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                         if (millis != null) {
                             mainValue = millis;
                         } else {
-                            mainValue = sdf.parse(line[mainIndex]).getTime();
+                            for (Integer dateIndex : dateIndexes) {
+                                value += line[dateIndex];
+                            }
+                            mainValue = sdf.parse(value).getTime();
                         }
                     }
                 } catch (ParseException | NumberFormatException ex) {
-                    LOGGER.fine(String.format("Problem parsing date/double for main field at line %d and column %d (value='%s'). skipping line...", lineNumber, mainIndex, line[mainIndex]));
+                    LOGGER.fine(String.format("Problem parsing date/double for main field at line %d (value='%s'). skipping line...", lineNumber, value));
                     continue;
                 }
 
@@ -463,39 +436,18 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
         // open csv file
         try (final DataFileReader reader = getDataFileReader()) {
 
-            final Iterator<String[]> it = reader.iterator();
-
-            // at least one line is expected to contain headers information
-            if (!it.hasNext()) throw new DataStoreException("csv headers not found");
-            int count = 1;
+            String[] headers = null;
+            if (!noHeader) {
+                headers = reader.getHeaders();
+            }
 
             // prepare spatial/time column indices
-            int dateIndex = -1;
-            int latitudeIndex = -1;
-            int longitudeIndex = -1;
-            int procedureIndex = -1;
-            int procDescIndex = -1;
-            int typeColumnIndex = -1;
-
-            // read headers
-            final String[] headers = it.next();
-            for (int i = 0; i < headers.length; i++) {
-                final String header = headers[i];
-
-                if (dateColumn.equals(header)) {
-                    dateIndex = i;
-                } else if (latitudeColumn.equals(header)) {
-                    latitudeIndex = i;
-                } else if (longitudeColumn.equals(header)) {
-                    longitudeIndex = i;
-                } else if (header.equals(procedureColumn)) {
-                    procedureIndex = i;
-                } else if (header.equals(typeColumn)) {
-                    typeColumnIndex = i;
-                } else if (header.equals(procedureNameColumn)) {
-                    procDescIndex = i;
-                }
-            }
+            final List<Integer> dateIndexes = getColumnIndexes(dateColumns, headers);
+            int latitudeIndex   = getColumnIndex(latitudeColumn, headers);
+            int longitudeIndex  = getColumnIndex(longitudeColumn, headers);
+            int procedureIndex  = getColumnIndex(procedureColumn, headers);
+            int procDescIndex   = getColumnIndex(procedureNameColumn, headers);
+            int typeColumnIndex = getColumnIndex(typeColumn, headers);
 
             final List<String> obsTypeCodes = getObsTypeCodes();
             List<ProcedureTree> result      = new ArrayList<>();
@@ -503,7 +455,11 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             String currentProc              = null;
             String previousProc             = null;
             ProcedureTree procedureTree     = null;
+            int count                       = 1;
+            
+            final Iterator<String[]> it = reader.iterator(!noHeader);
             while (it.hasNext()) {
+                count++;
                 final String[] line   = it.next();
                 AbstractGeometry geom = null;
                 Date dateParse        = null;
@@ -529,11 +485,15 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 }
 
                 // update temporal interval
-                if (dateIndex != -1) {
+                if (!dateIndexes.isEmpty()) {
+                    String value = "";
                     try {
-                        dateParse = new SimpleDateFormat(this.dateFormat).parse(line[dateIndex]);
+                        for (Integer dateIndex : dateIndexes) {
+                            value += line[dateIndex];
+                        }
+                        dateParse = new SimpleDateFormat(this.dateFormat).parse(value);
                     } catch (ParseException ex) {
-                        LOGGER.fine(String.format("Problem parsing date for main field at line %d and column %d (value='%s'). skipping line...", count, dateIndex, line[dateIndex]));
+                        LOGGER.fine(String.format("Problem parsing date for main field at line %d (value='%s'). skipping line...", count, value));
                         continue;
                     }
                 }

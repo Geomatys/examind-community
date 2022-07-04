@@ -30,6 +30,7 @@ import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -83,10 +84,10 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
     protected final char delimiter;
     protected final char quotechar;
 
-    protected final String mainColumn;
+    protected final List<String> mainColumns;
 
     // date column expected header 
-    protected final String dateColumn;
+    protected final List<String> dateColumns;
     // date format correspuding to the dateColumn
     protected final String dateFormat;
 
@@ -101,6 +102,9 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
     protected final String foiColumn;
 
     protected Set<String> measureColumns;
+
+    protected final String obsPropId;
+    protected final String obsPropName;
 
     // timeSeries / trajectory / profiles
     protected final String observationType;
@@ -119,17 +123,21 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
 
     protected final String mimeType;
 
+    protected final boolean noHeader;
+    protected final boolean directColumnIndex;
+
     public FileParsingObservationStore(final Path f, final char separator, final char quotechar, FeatureType ft, 
-            final String mainColumn, final String dateColumn, final String dateTimeformat, final String longitudeColumn,
+            final List<String> mainColumn, final List<String> dateColumn, final String dateTimeformat, final String longitudeColumn,
             final String latitudeColumn, final Set<String> measureColumns, String observationType, String foiColumn,
             final String procedureId, final String procedureColumn, final String procedureNameColumn, final String procedureDescColumn, 
-            final String zColumn, final String uomRegex, final String obsPropRegex, String mimeType) throws MalformedURLException, DataStoreException{
+            final String zColumn, final String uomRegex, final String obsPropRegex, final String obsPropId, final String obsPropName, String mimeType, final boolean noHeader,
+            final boolean directColumnIndex) throws MalformedURLException, DataStoreException{
         super(f, separator, ft);
         this.dataFile = f;
         this.delimiter = separator;
         this.quotechar = quotechar;
-        this.mainColumn = mainColumn;
-        this.dateColumn = dateColumn;
+        this.mainColumns = mainColumn;
+        this.dateColumns = dateColumn;
         this.dateFormat = dateTimeformat;
         this.longitudeColumn = longitudeColumn;
         this.latitudeColumn = latitudeColumn;
@@ -143,6 +151,10 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
         this.uomRegex = uomRegex;
         this.obsPropRegex = obsPropRegex;
         this.mimeType = mimeType;
+        this.noHeader = noHeader;
+        this.directColumnIndex = directColumnIndex;
+        this.obsPropId = obsPropId;
+        this.obsPropName = obsPropName;
 
         if (procedureId == null && procedureColumn == null) {
             this.procedureId = IOUtilities.filenameWithoutExtension(dataFile);
@@ -227,12 +239,12 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
 
     protected final Map<String, ObservationBlock> observationBlock = new HashMap<>();
 
-    protected ObservationBlock getOrCreateObservationBlock(String procedureId, String procedureName, String procedureDesc, String foiID, Long time, List<String> measureColumns, String mainColumn, String observationType) {
+    protected ObservationBlock getOrCreateObservationBlock(String procedureId, String procedureName, String procedureDesc, String foiID, Long time, List<String> measureColumns, List<String> mainColumns, String observationType) {
         String key = procedureId + '-' + foiID + '-' + time;
         if (observationBlock.containsKey(key)) {
             return observationBlock.get(key);
         } else {
-            MeasureBuilder cmb = new MeasureBuilder(observationType.equals("Profile"), measureColumns, mainColumn);
+            MeasureBuilder cmb = new MeasureBuilder(observationType.equals("Profile"), measureColumns, mainColumns);
             ObservationBlock ob = new ObservationBlock(procedureId, procedureName, procedureDesc, foiID, cmb, observationType);
             observationBlock.put(key, ob);
             return ob;
@@ -330,27 +342,21 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
         try (final DataFileReader reader = getDataFileReader()) {
 
             // prepare time column indices
-            int dateIndex = -1;
+            List<Integer> dateIndexes = getColumnIndexes(dateColumns, reader);
 
-            // read headers
-            final String[] headers = reader.getHeaders();
-            for (int i = 0; i < headers.length; i++) {
-                final String header = headers[i];
-                if (dateColumn.equals(header)) {
-                    dateIndex = i;
-                    break;
-                }
-            }
-            if (dateIndex == -1) return null;
+            if (dateIndexes.isEmpty()) return null;
 
-            final Iterator<String[]> it = reader.iterator();
+            final Iterator<String[]> it = reader.iterator(!noHeader);
 
             final GeoSpatialBound result = new GeoSpatialBound();
             final SimpleDateFormat sdf = new SimpleDateFormat(this.dateFormat);
             while (it.hasNext()) {
                 final String[] line = it.next();
-                String value = line[dateIndex];
-                if (value != null && !(value = value.trim()).isEmpty()) {
+                String value = "";
+                for (Integer dateIndex : dateIndexes) {
+                    value += line[dateIndex];
+                }
+                if (!(value = value.trim()).isEmpty()) {
                     result.addDate(sdf.parse(value));
                 }
             }
@@ -383,6 +389,76 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
         return new double[0];
     }
     
+    protected int getColumnIndex(String columnName, DataFileReader reader) throws IOException {
+        if (columnName == null) return -1;
+        if (directColumnIndex) {
+            return Integer.parseInt(columnName);
+        }
+        final String[] headers = reader.getHeaders();
+        return getColumnIndex(columnName, headers);
+    }
+
+    protected int getColumnIndex(String columnName, String[] headers) throws IOException {
+        return getColumnIndex(columnName, headers, null);
+    }
+
+    protected int getColumnIndex(String columnName, String[] headers, List<Integer> appendIndex) throws IOException {
+        if (columnName == null) return -1;
+        if (directColumnIndex) {
+            return Integer.parseInt(columnName);
+        }
+        for (int i = 0; i < headers.length; i++) {
+            final String header = headers[i];
+            if (header.equals(columnName)) {
+                if (appendIndex != null) {
+                    appendIndex.add(i);
+                }
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    protected List<Integer> getColumnIndexes(Collection<String> columnNames, DataFileReader reader) throws IOException {
+        if (directColumnIndex) {
+            List<Integer> results = new ArrayList<>();
+            for (String columnName : columnNames) {
+                results.add(Integer.parseInt(columnName));
+            }
+            return results;
+        }
+        final String[] headers = reader.getHeaders();
+        return getColumnIndexes(columnNames, headers);
+    }
+
+    protected List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers) throws IOException {
+        return getColumnIndexes(columnNames, headers, null);
+    }
+
+    protected List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, Collection<String> appendName) throws IOException {
+        List<Integer> results = new ArrayList<>();
+        if (directColumnIndex) {
+            for (String columnName : columnNames) {
+                int index = Integer.parseInt(columnName);
+                results.add(index);
+                if (headers != null) {
+                    appendName.add(headers[index]);
+                }
+            }
+            return results;
+        }
+        for (int i = 0; i < headers.length; i++) {
+            final String header = headers[i];
+            if (columnNames.contains(header)) {
+                results.add(i);
+            }
+            if (appendName != null) {
+                appendName.add(header);
+            }
+        }
+        return results;
+    }
+
     protected DataFileReader getDataFileReader() throws IOException {
         return FileParsingUtils.getDataFileReader(mimeType, dataFile, delimiter, quotechar);
     }

@@ -34,55 +34,52 @@ import org.constellation.util.Util;
 public class CsvFlatUtils {
     private static final Logger LOGGER = Logger.getLogger("com.examind.store.observation.csvflat");
 
-    public static Set<String> extractCodes(String format, Path dataFile, Collection<String> measureCodeColumns, Character separator, Character quoteChar) throws ConstellationStoreException {
+    public static Set<String> extractCodes(String format, Path dataFile, Collection<String> measureCodeColumns, Character separator, Character quoteChar, boolean noHeader, boolean directColumnIndex) throws ConstellationStoreException {
         try (final DataFileReader reader = FileParsingUtils.getDataFileReader(format, dataFile, separator, quoteChar)) {
 
-            final Iterator<String[]> it = reader.iterator();
+            // read headers
+            final String[] headers = reader.getHeaders();
+            List<Integer> measureCodeIndex = new ArrayList<>();
 
-            // at least one line is expected to contain headers information
-            if (it.hasNext()) {
+            // find measureCodeIndex
+            for (int i = 0; i < headers.length; i++) {
+                final String header = headers[i];
 
-                // read headers
-                final String[] headers = it.next();
-                List<Integer> measureCodeIndex = new ArrayList<>();
-
-                // find measureCodeIndex
-                for (int i = 0; i < headers.length; i++) {
-                    final String header = headers[i];
-
-                    if (measureCodeColumns.contains(header)) {
-                        measureCodeIndex.add(i);
-                    }
+                if ((directColumnIndex && measureCodeColumns.contains(Integer.toString(i))) ||
+                    (!directColumnIndex && measureCodeColumns.contains(header))) {
+                    measureCodeIndex.add(i);
                 }
-
-                if (measureCodeIndex.size() != measureCodeColumns.size()) {
-                    throw new ConstellationStoreException("csv headers does not contains All the Measure Code parameter.");
-                }
-
-                final Set<String> storeCode = new HashSet<>();
-                // extract all codes
-                line:while (it.hasNext()) {
-                    final String[] line = it.next();
-                    String computed = "";
-                    boolean first = true;
-                    for(Integer i : measureCodeIndex) {
-                        final String nextCode = line[i];
-                        if (nextCode == null || nextCode.isEmpty()) continue line;
-                        if (!first) {
-                            computed += "-";
-                        }
-                        computed += nextCode;
-                        first = false;
-                    }
-                    if (!Util.containsForbiddenCharacter(computed) && computed.indexOf('.') == -1 && computed.length() < 64) {
-                        storeCode.add(computed);
-                    } else {
-                        LOGGER.warning("Invalid measure column value excluded: " + computed);
-                    }
-                }
-                return storeCode;
             }
-            throw new ConstellationStoreException("csv headers not found");
+
+            if (measureCodeIndex.size() != measureCodeColumns.size()) {
+                throw new ConstellationStoreException("csv headers does not contains All the Measure Code parameter.");
+            }
+
+            final Set<String> storeCode = new HashSet<>();
+
+            // extract all codes
+            final Iterator<String[]> it = reader.iterator(!noHeader);
+            line:while (it.hasNext()) {
+                final String[] line = it.next();
+                String computed = "";
+                boolean first = true;
+                for(Integer i : measureCodeIndex) {
+                    final String nextCode = line[i];
+                    if (nextCode == null || nextCode.isEmpty()) continue line;
+                    if (!first) {
+                        computed += "-";
+                    }
+                    computed += nextCode;
+                    first = false;
+                }
+                if (!Util.containsForbiddenCharacter(computed) && computed.indexOf('.') == -1 && computed.length() < 64) {
+                    storeCode.add(computed);
+                } else {
+                    LOGGER.warning("Invalid measure column value excluded: " + computed);
+                }
+            }
+            return storeCode;
+            
         } catch (IOException ex) {
             throw new ConstellationStoreException("problem reading csv file", ex);
         }
