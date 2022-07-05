@@ -51,6 +51,7 @@ import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.coverage.grid.GridRoundingMode;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
+import org.apache.sis.image.Interpolation;
 import org.apache.sis.math.Statistics;
 import org.apache.sis.measure.Units;
 import org.apache.sis.referencing.CRS;
@@ -143,6 +144,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
     private static final String PARAM_NAN_BEHAVIOR = "nanPropagation";
     private static final String PARAM_NAN_CLEANUP = "nanCleanup";
     private static final String PARAM_OUT_OF_BOUNDS = "outOfBounds";
+    private static final String PARAM_INTERPOLATION = "interpolation";
 
     private static final Map<Unit,List<Unit>> UNIT_GROUPS = new HashMap<>();
     static {
@@ -348,6 +350,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
             NaNPropagation nanBehavior = NaNPropagation.ALL;
             OutOfBounds outOfBounds = OutOfBounds.NAN;
             NaNCleanup nanCleanup = NaNCleanup.CONTINUOUS;
+            Interpolation interpolation = Interpolation.NEAREST;
             if (parameters instanceof Map) {
                 final Map<?, ?> paramMap = (Map) parameters;
                 ReductionMethod reduceParam = toEnumValue(ReductionMethod.class, paramMap.get(PARAM_REDUCER));
@@ -361,9 +364,12 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
 
                 NaNCleanup nc = toEnumValue(NaNCleanup.class, paramMap.get(PARAM_NAN_CLEANUP));
                 if (nc != null) nanCleanup = nc;
+
+                var tmpInterpol = toInterpolation(paramMap.get(PARAM_INTERPOLATION));
+                if (tmpInterpol != null) interpolation = tmpInterpol;
             }
 
-            final ProfileConfiguration conf = new ProfileConfiguration(nanBehavior, nanCleanup, outOfBounds, samplingCount, reducer);
+            final ProfileConfiguration conf = new ProfileConfiguration(nanBehavior, nanCleanup, outOfBounds, samplingCount, reducer, interpolation);
 
             baseData = extractData(coverage, geom, conf);
 
@@ -484,7 +490,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
             geom.setUserData(userData);
         }
 
-        final DataProfile dp = new DataProfile(coverage, (LineString) geom);
+        final DataProfile dp = new DataProfile(coverage, (LineString) geom, config.interpolation);
 
         final Statistics stats = new Statistics("");
 
@@ -854,19 +860,31 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         return null;
     }
 
+    private static @Nullable Interpolation toInterpolation(Object value) {
+        if (value instanceof Interpolation i) return i;
+        var interpolName = toStringValue(value);
+        if (interpolName == null) return null;
+        if (interpolName.equalsIgnoreCase("NEAREST")) return Interpolation.NEAREST;
+        if (interpolName.equalsIgnoreCase("BILINEAR")) return Interpolation.BILINEAR;
+        if (interpolName.equalsIgnoreCase("LANCZOS")) return Interpolation.LANCZOS;
+        return null;
+    }
+
     private class ProfileConfiguration {
         final NaNPropagation nanPropagation;
         final NaNCleanup naNCleanup;
         final OutOfBounds outOfBounds;
         final Integer samplingCount;
         final ReductionMethod reductionMethod;
+        final Interpolation interpolation;
 
-        public ProfileConfiguration(NaNPropagation nanPropagation, NaNCleanup naNCleanup, OutOfBounds outOfBounds, Integer samplingCount, ReductionMethod reductionMethod) {
+        public ProfileConfiguration(NaNPropagation nanPropagation, NaNCleanup naNCleanup, OutOfBounds outOfBounds, Integer samplingCount, ReductionMethod reductionMethod, Interpolation interpolation) {
             this.nanPropagation = nanPropagation;
             this.naNCleanup = naNCleanup;
             this.outOfBounds = outOfBounds;
             this.samplingCount = samplingCount;
             this.reductionMethod = reductionMethod;
+            this.interpolation = interpolation;
         }
     }
 

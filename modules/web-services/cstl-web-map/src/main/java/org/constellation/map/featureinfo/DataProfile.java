@@ -95,7 +95,7 @@ class DataProfile implements Spliterator<DataProfile.DataPoint> {
 
     private DataPoint lastPoint;
 
-    public DataProfile(GridCoverage datasource, final LineString profile) throws FactoryException, TransformException {
+    DataProfile(GridCoverage datasource, final LineString profile, Interpolation interpol) throws FactoryException, TransformException {
         final GeneralEnvelope lineEnvelope = Factory.INSTANCE.castOrWrap(profile).getEnvelope();
 
         this.lineCrs = lineEnvelope.getCoordinateReferenceSystem();
@@ -136,7 +136,7 @@ class DataProfile implements Spliterator<DataProfile.DataPoint> {
         this.workGridToRendering = conversionContext.workGridToDataGrid == null ?
                 dataGridToRendering : MathTransforms.concatenate(conversionContext.workGridToDataGrid, dataGridToRendering);
 
-        buildExtractors(datasource);
+        buildExtractors(datasource, interpol);
 
         //compute a sample of expected dimension
         final int nbSamples = datasource.getSampleDimensions().size();
@@ -152,12 +152,11 @@ class DataProfile implements Spliterator<DataProfile.DataPoint> {
         currentSegment = new SegmentProfile(segmentIdx);
     }
 
-    private void buildExtractors(GridCoverage coverage) {
+    private void buildExtractors(GridCoverage coverage, Interpolation interpol) {
         final GridGeometry geom = coverage.getGridGeometry();
-
-        final GridGeometryIterator sliceIterator = new GridGeometryIterator(coverage.getGridGeometry());
+        final GridGeometryIterator sliceIterator = new GridGeometryIterator(geom);
         while (sliceIterator.hasNext()) {
-            var extractor = new InterpolationEval(sliceIterator.next(), coverage.forConvertedValues(true), Interpolation.NEAREST);
+            var extractor = new InterpolationEval(sliceIterator.next(), coverage.forConvertedValues(true), interpol);
             extractors.add(extractor);
         }
     }

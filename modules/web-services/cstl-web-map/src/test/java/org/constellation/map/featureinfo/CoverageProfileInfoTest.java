@@ -32,6 +32,7 @@ import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridCoverage2D;
 import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
+import org.apache.sis.image.Interpolation;
 import org.apache.sis.image.PixelIterator;
 import org.apache.sis.image.WritablePixelIterator;
 import org.apache.sis.measure.Units;
@@ -390,7 +391,7 @@ public class CoverageProfileInfoTest {
                 -3, 2
         );
 
-        DataProfile profile = new DataProfile(createDatasource(0, 0), line);
+        DataProfile profile = new DataProfile(createDatasource(0, 0), line, Interpolation.NEAREST);
 
         Consumer<DataProfile.DataPoint> noValueExpected = pt -> Assert.assertNull(pt.value);
         int i = 0, limit = 20; boolean hasAdvanced;
@@ -489,7 +490,7 @@ public class CoverageProfileInfoTest {
     }
 
     static void assertProfileEquals(final GridCoverage source, final LineString line, final double... expectedValues) throws FactoryException, TransformException {
-        DataProfile profile = new DataProfile(source, line);
+        DataProfile profile = new DataProfile(source, line, Interpolation.NEAREST);
         final double[] values = StreamSupport.stream(profile, false)
                 .peek(CoverageProfileInfoTest::errorIfNoValue)
                 .mapToDouble(point -> ((double[]) point.value)[0])
