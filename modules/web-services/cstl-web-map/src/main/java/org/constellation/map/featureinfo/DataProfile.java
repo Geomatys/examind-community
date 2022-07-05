@@ -4,6 +4,7 @@ package org.constellation.map.featureinfo;
 import java.awt.geom.Point2D;
 import java.awt.image.RenderedImage;
 import java.lang.reflect.Array;
+import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -23,7 +24,9 @@ import org.apache.sis.geometry.AbstractEnvelope;
 import org.apache.sis.geometry.DirectPosition2D;
 import org.apache.sis.geometry.GeneralDirectPosition;
 import org.apache.sis.geometry.GeneralEnvelope;
+import org.apache.sis.image.Interpolation;
 import org.apache.sis.image.PixelIterator;
+import org.apache.sis.image.TransferType;
 import org.apache.sis.internal.feature.jts.Factory;
 import org.apache.sis.internal.referencing.WraparoundApplicator;
 import org.apache.sis.internal.system.DefaultFactories;
@@ -33,8 +36,7 @@ import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.operation.transform.MathTransforms;
 import org.apache.sis.util.Utilities;
 import org.apache.sis.util.collection.BackingStoreException;
-import org.geotoolkit.coverage.grid.GridCoverageStack;
-import org.geotoolkit.coverage.grid.GridIterator;
+import org.geotoolkit.coverage.grid.GridGeometryIterator;
 import org.geotoolkit.util.grid.GridTraversal;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.CoordinateSequence;
@@ -71,17 +73,7 @@ class DataProfile implements Spliterator<DataProfile.DataPoint> {
      */
     private final MathTransform workGridToRendering;
 
-    private static class Extractor {
-        int[] sliceCoord;
-        PixelIterator ite;
-
-        public Extractor(int[] sliceCoord, PixelIterator ite) {
-            this.sliceCoord = sliceCoord;
-            this.ite = ite;
-        }
-    }
-
-    private final List<Extractor> extractors = new ArrayList<>();
+    private final List<Slice2DEvaluator> extractors = new ArrayList<>();
 
     /**
      * Cache des points de la polyligne d'entrée projetée dans la grille. On fait un tableau de valeurs contigües pour de
@@ -161,29 +153,12 @@ class DataProfile implements Spliterator<DataProfile.DataPoint> {
     }
 
     private void buildExtractors(GridCoverage coverage) {
-        final GridExtent extent = coverage.getGridGeometry().getExtent();
-        final int[] movableIndices = new int[extent.getDimension()];
-        Arrays.fill(movableIndices, 1);
-        movableIndices[0] = 0;
-        movableIndices[1] = 0;
+        final GridGeometry geom = coverage.getGridGeometry();
 
-        final GridIterator gridIterator = new GridIterator(extent, movableIndices);
-
-        while (gridIterator.hasNext()) {
-            final GridEnvelope slice = gridIterator.next();
-            final int[] crd = new int[movableIndices.length-2];
-            for (int i=0;i<crd.length;i++) {
-                crd[i] = (int) slice.getLow(i+2);
-            }
-
-            GridCoverage c = coverage;
-            while (c instanceof GridCoverageStack) {
-                GridCoverageStack cs = (GridCoverageStack) c;
-                c = cs.coverageAtIndex(crd[cs.zDimension-2]);
-            }
-
-            RenderedImage im = c.forConvertedValues(true).render(null);
-            extractors.add(new Extractor(crd, PixelIterator.create(im)));
+        final GridGeometryIterator sliceIterator = new GridGeometryIterator(coverage.getGridGeometry());
+        while (sliceIterator.hasNext()) {
+            var extractor = new InterpolationEval(sliceIterator.next(), coverage.forConvertedValues(true), Interpolation.NEAREST);
+            extractors.add(extractor);
         }
     }
 
@@ -319,25 +294,17 @@ class DataProfile implements Spliterator<DataProfile.DataPoint> {
             dp.value = Array.newInstance(double.class, templateSize);
 
             workGridToRendering.transform(subPixelMedian, subPixelMedian);
-            // Only a cast is performed, because:
-            // 1. pixel intersections have been computed using PixelInCell.CELL_CORNER.
-            // 2. No interpolation is done, we just consider a pixel being a square cell, and take the value of the cell
-            // this point lies into.
-            // Note that, if any criteria above is modified, the pixel corner strategy should be re-evaluated.
-            final int px = (int) subPixelMedian.x;
-            final int py = (int) subPixelMedian.y;
-            for (Extractor ext : extractors) {
+            for (Slice2DEvaluator ext : extractors) {
                 try {
-                    ext.ite.moveTo(px, py);
-                    for (int b=0;b<templateSize[0];b++) {
-                        double v = ext.ite.getSampleDouble(b);
+                    var pxValue = ext.evaluate(subPixelMedian);
+                    for (int b = 0 ; b < pxValue.length ; b++) {
                         Object array = dp.value;
                         int index = b;
                         for (int k=0;k<ext.sliceCoord.length;k++) {
                             array = Array.get(array, index);
                             index = ext.sliceCoord[k];
                         }
-                        ((double[]) array)[index] = v;
+                        ((double[]) array)[index] = pxValue[b];
                     }
                 } catch (java.lang.IndexOutOfBoundsException ex) {
                     //outside image
@@ -494,5 +461,77 @@ class DataProfile implements Spliterator<DataProfile.DataPoint> {
             this.workGridToDataGrid = workGridToDataGrid;
             this.regionOfInterest = regionOfInterest;
         }
+    }
+
+    // TODO: we should find a better solution. We should not need to keep fixed dimension indices internally, and especially not as integers.
+    private static abstract class Slice2DEvaluator {
+        final int[] sliceCoord;
+
+        protected Slice2DEvaluator(int[] sliceCoord) {
+            this.sliceCoord = sliceCoord;
+        }
+
+        /**
+         * @param pxCoord is a pixel coordinate with the following characteristics:
+         * <ul>
+         *     <li>Pixel corner coordinate</li>
+         *     <li>Sub-pixel precision accepted (and needed for interpolations)</li>
+         *     <li>Coordinate in <em>image</em> coordinate (i.e coverage rendering coordinate), <em>not</em> coverage grid coordinate.</li>
+         * </ul>
+         *
+         * @return interpolated pixel value matching provided coordinate.
+         */
+        abstract double[] evaluate(Point2D.Double pxCoord);
+    }
+
+    private static class InterpolationEval extends Slice2DEvaluator {
+
+        private final PixelIterator pxIt;
+        private final PixelIterator.Window<DoubleBuffer> window;
+        private final Interpolation interpol;
+        private final int numBands;
+
+        protected InterpolationEval(GridGeometry slice, final GridCoverage coverage, Interpolation interpol) {
+            super(extractFixedIndices(slice));
+            ensureNonNull("Interpolation", interpol);
+            this.interpol = interpol;
+
+            // TODO: Doing a complete rendering early can be very harmful in term of processing and memory consumption.
+            // We should rather use coverage GridEvaluator instead. However, to do so, we need that it:
+            // 1. Accept pixel coordinates as input
+            // 2. Can be configured to perform interpolation (bilinear, etc.) on evaluation.
+            final RenderedImage rendering = coverage.render(slice.getExtent());
+            pxIt = new PixelIterator.Builder()
+                    .setWindowSize(interpol.getSupportSize())
+                    .create(rendering);
+            window = pxIt.createWindow(TransferType.DOUBLE);
+            numBands = pxIt.getNumBands();
+        }
+
+        @Override
+        double[] evaluate(Point2D.Double pxCoord) {
+            final int px = (int) pxCoord.x;
+            final int py = (int) pxCoord.y;
+            pxIt.moveTo(px, py);
+            window.update();
+            var buffer = new double[numBands];
+            interpol.interpolate(window.values, numBands, pxCoord.x - px, pxCoord.y - py, buffer, 0);
+            return buffer;
+        }
+    }
+
+    private static int[] extractFixedIndices(final GridGeometry slice) {
+        var extent = slice.getExtent();
+        var subSpace2d = extent.getSubspaceDimensions(2);
+        return IntStream.range(0, extent.getDimension())
+                .filter(idx -> !contains(subSpace2d, idx))
+                .toArray();
+    }
+
+    private static boolean contains(int[] array, int value) {
+        for (int i = 0; i < array.length; i++) {
+            if (array[i] == value) return true;
+        }
+        return false;
     }
 }
