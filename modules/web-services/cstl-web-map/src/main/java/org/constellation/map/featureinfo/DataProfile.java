@@ -1,6 +1,7 @@
 
 package org.constellation.map.featureinfo;
 
+import java.awt.Dimension;
 import java.awt.geom.Point2D;
 import java.awt.image.RenderedImage;
 import java.lang.reflect.Array;
@@ -70,6 +71,7 @@ class DataProfile implements Spliterator<DataProfile.DataPoint> {
      * A translation between datasource grid space to rendering.
      * Needed because rendering origin (0, 0) match grid space lower corner,
      * which can be an arbitrary position.
+     * The transform takes grid corner coordinates, and return pixel corner coordinates.
      */
     private final MathTransform workGridToRendering;
 
@@ -133,6 +135,7 @@ class DataProfile implements Spliterator<DataProfile.DataPoint> {
                         .mapToDouble(v -> - v)
                         .toArray()
         );
+
         this.workGridToRendering = conversionContext.workGridToDataGrid == null ?
                 dataGridToRendering : MathTransforms.concatenate(conversionContext.workGridToDataGrid, dataGridToRendering);
 
@@ -489,6 +492,18 @@ class DataProfile implements Spliterator<DataProfile.DataPoint> {
         private final PixelIterator.Window<DoubleBuffer> window;
         private final Interpolation interpol;
         private final int numBands;
+        /**
+         * Shift any pixel-center position to provide interpolation window upper-left coordinate.
+         *  WARNING: this is very important to ensure interpolation window is well centered regarding the point to
+         * evaluate.
+         * Note that:
+         * - for nearest neighbor interpolation, the window offset will move the point to evaluate away from image origin,
+         *   and it is normal.
+         * - for bilinear interpolation, it should have no effect (offset = (0, 0)).
+         * - for interpolations requiring a window size > 2, the "point of interest" should be moved closer to image origin,
+         *   because interpolation might need values all around the point of interest.
+         */
+        private final Point2D.Double windowOffset;
 
         protected InterpolationEval(GridGeometry slice, final GridCoverage coverage, Interpolation interpol) {
             super(extractFixedIndices(slice));
@@ -500,21 +515,31 @@ class DataProfile implements Spliterator<DataProfile.DataPoint> {
             // 1. Accept pixel coordinates as input
             // 2. Can be configured to perform interpolation (bilinear, etc.) on evaluation.
             final RenderedImage rendering = coverage.render(slice.getExtent());
+            final Dimension windowSize = interpol.getSupportSize();
             pxIt = new PixelIterator.Builder()
-                    .setWindowSize(interpol.getSupportSize())
+                    .setWindowSize(windowSize)
                     .create(rendering);
             window = pxIt.createWindow(TransferType.DOUBLE);
             numBands = pxIt.getNumBands();
+
+            windowOffset = new Point2D.Double((windowSize.width - 2) / 2d, (windowSize.height - 2) / 2d);
         }
 
         @Override
         double[] evaluate(Point2D.Double pxCoord) {
-            final int px = (int) pxCoord.x;
-            final int py = (int) pxCoord.y;
-            pxIt.moveTo(px, py);
+            // Switch from pixel corner to pixel center
+            pxCoord.x = pxCoord.x - 0.5;
+            pxCoord.y = pxCoord.y - 0.5;
+            // Find interpolation window upper-left coordinate
+            final int upperLeftPixelX = (int) (pxCoord.x - windowOffset.x);
+            final int upperLeftPixelY = (int) (pxCoord.y - windowOffset.y);
+
+            pxIt.moveTo(upperLeftPixelX, upperLeftPixelY);
             window.update();
             var buffer = new double[numBands];
-            interpol.interpolate(window.values, numBands, pxCoord.x - px, pxCoord.y - py, buffer, 0);
+            final double fracX = pxCoord.x - (int) pxCoord.x;
+            final double fracY = pxCoord.y - (int) pxCoord.y;
+            interpol.interpolate(window.values, numBands, fracX, fracY, buffer, 0);
             return buffer;
         }
     }
