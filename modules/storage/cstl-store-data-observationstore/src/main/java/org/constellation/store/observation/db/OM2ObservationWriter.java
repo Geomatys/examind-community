@@ -492,46 +492,26 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     }
 
                     // write locations
-                    for (Entry<Date, AbstractGeometry> entry : procedure.spatialBound.getHistoricalLocations().entrySet()) {
-                        try(final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"historical_locations\" VALUES(?,?,?,?)")) {//NOSONAR
-                            stmtInsert.setString(1, procedure.id);
-                            stmtInsert.setTimestamp(2, new Timestamp(entry.getKey().getTime()));
-                            if (entry.getValue() != null) {
-                                Geometry pt = GeometrytoJTS.toJTS(entry.getValue(), false);
-                                int srid = pt.getSRID();
-                                if (srid == 0) {
-                                    srid = 4326;
-                                }
-                                stmtInsert.setBytes(3, getGeometryBytes(pt));
-                                stmtInsert.setInt(4, srid);
-                            } else {
-                                stmtInsert.setNull(3, java.sql.Types.BINARY);
-                                stmtInsert.setNull(4, java.sql.Types.INTEGER);
-                            }
-                            stmtInsert.executeUpdate();
+                    try(final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"historical_locations\" VALUES(?,?,?,?)")) {//NOSONAR
+                        for (Entry<Date, AbstractGeometry> entry : procedure.spatialBound.getHistoricalLocations().entrySet()) {
+                            insertHistoricalLocation(stmtInsert, procedure.id, entry);
                         }
                     }
                 } else {
                     pid = rs.getInt(1);
 
-                    // write new locations
-                    for (Entry<Date, AbstractGeometry> entry : procedure.spatialBound.getHistoricalLocations().entrySet()) {
-                        try(final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"historical_locations\" VALUES(?,?,?,?)")) {//NOSONAR
-                            stmtInsert.setString(1, procedure.id);
-                            stmtInsert.setTimestamp(2, new Timestamp(entry.getKey().getTime()));
-                            if (entry.getValue() != null) {
-                                Geometry pt = GeometrytoJTS.toJTS(entry.getValue(), false);
-                                int srid = pt.getSRID();
-                                if (srid == 0) {
-                                    srid = 4326;
+                    try(final PreparedStatement stmtHlExist  = c.prepareStatement("SELECT \"procedure\" FROM \"" + schemaPrefix + "om\".\"historical_locations\" WHERE \"procedure\"=? AND \"time\"=?");//NOSONAR
+                        final PreparedStatement stmtHlInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"historical_locations\" VALUES(?,?,?,?)")) {//NOSONAR
+                        stmtHlExist.setString(1, procedure.id);
+                        // write new locations
+                        for (Entry<Date, AbstractGeometry> entry : procedure.spatialBound.getHistoricalLocations().entrySet()) {
+                            final Timestamp ts = new Timestamp(entry.getKey().getTime());
+                            stmtHlExist.setTimestamp(2, ts);
+                            try (final ResultSet rshl = stmtHlExist.executeQuery()) {
+                                if (!rshl.next()) {
+                                    insertHistoricalLocation(stmtHlInsert, procedure.id, entry);
                                 }
-                                stmtInsert.setBytes(3, getGeometryBytes(pt));
-                                stmtInsert.setInt(4, srid);
-                            } else {
-                                stmtInsert.setNull(3, java.sql.Types.BINARY);
-                                stmtInsert.setNull(4, java.sql.Types.INTEGER);
                             }
-                            stmtInsert.executeUpdate();
                         }
                     }
                 }
@@ -541,6 +521,24 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             writeProcedure(child, procedure.id, c);
         }
         return pid;
+    }
+
+    private void insertHistoricalLocation(PreparedStatement stmtInsert, String procedureId, Entry<Date, AbstractGeometry> entry) throws SQLException, DataStoreException, FactoryException {
+        stmtInsert.setString(1, procedureId);
+        stmtInsert.setTimestamp(2, new Timestamp(entry.getKey().getTime()));
+        if (entry.getValue() != null) {
+            Geometry pt = GeometrytoJTS.toJTS(entry.getValue(), false);
+            int srid = pt.getSRID();
+            if (srid == 0) {
+                srid = 4326;
+            }
+            stmtInsert.setBytes(3, getGeometryBytes(pt));
+            stmtInsert.setInt(4, srid);
+        } else {
+            stmtInsert.setNull(3, java.sql.Types.BINARY);
+            stmtInsert.setNull(4, java.sql.Types.INTEGER);
+        }
+        stmtInsert.executeUpdate();
     }
 
     private void writeFeatureOfInterest(final SamplingFeature foi, final Connection c) throws SQLException, DataStoreException {
