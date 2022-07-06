@@ -18,15 +18,37 @@
  */
 package org.constellation.store.observation.db;
 
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import org.apache.sis.storage.DataStoreException;
+import org.constellation.util.FilterSQLRequest;
+import org.geotoolkit.geometry.jts.transform.AbstractGeometryTransformer;
+import org.geotoolkit.geometry.jts.transform.GeometryCSTransformer;
 import org.geotoolkit.observation.model.Field;
+import org.geotoolkit.swe.xml.AbstractDataComponent;
+import org.geotoolkit.swe.xml.AbstractDataRecord;
+import org.geotoolkit.swe.xml.AnyScalar;
+import org.geotoolkit.swe.xml.DataArray;
+import org.geotoolkit.swe.xml.DataComponentProperty;
+import org.geotoolkit.swe.xml.DataRecord;
+import org.geotoolkit.swe.xml.PhenomenonProperty;
+import org.geotoolkit.swe.xml.SimpleDataRecord;
+import org.geotoolkit.swe.xml.TextBlock;
+import org.locationtech.jts.geom.CoordinateSequence;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.io.WKBWriter;
+import org.opengis.observation.Measure;
+import org.opengis.referencing.operation.TransformException;
+import org.opengis.temporal.Instant;
+import org.opengis.temporal.Period;
+import org.opengis.temporal.TemporalObject;
 
 /**
- * @deprecated use {@link org.geotoolkit.observation.OMUtils}
  * @author Guilhem Legal (Geomatys)
  */
-@Deprecated
 public class OM2Utils {
 
     /**
@@ -42,4 +64,155 @@ public class OM2Utils {
         }
         return result;
     }
+
+    public static Long getInstantTime(Instant inst) {
+        if (inst != null && inst.getDate() != null) {
+            return inst.getDate().getTime();
+        }
+        return null;
+    }
+
+    public static Timestamp getInstantTimestamp(Instant inst) {
+        if (inst != null && inst.getDate() != null) {
+            return new Timestamp(inst.getDate().getTime());
+        }
+        return null;
+    }
+
+    public static void addtimeDuringSQLFilter(FilterSQLRequest sqlRequest, TemporalObject time) {
+        if (time instanceof Period tp) {
+            final Timestamp begin = new Timestamp(tp.getBeginning().getDate().getTime());
+            final Timestamp end   = new Timestamp(tp.getEnding().getDate().getTime());
+
+            // 1.1 the multiple observations included in the period
+            sqlRequest.append(" (\"time_begin\">=").appendValue(begin).append(" AND \"time_end\"<=").appendValue(end).append(")");
+            sqlRequest.append("OR");
+            // 1.2 the single observations included in the period
+            sqlRequest.append(" (\"time_begin\">=").appendValue(begin).append(" AND \"time_begin\"<=").appendValue(end).append(" AND \"time_end\" IS NULL)");
+            sqlRequest.append("OR");
+            // 2. the multiple observations which overlaps the first bound
+            sqlRequest.append(" (\"time_begin\"<=").appendValue(begin).append(" AND \"time_end\"<=").appendValue(end).append(" AND \"time_end\">=").appendValue(begin).append(")");
+            sqlRequest.append("OR");
+            // 3. the multiple observations which overlaps the second bound
+            sqlRequest.append(" (\"time_begin\">=").appendValue(begin).append(" AND \"time_end\">=").appendValue(end).append(" AND \"time_begin\"<=").appendValue(end).append(")");
+            sqlRequest.append("OR");
+            // 4. the multiple observations which overlaps the whole period
+            sqlRequest.append(" (\"time_begin\"<=").appendValue(begin).append(" AND \"time_end\">=").appendValue(end).append(")");
+        
+        } else if (time instanceof Instant inst) {
+            final Timestamp instTime = new Timestamp(inst.getDate().getTime());
+
+            sqlRequest.append(" (\"time_begin\"<=").appendValue(instTime).append(" AND \"time_end\">=").appendValue(instTime).append(")");
+            sqlRequest.append("OR");
+            sqlRequest.append(" (\"time_begin\"=").appendValue(instTime).append(" AND \"time_end\" IS NULL)");
+        }
+    }
+
+    public static void addTimeContainsSQLFilter(FilterSQLRequest sqlRequest, Period tp) {
+        final Timestamp begin = new Timestamp(tp.getBeginning().getDate().getTime());
+        final Timestamp end   = new Timestamp(tp.getEnding().getDate().getTime());
+
+        // the multiple observations which overlaps the whole period
+        sqlRequest.append(" (\"time_begin\"<=").appendValue(begin).append(" AND \"time_end\">=").appendValue(end).append(")");
+    }
+
+    public static TextBlock verifyDataArray(final DataArray array) throws DataStoreException {
+        if (!(array.getEncoding() instanceof TextBlock encoding)) {
+            throw new DataStoreException("Only TextEncoding is supported");
+        }
+        if (!(array.getPropertyElementType().getAbstractRecord() instanceof DataRecord) &&
+            !(array.getPropertyElementType().getAbstractRecord() instanceof SimpleDataRecord)) {
+            throw new DataStoreException("Only DataRecord/SimpleDataRecord is supported");
+        }
+        return encoding;
+    }
+
+    public static double getMeasureValue(Object result) {
+        double value;
+        if (result instanceof org.apache.sis.internal.jaxb.gml.Measure meas) {
+            value = meas.value;
+        } else {
+            value = ((Measure) result).getValue();
+        }
+        return value;
+    }
+
+    public static String getPhenomenonId(final PhenomenonProperty phenomenonP) {
+        if (phenomenonP.getHref() != null) {
+            return phenomenonP.getHref();
+        }
+        if (phenomenonP.getPhenomenon() != null) {
+            org.geotoolkit.swe.xml.Phenomenon phen = phenomenonP.getPhenomenon();
+            String id = phen.getId();
+            if (id != null) {
+                return id;
+            }
+            if (phen.getName() != null) {
+                return phen.getName().getCode();
+            }
+        }
+        return null;
+    }
+
+    public static byte[] getGeometryBytes(Geometry pt) throws DataStoreException {
+        try {
+            final WKBWriter writer = new WKBWriter();
+            GeometryCSTransformer ts = new GeometryCSTransformer(new AbstractGeometryTransformer() {
+                @Override
+                public CoordinateSequence transform(CoordinateSequence cs, int i) throws TransformException {
+                    for (int j = 0; j < cs.size(); j++) {
+                        double x = cs.getX(j);
+                        double y = cs.getY(j);
+                        cs.setOrdinate(j, 0, y);
+                        cs.setOrdinate(j, 1, x);
+                    }
+                    return cs;
+                }
+            });
+
+            int srid = pt.getSRID();
+            if (srid == 0) {
+                srid = 4326;
+            }
+            if (srid == 4326) {
+                pt = ts.transform(pt);
+            }
+            return writer.write(pt);
+        } catch (TransformException ex) {
+            throw new DataStoreException(ex);
+        }
+    }
+
+    public static List<Field> getFieldList(AbstractDataRecord abstractRecord) throws SQLException {
+        final List<Field> fields = new ArrayList<>();
+        final Collection recordField;
+        if (abstractRecord instanceof DataRecord record) {
+            recordField =  record.getField();
+        } else if (abstractRecord instanceof SimpleDataRecord record) {
+            recordField =  record.getField();
+        } else {
+            throw new IllegalArgumentException("Unexpected record type: " + abstractRecord);
+        }
+
+        int i = 1;
+        for (Object field : recordField) {
+            String name;
+            AbstractDataComponent value;
+            if (field instanceof AnyScalar scal) {
+                name  = scal.getName();
+                value = scal.getValue();
+            } else if (field instanceof DataComponentProperty compo) {
+                name  = compo.getName();
+                value = compo.getValue();
+            } else if (field != null) {
+                throw new SQLException("Unexpected field type:" + field.getClass());
+            } else {
+                throw new SQLException("Unexpected null field");
+            }
+            fields.add(new Field(i, name, null, value));
+            i++;
+        }
+        return fields;
+    }
+
 }

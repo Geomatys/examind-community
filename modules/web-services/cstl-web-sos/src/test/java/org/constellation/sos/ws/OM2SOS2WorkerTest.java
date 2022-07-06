@@ -354,4 +354,16 @@ public class OM2SOS2WorkerTest extends SOS2WorkerTest {
     public void destroyTest() throws Exception {
         super.destroyTest();
     }
+
+    /**
+     * Tests the InsertObservation method
+     *
+     * @throws java.lang.Exception
+     */
+    @Test
+    @Override
+    @Order(order=22)
+    public void insertObservationConflictedTest() throws Exception {
+        super.insertObservationConflictedTest();
+    }
 }

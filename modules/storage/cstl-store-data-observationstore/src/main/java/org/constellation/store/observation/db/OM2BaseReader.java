@@ -30,11 +30,14 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -230,6 +233,19 @@ public class OM2BaseReader {
             LOGGER.log(Level.WARNING, "Unexpected geometry type:{0}", geom.getClass());
         }
         return buildSamplingFeature(version, id, name, description, prop);
+    }
+
+    protected Set<Phenomenon> getAllPhenomenon(final String version, final Connection c) throws DataStoreException {
+        try(final Statement stmt       = c.createStatement();
+            final ResultSet rs         = stmt.executeQuery("SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"observed_properties\" ")) {//NOSONAR
+            final Set<Phenomenon> results = new HashSet<>();
+            while (rs.next()) {
+                results.add(getPhenomenon(version, rs.getString(1), c));
+            }
+            return results;
+        } catch (SQLException ex) {
+            throw new DataStoreException("Error while retrieving all phenomenons.", ex);
+        }
     }
 
     protected Phenomenon getPhenomenon(final String version, final String observedProperty, final Connection c) throws DataStoreException {

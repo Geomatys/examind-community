@@ -1770,6 +1770,152 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
     }
 
     /**
+     * Tests the InsertObservation method with conflict with other observation
+     *
+     * @throws java.lang.Exception
+     */
+    public void insertObservationConflictedTest() throws Exception {
+
+        /**
+         * First test update an existing observation (fill depth value)
+         */
+        Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
+
+        String observedProperty = "depth";
+
+        GetResultType GRrequest = new GetResultType("2.0.0", "SOS", "offering-13", observedProperty, null, null, null);
+        GetResultResponseType result = (GetResultResponseType) worker.getResult(GRrequest);
+
+        String value = "2000-01-01T00:00:00.0,4.5@@2000-02-01T00:00:00.0,4.6@@2000-03-01T00:00:00.0,4.7@@2000-04-01T00:00:00.0,4.8@@" +
+                       "2000-05-01T00:00:00.0,4.9@@2000-06-01T00:00:00.0,5.0@@2000-07-01T00:00:00.0,5.1@@2000-08-01T00:00:00.0,5.2@@" +
+                       "2000-09-01T00:00:00.0,5.3@@2000-10-01T00:00:00.0,5.4@@";
+
+        GetResultResponseType expResult = new GetResultResponseType(value);
+
+        assertEquals(expResult.getResultValues(), result.getResultValues());
+        assertEquals(expResult, result);
+
+        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sos/observationTemplates/2.0.0/urnµogcµobjectµobservationµtemplateµGEOMµ13.xml");
+
+        OMObservationType template = (OMObservationType)obj.getValue();
+
+        TimePeriodType period = new TimePeriodType(new TimePositionType("2000-11-01T00:00:00.0"), new TimePositionType("2001-01-01T00:00:00.0"));
+        template.setPhenomenonTime(period);
+
+        // and we fill the result object
+        DataArrayPropertyType arrayP = (DataArrayPropertyType) template.getResult();
+        DataArrayType array = arrayP.getDataArray();
+        array.setElementCount(3);
+        array.setValues("2000-11-01T00:00:00.0,5.5@@2000-12-01T00:00:00.0,5.6@@2001-01-01T00:00:00.0,5.7@@");
+
+        InsertObservationType request = new InsertObservationType("2.0.0", Arrays.asList("offering-13"), Arrays.asList(template));
+        worker.insertObservation(request);
+
+        GRrequest = new GetResultType("2.0.0", "SOS", "offering-13", observedProperty, null, null, null);
+        result = (GetResultResponseType) worker.getResult(GRrequest);
+
+        value = "2000-01-01T00:00:00.0,4.5@@2000-02-01T00:00:00.0,4.6@@2000-03-01T00:00:00.0,4.7@@2000-04-01T00:00:00.0,4.8@@" +
+                "2000-05-01T00:00:00.0,4.9@@2000-06-01T00:00:00.0,5.0@@2000-07-01T00:00:00.0,5.1@@2000-08-01T00:00:00.0,5.2@@" +
+                "2000-09-01T00:00:00.0,5.3@@2000-10-01T00:00:00.0,5.4@@2000-11-01T00:00:00.0,5.5@@2000-12-01T00:00:00.0,5.6@@" +
+                "2001-01-01T00:00:00.0,5.7@@";
+        expResult = new GetResultResponseType(value);
+
+        assertEquals(expResult.getResultValues(), result.getResultValues());
+        assertEquals(expResult, result);
+
+        /**
+         * 2) test update an existing observation (insert new single depth value)
+         */
+
+        TimeInstantType instant = new TimeInstantType(new TimePositionType("2000-11-01T00:00:00.0"));
+        template.setPhenomenonTime(instant);
+
+        // and we fill the result object
+        arrayP = (DataArrayPropertyType) template.getResult();
+        array = arrayP.getDataArray();
+        array.setElementCount(1);
+        array.setValues("2000-12-02T00:00:00.0,5.1@@");
+
+        request = new InsertObservationType("2.0.0", Arrays.asList("offering-13"), Arrays.asList(template));
+        worker.insertObservation(request);
+
+        GRrequest = new GetResultType("2.0.0", "SOS", "offering-13", observedProperty, null, null, null);
+        result = (GetResultResponseType) worker.getResult(GRrequest);
+
+        value = "2000-01-01T00:00:00.0,4.5@@2000-02-01T00:00:00.0,4.6@@2000-03-01T00:00:00.0,4.7@@2000-04-01T00:00:00.0,4.8@@" +
+                "2000-05-01T00:00:00.0,4.9@@2000-06-01T00:00:00.0,5.0@@2000-07-01T00:00:00.0,5.1@@2000-08-01T00:00:00.0,5.2@@" +
+                "2000-09-01T00:00:00.0,5.3@@2000-10-01T00:00:00.0,5.4@@2000-11-01T00:00:00.0,5.5@@2000-12-01T00:00:00.0,5.6@@" +
+                "2000-12-02T00:00:00.0,5.1@@2001-01-01T00:00:00.0,5.7@@";
+        expResult = new GetResultResponseType(value);
+
+        assertEquals(expResult.getResultValues(), result.getResultValues());
+        assertEquals(expResult, result);
+
+        /**
+         * 3) test update an existing observation overlapping the ends
+         */
+
+        period = new TimePeriodType(new TimePositionType("2000-12-03T00:00:00.0"), new TimePositionType("2001-02-01T00:00:00.0"));
+        template.setPhenomenonTime(period);
+
+        // and we fill the result object
+        arrayP = (DataArrayPropertyType) template.getResult();
+        array = arrayP.getDataArray();
+        array.setElementCount(3);
+        // 1 new during, 1 update, un new after
+        array.setValues("2000-12-03T00:00:00.0,6.2@@2001-01-01T00:00:00.0,5.8@@2001-02-01T00:00:00.0,9.9@@");
+
+        request = new InsertObservationType("2.0.0", Arrays.asList("offering-13"), Arrays.asList(template));
+        worker.insertObservation(request);
+
+        GRrequest = new GetResultType("2.0.0", "SOS", "offering-13", observedProperty, null, null, null);
+        result = (GetResultResponseType) worker.getResult(GRrequest);
+
+        value = "2000-01-01T00:00:00.0,4.5@@2000-02-01T00:00:00.0,4.6@@2000-03-01T00:00:00.0,4.7@@2000-04-01T00:00:00.0,4.8@@" +
+                "2000-05-01T00:00:00.0,4.9@@2000-06-01T00:00:00.0,5.0@@2000-07-01T00:00:00.0,5.1@@2000-08-01T00:00:00.0,5.2@@" +
+                "2000-09-01T00:00:00.0,5.3@@2000-10-01T00:00:00.0,5.4@@2000-11-01T00:00:00.0,5.5@@2000-12-01T00:00:00.0,5.6@@" +
+                "2000-12-02T00:00:00.0,5.1@@2000-12-03T00:00:00.0,6.2@@2001-01-01T00:00:00.0,5.8@@2001-02-01T00:00:00.0,9.9@@";
+        expResult = new GetResultResponseType(value);
+
+        assertEquals(expResult.getResultValues(), result.getResultValues());
+        assertEquals(expResult, result);
+
+
+        /**
+         * 4) test update an existing observation overlapping the beginning
+         */
+
+        period = new TimePeriodType(new TimePositionType("1999-12-01T00:00:00.0"), new TimePositionType("2000-01-15T00:00:00.0"));
+        template.setPhenomenonTime(period);
+
+        // and we fill the result object
+        arrayP = (DataArrayPropertyType) template.getResult();
+        array = arrayP.getDataArray();
+        array.setElementCount(3);
+        // 1 new before, 1 update, 1 new during
+        array.setValues("1999-12-01T00:00:00.0,1.1@@2000-01-01T00:00:00.0,4.4@@2000-01-15T00:00:00.0,4.3@@");
+
+        request = new InsertObservationType("2.0.0", Arrays.asList("offering-13"), Arrays.asList(template));
+        worker.insertObservation(request);
+
+        GRrequest = new GetResultType("2.0.0", "SOS", "offering-13", observedProperty, null, null, null);
+        result = (GetResultResponseType) worker.getResult(GRrequest);
+
+        value = "1999-12-01T00:00:00.0,1.1@@2000-01-01T00:00:00.0,4.4@@2000-01-15T00:00:00.0,4.3@@2000-02-01T00:00:00.0,4.6@@" +
+                "2000-03-01T00:00:00.0,4.7@@2000-04-01T00:00:00.0,4.8@@2000-05-01T00:00:00.0,4.9@@2000-06-01T00:00:00.0,5.0@@" +
+                "2000-07-01T00:00:00.0,5.1@@2000-08-01T00:00:00.0,5.2@@2000-09-01T00:00:00.0,5.3@@2000-10-01T00:00:00.0,5.4@@" +
+                "2000-11-01T00:00:00.0,5.5@@2000-12-01T00:00:00.0,5.6@@2000-12-02T00:00:00.0,5.1@@2000-12-03T00:00:00.0,6.2@@" +
+                "2001-01-01T00:00:00.0,5.8@@2001-02-01T00:00:00.0,9.9@@";
+        expResult = new GetResultResponseType(value);
+
+        assertEquals(expResult.getResultValues(), result.getResultValues());
+        assertEquals(expResult, result);
+
+
+        marshallerPool.recycle(unmarshaller);
+    }
+
+    /**
      * Tests the InsertObservation method
      *
      * @throws java.lang.Exception

@@ -128,8 +128,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             if (time instanceof Literal && !(time instanceof TemporalGeometricPrimitive)) {
                 time = ((Literal)time).getValue();
             }
-            if (time instanceof Period) {
-                final Period tp    = (Period) time;
+            if (time instanceof Period tp) {
                 final Timestamp begin = new Timestamp(tp.getBeginning().getDate().getTime());
                 final Timestamp end   = new Timestamp(tp.getEnding().getDate().getTime());
 
@@ -144,8 +143,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 obsJoin = true;
                 firstFilter = false;
             // if the temporal object is a timeInstant
-            } else if (time instanceof Instant) {
-                final Instant ti      = (Instant) time;
+            } else if (time instanceof Instant ti) {
                 final Timestamp position = new Timestamp(ti.getDate().getTime());
                 if (getLoc) {
                     if (firstFilter) {
@@ -171,8 +169,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 time = ((Literal)time).getValue();
             }
             // for the operation before the temporal object must be an timeInstant
-            if (time instanceof Instant) {
-                final Instant ti      = (Instant) time;
+            if (time instanceof Instant ti) {
                 final Timestamp position = new Timestamp(ti.getDate().getTime());
                 if (firstFilter) {
                     sqlRequest.append(" ( ");
@@ -200,8 +197,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 time = ((Literal)time).getValue();
             }
             // for the operation after the temporal object must be an timeInstant
-            if (time instanceof Instant) {
-                final Instant ti      = (Instant) time;
+            if (time instanceof Instant ti) {
                 final Timestamp position = new Timestamp(ti.getDate().getTime());
                 if (firstFilter) {
                     sqlRequest.append(" ( ");
@@ -228,8 +224,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             if (time instanceof Literal && !(time instanceof TemporalGeometricPrimitive)) {
                 time = ((Literal)time).getValue();
             }
-            if (time instanceof Period) {
-                final Period tp    = (Period) time;
+            if (time instanceof Period tp) {
                 final Timestamp begin = new Timestamp(tp.getBeginning().getDate().getTime());
                 final Timestamp end   = new Timestamp(tp.getEnding().getDate().getTime());
                 if (firstFilter) {
@@ -241,27 +236,14 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 if (getLoc) {
                     sqlRequest.append(" \"time\">=").appendValue(begin).append(" AND \"time\"<=").appendValue(end).append(")");
                 } else {
-                    // the multiple observations included in the period
-                    sqlRequest.append(" (\"time_begin\">=").appendValue(begin).append(" AND \"time_end\"<=").appendValue(end).append(")");
-                    sqlRequest.append("OR");
-                    // the single observations included in the period
-                    sqlRequest.append(" (\"time_begin\">=").appendValue(begin).append(" AND \"time_begin\"<=").appendValue(end).append(" AND \"time_end\" IS NULL)");
-                    sqlRequest.append("OR");
-                    // the multiple observations which overlaps the first bound
-                    sqlRequest.append(" (\"time_begin\"<=").appendValue(begin).append(" AND \"time_end\"<=").appendValue(end).append(" AND \"time_end\">=").appendValue(begin).append(")");
-                    sqlRequest.append("OR");
-                    // the multiple observations which overlaps the second bound
-                    sqlRequest.append(" (\"time_begin\">=").appendValue(begin).append(" AND \"time_end\">=").appendValue(end).append(" AND \"time_begin\"<=").appendValue(end).append(")");
-                    sqlRequest.append("OR");
-                    // the multiple observations which overlaps the whole period
-                    sqlRequest.append(" (\"time_begin\"<=").appendValue(begin).append(" AND \"time_end\">=").appendValue(end).append("))");
-
+                    OM2Utils.addtimeDuringSQLFilter(sqlRequest, tp);
+                    sqlRequest.append(" ) ");
+                    
                     if (!"profile".equals(currentOMType)) {
                         boolean conditional = (currentOMType == null);
                         sqlMeasureRequest.append(" AND ( \"$time\">=", conditional).appendValue(begin, conditional)
                                          .append(" AND \"$time\"<= ", conditional).appendValue(end, conditional).append(")", conditional);
                     }
-
                     obsJoin = true;
                 }
                 firstFilter = false;
@@ -1631,8 +1613,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         continue;
                     }
                     final AbstractGeometry gmlGeom = JTStoGeometry.toGML(gmlVersion, geom, crs);
-                    if (gmlGeom instanceof Geometry) {
-                        locations.put(procedure, (Geometry) gmlGeom);
+                    if (gmlGeom instanceof Geometry g) {
+                        locations.put(procedure, g);
                     } else {
                         throw new DataStoreException("GML geometry cannot be casted as an Opengis one");
                     }
@@ -1980,8 +1962,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                 locations.put(procedure, procedureLocations);
                             }
 
-                            if (gmlGeom instanceof Geometry) {
-                                procedureLocations.put(time, (Geometry) gmlGeom);
+                            if (gmlGeom instanceof Geometry g) {
+                                procedureLocations.put(time, g);
                                 tfound = true;
                             } else {
                                 throw new DataStoreException("GML geometry cannot be casted as an Opengis one");
