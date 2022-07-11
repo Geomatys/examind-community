@@ -31,5 +31,5 @@
             </sa:shape>
         </sa:SamplingCurve>
     </om:featureOfInterest>
-    <om:result xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="om:MeasureType" uom="m">18.5</om:result>
+    <om:result xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="om:MeasureType" uom="m">15.5</om:result>
 </om:Measurement>

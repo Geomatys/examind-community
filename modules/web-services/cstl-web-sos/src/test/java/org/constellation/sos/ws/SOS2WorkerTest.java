@@ -1777,7 +1777,7 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
     public void insertObservationConflictedTest() throws Exception {
 
         /**
-         * First test update an existing observation (fill depth value)
+         * 1) test update an existing observation (fill depth value)
          */
         Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
 
@@ -1910,7 +1910,6 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
 
         assertEquals(expResult.getResultValues(), result.getResultValues());
         assertEquals(expResult, result);
-
 
         marshallerPool.recycle(unmarshaller);
     }

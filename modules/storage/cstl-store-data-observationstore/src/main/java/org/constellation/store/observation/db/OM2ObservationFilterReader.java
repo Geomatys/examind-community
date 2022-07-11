@@ -515,7 +515,15 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     sqlMeasureRequest.replaceAll("$phen" + j, "\"" + fields.get(i).name + "\"");
                 }
                 final FilterSQLRequest measureRequest = new FilterSQLRequest("SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m WHERE \"id_observation\" = ");
-                measureRequest.appendValue(-1).append(sqlMeasureRequest, isTimeField).append("ORDER BY m.\"id\"");
+                final String fieldOrdering;
+                if (mainField != null) {
+                    fieldOrdering = "m.\"" + mainField.name + "\"";
+                } else {
+                    // we keep this fallback where no main field is found.
+                    // i'm not sure it will be possible to handle an observation with no main field (meaning its not a timeseries or a profile).
+                    fieldOrdering = "m.\"id\"";
+                }
+                measureRequest.appendValue(-1).append(sqlMeasureRequest, isTimeField).append("ORDER BY ").append(fieldOrdering);
 
                 int timeForProfileIndex = -1;
                 if (includeTimeForProfile && !isTimeField) {
@@ -815,7 +823,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
                 final FilterSQLRequest measureRequest = new FilterSQLRequest("SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m WHERE \"id_observation\" = ");
                 measureRequest.appendValue(oid).append(" ").append(sqlMeasureRequest, notProfile);
-                measureRequest.append(" ORDER BY m.\"id\"");
+                measureRequest.append(" ORDER BY ").append("m.\"" + mainField.name + "\"");
 
                 /**
                  * coherence verification
@@ -887,21 +895,29 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             if (timeField != null) {
                 sqlRequest.append(sqlMeasureRequest.replaceAll("$time", timeField.name));
             }
-            sqlRequest.append(" ORDER BY  o.\"id\", m.\"id\"").toString();
+            final Field mainField = getMainField(currentProcedure);
+            final String fieldOrdering;
+            if (mainField != null) {
+                fieldOrdering = "m.\"" + mainField.name + "\"";
+            } else {
+                // we keep this fallback where no main field is found.
+                // i'm not sure it will be possible to handle an observation with no main field (meaning its not a timeseries or a profile).
+                fieldOrdering = "m.\"id\"";
+            }
+            sqlRequest.append(" ORDER BY  o.\"id\", ").append(fieldOrdering).toString();
 
             if (firstFilter) {
                 return sqlRequest.replaceFirst("WHERE", "");
             }
             LOGGER.fine(sqlRequest.toString());
             ResultBuilder values;
-            try(final Connection c = source.getConnection();
+            try (final Connection c = source.getConnection();
                 final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
                 final ResultSet rs = pstmt.executeQuery()) {
 
                 final List<Field> fields;
                 if (!currentFields.isEmpty()) {
                     fields = new ArrayList<>();
-                    final Field mainField = getMainField(currentProcedure, c);
                     if (mainField != null) {
                         fields.add(mainField);
                     }

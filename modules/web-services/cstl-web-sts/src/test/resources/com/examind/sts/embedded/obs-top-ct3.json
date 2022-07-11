@@ -2,12 +2,12 @@
     "@iot.count": 180,
     "value": [{
             "phenomenonTime": "2009-05-01T11:47:00Z",
-            "result": 17.1,
+            "result": 23.9,
             "resultTime": "2009-05-01T11:47:00Z",
-            "@iot.id": "urn:ogc:object:observation:GEOM:901-1-7",
-            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:901-1-7)",
-            "Datastream@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:901-1-7)/Datastreams",
-            "FeatureOfInterest@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:901-1-7)/FeaturesOfInterest"
+            "@iot.id": "urn:ogc:object:observation:GEOM:901-1-4",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:901-1-4)",
+            "Datastream@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:901-1-4)/Datastreams",
+            "FeatureOfInterest@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:901-1-4)/FeaturesOfInterest"
         }, {
             "phenomenonTime": "2009-05-01T11:47:00Z",
             "result": 4.5,

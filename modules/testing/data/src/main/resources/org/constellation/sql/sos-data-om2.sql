@@ -274,7 +274,7 @@ CREATE TABLE "mesures"."mesure9"("id_observation" integer NOT NULL,
                                  "id"             integer NOT NULL,
                                  "depth"          double);
 
-INSERT INTO "mesures"."mesure9" VALUES (901, 1,  18.5);
+INSERT INTO "mesures"."mesure9" VALUES (901, 1,  15.5);
 INSERT INTO "mesures"."mesure9" VALUES (901, 2,  19.7);
 INSERT INTO "mesures"."mesure9" VALUES (901, 3,  21.2);
 INSERT INTO "mesures"."mesure9" VALUES (901, 4,  23.9);
