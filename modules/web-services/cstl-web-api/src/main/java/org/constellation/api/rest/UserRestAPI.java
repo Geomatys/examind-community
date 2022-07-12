@@ -227,4 +227,30 @@ public class UserRestAPI extends AbstractRestAPI {
         }
     }
 
+    /**
+     * Delete an existing user.
+     * This actually only desactivate the user.
+     *
+     * @param login user login.
+     * @return ResponseEntity with updated user
+     */
+    @RequestMapping(value="/users/login/{login}", method=DELETE, produces=MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity deleteUserByLogin(@PathVariable(value="login") String login){
+        try {
+            Optional<CstlUser> usrOpt = userBusiness.findOne(login);
+            if (usrOpt.isPresent()) {
+                int id = usrOpt.get().getId();
+                if (userBusiness.isLastAdmin(id)) {
+                    return new ErrorMessage(HttpStatus.BAD_REQUEST).i18N(I18nCodes.User.LAST_ADMIN).build();
+                }
+                userBusiness.desactivate(id);
+                return new ResponseEntity(NO_CONTENT);
+            }
+            return new ResponseEntity(NOT_FOUND);
+        } catch(Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
+    }
+
 }
