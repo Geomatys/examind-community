@@ -25,3 +25,4 @@ com.examind.process.test.NbBandDescriptor
 com.examind.process.test.MultipleTypeDescriptor
 com.examind.process.test.MapContextInputDescriptor
 org.constellation.process.data.DataInfoCacheProcessDescriptor
+org.constellation.process.sensor.DeleteSensorDescriptor
