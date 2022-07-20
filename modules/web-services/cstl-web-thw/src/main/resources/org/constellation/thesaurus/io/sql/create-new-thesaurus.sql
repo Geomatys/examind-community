@@ -30,7 +30,7 @@ CREATE TABLE "{schema}"."terme_completion" (
 
 CREATE TABLE "{schema}"."terme_localisation" (
     "uri_concept"       character varying(250) NOT NULL,
-    "label"             character varying(250) NOT NULL,
+    "label"             character varying(10000) NOT NULL,
     "thesaurus_origine" character varying(50),
     "langage_iso"       character(2) NOT NULL,
     "type_terme"        character varying(250) NOT NULL
