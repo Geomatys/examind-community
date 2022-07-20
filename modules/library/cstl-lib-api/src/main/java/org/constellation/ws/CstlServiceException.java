@@ -141,9 +141,7 @@ public class CstlServiceException extends ConstellationException {
     public CstlServiceException(final String message, final Exception cause, final CodeList exceptionCode,
                                 final String locator)
     {
-        super(message, cause);
-        this.exceptionCode = exceptionCode;
-        this.locator = locator;
+        this(message, cause, exceptionCode, locator, null);
     }
 
     /**
@@ -161,7 +159,7 @@ public class CstlServiceException extends ConstellationException {
         super(message, cause);
         this.exceptionCode = exceptionCode;
         this.locator = locator;
-        this.httpCode = httpCode;
+        this.httpCode = httpCode != null ? httpCode : 500;
     }
 
     /**

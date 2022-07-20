@@ -1352,7 +1352,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         if (sf instanceof org.geotoolkit.sampling.xml.SamplingFeature) {
             try {
                 org.opengis.geometry.Geometry geom = ((org.geotoolkit.sampling.xml.SamplingFeature)sf).getGeometry();
-                return toWGS84JTS((AbstractGeometry)geom);
+                if (geom != null) {
+                    return toWGS84JTS((AbstractGeometry)geom);
+                }
             } catch (ConstellationStoreException ex) {
                 LOGGER.log(Level.WARNING, ex.getMessage(), ex);
             }

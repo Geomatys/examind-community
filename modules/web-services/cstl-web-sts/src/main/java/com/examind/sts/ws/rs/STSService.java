@@ -45,6 +45,7 @@ import com.examind.sts.core.STSWorker;
 import java.util.LinkedHashMap;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import org.constellation.dto.ExceptionReport;
 import org.geotoolkit.sts.AbstractSTSRequest;
 import org.geotoolkit.sts.AbstractSTSRequestById;
 import org.geotoolkit.sts.GetCapabilities;
@@ -303,6 +304,16 @@ public class STSService extends OGCWebService<STSWorker> {
             throw new CstlServiceException("The operation " + requestName + " is not supported by the service",
                         INVALID_PARAMETER_VALUE, "request");
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected ResponseObject processExceptionResponse(final Exception exc, ServiceDef serviceDef, final Worker w, MediaType mimeType) {
+        LOGGER.log(Level.WARNING, exc.getMessage(), exc);
+        final CstlServiceException ex = CstlServiceException.castOrWrap(exc);
+        return new ResponseObject(new ExceptionReport(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON, ex.getHttpCode());
     }
 
     private Map<String, SortOrder> parseSortByParameter() throws CstlServiceException {
