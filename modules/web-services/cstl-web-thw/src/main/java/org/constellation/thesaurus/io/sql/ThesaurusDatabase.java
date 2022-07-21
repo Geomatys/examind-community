@@ -228,6 +228,21 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
         return response;
     }
 
+    protected String readConceptProperty(final String uriConcept, final String predicat, final Connection c) throws SQLException {
+        final List<Tuple> response = new ArrayList<>();
+        final String sql = "SELECT \"objet\" FROM \"" + schema + "\".\"" + TABLE_NAME + "\" WHERE \"uri_concept\" = ? and \"predicat\" = ?";
+        try (PreparedStatement stmt = c.prepareStatement(sql)) {
+            stmt.setString(1, uriConcept);
+            stmt.setString(2, predicat);
+            try (ResultSet result1 = stmt.executeQuery()) {
+                while (result1.next()) {
+                    return removePrefix(result1.getString(1));
+                }
+            }
+        }
+        return null;
+    }
+
     private String getTheme(final String uriConcept, final boolean strict, final Connection c) throws SQLException {
         final String sql;
         final String uriValue;
@@ -720,6 +735,10 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
         return c;
     }
 
+    protected Concept buildEmptyConcept(String uriConcept) {
+        return new Concept(removePrefix(uriConcept));
+    }
+
     protected Concept readConcept(final String uriConcept, final boolean withGeometry, final Connection con, final ISOLanguageCode language) throws SQLException {
         if (uriConcept != null) {
 
@@ -731,7 +750,7 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
                 strict = false;
             }
 
-            final Concept concept = new Concept(removePrefix(uriConcept));
+            final Concept concept = buildEmptyConcept(uriConcept);
 
             concept.setPrefLabel(getMultiLingualTerm(uriConcept,   PREF_LABEL_TYPE,       strict, COMPLETION,   con, language));
             concept.setAltLabel(getMultiLingualTerm(uriConcept,    ALT_LABEL_TYPE,        strict, COMPLETION,   con, language));
@@ -751,76 +770,8 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
 
             final List<Tuple> tuples = getConceptTuples(uriConcept, strict, con);
 
-            boolean found = false;
-            for (Tuple tuple : tuples) {
-                found = true;
-                final String predicat = tuple.predicat;
-                final String objet    = tuple.object;
-                if (CREATOR_PREDICATE.equals(predicat)) {
-                    concept.setCreator(objet);
-                } else if (DATE_PREDICATE.equals(predicat)) {
-                    concept.setDate(objet);
-                } else if (EXTERNAL_ID_PREDICATE.equals(predicat)) {
-                    concept.setExternalID(objet);
-                } else if (DESCRIPTION_PREDICATE.equals(predicat)) {
-                    concept.setDescription(objet);
-                } else if (LANGUAGE_PREDICATE.equals(predicat)) {
-                    if (concept.getLanguage() == null || !concept.getLanguage().contains(objet)) {
-                        concept.addLanguage(objet);
-                    }
-                } else if (RIGHTS_PREDICATE.equals(predicat)) {
-                    concept.setRights(objet);
-                } else if (TITLE_PREDICATE.equals(predicat)) {
-                    concept.setTitle(objet);
-                } else if (SUBJECT_PREDICATE.equals(predicat)) {
-                    concept.setSubject(objet);
-                } else if (CONTRIBUTOR_PREDICATE.equals(predicat)) {
-                    concept.setContributor(objet);
-                } else if (HAS_VERSION_PREDICATE.equals(predicat)) {
-                    concept.setHasVersion(objet);
-                } else if (ISSUED_PREDICATE.equals(predicat)) {
-                    concept.setIssued(objet);
-                } else if (MODIFIED_PREDICATE.equals(predicat)) {
-                    concept.setModified(objet);
-                } else if (TYPE_PREDICATE.equals(predicat)) {
-                    final Concept c = new Concept();
-                    c.setResource(objet);
-                    concept.setType(c);
-                } else if (VALUE_PREDICATE.equals(predicat)) {
-                    concept.setValue(objet);
-                } else if (BROADER_PREDICATE.equals(predicat)) {
-                    final Concept c = new Concept();
-                    c.setResource(objet);
-                    concept.addBroader(c);
-                } else if (CHANGE_NOTE_PREDICATE.equals(predicat)) {
-                    concept.setChangeNote(objet);
-                } else if (NARROWER_PREDICATE.equals(predicat)) {
-                    final Concept c = new Concept();
-                    c.setResource(objet);
-                    concept.addNarrower(c);
-                } else if (NARROWER_TRANS_PREDICATE.equals(predicat)) {
-                    final Concept c = new Concept();
-                    c.setResource(objet);
-                    concept.addNarrowerTransitive(c);
-                } else if (RELATED_PREDICATE.equals(predicat)) {
-                    final Concept c = new Concept();
-                    c.setResource(objet);
-                    concept.addRelated(c);
-                } else if (NAME_PREDICATE.equals(predicat)) {
-                    concept.setName(objet);
-                } else if (HIERARCHY_ROOT_PREDICATE.equals(predicat)) {
-                    final boolean value = Boolean.parseBoolean(objet);
-                    concept.setHierarchyRoot(value);
-                } else if (HIERARCHY_ROOT_TY_PREDICATE.equals(predicat)) {
-                    final Concept c = new Concept();
-                    c.setResource(objet);
-                    concept.setHierarchyRootType(c);
-                } else if (HAS_TOP_CONCEPT_PREDICATE.equals(predicat)) {
-                    final Concept c = new Concept();
-                    c.setResource(objet);
-                    concept.addHasTopConcept(c);
-                }
-            }
+            final boolean found = !tuples.isEmpty();
+            fillConceptPropertiesFromTuple(concept, tuples);
 
             /*
              * Set concept type (always concept)
@@ -838,6 +789,77 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
             }
         }
         return null;
+    }
+
+    protected void fillConceptPropertiesFromTuple(Concept concept, final List<Tuple> tuples) {
+        for (Tuple tuple : tuples) {
+            final String predicat = tuple.predicat;
+            final String objet    = tuple.object;
+            if (CREATOR_PREDICATE.equals(predicat)) {
+                concept.setCreator(objet);
+            } else if (DATE_PREDICATE.equals(predicat)) {
+                concept.setDate(objet);
+            } else if (EXTERNAL_ID_PREDICATE.equals(predicat)) {
+                concept.setExternalID(objet);
+            } else if (DESCRIPTION_PREDICATE.equals(predicat)) {
+                concept.setDescription(objet);
+            } else if (LANGUAGE_PREDICATE.equals(predicat)) {
+                if (concept.getLanguage() == null || !concept.getLanguage().contains(objet)) {
+                    concept.addLanguage(objet);
+                }
+            } else if (RIGHTS_PREDICATE.equals(predicat)) {
+                concept.setRights(objet);
+            } else if (TITLE_PREDICATE.equals(predicat)) {
+                concept.setTitle(objet);
+            } else if (SUBJECT_PREDICATE.equals(predicat)) {
+                concept.setSubject(objet);
+            } else if (CONTRIBUTOR_PREDICATE.equals(predicat)) {
+                concept.setContributor(objet);
+            } else if (HAS_VERSION_PREDICATE.equals(predicat)) {
+                concept.setHasVersion(objet);
+            } else if (ISSUED_PREDICATE.equals(predicat)) {
+                concept.setIssued(objet);
+            } else if (MODIFIED_PREDICATE.equals(predicat)) {
+                concept.setModified(objet);
+            } else if (TYPE_PREDICATE.equals(predicat)) {
+                final Concept c = new Concept();
+                c.setResource(objet);
+                concept.setType(c);
+            } else if (VALUE_PREDICATE.equals(predicat)) {
+                concept.setValue(objet);
+            } else if (BROADER_PREDICATE.equals(predicat)) {
+                final Concept c = new Concept();
+                c.setResource(objet);
+                concept.addBroader(c);
+            } else if (CHANGE_NOTE_PREDICATE.equals(predicat)) {
+                concept.setChangeNote(objet);
+            } else if (NARROWER_PREDICATE.equals(predicat)) {
+                final Concept c = new Concept();
+                c.setResource(objet);
+                concept.addNarrower(c);
+            } else if (NARROWER_TRANS_PREDICATE.equals(predicat)) {
+                final Concept c = new Concept();
+                c.setResource(objet);
+                concept.addNarrowerTransitive(c);
+            } else if (RELATED_PREDICATE.equals(predicat)) {
+                final Concept c = new Concept();
+                c.setResource(objet);
+                concept.addRelated(c);
+            } else if (NAME_PREDICATE.equals(predicat)) {
+                concept.setName(objet);
+            } else if (HIERARCHY_ROOT_PREDICATE.equals(predicat)) {
+                final boolean value = Boolean.parseBoolean(objet);
+                concept.setHierarchyRoot(value);
+            } else if (HIERARCHY_ROOT_TY_PREDICATE.equals(predicat)) {
+                final Concept c = new Concept();
+                c.setResource(objet);
+                concept.setHierarchyRootType(c);
+            } else if (HAS_TOP_CONCEPT_PREDICATE.equals(predicat)) {
+                final Concept c = new Concept();
+                c.setResource(objet);
+                concept.addHasTopConcept(c);
+            }
+        }
     }
 
     @Override
@@ -1223,13 +1245,17 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
         }
     }
 
+    protected FullConcept buildEmptyFullConcept(String uriConcept) {
+        return new FullConcept(removePrefix(uriConcept));
+    }
+
      /**
      * Queries and returns the details of a concept.
      *
      * @param conceptUri the concept URI.
      * @return the {@link FullConcept} instance.
      */
-    public FullConcept getFullConcept(String conceptUri) {
+    public FullConcept getFullConcept(String conceptUri) throws SQLException {
 
         String selectTerms = "SELECT tc.label, tc.type_terme, tc.langage_iso" +
                 " FROM \"" + schema + "\".terme_completion AS tc" +
@@ -1253,7 +1279,7 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
              PreparedStatement relationsStmt = con.prepareStatement(selectRelations)) {//NOSONAR
 
             boolean found = false;
-            FullConcept fullConcept = new FullConcept(conceptUri);
+            FullConcept fullConcept = buildEmptyFullConcept(conceptUri);
 
             // Read the concept terms.
             termsStmt.setString(1, conceptUri);
@@ -1304,8 +1330,6 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
             }
 
             return found ? fullConcept : null;
-        } catch (SQLException ex) {
-            throw new RuntimeException("SQL exception in getFullConcept()", ex);
         }
     }
 
@@ -1332,7 +1356,7 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
         this.defaultLanguage = lang;
     }
 
-    private static class Tuple {
+    protected static class Tuple {
         public String predicat;
         public String object;
 

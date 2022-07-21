@@ -44,6 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import org.apache.sis.xml.MarshallerPool;
 import org.constellation.dto.AcknowlegementType;
 import org.constellation.dto.Page;
 import org.constellation.dto.PagedSearch;
@@ -62,7 +63,6 @@ import org.constellation.thesaurus.io.sql.ThesaurusDatabaseWriter;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.skos.xml.Concept;
 import org.geotoolkit.skos.xml.RDF;
-import org.geotoolkit.skos.xml.SkosMarshallerPool;
 import org.geotoolkit.thw.model.ISOLanguageCode;
 import org.geotoolkit.thw.model.WriteableThesaurus;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,6 +100,7 @@ public class THWRestAPI {
     @RequestMapping(value="/THW/install",method=GET,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity InstallAvaillableThesaurus() throws Exception {
         final java.nio.file.Path thDir = IOUtilities.getResourceAsPath("org/constellation/thesaurus/xml");
+        final MarshallerPool pool = thesaurusBusiness.getSkosMarshallerPool();
         try (DirectoryStream<java.nio.file.Path> dirStream = Files.newDirectoryStream(thDir)) {
             for (java.nio.file.Path path : dirStream) {
                 final String name = IOUtilities.filenameWithoutExtension(path);
@@ -107,9 +108,9 @@ public class THWRestAPI {
                     thesaurusBusiness.getThesaurusURIByName(name);
                 } catch (ThesaurusException ex) {
                     try (InputStream stream = Files.newInputStream(path)){
-                        final Unmarshaller unmarshaller = SkosMarshallerPool.getInstance().acquireUnmarshaller();
+                        final Unmarshaller unmarshaller = pool.acquireUnmarshaller();
                         Object object = unmarshaller.unmarshal(stream);
-                        SkosMarshallerPool.getInstance().recycle(unmarshaller);
+                        pool.recycle(unmarshaller);
                         if (object instanceof JAXBElement) {
                             object = ((JAXBElement) object).getValue();
                         }
@@ -345,9 +346,11 @@ public class THWRestAPI {
                           @RequestParam(name = "rdfFile", required = false) MultipartFile rdfFile) throws Exception {
 
         try (WriteableThesaurus th = getThesaurusWriter(thesaurusUri)) {
-            Unmarshaller unmarshaller = SkosMarshallerPool.getInstance().acquireUnmarshaller();
+
+            MarshallerPool pool = thesaurusBusiness.getSkosMarshallerPool();
+            Unmarshaller unmarshaller = pool.acquireUnmarshaller();
             Object object = unmarshaller.unmarshal(rdfFile.getInputStream());
-            SkosMarshallerPool.getInstance().recycle(unmarshaller);
+            pool.recycle(unmarshaller);
             if (object instanceof JAXBElement) {
                 object = ((JAXBElement) object).getValue();
             }
@@ -380,9 +383,10 @@ public class THWRestAPI {
         try (WriteableThesaurus thesaurus = getThesaurusWriter(thesaurusUri)) {
             RDF thesaurusRdf = thesaurus.toRDF();
 
-            Marshaller m = SkosMarshallerPool.getInstance().acquireMarshaller();
+            MarshallerPool pool = thesaurusBusiness.getSkosMarshallerPool();
+            Marshaller m = pool.acquireMarshaller();
             m.marshal(thesaurusRdf, response.getOutputStream());
-            SkosMarshallerPool.getInstance().recycle(m);
+            pool.recycle(m);
 
             response.addHeader("Content-Disposition","attachment; filename=" + thesaurus.getName() + ".xml");
             response.setContentType(MediaType.APPLICATION_XML.toString());
@@ -405,9 +409,10 @@ public class THWRestAPI {
             }
             RDF thesaurusRdf = thesaurus.toRDF();
 
-            Marshaller m = SkosMarshallerPool.getInstance().acquireMarshaller();
+            MarshallerPool pool = thesaurusBusiness.getSkosMarshallerPool();
+            Marshaller m = pool.acquireMarshaller();
             m.marshal(thesaurusRdf, response.getOutputStream());
-            SkosMarshallerPool.getInstance().recycle(m);
+            pool.recycle(m);
 
             response.addHeader("Content-Disposition", "attachment; filename=" + thesaurus.getName() + "_" + conceptUri + ".xml");
             response.setContentType(MediaType.APPLICATION_XML.toString());

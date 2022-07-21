@@ -31,9 +31,6 @@ import org.geotoolkit.thw.model.WriteableThesaurus;
 
 import javax.sql.DataSource;
 import java.io.IOException;
-import java.io.InputStream;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -49,6 +46,7 @@ import java.util.logging.Level;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.constellation.thesaurus.api.ThesaurusException;
+import org.constellation.util.Util;
 
 /**
  *
@@ -81,8 +79,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
     private void writeProperty(final String uriConcept, final String property, final List<? extends Object> conceptList, final Connection connection) throws SQLException {
         if (conceptList != null) {
             for (Object o : conceptList) {
-                if (o instanceof Concept) {
-                    final Concept c = (Concept) o;
+                if (o instanceof Concept c) {
                     if (c.getAbout() != null) {
                         writeProperty(uriConcept, property, c.getAbout(), connection);
                     } else if (c.getResource() != null) {
@@ -90,8 +87,8 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
                     } else {
                         LOGGER.log(Level.WARNING, "About and resource property cannot be null.");
                     }
-                } else if (o instanceof String) {
-                    writeProperty(uriConcept, property, (String)o, connection);
+                } else if (o instanceof String s) {
+                    writeProperty(uriConcept, property, s, connection);
                 } else if (o instanceof Boolean) {
                     writeProperty(uriConcept, property, o.toString(), connection);
                 } else if (o != null) {
@@ -101,7 +98,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
         }
     }
 
-    private void writeProperty(final String uriconcept, final String property, final String value, final Connection connection) throws SQLException {
+    protected void writeProperty(final String uriconcept, final String property, final String value, final Connection connection) throws SQLException {
         if (value == null) {return;}
         try (PreparedStatement stmt = connection.prepareStatement("INSERT INTO \"" + schema + "\".\"" + TABLE_NAME + "\" VALUES (?, ?, ?, NULL)")) {//NOSONAR
             stmt.setString(1, uriconcept);
@@ -111,7 +108,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
         }
     }
 
-    private void updateProperty(final String uriconcept, final String property, final Object value, final Connection connection) throws SQLException {
+    protected void updateProperty(final String uriconcept, final String property, final Object value, final Connection connection) throws SQLException {
         final boolean update;
         final String query = "SELECT \"uri_concept\" FROM  \"" + schema + "\".\"" + TABLE_NAME + "\" "
                            + "WHERE \"uri_concept\"=? AND \"predicat\"=?";
@@ -128,11 +125,11 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
             stringValue = (String) value;
         } else if (value instanceof Boolean) {
             stringValue = value.toString();
-        } else if (value instanceof Concept) {
-            stringValue = ((Concept) value).getResource();
-        } else if (value instanceof List) {
+        } else if (value instanceof Concept c) {
+            stringValue = c.getResource();
+        } else if (value instanceof List ls) {
             deleteProperty(uriconcept, property, connection);
-            writeProperty(uriconcept, property, (List)value, connection);
+            writeProperty(uriconcept, property, ls, connection);
             return;
         } else if (value != null) {
             throw new IllegalArgumentException("Unexpected type for a property value :" + value.getClass().getName());
@@ -285,7 +282,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
         }
     }
 
-    private String insertConcept(final Concept concept) throws SQLException {
+    protected String insertConcept(final Concept concept) throws SQLException {
         final String uriConcept;
         if (concept.getAbout() == null) {
             uriConcept = UUID.randomUUID().toString();
@@ -335,7 +332,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
         return uriConcept;
     }
 
-    private String updateConcept(final Concept concept) throws SQLException {
+    protected String updateConcept(final Concept concept) throws SQLException {
         final String uriConcept = concept.getAbout();
         try (Connection c = datasource.getConnection()) {
             updateProperty(uriConcept, CREATOR_PREDICATE,           concept.getCreator(), c);
@@ -647,7 +644,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
 
     @Override
     public void store() throws SQLException, IOException {
-        String sql           = IOUtilities.toString(getResourceAsStream("org/constellation/thesaurus/io/sql/create-new-thesaurus.sql"));
+        String sql           = IOUtilities.toString(Util.getResourceAsStream("org/constellation/thesaurus/io/sql/create-new-thesaurus.sql"));
         sql                  = sql.replace("{schema}", schema);
         if (derby) {
             sql = sql.replace("(100000)", "(1000)");
@@ -738,29 +735,5 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
         newRoot.setHasTopConcept(topConcepts);
 
         writeConcept(newRoot);
-    }
-
-    /**
-     * Return an input stream of the specified resource.
-     * @param url The urel of the specified resource.
-     *
-     * @return A stream on the specified resource.
-     */
-    private static InputStream getResourceAsStream(final String url) {
-        final ClassLoader cl = getContextClassLoader();
-        return cl.getResourceAsStream(url);
-    }
-
-    /**
-     * Obtain the Thread Context ClassLoader.
-     */
-    private static ClassLoader getContextClassLoader() {
-        return AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
-
-            @Override
-            public ClassLoader run() {
-                return Thread.currentThread().getContextClassLoader();
-            }
-        });
     }
 }

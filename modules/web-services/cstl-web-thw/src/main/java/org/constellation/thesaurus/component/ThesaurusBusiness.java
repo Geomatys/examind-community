@@ -20,8 +20,6 @@ package org.constellation.thesaurus.component;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.DependsOn;
@@ -31,14 +29,16 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
-import javax.annotation.PostConstruct;
+import java.util.logging.Logger;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import org.apache.sis.xml.MarshallerPool;
 import org.constellation.dto.thesaurus.Thesaurus;
 import org.constellation.repository.ThesaurusRepository;
 import org.constellation.thesaurus.api.IThesaurusBusiness;
 import org.constellation.thesaurus.api.ThesaurusException;
 import org.constellation.thesaurus.io.sql.ThesaurusDatabaseWriter;
+import org.geotoolkit.skos.xml.SkosMarshallerPool;
 import org.geotoolkit.thw.model.ISOLanguageCode;
 import org.geotoolkit.thw.model.WriteableThesaurus;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,17 +51,17 @@ import org.springframework.transaction.annotation.Transactional;
 @DependsOn("dataSource")
 public class ThesaurusBusiness implements IThesaurusBusiness {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ThesaurusBusiness.class);
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.thesaurus.component");
 
     /**
      * Geosud Datasource registered in geosud-ds context.
      */
     @Autowired
     @Qualifier("dataSource")
-    private DataSource dataSource;
+    protected DataSource dataSource;
 
     @Autowired
-    private ThesaurusRepository thesaurusRepository;
+    protected ThesaurusRepository thesaurusRepository;
 
     /**
      * Return all loaded thesaurus.
@@ -191,5 +191,10 @@ public class ThesaurusBusiness implements IThesaurusBusiness {
             return isoLanguage.getTwoLetterCode().toLowerCase();
         }
     };
+
+    @Override
+    public MarshallerPool getSkosMarshallerPool() {
+        return SkosMarshallerPool.getInstance();
+    }
 }
 

@@ -20,6 +20,7 @@ package org.constellation.thesaurus.api;
 
 
 import java.util.Map;
+import org.apache.sis.xml.MarshallerPool;
 import org.constellation.dto.thesaurus.Thesaurus;
 import org.geotoolkit.thw.model.WriteableThesaurus;
 
@@ -73,5 +74,7 @@ public interface IThesaurusBusiness {
      * @throws ThesaurusException if thesaurus URI is invalid
      */
     void deleteThesaurus(String thesaurusURI) throws ThesaurusException;
+
+    MarshallerPool getSkosMarshallerPool();
 
 }
