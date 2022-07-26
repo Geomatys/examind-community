@@ -110,16 +110,6 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
                 // observation-file datastore
                 omPID = testResource.createProvider(TestResource.OM_XML, providerBusiness, null).id;
 
-                //reset values, only allow pure java readers
-                for(String jn : ImageIO.getReaderFormatNames()){
-                    Registry.setNativeCodecAllowed(jn, ImageReaderSpi.class, false);
-                }
-
-                //reset values, only allow pure java writers
-                for(String jn : ImageIO.getWriterFormatNames()){
-                    Registry.setNativeCodecAllowed(jn, ImageWriterSpi.class, false);
-                }
-
                 dataCoverageJob.computeEmptyDataStatistics(false);
                 LOGGER.info("waiting for data statistics computation");
 

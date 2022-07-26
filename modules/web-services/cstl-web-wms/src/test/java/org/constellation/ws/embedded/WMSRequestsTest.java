@@ -569,16 +569,6 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
                 WMSPortrayal.setEmptyExtension(true);
 
-                //reset values, only allow pure java readers
-                for (String jn : ImageIO.getReaderFormatNames()) {
-                    Registry.setNativeCodecAllowed(jn, ImageReaderSpi.class, false);
-                }
-
-                //reset values, only allow pure java writers
-                for (String jn : ImageIO.getWriterFormatNames()) {
-                    Registry.setNativeCodecAllowed(jn, ImageWriterSpi.class, false);
-                }
-
                 final TestResources testResource = initDataDirectory();
                 final List<DataImport> datas = new ArrayList<>();
 

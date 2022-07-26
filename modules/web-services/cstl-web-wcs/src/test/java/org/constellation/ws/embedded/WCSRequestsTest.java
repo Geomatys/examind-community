@@ -212,16 +212,6 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
             try {
                 startServer();
 
-                //reset values, only allow pure java readers
-                for(String jn : ImageIO.getReaderFormatNames()){
-                    Registry.setNativeCodecAllowed(jn, ImageReaderSpi.class, false);
-                }
-
-                //reset values, only allow pure java writers
-                for(String jn : ImageIO.getWriterFormatNames()){
-                    Registry.setNativeCodecAllowed(jn, ImageWriterSpi.class, false);
-                }
-
                 layerBusiness.removeAll();
                 serviceBusiness.deleteAll();
                 dataBusiness.deleteAll();
