@@ -83,7 +83,6 @@ import org.geotoolkit.ows.xml.v110.ServiceIdentification;
 import org.geotoolkit.ows.xml.v110.ServiceProvider;
 import org.geotoolkit.ows.xml.v110.WGS84BoundingBoxType;
 import org.geotoolkit.referencing.ReferencingUtilities;
-import org.geotoolkit.storage.coverage.ImageTile;
 import org.geotoolkit.storage.coverage.finder.StrictlyCoverageFinder;
 import org.geotoolkit.storage.multires.TiledResource;
 import org.geotoolkit.storage.multires.TileFormat;
@@ -788,33 +787,12 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
      * @param rowIndex
      * @return TileReference
      */
-    private ImageTile emptyTile(final org.geotoolkit.storage.multires.TileMatrix mosaic, final int columnIndex, final int rowIndex) {
-        return new ImageTile() {
-            @Override
-            public ImageReader getImageReader() throws IOException {
-                return null;
-            }
-
-            @Override
-            public ImageReaderSpi getImageReaderSpi() {
-                return null;
-            }
-
-            @Override
-            public Object getInput() {
-                //TODO cache empty image
-                Color color = new Color(0x00FFFFFF, true);
-                return CstlPortrayalService.getInstance().writeBlankImage(color,mosaic.getTileSize());
-            }
-
-            @Override
-            public int getImageIndex() {
-                return 0;
-            }
+    private Tile emptyTile(final org.geotoolkit.storage.multires.TileMatrix mosaic, final int columnIndex, final int rowIndex) {
+        return new Tile() {
 
             @Override
             public long[] getIndices() {
-                return new long[]{columnIndex, rowIndex};
+                return new long[] { columnIndex, rowIndex };
             }
 
             @Override
@@ -824,7 +802,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
 
             @Override
             public Resource getResource() throws DataStoreException {
-                throw new DataStoreException("Empty tile");
+                throw new UnsupportedOperationException("Not supported yet");
             }
         };
     }

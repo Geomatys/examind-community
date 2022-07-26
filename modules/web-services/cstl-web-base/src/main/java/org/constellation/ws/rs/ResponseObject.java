@@ -29,6 +29,8 @@ import java.util.logging.Logger;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
+import org.apache.sis.storage.tiling.Tile;
+import org.apache.sis.storage.tiling.TileStatus;
 import org.constellation.api.rest.ErrorMessage;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
@@ -185,7 +187,9 @@ public class ResponseObject {
                 LOGGER.log(Level.WARNING, "Error while writing String response", ex);
             }
             return new ResponseEntity(responseHeaders, status);
-
+        } else if (entity instanceof Tile t && isEmpty(t)) {
+            // TODO: make configurable ?
+            return ResponseEntity.noContent().build();
         } else {
             HttpHeaders responseHeaders = new HttpHeaders();
             if (mimeType != null) {
@@ -218,5 +222,10 @@ public class ResponseObject {
             }
             return builder.headers(responseHeaders).body(entity);
         }
+    }
+
+    private static boolean isEmpty(Tile t) {
+        final TileStatus status = t.getStatus();
+        return TileStatus.MISSING == status || TileStatus.OUTSIDE_EXTENT == status;
     }
 }
