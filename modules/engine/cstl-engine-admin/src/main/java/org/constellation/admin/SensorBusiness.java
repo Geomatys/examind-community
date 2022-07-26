@@ -79,7 +79,7 @@ import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.parameter.ParameterValueGroup;
 
-@Component
+@Component("sensorBusiness")
 @Primary
 public class SensorBusiness implements ISensorBusiness {
 
@@ -89,10 +89,10 @@ public class SensorBusiness implements ISensorBusiness {
     private IUserBusiness userBusiness;
 
     @Inject
-    private SensorRepository sensorRepository;
+    protected SensorRepository sensorRepository;
 
     @Inject
-    private ServiceRepository serviceRepository;
+    protected ServiceRepository serviceRepository;
 
     @Inject
     private org.constellation.security.SecurityManager securityManager;
