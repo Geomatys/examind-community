@@ -21,8 +21,6 @@
         }, {
             "@iot.id": "urn:ogc:object:observation:GEOM:305-2-5"
         }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:307-2-1"
-        }, {
             "@iot.id": "urn:ogc:object:observation:GEOM:307-2-2"
         }, {
             "@iot.id": "urn:ogc:object:observation:GEOM:307-2-3"
@@ -30,6 +28,8 @@
             "@iot.id": "urn:ogc:object:observation:GEOM:307-2-4"
         }, {
             "@iot.id": "urn:ogc:object:observation:GEOM:307-2-5"
+        }, {
+            "@iot.id": "urn:ogc:object:observation:GEOM:307-2-1"
         }, {
             "@iot.id": "urn:ogc:object:observation:GEOM:406-2-1"
         }, {

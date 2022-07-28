@@ -27,11 +27,15 @@ import org.apache.sis.storage.DataStoreException;
 import org.constellation.util.FilterSQLRequest;
 import org.geotoolkit.geometry.jts.transform.AbstractGeometryTransformer;
 import org.geotoolkit.geometry.jts.transform.GeometryCSTransformer;
+import org.geotoolkit.observation.ResultBuilder;
 import org.geotoolkit.observation.model.Field;
+import static org.geotoolkit.sos.xml.SOSXmlFactory.buildDataArrayProperty;
+import static org.geotoolkit.sos.xml.SOSXmlFactory.buildSimpleDatarecord;
 import org.geotoolkit.swe.xml.AbstractDataComponent;
 import org.geotoolkit.swe.xml.AbstractDataRecord;
 import org.geotoolkit.swe.xml.AnyScalar;
 import org.geotoolkit.swe.xml.DataArray;
+import org.geotoolkit.swe.xml.DataArrayProperty;
 import org.geotoolkit.swe.xml.DataComponentProperty;
 import org.geotoolkit.swe.xml.DataRecord;
 import org.geotoolkit.swe.xml.PhenomenonProperty;
@@ -50,20 +54,6 @@ import org.opengis.temporal.TemporalObject;
  * @author Guilhem Legal (Geomatys)
  */
 public class OM2Utils {
-
-    /**
-     * @deprecated use {@link org.geotoolkit.observation.OMUtils#reOrderFields(java.util.List, java.util.List) }
-     */
-    @Deprecated
-    public static List<Field> reOrderFields(List<Field> procedureFields, List<Field> subset) {
-        List<Field> result = new ArrayList();
-        for (Field pField : procedureFields) {
-            if (subset.contains(pField)) {
-                result.add(pField);
-            }
-        }
-        return result;
-    }
 
     public static Long getInstantTime(Instant inst) {
         if (inst != null && inst.getDate() != null) {
@@ -213,6 +203,20 @@ public class OM2Utils {
             i++;
         }
         return fields;
+    }
+
+    public static DataArrayProperty buildComplexResult(final String version, final Collection<AnyScalar> fields, final int nbValue,
+            final TextBlock encoding, final ResultBuilder values, final int cpt) {
+        final String arrayID     = "dataArray-" + cpt;
+        final String recordID    = "datarecord-" + cpt;
+        final AbstractDataRecord record = buildSimpleDatarecord(version, null, recordID, null, null, new ArrayList<>(fields));
+        String stringValues = null;
+        List<Object> dataValues = null;
+        if (values != null) {
+            stringValues = values.getStringValues();
+            dataValues   = values.getDataArray();
+        }
+        return buildDataArrayProperty(version, arrayID, nbValue, arrayID, record, encoding, stringValues, dataValues);
     }
 
 }

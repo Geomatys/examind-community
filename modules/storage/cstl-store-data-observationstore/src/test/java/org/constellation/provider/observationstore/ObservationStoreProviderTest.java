@@ -1338,6 +1338,84 @@ public class ObservationStoreProviderTest {
 
     }
 
+    @Test
+    public void getResultsTest() throws Exception {
+        assertNotNull(omPr);
+
+        Map<String, Object> hints = new HashMap<>();
+        Object result = omPr.getResults("urn:ogc:object:sensor:GEOM:3", null, null, new FeatureQuery(), "csv", hints);
+        assertTrue(result instanceof String);
+
+        String expectedResult =   "2007-05-01T02:59:00.0,6.56@@"
+                                + "2007-05-01T03:59:00.0,6.56@@"
+                                + "2007-05-01T04:59:00.0,6.56@@"
+                                + "2007-05-01T05:59:00.0,6.56@@"
+                                + "2007-05-01T06:59:00.0,6.56@@"
+                                + "2007-05-01T07:59:00.0,6.56@@"
+                                + "2007-05-01T08:59:00.0,6.56@@"
+                                + "2007-05-01T09:59:00.0,6.56@@"
+                                + "2007-05-01T10:59:00.0,6.56@@"
+                                + "2007-05-01T11:59:00.0,6.56@@"
+                                + "2007-05-01T17:59:00.0,6.56@@"
+                                + "2007-05-01T18:59:00.0,6.55@@"
+                                + "2007-05-01T19:59:00.0,6.55@@"
+                                + "2007-05-01T20:59:00.0,6.55@@"
+                                + "2007-05-01T21:59:00.0,6.55@@";
+
+        assertEquals(expectedResult, result);
+
+        hints = new HashMap<>();
+        hints.put("decimSize", 10);
+        result = omPr.getResults("urn:ogc:object:sensor:GEOM:3", null, null, new FeatureQuery(), "csv", hints);
+        assertTrue(result instanceof String);
+
+        expectedResult =  "2007-05-01T02:59:00.0,6.56@@"
+                        + "2007-05-01T04:53:00.0,6.56@@"
+                        + "2007-05-01T04:59:00.0,6.56@@"
+                        + "2007-05-01T06:53:00.0,6.56@@"
+                        + "2007-05-01T06:59:00.0,6.56@@"
+                        + "2007-05-01T08:53:00.0,6.56@@"
+                        + "2007-05-01T08:59:00.0,6.56@@"
+                        + "2007-05-01T10:53:00.0,6.56@@"
+                        + "2007-05-01T10:59:00.0,6.56@@"
+                        + "2007-05-01T12:53:00.0,6.56@@"
+                        + "2007-05-01T17:59:00.0,6.55@@"
+                        + "2007-05-01T19:53:00.0,6.55@@"
+                        + "2007-05-01T19:59:00.0,6.55@@"
+                        + "2007-05-01T21:53:00.0,6.55@@";
+
+        assertEquals(expectedResult, result);
+
+        hints = new HashMap<>();
+        result = omPr.getResults("urn:ogc:object:sensor:GEOM:8", null, null, new FeatureQuery(), "csv", hints);
+        assertTrue(result instanceof String);
+
+        expectedResult =  "2007-05-01T12:59:00.0,6.56,12.0@@"
+                        + "2007-05-01T13:59:00.0,6.56,13.0@@"
+                        + "2007-05-01T14:59:00.0,6.56,14.0@@"
+                        + "2007-05-01T15:59:00.0,6.56,15.0@@"
+                        + "2007-05-01T16:59:00.0,6.56,16.0@@";
+        
+        assertEquals(expectedResult, result);
+
+        hints = new HashMap<>();
+        hints.put("decimSize", 10);
+        result = omPr.getResults("urn:ogc:object:sensor:GEOM:8", null, null, new FeatureQuery(), "csv", hints);
+        assertTrue(result instanceof String);
+
+        expectedResult =  "2007-05-01T12:59:00.0,6.56,12.0@@"
+                        + "2007-05-01T13:23:00.0,6.56,13.0@@"
+                        + "2007-05-01T13:59:00.0,6.56,14.0@@"
+                        + "2007-05-01T14:23:00.0,6.56,14.0@@"
+                        + "2007-05-01T14:59:00.0,6.56,15.0@@"
+                        + "2007-05-01T15:23:00.0,6.56,15.0@@"
+                        + "2007-05-01T15:59:00.0,6.56,16.0@@"
+                        + "2007-05-01T16:23:00.0,6.56,16.0@@";
+        
+        assertEquals(expectedResult, result);
+        
+    }
+
     /**
      * Temporary methods waiting for fix in TimePositionType in geotk
      */

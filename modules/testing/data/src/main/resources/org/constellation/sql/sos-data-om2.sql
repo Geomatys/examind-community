@@ -222,11 +222,12 @@ INSERT INTO "mesures"."mesure3" VALUES (305, 3, '2007-05-01 09:59:00',6.56);
 INSERT INTO "mesures"."mesure3" VALUES (305, 4, '2007-05-01 10:59:00',6.56);
 INSERT INTO "mesures"."mesure3" VALUES (305, 5, '2007-05-01 11:59:00',6.56);
 
-INSERT INTO "mesures"."mesure3" VALUES (307, 1, '2007-05-01 17:59:00',6.56);
-INSERT INTO "mesures"."mesure3" VALUES (307, 2, '2007-05-01 18:59:00',6.55);
-INSERT INTO "mesures"."mesure3" VALUES (307, 3, '2007-05-01 19:59:00',6.55);
-INSERT INTO "mesures"."mesure3" VALUES (307, 4, '2007-05-01 20:59:00',6.55);
-INSERT INTO "mesures"."mesure3" VALUES (307, 5, '2007-05-01 21:59:00',6.55);
+-- intentionally inserted in bad temporal order
+INSERT INTO "mesures"."mesure3" VALUES (307, 1, '2007-05-01 21:59:00',6.55);
+INSERT INTO "mesures"."mesure3" VALUES (307, 2, '2007-05-01 17:59:00',6.56);
+INSERT INTO "mesures"."mesure3" VALUES (307, 3, '2007-05-01 18:59:00',6.55);
+INSERT INTO "mesures"."mesure3" VALUES (307, 4, '2007-05-01 19:59:00',6.55);
+INSERT INTO "mesures"."mesure3" VALUES (307, 5, '2007-05-01 20:59:00',6.55);
 
 CREATE TABLE "mesures"."mesure5"("id_observation" integer NOT NULL,
                                  "id"             integer NOT NULL,

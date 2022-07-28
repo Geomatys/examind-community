@@ -28,10 +28,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Map.Entry;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +46,7 @@ import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.ResultBuilder;
 import org.geotoolkit.observation.model.ResultMode;
 import static org.constellation.store.observation.db.OM2BaseReader.defaultCRS;
-import static org.constellation.store.observation.db.OM2Utils.reOrderFields;
+import static org.constellation.store.observation.db.OM2Utils.buildComplexResult;
 import static org.geotoolkit.observation.OMUtils.*;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.geometry.jts.SRIDGenerator;
@@ -69,16 +67,10 @@ import static org.geotoolkit.sos.xml.ResponseModeType.INLINE;
 import static org.geotoolkit.sos.xml.ResponseModeType.RESULT_TEMPLATE;
 
 import static org.geotoolkit.sos.xml.SOSXmlFactory.*;
-import org.geotoolkit.swe.xml.AbstractDataRecord;
 import org.geotoolkit.swe.xml.AnyScalar;
 import org.geotoolkit.swe.xml.DataArray;
 import org.geotoolkit.swe.xml.DataArrayProperty;
 import org.geotoolkit.swe.xml.TextBlock;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.Envelope;
-import org.locationtech.jts.geom.GeometryCollection;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 import org.opengis.filter.Literal;
 import org.opengis.filter.TemporalOperator;
@@ -102,8 +94,6 @@ import org.opengis.util.FactoryException;
 public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
     private String responseFormat;
-
-    private static final GeometryFactory JTS_GEOM_FACTORY = new GeometryFactory();
 
     public OM2ObservationFilterReader(final OM2ObservationFilter omFilter) {
         super(omFilter);
@@ -721,20 +711,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         return applyPostPagination(hints, results);
     }
 
-    private DataArrayProperty buildComplexResult(final String version, final Collection<AnyScalar> fields, final int nbValue,
-            final TextBlock encoding, final ResultBuilder values, final int cpt) {
-        final String arrayID     = "dataArray-" + cpt;
-        final String recordID    = "datarecord-" + cpt;
-        final AbstractDataRecord record = buildSimpleDatarecord(version, null, recordID, null, null, new ArrayList<>(fields));
-        String stringValues = null;
-        List<Object> dataValues = null;
-        if (values != null) {
-            stringValues = values.getStringValues();
-            dataValues   = values.getDataArray();
-        }
-        return buildDataArrayProperty(version, arrayID, nbValue, arrayID, record, encoding, stringValues, dataValues);
-    }
-
     private List<Observation> getMesurements(final Map<String, Object> hints) throws DataStoreException {
         final String version = getVersionFromHints(hints);
         // add orderby to the query
@@ -904,7 +880,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 // i'm not sure it will be possible to handle an observation with no main field (meaning its not a timeseries or a profile).
                 fieldOrdering = "m.\"id\"";
             }
-            sqlRequest.append(" ORDER BY  o.\"id\", ").append(fieldOrdering).toString();
+            sqlRequest.append(" ORDER BY  o.\"id\", ").append(fieldOrdering);
 
             if (firstFilter) {
                 return sqlRequest.replaceFirst("WHERE", "");
@@ -947,41 +923,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 } else {
                     values = new ResultBuilder(ResultMode.CSV, getDefaultTextEncoding("2.0.0"), false);
                 }
-                while (rs.next()) {
-                    values.newBlock();
-                    if (profileWithTime) {
-                        Date t = dateFromTS(rs.getTimestamp("time_begin"));
-                        values.appendTime(t);
-                    }
-                    for (int i = 0; i < fields.size(); i++) {
-                        Field field = fields.get(i);
-                        String value;
-                        switch (field.type) {
-                            case TIME:
-                                Date t = dateFromTS(rs.getTimestamp(field.name));
-                                values.appendTime(t);
-                                break;
-                            case QUANTITY:
-                                value = rs.getString(field.name); // we need to kown if the value is null (rs.getDouble return 0 if so).
-                                Double d = Double.NaN;
-                                if (value != null && !value.isEmpty()) {
-                                    d = rs.getDouble(field.name);
-                                }
-                                values.appendDouble(d);
-                                break;
-                            case BOOLEAN:
-                                boolean bvalue = rs.getBoolean(field.name);
-                                values.appendBoolean(bvalue);
-                                break;
-                            default:
-                                values.appendString(rs.getString(field.name));
-                                break;
-                        }
-                    }
-                    values.endBlock();
-                }
+                ResultProcessor processor = new ResultProcessor(values, fields, profileWithTime, profile);
+                processor.processResults(rs);
             }
-           switch (values.getMode()) {
+            switch (values.getMode()) {
                 case DATA_ARRAY:  return values.getDataArray();
                 case CSV:         return values.getStringValues();
                 case COUNT:       return values.getCount();
@@ -1031,8 +976,16 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             }
             sqlRequest.append(sqlMeasureRequest);
             final FilterSQLRequest fieldRequest = sqlRequest.clone();
-            // add orderby to the query
-            sqlRequest.append(" ORDER BY  o.\"id\", m.\"id\"");
+            final Field mainField = getMainField(currentProcedure);
+            final String fieldOrdering;
+            if (mainField != null) {
+                fieldOrdering = "m.\"" + mainField.name + "\"";
+            } else {
+                // we keep this fallback where no main field is found.
+                // i'm not sure it will be possible to handle an observation with no main field (meaning its not a timeseries or a profile).
+                fieldOrdering = "m.\"id\"";
+            }
+            sqlRequest.append(" ORDER BY  o.\"id\", ").append(fieldOrdering);
             if (profileWithTime) {
                 sqlRequest.replaceFirst("m.*", "m.*, o.\"id\" as oid, o.\"time_begin\" ");
             } else if (profile) {
@@ -1054,109 +1007,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 }
                 final Map<Object, long[]> times = getMainFieldStep(fieldRequest, fields.get(0), c, width);
 
-                Map<String, Double> minVal = null;
-                Map<String, Double> maxVal = null;
-                long start = -1;
-                long step  = -1;
-                Integer prevObs = null;
-                while (rs.next()) {
-                    Integer currentObs;
-                    if (profile) {
-                        currentObs = rs.getInt("oid");
-                    } else {
-                        currentObs = 1;
-                    }
-                    if (!currentObs.equals(prevObs)) {
-                        step = times.get(currentObs)[1];
-                        start = times.get(currentObs)[0];
-                        minVal = initMapVal(fields, false);
-                        maxVal = initMapVal(fields, true);
-                    }
-                    prevObs = currentObs;
-                    long currentMainValue = -1;
-                    for (int i = 0; i < fields.size(); i++) {
-                        Field field = fields.get(i);
-                        String value = rs.getString(field.name);
-
-                        if (i == 0) {
-                            if (FieldType.TIME.equals(field.type)) {
-                                final Timestamp currentTime = Timestamp.valueOf(value);
-                                currentMainValue = currentTime.getTime();
-                            } else if (FieldType.QUANTITY.equals(field.type)) {
-                                if (value != null && !value.isEmpty()) {
-                                    final Double d = Double.parseDouble(value);
-                                    currentMainValue = d.longValue();
-                                }
-                            }
-                        }
-                        addToMapVal(minVal, maxVal, field.name, value);
-                    }
-
-                    if (currentMainValue != -1 && currentMainValue > (start + step)) {
-                        values.newBlock();
-                        //min
-                        if (profileWithTime) {
-                            Date t = dateFromTS(rs.getTimestamp("time_begin"));
-                            values.appendTime(t);
-                        }
-                        if (FieldType.TIME.equals(fields.get(0).type)) {
-                            values.appendTime(new Date(start));
-                        } else if (FieldType.QUANTITY.equals(fields.get(0).type)) {
-                            // special case for profile + datastream on another phenomenon that the main field.
-                            // we do not include the main field in the result
-                            boolean skipMain = profile && !fieldFilters.isEmpty() && !fieldFilters.contains(1);
-                            if (!skipMain) {
-                                values.appendLong(start);
-                            }
-                        } else {
-                            throw new DataStoreException("main field other than Time or Quantity are not yet allowed");
-                        }
-                        for (Field field : fields) {
-                            if (!field.equals(fields.get(0))) {
-                                final double minValue = minVal.get(field.name);
-                                if (minValue != Double.MAX_VALUE) {
-                                    values.appendDouble(minValue);
-                                } else {
-                                    values.appendDouble(Double.NaN);
-                                }
-                            }
-                        }
-                        values.endBlock();
-                        values.newBlock();
-                        //max
-                        if (profileWithTime) {
-                            Date t = dateFromTS(rs.getTimestamp("time_begin"));
-                            values.appendTime(t);
-                        }
-                        if (FieldType.TIME.equals(fields.get(0).type)) {
-                            long maxTime = start + step;
-                            values.appendTime(new Date(maxTime));
-                        } else if (FieldType.QUANTITY.equals(fields.get(0).type)) {
-                            // special case for profile + datastream on another phenomenon that the main field.
-                            // we do not include the main field in the result
-                            boolean skipMain = profile && !fieldFilters.isEmpty() && !fieldFilters.contains(1);
-                            if (!skipMain) {
-                                values.appendLong(start + step);
-                            }
-                        } else {
-                            throw new DataStoreException("main field other than Time or Quantity are not yet allowed");
-                        }
-                        for (Field field : fields) {
-                            if (!field.equals(fields.get(0))) {
-                                final double maxValue = maxVal.get(field.name);
-                                if (maxValue != -Double.MAX_VALUE) {
-                                    values.appendDouble(maxValue);
-                                } else {
-                                    values.appendDouble(Double.NaN);
-                                }
-                            }
-                        }
-                        values.endBlock();
-                        start = currentMainValue;
-                        minVal = initMapVal(fields, false);
-                        maxVal = initMapVal(fields, true);
-                    }
-                }
+                ResultProcessor processor = new DefaultResultDecimator(values, fields, profileWithTime, profile, width, fieldFilters, times);
+                processor.processResults(rs);
             }
 
             switch (values.getMode()) {
@@ -1256,45 +1108,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     values = new ResultBuilder(ResultMode.CSV, getDefaultTextEncoding("2.0.0"), false);
                 }
 
-                while (rs.next()) {
-                    values.newBlock();
-                    if (profileWithTime) {
-                        Date t = dateFromTS(rs.getTimestamp("time_begin"));
-                        values.appendTime(t);
-                    }
-                    for (int i = 0; i < fields.size(); i++) {
-                        Field field = fields.get(i);
-                        String fieldName = field.name;
-                        if (i == 0) {
-                            fieldName = "step";
-
-                            // special case for profile + datastream on another phenomenon that the main field.
-                            // we do not include the main field in the result
-                            if (profile && !fieldFilters.isEmpty() && !fieldFilters.contains(1)) {
-                                continue;
-                            }
-                        }
-                        String value;
-                        switch (field.type) {
-                            case TIME:
-                                Date t = dateFromTS(rs.getTimestamp(fieldName));
-                                values.appendTime(t);
-                                break;
-                            case QUANTITY:
-                                value = rs.getString(fieldName); // we need to kown if the value is null (rs.getDouble return 0 if so).
-                                Double d = Double.NaN;
-                                if (value != null && !value.isEmpty()) {
-                                    d = rs.getDouble(fieldName);
-                                }
-                                values.appendDouble(d);
-                                break;
-                            default:
-                                values.appendString(rs.getString(fieldName));
-                                break;
-                        }
-                    }
-                    values.endBlock();
-                }
+                ResultProcessor processor = new TimeScaleResultDecimator(values, fields, profileWithTime, profile, width, fieldFilters);
+                processor.processResults(rs);
             }
             switch (values.getMode()) {
                 case DATA_ARRAY:  return values.getDataArray();
@@ -1304,38 +1119,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
             throw new DataStoreException("the service has throw a SQL Exception", ex);
-        }
-    }
-
-    private Map<String, Double> initMapVal(final List<Field> fields, final boolean max) {
-        final Map<String, Double> result = new HashMap<>();
-        final double value;
-        if (max) {
-            value = -Double.MAX_VALUE;
-        } else {
-            value = Double.MAX_VALUE;
-        }
-        for (Field field : fields) {
-            result.put(field.name, value);
-        }
-        return result;
-    }
-
-    private void addToMapVal(final Map<String, Double> minMap, final Map<String, Double> maxMap, final String field, final String value) {
-        if (value == null || value.isEmpty()) return;
-
-        final Double minPrevious = minMap.get(field);
-        final Double maxPrevious = maxMap.get(field);
-        try {
-            final Double current = Double.parseDouble(value);
-            if (current > maxPrevious) {
-                maxMap.put(field, current);
-            }
-            if (current < minPrevious) {
-                minMap.put(field, current);
-            }
-        } catch (NumberFormatException ex) {
-            LOGGER.log(Level.FINER, "unable to parse value:{0}", value);
         }
     }
 
@@ -1679,64 +1462,17 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         sqlRequest.append(" ORDER BY \"procedure\", \"time\"");
         sqlRequest = appendPaginationToRequest(sqlRequest, hints);
 
-         // will be removed when postgis filter will be set in request
-        Polygon spaFilter = null;
-        if (envelopeFilter != null) {
-            spaFilter = JTS.toGeometry(envelopeFilter);
-        }
         LOGGER.fine(sqlRequest.toString());
-        Map<String, Map<Date, Geometry>> locations = new LinkedHashMap<>();
         try(final Connection c            = source.getConnection();
             final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
             final ResultSet rs            = pstmt.executeQuery()) {
-            while (rs.next()) {
-                try {
-                    final String procedure = rs.getString("procedure");
-                    final Date time = new Date(rs.getTimestamp("time").getTime());
-                    final byte[] b = rs.getBytes(3);
-                    final int srid = rs.getInt(4);
-                    final CoordinateReferenceSystem crs;
-                    if (srid != 0) {
-                        crs = CRS.forCode("urn:ogc:def:crs:EPSG::" + srid);
-                    } else {
-                        crs = defaultCRS;
-                    }
-                    final org.locationtech.jts.geom.Geometry geom;
-                    if (b != null) {
-                        WKBReader reader = new WKBReader();
-                        geom             = reader.read(b);
-                    } else {
-                        continue;
-                    }
-                    // exclude from spatial filter (will be removed when postgis filter will be set in request)
-                    if (spaFilter != null && !spaFilter.intersects(geom)) {
-                        continue;
-                    }
 
-                    final AbstractGeometry gmlGeom = JTStoGeometry.toGML(gmlVersion, geom, crs);
-
-                    final Map<Date, Geometry> procedureLocations;
-                    if (locations.containsKey(procedure)) {
-                        procedureLocations = locations.get(procedure);
-                    } else {
-                        procedureLocations = new LinkedHashMap<>();
-                        locations.put(procedure, procedureLocations);
-
-                    }
-                    if (gmlGeom instanceof Geometry) {
-                        procedureLocations.put(time, (Geometry) gmlGeom);
-                    } else {
-                        throw new DataStoreException("GML geometry cannot be casted as an Opengis one");
-                    }
-                } catch (FactoryException | ParseException ex) {
-                    throw new DataStoreException(ex);
-                }
-            }
+            SensorLocationProcessor processor = new SensorLocationProcessor(envelopeFilter, gmlVersion);
+            return processor.processLocations(rs);
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
             throw new DataStoreException("the service has throw a SQL Exception.", ex);
         }
-        return locations;
     }
 
     /**
@@ -1781,279 +1517,17 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             // calculate the first date and the time step for each procedure.
             final Map<Object, long[]> times = getMainFieldStep(stepRequest, DEFAULT_TIME_FIELD, c, nbCell);
 
-            final Envelope[][] geoCells = new Envelope[nbCell][nbCell];
-
-            // prepare geometrie cells
-            final double envMinx = env.getMinimum(0);
-            final double envMiny = env.getMinimum(1);
-            final double xStep = env.getSpan(0) / nbCell;
-            final double yStep = env.getSpan(1) / nbCell;
-            for (int i = 0; i < nbCell; i++) {
-                for (int j = 0; j < nbCell; j++) {
-                    double minx = envMinx + i*xStep;
-                    double maxx = minx + xStep;
-                    double miny = envMiny + j*yStep;
-                    double maxy = miny + yStep;
-                    geoCells[i][j] = new Envelope(minx, maxx, miny, maxy);
-                }
-            }
-
-            // prepare a first grid reducing the gris size by 10
-            // in order to reduce the cell by cell intersect
-            // and perform a pre-search
-            // TODO, use multiple level like in a R-Tree
-            List<NarrowEnvelope> nEnvs = new ArrayList<>();
-            int reduce = 10;
-            int tmpNbCell = nbCell/reduce;
-            final double fLvlXStep = env.getSpan(0) / tmpNbCell;
-            final double flvlyStep = env.getSpan(1) / tmpNbCell;
-            for (int i = 0; i < tmpNbCell; i++) {
-                for (int j = 0; j < tmpNbCell; j++) {
-                    double minx = envMinx + i*fLvlXStep;
-                    double maxx = minx + fLvlXStep;
-                    double miny = envMiny + j*flvlyStep;
-                    double maxy = miny + flvlyStep;
-                    int i_min, i_max, j_min, j_max;
-                    i_min = i * (nbCell / tmpNbCell);
-                    i_max = (i+1) * (nbCell / tmpNbCell);
-                    j_min = j * (nbCell / tmpNbCell);
-                    j_max = (j+1) * (nbCell / tmpNbCell);
-                    nEnvs.add(new NarrowEnvelope(new Envelope(minx, maxx, miny, maxy), i_min, i_max, j_min, j_max));
-                }
-            }
+            
 
             LOGGER.fine(sqlRequest.toString());
-            Map<String, Map<TripleKey, List>> procedureCells = new HashMap<>();
             try(final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
                 final ResultSet rs = pstmt.executeQuery()) {
-
-                Map<TripleKey, List> curentCells = null;
-                long start = -1;
-                long step  = -1;
-                String prevProc = null;
-                int tIndex = 0; //dates are ordened
-                final WKBReader reader = new WKBReader(JTS_GEOM_FACTORY);
-                while (rs.next()) {
-                    try {
-                        final String procedure = rs.getString("procedure");
-
-                        if (!procedure.equals(prevProc)) {
-                            step = times.get(procedure)[1];
-                            start = times.get(procedure)[0];
-                            curentCells = new HashMap<>();
-                            procedureCells.put(procedure, curentCells);
-                            tIndex = 0;
-                        }
-                        prevProc = procedure;
-
-                        final byte[] b = rs.getBytes(3);
-                        final int srid = rs.getInt(4);
-                        final CoordinateReferenceSystem crs;
-                        if (srid != 0) {
-                            crs = CRS.forCode("urn:ogc:def:crs:EPSG::" + srid);
-                        } else {
-                            crs = defaultCRS;
-                        }
-                        final org.locationtech.jts.geom.Geometry geom;
-                        if (b != null) {
-                            geom = reader.read(b);
-                            if (!(geom instanceof Point)) {
-                                LOGGER.warning("Geometry is not a point. excluded from decimation");
-                                continue;
-                            }
-                        } else {
-                            continue;
-                        }
-
-                        Coordinate coord = ((Point)geom).getCoordinate();
-                        // find the correct cell where to put the geometry
-
-                        // first round to find the region whe the data is located
-                        int i_min, i_max, j_min, j_max;
-                        if (nEnvs.isEmpty()) {
-                            i_min = 0; i_max = nbCell; j_min = 0; j_max = nbCell;
-                        } else {
-                            i_min = -1; i_max = -1; j_min = -1; j_max = -1;
-                            for (NarrowEnvelope nEnv : nEnvs) {
-                                if (nEnv.env.intersects(coord)) {
-                                    i_min = nEnv.i_min;
-                                    j_min = nEnv.j_min;
-                                    i_max = nEnv.i_max;
-                                    j_max = nEnv.j_max;
-                                    break;
-                                }
-                            }
-
-                            if (i_min == -1 || j_min == -1 || i_max == -1 ||j_max == -1) {
-                                // this should not happen any longer when a correct postgis filter will be perfomed on the SQL query
-                                continue;
-                            }
-                        }
-
-                         // ajust the time index
-                        final long time = rs.getTimestamp("time").getTime();
-                        while (time > (start + step) && tIndex != nbCell - 1) {
-                            start = start + step;
-                            tIndex++;
-                        }
-
-                        // search cell by cell
-                        boolean cellFound = false;
-                        csearch:for (int i = i_min; i < i_max; i++) {
-                            for (int j = j_min; j < j_max; j++) {
-                                Envelope cellEnv = geoCells[i][j];
-                                if (cellEnv.intersects(coord)) {
-                                    TripleKey key = new TripleKey(tIndex, i, j);
-                                    if (!curentCells.containsKey(key)) {
-                                        List geoms = new ArrayList<>();
-                                        geoms.add(geom);
-                                        curentCells.put(key, geoms);
-                                    } else {
-                                        curentCells.get(key).add(geom);
-                                    }
-                                    cellFound = true;
-                                    break csearch;
-                                }
-                            }
-                        }
-
-
-                        /*debug
-                        if (!cellFound) {
-                            LOGGER.info("No cell found for: " + geom);
-                            for (int i = 0; i < nbCell; i++) {
-                                for (int j = 0; j < nbCell; j++) {
-                                    Envelope cellEnv = geoCells[i][j];
-                                    LOGGER.info(cellEnv.toString());
-                                }
-                            }
-
-                        }*/
-
-
-
-                    } catch (FactoryException | ParseException ex) {
-                        throw new DataStoreException(ex);
-                    }
-                }
+                SensorLocationProcessor processor = new SensorLocationDecimator(envelopeFilter, gmlVersion, nbCell, times);
+                return processor.processLocations(rs);
             }
-
-            Map<String, Map<Date, Geometry>> locations = new LinkedHashMap<>();
-            // merge the geometries in each cells
-            for (Entry<String, Map<TripleKey, List>> entry : procedureCells.entrySet()) {
-
-                String procedure = entry.getKey();
-                Map<TripleKey, List> cells = entry.getValue();
-                long step = times.get(procedure)[1];
-                long start = times.get(procedure)[0];
-                for (int t = 0; t < nbCell; t++) {
-                    boolean tfound = false;
-                    final Date time = new Date(start + (step*t) + step/2);
-                    for (int i = 0; i < nbCell; i++) {
-                        for (int j = 0; j < nbCell; j++) {
-
-                            TripleKey key = new TripleKey(t, i, j);
-                            org.locationtech.jts.geom.Geometry geom;
-                            if (!cells.containsKey(key)) {
-                                continue;
-                            }
-                            List<org.locationtech.jts.geom.Geometry> cellgeoms = cells.get(key);
-                            if (cellgeoms == null || cellgeoms.isEmpty()) {
-                                continue;
-                            } else if (cellgeoms.size() == 1) {
-                                geom = cellgeoms.get(0);
-                            } else {
-                                // merge geometries
-                                GeometryCollection coll = new GeometryCollection(cellgeoms.toArray(new org.locationtech.jts.geom.Geometry[cellgeoms.size()]), JTS_GEOM_FACTORY);
-                                geom = coll.getCentroid();
-                            }
-
-                            final AbstractGeometry gmlGeom = JTStoGeometry.toGML(gmlVersion, geom, defaultCRS);
-
-                            final Map<Date, Geometry> procedureLocations;
-                            if (locations.containsKey(procedure)) {
-                                procedureLocations = locations.get(procedure);
-                            } else {
-                                procedureLocations = new LinkedHashMap<>();
-                                locations.put(procedure, procedureLocations);
-                            }
-
-                            if (gmlGeom instanceof Geometry g) {
-                                procedureLocations.put(time, g);
-                                tfound = true;
-                            } else {
-                                throw new DataStoreException("GML geometry cannot be casted as an Opengis one");
-                            }
-
-                        }
-                    }
-                    /*if (!tfound) {
-                        LOGGER.finer("no date found for index:" + t + "\n "
-                                  + "min   : " +  format2.format(new Date(start + (step*t))) + "\n "
-                                  + "medium: " +  format2.format(new Date(start + (step*t) + step/2)) + "\n "
-                                  + "max   : " +  format2.format(new Date(start + (step*t) + step)) );
-                    }*/
-                }
-
-            }
-            return locations;
-        } catch (FactoryException ex) {
-            throw new DataStoreException(ex);
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
             throw new DataStoreException("the service has throw a SQL Exception.", ex);
-        }
-    }
-
-    private class TripleKey {
-        private final int t, i, j;
-
-        public TripleKey(int t, int i, int j) {
-            this.i = i;
-            this.j = j;
-            this.t = t;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == this) {
-                return true;
-            }
-            if (obj == null) {
-                return false;
-            }
-            if (this.getClass() == obj.getClass()) {
-                TripleKey that = (TripleKey) obj;
-                return this.i == that.i &&
-                       this.j == that.j &&
-                       this.t == that.t;
-            }
-            return false;
-        }
-
-        @Override
-        public int hashCode() {
-            return t + 1009 * j + 1000003 * i;
-        }
-    }
-
-    private class NarrowEnvelope {
-        public final Envelope env;
-        public final int i_min, i_max, j_min, j_max;
-
-        public NarrowEnvelope(Envelope env, int i_min, int i_max, int j_min, int j_max) {
-            this.env = env;
-            this.i_max = i_max;
-            this.i_min = i_min;
-            this.j_max = j_max;
-            this.j_min = j_min;
-        }
-
-        @Override
-        public String toString() {
-            StringBuilder sb = new StringBuilder("Env[ ").append(env.getMinX()).append(", ").append(env.getMaxX()).append(", ").append(env.getMinY()).append(", ").append(env.getMaxY()).append("]\n");
-            sb.append("Bound[").append(i_min).append( ", ").append(i_max).append(", ").append(j_min ).append(", ").append(j_max).append(']');
-            return sb.toString();
         }
     }
 
@@ -2087,7 +1561,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
         int nbCell = decimSize;
 
-        Map<String, Map<Integer, List>> procedureCells = new HashMap<>();
         try (final Connection c = source.getConnection()) {
 
             // calculate the first date and the time step for each procedure.
@@ -2095,110 +1568,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             LOGGER.fine(sqlRequest.toString());
             try(final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
                 final ResultSet rs = pstmt.executeQuery()) {
-
-                Map<Integer, List> currentGeoms = null;
-                long start = -1;
-                long step  = -1;
-                String prevProc = null;
-                int tIndex = 0; //dates are ordened
-                final WKBReader reader = new WKBReader(JTS_GEOM_FACTORY);
-                while (rs.next()) {
-                    try {
-                        final String procedure = rs.getString("procedure");
-
-                        if (!procedure.equals(prevProc)) {
-                            step = times.get(procedure)[1];
-                            start = times.get(procedure)[0];
-                            currentGeoms = new HashMap<>();
-                            procedureCells.put(procedure, currentGeoms);
-                            tIndex = 0;
-                        }
-                        prevProc = procedure;
-
-                        final byte[] b = rs.getBytes(3);
-                        final int srid = rs.getInt(4);
-                        final CoordinateReferenceSystem crs;
-                        if (srid != 0) {
-                            crs = CRS.forCode("urn:ogc:def:crs:EPSG::" + srid);
-                        } else {
-                            crs = defaultCRS;
-                        }
-                        final org.locationtech.jts.geom.Geometry geom;
-                        if (b != null) {
-                            geom = reader.read(b);
-                        } else {
-                            continue;
-                        }
-
-                        // exclude from spatial filter  (will be removed when postgis filter will be set in request)
-                        if (spaFilter != null && !spaFilter.intersects(geom)) {
-                            continue;
-                        }
-
-                        // ajust the time index
-                        final long time = rs.getTimestamp("time").getTime();
-                        while (time > (start + step) && tIndex != nbCell - 1) {
-                            start = start + step;
-                            tIndex++;
-                        }
-                        if (currentGeoms.containsKey(tIndex)) {
-                            currentGeoms.get(tIndex).add(geom);
-                        } else {
-                            List<org.locationtech.jts.geom.Geometry> geoms = new ArrayList<>();
-                            geoms.add(geom);
-                            currentGeoms.put(tIndex, geoms);
-                        }
-
-                    } catch (FactoryException | ParseException ex) {
-                        throw new DataStoreException(ex);
-                    }
-                }
+                final SensorLocationProcessor processor = new SensorLocationDecimatorV2(envelopeFilter, gmlVersion, nbCell, times);
+                return processor.processLocations(rs);
             }
-
-            Map<String, Map<Date, Geometry>> locations = new LinkedHashMap<>();
-            // merge the geometries in each cells
-            for (Entry<String, Map<Integer, List>> entry : procedureCells.entrySet()) {
-
-                String procedure = entry.getKey();
-                Map<Integer, List> cells = entry.getValue();
-                long step = times.get(procedure)[1];
-                long start = times.get(procedure)[0];
-                for (int t = 0; t < nbCell; t++) {
-                    org.locationtech.jts.geom.Geometry geom;
-                    if (!cells.containsKey(t)) {
-                        continue;
-                    }
-                    List<org.locationtech.jts.geom.Geometry> cellgeoms = cells.get(t);
-                    if (cellgeoms == null || cellgeoms.isEmpty()) {
-                        continue;
-                    } else if (cellgeoms.size() == 1) {
-                        geom = cellgeoms.get(0);
-                    } else {
-                        // merge geometries
-                        GeometryCollection coll = new GeometryCollection(cellgeoms.toArray(new org.locationtech.jts.geom.Geometry[cellgeoms.size()]), JTS_GEOM_FACTORY);
-                        geom = coll.getCentroid();
-                    }
-
-                    final AbstractGeometry gmlGeom = JTStoGeometry.toGML(gmlVersion, geom, defaultCRS);
-
-                    final Map<Date, Geometry> procedureLocations;
-                    if (locations.containsKey(procedure)) {
-                        procedureLocations = locations.get(procedure);
-                    } else {
-                        procedureLocations = new LinkedHashMap<>();
-                        locations.put(procedure, procedureLocations);
-                    }
-                    final Date time = new Date(start + (step*t) + step/2);
-                    if (gmlGeom instanceof Geometry) {
-                        procedureLocations.put(time, (Geometry) gmlGeom);
-                    } else {
-                        throw new DataStoreException("GML geometry cannot be casted as an Opengis one");
-                    }
-                }
-            }
-            return locations;
-        } catch (FactoryException ex) {
-            throw new DataStoreException(ex);
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
             throw new DataStoreException("the service has throw a SQL Exception.", ex);
