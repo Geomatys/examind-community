@@ -1164,10 +1164,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         final long max = maxT.getTime();
                         result[0] = min;
                         long step = (max - min) / width;
-                        // step should always be positive
+                        /* step should always be positive
                         if (step <= 0) {
                             step = 1;
-                        }
+                        }*/
                         result[1] = step;
                     }
                 } else if (FieldType.QUANTITY.equals(mainField.type)) {
@@ -1177,10 +1177,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     final long max    = maxT.longValue();
                     result[0] = min;
                     long step = (max - min) / width;
-                    // step should always be positive
+                    /* step should always be positive
                     if (step <= 0) {
                         step = 1;
-                    }
+                    }*/
                     result[1] = step;
 
                 } else {

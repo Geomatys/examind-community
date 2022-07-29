@@ -64,9 +64,9 @@ public class SensorLocationDecimator extends AbstractSensorLocationDecimator {
         final double xStep = envelopeFilter.getSpan(0) / nbCell;
         final double yStep = envelopeFilter.getSpan(1) / nbCell;
         for (int i = 0; i < nbCell; i++) {
+            double minx = envMinx + i*xStep;
+            double maxx = minx + xStep;
             for (int j = 0; j < nbCell; j++) {
-                double minx = envMinx + i*xStep;
-                double maxx = minx + xStep;
                 double miny = envMiny + j*yStep;
                 double maxy = miny + yStep;
                 geoCells[i][j] = new Envelope(minx, maxx, miny, maxy);
@@ -83,16 +83,15 @@ public class SensorLocationDecimator extends AbstractSensorLocationDecimator {
         final double fLvlXStep = envelopeFilter.getSpan(0) / tmpNbCell;
         final double flvlyStep = envelopeFilter.getSpan(1) / tmpNbCell;
         for (int i = 0; i < tmpNbCell; i++) {
+            double minx = envMinx + i*fLvlXStep;
+            double maxx = minx + fLvlXStep;
+            int i_min = i * (nbCell / tmpNbCell);
+            int i_max = (i+1) * (nbCell / tmpNbCell);
             for (int j = 0; j < tmpNbCell; j++) {
-                double minx = envMinx + i*fLvlXStep;
-                double maxx = minx + fLvlXStep;
                 double miny = envMiny + j*flvlyStep;
                 double maxy = miny + flvlyStep;
-                int i_min, i_max, j_min, j_max;
-                i_min = i * (nbCell / tmpNbCell);
-                i_max = (i+1) * (nbCell / tmpNbCell);
-                j_min = j * (nbCell / tmpNbCell);
-                j_max = (j+1) * (nbCell / tmpNbCell);
+                int j_min = j * (nbCell / tmpNbCell);
+                int j_max = (j+1) * (nbCell / tmpNbCell);
                 nEnvs.add(new NarrowEnvelope(new Envelope(minx, maxx, miny, maxy), i_min, i_max, j_min, j_max));
             }
         }
@@ -119,12 +118,12 @@ public class SensorLocationDecimator extends AbstractSensorLocationDecimator {
 
                 final byte[] b = rs.getBytes(3);
                 final int srid = rs.getInt(4);
-                final CoordinateReferenceSystem crs;
+                /*final CoordinateReferenceSystem crs;
                 if (srid != 0) {
                     crs = CRS.forCode("urn:ogc:def:crs:EPSG::" + srid);
                 } else {
                     crs = defaultCRS;
-                }
+                }*/
                 final org.locationtech.jts.geom.Geometry geom;
                 if (b != null) {
                     geom = reader.read(b);
@@ -203,7 +202,7 @@ public class SensorLocationDecimator extends AbstractSensorLocationDecimator {
 
 
 
-            } catch (FactoryException | ParseException ex) {
+            } catch (ParseException ex) {
                 throw new DataStoreException(ex);
             }
         }

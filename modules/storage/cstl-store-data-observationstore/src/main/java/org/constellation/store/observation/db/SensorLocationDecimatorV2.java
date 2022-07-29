@@ -79,12 +79,12 @@ public class SensorLocationDecimatorV2 extends AbstractSensorLocationDecimator {
 
                 final byte[] b = rs.getBytes(3);
                 final int srid = rs.getInt(4);
-                final CoordinateReferenceSystem crs;
+                /*final CoordinateReferenceSystem crs;
                 if (srid != 0) {
                     crs = CRS.forCode("urn:ogc:def:crs:EPSG::" + srid);
                 } else {
                     crs = defaultCRS;
-                }
+                }*/
                 final org.locationtech.jts.geom.Geometry geom;
                 if (b != null) {
                     geom = reader.read(b);
@@ -111,7 +111,7 @@ public class SensorLocationDecimatorV2 extends AbstractSensorLocationDecimator {
                     currentGeoms.put(tIndex, geoms);
                 }
 
-            } catch (FactoryException | ParseException ex) {
+            } catch (ParseException ex) {
                 throw new DataStoreException(ex);
             }
         }

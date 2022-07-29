@@ -18,15 +18,17 @@
  */
 package org.constellation.store.observation.db;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 import org.apache.sis.storage.DataStoreException;
 import static org.geotoolkit.observation.OMUtils.dateFromTS;
 import org.geotoolkit.observation.ResultBuilder;
@@ -39,6 +41,8 @@ import org.geotoolkit.observation.model.FieldType;
  */
 public class DefaultResultDecimator extends ResultDecimator {
 
+    private static final SimpleDateFormat debugSDF = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+
     private final Map<Object, long[]> times;
 
     public DefaultResultDecimator(ResultBuilder values, List<Field> fields, boolean profileWithTime, boolean profile, int width, List<Integer> fieldFilters, final Map<Object, long[]> times) {
@@ -49,11 +53,11 @@ public class DefaultResultDecimator extends ResultDecimator {
     @Override
     public void processResults(ResultSet rs) throws SQLException, DataStoreException {
 
-        Map<String, Double> minVal = null;
-        Map<String, Double> maxVal = null;
+        StepValues mapValues = null;
         long start = -1;
         long step  = -1;
         Integer prevObs = null;
+        Date t = null;
         while (rs.next()) {
             Integer currentObs;
             if (profile) {
@@ -62,128 +66,177 @@ public class DefaultResultDecimator extends ResultDecimator {
                 currentObs = 1;
             }
             if (!currentObs.equals(prevObs)) {
+                if (prevObs != null) {
+                    // append the last values
+                    appendValue(t, mapValues);
+                }
+
                 step = times.get(currentObs)[1];
                 start = times.get(currentObs)[0];
-                minVal = initMapVal(fields, false);
-                maxVal = initMapVal(fields, true);
+                mapValues = new StepValues(start, step, fields, profile);
             }
             prevObs = currentObs;
-            long currentMainValue = -1;
-            for (int i = 0; i < fields.size(); i++) {
+
+            final Field mainField = fields.get(0);
+            final long currentMainValue = extractMainValue(mainField, rs.getString(mainField.name));
+            if (profileWithTime) {
+                t = dateFromTS(rs.getTimestamp("time_begin"));
+            }
+            if (currentMainValue > (start + step)) {
+                appendValue(t, mapValues);
+
+                // move to the next closest step
+                if (step > 0) {
+                    while (currentMainValue >= start + step) {
+                        start = start + step;
+                    }
+                }
+                mapValues = new StepValues(start, step, fields, profile);
+            }
+
+            for (int i = 1; i < fields.size(); i++) {
                 Field field = fields.get(i);
                 String value = rs.getString(field.name);
-
-                if (i == 0) {
-                    if (FieldType.TIME.equals(field.type)) {
-                        final Timestamp currentTime = Timestamp.valueOf(value);
-                        currentMainValue = currentTime.getTime();
-                    } else if (FieldType.QUANTITY.equals(field.type)) {
-                        if (value != null && !value.isEmpty()) {
-                            final Double d = Double.parseDouble(value);
-                            currentMainValue = d.longValue();
-                        }
-                    }
-                }
-                addToMapVal(minVal, maxVal, field.name, value);
+                mapValues.addToMapVal(currentMainValue, field.name, value);
             }
+        }
 
-            if (currentMainValue != -1 && currentMainValue > (start + step)) {
-                values.newBlock();
-                //min
-                if (profileWithTime) {
-                    Date t = dateFromTS(rs.getTimestamp("time_begin"));
-                    values.appendTime(t);
+        // append the last values
+        appendValue(t, mapValues);
+    }
+
+    private static class StepValues {
+
+        public final Set<Long> mainValues = new LinkedHashSet<>();
+
+        public final long step;
+        public final long start;
+
+        public final List<Field> fields;
+
+        final Map<String, double[]> mapValues;
+
+        private final boolean profile;
+
+        public StepValues(long start, long step, final List<Field> fields, boolean profile) {
+            this.profile = profile;
+            this.start = start;
+            this.step = step;
+            this.fields = fields;
+            mapValues =  fields.stream().collect(Collectors.toMap(
+                    field -> field.name,
+                    key -> new double[] { Double.MAX_VALUE, -Double.MAX_VALUE }));
+
+        }
+
+        private void addToMapVal(final Long main, final String field, final String value) {
+            if (value == null || value.isEmpty()) return;
+
+            mainValues.add(main);
+            
+            final double[] previous = mapValues.get(field);
+            if (previous == null) throw new IllegalArgumentException("Unknown field: "+field);
+            final double minPrevious = previous[0];
+            final double maxPrevious = previous[1];
+            try {
+                final double current = Double.parseDouble(value);
+                if (current > maxPrevious) {
+                    previous[1] = current;
                 }
-                if (FieldType.TIME.equals(fields.get(0).type)) {
-                    values.appendTime(new Date(start));
-                } else if (FieldType.QUANTITY.equals(fields.get(0).type)) {
-                    // special case for profile + datastream on another phenomenon that the main field.
-                    // we do not include the main field in the result
-                    boolean skipMain = profile && !fieldFilters.isEmpty() && !fieldFilters.contains(1);
-                    if (!skipMain) {
-                        values.appendLong(start);
-                    }
-                } else {
-                    throw new DataStoreException("main field other than Time or Quantity are not yet allowed");
+                if (current < minPrevious) {
+                    previous[0] = current;
                 }
-                for (Field field : fields) {
-                    if (!field.equals(fields.get(0))) {
-                        final double minValue = minVal.get(field.name);
-                        if (minValue != Double.MAX_VALUE) {
-                            values.appendDouble(minValue);
-                        } else {
-                            values.appendDouble(Double.NaN);
-                        }
-                    }
-                }
-                values.endBlock();
-                values.newBlock();
-                //max
-                if (profileWithTime) {
-                    Date t = dateFromTS(rs.getTimestamp("time_begin"));
-                    values.appendTime(t);
-                }
-                if (FieldType.TIME.equals(fields.get(0).type)) {
-                    long maxTime = start + step;
-                    values.appendTime(new Date(maxTime));
-                } else if (FieldType.QUANTITY.equals(fields.get(0).type)) {
-                    // special case for profile + datastream on another phenomenon that the main field.
-                    // we do not include the main field in the result
-                    boolean skipMain = profile && !fieldFilters.isEmpty() && !fieldFilters.contains(1);
-                    if (!skipMain) {
-                        values.appendLong(start + step);
-                    }
-                } else {
-                    throw new DataStoreException("main field other than Time or Quantity are not yet allowed");
-                }
-                for (Field field : fields) {
-                    if (!field.equals(fields.get(0))) {
-                        final double maxValue = maxVal.get(field.name);
-                        if (maxValue != -Double.MAX_VALUE) {
-                            values.appendDouble(maxValue);
-                        } else {
-                            values.appendDouble(Double.NaN);
-                        }
-                    }
-                }
-                values.endBlock();
-                start = currentMainValue;
-                minVal = initMapVal(fields, false);
-                maxVal = initMapVal(fields, true);
+            } catch (NumberFormatException ex) {
+                LOGGER.log(Level.FINER, "unable to parse value: {0}. Reason: {1}", new Object[] {value, ex.getMessage()});
             }
+        }
+
+        private boolean minMaxEquals() {
+            return fields.stream()
+                         .skip(1)
+                         .map(field -> mapValues.get(field.name))
+                         .noneMatch(minMax -> minMax[0] != minMax[1]);
+        }
+
+        public void debugPrint() {
+            StringBuilder sb = new StringBuilder("values:\n");
+            for (Long mv : mainValues) {
+                sb.append(format(mv)).append('\n');
+            }
+            sb.append("inserted in step: ").append(format(start)).append(" / ").append(format(start + step));
+            LOGGER.info(sb.toString());
+        }
+
+        private String format(long l) {
+            if (profile) {
+                return Long.toString(l);
+            } else {
+                return debugSDF.format(new Date(l));
+            }
+        }
+
+    }
+
+    private void appendValue(Date t, StepValues sv) throws DataStoreException {
+
+        // if there is only one value in the step, we use the original main value.
+        if (sv.mainValues.size() == 1) {
+            appendValue(t, sv.mainValues.iterator().next(), sv.mapValues, Double.MAX_VALUE, 0);
+
+        // if min and max are equals we only write one value in the middle of the step.
+        } else if (sv.minMaxEquals()) {
+            appendValue(t, sv.start + (sv.step / 2), sv.mapValues, Double.MAX_VALUE, 0);
+
+        // else we write the minimum value at the start of the step, and the max, at the end of the step.
+        } else {
+            //min
+            appendValue(t, sv.start, sv.mapValues, Double.MAX_VALUE, 0);
+            //max
+            appendValue(t, sv.start + sv.step, sv.mapValues, -Double.MAX_VALUE, 1);
         }
     }
 
-    private Map<String, Double> initMapVal(final List<Field> fields, final boolean max) {
-        final Map<String, Double> result = new HashMap<>();
-        final double value;
-        if (max) {
-            value = -Double.MAX_VALUE;
+    private void appendValue(Date t, long mainValue, Map<String, double[]> fieldValues, double undefinedValue, int index) throws DataStoreException {
+        values.newBlock();
+        if (t != null) {
+            values.appendTime(t);
+        }
+        if (FieldType.TIME.equals(fields.get(0).type)) {
+            values.appendTime(new Date(mainValue));
+        } else if (FieldType.QUANTITY.equals(fields.get(0).type)) {
+            // special case for profile + datastream on another phenomenon that the main field.
+            // we do not include the main field in the result
+            boolean skipMain = profile && !fieldFilters.isEmpty() && !fieldFilters.contains(1);
+            if (!skipMain) {
+                values.appendLong(mainValue);
+            }
         } else {
-            value = Double.MAX_VALUE;
+            throw new DataStoreException("main field other than Time or Quantity are not yet allowed");
         }
         for (Field field : fields) {
-            result.put(field.name, value);
+            if (!field.equals(fields.get(0))) {
+                final double value = fieldValues.get(field.name)[index];
+                if (value != undefinedValue) {
+                    values.appendDouble(value);
+                } else {
+                    values.appendDouble(Double.NaN);
+                }
+            }
         }
-        return result;
+        values.endBlock();
     }
 
-    private void addToMapVal(final Map<String, Double> minMap, final Map<String, Double> maxMap, final String field, final String value) {
-        if (value == null || value.isEmpty()) return;
-
-        final Double minPrevious = minMap.get(field);
-        final Double maxPrevious = maxMap.get(field);
-        try {
-            final Double current = Double.parseDouble(value);
-            if (current > maxPrevious) {
-                maxMap.put(field, current);
+    private long extractMainValue(Field field, String value) {
+        if (FieldType.TIME.equals(field.type)) {
+            final Timestamp currentTime = Timestamp.valueOf(value);
+            return currentTime.getTime();
+        } else if (FieldType.QUANTITY.equals(field.type)) {
+            if (value != null && !value.isEmpty()) {
+                final double d = Double.parseDouble(value);
+                return (long) d;
             }
-            if (current < minPrevious) {
-                minMap.put(field, current);
-            }
-        } catch (NumberFormatException ex) {
-            LOGGER.log(Level.FINER, "unable to parse value:{0}", value);
         }
+        throw new IllegalArgumentException("Main value is null or empty:" + value + " for main field:" + field);
     }
 
 }

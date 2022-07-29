@@ -28,7 +28,7 @@ import org.locationtech.jts.geom.GeometryFactory;
  */
 public abstract class AbstractSensorLocationDecimator extends SensorLocationProcessor {
 
-    protected static final GeometryFactory JTS_GEOM_FACTORY = new GeometryFactory();
+    protected static final GeometryFactory JTS_GEOM_FACTORY = org.geotoolkit.geometry.jts.JTS.getFactory();
 
     protected final int nbCell;
 

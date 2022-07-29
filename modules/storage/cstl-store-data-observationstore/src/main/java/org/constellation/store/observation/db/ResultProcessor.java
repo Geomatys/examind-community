@@ -34,7 +34,7 @@ import org.geotoolkit.observation.model.Field;
  */
 public class ResultProcessor {
 
-    protected final Logger LOGGER = Logger.getLogger("org.constellation.store.observation.db");
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.store.observation.db");
     
     protected final ResultBuilder values;
     protected final List<Field> fields;

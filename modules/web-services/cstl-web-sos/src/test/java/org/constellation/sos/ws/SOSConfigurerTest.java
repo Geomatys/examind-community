@@ -61,50 +61,39 @@ public abstract class SOSConfigurerTest extends SpringContextTest {
         final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
         String result = (String) sensorServBusiness.getResultsCsv(sid, "urn:ogc:object:sensor:GEOM:3", Arrays.asList("depth"), new ArrayList<>(), null, null, 10, "text/csv");
         String expResult = "time,urn:ogc:def:phenomenon:GEOM:depth\n" +
-                                 "2007-05-01T02:59:00,6.56\n" +
-                                 "2007-05-01T04:53:00,6.56\n" +
-                                 "2007-05-01T04:59:00,6.56\n" +
-                                 "2007-05-01T06:53:00,6.56\n" +
-                                 "2007-05-01T06:59:00,6.56\n" +
-                                 "2007-05-01T08:53:00,6.56\n" +
-                                 "2007-05-01T08:59:00,6.56\n" +
-                                 "2007-05-01T10:53:00,6.56\n" +
-                                 "2007-05-01T10:59:00,6.56\n" +
-                                 "2007-05-01T12:53:00,6.56\n" +
-                                 "2007-05-01T17:59:00,6.55\n" +
-                                 "2007-05-01T19:53:00,6.55\n" +
-                                 "2007-05-01T19:59:00,6.55\n" +
-                                 "2007-05-01T21:53:00,6.55\n";
+                                "2007-05-01T03:56:00,6.56\n" +
+                                "2007-05-01T05:50:00,6.56\n" +
+                                "2007-05-01T07:44:00,6.56\n" +
+                                "2007-05-01T09:38:00,6.56\n" +
+                                "2007-05-01T11:32:00,6.56\n" +
+                                "2007-05-01T17:59:00,6.56\n" +
+                                "2007-05-01T19:08:00,6.55\n" +
+                                "2007-05-01T21:02:00,6.55\n";
         Assert.assertEquals(expResult, result);
 
         result = (String) sensorServBusiness.getResultsCsv(sid, "urn:ogc:object:sensor:GEOM:8", Arrays.asList("aggregatePhenomenon"), new ArrayList<>(), null, null, 10, "text/csv");
         expResult = "time,urn:ogc:def:phenomenon:GEOM:depth,urn:ogc:def:phenomenon:GEOM:temperature\n" +
                     "2007-05-01T12:59:00,6.56,12.0\n" +
-                    "2007-05-01T13:23:00,6.56,13.0\n" +
-                    "2007-05-01T13:59:00,6.56,14.0\n" +
-                    "2007-05-01T14:23:00,6.56,14.0\n" +
-                    "2007-05-01T14:59:00,6.56,15.0\n" +
-                    "2007-05-01T15:23:00,6.56,15.0\n" +
-                    "2007-05-01T15:59:00,6.56,16.0\n" +
-                    "2007-05-01T16:23:00,6.56,16.0\n";
+                    "2007-05-01T13:59:00,6.56,13.0\n" +
+                    "2007-05-01T14:59:00,6.56,14.0\n" +
+                    "2007-05-01T15:59:00,6.56,15.0\n" +
+                    "2007-05-01T16:59:00,6.56,16.0\n";
 
         Assert.assertEquals(expResult, result);
 
         result = (String) sensorServBusiness.getResultsCsv(sid, "urn:ogc:object:sensor:GEOM:10", Arrays.asList("depth"), Arrays.asList("station-001"), null, null, 10, "text/csv");
         expResult = "time,urn:ogc:def:phenomenon:GEOM:depth\n" +
                     "2009-05-01T13:47:00,4.5\n" +
-                    "2009-05-01T13:48:18,5.9\n";
+                    "2009-05-01T14:00:00,5.9\n";
 
         Assert.assertEquals(expResult, result);
 
         result = (String) sensorServBusiness.getResultsCsv(sid, "urn:ogc:object:sensor:GEOM:10", Arrays.asList("depth"), Arrays.asList("station-002"), null, null, 10, "text/csv");
         expResult = "time,urn:ogc:def:phenomenon:GEOM:depth\n" +
-                    "2009-05-01T14:01:00,7.8\n" +
-                    "2009-05-01T14:01:18,8.9\n" +
-                    "2009-05-01T14:02:00,9.9\n" +
-                    "2009-05-01T14:02:18,9.9\n" +
-                    "2009-05-01T14:03:00,9.1\n" +
-                    "2009-05-01T14:03:18,9.1\n";
+                    "2009-05-01T14:01:00,8.9\n" +
+                    "2009-05-01T14:02:00,7.8\n" +
+                    "2009-05-01T14:03:00,9.9\n" +
+                    "2009-05-01T14:04:00,9.1\n";
 
         Assert.assertEquals(expResult, result);
     }
@@ -113,50 +102,39 @@ public abstract class SOSConfigurerTest extends SpringContextTest {
         final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
         List result = (List) sensorServBusiness.getResultsCsv(sid, "urn:ogc:object:sensor:GEOM:3", Arrays.asList("depth"), new ArrayList<>(), null, null, 10, "resultArray");
         List expResult = Arrays.asList(
-                                 Arrays.asList(format.parse("2007-05-01T02:59:00.0"),6.56),
-                                 Arrays.asList(format.parse("2007-05-01T04:53:00.0"),6.56),
-                                 Arrays.asList(format.parse("2007-05-01T04:59:00.0"),6.56),
-                                 Arrays.asList(format.parse("2007-05-01T06:53:00.0"),6.56),
-                                 Arrays.asList(format.parse("2007-05-01T06:59:00.0"),6.56),
-                                 Arrays.asList(format.parse("2007-05-01T08:53:00.0"),6.56),
-                                 Arrays.asList(format.parse("2007-05-01T08:59:00.0"),6.56),
-                                 Arrays.asList(format.parse("2007-05-01T10:53:00.0"),6.56),
-                                 Arrays.asList(format.parse("2007-05-01T10:59:00.0"),6.56),
-                                 Arrays.asList(format.parse("2007-05-01T12:53:00.0"),6.56),
-                                 Arrays.asList(format.parse("2007-05-01T17:59:00.0"),6.55),
-                                 Arrays.asList(format.parse("2007-05-01T19:53:00.0"),6.55),
-                                 Arrays.asList(format.parse("2007-05-01T19:59:00.0"),6.55),
-                                 Arrays.asList(format.parse("2007-05-01T21:53:00.0"),6.55));
+                                Arrays.asList(format.parse("2007-05-01T03:56:00.0"),6.56),
+                                Arrays.asList(format.parse("2007-05-01T05:50:00.0"),6.56),
+                                Arrays.asList(format.parse("2007-05-01T07:44:00.0"),6.56),
+                                Arrays.asList(format.parse("2007-05-01T09:38:00.0"),6.56),
+                                Arrays.asList(format.parse("2007-05-01T11:32:00.0"),6.56),
+                                Arrays.asList(format.parse("2007-05-01T17:59:00.0"),6.56),
+                                Arrays.asList(format.parse("2007-05-01T19:08:00.0"),6.55),
+                                Arrays.asList(format.parse("2007-05-01T21:02:00.0"),6.55));
         Assert.assertEquals(expResult, result);
 
         result = (List) sensorServBusiness.getResultsCsv(sid, "urn:ogc:object:sensor:GEOM:8", Arrays.asList("aggregatePhenomenon"), new ArrayList<>(), null, null, 10, "resultArray");
         expResult = Arrays.asList(
-                    Arrays.asList(format.parse("2007-05-01T12:59:00.0"),6.56,12.0),
-                    Arrays.asList(format.parse("2007-05-01T13:23:00.0"),6.56,13.0),
-                    Arrays.asList(format.parse("2007-05-01T13:59:00.0"),6.56,14.0),
-                    Arrays.asList(format.parse("2007-05-01T14:23:00.0"),6.56,14.0),
-                    Arrays.asList(format.parse("2007-05-01T14:59:00.0"),6.56,15.0),
-                    Arrays.asList(format.parse("2007-05-01T15:23:00.0"),6.56,15.0),
-                    Arrays.asList(format.parse("2007-05-01T15:59:00.0"),6.56,16.0),
-                    Arrays.asList(format.parse("2007-05-01T16:23:00.0"),6.56,16.0));
+                        Arrays.asList(format.parse("2007-05-01T12:59:00.0"),6.56,12.0),
+                        Arrays.asList(format.parse("2007-05-01T13:59:00.0"),6.56,13.0),
+                        Arrays.asList(format.parse("2007-05-01T14:59:00.0"),6.56,14.0),
+                        Arrays.asList(format.parse("2007-05-01T15:59:00.0"),6.56,15.0),
+                        Arrays.asList(format.parse("2007-05-01T16:59:00.0"),6.56,16.0));
 
         Assert.assertEquals(expResult, result);
 
         result = (List) sensorServBusiness.getResultsCsv(sid, "urn:ogc:object:sensor:GEOM:10", Arrays.asList("depth"), Arrays.asList("station-001"), null, null, 10, "resultArray");
         expResult = Arrays.asList(
                     Arrays.asList(format.parse("2009-05-01T13:47:00.0"),4.5),
-                    Arrays.asList(format.parse("2009-05-01T13:48:18.0"),5.9));
+                    Arrays.asList(format.parse("2009-05-01T14:00:00.0"),5.9));
 
         Assert.assertEquals(expResult, result);
 
         result = (List) sensorServBusiness.getResultsCsv(sid, "urn:ogc:object:sensor:GEOM:10", Arrays.asList("depth"), Arrays.asList("station-002"), null, null, 10, "resultArray");
         expResult = Arrays.asList(
-                    Arrays.asList(format.parse("2009-05-01T14:01:00.0"),7.8),
-                    Arrays.asList(format.parse("2009-05-01T14:01:18.0"),8.9),
-                    Arrays.asList(format.parse("2009-05-01T14:02:00.0"),9.9),
-                    Arrays.asList(format.parse("2009-05-01T14:02:18.0"),9.9),
-                    Arrays.asList(format.parse("2009-05-01T14:03:00.0"),9.1),
-                    Arrays.asList(format.parse("2009-05-01T14:03:18.0"),9.1));
+                    Arrays.asList(format.parse("2009-05-01T14:01:00.0"),8.9),
+                    Arrays.asList(format.parse("2009-05-01T14:02:00.0"),7.8),
+                    Arrays.asList(format.parse("2009-05-01T14:03:00.0"),9.9),
+                    Arrays.asList(format.parse("2009-05-01T14:04:00.0"),9.1));
 
         Assert.assertEquals(expResult, result);
     }
@@ -262,13 +240,13 @@ public abstract class SOSConfigurerTest extends SpringContextTest {
         String result = (String) sensorServBusiness.getResultsCsv(sid, "urn:ogc:object:sensor:GEOM:2", Arrays.asList("aggregatePhenomenon"), new ArrayList<>(), null, null, 10, "text/csv");
         String expResult = "urn:ogc:def:phenomenon:GEOM:depth,urn:ogc:def:phenomenon:GEOM:temperature\n" +
                            "12,18.5\n" +
-                           "87,23.9\n" +
-                           "96,26.2\n" +
-                           "171,26.2\n" +
-                           "192,31.4\n" +
-                           "267,31.4\n" +
-                           "384,35.1\n" +
-                           "459,35.1\n";
+                           "87,21.2\n" +
+                           "96,23.9\n" +
+                           "192,26.2\n" +
+                           "384,31.4\n" +
+                           "768,35.1\n" +
+                           "12,18.5\n" +
+                           "12,18.5\n";
         Assert.assertEquals(expResult, result);
     }
     
@@ -276,14 +254,14 @@ public abstract class SOSConfigurerTest extends SpringContextTest {
         final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
         List result = (List) sensorServBusiness.getResultsCsv(sid, "urn:ogc:object:sensor:GEOM:2", Arrays.asList("aggregatePhenomenon"), new ArrayList<>(), null, null, 10, "resultArray");
         List expResult = Arrays.asList(
-                           Arrays.asList(12L,18.5),
-                           Arrays.asList(87L,23.9),
-                           Arrays.asList(96L,26.2),
-                           Arrays.asList(171L,26.2),
-                           Arrays.asList(192L,31.4),
-                           Arrays.asList(267L,31.4),
-                           Arrays.asList(384L,35.1),
-                           Arrays.asList(459L,35.1));
+                            Arrays.asList(12L,18.5),
+                            Arrays.asList(87L,21.2),
+                            Arrays.asList(96L,23.9),
+                            Arrays.asList(192L,26.2),
+                            Arrays.asList(384L,31.4),
+                            Arrays.asList(768L,35.1),
+                            Arrays.asList(12L,18.5),
+                            Arrays.asList(12L,18.5));
         Assert.assertEquals(expResult.size(), result.size());
         Assert.assertEquals(expResult.get(0), result.get(0));
         Assert.assertEquals(expResult, result);
