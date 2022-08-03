@@ -2,6 +2,8 @@
 package org.constellation.map.featureinfo;
 
 import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.awt.image.RenderedImage;
 import java.lang.reflect.Array;
@@ -297,6 +299,8 @@ class DataProfile implements Spliterator<DataProfile.DataPoint> {
 
             workGridToRendering.transform(subPixelMedian, subPixelMedian);
             for (Slice2DEvaluator ext : extractors) {
+                // TODO: fix / improve this. This dimension / value layout is very, very, very bad.
+                // It is extremely complex and inefficient, and access code to be hardly understandable/maintainable
                 try {
                     var pxValue = ext.evaluate(subPixelMedian);
                     for (int b = 0 ; b < pxValue.length ; b++) {
@@ -418,8 +422,8 @@ class DataProfile implements Spliterator<DataProfile.DataPoint> {
      * Provides  conversions needed to build transect from an input line string.
      * It defines an intermediate "work grid", which should be aligned with datasource grid most of the time.
      * The main difference is that the work grid is expanded infinitely, to allow to browse profile line string without
-     * having to manage potential discontinuities. Example:
-     *
+     * having to manage potential discontinuities.
+     * Example:
      * If we receive a segment going from longitude 178 to 182. In a world data grid, we might need to split the segment
      * in two pieces to properly handle it: one from 178 to 180, and another from -180 to -178.
      * However, by simply expanding the data grid, we can let {@link GridTraversal} component find points of intersections
@@ -505,6 +509,12 @@ class DataProfile implements Spliterator<DataProfile.DataPoint> {
          */
         private final Point2D.Double windowOffset;
 
+        private final Rectangle imageDomain;
+        private final Rectangle pxItDomain;
+        private final Point pxItLimit;
+
+        private final Dimension windowSize;
+
         protected InterpolationEval(GridGeometry slice, final GridCoverage coverage, Interpolation interpol) {
             super(extractFixedIndices(slice));
             ensureNonNull("Interpolation", interpol);
@@ -515,7 +525,9 @@ class DataProfile implements Spliterator<DataProfile.DataPoint> {
             // 1. Accept pixel coordinates as input
             // 2. Can be configured to perform interpolation (bilinear, etc.) on evaluation.
             final RenderedImage rendering = coverage.render(slice.getExtent());
-            final Dimension windowSize = interpol.getSupportSize();
+            imageDomain = new Rectangle(rendering.getMinX(), rendering.getMinY(), rendering.getWidth(), rendering.getHeight());
+
+            windowSize = interpol.getSupportSize();
             pxIt = new PixelIterator.Builder()
                     .setWindowSize(windowSize)
                     .create(rendering);
@@ -523,24 +535,49 @@ class DataProfile implements Spliterator<DataProfile.DataPoint> {
             numBands = pxIt.getNumBands();
 
             windowOffset = new Point2D.Double((windowSize.width - 2) / 2d, (windowSize.height - 2) / 2d);
+            pxItDomain = pxIt.getDomain();
+            pxItLimit = new Point(pxItDomain.x + pxItDomain.width - 1,  pxItDomain.y + pxItDomain.height - 1);
         }
 
         @Override
         double[] evaluate(Point2D.Double pxCoord) {
+            // TODO: modify api to return null (and properly document it)
+            if (!imageDomain.contains(pxCoord)) throw new IndexOutOfBoundsException();
+
             // Switch from pixel corner to pixel center
             pxCoord.x = pxCoord.x - 0.5;
             pxCoord.y = pxCoord.y - 0.5;
             // Find interpolation window upper-left coordinate
-            final int upperLeftPixelX = (int) (pxCoord.x - windowOffset.x);
-            final int upperLeftPixelY = (int) (pxCoord.y - windowOffset.y);
+            final int upperLeftPixelX = (int) Math.floor(pxCoord.x - windowOffset.x);
+            final int upperLeftPixelY = (int) Math.floor(pxCoord.y - windowOffset.y);
 
-            pxIt.moveTo(upperLeftPixelX, upperLeftPixelY);
-            window.update();
+            // If required window overflow iterator domain, we prevent it to move too far.
+            // Instead, we ensure that the iterator window can be filled, and switch to a neighbour interpolation.
+            // This is a workaround to avoid "cropping" too much of the image edges.
+            final int shiftX = shift(upperLeftPixelX, pxItDomain.x, pxItLimit.x),
+                      shiftY = shift(upperLeftPixelY, pxItDomain.y, pxItLimit.y);
+
             var buffer = new double[numBands];
-            final double fracX = pxCoord.x - (int) pxCoord.x;
-            final double fracY = pxCoord.y - (int) pxCoord.y;
-            interpol.interpolate(window.values, numBands, fracX, fracY, buffer, 0);
+            pxIt.moveTo(upperLeftPixelX + shiftX, upperLeftPixelY + shiftY);
+            window.update();
+
+            if (shiftX != 0 || shiftY != 0) {
+                int wx = (int) (pxCoord.x - upperLeftPixelX - shiftX),
+                    wy = (int) (pxCoord.y - upperLeftPixelY - shiftY);
+                window.values.position((wy * windowSize.width + wx) * numBands)
+                             .get(buffer);
+            } else {
+                final double fracX = pxCoord.x - (int) pxCoord.x,
+                             fracY = pxCoord.y - (int) pxCoord.y;
+                interpol.interpolate(window.values, numBands, fracX, fracY, buffer, 0);
+            }
             return buffer;
+        }
+
+        private int shift(int coordinate, int lowLimit, int highLimit) {
+            if (coordinate < lowLimit) return lowLimit - coordinate;
+            else if (coordinate > highLimit) return highLimit - coordinate;
+            else return 0;
         }
     }
 

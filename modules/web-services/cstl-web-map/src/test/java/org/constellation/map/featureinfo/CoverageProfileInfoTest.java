@@ -26,12 +26,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.ToDoubleFunction;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridCoverage2D;
 import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
+import org.apache.sis.coverage.grid.GridOrientation;
 import org.apache.sis.image.Interpolation;
 import org.apache.sis.image.PixelIterator;
 import org.apache.sis.image.WritablePixelIterator;
@@ -39,6 +41,7 @@ import org.apache.sis.measure.Units;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.operation.transform.MathTransforms;
 import org.constellation.map.featureinfo.CoverageProfileInfoFormat.XY;
+import org.constellation.map.featureinfo.DataProfile.DataPoint;
 import org.junit.Assert;
 import org.junit.Test;
 import org.locationtech.jts.geom.CoordinateSequence;
@@ -393,7 +396,7 @@ public class CoverageProfileInfoTest {
 
         DataProfile profile = new DataProfile(createDatasource(0, 0), line, Interpolation.NEAREST);
 
-        Consumer<DataProfile.DataPoint> noValueExpected = pt -> Assert.assertNull(pt.value);
+        Consumer<DataPoint> noValueExpected = pt -> Assert.assertNull(pt.value);
         int i = 0, limit = 20; boolean hasAdvanced;
         do {
             hasAdvanced = profile.tryAdvance(noValueExpected);
@@ -423,6 +426,30 @@ public class CoverageProfileInfoTest {
                         xy(18, NaN), xy(19, NaN), xy(20, NaN), xy(21, 21), xy(22, 22), xy(23, NaN)));
     }
 
+    @Test
+    public void verify_interpolation_behavior_on_edges() throws Exception {
+        final GridCoverage dataWithOriginAtZero = createDatasource(0, 0);
+        assertProfileEquals(dataWithOriginAtZero, profile(LON_LAT_CRS84, -1, 0, 0, 0), Interpolation.BILINEAR, true, NaN, NaN, 0, 0);
+        final int lastPxValue = 8 * 8 - 1;
+        assertProfileEquals(dataWithOriginAtZero, profile(LON_LAT_CRS84, 8, 7, 7, 7), Interpolation.BILINEAR, true, NaN, NaN, lastPxValue, lastPxValue);
+        final int middleRight = 4 * 8 - 1;
+        assertProfileEquals(dataWithOriginAtZero, profile(LON_LAT_CRS84, 7, 3, 8, 3), Interpolation.BILINEAR, true, middleRight, middleRight, NaN, NaN);
+        final int centerBottom = 7 * 8 + 3;
+        assertProfileEquals(dataWithOriginAtZero, profile(LON_LAT_CRS84, 3, 7, 3, 8), Interpolation.BILINEAR, true, centerBottom, centerBottom, NaN, NaN);
+
+        final GridCoverage dataWithNegativeOrigin = createDatasource(-2, -2);
+        assertProfileEquals(dataWithNegativeOrigin, profile(LON_LAT_CRS84, -3, -2, -2, -2), Interpolation.BILINEAR, true, NaN, NaN, 0, 0);
+        assertProfileEquals(dataWithNegativeOrigin, profile(LON_LAT_CRS84,  6,  5,  5,  5), Interpolation.BILINEAR, true, NaN, NaN, lastPxValue, lastPxValue);
+        assertProfileEquals(dataWithNegativeOrigin, profile(LON_LAT_CRS84, 5, 1, 6, 1), Interpolation.BILINEAR, true, middleRight, middleRight, NaN, NaN);
+        assertProfileEquals(dataWithNegativeOrigin, profile(LON_LAT_CRS84, 1, 5, 1, 6), Interpolation.BILINEAR, true, centerBottom, centerBottom, NaN, NaN);
+
+        final GridCoverage dataWithPositiveOrigin = createDatasource(2, 2);
+        assertProfileEquals(dataWithPositiveOrigin, profile(LON_LAT_CRS84,  1, 2, 2, 2), Interpolation.BILINEAR, true, NaN, NaN, 0, 0);
+        assertProfileEquals(dataWithPositiveOrigin, profile(LON_LAT_CRS84, 10, 9, 9, 9), Interpolation.BILINEAR, true, NaN, NaN, lastPxValue, lastPxValue);
+        assertProfileEquals(dataWithPositiveOrigin, profile(LON_LAT_CRS84, 9, 5, 10, 5), Interpolation.BILINEAR, true, middleRight, middleRight, NaN, NaN);
+        assertProfileEquals(dataWithPositiveOrigin, profile(LON_LAT_CRS84, 5, 9, 5, 10), Interpolation.BILINEAR, true, centerBottom, centerBottom, NaN, NaN);
+    }
+
     private static void assertCleanupNaN(final String title, final List<XY> expected, final List<XY> points) {
         final List<XY> result = cleanupNans(points);
         assertEquals(title+": size differ", expected.size(), result.size());
@@ -433,9 +460,30 @@ public class CoverageProfileInfoTest {
     }
 
     /**
-     * Create a grid-coverage whose extent starts at given x and y coordinates. The grid to CRS is identity, and CRS is
-     * {@link CommonCRS#defaultGeographic() CRS:84 }.
-     * The values of the coverage rendering pixel values are their position in linear browsing (y * width + x). The
+     * Create a grid-coverage whose grid extent starts at given x and y coordinates. Data specifications:
+     * <ul>
+     *     <li>Data coordinate reference system is {@link CommonCRS#defaultGeographic() CRS:84}.</li>
+     *     <li>
+     *         The <em>{@link PixelInCell#CELL_CENTER}</em> grid to CRS is identity. It imply that:
+     *         <ul>
+     *             <li>The grid orientation matches a matrix, i.e it is {@link GridOrientation#HOMOTHETY}</li>
+     *             <li>The data envelope is : {@code new Envelope2D(CommonCRS.defaultGeographic(), lowX - 0.5, lowY - 0.5, 8 + 1, 8 + 1);}</li>
+     *         </ul>
+     *     </li>
+     *     <li>
+     *         The values of the coverage rendering pixel values are their position in linear browsing (y * width + x).
+     *         <em>However</em>, the origin used for pixel value computing is always (0, 0), not the grid extent origin.
+     *         It means that, if user specify a (-1, -1) origin:
+     *         <ol>
+     *             <li>The pixel value at origin is 0</li>
+     *             <li>Pixel value at coordinate (1, 0) is 1</li>
+     *             <li>Pixel value at coordinate (0, 1) is 8</li>
+     *         </ol>,
+     *     </li>
+     * </ul>
+     *
+     * .
+     *  The
      * origin used to compute rendering indices is always (0, 0), it does not match grid extent indices.
      *
      * @param lowX grid extent origin in X
@@ -490,8 +538,15 @@ public class CoverageProfileInfoTest {
     }
 
     static void assertProfileEquals(final GridCoverage source, final LineString line, final double... expectedValues) throws FactoryException, TransformException {
-        DataProfile profile = new DataProfile(source, line, Interpolation.NEAREST);
-        final double[] values = StreamSupport.stream(profile, false)
+        assertProfileEquals(source, line, Interpolation.NEAREST, false, expectedValues);
+    }
+
+    static void assertProfileEquals(final GridCoverage source, final LineString line, final Interpolation interpolation, boolean mapNullToNaN, final double... expectedValues) throws FactoryException, TransformException {
+        DataProfile profile = new DataProfile(source, line, interpolation);
+        Stream<DataPoint> samples = StreamSupport.stream(profile, false);
+        // TODO: mapping null values to NaN should not be needed. This is a workaround to cope with poor lifecycle of values.
+        if (mapNullToNaN) samples = samples.map(CoverageProfileInfoTest::replaceNullValue);
+        final double[] values = samples
                 .peek(CoverageProfileInfoTest::errorIfNoValue)
                 .mapToDouble(point -> ((double[]) point.value)[0])
                 .toArray();
@@ -499,7 +554,14 @@ public class CoverageProfileInfoTest {
         Assert.assertArrayEquals("Profile values: "+ Arrays.toString(values), expectedValues, values, .1);
     }
 
-    private static void errorIfNoValue(final DataProfile.DataPoint point) {
+    private static DataPoint replaceNullValue(DataPoint sample) {
+        if (sample.value != null) return sample;
+        var replacement = new DataPoint(sample.geoLocation, sample.gridLocation, sample.distanceFromPrevious);
+        replacement.value = new double[] { NaN };
+        return replacement;
+    }
+
+    private static void errorIfNoValue(final DataPoint point) {
         final Object value = point.value;
         if (value instanceof double[] && ((double[])value).length > 0) return;
         throw new AssertionError("No value set for point "+point);

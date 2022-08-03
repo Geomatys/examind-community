@@ -21,6 +21,7 @@ package org.constellation.map.featureinfo;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.util.StdConverter;
+import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -47,6 +48,8 @@ import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.DisjointExtentException;
 import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridCoverageProcessor;
+import org.apache.sis.coverage.grid.GridDerivation;
+import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.coverage.grid.GridRoundingMode;
 import org.apache.sis.geometry.Envelopes;
@@ -344,7 +347,6 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
                 workEnv.setRange(3, alti, alti);
             }
 
-            final GridCoverage coverage = readCoverage(resource, workEnv);
             Object parameters = ((org.geotoolkit.wms.xml.GetFeatureInfo) getFI).getParameters();
             ReductionMethod reducer = ReductionMethod.AVG;
             NaNPropagation nanBehavior = NaNPropagation.ALL;
@@ -370,6 +372,8 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
             }
 
             final ProfileConfiguration conf = new ProfileConfiguration(nanBehavior, nanCleanup, outOfBounds, samplingCount, reducer, interpolation);
+
+            final GridCoverage coverage = readCoverage(resource, workEnv, conf);
 
             baseData = extractData(coverage, geom, conf);
 
@@ -810,7 +814,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         }
     }
 
-    private static GridCoverage readCoverage(GridCoverageResource resource, Envelope work)
+    private static GridCoverage readCoverage(GridCoverageResource resource, Envelope work, ProfileConfiguration conf)
             throws TransformException, DataStoreException {
 
         //ensure envelope is no flat
@@ -828,12 +832,29 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
             }
         }
 
-        GridGeometry gg = resource.getGridGeometry().derive().rounding(GridRoundingMode.ENCLOSING).subgrid(workEnv).build();
-        GridCoverage data = resource.read(gg).forConvertedValues(true);
+        final GridGeometry baseGrid = resource.getGridGeometry();
+        GridGeometry selection = baseGrid.derive()
+                .rounding(GridRoundingMode.ENCLOSING)
+                .subgrid(workEnv)
+                .build();
+        final GridExtent intersection = selection.getExtent();
+        final int[] subspace2d = intersection.getSubspaceDimensions(2);
+
+        final Dimension margin2d = conf.interpolation.getSupportSize();
+        if (Math.max(margin2d.width, margin2d.height) > 1) {
+            final int[] margin = new int[intersection.getDimension()];
+            margin[subspace2d[0]] = margin2d.width;
+            margin[subspace2d[1]] = margin2d.height;
+            selection = baseGrid.derive()
+                    .margin(margin)
+                    .rounding(GridRoundingMode.ENCLOSING)
+                    .subgrid(workEnv).build();
+        }
+
+        GridCoverage data = resource.read(selection).forConvertedValues(true);
         final GridGeometry grid = data.getGridGeometry();
         // HACK: force 2D representation
         if (grid.getDimension() > 2) {
-            final int[] subspace2d = grid.getExtent().getSubspaceDimensions(2);
             final GridGeometry subGrid2d = grid.reduce(subspace2d);
             return new GridCoverageProcessor().resample(data, subGrid2d);
         } else {
