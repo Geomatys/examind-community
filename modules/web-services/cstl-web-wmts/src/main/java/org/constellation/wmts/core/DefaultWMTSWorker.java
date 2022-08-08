@@ -21,7 +21,6 @@ package org.constellation.wmts.core;
 import java.awt.Color;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.AbstractMap;
@@ -38,8 +37,6 @@ import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
-import javax.imageio.ImageReader;
-import javax.imageio.spi.ImageReaderSpi;
 import javax.inject.Named;
 import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.geometry.Envelopes;
@@ -55,7 +52,6 @@ import org.constellation.dto.StyleReference;
 import org.constellation.dto.contact.Details;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.map.featureinfo.FeatureInfoFormat;
-import org.constellation.portrayal.CstlPortrayalService;
 import org.constellation.provider.Data;
 import org.constellation.util.Util;
 import org.constellation.ws.CstlServiceException;
@@ -763,11 +759,11 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
             }
 
             if (mosaic.getTileStatus(columnIndex, rowIndex) == TileStatus.MISSING) {
-                return emptyTile(mosaic, columnIndex, rowIndex);
+                return emptyTile(columnIndex, rowIndex);
             } else {
                 final Tile tile = mosaic.getTile(columnIndex, rowIndex).orElse(null);
                 if (tile == null) {
-                    return emptyTile(mosaic, columnIndex, rowIndex);
+                    return emptyTile(columnIndex, rowIndex);
                 } else {
                     return tile;
                 }
@@ -787,7 +783,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
      * @param rowIndex
      * @return TileReference
      */
-    private Tile emptyTile(final org.geotoolkit.storage.multires.TileMatrix mosaic, final int columnIndex, final int rowIndex) {
+    private Tile emptyTile(final int columnIndex, final int rowIndex) {
         return new Tile() {
 
             @Override
