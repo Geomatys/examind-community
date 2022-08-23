@@ -527,32 +527,14 @@ public final class DataProviders extends Static{
             if (envelope.getCoordinateReferenceSystem() != null) {
                 env = GeneralEnvelope.castOrCopy(Envelopes.transform(envelope, CommonCRS.defaultGeographic()));
                 env.simplify();
-                if (env.isEmpty()) {
-                    env = null;
-                    CoordinateReferenceSystem crs = CRS.getHorizontalComponent(envelope.getCoordinateReferenceSystem());
 
-                    //search for envelope directly in geographic
-                    Extent extent = crs.getDomainOfValidity();
-                    if (extent != null) {
-                        for (GeographicExtent ext : extent.getGeographicElements()) {
-                            if (ext instanceof GeographicBoundingBox) {
-                                final GeographicBoundingBox geo = (GeographicBoundingBox) ext;
-                                env = new GeneralEnvelope(geo);
-                                env.simplify();
-                            }
-                        }
-                    }
-                    if (env == null) {
-                        //fallback on crs validity area
-                        Envelope cdt = CRS.getDomainOfValidity(crs);
-                        if (cdt != null) {
-                            env = GeneralEnvelope.castOrCopy(Envelopes.transform(cdt, CommonCRS.defaultGeographic()));
-                            env.simplify();
-                            if (env.isEmpty()) {
-                                env = null;
-                            }
-                        }
-                    }
+                /**
+                 * If the envelope is empty, we have 2 case:
+                 * - 1) envelope contains NaN values => we return full crs envelope (could be enhanced by replacing tha NaN values by the full envelope ones but beware of the wrap around!)
+                 * - 2) envelope is simply empty (min == max in at least one dimension)
+                 */
+                if (env.isEmpty() && containsNan(env)) {
+                    env = getFullCrsEnvelope(envelope);
                 }
             }
             if (env == null) {
@@ -568,6 +550,50 @@ public final class DataProviders extends Static{
             upper = new double[]{180, 90};
         }
         description.setBoundingBox(new double[]{lower[0], lower[1], upper[0], upper[1]});
+    }
+
+    private static boolean containsNan(GeneralEnvelope envelope) {
+        if (envelope.isAllNaN()) {
+            return true;
+        } else {
+             for (int i=0; i < envelope.getDimension(); i++) {
+                if (Double.isNaN(envelope.getMinimum(i))
+                 || Double.isNaN(envelope.getMaximum(i))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static GeneralEnvelope getFullCrsEnvelope(Envelope envelope) throws TransformException {
+        GeneralEnvelope  env = null;
+        CoordinateReferenceSystem crs = CRS.getHorizontalComponent(envelope.getCoordinateReferenceSystem());
+
+        //search for envelope directly in geographic
+        Extent extent = crs.getDomainOfValidity();
+        if (extent != null) {
+            for (GeographicExtent ext : extent.getGeographicElements()) {
+                if (ext instanceof GeographicBoundingBox geo) {
+                    env = new GeneralEnvelope(geo);
+                    env.simplify();
+                    return env;
+                }
+            }
+        }
+
+        //fallback on crs validity area
+        if (env == null) {
+            Envelope cdt = CRS.getDomainOfValidity(crs);
+            if (cdt != null) {
+                env = GeneralEnvelope.castOrCopy(Envelopes.transform(cdt, CommonCRS.defaultGeographic()));
+                env.simplify();
+                if (env.isEmpty()) {
+                    env = null;
+                }
+            }
+        }
+        return env;
     }
 
     private static final Set<Class> MARSHALLABLE = new HashSet<>();
