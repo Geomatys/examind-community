@@ -217,12 +217,12 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
         return new DefaultParameterDescriptorGroup(properties, minimumOccurs, 1);
     }
 
-    private static final AttributeType<Point> TYPE = new DefaultAttributeType<>(
+    protected static final AttributeType<Point> TYPE = new DefaultAttributeType<>(
             Collections.singletonMap(NAME_KEY, NamesExt.create("Point")), Point.class, 1, 1, null);
 
-    private static final ParameterDescriptorGroup EMPTY_PARAMS = parameters("CalculatePoint", 1);
+    protected static final ParameterDescriptorGroup EMPTY_PARAMS = parameters("CalculatePoint", 1);
 
-    private static final GeometryFactory GF = new GeometryFactory();
+    protected static final GeometryFactory GF = new GeometryFactory();
 
     /**
      * Build feature type from csv file headers.
