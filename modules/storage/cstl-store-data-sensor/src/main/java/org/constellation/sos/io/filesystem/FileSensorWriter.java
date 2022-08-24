@@ -33,8 +33,6 @@ import java.io.OutputStream;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -64,12 +62,6 @@ public class FileSensorWriter implements SensorWriter {
     private final Path dataDirectory;
 
     /**
-     * Contains the files written during a transaction.
-     * If the transaction is aborted, all these files will be deleted.
-     */
-    private List<Path> uncommittedFiles;
-
-    /**
      * The base identifier of all the sensor.
      */
     private final String sensorIdBase;
@@ -77,7 +69,6 @@ public class FileSensorWriter implements SensorWriter {
     public FileSensorWriter(final Path directory,  final Map<String, Object> properties) throws DataStoreException {
 
         this.sensorIdBase = (String) properties.get(SENSOR_ID_BASE);
-        uncommittedFiles = new ArrayList<>();
         if (directory == null) {
             throw new DataStoreException("The sensor data directory is null");
         }
@@ -86,7 +77,6 @@ public class FileSensorWriter implements SensorWriter {
         if (marshallerPool == null) {
             throw new DataStoreException("Unable to initialize the fileSensorWriter JAXB context");
         }
-
     }
 
     /**
@@ -111,18 +101,12 @@ public class FileSensorWriter implements SensorWriter {
             final Marshaller marshaller = marshallerPool.acquireMarshaller();
             marshaller.marshal(sensor, os);
             marshallerPool.recycle(marshaller);
-        } catch (JAXBException ex) {
+        } catch (JAXBException | IOException ex) {
             String msg = ex.getMessage();
             if (msg == null && ex.getCause() != null) {
                 msg = ex.getCause().getMessage();
             }
-            throw new DataStoreException("the service has throw a JAXB Exception:" + msg, ex);
-        } catch (IOException ex) {
-            String msg = ex.getMessage();
-            if (msg == null && ex.getCause() != null) {
-                msg = ex.getCause().getMessage();
-            }
-            throw new DataStoreException("the service has throw a IO Exception:" + msg, ex);
+            throw new DataStoreException("the service has throw a Exception:" + msg, ex);
         }
         return true;
     }
@@ -163,50 +147,13 @@ public class FileSensorWriter implements SensorWriter {
             marshaller.marshal(sensor, os);
             marshallerPool.recycle(marshaller);
             return 1;//AbstractMetadataWriter.REPLACED;
-        } catch (JAXBException ex) {
+        } catch (JAXBException | IOException ex) {
             String msg = ex.getMessage();
             if (msg == null && ex.getCause() != null) {
                 msg = ex.getCause().getMessage();
             }
-            throw new DataStoreException("the service has throw a JAXB Exception:" + msg, ex);
-        } catch (IOException ex) {
-            String msg = ex.getMessage();
-            if (msg == null && ex.getCause() != null) {
-                msg = ex.getCause().getMessage();
-            }
-            throw new DataStoreException("the service has throw a IO Exception:" + msg, ex);
+            throw new DataStoreException("the service has throw an exception:" + msg, ex);
         }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void startTransaction() {
-        uncommittedFiles = new ArrayList<>();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void abortTransaction() {
-        for (Path f: uncommittedFiles) {
-            try {
-                Files.deleteIfExists(f);
-            } catch (IOException e) {
-                LOGGER.log(Level.WARNING, "unable to delete the file:{0}", f.getFileName().toString());
-            }
-        }
-        uncommittedFiles = new ArrayList<>();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void endTransaction() {
-        uncommittedFiles = new ArrayList<>();
     }
 
     /**
@@ -245,9 +192,7 @@ public class FileSensorWriter implements SensorWriter {
      */
     @Override
     public void destroy() {
-        if (uncommittedFiles != null) {
-            uncommittedFiles.clear();
-        }
+        //do nothing
     }
 
     /**

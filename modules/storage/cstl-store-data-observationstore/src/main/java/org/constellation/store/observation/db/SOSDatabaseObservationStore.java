@@ -238,15 +238,10 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
      * {@inheritDoc }
      */
     @Override
-    public synchronized ObservationReader getReader() {
+    public synchronized ObservationReader getReader() throws DataStoreException {
         if (reader == null) {
             final Map<String,Object> properties = getBasicProperties();
-            try {
-                reader = new OM2ObservationReader(source, isPostgres, schemaPrefix, properties, timescaleDB);
-            } catch (DataStoreException ex) {
-               LOGGER.log(Level.SEVERE, "Unable to instanciate reader", ex);
-               // TODO throw in interface
-            }
+            reader = new OM2ObservationReader(source, isPostgres, schemaPrefix, properties, timescaleDB);
         }
         return reader;
     }
@@ -255,15 +250,10 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
      * {@inheritDoc }
      */
     @Override
-    public synchronized ObservationWriter getWriter() {
+    public synchronized ObservationWriter getWriter() throws DataStoreException {
         if (writer == null) {
             final Map<String,Object> properties = getBasicProperties();
-            try {
-                writer = new OM2ObservationWriter(source, isPostgres, schemaPrefix, properties, timescaleDB);
-            } catch (DataStoreException ex) {
-                LOGGER.log(Level.SEVERE, "Unable to instanciate writer", ex);
-               // TODO throw in interface
-            }
+            writer = new OM2ObservationWriter(source, isPostgres, schemaPrefix, properties, timescaleDB);
         }
         return writer;
     }
@@ -272,15 +262,10 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
      * {@inheritDoc }
      */
     @Override
-    public synchronized ObservationFilterReader getFilter() {
+    public synchronized ObservationFilterReader getFilter() throws DataStoreException {
         if (filter == null) {
             final Map<String,Object> properties = getBasicProperties();
-            try {
-                filter = new OM2ObservationFilterReader(source, isPostgres, schemaPrefix, properties, timescaleDB);
-            } catch (DataStoreException ex) {
-                LOGGER.log(Level.SEVERE, "Unable to instanciate filter", ex);
-               // TODO throw in interface
-            }
+            filter = new OM2ObservationFilterReader(source, isPostgres, schemaPrefix, properties, timescaleDB);
         }
         return new OM2ObservationFilterReader((OM2ObservationFilter) filter);
     }

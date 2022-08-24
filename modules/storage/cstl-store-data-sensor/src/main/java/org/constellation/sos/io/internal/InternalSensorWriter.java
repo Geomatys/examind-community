@@ -137,30 +137,6 @@ public class InternalSensorWriter implements SensorWriter {
      * {@inheritDoc}
      */
     @Override
-    public void startTransaction() {
-        // TODO
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void abortTransaction() {
-        //TODO
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void endTransaction() {
-        // TODO
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public String getNewSensorId() throws DataStoreException {
         int maxID = 0;
         

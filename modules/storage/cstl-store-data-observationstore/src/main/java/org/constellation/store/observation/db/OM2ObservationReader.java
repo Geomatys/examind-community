@@ -671,7 +671,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
             }
         }
 
-        final AbstractDataRecord record = buildSimpleDatarecord(version, null, recordID, null, false, scal);
+        final AbstractDataRecord record = buildSimpleDatarecord(version, null, recordID, null, null, scal);
 
         return buildDataArrayProperty(version, arrayID, nbValue, arrayID, record, encoding, values.toString(), null);
     }

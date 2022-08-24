@@ -735,7 +735,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             final TextBlock encoding, final ResultBuilder values, final int cpt) {
         final String arrayID     = "dataArray-" + cpt;
         final String recordID    = "datarecord-" + cpt;
-        final AbstractDataRecord record = buildSimpleDatarecord(version, null, recordID, null, false, new ArrayList<>(fields));
+        final AbstractDataRecord record = buildSimpleDatarecord(version, null, recordID, null, null, new ArrayList<>(fields));
         String stringValues = null;
         List<Object> dataValues = null;
         if (values != null) {

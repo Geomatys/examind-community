@@ -751,7 +751,7 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
                     fields.add(field);
                 }
 
-                final AbstractDataRecord elementType = SOSXmlFactory.buildSimpleDatarecord(version, blockId, dataRecordId, null, false, fields);
+                final AbstractDataRecord elementType = SOSXmlFactory.buildSimpleDatarecord(version, blockId, dataRecordId, null, null, fields);
 
                 final String dataValues = values.getVariable("var33");
                 return SOSXmlFactory.buildDataArrayProperty(version, blockId, count, blockId, elementType, encoding, dataValues, null);
