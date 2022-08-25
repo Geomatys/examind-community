@@ -13,7 +13,7 @@
     <parent>
         <groupId>org.geotoolkit</groupId>
         <artifactId>buildset</artifactId>
-        <version>22.08.23</version>
+        <version>22.09.15</version>
     </parent>
 
     <groupId>com.examind.community</groupId>
