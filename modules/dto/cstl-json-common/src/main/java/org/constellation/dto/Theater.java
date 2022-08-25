@@ -18,6 +18,8 @@
  */
 package org.constellation.dto;
 
+import java.util.Objects;
+
 /**
  *
  * @author Guilhem Legal (Geomatys)
@@ -108,5 +110,51 @@ public class Theater extends Identifiable {
      */
     public void setType(String type) {
         this.type = type;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 29 * hash + Objects.hashCode(this.name);
+        hash = 29 * hash + Objects.hashCode(this.dataId);
+        hash = 29 * hash + Objects.hashCode(this.layerId);
+        hash = 29 * hash + Objects.hashCode(this.type);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Theater other = (Theater) obj;
+        if (!Objects.equals(this.name, other.name)) {
+            return false;
+        }
+        if (!Objects.equals(this.type, other.type)) {
+            return false;
+        }
+        if (!Objects.equals(this.dataId, other.dataId)) {
+            return false;
+        }
+        return Objects.equals(this.layerId, other.layerId);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Theater{");
+        sb.append("name=").append(name);
+        sb.append(", dataId=").append(dataId);
+        sb.append(", layerId=").append(layerId);
+        sb.append(", type=").append(type);
+        sb.append('}');
+        return sb.toString();
     }
 }

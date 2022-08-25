@@ -1,6 +1,6 @@
 CREATE TABLE "admin"."theater" (
     "id" integer NOT NULL GENERATED ALWAYS AS IDENTITY,
-    "name" character varying(10000) NULL,
+    "name" character varying(10000) NOT NULL,
     "data_id" integer NOT NULL,
     "layer_id" integer,
     "type" character varying(100)
@@ -17,7 +17,7 @@ ALTER TABLE ONLY "admin"."theater" ADD CONSTRAINT "theater_name_unique_key" UNIQ
 
 CREATE TABLE "admin"."scene" (
     "id" integer NOT NULL,
-    "name" character varying(10000) NULL,
+    "name" character varying(10000) NOT NULL,
     "map_context_id" integer NOT NULL,
     "data_id" integer,
     "layer_id" integer,
@@ -40,9 +40,9 @@ CREATE TABLE "admin"."scene" (
 
 ALTER TABLE ONLY "admin"."scene" ADD CONSTRAINT "scene_pk" PRIMARY KEY ("id");
 
-ALTER TABLE ONLY "admin"."scene" ADD CONSTRAINT "scene_data_fk" FOREIGN KEY ("layer_id") REFERENCES "admin"."layer"("id") ON DELETE CASCADE;
+ALTER TABLE ONLY "admin"."scene" ADD CONSTRAINT "scene_data_fk" FOREIGN KEY ("layer_id") REFERENCES "admin"."data"("id") ON DELETE CASCADE;
 
-ALTER TABLE ONLY "admin"."scene" ADD CONSTRAINT "scene_layer_fk" FOREIGN KEY ("data_id") REFERENCES "admin"."data"("id") ON DELETE CASCADE;
+ALTER TABLE ONLY "admin"."scene" ADD CONSTRAINT "scene_layer_fk" FOREIGN KEY ("data_id") REFERENCES "admin"."layer"("id") ON DELETE CASCADE;
 
 ALTER TABLE ONLY "admin"."scene" ADD CONSTRAINT "scene_name_unique_key" UNIQUE ("name");
 
