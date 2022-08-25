@@ -74,8 +74,11 @@ public class ConceptBrief implements Serializable {
     public void addAltLabel(String lang, String value) {
         String[] values = altLabels.get(lang);
         if (values != null) {
-            final String[] array = new String[values.length+1];
-            array[array.length-1] = value;
+            final String[] array = new String[values.length + 1];
+            for (int i = 0; i < values.length; i++) {
+                array[i] = values[i];
+            }
+            array[array.length - 1] = value;
             values = array;
         } else {
             values = new String[]{value};
