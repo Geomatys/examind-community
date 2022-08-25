@@ -86,7 +86,6 @@ import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
 import static org.constellation.store.observation.db.OM2Utils.buildComplexResult;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.gml.xml.GMLXmlFactory;
-import static org.geotoolkit.observation.OMUtils.dateFromTS;
 import org.geotoolkit.observation.model.OMEntity;
 import static org.geotoolkit.observation.ObservationReader.ENTITY_TYPE;
 import static org.geotoolkit.observation.ObservationReader.SENSOR_TYPE;
@@ -94,6 +93,7 @@ import static org.geotoolkit.observation.ObservationReader.SOS_VERSION;
 import org.geotoolkit.observation.ResultBuilder;
 import org.geotoolkit.observation.model.ResultMode;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildFeatureProperty;
+import org.opengis.metadata.quality.Element;
 import org.opengis.observation.Process;
 
 
@@ -536,12 +536,53 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
     @Override
     public Observation getObservation(String identifier, final QName resultModel, final ResponseModeType mode, final String version) throws DataStoreException {
         try(final Connection c = source.getConnection()) {
-            final String observationID;
+            String observationID = null;
+            Integer fieldIndex   = null;
+            Integer measureId    = null;
+            /*
+             * observation id, 3 possiblity :
+             *       - <observation id>                              ( resultModel = OBSERVATION, multiple measure )
+             *       - <observation id> - <measure id>               ( resultModel = OBSERVATION, single measure   )
+             *       - <observation id> - <field id> - <measure id>  ( resultModel = MEASUREMENT, single measure   )
+             */
             if (identifier.startsWith(observationIdBase)) {
                 observationID = identifier.substring(observationIdBase.length());
+
+                String[] component = observationID.split("-");
+                if (component.length == 3) {
+                    identifier = component[0];
+                    fieldIndex    = Integer.parseInt(component[1]);
+                    measureId     = Integer.parseInt(component[2]);
+                } else if (component.length == 2) {
+                    identifier = component[0];
+                    measureId     = Integer.parseInt(component[1]);
+                } else if (component.length != 1) {
+                    LOGGER.fine("Malformed ID received: " + observationID + ". We expected between 1 and 3 parts, but got " + component.length + ". It might lead to unspecified behaviour");
+                }
+            /*
+             *  observation template id, 2 possiblity :
+             *       - <template base> - <proc id>              ( resultModel = OBSERVATION )
+             *       - <template base> - <proc id> - <field id> ( resultModel = MEASUREMENT )
+             */
             } else if (identifier.startsWith(observationTemplateIdBase)) {
-                final String procedureID     = sensorIdBase + identifier.substring(observationTemplateIdBase.length());
-                try(final PreparedStatement stmt = c.prepareStatement("SELECT \"id\", \"identifier\" FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"procedure\"=?")) {//NOSONAR
+                String procedureID = identifier.substring(observationTemplateIdBase.length());
+                // look for a field separator
+                int pos = procedureID.lastIndexOf("-");
+                if (pos != -1) {
+                    try {
+                        int fieldIdentifier = Integer.parseInt(procedureID.substring(pos + 1));
+                        String tmpProcedureID = procedureID.substring(0, pos);
+                        if (existProcedure(sensorIdBase + tmpProcedureID) ||
+                            existProcedure(tmpProcedureID)) {
+                            procedureID = tmpProcedureID;
+                            fieldIndex = fieldIdentifier;
+                        }
+                    } catch (NumberFormatException ex) {}
+                }
+                if (existProcedure(sensorIdBase + procedureID)) {
+                    procedureID = sensorIdBase + procedureID;
+                }
+                try (final PreparedStatement stmt = c.prepareStatement("SELECT \"id\", \"identifier\" FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"procedure\"=?")) {//NOSONAR
                     stmt.setString(1, procedureID);
                     try(final ResultSet rs = stmt.executeQuery()) {
                         if (rs.next()) {
@@ -552,6 +593,8 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                         }
                     }
                 }
+
+            // i don't think this case should be accepted anymore
             } else {
                 observationID = identifier;
             }
@@ -599,10 +642,15 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
 
             final Process proc = getProcess(version, procedure, c);
             if (resultModel.equals(MEASUREMENT_QNAME)) {
-                final Object result = getResult(identifier, resultModel, version, c);
-                return OMXmlFactory.buildMeasurement(version, obsID, name, null, prop, phen, proc, result, time, null);
+                if (fieldIndex == null) {
+                    throw new DataStoreException("Measurement extraction need a field index specified");
+                }
+                Field selectedField         = getFieldByIndex(procedure, fieldIndex, true, c);
+                List<Element> resultQuality = buildResultQuality(identifier, measureId, selectedField, c);
+                final Object result = getResult(identifier, resultModel, measureId, selectedField, version, c);
+                return OMXmlFactory.buildMeasurement(version, obsID, name, null, prop, phen, proc, result, time, null, resultQuality);
             } else {
-                final Object result = getResult(identifier, resultModel, version, c);
+                final Object result = getResult(identifier, resultModel, measureId, null, version, c);
                 return OMXmlFactory.buildObservation(version, obsID, name, null, prop, phen, proc, result, time, null);
             }
 
@@ -617,26 +665,26 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
     @Override
     public Object getResult(final String identifier, final QName resultModel, final String version) throws DataStoreException {
         try(final Connection c = source.getConnection()) {
-            return getResult(identifier, resultModel, version, c);
+            return getResult(identifier, resultModel, null, null, version, c);
         } catch (SQLException ex) {
             throw new DataStoreException(ex.getMessage(), ex);
         }
     }
 
-    private Object getResult(final String identifier, final QName resultModel, final String version, final Connection c) throws DataStoreException, SQLException {
+    private Object getResult(final String identifier, final QName resultModel, final Integer measureId, final Field selectedField, final String version, final Connection c) throws DataStoreException, SQLException {
         if (resultModel.equals(MEASUREMENT_QNAME)) {
-            return buildMeasureResult(identifier, version, c);
+            return buildMeasureResult(identifier, measureId, selectedField, version, c);
         } else {
-            return buildComplexResult2(identifier, version, c);
+            return buildComplexResult2(identifier, measureId, version, c);
         }
     }
 
-    private DataArrayProperty buildComplexResult2(final String identifier, final String version, final Connection c) throws DataStoreException, SQLException {
+    private DataArrayProperty buildComplexResult2(final String identifier, final Integer measureId, final String version, final Connection c) throws DataStoreException, SQLException {
 
         final int pid              = getPIDFromObservation(identifier, c);
         final String procedure     = getProcedureFromObservation(identifier, c);
-        final List<Field> fields   = readFields(procedure, c);
-        final String arrayID       = "dataArray-1"; // TODO
+        final List<Field> fields   = readFields(procedure, false, c);
+        final String arrayID       = "dataArray-0"; // TODO
         final String recordID      = "datarecord-0"; // TODO
         final TextBlock encoding   = getDefaultTextEncoding(version);
         final List<AnyScalar> scal = new ArrayList<>();
@@ -646,16 +694,19 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
 
         int nbValue                 = 0;
         final ResultBuilder values  = new ResultBuilder(ResultMode.CSV, encoding, false);
-        final FieldParser parser    = new FieldParser(fields, false, false, null);
-        final String query          = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m, \"" + schemaPrefix + "om\".\"observations\" o "
+        final FieldParser parser    = new FieldParser(fields, values, false, false, true, null);
+        String query                = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m, \"" + schemaPrefix + "om\".\"observations\" o "
                                     + "WHERE \"id_observation\" = o.\"id\" "
-                                    + "AND o.\"identifier\"=?"
-                                    + "ORDER BY m.\"id\"";
+                                    + "AND o.\"identifier\"=?";
+        if (measureId != null) {
+            query = query + " AND m.\"id\" = " + measureId + " ";
+        }
+        query = query + " ORDER BY m.\"id\"";
         try(final PreparedStatement stmt  = c.prepareStatement(query)) {//NOSONAR
             stmt.setString(1, identifier);
             try(final ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    parser.parseLine(values, rs, 0);
+                    parser.parseLine(rs, 0);
                     nbValue = nbValue + parser.nbValue;
                 }
             }
@@ -666,23 +717,28 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
         return buildDataArrayProperty(version, arrayID, nbValue, arrayID, record, encoding, values.getStringValues(), null);
     }
 
-    private Object buildMeasureResult(final String identifier, final String version, final Connection c) throws DataStoreException, SQLException {
+    private Object buildMeasureResult(final String identifier, final Integer measureId, final Field selectedField, final String version, final Connection c) throws DataStoreException, SQLException {
         final int pid              = getPIDFromObservation(identifier, c);
-        final String procedure     = getProcedureFromObservation(identifier, c);
-        final List<Field> fields   = readFields(procedure, c);
-        final String uom           = fields.get(0).uom;
+        if (selectedField == null) {
+            throw new DataStoreException("Measurement extraction need a field index specified");
+        }
         final double value;
         final String name;
-        final String query = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m, \"" + schemaPrefix + "om\".\"observations\" o "
+        final String uom   = selectedField.uom;
+        String query       = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m, \"" + schemaPrefix + "om\".\"observations\" o "
                            + "WHERE \"id_observation\" = o.\"id\" "
-                           + "AND o.\"identifier\"=?"
-                           + "ORDER BY m.\"id\"";
+                           + "AND o.\"identifier\"=?";
+        if (measureId != null) {
+            query = query + " AND m.\"id\" = " + measureId + " ";
+        }
+        query = query + " ORDER BY m.\"id\"";
+
         try(final PreparedStatement stmt  = c.prepareStatement(query)) {//NOSONAR
             stmt.setString(1, identifier);
             try(final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     name = "measure-00" + rs.getString("id");
-                    value = Double.parseDouble(rs.getString(3));
+                    value = Double.parseDouble(rs.getString(selectedField.name));
                 } else {
                     return null;
                 }
@@ -691,6 +747,35 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
             throw new DataStoreException("Unable ta parse the result value as a double");
         }
         return buildMeasure(version, name, uom, value);
+    }
+
+    /*
+    * Not optimal at all. should be merged with buildResult
+    */
+    private List<Element> buildResultQuality(final String identifier, final Integer measureId, final Field selectedField, final Connection c) throws SQLException, DataStoreException {
+        final int pid              = getPIDFromObservation(identifier, c);
+        if (selectedField == null) {
+            throw new DataStoreException("Measurement extraction need a field index specified");
+        }
+        String query       = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m, \"" + schemaPrefix + "om\".\"observations\" o "
+                           + "WHERE \"id_observation\" = o.\"id\" "
+                           + "AND o.\"identifier\"=?";
+        if (measureId != null) {
+            query = query + " AND m.\"id\" = " + measureId + " ";
+        }
+        query = query + " ORDER BY m.\"id\"";
+
+        try(final PreparedStatement stmt  = c.prepareStatement(query)) {//NOSONAR
+            stmt.setString(1, identifier);
+            try(final ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return buildResultQuality(selectedField, rs);
+                }
+            }
+        } catch (NumberFormatException ex) {
+            throw new DataStoreException("Unable ta parse the result value as a double");
+        }
+        return new ArrayList<>();
     }
 
     protected Set<String> getFoiIdsForProcedure(final String procedure, final Connection c) throws SQLException {

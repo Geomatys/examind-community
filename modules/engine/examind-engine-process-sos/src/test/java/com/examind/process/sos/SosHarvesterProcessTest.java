@@ -159,7 +159,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
     protected WSEngine wsEngine;
 
 
-    private static final int ORIGIN_NB_SENSOR = 14;
+    private static final int ORIGIN_NB_SENSOR = 15;
 
     @BeforeClass
     public static void setUpClass() throws Exception {

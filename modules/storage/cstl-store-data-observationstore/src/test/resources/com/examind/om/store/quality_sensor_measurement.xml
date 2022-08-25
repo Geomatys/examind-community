@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<om:Observation xmlns:sas="http://www.opengis.net/samplingSpatial/2.0" 
+                xmlns:sa="http://www.opengis.net/sampling/2.0" 
+                xmlns:om="http://www.opengis.net/om/2.0" 
+                xmlns:gmd="http://www.isotc211.org/2005/gmd" 
+                xmlns:gml="http://www.opengis.net/gml/3.2" 
+                xmlns:xlink="http://www.w3.org/1999/xlink" 
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                xmlns:ogc="http://www.opengis.net/ogc" 
+                xmlns:ows="http://www.opengis.net/ows/1.1" 
+                xmlns:gcol="http://www.isotc211.org/2005/gco" 
+                xmlns:swe="http://www.opengis.net/swe/1.0" gml:id="obs-6001-2-1">
+    <gml:name>urn:ogc:object:observation:GEOM:6001-2-1</gml:name>
+    <gml:boundedBy xsi:nil="true"></gml:boundedBy>
+    <om:type xlink:href="http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement"></om:type>
+    <om:phenomenonTime>
+        <gml:TimeInstant gml:id="time-6001-1">
+            <gml:timePosition>1980-03-01T21:52:00.000</gml:timePosition>
+        </gml:TimeInstant>
+    </om:phenomenonTime>
+    <om:resultTime></om:resultTime>
+    <om:procedure xlink:href="urn:ogc:object:sensor:GEOM:quality_sensor"></om:procedure>
+    <om:observedProperty xlink:href="depth"></om:observedProperty>
+    <om:featureOfInterest>
+        <sas:SF_SpatialSamplingFeature gml:id="station-001">
+            <gml:description>Point d'eau BSSS</gml:description>
+            <gml:name>10972X0137-PONT</gml:name>
+            <gml:boundedBy xsi:nil="true"></gml:boundedBy>
+            <sa:type xlink:href="http://www.opengis.net/def/samplingFeatureType/OGC-OM/2.0/SF_SamplingPoint"></sa:type>
+            <sa:sampledFeature></sa:sampledFeature>
+            <sas:shape>
+                <gml:Point srsName="urn:ogc:def:crs:EPSG:9.9.1:27582" srsDimension="2" gml:id="pt-station-001">
+                    <gml:pos>65400.0 1731368.0</gml:pos>
+                </gml:Point>
+            </sas:shape>
+        </sas:SF_SpatialSamplingFeature>
+    </om:featureOfInterest>
+    <om:resultQuality>
+        <gmd:DQ_QuantitativeAttributeAccuracy>
+            <gmd:nameOfMeasure>
+                <gcol:CharacterString>qflag</gcol:CharacterString>
+            </gmd:nameOfMeasure>
+            <gmd:result>
+                <gmd:DQ_QuantitativeResult>
+                    <gmd:value>
+                        <gcol:Record>ok</gcol:Record>
+                    </gmd:value>
+                    <gmd:valueType>
+                        <gcol:RecordType>OGC:CharacterString</gcol:RecordType>
+                    </gmd:valueType>
+                </gmd:DQ_QuantitativeResult>
+            </gmd:result>
+        </gmd:DQ_QuantitativeAttributeAccuracy>
+    </om:resultQuality>
+    <om:result xsi:type="gml:measureType" uom="m">6.56</om:result>
+</om:Observation>

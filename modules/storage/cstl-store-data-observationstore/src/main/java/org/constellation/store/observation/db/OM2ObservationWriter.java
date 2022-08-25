@@ -1220,7 +1220,8 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         try (final Connection c = source.getConnection();
              final Statement stmt = c.createStatement();
              final ResultSet rs = stmt.executeQuery("SELECT \"id\" FROM \"" + schemaPrefix + "mesures\".\"" + tableName + "\"")) {//NOSONAR
-            return rs.next();
+            // if no exception this mean that the table exist
+            return true;
         } catch (SQLException ex) {
             LOGGER.log(Level.FINER, "Error while looking for measure table existence (normal error if table does not exist).", ex);
         }
@@ -1254,6 +1255,13 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     firstField = false;
                 } 
                 sb.append(",");
+                if (field.qualityFields != null && !field.qualityFields.isEmpty()) {
+                    for (Field qField : field.qualityFields) {
+                        String columnName = field.name + "_quality_" + qField.name;
+                        sb.append('"').append(columnName).append("\" ").append(qField.getSQLType(isPostgres, false));
+                        sb.append(",");
+                    }
+                }
             }
             sb.setCharAt(sb.length() - 1, ' ');
             sb.append(")");
@@ -1275,10 +1283,10 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             }
 
             //fill procedure_descriptions table
-            insertField(procedureID, fields, 1, c);
+            insertFields(procedureID, fields, 1, c);
 
         } else if (allowSensorStructureUpdate) {
-            final List<Field> oldfields = readFields(procedureID, c);
+            final List<Field> oldfields = readFields(procedureID, false, c);
             final List<Field> newfields = new ArrayList<>();
             for (Field field : fields) {
                 if (!oldfields.contains(field)) {
@@ -1291,36 +1299,60 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     StringBuilder sb = new StringBuilder("ALTER TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" ADD \"" + newField.name + "\" ");
                     sb.append(newField.getSQLType(isPostgres, false));
                     addColumnStmt.execute(sb.toString());
+
+                    if (newField.qualityFields != null && !newField.qualityFields.isEmpty()) {
+                        for (Field qField : newField.qualityFields) {
+                            String columnName = newField.name + "_quality_" + qField.name;
+                            StringBuilder qsb = new StringBuilder("ALTER TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" ADD \"" + columnName + "\" ");
+                            qsb.append(qField.getSQLType(isPostgres, false));
+                            addColumnStmt.execute(qsb.toString());
+                        }
+                    }
                 }
             }
 
             //fill procedure_descriptions table
-            insertField(procedureID, newfields, oldfields.size() + 1, c);
+            insertFields(procedureID, newfields, oldfields.size() + 1, c);
         }
     }
 
-    private void insertField(String procedureID, List<Field> fields, int offset, final Connection c) throws SQLException {
-
-        try (final PreparedStatement insertFieldStmt = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"procedure_descriptions\" VALUES (?,?,?,?,?,?)")) {//NOSONAR
+    private void insertFields(String procedureID, List<Field> fields, int offset, final Connection c) throws SQLException {
+        try (final PreparedStatement insertFieldStmt = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"procedure_descriptions\" VALUES (?,?,?,?,?,?,?)")) {//NOSONAR
             for (Field field : fields) {
-                insertFieldStmt.setString(1, procedureID);
-                insertFieldStmt.setInt(2, offset);
-                insertFieldStmt.setString(3, field.name);
-                insertFieldStmt.setString(4, field.type.label);
-                if (field.description != null) {
-                    insertFieldStmt.setString(5, field.description);
-                } else {
-                    insertFieldStmt.setNull(5, java.sql.Types.VARCHAR);
+                insertField(insertFieldStmt, procedureID, field, null, offset);
+                if (field.qualityFields != null) {
+                    int qOffset = 1;
+                    for (Field qfield : field.qualityFields) {
+                        insertField(insertFieldStmt, procedureID, qfield, field.name, qOffset);
+                        qOffset++;
+                    }
                 }
-                if (field.uom != null) {
-                    insertFieldStmt.setString(6, field.uom);
-                } else {
-                    insertFieldStmt.setNull(6, java.sql.Types.VARCHAR);
-                }
-                insertFieldStmt.executeUpdate();
                 offset++;
             }
         }
+    }
+
+    private void insertField(PreparedStatement insertFieldStmt, String procedureID, Field field, String parent, int offset) throws SQLException {
+        insertFieldStmt.setString(1, procedureID);
+        insertFieldStmt.setInt(2, offset);
+        insertFieldStmt.setString(3, field.name);
+        insertFieldStmt.setString(4, field.type.label);
+        if (field.description != null) {
+            insertFieldStmt.setString(5, field.description);
+        } else {
+            insertFieldStmt.setNull(5, java.sql.Types.VARCHAR);
+        }
+        if (field.uom != null) {
+            insertFieldStmt.setString(6, field.uom);
+        } else {
+            insertFieldStmt.setNull(6, java.sql.Types.VARCHAR);
+        }
+        if (parent != null) {
+            insertFieldStmt.setString(7, parent);
+        } else {
+            insertFieldStmt.setNull(7, java.sql.Types.VARCHAR);
+        }
+        insertFieldStmt.executeUpdate();
     }
 
     /**

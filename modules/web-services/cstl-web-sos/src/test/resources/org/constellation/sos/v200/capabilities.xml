@@ -234,6 +234,7 @@
           <ows:Value>offering-12</ows:Value>
           <ows:Value>offering-13</ows:Value>
           <ows:Value>offering-14</ows:Value>
+          <ows:Value>offering-15</ows:Value>
           <ows:Value>offering-2</ows:Value>
           <ows:Value>offering-3</ows:Value>
           <ows:Value>offering-4</ows:Value>
@@ -248,7 +249,7 @@
         <ows:AllowedValues>
           <ows:Range>
             <ows:MinimumValue>2009-05-01T11:47:00.000Z</ows:MinimumValue>
-            <ows:MaximumValue>2000-12-21T23:00:00.000Z</ows:MaximumValue>
+            <ows:MaximumValue>1984-03-01T20:52:00.000Z</ows:MaximumValue>
           </ows:Range>
         </ows:AllowedValues>
       </ows:Parameter>
@@ -266,6 +267,7 @@
           <ows:Value>urn:ogc:object:sensor:GEOM:7</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:8</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:9</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:quality_sensor</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:test-1</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:test-id</ows:Value>
         </ows:AllowedValues>
@@ -402,6 +404,7 @@
           <ows:Value>urn:ogc:object:sensor:GEOM:7</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:8</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:9</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:quality_sensor</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:test-1</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:test-id</ows:Value>
         </ows:AllowedValues>
@@ -649,6 +652,29 @@
             <gml:TimePeriod gml:id="time-offering-14">
               <gml:beginPosition>2001-01-01</gml:beginPosition>
               <gml:endPosition>2000-12-24</gml:endPosition>
+            </gml:TimePeriod>
+          </sos:phenomenonTime>
+          <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
+          <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
+        </sos:ObservationOffering>
+      </swes:offering>
+      <swes:offering>
+        <sos:ObservationOffering swes:id="offering-15">
+          <swes:identifier>offering-15</swes:identifier>
+          <swes:name>offering-15</swes:name>
+          <swes:procedure>urn:ogc:object:sensor:GEOM:quality_sensor</swes:procedure>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</swes:procedureDescriptionFormat>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</swes:procedureDescriptionFormat>
+          <swes:observableProperty>depth</swes:observableProperty>
+          <swes:relatedFeature>
+            <swes:FeatureRelationship>
+              <swes:target xlink:href="station-001"/>
+            </swes:FeatureRelationship>
+          </swes:relatedFeature>
+          <sos:phenomenonTime>
+            <gml:TimePeriod gml:id="time-offering-15">
+              <gml:beginPosition>1980-03-01T21:52:00.000</gml:beginPosition>
+              <gml:endPosition>1984-03-01T21:52:00.000</gml:endPosition>
             </gml:TimePeriod>
           </sos:phenomenonTime>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>

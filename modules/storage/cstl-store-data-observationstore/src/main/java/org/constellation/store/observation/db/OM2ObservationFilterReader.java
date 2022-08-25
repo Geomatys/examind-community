@@ -45,8 +45,8 @@ import org.geotoolkit.observation.ResultBuilder;
 import org.geotoolkit.observation.model.ResultMode;
 import static org.constellation.store.observation.db.OM2BaseReader.defaultCRS;
 import static org.constellation.store.observation.db.OM2Utils.buildComplexResult;
-import static org.constellation.store.observation.db.OM2Utils.buildFoi;
 import static org.constellation.store.observation.db.OM2Utils.buildTime;
+import static org.constellation.store.observation.db.OM2Utils.buildFoi;
 import static org.geotoolkit.observation.OMUtils.*;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.geometry.jts.SRIDGenerator;
@@ -72,6 +72,7 @@ import org.geotoolkit.swe.xml.DataArrayProperty;
 import org.geotoolkit.swe.xml.TextBlock;
 import org.locationtech.jts.geom.Polygon;
 import org.opengis.geometry.Geometry;
+import org.opengis.metadata.quality.Element;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.sampling.SamplingFeature;
@@ -210,10 +211,15 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 final String obsID = "obs-" + procedureID;
                 final String name = observationTemplateIdBase + procedureID;
                 final String observedProperty = rs.getString("obsprop");
-                final Phenomenon phen = getPhenomenon(version, observedProperty, c);
-                final int phenIndex = rs.getInt("order");
-                final String phenUom = rs.getString("uom");
+                final int phenIndex   = rs.getInt("order");
+                final Field field     = getFieldByIndex(procedure, phenIndex, true, c);
+
+                // skip the main field for timeseries
+                if (phenIndex == 1 && field.type == FieldType.TIME) {
+                    continue;
+                }
                 
+                final Phenomenon phen = getPhenomenon(version, observedProperty, c);
                 String featureID = null;
                 FeatureProperty foi = null;
                 if (includeFoiInTemplate) {
@@ -231,8 +237,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 if (includeTimeInTemplate) {
                     tempTime = getTimeForTemplate(c, procedure, observedProperty, featureID, version);
                 }
-                final Object result = buildMeasure(version, "measure-001", phenUom, 0d);
-                observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + phenIndex, name + '-' + phenIndex, null, foi, phen, proc, result, tempTime, null));
+                final Object result = buildMeasure(version, "measure-001", field.uom, 0d);
+                final List<Element> resultQuality = buildResultQuality(field, null);
+                observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + phenIndex, name + '-' + phenIndex, null, foi, phen, proc, result, tempTime, null, resultQuality));
                 
             }
         } catch (SQLException ex) {
@@ -249,10 +256,12 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     private List<Observation> getComplexObservations(final Map<String,Object> hints) throws DataStoreException {
         final String version                = getVersionFromHints(hints);
         final boolean includeIDInDataBlock  = getBooleanHint(hints, INCLUDE_ID_IN_DATABLOCK,  false);
-        final boolean includeTimeForProfile = getBooleanHint(hints, "includeTimeForProfile", false);
+        final boolean includeTimeForProfile = getBooleanHint(hints, INCLUDE_TIME_FOR_FOR_PROFILE, false);
         final boolean separatedObs          = getBooleanHint(hints, SEPARATED_OBSERVATION,  false);
+        final boolean includeQualityFields  = getBooleanHint(hints, "includeQualityFields",  true);
         final TextBlock encoding            = getDefaultTextEncoding(version);
         final ResultMode resultMode         = (ResultMode) hints.getOrDefault(RESULT_MODE, ResultMode.CSV);
+        final ResultBuilder values          = new ResultBuilder(resultMode, encoding, false);
         
         final Map<String, Observation> observations = new LinkedHashMap<>();
         final Map<String, Process> processMap       = new LinkedHashMap<>();
@@ -344,9 +353,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 measureRequest.appendValue(-1).append(sqlMeasureRequest, !profile).append("ORDER BY ").append(fieldOrdering);
 
                 final String name = rs.getString("identifier");
-                final FieldParser parser = new FieldParser(fields, profileWithTime, includeIDInDataBlock, name);
-                ResultBuilder values = new ResultBuilder(resultMode, encoding, false);
-                
+                final FieldParser parser = new FieldParser(fields, values, profileWithTime, includeIDInDataBlock, includeQualityFields, name);
+
                 if (observation == null) {
                     final String obsID            = "obs-" + oid;
                     final String timeID           = "time-" + oid;
@@ -369,7 +377,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     try(final PreparedStatement stmt = measureRequest.fillParams(c.prepareStatement(measureRequest.getRequest()));
                         final ResultSet rs2 = stmt.executeQuery()) {
                         while (rs2.next()) {
-                            parser.parseLine(values, rs2, offset);
+                            parser.parseLine(rs2, offset);
                             nbValue = nbValue + parser.nbValue;
 
                             /**
@@ -384,7 +392,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                 final String singleName  = name + '-' + measureID;
                                 observation = OMXmlFactory.buildObservation(version, singleObsID, singleName, null, prop, phen, proc, result, time, null);
                                 observations.put(procedure + '-' + name + '-' + measureID, observation);
-                                values = new ResultBuilder(resultMode, encoding, false);
+                                values.clear();
                                 nbValue = 0;
                             }
                         }
@@ -412,7 +420,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     try(final PreparedStatement stmt = measureRequest.fillParams(c.prepareStatement(measureRequest.getRequest()));
                         final ResultSet rs2 = stmt.executeQuery()) {
                         while (rs2.next()) {
-                            parser.parseLine(values, rs2, offset);
+                            parser.parseLine(rs2, offset);
                             nbValue = nbValue + parser.nbValue;
                         }
                     }
@@ -427,6 +435,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     }
                     ((AbstractObservation) observation).extendSamplingTime(parser.lastTime);
                 }
+                values.clear();
             }
 
         } catch (SQLException ex) {
@@ -533,7 +542,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                     }
                                     final FeatureProperty foi = buildFeatureProperty(version, feature); // do not share the same object
                                     final Object result = buildMeasure(version, "measure-00" + rid, field.getField().uom, dValue);
-                                    observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + field.getField().index + '-' + rid, name + '-' + field.getField().index + '-' + rid, null, foi, field.getPhenomenon(), proc, result, measureTime, null));
+                                    final String measId =  obsID + '-' + field.getField().index + '-' + rid;
+                                    final String measName = name + '-' + field.getField().index + '-' + rid;
+                                    List<Element> resultQuality = buildResultQuality(field.getField(), rs2);
+                                    observations.add(OMXmlFactory.buildMeasurement(version, measId, measName, null, foi, field.getPhenomenon(), proc, result, measureTime, null, resultQuality));
                                 }
                             }
                         }
@@ -579,7 +591,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         }
         for (int i = offset; i < fields.size(); i++) {
             Field f = fields.get(i);
-            sqlMeasureRequest.replaceAll("$phen" + (i - offset), "\"" + f.name + "\"");
+            sqlMeasureRequest.replaceAll("$phen" + (i - offset), f.name);
         }
         return offset;
     }
@@ -591,7 +603,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         }
         final Integer decimationSize       = getIntegerHint(hints, DECIMATION_SIZE, null);
         final boolean countRequest         = "count".equals(responseFormat);
-        boolean includeTimeForProfile      = !countRequest && getBooleanHint(hints, "includeTimeForProfile", false);
+        boolean includeTimeForProfile      = !countRequest && getBooleanHint(hints, INCLUDE_TIME_FOR_FOR_PROFILE, false);
+        final boolean includeQualityFields  = getBooleanHint(hints, SEPARATED_OBSERVATION,  true);
         final boolean profile              = "profile".equals(currentOMType);
         final boolean profileWithTime      = profile && includeTimeForProfile;
         final boolean includeIDInDataBlock = getBooleanHint(hints, INCLUDE_ID_IN_DATABLOCK,  false);
@@ -673,7 +686,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             /**
              * 3) Extract results.
              */
-            ResultProcessor processor = new ResultProcessor(fields, profile, includeIDInDataBlock);
+            ResultProcessor processor = new ResultProcessor(fields, profile, includeIDInDataBlock, includeQualityFields);
             ResultBuilder values = processor.initResultBuilder(responseFormat, countRequest);
             try (final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
                  final ResultSet rs = pstmt.executeQuery()) {

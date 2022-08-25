@@ -31,6 +31,7 @@ import java.util.Map.Entry;
 import java.util.StringTokenizer;
 import java.util.logging.Logger;
 import org.apache.sis.storage.DataStoreException;
+import static org.constellation.store.observation.db.OM2Utils.flatFields;
 import org.constellation.util.Util;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldType;
@@ -60,7 +61,7 @@ public class OM2MeasureSQLInserter {
         this.encoding = encoding;
         this.tableName = "mesure" + pid;
         this.schemaPrefix = schemaPrefix;
-        this.fields = fields;
+        this.fields = flatFields(fields);
         this.isPostgres = isPostgres;
         this.insertRequest = buildInsertRequest();
     }

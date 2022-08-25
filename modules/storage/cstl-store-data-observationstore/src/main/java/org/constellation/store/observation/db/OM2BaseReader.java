@@ -55,6 +55,7 @@ import org.geotoolkit.sos.xml.SOSXmlFactory;
 
 import static org.geotoolkit.sos.xml.SOSXmlFactory.*;
 import org.opengis.metadata.Identifier;
+import org.opengis.metadata.quality.Element;
 import org.opengis.observation.CompositePhenomenon;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.sampling.SamplingFeature;
@@ -396,6 +397,7 @@ public class OM2BaseReader {
        String request = "SELECT \"field_name\" FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" "
                       + "WHERE \"procedure\"=? "
                       + "AND NOT (\"order\"=1 AND \"field_type\"='Time') "
+                      + "AND \"parent\" IS NULL "
                       + "order by \"order\"";
        LOGGER.fine(request);
        try(final PreparedStatement stmt = c.prepareStatement(request)) {//NOSONAR
@@ -430,21 +432,16 @@ public class OM2BaseReader {
     
     protected List<Field> readFields(final String procedureID, final boolean removeMainTimeField, final Connection c) throws SQLException {
         final List<Field> results = new ArrayList<>();
-        String query = "SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=?";
+        String query = "SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"parent\" IS NULL";
         if (removeMainTimeField) {
             query = query + " AND NOT(\"order\"= 1 AND \"field_type\"= 'Time')";
         }
-        query = query + "ORDER BY \"order\"";
+        query = query + " ORDER BY \"order\"";
         try(final PreparedStatement stmt = c.prepareStatement(query)) {//NOSONAR
             stmt.setString(1, procedureID);
             try(final ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    results.add(new Field(rs.getInt("order"),
-                            FieldType.fromLabel(rs.getString("field_type")),
-                            rs.getString("field_name"),
-                            null,
-                            rs.getString("field_definition"),
-                            rs.getString("uom")));
+                    results.add(getFieldFromDb(rs, procedureID, c, true));
                 }
                 return results;
             }
@@ -452,16 +449,11 @@ public class OM2BaseReader {
     }
 
     protected Field getTimeField(final String procedureID, final Connection c) throws SQLException {
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"field_type\"='Time' ORDER BY \"order\"")) {//NOSONAR
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"field_type\"='Time' AND \"parent\" IS NULL ORDER BY \"order\"")) {//NOSONAR
             stmt.setString(1, procedureID);
             try (final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return new Field(rs.getInt("order"),
-                            FieldType.fromLabel(rs.getString("field_type")),
-                            rs.getString("field_name"),
-                            null,
-                            rs.getString("field_definition"),
-                            rs.getString("uom"));
+                    return getFieldFromDb(rs, procedureID, c, false);
                 }
                 return null;
             }
@@ -469,7 +461,7 @@ public class OM2BaseReader {
     }
 
     protected boolean isMainTimeField(final String procedureID, final Connection c) throws SQLException {
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"field_type\" FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"field_type\"='Time' AND \"order\"=1")) {//NOSONAR
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"field_type\" FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"field_type\"='Time'  AND \"parent\" IS NULL AND \"order\"=1")) {//NOSONAR
             stmt.setString(1, procedureID);
             try (final ResultSet rs = stmt.executeQuery()) {
                 return rs.next();
@@ -487,16 +479,16 @@ public class OM2BaseReader {
      * @throws SQLException
      */
     protected Field getMainField(final String procedureID, final Connection c) throws SQLException {
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"order\"=1")) {//NOSONAR
+        return getFieldByIndex(procedureID, 1, false, c);
+    }
+
+    protected Field getFieldByIndex(final String procedureID, final int index, final boolean fetchQualityFields, final Connection c) throws SQLException {
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"order\"=?  AND \"parent\" IS NULL")) {//NOSONAR
             stmt.setString(1, procedureID);
+            stmt.setInt(2, index);
             try (final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return new Field(rs.getInt("order"),
-                            FieldType.fromLabel(rs.getString("field_type")),
-                            rs.getString("field_name"),
-                            null,
-                            rs.getString("field_definition"),
-                            rs.getString("uom"));
+                    return getFieldFromDb(rs, procedureID, c, fetchQualityFields);
                 }
                 return null;
             }
@@ -514,17 +506,11 @@ public class OM2BaseReader {
      */
     protected List<Field> getPosFields(final String procedureID, final Connection c) throws SQLException {
         final List<Field> results = new ArrayList<>();
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND (\"field_name\"='lat' OR \"field_name\"='lon') ORDER BY \"order\" DESC")) {//NOSONAR
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND (\"field_name\"='lat' OR \"field_name\"='lon') AND \"parent\" IS NULL ORDER BY \"order\" DESC")) {//NOSONAR
             stmt.setString(1, procedureID);
             try (final ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    results.add(new Field(
-                            rs.getInt("order"),
-                            FieldType.fromLabel(rs.getString("field_type")),
-                            rs.getString("field_name"),
-                            null,
-                            rs.getString("field_definition"),
-                            rs.getString("uom")));
+                    results.add(getFieldFromDb(rs, procedureID, c, false));
                 }
             }
         }
@@ -532,21 +518,39 @@ public class OM2BaseReader {
     }
 
     protected Field getFieldForPhenomenon(final String procedureID, final String phenomenon, final Connection c) throws SQLException {
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND (\"field_name\"= ?)")) {//NOSONAR
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND (\"field_name\"= ?) AND \"parent\" IS NULL")) {//NOSONAR
             stmt.setString(1, procedureID);
             stmt.setString(2, phenomenon);
             try(final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return new Field(rs.getInt("order"),
-                            FieldType.fromLabel(rs.getString("field_type")),
-                            rs.getString("field_name"),
-                            null,
-                            rs.getString("field_definition"),
-                            rs.getString("uom"));
+                    return getFieldFromDb(rs, procedureID, c, true);
                 }
                 return null;
             }
         }
+    }
+
+    private Field getFieldFromDb(final ResultSet rs, String procedureID, Connection c, boolean fetchQualityFields) throws SQLException {
+        final String fieldName = rs.getString("field_name");
+        final Field f = new Field(rs.getInt("order"),
+                         FieldType.fromLabel(rs.getString("field_type")),
+                         fieldName,
+                         null,
+                         rs.getString("field_definition"),
+                         rs.getString("uom"));
+
+        if (fetchQualityFields) {
+            try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"parent\"=? ORDER BY \"order\"")) {//NOSONAR
+                stmt.setString(1, procedureID);
+                stmt.setString(2, fieldName);
+                try(final ResultSet rss = stmt.executeQuery()) {
+                    if (rss.next()) {
+                        f.qualityFields.add(getFieldFromDb(rss, procedureID, c, false));
+                    }
+                }
+            }
+        }
+        return f;
     }
 
     protected int getPIDFromObservation(final String obsIdentifier, final Connection c) throws SQLException {
@@ -631,5 +635,27 @@ public class OM2BaseReader {
                 return parent;
             }
         }
+    }
+
+    protected List<Element> buildResultQuality(Field parent, ResultSet rs) throws SQLException {
+        List<Element> results = new ArrayList<>();
+        if (parent.qualityFields != null) {
+            for (Field field : parent.qualityFields) {
+                String fieldName = parent.name + "_quality_" + field.name;
+                Object value = null;
+                if (rs != null) {
+                    switch(field.type) {
+                        case BOOLEAN: value = rs.getBoolean(fieldName);break;
+                        case QUANTITY: value = rs.getDouble(fieldName);break;
+                        case TIME: value = rs.getTimestamp(fieldName);break;
+                        case TEXT:
+                        default: value = rs.getString(fieldName);
+                    }
+                    
+                }
+                results.add(OM2Utils.createQualityElement(field, value));
+            }
+        }
+        return results;
     }
 }

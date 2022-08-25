@@ -39,63 +39,82 @@ public class FieldParser {
     private final List<Field> fields;
     private final boolean profileWithTime;
     private final boolean includeID;
+    private final boolean includeQuality;
+    private final ResultBuilder values;
     private String name;
 
     private boolean first = false;
 
-    public FieldParser(List<Field> fields, boolean profileWithTime, boolean includeID, String name) {
+    public FieldParser(List<Field> fields, ResultBuilder values, boolean profileWithTime, boolean includeID, boolean includeQuality, String name) {
         this.profileWithTime = profileWithTime;
         this.fields = fields;
         this.includeID = includeID;
+        this.includeQuality = includeQuality;
         this.name = name;
+        this.values = values;
     }
 
     public void setName(String name) {
         this.name = name;
     }
 
-    public void parseLine(ResultBuilder values, ResultSet rs,  int offset) throws SQLException {
-
+    public void parseLine(ResultSet rs,  int offset) throws SQLException {
         values.newBlock();
         for (int i = 0; i < fields.size(); i++) {
 
             Field field = fields.get(i);
-            switch (field.type) {
-                case TIME:
-                    // profile with time field
-                    if (profileWithTime && i <= offset) {
-                        values.appendTime(firstTime);
-                    } else {
-                        Date t = dateFromTS(rs.getTimestamp(field.name));
-                        values.appendTime(t);
-                        if (first) {
-                            firstTime = t;
-                            first = false;
-                        }
-                        lastTime = t;
-                    }
-                    break;
-                case QUANTITY:
-                    Double d =  rs.getDouble(field.name);
-                    if (rs.wasNull()) {
-                        d = Double.NaN;
-                    }
-                    values.appendDouble(d);
-                    break;
-                case BOOLEAN:
-                    boolean bvalue = rs.getBoolean(field.name);
-                    values.appendBoolean(bvalue);
-                    break;
-                default:
-                    String svalue = rs.getString(field.name);
-                    if (includeID && field.name.equals("id")) {
-                        svalue = name + '-' + svalue;
-                    }
-                    values.appendString(svalue);
-                    break;
+            parseField(field, rs, i <= offset, null);
+
+            if (includeQuality && field.qualityFields != null) {
+                for (Field qField : field.qualityFields) {
+                    parseField(qField, rs, false, field);
+                }
             }
         }
         nbValue = values.endBlock();
+    }
+
+    private void parseField(Field field, ResultSet rs,  boolean beforeMain, Field parent) throws SQLException {
+        String fieldName;
+        if (parent != null) {
+           fieldName = parent.name + "_quality_" + field.name;
+        } else {
+           fieldName = field.name;
+        }
+        switch (field.type) {
+            case TIME:
+                // profile with time field
+                if (profileWithTime && beforeMain) {
+                    values.appendTime(firstTime);
+                } else {
+                    Date t = dateFromTS(rs.getTimestamp(fieldName));
+                    values.appendTime(t);
+                    if (first) {
+                        firstTime = t;
+                        first = false;
+                    }
+                    lastTime = t;
+                }
+                break;
+            case QUANTITY:
+                Double d =  rs.getDouble(fieldName);
+                if (rs.wasNull()) {
+                    d = Double.NaN;
+                }
+                values.appendDouble(d);
+                break;
+            case BOOLEAN:
+                boolean bvalue = rs.getBoolean(fieldName);
+                values.appendBoolean(bvalue);
+                break;
+            default:
+                String svalue = rs.getString(fieldName);
+                if (includeID && fieldName.equals("id")) {
+                    svalue = name + '-' + svalue;
+                }
+                values.appendString(svalue);
+                break;
+        }
     }
 
 }

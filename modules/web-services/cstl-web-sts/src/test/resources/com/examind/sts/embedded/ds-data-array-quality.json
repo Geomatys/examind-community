@@ -1,0 +1,10 @@
+{
+    "value": [{
+            "components": ["id", "phenomenonTime", "resultTime", "result"],
+            "dataArray": [["urn:ogc:object:observation:GEOM:6001-2-1", "1980-03-01T20:52:00Z", "1980-03-01T20:52:00Z", 6.56], 
+                          ["urn:ogc:object:observation:GEOM:6001-2-2", "1981-03-01T20:52:00Z", "1981-03-01T20:52:00Z", 6.56], 
+                          ["urn:ogc:object:observation:GEOM:6001-2-3", "1982-03-01T20:52:00Z", "1982-03-01T20:52:00Z", 6.56], 
+                          ["urn:ogc:object:observation:GEOM:6001-2-4", "1983-03-01T20:52:00Z", "1983-03-01T20:52:00Z", 6.56], 
+                          ["urn:ogc:object:observation:GEOM:6001-2-5", "1984-03-01T20:52:00Z", "1984-03-01T20:52:00Z", 6.56]]
+        }]
+}

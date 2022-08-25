@@ -348,5 +348,75 @@
             "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:3000-4-5)",
             "Datastream@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:3000-4-5)/Datastreams",
             "FeatureOfInterest@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:3000-4-5)/FeaturesOfInterest"
+        }, {
+            "phenomenonTime": "1980-03-01T20:52:00Z",
+            "result": 6.56,
+            "resultTime": "1980-03-01T20:52:00Z",
+            "resultQuality": [{
+                    "nameOfMeasure": "qflag",
+                    "DQ_Result": {
+                        "code": "ok"
+                    }
+                }],
+            "@iot.id": "urn:ogc:object:observation:GEOM:6001-2-1",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:6001-2-1)",
+            "Datastream@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:6001-2-1)/Datastreams",
+            "FeatureOfInterest@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:6001-2-1)/FeaturesOfInterest"
+        }, {
+            "phenomenonTime": "1981-03-01T20:52:00Z",
+            "result": 6.56,
+            "resultTime": "1981-03-01T20:52:00Z",
+            "resultQuality": [{
+                    "nameOfMeasure": "qflag",
+                    "DQ_Result": {
+                        "code": "ko"
+                    }
+                }],
+            "@iot.id": "urn:ogc:object:observation:GEOM:6001-2-2",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:6001-2-2)",
+            "Datastream@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:6001-2-2)/Datastreams",
+            "FeatureOfInterest@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:6001-2-2)/FeaturesOfInterest"
+        }, {
+            "phenomenonTime": "1982-03-01T20:52:00Z",
+            "result": 6.56,
+            "resultTime": "1982-03-01T20:52:00Z",
+            "resultQuality": [{
+                    "nameOfMeasure": "qflag",
+                    "DQ_Result": {
+                        "code": "ok"
+                    }
+                }],
+            "@iot.id": "urn:ogc:object:observation:GEOM:6001-2-3",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:6001-2-3)",
+            "Datastream@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:6001-2-3)/Datastreams",
+            "FeatureOfInterest@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:6001-2-3)/FeaturesOfInterest"
+        }, {
+            "phenomenonTime": "1983-03-01T20:52:00Z",
+            "result": 6.56,
+            "resultTime": "1983-03-01T20:52:00Z",
+            "resultQuality": [{
+                    "nameOfMeasure": "qflag",
+                    "DQ_Result": {
+                        "code": "ko"
+                    }
+                }],
+            "@iot.id": "urn:ogc:object:observation:GEOM:6001-2-4",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:6001-2-4)",
+            "Datastream@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:6001-2-4)/Datastreams",
+            "FeatureOfInterest@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:6001-2-4)/FeaturesOfInterest"
+        }, {
+            "phenomenonTime": "1984-03-01T20:52:00Z",
+            "result": 6.56,
+            "resultTime": "1984-03-01T20:52:00Z",
+            "resultQuality": [{
+                    "nameOfMeasure": "qflag",
+                    "DQ_Result": {
+                        "code": "ok"
+                    }
+                }],
+            "@iot.id": "urn:ogc:object:observation:GEOM:6001-2-5",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:6001-2-5)",
+            "Datastream@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:6001-2-5)/Datastreams",
+            "FeatureOfInterest@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:6001-2-5)/FeaturesOfInterest"
         }]
 }

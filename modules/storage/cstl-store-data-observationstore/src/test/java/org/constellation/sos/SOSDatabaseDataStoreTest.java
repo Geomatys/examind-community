@@ -25,12 +25,18 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sql.DataSource;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.Unmarshaller;
 import org.apache.sis.feature.builder.AttributeRole;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
 import org.apache.sis.geometry.GeneralEnvelope;
+import org.apache.sis.internal.xml.LegacyNamespaces;
 import org.apache.sis.parameter.DefaultParameterValueGroup;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStore;
+import org.apache.sis.xml.XML;
+import static org.constellation.provider.observationstore.ObservationStoreProviderWriteTest.assertEqualsMeasurement;
+import static org.constellation.provider.observationstore.ObservationStoreProviderWriteTest.assertEqualsObservation;
 import org.constellation.store.observation.db.SOSDatabaseObservationStore;
 import org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory;
 import org.constellation.util.SQLUtilities;
@@ -40,11 +46,13 @@ import org.geotoolkit.feature.xml.GMLConvention;
 import org.geotoolkit.internal.sql.ScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
 import static org.geotoolkit.observation.OMUtils.OBSERVATION_QNAME;
+import static org.geotoolkit.observation.OMUtils.MEASUREMENT_QNAME;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.observation.xml.AbstractObservation;
 import org.geotoolkit.sos.xml.ResponseModeType;
 import org.geotoolkit.swe.xml.DataArrayProperty;
+import org.geotoolkit.sos.xml.SOSMarshallerPool;
 import org.geotoolkit.util.NamesExt;
 import org.junit.Assert;
 import org.junit.Test;
@@ -147,5 +155,45 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
                               + "2009-05-01T14:02:00.0,7.8@@"
                               + "2009-05-01T14:03:00.0,9.9@@";
         Assert.assertEquals(expectedValues, resultDAP.getDataArray().getValues());
+    }
+
+    @Test
+    public void readerTest() throws Exception {
+        Unmarshaller u = SOSMarshallerPool.getInstance().acquireUnmarshaller();
+        u.setProperty(XML.METADATA_VERSION, LegacyNamespaces.VERSION_2007);
+
+        Object o =  u.unmarshal(Util.getResourceAsStream("com/examind/om/store/quality_sensor_observation.xml"));
+        if (o instanceof JAXBElement jb) {
+            o = jb.getValue();
+        }
+        Assert.assertTrue(o instanceof AbstractObservation);
+        AbstractObservation expected = (AbstractObservation) o;
+
+        o =  u.unmarshal(Util.getResourceAsStream("com/examind/om/store/quality_sensor_measurement.xml"));
+        if (o instanceof JAXBElement jb) {
+            o = jb.getValue();
+        }
+        Assert.assertTrue(o instanceof AbstractObservation);
+        AbstractObservation measExpected = (AbstractObservation) o;
+
+        SOSMarshallerPool.getInstance().recycle(u);
+
+        Assert.assertTrue(store instanceof ObservationStore);
+        ObservationStore omStore = (ObservationStore) store;
+        ObservationReader reader = omStore.getReader();
+
+        Assert.assertNotNull(reader);
+
+        Observation obs = reader.getObservation("urn:ogc:object:observation:GEOM:6001", OBSERVATION_QNAME, ResponseModeType.INLINE, "2.0.0");
+        Assert.assertTrue(obs instanceof AbstractObservation);
+        AbstractObservation result = (AbstractObservation) obs;
+
+        assertEqualsObservation(expected, result);
+
+        obs = reader.getObservation("urn:ogc:object:observation:GEOM:6001-2-1", MEASUREMENT_QNAME, ResponseModeType.INLINE, "2.0.0");
+        Assert.assertTrue(obs instanceof AbstractObservation);
+        result = (AbstractObservation) obs;
+
+        assertEqualsMeasurement(measExpected, result);
     }
 }

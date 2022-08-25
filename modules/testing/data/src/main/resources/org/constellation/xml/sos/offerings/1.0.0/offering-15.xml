@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sos:ObservationOffering gml:id="offering-15" xmlns:sos="http://www.opengis.net/sos/1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:swe="http://www.opengis.net/swe/1.0.1" xmlns:gml="http://www.opengis.net/gml" xmlns:om="http://www.opengis.net/om/1.0">
+    <gml:name>offering-15</gml:name>
+    <gml:boundedBy>
+        <gml:Null>not_bounded</gml:Null>
+    </gml:boundedBy>
+    <sos:time>
+        <gml:TimePeriod>
+            <gml:beginPosition>1980-03-01T21:52:00.000</gml:beginPosition>
+            <gml:endPosition>1984-03-01T21:52:00.000</gml:endPosition>
+        </gml:TimePeriod>
+    </sos:time>
+    <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:quality_sensor"/>
+    <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
+    <sos:featureOfInterest xlink:href="station-001"/>
+    <sos:responseFormat>text/xml; subtype="om/1.0.0"</sos:responseFormat>
+    <sos:resultModel>om:Observation</sos:resultModel>
+    <sos:resultModel>om:Measurement</sos:resultModel>
+    <sos:responseMode>inline</sos:responseMode>
+    <sos:responseMode>resultTemplate</sos:responseMode>
+</sos:ObservationOffering>

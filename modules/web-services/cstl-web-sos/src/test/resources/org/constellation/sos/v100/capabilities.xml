@@ -151,6 +151,7 @@
           <ows:Value>offering-12</ows:Value>
           <ows:Value>offering-13</ows:Value>
           <ows:Value>offering-14</ows:Value>
+          <ows:Value>offering-15</ows:Value>
           <ows:Value>offering-2</ows:Value>
           <ows:Value>offering-3</ows:Value>
           <ows:Value>offering-4</ows:Value>
@@ -165,7 +166,7 @@
         <ows:AllowedValues>
           <ows:Range>
             <ows:MinimumValue>2009-05-01T11:47:00.000Z</ows:MinimumValue>
-            <ows:MaximumValue>2000-12-21T23:00:00.000Z</ows:MaximumValue>
+            <ows:MaximumValue>1984-03-01T20:52:00.000Z</ows:MaximumValue>
           </ows:Range>
         </ows:AllowedValues>
       </ows:Parameter>
@@ -183,6 +184,7 @@
           <ows:Value>urn:ogc:object:sensor:GEOM:7</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:8</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:9</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:quality_sensor</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:test-1</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:test-id</ows:Value>
         </ows:AllowedValues>
@@ -363,6 +365,7 @@
           <ows:Value>urn:ogc:object:sensor:GEOM:7</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:8</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:9</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:quality_sensor</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:test-1</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:test-id</ows:Value>
         </ows:AllowedValues>
@@ -586,6 +589,26 @@
         <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:salinity"/>
         <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
         <sos:featureOfInterest xlink:href="station-002"/>
+        <sos:responseFormat>text/xml; subtype="om/1.0.0"</sos:responseFormat>
+        <sos:resultModel>om:Observation</sos:resultModel>
+        <sos:resultModel>om:Measurement</sos:resultModel>
+        <sos:responseMode>inline</sos:responseMode>
+        <sos:responseMode>resultTemplate</sos:responseMode>
+      </sos:ObservationOffering>
+      <sos:ObservationOffering gml:id="offering-15">
+        <gml:name>offering-15</gml:name>
+        <gml:boundedBy>
+          <gml:Null>not_bounded</gml:Null>
+        </gml:boundedBy>
+        <sos:time>
+          <gml:TimePeriod>
+            <gml:beginPosition>1980-03-01T21:52:00.000</gml:beginPosition>
+            <gml:endPosition>1984-03-01T21:52:00.000</gml:endPosition>
+          </gml:TimePeriod>
+        </sos:time>
+        <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:quality_sensor"/>
+        <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
+        <sos:featureOfInterest xlink:href="station-001"/>
         <sos:responseFormat>text/xml; subtype="om/1.0.0"</sos:responseFormat>
         <sos:resultModel>om:Observation</sos:resultModel>
         <sos:resultModel>om:Measurement</sos:resultModel>

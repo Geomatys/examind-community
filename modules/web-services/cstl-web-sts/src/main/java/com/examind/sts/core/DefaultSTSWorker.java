@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -42,6 +43,7 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 import javax.inject.Named;
 import javax.xml.namespace.QName;
+import org.apache.sis.metadata.iso.quality.DefaultQuantitativeResult;
 import org.apache.sis.storage.FeatureQuery;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.util.Utilities;
@@ -134,6 +136,8 @@ import org.opengis.filter.Filter;
 import org.opengis.filter.LogicalOperator;
 import org.opengis.filter.ResourceId;
 import org.opengis.filter.TemporalOperator;
+import org.opengis.metadata.quality.Element;
+import org.opengis.metadata.quality.Result;
 import org.opengis.observation.CompositePhenomenon;
 import org.opengis.observation.Measure;
 import org.opengis.observation.Process;
@@ -360,7 +364,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     public STSResponse getObservations(GetObservations req) throws CstlServiceException {
         try {
             Map<String, Object> hints = new HashMap<>(defaultHints);
-            hints.put("includeTimeForProfile", true);
+            hints.put(INCLUDE_TIME_FOR_FOR_PROFILE, true);
             BigDecimal count = null;
             boolean decimation = false;
             if (req.getExtraFlag().containsKey("decimation")) {
@@ -379,6 +383,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 hints.put(INCLUDE_ID_IN_DATABLOCK, true);
                 hints.put(RESULT_MODE, ResultMode.DATA_ARRAY);
                 hints.put(SEPARATED_OBSERVATION, true);
+                hints.put("includeQualityFields", false);
                 model = OBSERVATION_QNAME;
             } else {
                 model = MEASUREMENT_QNAME;
@@ -596,7 +601,27 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             }
         }
 
-        // TODO quality
+        // quality
+        if (exp.isSelected("resultQuality") && !obs.getResultQuality().isEmpty()) {
+            List<Map> resultQuality = new ArrayList<>();
+            for (Element elem : obs.getResultQuality()) {
+                Map quality = new LinkedHashMap<>();
+                if (!elem.getNamesOfMeasure().isEmpty()) {
+                    quality.put("nameOfMeasure", elem.getNamesOfMeasure().iterator().next().toString());
+                }
+                for (Result r : elem.getResults()) {
+                    if (r instanceof DefaultQuantitativeResult dr) {
+                        for (org.opengis.util.Record rc : dr.getValues()) {
+                            var fieldValues = rc.getFields().values();
+                            var iter = fieldValues.iterator();
+                            if (iter.hasNext()) quality.put("DQ_Result", Collections.singletonMap("code", iter.next()));
+                        }
+                    }
+                }
+                resultQuality.add(quality);
+            }
+            observation.setResultQuality(resultQuality);
+        }
         // TODO parameters
 
         if (obs.getSamplingTime() != null) {
@@ -1124,7 +1149,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             subquery.setSelection(pe);
             Map<String, Object> hints = new HashMap<>(defaultHints);
             hints.put(INCLUDE_ID_IN_DATABLOCK, true);
-            hints.put("includeTimeForProfile", true);
+            hints.put(INCLUDE_TIME_FOR_FOR_PROFILE, true);
             hints.put(RESULT_MODE, ResultMode.DATA_ARRAY);
             hints.put(SEPARATED_OBSERVATION, true);
             return omProvider.getObservations(subquery, OBSERVATION_QNAME, "inline", null, hints);

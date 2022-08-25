@@ -110,6 +110,7 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.VERSION_NEGOTIATION_FAILED;
+import org.geotoolkit.swe.xml.v200.QuantityType;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -212,7 +213,7 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
 
         assertTrue(result.getContents() != null);
         assertTrue(result.getContents().getOfferings() != null);
-        assertEquals(result.getContents().getOfferings().size(), 14);
+        assertEquals(result.getContents().getOfferings().size(), 15);
 
         /*
          *  TEST 2 : full get capabilities
@@ -231,7 +232,7 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
         assertTrue(result.getServiceProvider() != null);
         assertTrue(result.getContents() != null);
         assertTrue(result.getContents().getOfferings() != null);
-        assertEquals(result.getContents().getOfferings().size(), 14);
+        assertEquals(result.getContents().getOfferings().size(), 15);
         assertNotNull(result);
 
         /*
@@ -305,7 +306,7 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
         assertTrue(result.getServiceProvider() == null);
         assertTrue(result.getContents() != null);
         assertTrue(result.getContents().getOfferings() != null);
-        assertEquals(result.getContents().getOfferings().size(),  14);
+        assertEquals(result.getContents().getOfferings().size(),  15);
         assertNotNull(result);
 
     }
@@ -613,12 +614,19 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
 
         Iterator<Field> i1 = expSdr.getField().iterator();
         Iterator<Field> i2 = obsSdr.getField().iterator();
-        TimeType expT = (TimeType) i1.next().getTime();
-        TimeType obsT = (TimeType) i2.next().getTime();
+        TimeType expT = (TimeType) i1.next().getValue();
+        TimeType obsT = (TimeType) i2.next().getValue();
 
-        assertEquals(expT.getUom(), obsT.getUom());
+        assertEquals(expT.getUom(),     obsT.getUom());
+        assertEquals(expT.getQuality(), obsT.getQuality());
         assertEquals(expT, obsT);
-        assertEquals(i1.next(), i2.next());
+
+        QuantityType expQ = (QuantityType) i1.next().getValue();
+        QuantityType resQ = (QuantityType) i2.next().getValue();
+        assertEquals(expQ.getUom(),     resQ.getUom());
+        assertEquals(expQ.getQuality(), resQ.getQuality());
+        assertEquals(expQ, resQ);
+
 
         assertEquals(expSdr, obsSdr);
 
@@ -2008,12 +2016,18 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
 
         Iterator<Field> i1 = expSdr.getField().iterator();
         Iterator<Field> i2 = obsSdr.getField().iterator();
-        TimeType expT = (TimeType) i1.next().getTime();
-        TimeType obsT = (TimeType) i2.next().getTime();
+        TimeType expT = (TimeType) i1.next().getValue();
+        TimeType obsT = (TimeType) i2.next().getValue();
 
         assertEquals(expT.getUom(), obsT.getUom());
+        assertEquals(expT.getQuality(), obsT.getQuality());
         assertEquals(expT, obsT);
-        assertEquals(i1.next(), i2.next());
+
+        QuantityType expQ = (QuantityType) i1.next().getValue();
+        QuantityType resQ = (QuantityType) i2.next().getValue();
+        assertEquals(expQ.getUom(),     resQ.getUom());
+        assertEquals(expQ.getQuality(), resQ.getQuality());
+        assertEquals(expQ, resQ);
 
         assertEquals(expSdr, obsSdr);
 

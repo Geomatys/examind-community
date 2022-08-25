@@ -101,6 +101,7 @@ import org.geotoolkit.swe.xml.v101.DataArrayType;
 import org.geotoolkit.swe.xml.v101.PhenomenonType;
 import org.geotoolkit.swe.xml.v101.SimpleDataRecordType;
 import org.geotoolkit.swe.xml.v101.TimeType;
+import org.geotoolkit.swe.xml.v101.QuantityType;
 import org.geotoolkit.swes.xml.InsertSensorResponse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -208,7 +209,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
 
         assertTrue(result.getContents() != null);
         assertTrue(result.getContents().getOfferings() != null);
-        assertEquals("nb offering!", 14, result.getContents().getOfferings().size());
+        assertEquals("nb offering!", 15, result.getContents().getOfferings().size());
 
         /*
          *  TEST 2 : full get capabilities
@@ -227,7 +228,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertTrue(result.getServiceProvider() != null);
         assertTrue(result.getContents() != null);
         assertTrue(result.getContents().getOfferings() != null);
-        assertEquals("nb offering!", 14, result.getContents().getOfferings().size());
+        assertEquals("nb offering!", 15, result.getContents().getOfferings().size());
         assertNotNull(result);
 
         /*
@@ -301,7 +302,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertTrue(result.getServiceProvider() == null);
         assertTrue(result.getContents() != null);
         assertTrue(result.getContents().getOfferings() != null);
-        assertEquals("nb offering!", 14, result.getContents().getOfferings().size());
+        assertEquals("nb offering!", 15, result.getContents().getOfferings().size());
         assertNotNull(result);
 
     }
@@ -793,7 +794,12 @@ public abstract class SOSWorkerTest extends SpringContextTest {
 
         assertEquals(expT.getUom(), obsT.getUom());
         assertEquals(expT, obsT);
-        assertEquals(i1.next(), i2.next());
+
+        QuantityType expQ = (QuantityType) i1.next().getValue();
+        QuantityType resQ = (QuantityType) i2.next().getValue();
+        assertEquals(expQ.getUom(),     resQ.getUom());
+        assertEquals(expQ.getQuality(), resQ.getQuality());
+        assertEquals(expQ, resQ);
 
         // do not compare datarray name (ID) because it depends on the implementation
         emptyNameAndId(expR.getDataArray(), obsR.getDataArray());
@@ -2608,7 +2614,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         /**
          * Test 1 : getFeatureOfInterestTime with featureID filter
          */
-        TimePeriodType expResult = new TimePeriodType(null, "2000-12-01", "2012-12-22");
+        TimePeriodType expResult = new TimePeriodType(null, "1980-03-01T21:52:00.000", "2012-12-22");
 
         GetFeatureOfInterestTime request = new GetFeatureOfInterestTime("1.0.0", "station-001");
 

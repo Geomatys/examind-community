@@ -36,7 +36,7 @@ public abstract class ResultDecimator extends ResultProcessor {
     protected final String sensorId;
     
     public ResultDecimator(List<Field> fields, boolean profile, boolean includeId, int width, List<Integer> fieldFilters, int mainFieldIndex, String sensorId) {
-        super(fields, profile, includeId);
+        super(fields, profile, includeId, false);
         this.width = width;
         this.fieldFilters = fieldFilters;
         this.mainFieldIndex = mainFieldIndex;

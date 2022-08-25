@@ -20,11 +20,9 @@ package org.constellation.store.observation.db;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 import org.apache.sis.storage.DataStoreException;
-import static org.geotoolkit.observation.OMUtils.dateFromTS;
 import org.geotoolkit.observation.ResultBuilder;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.ResultMode;
@@ -43,11 +41,13 @@ public class ResultProcessor {
     protected final List<Field> fields;
     protected final boolean profile;
     protected final boolean includeId;
+    protected final boolean includeQuality;
 
-    public ResultProcessor(List<Field> fields, boolean profile, boolean includeId) {
+    public ResultProcessor(List<Field> fields, boolean profile, boolean includeId, boolean includeQuality) {
         this.fields = fields;
         this.profile = profile;
         this.includeId = includeId;
+        this.includeQuality = includeQuality;
     }
 
     public ResultBuilder initResultBuilder(String responseFormat, boolean countRequest) {
@@ -69,13 +69,13 @@ public class ResultProcessor {
         if (values == null) {
             throw new DataStoreException("initResultBuilder(...) must be called before processing the results");
         }
-        FieldParser parser = new FieldParser(fields, false, includeId, null);
+        FieldParser parser = new FieldParser(fields, values, false, includeId, includeQuality, null);
         while (rs.next()) {
             if (includeId) {
                 String name = rs.getString("identifier");
                 parser.setName(name);
             }
-            parser.parseLine(values, rs, 0);
+            parser.parseLine(rs, 0);
         }
     }
 }

@@ -670,6 +670,44 @@
                 "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:9)/MultiDatastreams"
             }
         }, {
+            "@iot.id": "urn:ogc:object:sensor:GEOM:quality_sensor-320791920000",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/HistoricalLocations(urn:ogc:object:sensor:GEOM:quality_sensor-320791920000)",
+            "time": "1980-03-01T20:52:00Z",
+            "Locations": [{
+                    "name": "urn:ogc:object:sensor:GEOM:quality_sensor-320791920000",
+                    "description": "",
+                    "encodingType": "application/vnd.geo+json",
+                    "location": {
+                        "type": "Feature",
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [42.38798858151254, -4.144984627896044]
+                        },
+                        "properties": {}
+                    },
+                    "@iot.id": "urn:ogc:object:sensor:GEOM:quality_sensor-320791920000",
+                    "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:quality_sensor-320791920000)",
+                    "Things": [{
+                            "name": "Sensor quality",
+                            "description": "",
+                            "@iot.id": "urn:ogc:object:sensor:GEOM:quality_sensor",
+                            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:quality_sensor)",
+                            "HistoricalLocations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:quality_sensor)/HistoricalLocations",
+                            "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:quality_sensor)/Datastreams",
+                            "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:quality_sensor)/MultiDatastreams"
+                        }],
+                    "HistoricalLocations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:quality_sensor-320791920000)/HistoricalLocations"
+                }],
+            "Thing": {
+                "name": "Sensor quality",
+                "description": "",
+                "@iot.id": "urn:ogc:object:sensor:GEOM:quality_sensor",
+                "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:quality_sensor)",
+                "HistoricalLocations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:quality_sensor)/HistoricalLocations",
+                "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:quality_sensor)/Datastreams",
+                "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:quality_sensor)/MultiDatastreams"
+            }
+        }, {
             "@iot.id": "urn:ogc:object:sensor:GEOM:test-1-1178017140000",
             "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/HistoricalLocations(urn:ogc:object:sensor:GEOM:test-1-1178017140000)",
             "time": "2007-05-01T10:59:00Z",

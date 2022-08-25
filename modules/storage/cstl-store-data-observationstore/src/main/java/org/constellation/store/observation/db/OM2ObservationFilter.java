@@ -65,7 +65,6 @@ import static org.geotoolkit.observation.model.OMEntity.LOCATION;
 import static org.geotoolkit.observation.OMUtils.*;
 import org.geotoolkit.observation.model.FieldType;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildCompositePhenomenon;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
@@ -815,9 +814,12 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 throw new ObservationStoreException("Malformed propertyName in result filter:" + propertyName);
             }
             String index = propertyName.substring(opos + 1, cpos);
-
+            String suffix = propertyName.substring(cpos + 1);
+            if (!suffix.isEmpty()) {
+                suffix = "_quality_" + suffix.substring(1);
+            }
             // if the field is not a number this will fail.
-            sqlMeasureRequest.append(" AND ($phen").append(index).append(operator).appendObjectValue(value.getValue()).append(")");
+            sqlMeasureRequest.append(" AND (\"$phen").append(index).append(suffix).append("\" ").append(operator).appendObjectValue(value.getValue()).append(")");
 
         // apply only on all phenonemenon
         } else {

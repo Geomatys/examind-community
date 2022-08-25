@@ -21,12 +21,24 @@ package org.constellation.store.observation.db;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
+import javax.measure.format.ParserException;
+import org.apache.sis.measure.Units;
+import org.apache.sis.metadata.iso.quality.DefaultQuantitativeAttributeAccuracy;
+import org.apache.sis.metadata.iso.quality.DefaultQuantitativeResult;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.util.SimpleInternationalString;
+import org.apache.sis.util.iso.DefaultRecord;
+import org.apache.sis.util.iso.DefaultRecordSchema;
+import org.apache.sis.util.iso.Names;
+import org.apache.sis.xml.IdentifierSpace;
 import static org.constellation.store.observation.db.OM2BaseReader.LOGGER;
 import org.constellation.util.FilterSQLRequest;
 import org.geotoolkit.geometry.jts.transform.AbstractGeometryTransformer;
@@ -62,6 +74,7 @@ import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.io.WKBWriter;
+import org.opengis.metadata.quality.Element;
 import org.opengis.observation.Measure;
 import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -71,6 +84,8 @@ import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.temporal.TemporalObject;
 import org.opengis.util.FactoryException;
+import org.opengis.util.RecordType;
+import org.opengis.util.TypeName;
 
 /**
  * @author Guilhem Legal (Geomatys)
@@ -275,5 +290,45 @@ public class OM2Utils {
             LOGGER.log(Level.WARNING, "Unexpected geometry type:{0}", geom.getClass());
         }
         return buildSamplingFeature(version, id, name, description, prop);
+    }
+
+    public static  List<Field> flatFields(List<Field> fields) {
+        final List<Field> results = new ArrayList<>();
+        for (Field field : fields) {
+            results.add(field);
+            if (field.qualityFields != null && !field.qualityFields.isEmpty()) {
+                for (Field qField : field.qualityFields) {
+                    String name = field.name + "_quality_" + qField.name;
+                    Field newField = new Field(null, qField.type, name, qField.label, qField.description, qField.uom);
+                    results.add(newField);
+                }
+            }
+        }
+        return results;
+    }
+
+    public static Element createQualityElement(Field field, Object value) {
+        DefaultQuantitativeAttributeAccuracy element = new DefaultQuantitativeAttributeAccuracy();
+        element.setNamesOfMeasure(Arrays.asList(new SimpleInternationalString(field.name)));
+        if (value != null) {
+            DefaultQuantitativeResult res      = new DefaultQuantitativeResult();
+            DefaultRecordSchema schema         = new DefaultRecordSchema(null, null, "MySchema");
+            Map<CharSequence,Class<?>> fieldss = new LinkedHashMap<>();
+            fieldss.put("value",    field.type.getJavaType());
+            RecordType rt = schema.createRecordType("MyRecordType", fieldss);
+
+            DefaultRecord r = new DefaultRecord(rt);
+            r.set(rt.getMembers().iterator().next(), value);
+            res.setValues(Arrays.asList(r));
+            if (field.uom != null) {
+                try {
+                    res.setValueUnit(Units.valueOf(field.uom));
+                } catch (ParserException ex) {
+                    LOGGER.warning("Error while parsing uom : " + field.uom);
+                }
+            }
+            element.setResults(Arrays.asList(res));
+        }
+        return element;
     }
 }
