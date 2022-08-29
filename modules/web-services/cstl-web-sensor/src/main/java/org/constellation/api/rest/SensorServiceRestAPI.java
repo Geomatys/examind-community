@@ -179,7 +179,7 @@ public class SensorServiceRestAPI {
 
     @RequestMapping(value="/SensorService/{id}/observations", method = POST)
     public ResponseEntity getDecimatedObservations(final @PathVariable("id") Integer serviceId, final @RequestBody ObservationFilter filter, HttpServletResponse response) throws Exception {
-        Object results = sensorServiceBusiness.getResultsCsv(serviceId, filter.getSensorID(), filter.getObservedProperty(), filter.getFoi(), filter.getStart(), filter.getEnd(), filter.getWidth(), "text/csv");
+        Object results = sensorServiceBusiness.getResultsCsv(serviceId, filter.getSensorID(), filter.getObservedProperty(), filter.getFoi(), filter.getStart(), filter.getEnd(), filter.getWidth(), "text/csv", false);
         if (results instanceof String) {
             IOUtils.write((String)results, response.getOutputStream(), StandardCharsets.UTF_8);
             return ResponseEntity.ok().contentType(MediaType.TEXT_PLAIN).build();
@@ -190,7 +190,7 @@ public class SensorServiceRestAPI {
 
     @RequestMapping(value="/SensorService/{id}/observations/raw", method = POST, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getObservations(final @PathVariable("id") Integer serviceId, final @RequestBody ObservationFilter filter, HttpServletResponse response) throws Exception {
-        Object results = sensorServiceBusiness.getResultsCsv(serviceId, filter.getSensorID(), filter.getObservedProperty(), filter.getFoi(), filter.getStart(), filter.getEnd(), null, "text/csv");
+        Object results = sensorServiceBusiness.getResultsCsv(serviceId, filter.getSensorID(), filter.getObservedProperty(), filter.getFoi(), filter.getStart(), filter.getEnd(), null, "text/csv", false);
         if (results instanceof String) {
             IOUtils.write((String)results, response.getOutputStream(), StandardCharsets.UTF_8);
             return ResponseEntity.ok().contentType(MediaType.TEXT_PLAIN).build();

@@ -880,6 +880,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 // i'm not sure it will be possible to handle an observation with no main field (meaning its not a timeseries or a profile).
                 fieldOrdering = "m.\"id\"";
             }
+            if (profileWithTime) {
+                sqlRequest.replaceFirst("m.*", "m.*, o.\"id\" as oid, o.\"time_begin\" ");
+            } else if (profile) {
+                sqlRequest.replaceFirst("m.*", "m.*, o.\"id\" as oid ");
+            }
             sqlRequest.append(" ORDER BY  o.\"id\", ").append(fieldOrdering);
 
             if (firstFilter) {
