@@ -510,14 +510,21 @@ public class OM2BaseReader {
     public org.opengis.observation.Process getProcess(String version, String identifier, final Connection c) throws SQLException {
         try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {//NOSONAR
             stmt.setString(1, identifier);
-            try(final ResultSet rs = stmt.executeQuery()) {
-                String pid = null;
+            try (final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return SOSXmlFactory.buildProcess(version, rs.getString("id"), rs.getString("name"), rs.getString("description"));
                 }
             }
         }
         return null;
+    }
+
+    public org.opengis.observation.Process getProcessSafe(String version, String identifier, final Connection c) throws RuntimeException {
+        try {
+            return getProcess(version, identifier, c);
+        } catch (SQLException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     protected String getProcedureParent(final String procedureId, final Connection c) throws SQLException {

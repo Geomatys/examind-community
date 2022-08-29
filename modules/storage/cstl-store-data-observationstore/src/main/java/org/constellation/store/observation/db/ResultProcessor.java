@@ -27,44 +27,59 @@ import org.apache.sis.storage.DataStoreException;
 import static org.geotoolkit.observation.OMUtils.dateFromTS;
 import org.geotoolkit.observation.ResultBuilder;
 import org.geotoolkit.observation.model.Field;
+import org.geotoolkit.observation.model.ResultMode;
+import static org.geotoolkit.sos.xml.SOSXmlFactory.getCsvTextEncoding;
+import static org.geotoolkit.sos.xml.SOSXmlFactory.getDefaultTextEncoding;
 
 /**
  *
- * @author guilhem
+ * @author Guilhem Legal (Geomatys)
  */
 public class ResultProcessor {
 
     protected static final Logger LOGGER = Logger.getLogger("org.constellation.store.observation.db");
     
-    protected final ResultBuilder values;
+    protected ResultBuilder values = null;
     protected final List<Field> fields;
-    protected final boolean profileWithTime;
     protected final boolean profile;
+    protected final boolean includeId;
 
-    public ResultProcessor(ResultBuilder values, List<Field> fields, boolean profileWithTime, boolean profile) {
-        this.values = values;
+    public ResultProcessor(List<Field> fields, boolean profile, boolean includeId) {
         this.fields = fields;
-        this.profileWithTime = profileWithTime;
         this.profile = profile;
+        this.includeId = includeId;
+    }
+
+    public ResultBuilder initResultBuilder(String responseFormat, boolean countRequest) {
+        if ("resultArray".equals(responseFormat)) {
+            values = new ResultBuilder(ResultMode.DATA_ARRAY, null, false);
+        } else if ("text/csv".equals(responseFormat)) {
+            values = new ResultBuilder(ResultMode.CSV, getCsvTextEncoding("2.0.0"), true);
+            // Add the header
+            values.appendHeaders(fields);
+        } else if (countRequest) {
+            values = new ResultBuilder(ResultMode.COUNT, null, false);
+        } else {
+            values = new ResultBuilder(ResultMode.CSV, getDefaultTextEncoding("2.0.0"), false);
+        }
+        return values;
     }
 
     public void processResults(ResultSet rs) throws SQLException, DataStoreException {
+        if (values == null) {
+            throw new DataStoreException("initResultBuilder(...) must be called before processing the results");
+        }
         while (rs.next()) {
             values.newBlock();
-            if (profileWithTime) {
-                Date t = dateFromTS(rs.getTimestamp("time_begin"));
-                values.appendTime(t);
-            }
             for (int i = 0; i < fields.size(); i++) {
                 Field field = fields.get(i);
-                String value;
                 switch (field.type) {
                     case TIME:
                         Date t = dateFromTS(rs.getTimestamp(field.name));
                         values.appendTime(t);
                         break;
                     case QUANTITY:
-                        value = rs.getString(field.name); // we need to kown if the value is null (rs.getDouble return 0 if so).
+                        String value = rs.getString(field.name); // we need to kown if the value is null (rs.getDouble return 0 if so).
                         Double d = Double.NaN;
                         if (value != null && !value.isEmpty()) {
                             d = rs.getDouble(field.name);
@@ -76,7 +91,12 @@ public class ResultProcessor {
                         values.appendBoolean(bvalue);
                         break;
                     default:
-                        values.appendString(rs.getString(field.name));
+                        String tvalue = rs.getString(field.name);
+                        if (includeId && field.name.equals("id")) {
+                            String name = rs.getString("identifier");
+                            tvalue = name + '-' + tvalue;
+                        }
+                        values.appendString(tvalue);
                         break;
                 }
             }

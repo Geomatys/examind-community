@@ -22,7 +22,9 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.util.FilterSQLRequest;
 import org.geotoolkit.geometry.jts.transform.AbstractGeometryTransformer;
@@ -31,6 +33,8 @@ import org.geotoolkit.observation.ResultBuilder;
 import org.geotoolkit.observation.model.Field;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildDataArrayProperty;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildSimpleDatarecord;
+import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimeInstant;
+import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimePeriod;
 import org.geotoolkit.swe.xml.AbstractDataComponent;
 import org.geotoolkit.swe.xml.AbstractDataRecord;
 import org.geotoolkit.swe.xml.AnyScalar;
@@ -48,6 +52,7 @@ import org.opengis.observation.Measure;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
+import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.temporal.TemporalObject;
 
 /**
@@ -219,4 +224,17 @@ public class OM2Utils {
         return buildDataArrayProperty(version, arrayID, nbValue, arrayID, record, encoding, stringValues, dataValues);
     }
 
+    public static TemporalGeometricPrimitive buildTime(String version, String timeID, Date startTime, Date endTime) {
+        TemporalGeometricPrimitive time = null;
+        if (startTime != null && endTime == null) {
+            time = buildTimeInstant(version, timeID, startTime);
+        } else if (startTime != null || endTime != null) {
+            if (Objects.equals(startTime, endTime)) {
+                time = buildTimeInstant(version, timeID, startTime);
+            } else {
+                time = buildTimePeriod(version, timeID, startTime, endTime);
+            }
+        }
+        return time;
+    }
 }

@@ -19,23 +19,28 @@
 package org.constellation.store.observation.db;
 
 import java.util.List;
-import org.geotoolkit.observation.ResultBuilder;
 import org.geotoolkit.observation.model.Field;
 
 /**
  *
- * @author guilhem
+ * @author Guilhem Legal (Geomatys)
  */
 public abstract class ResultDecimator extends ResultProcessor {
 
     protected final int width;
 
     protected List<Integer> fieldFilters;
+
+    protected final int mainFieldIndex;
+
+    protected final String sensorId;
     
-    public ResultDecimator(ResultBuilder values, List<Field> fields, boolean profileWithTime, boolean profile, int width, List<Integer> fieldFilters) {
-        super(values, fields, profileWithTime, profile);
+    public ResultDecimator(List<Field> fields, boolean profile, boolean includeId, int width, List<Integer> fieldFilters, int mainFieldIndex, String sensorId) {
+        super(fields, profile, includeId);
         this.width = width;
         this.fieldFilters = fieldFilters;
+        this.mainFieldIndex = mainFieldIndex;
+        this.sensorId = sensorId;
     }
 
 }

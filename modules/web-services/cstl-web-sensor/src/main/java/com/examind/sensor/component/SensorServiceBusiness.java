@@ -392,7 +392,7 @@ public class SensorServiceBusiness {
         }
     }
 
-    public Object getResultsCsv(final Integer id, final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end, final Integer width, final String resultFormat, final boolean timeforProfile) throws ConfigurationException {
+    public Object getResultsCsv(final Integer id, final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end, final Integer width, final String resultFormat, final boolean timeforProfile, final boolean includeIdInDatablock) throws ConfigurationException {
         try {
             final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
             FeatureQuery query = new FeatureQuery();
@@ -402,6 +402,7 @@ public class SensorServiceBusiness {
                 hints.put("decimSize", Integer.toString(width));
             }
             hints.put("includeTimeForProfile", timeforProfile);
+            hints.put("includeIDInDataBlock", includeIdInDatablock);
             return pr.getResults(sensorID, CommonConstants.OBSERVATION_QNAME, "inline", query, resultFormat, hints);
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);

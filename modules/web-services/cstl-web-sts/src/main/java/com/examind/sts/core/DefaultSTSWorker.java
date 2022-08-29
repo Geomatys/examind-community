@@ -651,7 +651,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         for (Entry<String, List> entry : arrays.entrySet()) {
             String sensorId = entry.getKey() + "-dec";
             List resultArray = entry.getValue();
-            List<Object> results = formatSTSArray(sensorId, resultArray, MEASUREMENT_QNAME.equals(resultModel), false);
+            boolean single = MEASUREMENT_QNAME.equals(resultModel);
+            List<Object> results = formatSTSArray(sensorId, resultArray, single, !single);
             result.getDataArray().addAll(results);
         }
         return new DataArrayResponseExt(Arrays.asList(result), count, nextLink);

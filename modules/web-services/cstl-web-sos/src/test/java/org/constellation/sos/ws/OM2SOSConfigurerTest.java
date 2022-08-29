@@ -124,6 +124,13 @@ public class OM2SOSConfigurerTest extends SOSConfigurerTest {
     public void getObservationsCsvProfileTest() throws Exception {
         super.getObservationsCsvProfileTest();
     }
+
+    @Test
+    @Override
+    @Order(order=2)
+    public void getDecimatedObservationsCsvProfileTest() throws Exception {
+        super.getDecimatedObservationsCsvProfileTest();
+    }
     
     @Test
     @Override

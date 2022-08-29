@@ -56,6 +56,7 @@ import static org.geotoolkit.observation.ObservationFilterFlags.*;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.sos.xml.ResponseModeType;
 import org.geotoolkit.storage.DataStores;
+import org.geotoolkit.swe.xml.DataArrayProperty;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
@@ -75,6 +76,7 @@ import org.opengis.observation.Process;
 import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.temporal.TemporalGeometricPrimitive;
+import org.opengis.temporal.TemporalObject;
 
 /**
  *
@@ -1252,6 +1254,21 @@ public class ObservationStoreProviderTest {
     }
 
     @Test
+    public void getMeasurementsTest() throws Exception {
+        assertNotNull(omPr);
+
+        List<Observation> results = omPr.getObservations(null, MEASUREMENT_QNAME, "inline", null, new HashMap<>());
+        assertEquals(180, results.size());
+
+        for (Observation p : results) {
+            assertTrue(p instanceof org.geotoolkit.observation.xml.v200.OMObservationType);
+            org.geotoolkit.observation.xml.v200.OMObservationType result = (org.geotoolkit.observation.xml.v200.OMObservationType) p;
+            assertNotNull("null sampling time on measurement", result.getSamplingTime());
+            
+        }
+    }
+
+    @Test
     public void getObservationsTest() throws Exception {
         assertNotNull(omPr);
 
@@ -1335,6 +1352,65 @@ public class ObservationStoreProviderTest {
         assertNotNull(result.getObservedProperty());
         assertEquals("aggregatePhenomenon", getPhenomenonId(result));
 
+        /**
+         * the observation from sensor 'test-1' is a single observations with an aggregate phenomenon
+         */
+        hints = new HashMap<>();
+        hints.put(VERSION, "1.0.0");
+        query = new FeatureQuery();
+        filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:test-1"));
+        query.setSelection(filter);
+        results = omPr.getObservations(query,  OBSERVATION_QNAME, "inline", null, hints);
+        assertEquals(1, results.size());
+
+        result = results.get(0);
+        assertTrue(result instanceof org.geotoolkit.observation.xml.v100.ObservationType);
+        assertEquals("urn:ogc:object:observation:GEOM:507", result.getName().getCode());
+
+        assertNotNull(result.getObservedProperty());
+        assertEquals("aggregatePhenomenon", getPhenomenonId(result));
+
+        assertPeriodEquals("2007-05-01T12:59:00.0Z", "2007-05-01T16:59:00.0Z", result.getSamplingTime());
+
+        assertTrue(result.getResult() instanceof DataArrayProperty);
+
+        DataArrayProperty resultDAP = (DataArrayProperty) result.getResult();
+        String expectedValues = "2007-05-01T12:59:00.0,6.56,@@"
+                              + "2007-05-01T13:59:00.0,6.56,@@"
+                              + "2007-05-01T14:59:00.0,6.56,@@"
+                              + "2007-05-01T15:59:00.0,6.56,@@"
+                              + "2007-05-01T16:59:00.0,6.56,@@";
+        assertEquals(expectedValues, resultDAP.getDataArray().getValues());
+
+        /**
+         * the observation from sensor '8' is a single observations with an aggregate phenomenon
+         */
+        hints = new HashMap<>();
+        hints.put(VERSION, "1.0.0");
+        query = new FeatureQuery();
+        filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:8"));
+        query.setSelection(filter);
+        results = omPr.getObservations(query,  OBSERVATION_QNAME, "inline", null, hints);
+        assertEquals(1, results.size());
+
+        result = results.get(0);
+        assertTrue(result instanceof org.geotoolkit.observation.xml.v100.ObservationType);
+        assertEquals("urn:ogc:object:observation:GEOM:801", result.getName().getCode());
+
+        assertNotNull(result.getObservedProperty());
+        assertEquals("aggregatePhenomenon", getPhenomenonId(result));
+
+        assertPeriodEquals("2007-05-01T12:59:00.0Z", "2007-05-01T16:59:00.0Z", result.getSamplingTime());
+
+        assertTrue(result.getResult() instanceof DataArrayProperty);
+
+        resultDAP = (DataArrayProperty) result.getResult();
+        expectedValues = "2007-05-01T12:59:00.0,6.56,12.0@@"
+                       + "2007-05-01T13:59:00.0,6.56,13.0@@"
+                       + "2007-05-01T14:59:00.0,6.56,14.0@@"
+                       + "2007-05-01T15:59:00.0,6.56,15.0@@"
+                       + "2007-05-01T16:59:00.0,6.56,16.0@@";
+        assertEquals(expectedValues, resultDAP.getDataArray().getValues());
 
     }
 
@@ -1451,7 +1527,7 @@ public class ObservationStoreProviderTest {
     /**
      * Temporary methods waiting for fix in TimePositionType in geotk
      */
-    private void assertPeriodEquals(String begin, String end, TemporalGeometricPrimitive result) throws ParseException {
+    private void assertPeriodEquals(String begin, String end, TemporalObject result) throws ParseException {
         if (result instanceof TimePeriodType) {
             TimePeriodType tResult = (TimePeriodType) result;
             assertEquals(FORMAT.parse(begin), tResult.getBeginPosition().getDate());

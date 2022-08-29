@@ -24,31 +24,41 @@ import java.util.Date;
 import java.util.List;
 import org.apache.sis.storage.DataStoreException;
 import static org.geotoolkit.observation.OMUtils.dateFromTS;
-import org.geotoolkit.observation.ResultBuilder;
 import org.geotoolkit.observation.model.Field;
+import org.geotoolkit.observation.model.FieldType;
 
 /**
  *
- * @author guilhem
+ * @author Guilhem Legal (Geomatys)
  */
 public class TimeScaleResultDecimator extends ResultDecimator {
 
-    public TimeScaleResultDecimator(ResultBuilder values, List<Field> fields, boolean profileWithTime, boolean profile, int width, List<Integer> fieldFilters) {
-        super(values, fields, profileWithTime, profile, width, fieldFilters);
+    public TimeScaleResultDecimator(List<Field> fields, boolean profile, boolean includeId, int width, List<Integer> fieldFilters, int mainFieldIndex, String sensorId) {
+        super(fields, profile, includeId, width, fieldFilters, mainFieldIndex, sensorId);
     }
 
     @Override
     public void processResults(ResultSet rs) throws SQLException, DataStoreException {
+        if (values == null) {
+            throw new DataStoreException("initResultBuilder(...) must be called before processing the results");
+        }
+        int cpt = 0;
         while (rs.next()) {
             values.newBlock();
-            if (profileWithTime) {
-                Date t = dateFromTS(rs.getTimestamp("time_begin"));
-                values.appendTime(t);
-            }
             for (int i = 0; i < fields.size(); i++) {
                 Field field = fields.get(i);
                 String fieldName = field.name;
-                if (i == 0) {
+                
+                 // time for profile field
+                if (i < mainFieldIndex && field.type == FieldType.TIME) {
+                    Date t = dateFromTS(rs.getTimestamp("time_begin"));
+                    values.appendTime(t);
+                // id field
+                } else if (i < mainFieldIndex && field.type == FieldType.TEXT) {
+                    values.appendString(sensorId + "-dec-" + cpt);
+                    cpt++;
+                // main field
+                } else if (i == mainFieldIndex) {
                     fieldName = "step";
 
                     // special case for profile + datastream on another phenomenon that the main field.
