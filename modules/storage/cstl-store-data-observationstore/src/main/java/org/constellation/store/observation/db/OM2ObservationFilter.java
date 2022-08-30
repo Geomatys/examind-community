@@ -35,6 +35,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -50,6 +51,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CRS;
+import static org.constellation.api.CommonConstants.EVENT_TIME;
 
 import org.geotoolkit.observation.model.Field;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
@@ -63,6 +65,7 @@ import static org.geotoolkit.observation.model.OMEntity.HISTORICAL_LOCATION;
 import static org.geotoolkit.observation.model.OMEntity.LOCATION;
 import static org.geotoolkit.observation.OMUtils.*;
 import org.geotoolkit.observation.model.FieldType;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildCompositePhenomenon;
 import org.locationtech.jts.geom.Polygon;
@@ -71,9 +74,13 @@ import org.locationtech.jts.io.WKBReader;
 import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.ComparisonOperatorName;
 import org.opengis.filter.Literal;
+import org.opengis.filter.TemporalOperator;
+import org.opengis.filter.TemporalOperatorName;
 import org.opengis.filter.ValueReference;
 import org.opengis.observation.CompositePhenomenon;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.temporal.Instant;
+import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.util.FactoryException;
 
@@ -642,6 +649,149 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 }
                 obsJoin = true;
             }
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setTimeFilter(final TemporalOperator tFilter) throws DataStoreException {
+        // we get the property name (not used for now)
+        // String propertyName = tFilter.getExpression1()
+        Object time = tFilter.getExpressions().get(1);
+        boolean getLoc = OMEntity.HISTORICAL_LOCATION.equals(objectType);
+        TemporalOperatorName type = tFilter.getOperatorType();
+        if (type == TemporalOperatorName.EQUALS) {
+
+            if (time instanceof Literal && !(time instanceof TemporalGeometricPrimitive)) {
+                time = ((Literal)time).getValue();
+            }
+            if (time instanceof Period tp) {
+                final Timestamp begin = new Timestamp(tp.getBeginning().getDate().getTime());
+                final Timestamp end   = new Timestamp(tp.getEnding().getDate().getTime());
+
+                // we request directly a multiple observation or a period observation (one measure during a period)
+                if (firstFilter) {
+                    sqlRequest.append(" ( ");
+                } else {
+                    sqlRequest.append("AND ( ");
+                }
+                sqlRequest.append(" \"time_begin\"=").appendValue(begin).append(" AND ");
+                sqlRequest.append(" \"time_end\"=").appendValue(end).append(") ");
+                obsJoin = true;
+                firstFilter = false;
+            // if the temporal object is a timeInstant
+            } else if (time instanceof Instant ti) {
+                final Timestamp position = new Timestamp(ti.getDate().getTime());
+                if (getLoc) {
+                    if (firstFilter) {
+                        sqlRequest.append(" ( ");
+                    } else {
+                        sqlRequest.append("AND ( ");
+                    }
+                    sqlRequest.append(" \"time\"=").appendValue(position).append(") ");
+                    firstFilter = false;
+                } else {
+                    if (!"profile".equals(currentOMType)) {
+                        boolean conditional = (currentOMType == null);
+                        sqlMeasureRequest.append(" AND ( \"$time\"=", conditional).appendValue(position, conditional).append(") ", conditional);
+                    }
+                    obsJoin = true;
+                }
+            } else {
+                throw new ObservationStoreException("TM_Equals operation require timeInstant or TimePeriod!",
+                        INVALID_PARAMETER_VALUE, EVENT_TIME);
+            }
+        } else if (type == TemporalOperatorName.BEFORE) {
+            if (time instanceof Literal && !(time instanceof TemporalGeometricPrimitive)) {
+                time = ((Literal)time).getValue();
+            }
+            // for the operation before the temporal object must be an timeInstant
+            if (time instanceof Instant ti) {
+                final Timestamp position = new Timestamp(ti.getDate().getTime());
+                if (firstFilter) {
+                    sqlRequest.append(" ( ");
+                } else {
+                    sqlRequest.append("AND ( ");
+                }
+                if (getLoc) {
+                    sqlRequest.append(" \"time\"<=").appendValue(position).append(")");
+                } else {
+                    sqlRequest.append(" \"time_begin\"<=").appendValue(position).append(")");
+                    if (!"profile".equals(currentOMType)) {
+                        boolean conditional = (currentOMType == null);
+                        sqlMeasureRequest.append(" AND ( \"$time\"<=", conditional).appendValue(position, conditional).append(")", conditional);
+                    }
+                    obsJoin = true;
+                }
+                firstFilter = false;
+            } else {
+                throw new ObservationStoreException("TM_Before operation require timeInstant!",
+                        INVALID_PARAMETER_VALUE, EVENT_TIME);
+            }
+
+        } else if (type == TemporalOperatorName.AFTER) {
+            if (time instanceof Literal && !(time instanceof TemporalGeometricPrimitive)) {
+                time = ((Literal)time).getValue();
+            }
+            // for the operation after the temporal object must be an timeInstant
+            if (time instanceof Instant ti) {
+                final Timestamp position = new Timestamp(ti.getDate().getTime());
+                if (firstFilter) {
+                    sqlRequest.append(" ( ");
+                } else {
+                    sqlRequest.append("AND ( ");
+                }
+                if (getLoc) {
+                    sqlRequest.append(" \"time\">=").appendValue(position).append(")");
+                } else {
+                    sqlRequest.append("( \"time_end\">=").appendValue(position).append(") OR (\"time_end\" IS NULL AND \"time_begin\" >=").appendValue(position).append("))");
+                    if (!"profile".equals(currentOMType)) {
+                        boolean conditional = (currentOMType == null);
+                        sqlMeasureRequest.append(" AND (\"$time\">=", conditional).appendValue(position, conditional).append(")", conditional);
+                    }
+                    obsJoin = true;
+                }
+                firstFilter = false;
+            } else {
+                throw new ObservationStoreException("TM_After operation require timeInstant!",
+                        INVALID_PARAMETER_VALUE, EVENT_TIME);
+            }
+
+        } else if (type == TemporalOperatorName.DURING) {
+            if (time instanceof Literal && !(time instanceof TemporalGeometricPrimitive)) {
+                time = ((Literal)time).getValue();
+            }
+            if (time instanceof Period tp) {
+                final Timestamp begin = new Timestamp(tp.getBeginning().getDate().getTime());
+                final Timestamp end   = new Timestamp(tp.getEnding().getDate().getTime());
+                if (firstFilter) {
+                    sqlRequest.append(" ( ");
+                } else {
+                    sqlRequest.append("AND ( ");
+                }
+
+                if (getLoc) {
+                    sqlRequest.append(" \"time\">=").appendValue(begin).append(" AND \"time\"<=").appendValue(end).append(")");
+                } else {
+                    OM2Utils.addtimeDuringSQLFilter(sqlRequest, tp);
+                    sqlRequest.append(" ) ");
+
+                    if (!"profile".equals(currentOMType)) {
+                        boolean conditional = (currentOMType == null);
+                        sqlMeasureRequest.append(" AND ( \"$time\">=", conditional).appendValue(begin, conditional)
+                                         .append(" AND \"$time\"<= ", conditional).appendValue(end, conditional).append(")", conditional);
+                    }
+                    obsJoin = true;
+                }
+                firstFilter = false;
+            } else {
+                throw new ObservationStoreException("TM_During operation require TimePeriod!",
+                        INVALID_PARAMETER_VALUE, EVENT_TIME);
+            }
+        } else {
+            throw new ObservationStoreException("This operation is not take in charge by the Web Service, supported one are: TM_Equals, TM_After, TM_Before, TM_During");
         }
     }
 
