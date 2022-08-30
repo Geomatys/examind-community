@@ -45,6 +45,7 @@ import org.geotoolkit.observation.ResultBuilder;
 import org.geotoolkit.observation.model.ResultMode;
 import static org.constellation.store.observation.db.OM2BaseReader.defaultCRS;
 import static org.constellation.store.observation.db.OM2Utils.buildComplexResult;
+import static org.constellation.store.observation.db.OM2Utils.buildFoi;
 import static org.constellation.store.observation.db.OM2Utils.buildTime;
 import static org.geotoolkit.observation.OMUtils.*;
 import org.geotoolkit.geometry.jts.JTS;

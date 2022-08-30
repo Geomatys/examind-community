@@ -19,8 +19,6 @@
 
 package org.constellation.store.observation.db;
 
-// J2SE dependencies
-
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
@@ -62,8 +60,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVATION_MODEL;
@@ -83,6 +83,7 @@ import static org.geotoolkit.sos.xml.SOSXmlFactory.getDefaultTextEncoding;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.getGMLVersion;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
+import static org.constellation.store.observation.db.OM2Utils.buildComplexResult;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.gml.xml.GMLXmlFactory;
 import static org.geotoolkit.observation.OMUtils.dateFromTS;
@@ -598,7 +599,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
 
             final Process proc = getProcess(version, procedure, c);
             if (resultModel.equals(MEASUREMENT_QNAME)) {
-                final Object result = getResult(identifier, resultModel, version);
+                final Object result = getResult(identifier, resultModel, version, c);
                 return OMXmlFactory.buildMeasurement(version, obsID, name, null, prop, phen, proc, result, time, null);
             } else {
                 final Object result = getResult(identifier, resultModel, version);
@@ -716,29 +717,60 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
         return buildMeasure(version, name, uom, value);
     }
 
+    protected Set<String> getFoiIdsForProcedure(final String procedure, final Connection c) throws SQLException {
+        try (final PreparedStatement stmt = c.prepareStatement("SELECT \"foi\" FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"procedure\"=?")) {//NOSONAR
+            stmt.setString(1, procedure);
+            try (final ResultSet rs = stmt.executeQuery()) {
+                final Set<String> results = new HashSet<>();
+                while (rs.next()) {
+                    results.add(rs.getString(1));
+                }
+                return results;
+            }
+        }
+    }
+
     /**
      * {@inheritDoc}
      */
     @Override
     public Observation getTemplateForProcedure(final String procedure, final String version) throws DataStoreException {
-        // TODO generate template from procedue description
-        Observation template = null;
-        try(final Connection c = source.getConnection();
-            final PreparedStatement stmt = c.prepareStatement("SELECT \"identifier\" FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"procedure\"=?")) {//NOSONAR
-            stmt.setString(1, procedure);
-            try (final ResultSet rs = stmt.executeQuery()) {
-                String identifier = null;
-                if (rs.next()) {
-                    identifier = rs.getString(1);
-                }
-                if (identifier != null) {
-                    template = getObservation(identifier, OBSERVATION_QNAME, ResponseModeType.RESULT_TEMPLATE, version);
-                }
+        try (final Connection c = source.getConnection()) {
+
+            final String procedureID;
+            if (procedure.startsWith(sensorIdBase)) {
+                procedureID = procedure.substring(sensorIdBase.length());
+            } else {
+                procedureID = procedure;
             }
+            final String obsID = "obs-" + procedureID;
+            final String name = observationTemplateIdBase + procedureID;
+            final Phenomenon phen = getGlobalCompositePhenomenon(version, c, procedure);
+            String featureID = null;
+            FeatureProperty foi = null;
+            Set<String> fois = getFoiIdsForProcedure(procedure, c);
+            if (fois.size() == 1) {
+                featureID = fois.iterator().next();
+                final SamplingFeature feature = getFeatureOfInterest(featureID, version, c);
+                foi = buildFeatureProperty(version, feature);
+            }
+            TemporalGeometricPrimitive tempTime = getTimeForTemplate(c, procedure, null, featureID, version);
+            List<Field> fields = readFields(procedure, c);
+            /*
+             *  BUILD RESULT
+             */
+            final List<AnyScalar> scal = new ArrayList<>();
+            for (Field f : fields) {
+                scal.add(f.getScalar(version));
+            }
+            final Process proc = getProcess(version, procedure, c);
+            final TextBlock encoding = getDefaultTextEncoding(version);
+            
+            final Object result = buildComplexResult(version, scal, 0, encoding, null, 0);
+            return OMXmlFactory.buildObservation(version, obsID, name, null, foi, phen, proc, result, tempTime, null);
         } catch (SQLException ex) {
             throw new DataStoreException(ex.getMessage(), ex);
         }
-        return template;
     }
 
     /**

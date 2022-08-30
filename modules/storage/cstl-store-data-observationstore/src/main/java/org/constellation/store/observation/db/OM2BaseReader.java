@@ -20,9 +20,6 @@
 package org.constellation.store.observation.db;
 
 import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.LineString;
-import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
 
@@ -33,6 +30,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -43,24 +41,25 @@ import java.util.logging.Logger;
 
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStoreException;
+import static org.constellation.store.observation.db.OM2Utils.buildFoi;
 import org.geotoolkit.observation.model.Field;
 import org.constellation.util.Util;
 import org.geotoolkit.geometry.jts.SRIDGenerator;
-import org.geotoolkit.gml.JTStoGeometry;
-import org.geotoolkit.gml.xml.Envelope;
-import org.geotoolkit.gml.xml.FeatureProperty;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_ID_BASE_NAME;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_TEMPLATE_ID_BASE_NAME;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.PHENOMENON_ID_BASE_NAME;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.SENSOR_ID_BASE_NAME;
+import static org.geotoolkit.observation.OMUtils.getOverlappingComposite;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 
 import static org.geotoolkit.sos.xml.SOSXmlFactory.*;
 import org.opengis.metadata.Identifier;
+import org.opengis.observation.CompositePhenomenon;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.util.FactoryException;
 
 /**
@@ -207,32 +206,46 @@ public class OM2BaseReader {
         }
     }
 
-    protected SamplingFeature buildFoi(final String version, final String id, final String name, final String description, final String sampledFeature,
-            final Geometry geom, final CoordinateReferenceSystem crs) throws FactoryException {
-
-        final String gmlVersion = getGMLVersion(version);
-        // sampled feature is mandatory (even if its null, we build a property)
-        final FeatureProperty prop = buildFeatureProperty(version, sampledFeature);
-        if (geom instanceof Point) {
-            final org.geotoolkit.gml.xml.Point point = JTStoGeometry.toGML(gmlVersion, (Point)geom, crs);
-            // little hack fo unit test
-            //point.setSrsName(null);
-            point.setId("pt-" + id);
-            return buildSamplingPoint(version, id, name, description, prop, point);
-        } else if (geom instanceof LineString) {
-            final org.geotoolkit.gml.xml.LineString line = JTStoGeometry.toGML(gmlVersion, (LineString)geom, crs);
-            line.emptySrsNameOnChild();
-            line.setId("line-" + id);
-            final Envelope bound = line.getBounds();
-            return buildSamplingCurve(version, id, name, description, prop, line, null, null, bound);
-        } else if (geom instanceof Polygon) {
-            final org.geotoolkit.gml.xml.Polygon poly = JTStoGeometry.toGML(gmlVersion, (Polygon)geom, crs);
-            poly.setId("polygon-" + id);
-            return buildSamplingPolygon(version, id, name, description, prop, poly, null, null, null);
-        } else if (geom != null) {
-            LOGGER.log(Level.WARNING, "Unexpected geometry type:{0}", geom.getClass());
+    @SuppressWarnings("squid:S2695")
+    protected TemporalGeometricPrimitive getTimeForTemplate(Connection c, String procedure, String observedProperty, String foi, String version) {
+        String request = "SELECT min(\"time_begin\"), max(\"time_begin\"), max(\"time_end\") FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"procedure\"=?";
+        if (observedProperty != null) {
+             request = request + " AND (\"observed_property\"=? OR \"observed_property\" IN (SELECT \"phenomenon\" FROM \"" + schemaPrefix + "om\".\"components\" WHERE \"component\"=?))";
         }
-        return buildSamplingFeature(version, id, name, description, prop);
+        if (foi != null) {
+            request = request + " AND \"foi\"=?";
+        }
+        LOGGER.fine(request);
+        try(final PreparedStatement stmt = c.prepareStatement(request)) {//NOSONAR
+            stmt.setString(1, procedure);
+            int cpt = 2;
+            if (observedProperty != null) {
+                stmt.setString(cpt, observedProperty);
+                cpt++;
+                stmt.setString(cpt, observedProperty);
+                cpt++;
+            }
+            if (foi != null) {
+                stmt.setString(cpt, foi);
+            }
+            try (final ResultSet rs   = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Date minBegin = rs.getTimestamp(1);
+                    Date maxBegin = rs.getTimestamp(2);
+                    Date maxEnd   = rs.getTimestamp(3);
+                    if (minBegin != null && maxEnd != null && maxEnd.after(maxBegin)) {
+                        return SOSXmlFactory.buildTimePeriod(version, minBegin, maxEnd);
+                    } else if (minBegin != null && !minBegin.equals(maxBegin)) {
+                        return SOSXmlFactory.buildTimePeriod(version, minBegin, maxBegin);
+                    } else if (minBegin != null) {
+                        return SOSXmlFactory.buildTimeInstant(version, minBegin);
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.WARNING, "Error while looking for template time.", ex);
+        }
+        return null;
     }
 
     protected Set<Phenomenon> getAllPhenomenon(final String version, final Connection c) throws DataStoreException {
@@ -329,6 +342,86 @@ public class OM2BaseReader {
             throw new DataStoreException(ex.getMessage(), ex);
         }
         return null;
+    }
+
+     /**
+     * Return the global phenomenon for a procedure.
+     * We need this method because some procedure got multiple observation with only a phenomon component,
+     * and not the full composite.
+     * some other are registered with composite that are a subset of the global procedure phenomenon.
+     *
+     * @return
+     */
+    protected Phenomenon getGlobalCompositePhenomenon(String version, Connection c, String procedure) throws DataStoreException {
+       String request = "SELECT DISTINCT(\"observed_property\") FROM \"" + schemaPrefix + "om\".\"observations\" o, \"" + schemaPrefix + "om\".\"components\" c "
+                      + "WHERE \"procedure\"=? ";
+       LOGGER.fine(request);
+       try(final PreparedStatement stmt = c.prepareStatement(request)) {//NOSONAR
+            stmt.setString(1, procedure);
+            try (final ResultSet rs   = stmt.executeQuery()) {
+                List<CompositePhenomenon> composites = new ArrayList<>();
+                List<Phenomenon> singles = new ArrayList<>();
+                while (rs.next()) {
+                    Phenomenon phen = getPhenomenon(version, rs.getString("observed_property"), c);
+                    if (phen instanceof CompositePhenomenon) {
+                        composites.add((CompositePhenomenon) phen);
+                    } else {
+                        singles.add(phen);
+                    }
+                }
+                if (composites.isEmpty()) {
+                    if (singles.isEmpty()) {
+                        // i don't think this will ever happen
+                        return null;
+                    } else if (singles.size() == 1) {
+                        return singles.get(0);
+                    } else  {
+                        // multiple phenomenons are present, but no composite... TODO
+                        return getVirtualCompositePhenomenon(version, c, procedure);
+                    }
+                } else if (composites.size() == 1) {
+                    return composites.get(0);
+                } else  {
+                    // multiple composite phenomenons are present, we must choose the global one
+                    return getOverlappingComposite(composites);
+                }
+            }
+       } catch (SQLException ex) {
+            LOGGER.log(Level.WARNING, "Error while looking for global phenomenon.", ex);
+            throw new DataStoreException("Error while looking for global phenomenon.");
+       }
+    }
+
+    protected Phenomenon getVirtualCompositePhenomenon(String version, Connection c, String procedure) throws DataStoreException {
+       String request = "SELECT \"field_name\" FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" "
+                      + "WHERE \"procedure\"=? "
+                      + "AND NOT (\"order\"=1 AND \"field_type\"='Time') "
+                      + "order by \"order\"";
+       LOGGER.fine(request);
+       try(final PreparedStatement stmt = c.prepareStatement(request)) {//NOSONAR
+            stmt.setString(1, procedure);
+            try (final ResultSet rs   = stmt.executeQuery()) {
+                List<Phenomenon> components = new ArrayList<>();
+                int i = 0;
+                while (rs.next()) {
+                    final String fieldName = rs.getString("field_name");
+                    Phenomenon phen = getPhenomenon(version, fieldName, c);
+                    if (phen == null) {
+                        throw new DataStoreException("Unable to link a procedure field to a phenomenon:" + fieldName);
+                    }
+                    components.add(phen);
+                }
+                if (components.size() == 1) {
+                    return components.get(0);
+                } else {
+                    final String name = "computed-phen-" + procedure;
+                    return buildCompositePhenomenon(version, name, name, name,(String)null, components);
+                }
+            }
+       } catch (SQLException ex) {
+            LOGGER.log(Level.WARNING, "Error while building virtual composite phenomenon.", ex);
+            throw new DataStoreException("Error while building virtual composite phenomenon.");
+       }
     }
 
     protected List<Field> readFields(final String procedureID, final Connection c) throws SQLException {

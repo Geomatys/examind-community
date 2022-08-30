@@ -762,6 +762,34 @@ public class ObservationStoreProviderTest {
     }
 
     @Test
+    public void getSensorTemplateTest() throws Exception {
+        assertNotNull(omPr);
+
+        // The sensor '10' got observations with different feature of interest, so the foi is null
+        Observation result = omPr.getTemplate("urn:ogc:object:sensor:GEOM:10", "1.0.0");
+        
+        assertNotNull(result);
+        assertNotNull(result.getName());
+        assertEquals("urn:ogc:object:observation:template:GEOM:10", result.getName().getCode());
+        assertNull(result.getFeatureOfInterest());
+        assertPeriodEquals("2009-05-01T13:47:00.0Z", "2009-05-01T14:04:00.0Z", result.getSamplingTime());
+        assertNotNull(result.getObservedProperty());
+        assertEquals("depth", getPhenomenonId(result));
+
+
+        // The sensor '13'  got observations with different observed properties
+        // we return a template with the most complete phenomenon or if not a computed phenomenon
+        result = omPr.getTemplate("urn:ogc:object:sensor:GEOM:13", "1.0.0");
+        
+        assertNotNull(result);
+        assertNotNull(result.getName());
+        assertEquals("urn:ogc:object:observation:template:GEOM:13", result.getName().getCode());
+        assertNotNull(result.getFeatureOfInterest());
+        assertPeriodEquals("2000-01-01T00:00:00.0Z", "2001-01-01T00:00:00.0Z", result.getSamplingTime());
+        assertEquals("aggregatePhenomenon-2", getPhenomenonId(result));
+    }
+
+    @Test
     public void getObservationTemplateTest() throws Exception {
         assertNotNull(omPr);
 

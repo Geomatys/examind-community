@@ -39,7 +39,6 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -66,7 +65,6 @@ import static org.geotoolkit.observation.model.OMEntity.LOCATION;
 import static org.geotoolkit.observation.OMUtils.*;
 import org.geotoolkit.observation.model.FieldType;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
-import org.geotoolkit.sos.xml.SOSXmlFactory;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildCompositePhenomenon;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.io.ParseException;
@@ -1389,128 +1387,6 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         } catch (SQLException ex) {
             throw new DataStoreException(ex);
         }
-    }
-
-    /**
-     * Return the global phenomenon for a procedure.
-     * We need this method because some procedure got multiple observation with only a phenomon component,
-     * and not the full composite.
-     * some other are registered with composite that are a subset of the global procedure phenomenon.
-     *
-     * @return
-     */
-    protected Phenomenon getGlobalCompositePhenomenon(String version, Connection c, String procedure) throws DataStoreException {
-       String request = "SELECT DISTINCT(\"observed_property\") FROM \"" + schemaPrefix + "om\".\"observations\" o, \"" + schemaPrefix + "om\".\"components\" c "
-                      + "WHERE \"procedure\"=? ";
-       LOGGER.fine(request);
-       try(final PreparedStatement stmt = c.prepareStatement(request)) {//NOSONAR
-            stmt.setString(1, procedure);
-            try (final ResultSet rs   = stmt.executeQuery()) {
-                List<CompositePhenomenon> composites = new ArrayList<>();
-                List<Phenomenon> singles = new ArrayList<>();
-                while (rs.next()) {
-                    Phenomenon phen = getPhenomenon(version, rs.getString("observed_property"), c);
-                    if (phen instanceof CompositePhenomenon) {
-                        composites.add((CompositePhenomenon) phen);
-                    } else {
-                        singles.add(phen);
-                    }
-                }
-                if (composites.isEmpty()) {
-                    if (singles.isEmpty()) {
-                        // i don't think this will ever happen
-                        return null;
-                    } else if (singles.size() == 1) {
-                        return singles.get(0);
-                    } else  {
-                        // multiple phenomenons are present, but no composite... TODO
-                        return getVirtualCompositePhenomenon(version, c, procedure);
-                    }
-                } else if (composites.size() == 1) {
-                    return composites.get(0);
-                } else  {
-                    // multiple composite phenomenons are present, we must choose the global one
-                    return getOverlappingComposite(composites);
-                }
-            }
-       } catch (SQLException ex) {
-            LOGGER.log(Level.WARNING, "Error while looking for global phenomenon.", ex);
-            throw new DataStoreException("Error while looking for global phenomenon.");
-       }
-    }
-
-    protected Phenomenon getVirtualCompositePhenomenon(String version, Connection c, String procedure) throws DataStoreException {
-       String request = "SELECT \"field_name\" FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" "
-                      + "WHERE \"procedure\"=? "
-                      + "AND NOT (\"order\"=1 AND \"field_type\"='Time') "
-                      + "order by \"order\"";
-       LOGGER.fine(request);
-       try(final PreparedStatement stmt = c.prepareStatement(request)) {//NOSONAR
-            stmt.setString(1, procedure);
-            try (final ResultSet rs   = stmt.executeQuery()) {
-                List<Phenomenon> components = new ArrayList<>();
-                int i = 0;
-                while (rs.next()) {
-                    final String fieldName = rs.getString("field_name");
-                    Phenomenon phen = getPhenomenon(version, fieldName, c);
-                    if (phen == null) {
-                        throw new DataStoreException("Unable to link a procedure field to a phenomenon:" + fieldName);
-                    }
-                    components.add(phen);
-                }
-                if (components.size() == 1) {
-                    return components.get(0);
-                } else {
-                    final String name = "computed-phen-" + procedure;
-                    return buildCompositePhenomenon(version, name, name, name,(String)null, components);
-                }
-            }
-       } catch (SQLException ex) {
-            LOGGER.log(Level.WARNING, "Error while building virtual composite phenomenon.", ex);
-            throw new DataStoreException("Error while building virtual composite phenomenon.");
-       }
-    }
-
-    @SuppressWarnings("squid:S2695")
-    protected TemporalGeometricPrimitive getTimeForTemplate(Connection c, String procedure, String observedProperty, String foi, String version) {
-        String request = "SELECT min(\"time_begin\"), max(\"time_begin\"), max(\"time_end\") FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"procedure\"=?";
-        if (observedProperty != null) {
-             request = request + " AND (\"observed_property\"=? OR \"observed_property\" IN (SELECT \"phenomenon\" FROM \"" + schemaPrefix + "om\".\"components\" WHERE \"component\"=?))";
-        }
-        if (foi != null) {
-            request = request + " AND \"foi\"=?";
-        }
-        LOGGER.fine(request);
-        try(final PreparedStatement stmt = c.prepareStatement(request)) {//NOSONAR
-            stmt.setString(1, procedure);
-            int cpt = 2;
-            if (observedProperty != null) {
-                stmt.setString(cpt, observedProperty);
-                cpt++;
-                stmt.setString(cpt, observedProperty);
-                cpt++;
-            }
-            if (foi != null) {
-                stmt.setString(cpt, foi);
-            }
-            try (final ResultSet rs   = stmt.executeQuery()) {
-                if (rs.next()) {
-                    Date minBegin = rs.getTimestamp(1);
-                    Date maxBegin = rs.getTimestamp(2);
-                    Date maxEnd   = rs.getTimestamp(3);
-                    if (minBegin != null && maxEnd != null && maxEnd.after(maxBegin)) {
-                        return SOSXmlFactory.buildTimePeriod(version, minBegin, maxEnd);
-                    } else if (minBegin != null && !minBegin.equals(maxBegin)) {
-                        return SOSXmlFactory.buildTimePeriod(version, minBegin, maxBegin);
-                    } else if (minBegin != null) {
-                        return SOSXmlFactory.buildTimeInstant(version, minBegin);
-                    }
-                }
-            }
-        } catch (SQLException ex) {
-            LOGGER.log(Level.WARNING, "Error while looking for template time.", ex);
-        }
-        return null;
     }
 
     protected List applyPostPagination(Map<String, Object> hints, List full) {
