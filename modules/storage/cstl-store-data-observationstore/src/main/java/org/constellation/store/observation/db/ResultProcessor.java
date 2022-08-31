@@ -69,38 +69,13 @@ public class ResultProcessor {
         if (values == null) {
             throw new DataStoreException("initResultBuilder(...) must be called before processing the results");
         }
+        FieldParser parser = new FieldParser(fields, false, includeId, null);
         while (rs.next()) {
-            values.newBlock();
-            for (int i = 0; i < fields.size(); i++) {
-                Field field = fields.get(i);
-                switch (field.type) {
-                    case TIME:
-                        Date t = dateFromTS(rs.getTimestamp(field.name));
-                        values.appendTime(t);
-                        break;
-                    case QUANTITY:
-                        String value = rs.getString(field.name); // we need to kown if the value is null (rs.getDouble return 0 if so).
-                        Double d = Double.NaN;
-                        if (value != null && !value.isEmpty()) {
-                            d = rs.getDouble(field.name);
-                        }
-                        values.appendDouble(d);
-                        break;
-                    case BOOLEAN:
-                        boolean bvalue = rs.getBoolean(field.name);
-                        values.appendBoolean(bvalue);
-                        break;
-                    default:
-                        String tvalue = rs.getString(field.name);
-                        if (includeId && field.name.equals("id")) {
-                            String name = rs.getString("identifier");
-                            tvalue = name + '-' + tvalue;
-                        }
-                        values.appendString(tvalue);
-                        break;
-                }
+            if (includeId) {
+                String name = rs.getString("identifier");
+                parser.setName(name);
             }
-            values.endBlock();
+            parser.parseLine(values, rs, 0);
         }
     }
 }

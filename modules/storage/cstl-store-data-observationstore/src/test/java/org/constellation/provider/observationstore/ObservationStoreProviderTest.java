@@ -48,6 +48,7 @@ import org.constellation.provider.ObservationProvider;
 import org.constellation.util.SQLUtilities;
 import org.constellation.util.Util;
 import org.geotoolkit.filter.FilterUtilities;
+import org.geotoolkit.gml.GmlInstant;
 import org.geotoolkit.gml.xml.v321.TimeInstantType;
 import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
@@ -86,18 +87,14 @@ public class ObservationStoreProviderTest {
 
     private static FilterFactory ff;
 
-    private static DataSource ds = null;
-
-    private static String url;
-
     private static ObservationProvider omPr;
 
     private static final DateFormat FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S'Z'");
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-        url = "jdbc:derby:memory:OM2Test2;create=true";
-        ds = SQLUtilities.getDataSource(url);
+        String url = "jdbc:derby:memory:OM2Test2;create=true";
+        DataSource ds = SQLUtilities.getDataSource(url);
 
         ff = FilterUtilities.FF;
 
@@ -1362,6 +1359,28 @@ public class ObservationStoreProviderTest {
         assertNotNull(result.getObservedProperty());
         assertEquals("depth", getPhenomenonId(result));
 
+        assertTrue(result.getResult() instanceof DataArrayProperty);
+
+        DataArrayProperty resultDAP = (DataArrayProperty) result.getResult();
+        String expectedValues = "2007-05-01T02:59:00.0,6.56@@" +
+                                "2007-05-01T03:59:00.0,6.56@@" +
+                                "2007-05-01T04:59:00.0,6.56@@" +
+                                "2007-05-01T05:59:00.0,6.56@@" +
+                                "2007-05-01T06:59:00.0,6.56@@" +
+                                "2007-05-01T07:59:00.0,6.56@@" +
+                                "2007-05-01T08:59:00.0,6.56@@" +
+                                "2007-05-01T09:59:00.0,6.56@@" +
+                                "2007-05-01T10:59:00.0,6.56@@" +
+                                "2007-05-01T11:59:00.0,6.56@@" +
+                                "2007-05-01T17:59:00.0,6.56@@" +
+                                "2007-05-01T18:59:00.0,6.55@@" +
+                                "2007-05-01T19:59:00.0,6.55@@" +
+                                "2007-05-01T20:59:00.0,6.55@@" +
+                                "2007-05-01T21:59:00.0,6.55@@";
+
+        assertEquals(expectedValues, resultDAP.getDataArray().getValues());
+
+
         /**
          * the observation from sensor '2' is a single observations with an aggregate phenomenon
          */
@@ -1402,8 +1421,8 @@ public class ObservationStoreProviderTest {
 
         assertTrue(result.getResult() instanceof DataArrayProperty);
 
-        DataArrayProperty resultDAP = (DataArrayProperty) result.getResult();
-        String expectedValues = "2007-05-01T12:59:00.0,6.56,@@"
+        resultDAP = (DataArrayProperty) result.getResult();
+        expectedValues        = "2007-05-01T12:59:00.0,6.56,@@"
                               + "2007-05-01T13:59:00.0,6.56,@@"
                               + "2007-05-01T14:59:00.0,6.56,@@"
                               + "2007-05-01T15:59:00.0,6.56,@@"
@@ -1446,6 +1465,7 @@ public class ObservationStoreProviderTest {
     public void getResultsTest() throws Exception {
         assertNotNull(omPr);
 
+        // sensor 3 no decimation
         Map<String, Object> hints = new HashMap<>();
         Object result = omPr.getResults("urn:ogc:object:sensor:GEOM:3", null, null, new FeatureQuery(), "csv", hints);
         assertTrue(result instanceof String);
@@ -1468,6 +1488,7 @@ public class ObservationStoreProviderTest {
 
         assertEquals(expectedResult, result);
 
+        // sensor 3 with decimation
         hints = new HashMap<>();
         hints.put("decimSize", 10);
         result = omPr.getResults("urn:ogc:object:sensor:GEOM:3", null, null, new FeatureQuery(), "csv", hints);
@@ -1484,6 +1505,49 @@ public class ObservationStoreProviderTest {
 
         assertEquals(expectedResult, result);
 
+        // sensor 3 no decimation with id
+        hints = new HashMap<>();
+        hints.put(INCLUDE_ID_IN_DATABLOCK, true);
+        result = omPr.getResults("urn:ogc:object:sensor:GEOM:3", null, null, new FeatureQuery(), "csv", hints);
+        assertTrue(result instanceof String);
+
+        expectedResult =          "urn:ogc:object:observation:GEOM:304-1,2007-05-01T02:59:00.0,6.56@@"
+                                + "urn:ogc:object:observation:GEOM:304-2,2007-05-01T03:59:00.0,6.56@@"
+                                + "urn:ogc:object:observation:GEOM:304-3,2007-05-01T04:59:00.0,6.56@@"
+                                + "urn:ogc:object:observation:GEOM:304-4,2007-05-01T05:59:00.0,6.56@@"
+                                + "urn:ogc:object:observation:GEOM:304-5,2007-05-01T06:59:00.0,6.56@@"
+                                + "urn:ogc:object:observation:GEOM:305-1,2007-05-01T07:59:00.0,6.56@@"
+                                + "urn:ogc:object:observation:GEOM:305-2,2007-05-01T08:59:00.0,6.56@@"
+                                + "urn:ogc:object:observation:GEOM:305-3,2007-05-01T09:59:00.0,6.56@@"
+                                + "urn:ogc:object:observation:GEOM:305-4,2007-05-01T10:59:00.0,6.56@@"
+                                + "urn:ogc:object:observation:GEOM:305-5,2007-05-01T11:59:00.0,6.56@@"
+                                + "urn:ogc:object:observation:GEOM:307-2,2007-05-01T17:59:00.0,6.56@@"
+                                + "urn:ogc:object:observation:GEOM:307-3,2007-05-01T18:59:00.0,6.55@@"
+                                + "urn:ogc:object:observation:GEOM:307-4,2007-05-01T19:59:00.0,6.55@@"
+                                + "urn:ogc:object:observation:GEOM:307-5,2007-05-01T20:59:00.0,6.55@@"
+                                + "urn:ogc:object:observation:GEOM:307-1,2007-05-01T21:59:00.0,6.55@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 3 with decimation and id
+        hints = new HashMap<>();
+        hints.put("decimSize", 10);
+        hints.put(INCLUDE_ID_IN_DATABLOCK, true);
+        result = omPr.getResults("urn:ogc:object:sensor:GEOM:3", null, null, new FeatureQuery(), "csv", hints);
+        assertTrue(result instanceof String);
+
+        expectedResult =  "urn:ogc:object:sensor:GEOM:3-dec-0,2007-05-01T03:56:00.0,6.56@@"
+                        + "urn:ogc:object:sensor:GEOM:3-dec-1,2007-05-01T05:50:00.0,6.56@@"
+                        + "urn:ogc:object:sensor:GEOM:3-dec-2,2007-05-01T07:44:00.0,6.56@@"
+                        + "urn:ogc:object:sensor:GEOM:3-dec-3,2007-05-01T09:38:00.0,6.56@@"
+                        + "urn:ogc:object:sensor:GEOM:3-dec-4,2007-05-01T11:32:00.0,6.56@@"
+                        + "urn:ogc:object:sensor:GEOM:3-dec-5,2007-05-01T17:59:00.0,6.56@@"
+                        + "urn:ogc:object:sensor:GEOM:3-dec-6,2007-05-01T19:08:00.0,6.55@@"
+                        + "urn:ogc:object:sensor:GEOM:3-dec-7,2007-05-01T21:02:00.0,6.55@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 8 no decimation
         hints = new HashMap<>();
         result = omPr.getResults("urn:ogc:object:sensor:GEOM:8", null, null, new FeatureQuery(), "csv", hints);
         assertTrue(result instanceof String);
@@ -1496,6 +1560,7 @@ public class ObservationStoreProviderTest {
         
         assertEquals(expectedResult, result);
 
+        // sensor 8 with decimation
         hints = new HashMap<>();
         hints.put("decimSize", 10);
         result = omPr.getResults("urn:ogc:object:sensor:GEOM:8", null, null, new FeatureQuery(), "csv", hints);
@@ -1515,6 +1580,7 @@ public class ObservationStoreProviderTest {
     public void getResultsProfileTest() throws Exception {
         assertNotNull(omPr);
 
+        // sensor 2 no decimation
         Map<String, Object> hints = new HashMap<>();
         Object result = omPr.getResults("urn:ogc:object:sensor:GEOM:2", null, null, new FeatureQuery(), "csv", hints);
         assertTrue(result instanceof String);
@@ -1532,6 +1598,62 @@ public class ObservationStoreProviderTest {
 
         assertEquals(expectedResult, result);
 
+        // sensor 2 no decimation with id
+        hints = new HashMap<>();
+        hints.put(INCLUDE_ID_IN_DATABLOCK, true);
+        result = omPr.getResults("urn:ogc:object:sensor:GEOM:2", null, null, new FeatureQuery(), "csv", hints);
+        assertTrue(result instanceof String);
+
+        expectedResult =  "urn:ogc:object:observation:GEOM:201-1,12.0,18.5@@"
+                        + "urn:ogc:object:observation:GEOM:201-2,24.0,19.7@@"
+                        + "urn:ogc:object:observation:GEOM:201-3,48.0,21.2@@"
+                        + "urn:ogc:object:observation:GEOM:201-4,96.0,23.9@@"
+                        + "urn:ogc:object:observation:GEOM:201-5,192.0,26.2@@"
+                        + "urn:ogc:object:observation:GEOM:201-6,384.0,31.4@@"
+                        + "urn:ogc:object:observation:GEOM:201-7,768.0,35.1@@"
+                        + "urn:ogc:object:observation:GEOM:202-1,12.0,18.5@@"
+                        + "urn:ogc:object:observation:GEOM:203-1,12.0,18.5@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 2 no decimation with time
+        hints = new HashMap<>();
+        hints.put("includeTimeForProfile", true);
+        result = omPr.getResults("urn:ogc:object:sensor:GEOM:2", null, null, new FeatureQuery(), "csv", hints);
+        assertTrue(result instanceof String);
+
+        expectedResult =  "2000-12-01T00:00:00.0,12.0,18.5@@"
+                        + "2000-12-01T00:00:00.0,24.0,19.7@@"
+                        + "2000-12-01T00:00:00.0,48.0,21.2@@"
+                        + "2000-12-01T00:00:00.0,96.0,23.9@@"
+                        + "2000-12-01T00:00:00.0,192.0,26.2@@"
+                        + "2000-12-01T00:00:00.0,384.0,31.4@@"
+                        + "2000-12-01T00:00:00.0,768.0,35.1@@"
+                        + "2000-12-11T00:00:00.0,12.0,18.5@@"
+                        + "2000-12-22T00:00:00.0,12.0,18.5@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 2 no decimation with time and id
+        hints = new HashMap<>();
+        hints.put("includeTimeForProfile", true);
+        hints.put(INCLUDE_ID_IN_DATABLOCK, true);
+        result = omPr.getResults("urn:ogc:object:sensor:GEOM:2", null, null, new FeatureQuery(), "csv", hints);
+        assertTrue(result instanceof String);
+
+        expectedResult =  "urn:ogc:object:observation:GEOM:201-1,2000-12-01T00:00:00.0,12.0,18.5@@"
+                        + "urn:ogc:object:observation:GEOM:201-2,2000-12-01T00:00:00.0,24.0,19.7@@"
+                        + "urn:ogc:object:observation:GEOM:201-3,2000-12-01T00:00:00.0,48.0,21.2@@"
+                        + "urn:ogc:object:observation:GEOM:201-4,2000-12-01T00:00:00.0,96.0,23.9@@"
+                        + "urn:ogc:object:observation:GEOM:201-5,2000-12-01T00:00:00.0,192.0,26.2@@"
+                        + "urn:ogc:object:observation:GEOM:201-6,2000-12-01T00:00:00.0,384.0,31.4@@"
+                        + "urn:ogc:object:observation:GEOM:201-7,2000-12-01T00:00:00.0,768.0,35.1@@"
+                        + "urn:ogc:object:observation:GEOM:202-1,2000-12-11T00:00:00.0,12.0,18.5@@"
+                        + "urn:ogc:object:observation:GEOM:203-1,2000-12-22T00:00:00.0,12.0,18.5@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 2 with decimation
         hints = new HashMap<>();
         hints.put("decimSize", 10);
         result = omPr.getResults("urn:ogc:object:sensor:GEOM:2", null, null, new FeatureQuery(), "csv", hints);
@@ -1546,7 +1668,61 @@ public class ObservationStoreProviderTest {
                         + "12,18.5@@"
                         + "12,18.5@@";
 
-        System.out.println(result);
+        assertEquals(expectedResult, result);
+
+        // sensor 2 with decimation and id
+        hints = new HashMap<>();
+        hints.put(INCLUDE_ID_IN_DATABLOCK, true);
+        hints.put("decimSize", 10);
+        result = omPr.getResults("urn:ogc:object:sensor:GEOM:2", null, null, new FeatureQuery(), "csv", hints);
+        assertTrue(result instanceof String);
+
+        expectedResult =  "urn:ogc:object:sensor:GEOM:2-dec-0,12,18.5@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-1,87,21.2@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-2,96,23.9@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-3,192,26.2@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-4,384,31.4@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-5,768,35.1@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-6,12,18.5@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-7,12,18.5@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 2 with decimation and time
+        hints = new HashMap<>();
+        hints.put("includeTimeForProfile", true);
+        hints.put("decimSize", 10);
+        result = omPr.getResults("urn:ogc:object:sensor:GEOM:2", null, null, new FeatureQuery(), "csv", hints);
+        assertTrue(result instanceof String);
+
+        expectedResult =  "2000-12-01T00:00:00.0,12,18.5@@"
+                        + "2000-12-01T00:00:00.0,87,21.2@@"
+                        + "2000-12-01T00:00:00.0,96,23.9@@"
+                        + "2000-12-01T00:00:00.0,192,26.2@@"
+                        + "2000-12-01T00:00:00.0,384,31.4@@"
+                        + "2000-12-01T00:00:00.0,768,35.1@@"
+                        + "2000-12-11T00:00:00.0,12,18.5@@"
+                        + "2000-12-22T00:00:00.0,12,18.5@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 2 with decimation, id and time
+        hints = new HashMap<>();
+        hints.put(INCLUDE_ID_IN_DATABLOCK, true);
+        hints.put("includeTimeForProfile", true);
+        hints.put("decimSize", 10);
+        result = omPr.getResults("urn:ogc:object:sensor:GEOM:2", null, null, new FeatureQuery(), "csv", hints);
+        assertTrue(result instanceof String);
+
+        expectedResult =  "urn:ogc:object:sensor:GEOM:2-dec-0,2000-12-01T00:00:00.0,12,18.5@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-1,2000-12-01T00:00:00.0,87,21.2@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-2,2000-12-01T00:00:00.0,96,23.9@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-3,2000-12-01T00:00:00.0,192,26.2@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-4,2000-12-01T00:00:00.0,384,31.4@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-5,2000-12-01T00:00:00.0,768,35.1@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-6,2000-12-11T00:00:00.0,12,18.5@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-7,2000-12-22T00:00:00.0,12,18.5@@";
+
         assertEquals(expectedResult, result);
 
 
@@ -1556,12 +1732,10 @@ public class ObservationStoreProviderTest {
      * Temporary methods waiting for fix in TimePositionType in geotk
      */
     private void assertPeriodEquals(String begin, String end, TemporalObject result) throws ParseException {
-        if (result instanceof TimePeriodType) {
-            TimePeriodType tResult = (TimePeriodType) result;
+        if (result instanceof TimePeriodType tResult) {
             assertEquals(FORMAT.parse(begin), tResult.getBeginPosition().getDate());
             assertEquals(FORMAT.parse(end), tResult.getEndPosition().getDate());
-        } else  if (result instanceof org.geotoolkit.gml.xml.v311.TimePeriodType) {
-            org.geotoolkit.gml.xml.v311.TimePeriodType tResult = (org.geotoolkit.gml.xml.v311.TimePeriodType) result;
+        } else  if (result instanceof org.geotoolkit.gml.xml.v311.TimePeriodType tResult) {
             assertEquals(FORMAT.parse(begin), tResult.getBeginPosition().getDate());
             assertEquals(FORMAT.parse(end), tResult.getEndPosition().getDate());
         } else {
@@ -1570,11 +1744,7 @@ public class ObservationStoreProviderTest {
     }
 
     private void assertInstantEquals(String position, TemporalGeometricPrimitive result) throws ParseException {
-        if (result instanceof TimeInstantType) {
-            TimeInstantType tResult = (TimeInstantType) result;
-            assertEquals(FORMAT.parse(position), tResult.getTimePosition().getDate());
-        } else  if (result instanceof org.geotoolkit.gml.xml.v311.TimeInstantType) {
-            org.geotoolkit.gml.xml.v311.TimeInstantType tResult = (org.geotoolkit.gml.xml.v311.TimeInstantType) result;
+        if (result instanceof GmlInstant tResult) {
             assertEquals(FORMAT.parse(position), tResult.getTimePosition().getDate());
         } else {
             throw new AssertionError("Not a time instant");

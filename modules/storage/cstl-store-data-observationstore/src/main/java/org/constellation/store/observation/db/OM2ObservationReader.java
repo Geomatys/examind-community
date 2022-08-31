@@ -602,7 +602,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                 final Object result = getResult(identifier, resultModel, version, c);
                 return OMXmlFactory.buildMeasurement(version, obsID, name, null, prop, phen, proc, result, time, null);
             } else {
-                final Object result = getResult(identifier, resultModel, version);
+                final Object result = getResult(identifier, resultModel, version, c);
                 return OMXmlFactory.buildObservation(version, obsID, name, null, prop, phen, proc, result, time, null);
             }
 
@@ -644,8 +644,9 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
             scal.add(f.getScalar(version));
         }
 
-        int nbValue                = 0;
-        final ResultBuilder values = new ResultBuilder(ResultMode.CSV, encoding, false);
+        int nbValue                 = 0;
+        final ResultBuilder values  = new ResultBuilder(ResultMode.CSV, encoding, false);
+        final FieldParser parser    = new FieldParser(fields, false, false, null);
         final String query          = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m, \"" + schemaPrefix + "om\".\"observations\" o "
                                     + "WHERE \"id_observation\" = o.\"id\" "
                                     + "AND o.\"identifier\"=?"
@@ -654,33 +655,8 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
             stmt.setString(1, identifier);
             try(final ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    values.newBlock();
-                    for (int i = 0; i < fields.size(); i++) {
-                        Field field = fields.get(i);
-                        switch (field.type) {
-                            case TIME:
-                                Date t = dateFromTS(rs.getTimestamp(field.name));
-                                values.appendTime(t);
-                                break;
-                            case QUANTITY:
-                                String value = rs.getString(field.name); // we need to kown if the value is null (rs.getDouble return 0 if so).
-                                Double d = Double.NaN;
-                                if (value != null && !value.isEmpty()) {
-                                    d = rs.getDouble(field.name);
-                                }
-                                values.appendDouble(d);
-                                break;
-                            case BOOLEAN:
-                                boolean bvalue = rs.getBoolean(field.name);
-                                values.appendBoolean(bvalue);
-                                break;
-                            default:
-                                String svalue = rs.getString(field.name);
-                                values.appendString(svalue);
-                                break;
-                        }
-                    }
-                    nbValue = nbValue + values.endBlock();
+                    parser.parseLine(values, rs, 0);
+                    nbValue = nbValue + parser.nbValue;
                 }
             }
         }

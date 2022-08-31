@@ -39,8 +39,17 @@ import org.geotoolkit.storage.AbstractReadingTests;
 import org.geotoolkit.feature.xml.GMLConvention;
 import org.geotoolkit.internal.sql.ScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
+import static org.geotoolkit.observation.OMUtils.OBSERVATION_QNAME;
+import org.geotoolkit.observation.ObservationReader;
+import org.geotoolkit.observation.ObservationStore;
+import org.geotoolkit.observation.xml.AbstractObservation;
+import org.geotoolkit.sos.xml.ResponseModeType;
+import org.geotoolkit.swe.xml.DataArrayProperty;
 import org.geotoolkit.util.NamesExt;
+import org.junit.Assert;
+import org.junit.Test;
 import org.locationtech.jts.geom.Geometry;
+import org.opengis.observation.Observation;
 import org.opengis.util.GenericName;
 
 
@@ -115,5 +124,28 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
     @Override
     protected List<ExpectedResult> getReaderTests() {
         return expecteds;
+    }
+
+    @Test
+    public void readObservationByIdTest() throws Exception {
+        Assert.assertTrue(store instanceof ObservationStore);
+        ObservationStore omStore = (ObservationStore) store;
+        ObservationReader reader = omStore.getReader();
+
+        Assert.assertNotNull(reader);
+
+        Observation obs = reader.getObservation("urn:ogc:object:observation:GEOM:2000", OBSERVATION_QNAME, ResponseModeType.INLINE, "2.0.0");
+        Assert.assertTrue(obs instanceof AbstractObservation);
+        AbstractObservation result = (AbstractObservation) obs;
+
+        Assert.assertTrue(result.getResult() instanceof DataArrayProperty);
+        DataArrayProperty resultDAP = (DataArrayProperty)result.getResult();
+
+        String expectedValues = "2009-05-01T13:47:00.0,4.5@@"
+                              + "2009-05-01T14:00:00.0,5.9@@"
+                              + "2009-05-01T14:01:00.0,8.9@@"
+                              + "2009-05-01T14:02:00.0,7.8@@"
+                              + "2009-05-01T14:03:00.0,9.9@@";
+        Assert.assertEquals(expectedValues, resultDAP.getDataArray().getValues());
     }
 }

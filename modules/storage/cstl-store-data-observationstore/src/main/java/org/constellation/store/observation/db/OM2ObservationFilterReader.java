@@ -247,32 +247,27 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     }
 
     private List<Observation> getComplexObservations(final Map<String,Object> hints) throws DataStoreException {
-        String version                = getVersionFromHints(hints);
-        boolean includeIDInDataBlock  = getBooleanHint(hints, INCLUDE_ID_IN_DATABLOCK,  false);
-        boolean includeTimeForProfile = getBooleanHint(hints, "includeTimeForProfile", false);
-        ResultMode resultMode         = (ResultMode) hints.get(RESULT_MODE);
-        boolean separatedObs          = getBooleanHint(hints, SEPARATED_OBSERVATION,  false);
-        if (resultMode == null) {
-            resultMode = ResultMode.CSV;
-        }
+        final String version                = getVersionFromHints(hints);
+        final boolean includeIDInDataBlock  = getBooleanHint(hints, INCLUDE_ID_IN_DATABLOCK,  false);
+        final boolean includeTimeForProfile = getBooleanHint(hints, "includeTimeForProfile", false);
+        final boolean separatedObs          = getBooleanHint(hints, SEPARATED_OBSERVATION,  false);
+        final TextBlock encoding            = getDefaultTextEncoding(version);
+        final ResultMode resultMode         = (ResultMode) hints.getOrDefault(RESULT_MODE, ResultMode.CSV);
+        
+        final Map<String, Observation> observations = new LinkedHashMap<>();
+        final Map<String, Process> processMap       = new LinkedHashMap<>();
+        final Map<String, List<Field>> fieldMap     = new LinkedHashMap<>();
+        
         if (firstFilter) {
             sqlRequest.replaceFirst("WHERE", "");
         }
-        final Map<String, Observation> observations = new LinkedHashMap<>();
-        final Map<String, Process> processMap = new LinkedHashMap<>();
-
         LOGGER.fine(sqlRequest.getRequest());
         try(final Connection c              = source.getConnection();
             final PreparedStatement pstmt   = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
             final ResultSet rs              = pstmt.executeQuery()) {
-            // add orderby to the query
-
-            final TextBlock encoding = getDefaultTextEncoding(version);
-            final Map<String, List<Field>> fieldMap = new LinkedHashMap<>();
 
             while (rs.next()) {
                 int nbValue = 0;
-                ResultBuilder values = new ResultBuilder(resultMode, encoding, false);
                 final String procedure = rs.getString("procedure");
                 final String featureID = rs.getString("foi");
                 final int oid = rs.getInt("id");
@@ -370,8 +365,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 }
                 measureRequest.appendValue(-1).append(sqlMeasureRequest, !profile).append("ORDER BY ").append(fieldOrdering);
 
-                Date firstTime = null;
                 final String name = rs.getString("identifier");
+                final FieldParser parser = new FieldParser(fields, profileWithTime, includeIDInDataBlock, name);
+                ResultBuilder values = new ResultBuilder(resultMode, encoding, false);
+                
                 if (observation == null) {
                     final String obsID            = "obs-" + oid;
                     final String timeID           = "time-" + oid;
@@ -379,9 +376,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     final FeatureProperty prop    = buildFeatureProperty(version, feature);
                     final Phenomenon phen         = getGlobalCompositePhenomenon(version, c, procedure);
 
-                    firstTime = dateFromTS(rs.getTimestamp("time_begin"));
-                    Date lastTime = dateFromTS(rs.getTimestamp("time_end"));
-                    boolean first = true;
+                    parser.firstTime = dateFromTS(rs.getTimestamp("time_begin"));
+                    parser.lastTime = dateFromTS(rs.getTimestamp("time_end"));
                     final List<AnyScalar> scal = new ArrayList<>();
                     for (Field f : fields) {
                         scal.add(f.getScalar(version));
@@ -395,53 +391,14 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     try(final PreparedStatement stmt = measureRequest.fillParams(c.prepareStatement(measureRequest.getRequest()));
                         final ResultSet rs2 = stmt.executeQuery()) {
                         while (rs2.next()) {
-                            values.newBlock();
-                            for (int i = 0; i < fields.size(); i++) {
-
-                                Field field = fields.get(i);
-                                switch (field.type) {
-                                    case TIME:
-                                        // profile with time field
-                                        if (profileWithTime && i <= offset) {
-                                            values.appendTime(firstTime);
-                                        } else {
-                                            Date t = dateFromTS(rs2.getTimestamp(field.name));
-                                            values.appendTime(t);
-                                            if (first) {
-                                                firstTime = t;
-                                                first = false;
-                                            }
-                                            lastTime = t;
-                                        }
-                                        break;
-                                    case QUANTITY:
-                                        String value = rs2.getString(field.name); // we need to kown if the value is null (rs.getDouble return 0 if so).
-                                        Double d = Double.NaN;
-                                        if (value != null && !value.isEmpty()) {
-                                            d = rs2.getDouble(field.name);
-                                        }
-                                        values.appendDouble(d);
-                                        break;
-                                    case BOOLEAN:
-                                        boolean bvalue = rs2.getBoolean(field.name);
-                                        values.appendBoolean(bvalue);
-                                        break;
-                                    default:
-                                        String svalue = rs2.getString(field.name);
-                                        if (includeIDInDataBlock && field.name.equals("id")) {
-                                            svalue = name + '-' + svalue;
-                                        }
-                                        values.appendString(svalue);
-                                        break;
-                                }
-                            }
-                            nbValue = nbValue + values.endBlock();
+                            parser.parseLine(values, rs2, offset);
+                            nbValue = nbValue + parser.nbValue;
 
                             /**
                              * In "separated observation" mode we create an observation for each measure and don't merge it into a single obervation by procedure/foi.
                              */
                             if (separatedObs) {
-                                final TemporalGeometricPrimitive time = buildTimeInstant(version, timeID, lastTime != null ? lastTime : firstTime);
+                                final TemporalGeometricPrimitive time = buildTimeInstant(version, timeID, parser.lastTime != null ? parser.lastTime : parser.firstTime);
                                 final Object result = buildComplexResult(version, scal, nbValue, encoding, values, observations.size());
                                 final Process proc = processMap.computeIfAbsent(procedure, f -> {return getProcessSafe(version, procedure, c);});
                                 final String measureID = rs2.getString("id");
@@ -462,7 +419,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     * we create an observation with all the measures and keep it so we can extend it if another observation for the same procedure/foi appears.
                     */
                     if (!separatedObs) {
-                        final TemporalGeometricPrimitive time = buildTimePeriod(version, timeID, firstTime, lastTime);
+                        final TemporalGeometricPrimitive time = buildTimePeriod(version, timeID, parser.firstTime, parser.lastTime);
                         final Object result = buildComplexResult(version, scal, nbValue, encoding, values, observations.size());
                         final Process proc = processMap.computeIfAbsent(procedure, f -> {return getProcessSafe(version, procedure, c);});
                         observation = OMXmlFactory.buildObservation(version, obsID, name, null, prop, phen, proc, result, time, null);
@@ -472,49 +429,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     /**
                      * complete the previous observation with new measures.
                      */
-                    Date lastTime = null;
                     measureRequest.setParamValue(0, oid);
                     LOGGER.fine(measureRequest.toString());
                     try(final PreparedStatement stmt = measureRequest.fillParams(c.prepareStatement(measureRequest.getRequest()));
                         final ResultSet rs2 = stmt.executeQuery()) {
                         while (rs2.next()) {
-                            values.newBlock();
-                            for (int i = 0; i < fields.size(); i++) {
-
-                                Field field = fields.get(i);
-                                switch (field.type) {
-                                    case TIME:
-                                        // profile with time field
-                                        if (profileWithTime && i <= offset) {
-                                            values.appendTime(firstTime);
-                                        } else {
-                                            Date t = dateFromTS(rs2.getTimestamp(field.name));
-                                            values.appendTime(t);
-                                            lastTime = t;
-                                        }
-                                        break;
-                                    case QUANTITY:
-                                        String value = rs2.getString(field.name); // we need to kown if the value is null (rs.getDouble return 0 if so).
-                                        Double d = Double.NaN;
-                                        if (value != null && !value.isEmpty()) {
-                                            d = rs2.getDouble(field.name);
-                                        }
-                                        values.appendDouble(d);
-                                        break;
-                                    case BOOLEAN:
-                                        boolean bvalue = rs2.getBoolean(field.name);
-                                        values.appendBoolean(bvalue);
-                                        break;
-                                    default:
-                                        String svalue = rs2.getString(field.name);
-                                        if (includeIDInDataBlock && field.name.equals("id")) {
-                                            svalue = name + '-' + svalue;
-                                        }
-                                        values.appendString(svalue);
-                                        break;
-                                }
-                            }
-                            nbValue = nbValue + values.endBlock();
+                            parser.parseLine(values, rs2, offset);
+                            nbValue = nbValue + parser.nbValue;
                         }
                     }
 
@@ -526,7 +447,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         case DATA_ARRAY: array.getDataValues().getAny().addAll(values.getDataArray()); break;
                         case CSV:     array.setValues(array.getValues() + values.getStringValues()); break;
                     }
-                    ((AbstractObservation) observation).extendSamplingTime(lastTime);
+                    ((AbstractObservation) observation).extendSamplingTime(parser.lastTime);
                 }
             }
 

@@ -242,17 +242,11 @@ public class OM2Utils {
     }
 
     public static TemporalGeometricPrimitive buildTime(String version, String timeID, Date startTime, Date endTime) {
-        TemporalGeometricPrimitive time = null;
-        if (startTime != null && endTime == null) {
-            time = buildTimeInstant(version, timeID, startTime);
-        } else if (startTime != null || endTime != null) {
-            if (Objects.equals(startTime, endTime)) {
-                time = buildTimeInstant(version, timeID, startTime);
-            } else {
-                time = buildTimePeriod(version, timeID, startTime, endTime);
-            }
-        }
-        return time;
+        if (startTime == null && endTime == null) return null;
+        else if (startTime == null)               return buildTimeInstant(version, timeID, endTime);
+        else if (endTime == null)                 return buildTimeInstant(version, timeID, startTime);
+        else if (startTime.equals(endTime))       return buildTimeInstant(version, timeID, startTime);
+        else                                      return buildTimePeriod(version, timeID, startTime, endTime);
     }
 
     public static SamplingFeature buildFoi(final String version, final String id, final String name, final String description, final String sampledFeature,
@@ -261,20 +255,20 @@ public class OM2Utils {
         final String gmlVersion = getGMLVersion(version);
         // sampled feature is mandatory (even if its null, we build a property)
         final FeatureProperty prop = buildFeatureProperty(version, sampledFeature);
-        if (geom instanceof Point) {
-            final org.geotoolkit.gml.xml.Point point = JTStoGeometry.toGML(gmlVersion, (Point)geom, crs);
+        if (geom instanceof Point pt) {
+            final org.geotoolkit.gml.xml.Point point = JTStoGeometry.toGML(gmlVersion, pt, crs);
             // little hack fo unit test
             //point.setSrsName(null);
             point.setId("pt-" + id);
             return buildSamplingPoint(version, id, name, description, prop, point);
-        } else if (geom instanceof LineString) {
-            final org.geotoolkit.gml.xml.LineString line = JTStoGeometry.toGML(gmlVersion, (LineString)geom, crs);
+        } else if (geom instanceof LineString ls) {
+            final org.geotoolkit.gml.xml.LineString line = JTStoGeometry.toGML(gmlVersion, ls, crs);
             line.emptySrsNameOnChild();
             line.setId("line-" + id);
             final Envelope bound = line.getBounds();
             return buildSamplingCurve(version, id, name, description, prop, line, null, null, bound);
-        } else if (geom instanceof Polygon) {
-            final org.geotoolkit.gml.xml.Polygon poly = JTStoGeometry.toGML(gmlVersion, (Polygon)geom, crs);
+        } else if (geom instanceof Polygon p) {
+            final org.geotoolkit.gml.xml.Polygon poly = JTStoGeometry.toGML(gmlVersion, p, crs);
             poly.setId("polygon-" + id);
             return buildSamplingPolygon(version, id, name, description, prop, poly, null, null, null);
         } else if (geom != null) {
