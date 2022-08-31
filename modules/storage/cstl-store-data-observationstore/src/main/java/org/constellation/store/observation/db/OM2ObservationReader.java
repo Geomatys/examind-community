@@ -74,7 +74,6 @@ import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V100;
 import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V200;
 import org.geotoolkit.gml.xml.TimeIndeterminateValueType;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildDataArrayProperty;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildFeatureProperty;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildMeasure;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildOffering;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildSimpleDatarecord;
@@ -86,11 +85,14 @@ import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.gml.xml.GMLXmlFactory;
+import static org.geotoolkit.observation.OMUtils.dateFromTS;
 import org.geotoolkit.observation.model.OMEntity;
 import static org.geotoolkit.observation.ObservationReader.ENTITY_TYPE;
 import static org.geotoolkit.observation.ObservationReader.SENSOR_TYPE;
 import static org.geotoolkit.observation.ObservationReader.SOS_VERSION;
-import org.geotoolkit.observation.model.FieldType;
+import org.geotoolkit.observation.ResultBuilder;
+import org.geotoolkit.observation.model.ResultMode;
+import static org.geotoolkit.sos.xml.SOSXmlFactory.buildFeatureProperty;
 import org.opengis.observation.Process;
 
 
@@ -642,7 +644,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
         }
 
         int nbValue                = 0;
-        final StringBuilder values = new StringBuilder();
+        final ResultBuilder values = new ResultBuilder(ResultMode.CSV, encoding, false);
         final String query          = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m, \"" + schemaPrefix + "om\".\"observations\" o "
                                     + "WHERE \"id_observation\" = o.\"id\" "
                                     + "AND o.\"identifier\"=?"
@@ -651,29 +653,40 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
             stmt.setString(1, identifier);
             try(final ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
+                    values.newBlock();
                     for (int i = 0; i < fields.size(); i++) {
                         Field field = fields.get(i);
-                        String value;
-                        if (FieldType.TIME.equals(field.type)) {
-                            Timestamp t = rs.getTimestamp(i + 3);
-                            synchronized(format2) {
-                                value = format2.format(t);
-                            }
-                        } else {
-                            value = rs.getString(i + 3);
+                        switch (field.type) {
+                            case TIME:
+                                Date t = dateFromTS(rs.getTimestamp(field.name));
+                                values.appendTime(t);
+                                break;
+                            case QUANTITY:
+                                String value = rs.getString(field.name); // we need to kown if the value is null (rs.getDouble return 0 if so).
+                                Double d = Double.NaN;
+                                if (value != null && !value.isEmpty()) {
+                                    d = rs.getDouble(field.name);
+                                }
+                                values.appendDouble(d);
+                                break;
+                            case BOOLEAN:
+                                boolean bvalue = rs.getBoolean(field.name);
+                                values.appendBoolean(bvalue);
+                                break;
+                            default:
+                                String svalue = rs.getString(field.name);
+                                values.appendString(svalue);
+                                break;
                         }
-                        values.append(value).append(encoding.getTokenSeparator());
                     }
-                    values.deleteCharAt(values.length() - 1);
-                    values.append(encoding.getBlockSeparator());
-                    nbValue++;
+                    nbValue = nbValue + values.endBlock();
                 }
             }
         }
 
         final AbstractDataRecord record = buildSimpleDatarecord(version, null, recordID, null, null, scal);
 
-        return buildDataArrayProperty(version, arrayID, nbValue, arrayID, record, encoding, values.toString(), null);
+        return buildDataArrayProperty(version, arrayID, nbValue, arrayID, record, encoding, values.getStringValues(), null);
     }
 
     private Object buildMeasureResult(final String identifier, final String version, final Connection c) throws DataStoreException, SQLException {
