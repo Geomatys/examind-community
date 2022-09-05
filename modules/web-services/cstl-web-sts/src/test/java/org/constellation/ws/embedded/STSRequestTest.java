@@ -1541,13 +1541,23 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         compareJSON(expResult, result);
         
        /*
-        * result filter on all fields
+        * result filter on all fields (single)
         */
         filter = "(result le 6.55)".replace(" ", "%20");
         getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:3)/Observations?$resultFormat=dataArray&$decimation=10&$filter=" + filter);
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-decim-2.json");
+        compareJSON(expResult, result);
+
+        /*
+        * result filter on all fields (multiple)
+        */
+        filter = "(result ge 2.0)".replace(" ", "%20").replace("[", "%5B").replace("]", "%5D");
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:12)/Observations?$resultFormat=dataArray&$decimation=10&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-decim-5.json");
         compareJSON(expResult, result);
         
        /*
@@ -1559,7 +1569,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-decim-3.json");
         compareJSON(expResult, result);
-        
+
         /*
         * decimation on profile
         */

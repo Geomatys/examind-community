@@ -32,7 +32,6 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 import org.apache.sis.storage.DataStoreException;
 import static org.geotoolkit.observation.OMUtils.dateFromTS;
-import org.geotoolkit.observation.ResultBuilder;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldType;
 
@@ -193,6 +192,9 @@ public class DefaultResultDecimator extends ResultDecimator {
     }
 
     private void appendValue(Date t, AtomicInteger cpt, StepValues sv) throws DataStoreException {
+        if (sv == null) {
+            return;
+        }
 
         // if there is only one value in the step, we use the original main value.
         if (sv.mainValues.size() == 1) {

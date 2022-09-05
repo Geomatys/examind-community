@@ -313,7 +313,7 @@ CREATE TABLE "mesures"."mesure12"("id_observation" integer NOT NULL,
                                   "temperature"    double,
                                   "salinity"       double);
 
-INSERT INTO "mesures"."mesure12" VALUES (3000, 1,  '2000-12-01 00:00:00',4.5, 98.5, 4);
+INSERT INTO "mesures"."mesure12" VALUES (3000, 1,  '2000-12-01 00:00:00',2.5, 98.5, 4);
 INSERT INTO "mesures"."mesure12" VALUES (3000, 2,  '2009-12-01 14:00:00',5.9, 1.5,  3);
 INSERT INTO "mesures"."mesure12" VALUES (3000, 3,  '2009-12-11 14:01:00',8.9, 78.5, 2);
 INSERT INTO "mesures"."mesure12" VALUES (3000, 4,  '2009-12-15 14:02:00',7.8, 14.5, 1);

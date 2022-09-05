@@ -419,7 +419,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expResult = new DataArray();
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
         array = new ArrayList<>();
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-1", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 4.5f));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-1", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 2.5f));
         array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-2", "2009-12-01T13:00:00Z", "2009-12-01T13:00:00Z", 5.9f));
         array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-3", "2009-12-11T13:01:00Z", "2009-12-11T13:01:00Z", 8.9f));
         array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-4", "2009-12-15T13:02:00Z", "2009-12-15T13:02:00Z", 7.8f));
@@ -459,7 +459,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expResult = new DataArray();
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
         array = new ArrayList<>();
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-1", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 4.5f));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-1", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 2.5f));
         array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-2", "2009-12-01T13:00:00Z", "2009-12-01T13:00:00Z", 5.9f));
         array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-4", "2009-12-15T13:02:00Z", "2009-12-15T13:02:00Z", 7.8f));
         expResult.setDataArray(array);
@@ -479,7 +479,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expResult = new DataArray();
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
         array = new ArrayList<>();
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-1", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 4.5f));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-1", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 2.5f));
         array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-2", "2009-12-01T13:00:00Z", "2009-12-01T13:00:00Z", 5.9f));
         expResult.setDataArray(array);
 

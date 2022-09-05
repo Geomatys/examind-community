@@ -821,7 +821,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
         // apply only on all phenonemenon
         } else {
-            sqlMeasureRequest.append(" ${allphen").append(operator).appendObjectValue(value.getValue()).append("} ");
+            sqlMeasureRequest.append(" ${allphen").append(operator).appendNamedObjectValue("allphen", value.getValue()).append("} ");
         }
     }
 

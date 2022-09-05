@@ -68,6 +68,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.opengis.filter.BinaryComparisonOperator;
+import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.ResourceId;
 import org.opengis.geometry.Geometry;
@@ -1119,29 +1120,6 @@ public class ObservationStoreProviderTest {
         assertEquals(1, results.size());
     }
 
-
-    private static String getPhenomenonId(Observation o) {
-        assertTrue(o instanceof org.geotoolkit.observation.xml.v100.ObservationType);
-        org.geotoolkit.observation.xml.v100.ObservationType template = (org.geotoolkit.observation.xml.v100.ObservationType) o;
-
-        assertNotNull(template.getPropertyObservedProperty());
-        assertNotNull(template.getPropertyObservedProperty().getPhenomenon());
-        return template.getPropertyObservedProperty().getPhenomenon().getId();
-    }
-
-    private static String getPhenomenonId(Phenomenon phen) {
-        assertTrue(phen instanceof org.geotoolkit.swe.xml.Phenomenon);
-        return ((org.geotoolkit.swe.xml.Phenomenon)phen).getId();
-    }
-    private static String getFOIId(Observation o) {
-        assertTrue(o instanceof org.geotoolkit.observation.xml.v100.ObservationType);
-        org.geotoolkit.observation.xml.v100.ObservationType template = (org.geotoolkit.observation.xml.v100.ObservationType) o;
-
-        assertNotNull(template.getPropertyFeatureOfInterest());
-        assertNotNull(template.getPropertyFeatureOfInterest().getAbstractFeature());
-        return template.getPropertyFeatureOfInterest().getAbstractFeature().getId();
-    }
-
     @Test
     public void getObservationNamesTest() throws Exception {
         assertNotNull(omPr);
@@ -1291,6 +1269,27 @@ public class ObservationStoreProviderTest {
             assertNotNull("null sampling time on measurement", result.getSamplingTime());
             
         }
+
+        Map<String, Object> hints = new HashMap<>();
+        FeatureQuery query = new FeatureQuery();
+        Filter filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:12"));
+        query.setSelection(filter);
+        results = omPr.getObservations(query, MEASUREMENT_QNAME, "inline", null, hints);
+        assertEquals(15, results.size());
+
+        /**
+         * The result of this test is erronated.
+         * it return only the 6 measurement resulting from a split of 2 complex observations with all the field matching the filter.
+         */
+        hints = new HashMap<>();
+        query = new FeatureQuery();
+        BinaryComparisonOperator f1 = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:12"));
+        BinaryComparisonOperator f2 = ff.greaterOrEqual(ff.property("result") , ff.literal(2.0));
+        filter = ff.and(f1, f2);
+        query.setSelection(filter);
+        results = omPr.getObservations(query, MEASUREMENT_QNAME, "inline", null, hints);
+        assertEquals(6, results.size());
+
     }
 
     @Test
@@ -1462,6 +1461,89 @@ public class ObservationStoreProviderTest {
     }
 
     @Test
+    public void getObservationsFilterTest() throws Exception {
+        assertNotNull(omPr);
+
+        Map<String, Object> hints = new HashMap<>();
+        hints.put(VERSION, "1.0.0");
+        FeatureQuery query = new FeatureQuery();
+        Filter filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:12"));
+        query.setSelection(filter);
+        List<Observation> results = omPr.getObservations(query,  OBSERVATION_QNAME, "inline", null, hints);
+        assertEquals(1, results.size());
+
+       String result = getResultValues(results.get(0));
+
+       String expectedResult =
+                          "2000-12-01T00:00:00.0,2.5,98.5,4.0@@"
+                        + "2009-12-01T14:00:00.0,5.9,1.5,3.0@@"
+                        + "2009-12-11T14:01:00.0,8.9,78.5,2.0@@"
+                        + "2009-12-15T14:02:00.0,7.8,14.5,1.0@@"
+                        + "2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
+
+        assertEquals(expectedResult, result);
+
+        hints = new HashMap<>();
+        hints.put(VERSION, "1.0.0");
+        query = new FeatureQuery();
+        Filter f1 = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:12"));
+        Filter f2 = ff.greaterOrEqual(ff.property("result") , ff.literal(2.0));
+        filter = ff.and(f1, f2);
+        query.setSelection(filter);
+        results = omPr.getObservations(query,  OBSERVATION_QNAME, "inline", null, hints);
+        assertEquals(1, results.size());
+
+        result = getResultValues(results.get(0));
+
+        expectedResult =  "2000-12-01T00:00:00.0,2.5,98.5,4.0@@"
+                        + "2009-12-11T14:01:00.0,8.9,78.5,2.0@@";
+
+        assertEquals(expectedResult, result);
+
+        hints = new HashMap<>();
+        hints.put(VERSION, "1.0.0");
+        query = new FeatureQuery();
+        filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:2"));
+        query.setSelection(filter);
+        results = omPr.getObservations(query,  OBSERVATION_QNAME, "inline", null, hints);
+        assertEquals(1, results.size());
+
+        result = getResultValues(results.get(0));
+
+        expectedResult =  "12.0,18.5@@"
+                        + "24.0,19.7@@"
+                        + "48.0,21.2@@"
+                        + "96.0,23.9@@"
+                        + "192.0,26.2@@"
+                        + "384.0,31.4@@"
+                        + "768.0,35.1@@"
+                        + "12.0,18.5@@"
+                        + "12.0,18.5@@";;
+
+        assertEquals(expectedResult, result);
+
+        hints = new HashMap<>();
+        hints.put(VERSION, "1.0.0");
+        query = new FeatureQuery();
+        f1 = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:2"));
+        f2 = ff.lessOrEqual(ff.property("result") , ff.literal(19.0));
+        filter = ff.and(f1, f2);
+        query.setSelection(filter);
+        results = omPr.getObservations(query,  OBSERVATION_QNAME, "inline", null, hints);
+        assertEquals(1, results.size());
+
+        result = getResultValues(results.get(0));
+
+        expectedResult =  "12.0,18.5@@"
+                        + "12.0,18.5@@"
+                        + "12.0,18.5@@";
+
+        assertEquals(expectedResult, result);
+
+
+    }
+
+    @Test
     public void getResultsTest() throws Exception {
         assertNotNull(omPr);
 
@@ -1547,12 +1629,17 @@ public class ObservationStoreProviderTest {
 
         assertEquals(expectedResult, result);
 
+    }
+
+    @Test
+    public void getResultsSingleFilterTest() throws Exception {
         // sensor 8 no decimation
-        hints = new HashMap<>();
-        result = omPr.getResults("urn:ogc:object:sensor:GEOM:8", null, null, new FeatureQuery(), "csv", hints);
+        Map<String, Object> hints = new HashMap<>();
+        Object result = omPr.getResults("urn:ogc:object:sensor:GEOM:8", null, null, new FeatureQuery(), "csv", hints);
         assertTrue(result instanceof String);
 
-        expectedResult =  "2007-05-01T12:59:00.0,6.56,12.0@@"
+        String expectedResult =
+                          "2007-05-01T12:59:00.0,6.56,12.0@@"
                         + "2007-05-01T13:59:00.0,6.56,13.0@@"
                         + "2007-05-01T14:59:00.0,6.56,14.0@@"
                         + "2007-05-01T15:59:00.0,6.56,15.0@@"
@@ -1573,6 +1660,144 @@ public class ObservationStoreProviderTest {
                         + "2007-05-01T15:59:00.0,6.56,15.0@@"
                         + "2007-05-01T16:59:00.0,6.56,16.0@@";
         
+        assertEquals(expectedResult, result);
+
+        // sensor 8 no decimation with filter on result component
+        hints = new HashMap<>();
+        FeatureQuery query = new FeatureQuery();
+        BinaryComparisonOperator filter = ff.lessOrEqual(ff.property("result[1]") , ff.literal(14.0));
+        query.setSelection(filter);
+        result = omPr.getResults("urn:ogc:object:sensor:GEOM:8", null, null, query, "csv", hints);
+        assertTrue(result instanceof String);
+
+        expectedResult =  "2007-05-01T12:59:00.0,6.56,12.0@@"
+                        + "2007-05-01T13:59:00.0,6.56,13.0@@"
+                        + "2007-05-01T14:59:00.0,6.56,14.0@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 8 with decimation with filter on result component
+        hints = new HashMap<>();
+        hints.put("decimSize", 10);
+        result = omPr.getResults("urn:ogc:object:sensor:GEOM:8", null, null, query, "csv", hints);
+        assertTrue(result instanceof String);
+
+        // here the decimated resuts is the same, as we ask for more values than there is
+        expectedResult =  "2007-05-01T12:59:00.0,6.56,12.0@@"
+                        + "2007-05-01T13:59:00.0,6.56,13.0@@"
+                        + "2007-05-01T14:59:00.0,6.56,14.0@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 8 no decimation with filter on result component
+        hints = new HashMap<>();
+        query = new FeatureQuery();
+        filter = ff.greaterOrEqual(ff.property("result[1]") , ff.literal(14.0));
+        query.setSelection(filter);
+        result = omPr.getResults("urn:ogc:object:sensor:GEOM:8", null, null, query, "csv", hints);
+        assertTrue(result instanceof String);
+
+        expectedResult =  "2007-05-01T14:59:00.0,6.56,14.0@@"
+                        + "2007-05-01T15:59:00.0,6.56,15.0@@"
+                        + "2007-05-01T16:59:00.0,6.56,16.0@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 8 with decimation with filter on result component
+        hints = new HashMap<>();
+        hints.put("decimSize", 10);
+        result = omPr.getResults("urn:ogc:object:sensor:GEOM:8", null, null, query, "csv", hints);
+        assertTrue(result instanceof String);
+
+        // here the decimated resuts is the same, as we ask for more values than there is
+        expectedResult =  "2007-05-01T14:59:00.0,6.56,14.0@@"
+                        + "2007-05-01T15:59:00.0,6.56,15.0@@"
+                        + "2007-05-01T16:59:00.0,6.56,16.0@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 8 no decimation with filter on result component + id
+        hints = new HashMap<>();
+        hints.put(INCLUDE_ID_IN_DATABLOCK, true);
+        query = new FeatureQuery();
+        filter = ff.greaterOrEqual(ff.property("result[1]") , ff.literal(14.0));
+        query.setSelection(filter);
+        result = omPr.getResults("urn:ogc:object:sensor:GEOM:8", null, null, query, "csv", hints);
+        assertTrue(result instanceof String);
+
+        expectedResult =  "urn:ogc:object:observation:GEOM:801-5,2007-05-01T14:59:00.0,6.56,14.0@@"
+                        + "urn:ogc:object:observation:GEOM:801-7,2007-05-01T15:59:00.0,6.56,15.0@@"
+                        + "urn:ogc:object:observation:GEOM:801-9,2007-05-01T16:59:00.0,6.56,16.0@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 8 with decimation with filter on result component  + id
+        hints = new HashMap<>();
+        hints.put("decimSize", 10);
+        hints.put(INCLUDE_ID_IN_DATABLOCK, true);
+        result = omPr.getResults("urn:ogc:object:sensor:GEOM:8", null, null, query, "csv", hints);
+        assertTrue(result instanceof String);
+
+        // here the decimated resuts is the same, as we ask for more values than there is
+        expectedResult =  "urn:ogc:object:sensor:GEOM:8-dec-0,2007-05-01T14:59:00.0,6.56,14.0@@"
+                        + "urn:ogc:object:sensor:GEOM:8-dec-1,2007-05-01T15:59:00.0,6.56,15.0@@"
+                        + "urn:ogc:object:sensor:GEOM:8-dec-2,2007-05-01T16:59:00.0,6.56,16.0@@";
+
+        assertEquals(expectedResult, result);
+    }
+
+    @Test
+    public void getResultsMultiFilterTest() throws Exception {
+        // sensor 12 no decimation
+        Map<String, Object> hints = new HashMap<>();
+        Object result = omPr.getResults("urn:ogc:object:sensor:GEOM:12", null, null, new FeatureQuery(), "csv", hints);
+        assertTrue(result instanceof String);
+
+        String expectedResult =
+                          "2000-12-01T00:00:00.0,2.5,98.5,4.0@@"
+                        + "2009-12-01T14:00:00.0,5.9,1.5,3.0@@"
+                        + "2009-12-11T14:01:00.0,8.9,78.5,2.0@@"
+                        + "2009-12-15T14:02:00.0,7.8,14.5,1.0@@"
+                        + "2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 12 with decimation
+        hints = new HashMap<>();
+        hints.put("decimSize", 10);
+        result = omPr.getResults("urn:ogc:object:sensor:GEOM:12", null, null, new FeatureQuery(), "csv", hints);
+        assertTrue(result instanceof String);
+
+        expectedResult =  "2000-12-01T00:00:00.0,2.5,98.5,4.0@@" +
+                          "2009-05-10T20:12:00.0,5.9,1.5,1.0@@" +
+                          "2010-07-25T05:48:00.0,8.9,78.5,3.0@@" +
+                          "2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 12 no decimation with filter on result
+        hints = new HashMap<>();
+        FeatureQuery query = new FeatureQuery();
+        BinaryComparisonOperator filter = ff.greaterOrEqual(ff.property("result") , ff.literal(2.0));
+        query.setSelection(filter);
+        result = omPr.getResults("urn:ogc:object:sensor:GEOM:12", null, null, query, "csv", hints);
+        assertTrue(result instanceof String);
+
+        expectedResult =  "2000-12-01T00:00:00.0,2.5,98.5,4.0@@"
+                        + "2009-12-11T14:01:00.0,8.9,78.5,2.0@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 12 with decimation with filter on result
+        hints = new HashMap<>();
+        hints.put("decimSize", 10);
+        result = omPr.getResults("urn:ogc:object:sensor:GEOM:12", null, null, query, "csv", hints);
+        assertTrue(result instanceof String);
+
+        // here the decimated resuts is the same, as we ask for more values than there is
+        expectedResult =  "2000-12-01T00:00:00.0,2.5,98.5,4.0@@"
+                        + "2009-12-11T14:01:00.0,8.9,78.5,2.0@@";
+
         assertEquals(expectedResult, result);
     }
 
@@ -1726,6 +1951,34 @@ public class ObservationStoreProviderTest {
         assertEquals(expectedResult, result);
 
 
+    }
+
+    private static String getPhenomenonId(Observation o) {
+        assertTrue(o instanceof org.geotoolkit.observation.xml.v100.ObservationType);
+        org.geotoolkit.observation.xml.v100.ObservationType template = (org.geotoolkit.observation.xml.v100.ObservationType) o;
+
+        assertNotNull(template.getPropertyObservedProperty());
+        assertNotNull(template.getPropertyObservedProperty().getPhenomenon());
+        return template.getPropertyObservedProperty().getPhenomenon().getId();
+    }
+
+    private static String getPhenomenonId(Phenomenon phen) {
+        assertTrue(phen instanceof org.geotoolkit.swe.xml.Phenomenon);
+        return ((org.geotoolkit.swe.xml.Phenomenon)phen).getId();
+    }
+    private static String getFOIId(Observation o) {
+        assertTrue(o instanceof org.geotoolkit.observation.xml.v100.ObservationType);
+        org.geotoolkit.observation.xml.v100.ObservationType template = (org.geotoolkit.observation.xml.v100.ObservationType) o;
+
+        assertNotNull(template.getPropertyFeatureOfInterest());
+        assertNotNull(template.getPropertyFeatureOfInterest().getAbstractFeature());
+        return template.getPropertyFeatureOfInterest().getAbstractFeature().getId();
+    }
+
+    private static String getResultValues(Observation obs) {
+        Assert.assertTrue(obs.getResult() instanceof DataArrayProperty);
+        DataArrayProperty resultDAP = (DataArrayProperty)obs.getResult();
+        return resultDAP.getDataArray().getValues();
     }
 
     /**

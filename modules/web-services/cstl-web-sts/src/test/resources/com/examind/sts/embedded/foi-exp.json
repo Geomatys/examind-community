@@ -230,7 +230,7 @@
             "FeatureOfInterest@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:2000-2-5)/FeaturesOfInterest"
         }, {
             "phenomenonTime": "2000-11-30T23:00:00Z",
-            "result": 4.5,
+            "result": 2.5,
             "resultTime": "2000-11-30T23:00:00Z",
             "@iot.id": "urn:ogc:object:observation:GEOM:3000-2-1",
             "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:3000-2-1)",
