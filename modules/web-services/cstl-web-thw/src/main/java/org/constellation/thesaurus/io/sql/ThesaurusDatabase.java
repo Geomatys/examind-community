@@ -349,7 +349,7 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
             FilterSQLRequest query = new FilterSQLRequest("SELECT \"uri_concept\" FROM \"" + schema + "\".\"terme_completion\" WHERE ");
             query.append("\"label\"=").appendValue(term);
             appendLanguageFilter(language, false, query);
-            
+
             boolean stop = false;
             try (final PreparedStatement pstmt = query.fillParams(c.prepareStatement(query.getRequest()));
                  ResultSet result = pstmt.executeQuery()) {
@@ -626,7 +626,7 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
                 query.append(" WHERE \"label\"=").appendValue(brutTerm);
                 appendLanguageFilter(language, false, query);
                 appendThemeFilter(themes, query);
-                
+
                 boolean stop = false;
 
                 try (final PreparedStatement pstmt = query.fillParams(c.prepareStatement(query.getRequest()));
@@ -935,7 +935,7 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
     @Override
     public List<Concept> getAllConcepts(final int limit) {
         final List<Concept> result = new ArrayList<>();
-        final String query = "SELECT DISTINCT \"uri_concept\" FROM \"" + schema + "\".\"terme_completion\"";
+        final String query = "SELECT DISTINCT \"uri_concept\" FROM \"" + schema + "\".propriete_concept";
         try (Connection c = datasource.getConnection();
              Statement stmt = c.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {//NOSONAR
