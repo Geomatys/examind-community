@@ -22,6 +22,7 @@
         <module>cstl-engine-admin</module>
         <module>cstl-engine-templating</module>
         <module>examind-engine-process-sos</module>
+        <module>examind-engine-oauth2</module>
     </modules>
 
 </project>
