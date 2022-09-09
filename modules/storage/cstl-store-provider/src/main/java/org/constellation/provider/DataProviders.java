@@ -377,10 +377,10 @@ public final class DataProviders extends Static{
             try (AutoCloseable closeStorage = () -> c.closeAllExcept(null)) {
                 long start = System.currentTimeMillis();
                 ProbeResult result = provider.probeContent(c);
-                assert isProperlyReset(c, ctrlValue) : "Following datastore has not properly reset storage connector on probe operation: "+name;
+                assert isProperlyReset(c, ctrlValue) : "Following datastore has not properly reset storage connector on probe operation: "+pName;
                 // help detecting if a probe content on a provider is taking too much time
-                LOGGER.log(Level.FINER, "Probing on provider:{0} in {1}ms.", new Object[]{name, System.currentTimeMillis() - start});
-                results.put(name, result);
+                LOGGER.log(Level.FINER, "Probing on provider:{0} in {1}ms.", new Object[]{pName, System.currentTimeMillis() - start});
+                results.put(pName, result);
             } catch (Exception e) {
                 LOGGER.log(Level.FINE, e, () -> "Error while probing content using provider: "+pName);
                 mainError.addSuppressed(e);
@@ -453,7 +453,7 @@ public final class DataProviders extends Static{
         }
         return false;
     }
-    
+
     private static boolean isProperlyReset(StorageConnector input, byte[] ctrlValue) throws DataStoreException {
         final ByteBuffer storage = input.getStorageAs(ByteBuffer.class);
         final byte[] currentValue = new byte[ctrlValue.length];
