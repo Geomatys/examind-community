@@ -20,6 +20,7 @@
 package com.examind.store.observation;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -40,7 +41,7 @@ public class MeasureBuilder {
     
     private static final Logger LOGGER = Logger.getLogger("com.examind.store.observation");
             
-    private final LinkedHashMap<Number, LinkedHashMap<String, Double>> mmb = new LinkedHashMap<>();
+    private final Map<Number, LinkedHashMap<String, Measure>> mmb = new LinkedHashMap<>();
      
     private final boolean isProfile;
      
@@ -48,13 +49,42 @@ public class MeasureBuilder {
 
     private final List<String> mainColumns;
 
-    public MeasureBuilder(boolean isProfile, List<String> measureColumns, List<String> mainColumns) {
+    private static class Measure {
+        public final double value;
+        public final String[] qualityValues;
+
+        public Measure(int qualitySize) {
+            this.value = Double.NaN;
+            this.qualityValues = new String[qualitySize];
+            Arrays.fill(qualityValues, "");
+
+        }
+        public Measure(double value, String[] qualityValues) {
+            this.value = value;
+            this.qualityValues = qualityValues;
+        }
+
+        public boolean isNaN() {
+            return Double.isNaN(value);
+        }
+    }
+
+    public MeasureBuilder(boolean isProfile, List<String> measureColumns, List<String> mainColumns, List<String> qualityColumns, List<String> qualityTypes) {
         if (mainColumns == null    || mainColumns.isEmpty())    throw new IllegalArgumentException("mains columns should not be null or empty");
         if (measureColumns == null || measureColumns.isEmpty()) throw new IllegalArgumentException("measures columns should not be null or empty");
         this.isProfile = isProfile;
         // initialize description
         for (String mc : measureColumns) {
-            this.measureColumns.put(mc, new MeasureField(mc));
+            List<MeasureField> qualityFields = new ArrayList<>();
+            for (int i = 0; i < qualityColumns.size(); i++) {
+                String qc = qualityColumns.get(i);
+                String type = "Text";
+                if (i < qualityTypes.size()) {
+                    type = qualityTypes.get(i);
+                }
+                qualityFields.add(new MeasureField(qc, type, new ArrayList<>()));
+            }
+            this.measureColumns.put(mc, new MeasureField(mc, "Quantity", qualityFields));
         }
         this.mainColumns = mainColumns;
     }
@@ -65,31 +95,31 @@ public class MeasureBuilder {
         this.mainColumns =  new ArrayList<>(cmb.mainColumns);
     }
      
-     public void appendValue(Number mainValue, String measureCode, Double measureValue, int lineNumber) {
+     public void appendValue(Number mainValue, String measureCode, double measureValue, int lineNumber, String[] qualityValues) {
          if (!mmb.containsKey(mainValue)) {
-            LinkedHashMap<String, Double> row = new LinkedHashMap<>();
-            for (String measure: measureColumns.keySet()) {
-                row.put(measure, Double.NaN);
+            LinkedHashMap<String, Measure> row = new LinkedHashMap<>();
+            for (Entry<String, MeasureField>  measure: measureColumns.entrySet()) {
+                row.put(measure.getKey(), new Measure(measure.getValue().qualityFields.size()));
             }
             mmb.put(mainValue, row);
         }
         // add measure code
         if (measureCode != null && !measureCode.isEmpty() && measureColumns.keySet().contains(measureCode)) {
-            LinkedHashMap<String, Double> row = mmb.get(mainValue);
+            LinkedHashMap<String, Measure> row = mmb.get(mainValue);
             if (row.containsKey(measureCode) && !row.get(measureCode).isNaN()) {
                 LOGGER.log(Level.FINE, "Duplicated value at line {0} and for main value {1} (value=''{2}'')", new Object[]{lineNumber, mainValue, measureValue});
             }
-            row.put(measureCode, measureValue);
+            row.put(measureCode, new Measure(measureValue, qualityValues));
             mmb.put(mainValue, row);
         }
      }
      
      private Set<String> getMeasureFromMap() {
         Set<String> result = new HashSet<>();
-        for (Map.Entry<Number, LinkedHashMap<String, Double>> entry1: mmb.entrySet()) {
-            for (Map.Entry<String, Double> entry2: entry1.getValue().entrySet()) {
+        for (Map.Entry<Number, LinkedHashMap<String, Measure>> entry1: mmb.entrySet()) {
+            for (Map.Entry<String, Measure> entry2: entry1.getValue().entrySet()) {
                 final String measureName = entry2.getKey();
-                final Double measureValue = entry2.getValue();
+                final Measure measureValue = entry2.getValue();
 
                 if (!measureValue.isNaN()) result.add(measureName);
             }
@@ -106,7 +136,7 @@ public class MeasureBuilder {
             if (mainColumns.size() > 1) {
                 throw new IllegalArgumentException("Multiple main columns is not yet supported for Profile");
             }
-            filteredMeasure.put(mainColumns.get(0), new MeasureField(mainColumns.get(0)));
+            filteredMeasure.put(mainColumns.get(0), new MeasureField(mainColumns.get(0), "Quantity", new ArrayList<>()));
         }
         for (Entry<String, MeasureField> m : measureColumns.entrySet()) {
             if (measureColumnFound.contains(m.getKey())) {
@@ -140,7 +170,7 @@ public class MeasureBuilder {
         for (Number mainValue: keys) {
             // verify that the line is not all NAN
             boolean emptyLine = true;
-            for (Map.Entry<String, Double> entry2: mmb.get(mainValue).entrySet()) {
+            for (Map.Entry<String, Measure> entry2: mmb.get(mainValue).entrySet()) {
                 final String measureName = entry2.getKey();
                 if (measureColumnFound.contains(measureName) && !entry2.getValue().isNaN()) {
                     emptyLine = false;
@@ -157,11 +187,14 @@ public class MeasureBuilder {
             } else {
                 result.appendDate((long)mainValue);
             }
-            for (Map.Entry<String, Double> entry2: mmb.get(mainValue).entrySet()) {
+            for (Map.Entry<String, Measure> entry2: mmb.get(mainValue).entrySet()) {
                 final String measureName = entry2.getKey();
                 if (measureColumnFound.contains(measureName)) {
-                    final Double measureValue = entry2.getValue();
-                    result.appendValue(measureValue);
+                    final Measure measure = entry2.getValue();
+                    result.appendValue(measure.value);
+                    for (String qValue : measure.qualityValues) {
+                        result.appendValue(qValue);
+                    }
                     noneValue = false;
                 }
             }

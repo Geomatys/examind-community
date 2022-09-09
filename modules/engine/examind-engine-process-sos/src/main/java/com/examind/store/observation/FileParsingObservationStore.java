@@ -111,6 +111,9 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
     // timeSeries / trajectory / profiles
     protected final String observationType;
 
+    protected final List<String> qualityColumns;
+    protected final List<String> qualityTypes;
+
     /**
      * Act as a single sensor ID if no procedureColumn is supplied.
      * Act as a prefix else.
@@ -131,9 +134,9 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
     public FileParsingObservationStore(final Path f, final char separator, final char quotechar, FeatureType ft, 
             final List<String> mainColumn, final List<String> dateColumn, final String dateTimeformat, final String longitudeColumn,
             final String latitudeColumn, final Set<String> measureColumns, String observationType, String foiColumn,
-            final String procedureId, final String procedureColumn, final String procedureNameColumn, final String procedureDescColumn, 
+            final String procedureId, final String procedureColumn, final String procedureNameColumn, final String procedureDescColumn,
             final String zColumn, final String uomRegex, final String obsPropRegex, final String obsPropId, final String obsPropName, String mimeType, final boolean noHeader,
-            final boolean directColumnIndex) throws MalformedURLException, DataStoreException{
+            final boolean directColumnIndex, final List<String> qualityColumns, final List<String> qualityTypes) throws MalformedURLException, DataStoreException{
         super(f, separator, ft);
         this.dataFile = f;
         this.delimiter = separator;
@@ -157,6 +160,8 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
         this.directColumnIndex = directColumnIndex;
         this.obsPropId = obsPropId;
         this.obsPropName = obsPropName;
+        this.qualityColumns = qualityColumns;
+        this.qualityTypes = qualityTypes;
 
         if (procedureId == null && procedureColumn == null) {
             this.procedureId = IOUtilities.filenameWithoutExtension(dataFile);
@@ -241,12 +246,12 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
 
     protected final Map<String, ObservationBlock> observationBlock = new HashMap<>();
 
-    protected ObservationBlock getOrCreateObservationBlock(String procedureId, String procedureName, String procedureDesc, String foiID, Long time, List<String> measureColumns, List<String> mainColumns, String observationType) {
+    protected ObservationBlock getOrCreateObservationBlock(String procedureId, String procedureName, String procedureDesc, String foiID, Long time, List<String> measureColumns, List<String> mainColumns, String observationType, List<String> qualtityColumns, List<String> qualityTypes) {
         String key = procedureId + '-' + foiID + '-' + time;
         if (observationBlock.containsKey(key)) {
             return observationBlock.get(key);
         } else {
-            MeasureBuilder cmb = new MeasureBuilder(observationType.equals("Profile"), measureColumns, mainColumns);
+            MeasureBuilder cmb = new MeasureBuilder(observationType.equals("Profile"), measureColumns, mainColumns, qualtityColumns, qualityTypes);
             ObservationBlock ob = new ObservationBlock(procedureId, procedureName, procedureDesc, foiID, cmb, observationType);
             observationBlock.put(key, ob);
             return ob;
@@ -275,7 +280,12 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
             name = extractWithRegex(obsPropRegex, name, name);
 
             String label = field.getValue().label != null ? field.getValue().label : name;
-            fields.add(new Field(i, FieldType.QUANTITY, name, label, null, uom));
+            final List<Field> qualityFields = new ArrayList<>();
+            for (MeasureField qmField : field.getValue().qualityFields) {
+                FieldType fType = FieldType.fromLabel(qmField.type);
+                qualityFields.add(new Field(-1, fType, qmField.name, qmField.label, null, qmField.uom));
+            }
+            fields.add(new Field(i, FieldType.QUANTITY, name, label, null, uom, qualityFields));
             i++;
         }
 

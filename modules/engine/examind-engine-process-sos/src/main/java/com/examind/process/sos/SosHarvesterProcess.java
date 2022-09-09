@@ -156,6 +156,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final String foiColumn = inputParameters.getValue(FOI_COLUMN);
         final String observationType = inputParameters.getValue(OBS_TYPE);
         final String zColumn    = inputParameters.getValue(Z_COLUMN);
+        final List<String> qualityColumns = getMultipleValues(QUALITY_COLUMN);
+        final List<String> qualityTypes = getMultipleValues(QUALITY_COLUMN_TYPE);
 
         // csv-flat special
         final String typeColumn  = inputParameters.getValue(TYPE_COLUMN);
@@ -305,6 +307,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_NAME.getName().toString(), obsPropName);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_NAME_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(ObsPropNameColumns));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_REGEX.getName().toString(), obsPropRegex);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.QUALITY_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(qualityColumns));
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.QUALITY_COLUMN_TYPE.getName().toString(), StringUtilities.toCommaSeparatedValues(qualityTypes));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.TYPE_COLUMN.getName().toString(), typeColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.Z_COLUMN.getName().toString(), zColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.UOM_COLUMN.getName().toString(), uomColumn);

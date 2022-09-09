@@ -1251,7 +1251,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
 
     @Test
     @Order(order = 6)
-    public void harvesterCSVCoriolisProfileSingleTest() throws Exception {
+    public void harvesterCSVFlatProfileSingleTest() throws Exception {
 
         ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
         Assert.assertNotNull(sc);
@@ -1384,7 +1384,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
 
     @Test
     @Order(order = 6)
-    public void harvesterCSVCoriolisProfileTest() throws Exception {
+    public void harvesterCSVFlatProfileTest() throws Exception {
 
         ServiceComplete sos = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
         Assert.assertNotNull(sos);
@@ -1556,7 +1556,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
 
     @Test
     @Order(order = 7)
-    public void harvesterCSVCoriolisTSTest() throws Exception {
+    public void harvesterCSVFlatTSTest() throws Exception {
 
         ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
         Assert.assertNotNull(sc);
@@ -1600,6 +1600,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         val2.setValue("35");
         in.values().add(val2);
 
+        in.parameter(SosHarvesterProcessDescriptor.QUALITY_COLUMN_NAME).setValue("parameter_qc");
         in.parameter(SosHarvesterProcessDescriptor.RESULT_COLUMN_NAME).setValue("parameter_value");
         in.parameter(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).setValue("parameter_code");
         in.parameter(SosHarvesterProcessDescriptor.TYPE_COLUMN_NAME).setValue("file_type");
@@ -1658,8 +1659,8 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         * Verify an inserted data
         */
         GetResultResponseType gr = (GetResultResponseType) sosWorker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
-        String expectedResult = getResourceAsString("com/examind/process/sos/bigdata-datablock-values-2.txt");
-        Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
+        String expectedResult = getResourceAsString("com/examind/process/sos/bigdata-datablock-values-2-quality.txt");
+        Assert.assertEquals(expectedResult, gr.getResultValues().toString().replace("@@", "@@\n"));
 
         GetHistoricalLocations hl = new GetHistoricalLocations();
         hl.getExtraFilter().put("procedure", "urn:template:1501563");
@@ -1702,8 +1703,8 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         * Verify an inserted data
         */
         gr = (GetResultResponseType) sosWorker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
-        expectedResult = getResourceAsString("com/examind/process/sos/bigdata-datablock-values-3.txt");
-        Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
+        expectedResult = getResourceAsString("com/examind/process/sos/bigdata-datablock-values-3-quality.txt");
+        Assert.assertEquals(expectedResult, gr.getResultValues().toString().replace("@@", "@@\n"));
 
         hl = new GetHistoricalLocations();
         hl.getExtraFilter().put("procedure", "urn:template:1501564");
@@ -1787,7 +1788,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
 
     @Test
     @Order(order = 7)
-    public void harvesterCSVCoriolisMultiTypeTest() throws Exception {
+    public void harvesterCSVFlatMultiTypeTest() throws Exception {
 
         ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
         Assert.assertNotNull(sc);
@@ -2495,11 +2496,11 @@ public class SosHarvesterProcessTest extends SpringContextTest {
     }
 
     /**
-     * Same test as harvesterCSVCoriolisProfileSingleTest but the process SosHarvester is called from the ProcessFromYamlProcess.
+     * Same test as harvesterCSVFlatProfileSingleTest but the process SosHarvester is called from the ProcessFromYamlProcess.
      */
     @Test
     @Order(order = 9)
-    public void harvesterCSVCoriolisProfileSingleFromYamlTest() throws ConstellationException, NoSuchIdentifierException, ProcessException, IOException, ParseException {
+    public void harvesterCSVFlatProfileSingleFromYamlTest() throws ConstellationException, NoSuchIdentifierException, ProcessException, IOException, ParseException {
         ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
         Assert.assertNotNull(sc);
 
@@ -2630,7 +2631,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
 
     @Test
     @Order(order = 9)
-    public void harvesterCSVCoriolisProfileSingleFromYamlNoFIlterTest() throws ConstellationException, NoSuchIdentifierException, ProcessException, IOException, ParseException {
+    public void harvesterCSVFlatProfileSingleFromYamlNoFIlterTest() throws ConstellationException, NoSuchIdentifierException, ProcessException, IOException, ParseException {
         ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
         Assert.assertNotNull(sc);
 
@@ -2770,7 +2771,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
     }
 
     /**
-     * Same test as harvesterCSVCoriolisProfileSingleTest but the process SosHarvester is called from the ProcessFromYamlProcess.
+     * Same test as harvesterCSVFlatProfileSingleTest but the process SosHarvester is called from the ProcessFromYamlProcess.
      */
     @Test
     @Order(order = 9)

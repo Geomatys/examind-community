@@ -48,7 +48,7 @@ public class ObservationBlock {
 
     public String observationType;
 
-    private Positions positions;
+    private final Positions positions;
 
     public MeasureBuilder cmb;
     
@@ -98,8 +98,8 @@ public class ObservationBlock {
         return cmb.getMeasureCount();
     }
     
-    public void appendValue(Number mainValue, String measureCode, Double measureValue, int lineNumber) {
-        cmb.appendValue(mainValue, measureCode, measureValue, lineNumber);
+    public void appendValue(Number mainValue, String measureCode, double measureValue, int lineNumber, String[] qualityValues) {
+        cmb.appendValue(mainValue, measureCode, measureValue, lineNumber, qualityValues);
     }
 
     public void updateObservedPropertyName(String observedProperty, String observedPropertyName) {

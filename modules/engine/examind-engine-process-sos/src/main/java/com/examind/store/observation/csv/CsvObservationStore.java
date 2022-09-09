@@ -86,10 +86,11 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
     public CsvObservationStore(final Path observationFile, final char separator, final char quotechar, final FeatureType featureType,
             final List<String> mainColumn, final List<String> dateColumn, final String dateTimeformat, final String longitudeColumn, final String latitudeColumn,
             final Set<String> measureColumns, String observationType, String foiColumn, final String procedureId, final String procedureColumn, 
-            final String procedureNameColumn, final String procedureDescColumn, final String zColumn, final String uomRegex, String obsPropRegex, 
-            String mimeType, final String obsPropId, final String obsPropName, final boolean noHeader, final boolean directColumnIndex) throws DataStoreException, MalformedURLException {
+            final String procedureNameColumn, final String procedureDescColumn, final String zColumn, final String uomRegex, String obsPropRegex,
+            String mimeType, final String obsPropId, final String obsPropName, final boolean noHeader, final boolean directColumnIndex, final List<String> qualtityColumns,
+            final List<String> qualityTypes) throws DataStoreException, MalformedURLException {
         super(observationFile, separator, quotechar, featureType, mainColumn, dateColumn, dateTimeformat, longitudeColumn, latitudeColumn, measureColumns, observationType, 
-              foiColumn, procedureId, procedureColumn, procedureNameColumn, procedureDescColumn, zColumn, uomRegex, obsPropRegex, obsPropId, obsPropName, mimeType, noHeader, directColumnIndex);
+              foiColumn, procedureId, procedureColumn, procedureNameColumn, procedureDescColumn, zColumn, uomRegex, obsPropRegex, obsPropId, obsPropName, mimeType, noHeader, directColumnIndex, qualtityColumns, qualityTypes);
     }
 
     @Override
@@ -225,7 +226,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                     }
                 }
 
-                ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentProcName, currentProcDesc, currentFoi, currentTime, measureFields, mainColumns, observationType);
+                ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentProcName, currentProcDesc, currentFoi, currentTime, measureFields, mainColumns, observationType, qualityColumns, qualityTypes);
 
                 /*
                 a- build spatio-temporal information
@@ -285,7 +286,8 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                         } else {
                             fieldName = headers[i];
                         }
-                        currentBlock.appendValue(mainValue, fieldName, measureValue, lineNumber);
+                        // TODO quality values
+                        currentBlock.appendValue(mainValue, fieldName, measureValue, lineNumber, new String[0]);
                     } catch (ParseException | NumberFormatException ex) {
                         if (!line[i].isEmpty()) {
                             LOGGER.fine(String.format("Problem parsing double value at line %d and column %d (value='%s')", lineNumber, i, line[i]));

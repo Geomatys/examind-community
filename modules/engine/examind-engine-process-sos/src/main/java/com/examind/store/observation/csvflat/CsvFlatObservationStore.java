@@ -87,9 +87,11 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                                        final Set<String> obsPropFilterColumns, String observationType, String foiColumn, final String procedureId, final String procedureColumn, 
                                        final String procedureNameColumn, final String procedureDescColumn, final String zColumn, final String uomColumn, final String uomRegex,
                                        final String valueColumn, final Set<String> obsPropColumns, final Set<String> obsPropNameColumns, final String typeColumn,  String obsPropRegex,
-                                       final String mimeType, final String obsPropId, final String obsPropName, final boolean noHeader, final boolean directColumnIndex) throws DataStoreException, MalformedURLException {
+                                       final String mimeType, final String obsPropId, final String obsPropName, final boolean noHeader, final boolean directColumnIndex, final List<String> qualtityColumns,
+                                       final List<String> qualityTypes) throws DataStoreException, MalformedURLException {
         super(observationFile, separator, quotechar, featureType, mainColumn, dateColumn, dateTimeformat, longitudeColumn, latitudeColumn, obsPropFilterColumns, observationType,
-              foiColumn, procedureId, procedureColumn, procedureNameColumn, procedureDescColumn, zColumn, uomRegex, obsPropRegex, obsPropId, obsPropName, mimeType, noHeader, directColumnIndex);
+              foiColumn, procedureId, procedureColumn, procedureNameColumn, procedureDescColumn, zColumn, uomRegex, obsPropRegex, obsPropId, obsPropName, mimeType, 
+              noHeader, directColumnIndex, qualtityColumns, qualityTypes);
         this.valueColumn = valueColumn;
         this.obsPropColumns = obsPropColumns;
         this.obsPropNameColumns = obsPropNameColumns;
@@ -185,9 +187,10 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             int typeColumnIndex  = getColumnIndex(typeColumn, headers);
 
             List<Integer> dateIndexes              = getColumnIndexes(dateColumns, headers);
-            List<Integer> mainIndexes              = getColumnIndexes(mainColumns, headers);;
+            List<Integer> mainIndexes              = getColumnIndexes(mainColumns, headers);
             List<Integer> obsPropColumnIndexes     = getColumnIndexes(obsPropColumns, headers);
             List<Integer> obsPropNameColumnIndexes = getColumnIndexes(obsPropNameColumns, headers);
+            List<Integer> qualityIndexes           = getColumnIndexes(qualityColumns, headers);
 
             if (obsPropColumnIndexes.isEmpty()) {
                 throw new DataStoreException("Unexpected columns code:" + Arrays.toString(obsPropColumns.toArray()));
@@ -300,7 +303,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     continue;
                 }
 
-                ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentProcName, currentProcDesc, currentFoi, currentTime, sortedMeasureColumns, currentMainColumns, currentObstType);
+                ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentProcName, currentProcDesc, currentFoi, currentTime, sortedMeasureColumns, currentMainColumns, currentObstType, qualityColumns, qualityTypes);
 
                 String observedPropertyName = "";
                 if (obsPropName != null && !obsPropName.isEmpty()) {
@@ -371,7 +374,13 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     LOGGER.fine(String.format("Problem parsing double for measure field at line %d and column %d (value='%s'). skipping line...", lineNumber, valueColumnIndex, line[valueColumnIndex]));
                     continue;
                 }
-                currentBlock.appendValue(mainValue, observedProperty, measureValue, lineNumber);
+                // todo quality field types
+                String[] qualityValues = new String[qualityIndexes.size()];
+                for (int i = 0; i < qualityIndexes.size(); i++) {
+                    Integer qIndex = qualityIndexes.get(i);
+                    qualityValues[i] = line[qIndex];
+                 }
+                currentBlock.appendValue(mainValue, observedProperty, measureValue, lineNumber, qualityValues);
             }
 
 

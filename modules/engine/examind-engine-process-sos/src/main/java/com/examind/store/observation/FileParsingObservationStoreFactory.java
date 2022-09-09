@@ -179,7 +179,17 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
             .addName("observed_properties_regex")
             .setRequired(false)
             .create(String.class, null);
-    
+
+    public static final ParameterDescriptor<String> QUALITY_COLUMN = PARAM_BUILDER
+            .addName("qualtity_column")
+            .setRequired(false)
+            .create(String.class, null);
+
+    public static final ParameterDescriptor<String> QUALITY_COLUMN_TYPE = PARAM_BUILDER
+            .addName("qualtity_column_type")
+            .setRequired(false)
+            .create(String.class, null);
+
     public static final ParameterDescriptor<String> TYPE_COLUMN = PARAM_BUILDER
             .addName("type_column")
             .setRequired(false)

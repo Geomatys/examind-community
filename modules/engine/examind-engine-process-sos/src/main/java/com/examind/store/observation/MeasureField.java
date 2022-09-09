@@ -18,6 +18,8 @@
  */
 package com.examind.store.observation;
 
+import java.util.List;
+
 /**
  *
  * @author Guilhem Legal (Geomatys)
@@ -27,8 +29,13 @@ public class MeasureField {
     public final String name;
     public String label;
     public String uom;
+    public final String type;
 
-    public MeasureField(String name) {
+    public final List<MeasureField> qualityFields;
+
+    public MeasureField(String name, String type, List<MeasureField> qualityFields) {
         this.name = name;
+        this.type = type;
+        this.qualityFields = qualityFields;
     }
 }

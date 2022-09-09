@@ -3,7 +3,7 @@ CREATE TABLE "$SCHEMAom"."version" (
     "number"   character varying(10) NOT NULL
 );
 
-INSERT INTO "$SCHEMAom"."version" VALUES ('1.1.1');
+INSERT INTO "$SCHEMAom"."version" VALUES ('1.1.2');
 
 ALTER TABLE "$SCHEMAom"."version" ADD CONSTRAINT version_pk PRIMARY KEY ("number");
 
@@ -118,7 +118,7 @@ ALTER TABLE "$SCHEMAom"."observed_properties" ADD CONSTRAINT observed_properties
 
 ALTER TABLE "$SCHEMAom"."procedures" ADD CONSTRAINT procedure_pk PRIMARY KEY ("id");
 
-ALTER TABLE "$SCHEMAom"."procedure_descriptions" ADD CONSTRAINT procedure_descriptions_pk PRIMARY KEY ("procedure", "field_name");
+ALTER TABLE "$SCHEMAom"."procedure_descriptions" ADD CONSTRAINT procedure_descriptions_uq UNIQUE ("procedure", "field_name", "parent");
 
 ALTER TABLE "$SCHEMAom"."sampling_features" ADD CONSTRAINT sf_pk PRIMARY KEY ("id");
 
