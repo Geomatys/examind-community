@@ -438,17 +438,6 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
         return matchingConcept;
     }
 
-    @Override
-    public Concept getGeometricConcept(final String uriConcept) {
-        Concept c = null;
-        try (Connection con = datasource.getConnection()) {
-            c = readConcept(uriConcept, true, con, null);
-        } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
-        }
-        return c;
-    }
-
     /**
      * Try to find the concept matching the specified term.
      *
@@ -714,14 +703,19 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
     }
 
     @Override
-    public Concept getConcept(final String uriConcept) {
+    public Concept getGeometricConcept(final String uriConcept) {
         Concept c = null;
         try (Connection con = datasource.getConnection()) {
-            c = readConcept(uriConcept, false, con, null);
+            c = readConcept(uriConcept, true, con, null);
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "SQL exception in getConcept(): {0}", ex.getMessage());
+            LOGGER.log(Level.SEVERE, null, ex);
         }
         return c;
+    }
+    
+    @Override
+    public Concept getConcept(final String uriConcept) {
+        return getConcept(uriConcept, null);
     }
 
     @Override
