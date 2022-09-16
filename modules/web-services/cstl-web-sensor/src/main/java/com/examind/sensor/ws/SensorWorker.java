@@ -182,13 +182,18 @@ public abstract class SensorWorker extends AbstractWorker<SOSConfiguration> {
 
     /**
      * Return {@code true} if the sensor exist and is linked to the service.
+     *
+     * if the parameter exist is set to true, we know that the sensor exist (so its no mandatory to look for existence in directProvider mode)
      * 
      * @param sensorId Sensor identifier.
+     * @param exist if set to true, we know that the sensor exist.
      * @return
      */
-    protected boolean isLinkedSensor(String sensorId) {
+    protected boolean isLinkedSensor(String sensorId, boolean exist) {
         // in direct provider mode we look for existence in om provider.
         if (directProvider) {
+            if (exist) return true;
+            // we look for sensor existence
             try {
                 return omProvider.existProcedure(sensorId);
             } catch (ConstellationStoreException ex) {

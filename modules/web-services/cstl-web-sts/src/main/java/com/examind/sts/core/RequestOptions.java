@@ -19,8 +19,12 @@
 package com.examind.sts.core;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import org.geotoolkit.internal.geojson.binding.GeoJSONGeometry;
 import org.geotoolkit.sts.STSRequest;
+import org.opengis.temporal.TemporalObject;
 
 /**
  * temporary replace of {@link org.geotoolkit.sts.ExpandOptions} which has the problem of infinite sublevel of expand.
@@ -49,16 +53,27 @@ public class RequestOptions {
     public final FieldInfo historicalLocations;
     public final FieldInfo locations;
 
+    /**
+     * Used for caching parsed sensor geometrie during a request
+     */
+    public final Map<String, GeoJSONGeometry> sensorArea;
+
+    /**
+     * Used for caching parsed formatted times during a request
+     *
+     */
+    public final Map<List<Object>, String> timesCache;
+
     private boolean topLevel;
 
     private final List<String> select;
     private final List<String> expand;
 
     public RequestOptions(STSRequest req) {
-        this(req.getExpand(), req.getSelect(), true);
+        this(req.getExpand(), req.getSelect(), true, new HashMap<>(), new HashMap<>());
     }
 
-    protected RequestOptions(List<String> expandList, List<String> selectList, boolean topLevell) {
+    protected RequestOptions(List<String> expandList, List<String> selectList, boolean topLevell, Map<String, GeoJSONGeometry> sensorArea, Map<List<Object>, String> timesCache) {
         topLevel            = topLevell;
         expand              = new ArrayList<>();
         if (expandList != null) {
@@ -81,6 +96,9 @@ public class RequestOptions {
         things              = new FieldInfo(isExpand("things"), isSelect("things"));
         historicalLocations = new FieldInfo(isExpand("historicallocations"), isSelect("historicallocations"));
         locations           = new FieldInfo(isExpand("locations"), isSelect("locations"));
+
+        this.sensorArea = sensorArea;
+        this.timesCache = timesCache;
     }
 
 
@@ -127,7 +145,7 @@ public class RequestOptions {
 
     public RequestOptions subLevel(String forEntity) {
         if (topLevel) {
-            return new RequestOptions(new ArrayList<>(expand), new ArrayList<>(select), false);
+            return new RequestOptions(new ArrayList<>(expand), new ArrayList<>(select), false, sensorArea, timesCache);
         }
         forEntity = forEntity.toLowerCase();
         List<String> newExpand = new ArrayList<>();
@@ -142,6 +160,6 @@ public class RequestOptions {
                 newSelect.add(sel.substring(forEntity.length() + 1));
             }
         }
-        return new RequestOptions(newExpand, newSelect, false);
+        return new RequestOptions(newExpand, newSelect, false, sensorArea, timesCache);
     }
 }

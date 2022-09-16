@@ -19,19 +19,28 @@
 package com.examind.sts.core;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.gml.xml.GMLXmlFactory;
+import org.opengis.temporal.Instant;
+import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalObject;
+import org.springframework.lang.Nullable;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
 public class STSUtils {
+
+    private static final Logger LOGGER = Logger.getLogger("com.examind.sts.core");
 
     private static final SimpleDateFormat ISO_8601_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
     private static final SimpleDateFormat ISO_8601_2_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
@@ -78,5 +87,74 @@ public class STSUtils {
 
     public static TemporalObject buildTemporalObj(Date to) {
         return GMLXmlFactory.createTimeInstant("3.2.1", to);
+    }
+
+    
+    private static List<Object> temporalkey(TemporalObject to) {
+        List<Object> results = null;
+        if (to instanceof Period tp) {
+            results = new ArrayList<>();
+            Instant beginI = tp.getBeginning();
+            Instant endI   = tp.getEnding();
+            Date begin     = beginI.getDate();
+            Date end       = endI.getDate();
+            if (begin != null) {
+                results.add(begin);
+            } else if (beginI.getTemporalPosition() != null &&
+                       beginI.getTemporalPosition().getIndeterminatePosition() != null){
+                results.add(beginI.getTemporalPosition().getIndeterminatePosition().name());
+            }
+            if (end != null) {
+                results.add(end);
+            } else if (endI.getTemporalPosition() != null &&
+                       endI.getTemporalPosition().getIndeterminatePosition() != null){
+                results.add(endI.getTemporalPosition().getIndeterminatePosition().name());
+            }
+        } else if (to instanceof Instant ti) {
+            results = Arrays.asList(ti.getDate());
+        } else if (to != null) {
+            LOGGER.log(Level.WARNING, "Unexpected temporal object:{0}", to.getClass().getName());
+        }
+        return results;
+    }
+
+    /**
+     * Return a String temporal representation of the Opengis temporal object.
+     *
+     * For performance purpose, a map can be supplied to avoid high cost formatting on a equal object.
+     * The map will be filled automatically be calling this method.
+     *
+     * @param time A Opengis temporal Object.
+     * @param cached A map keeping in cache the already formatted temporal objects.
+     *
+     * @return A String representation of the temporal object or @{code null} if the input object is null or a non-handled temporal type.
+     */
+    @Nullable
+    public static String temporalObjToString(TemporalObject time, Map<List<Object>, String> cached) {
+        List<Object> key = temporalkey(time);
+        if (key == null || key.isEmpty()) return null;
+        return cached.computeIfAbsent(key, to -> {
+            assert to != null && !to.isEmpty() : "Input key should neither be null nor empty";
+            if (to.size() == 2) {
+
+                StringBuilder sb = new StringBuilder();
+
+                if (to.get(0) instanceof Date begin) {
+                    sb.append(formatDate(begin));
+                } else if (to.get(0) instanceof String begin) {
+                    sb.append(begin);
+                }
+                sb.append('/');
+                if (to.get(1) instanceof Date end) {
+                    sb.append(formatDate(end));
+                } else if (to.get(1) instanceof String end) {
+                    sb.append(end);
+                }
+                return sb.toString();
+            } else if (to.size() == 1) {
+                return formatDate((Date)to.get(0));
+            }
+            return null;
+        });
     }
 }

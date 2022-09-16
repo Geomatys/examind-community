@@ -670,7 +670,7 @@ public class SOSworker extends SensorWorker {
             throw new CstlServiceException("You must specify the sensor ID!", MISSING_PARAMETER_VALUE, PROCEDURE);
         }
 
-        if (!isLinkedSensor(sensorId)) {
+        if (!isLinkedSensor(sensorId, false)) {
             throw new CstlServiceException("this sensor is not registered in the SOS", INVALID_PARAMETER_VALUE, PROCEDURE);
         }
 

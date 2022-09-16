@@ -19,6 +19,7 @@
 package com.examind.sts.core;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -31,7 +32,7 @@ public class RequestOptionTest {
     @Test
     public void isExpandTest() throws Exception {
 
-        RequestOptions eo = new RequestOptions(Arrays.asList("Datastreams","ObservedProperties"), null, true);
+        RequestOptions eo = new RequestOptions(Arrays.asList("Datastreams","ObservedProperties"), null, true, new HashMap<>(), new HashMap<>());
 
         Assert.assertTrue(eo.datastreams.expanded);
         Assert.assertTrue(eo.observedProperties.expanded);
@@ -41,7 +42,7 @@ public class RequestOptionTest {
     @Test
     public void subLevelTest() throws Exception {
 
-        RequestOptions eo = new RequestOptions(Arrays.asList("Datastreams/observations","ObservedProperties"), null, false);
+        RequestOptions eo = new RequestOptions(Arrays.asList("Datastreams/observations","ObservedProperties"), null, false, new HashMap<>(), new HashMap<>());
 
         Assert.assertTrue(eo.datastreams.expanded);
         Assert.assertTrue(eo.observedProperties.expanded);
