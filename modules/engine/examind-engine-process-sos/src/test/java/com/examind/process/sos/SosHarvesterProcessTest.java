@@ -1094,6 +1094,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
 
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
         in.parameter(SosHarvesterProcessDescriptor.THING_COLUMN_NAME).setValue("PLATFORM");
+        in.parameter(SosHarvesterProcessDescriptor.THING_REGEX_NAME).setValue("(^[^/]*)");
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(false);
         
         ParameterValue scval1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();

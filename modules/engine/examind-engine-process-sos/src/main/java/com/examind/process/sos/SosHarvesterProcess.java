@@ -142,6 +142,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final String procedureColumn = inputParameters.getValue(THING_COLUMN);
         final String procedureNameColumn = inputParameters.getValue(THING_NAME_COLUMN);
         final String procedureDescColumn = inputParameters.getValue(THING_DESC_COLUMN);
+        final String procedureRegex = inputParameters.getValue(THING_REGEX);
         final boolean removePrevious = inputParameters.getValue(REMOVE_PREVIOUS);
         final boolean directColumnIndex = inputParameters.getValue(DIRECT_COLUMN_INDEX);
         final boolean noHeader = inputParameters.getValue(NO_HEADER);
@@ -301,6 +302,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_COLUMN.getName().toString(), procedureColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_NAME_COLUMN.getName().toString(), procedureNameColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_DESC_COLUMN.getName().toString(), procedureDescColumn);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_REGEX.getName().toString(), procedureRegex);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.RESULT_COLUMN.getName().toString(), valueColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_ID.getName().toString(), obsPropId);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(obsPropColumns));

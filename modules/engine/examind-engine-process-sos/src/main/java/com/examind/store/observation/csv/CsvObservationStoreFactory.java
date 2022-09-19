@@ -53,7 +53,7 @@ public class CsvObservationStoreFactory extends FileParsingObservationStoreFacto
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR
             = PARAM_BUILDER.addName(NAME).addName("ObservationCsvFileParameters").createGroup(IDENTIFIER, NAMESPACE, CSVProvider.PATH, CSVProvider.SEPARATOR,
                     MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, OBS_PROP_COLUMN, OBS_PROP_ID, OBS_PROP_NAME, FOI_COLUMN, OBSERVATION_TYPE, PROCEDURE_ID,
-                    PROCEDURE_COLUMN, PROCEDURE_NAME_COLUMN, PROCEDURE_DESC_COLUMN, Z_COLUMN, UOM_REGEX, CHARQUOTE, OBS_PROP_REGEX, FILE_MIME_TYPE, NO_HEADER, DIRECT_COLUMN_INDEX, QUALITY_COLUMN, QUALITY_COLUMN_TYPE);
+                    PROCEDURE_COLUMN, PROCEDURE_NAME_COLUMN, PROCEDURE_DESC_COLUMN, PROCEDURE_REGEX, Z_COLUMN, UOM_REGEX, CHARQUOTE, OBS_PROP_REGEX, FILE_MIME_TYPE, NO_HEADER, DIRECT_COLUMN_INDEX, QUALITY_COLUMN, QUALITY_COLUMN_TYPE);
 
     @Override
     public String getShortName() {
@@ -85,6 +85,7 @@ public class CsvObservationStoreFactory extends FileParsingObservationStoreFacto
         final String procedureColumn = (String) params.parameter(PROCEDURE_COLUMN.getName().toString()).getValue();
         final String procedureNameColumn = (String) params.parameter(PROCEDURE_NAME_COLUMN.getName().toString()).getValue();
         final String procedureDescColumn = (String) params.parameter(PROCEDURE_DESC_COLUMN.getName().toString()).getValue();
+        final String procedureDescRegex = (String) params.parameter(PROCEDURE_REGEX.getName().toString()).getValue();
         final String zColumn = (String) params.parameter(Z_COLUMN.getName().toString()).getValue();
         final String observationType = (String) params.parameter(OBSERVATION_TYPE.getName().toString()).getValue();
         final String uomRegex = (String) params.parameter(UOM_REGEX.getName().toString()).getValue();
@@ -101,7 +102,7 @@ public class CsvObservationStoreFactory extends FileParsingObservationStoreFacto
             return new CsvObservationStore(Paths.get(uri),
                     separator, quotechar, readType(uri, mimeType, separator, quotechar, dateColumns, longitudeColumn, latitudeColumn, obsPropColumns),
                     mainColumns, dateColumns, dateFormat, longitudeColumn, latitudeColumn, obsPropColumns, observationType,
-                    foiColumn, procedureId, procedureColumn, procedureNameColumn, procedureDescColumn, zColumn, uomRegex, obsPropRegex,
+                    foiColumn, procedureId, procedureColumn, procedureNameColumn, procedureDescColumn, procedureDescRegex, zColumn, uomRegex, obsPropRegex,
                     mimeType, obsPropId, obsPropName, noHeader, directColumnIndex, qualtityColumns, qualtityTypes);
         } catch (IOException ex) {
             LOGGER.log(Level.WARNING, "problem opening csv file", ex);

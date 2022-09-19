@@ -99,6 +99,10 @@ public class FileParsingUtils {
         return empty;
     }
 
+    public static String extractWithRegex(String regex, String value) {
+        return extractWithRegex(regex, value, value);
+    }
+    
     public static String extractWithRegex(String regex, String value, String defaultValue) {
         String result = defaultValue;
          if (regex != null && value != null) {

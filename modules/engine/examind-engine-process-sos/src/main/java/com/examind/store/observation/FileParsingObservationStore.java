@@ -123,6 +123,7 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
     protected final String procedureNameColumn;
     protected final String procedureDescColumn;
 
+    protected final String procRegex;
     protected final String uomRegex;
     protected final String obsPropRegex;
 
@@ -134,7 +135,7 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
     public FileParsingObservationStore(final Path f, final char separator, final char quotechar, FeatureType ft, 
             final List<String> mainColumn, final List<String> dateColumn, final String dateTimeformat, final String longitudeColumn,
             final String latitudeColumn, final Set<String> measureColumns, String observationType, String foiColumn,
-            final String procedureId, final String procedureColumn, final String procedureNameColumn, final String procedureDescColumn,
+            final String procedureId, final String procedureColumn, final String procedureNameColumn, final String procedureDescColumn, final String procRegex,
             final String zColumn, final String uomRegex, final String obsPropRegex, final String obsPropId, final String obsPropName, String mimeType, final boolean noHeader,
             final boolean directColumnIndex, final List<String> qualityColumns, final List<String> qualityTypes) throws MalformedURLException, DataStoreException{
         super(f, separator, ft);
@@ -152,6 +153,7 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
         this.procedureColumn = procedureColumn;
         this.procedureNameColumn = procedureNameColumn;
         this.procedureDescColumn = procedureDescColumn;
+        this.procRegex = procRegex;
         this.zColumn = zColumn;
         this.uomRegex = uomRegex;
         this.obsPropRegex = obsPropRegex;
@@ -277,7 +279,7 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
             String uom   = field.getValue().uom;
             
             uom  = extractWithRegex(uomRegex, name, uom);
-            name = extractWithRegex(obsPropRegex, name, name);
+            name = extractWithRegex(obsPropRegex, name);
 
             String label = field.getValue().label != null ? field.getValue().label : name;
             final List<Field> qualityFields = new ArrayList<>();

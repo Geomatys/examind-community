@@ -86,11 +86,11 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
     public CsvObservationStore(final Path observationFile, final char separator, final char quotechar, final FeatureType featureType,
             final List<String> mainColumn, final List<String> dateColumn, final String dateTimeformat, final String longitudeColumn, final String latitudeColumn,
             final Set<String> measureColumns, String observationType, String foiColumn, final String procedureId, final String procedureColumn, 
-            final String procedureNameColumn, final String procedureDescColumn, final String zColumn, final String uomRegex, String obsPropRegex,
+            final String procedureNameColumn, final String procedureDescColumn, final String procedureRegex, final String zColumn, final String uomRegex, String obsPropRegex,
             String mimeType, final String obsPropId, final String obsPropName, final boolean noHeader, final boolean directColumnIndex, final List<String> qualtityColumns,
             final List<String> qualityTypes) throws DataStoreException, MalformedURLException {
         super(observationFile, separator, quotechar, featureType, mainColumn, dateColumn, dateTimeformat, longitudeColumn, latitudeColumn, measureColumns, observationType, 
-              foiColumn, procedureId, procedureColumn, procedureNameColumn, procedureDescColumn, zColumn, uomRegex, obsPropRegex, obsPropId, obsPropName, mimeType, noHeader, directColumnIndex, qualtityColumns, qualityTypes);
+              foiColumn, procedureId, procedureColumn, procedureNameColumn, procedureDescColumn, procedureRegex, zColumn, uomRegex, obsPropRegex, obsPropId, obsPropName, mimeType, noHeader, directColumnIndex, qualtityColumns, qualityTypes);
     }
 
     @Override
@@ -115,7 +115,8 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
             while (it.hasNext()) {
                 final String[] line = it.next();
                 if (procIndex != -1) {
-                    result.add(NamesExt.create(procedureId + line[procIndex]));
+                    String procId = extractWithRegex(procRegex, line[procIndex]);
+                    result.add(NamesExt.create(procedureId + procId));
                 }
             }
             return result;
@@ -198,7 +199,8 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
 
                 // look for current procedure (for observation separation)
                 if (procIndex != -1) {
-                    currentProc = procedureId + line[procIndex];
+                    final String procId = extractWithRegex(procRegex, line[procIndex]);
+                    currentProc = procedureId + procId;
                     if (sensorIDs != null && !sensorIDs.isEmpty() && !sensorIDs.contains(currentProc)) {
                         LOGGER.finer("skipping line due to none specified sensor related.");
                         continue;
@@ -380,7 +382,8 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 Date dateParse        = null;
 
                 if (procedureIndex != -1) {
-                    currentProc = procedureId + line[procedureIndex];
+                    final String procId = extractWithRegex(procRegex, line[procedureIndex]);
+                    currentProc = procedureId + procId;
                 } else if (procedureTree == null) {
                     currentProc = getProcedureID();
                 }

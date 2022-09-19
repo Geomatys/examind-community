@@ -85,12 +85,12 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
     public CsvFlatObservationStore(final Path observationFile, final char separator, final char quotechar, final FeatureType featureType,
                                        final List<String> mainColumn, final List<String> dateColumn, final String dateTimeformat, final String longitudeColumn, final String latitudeColumn,
                                        final Set<String> obsPropFilterColumns, String observationType, String foiColumn, final String procedureId, final String procedureColumn, 
-                                       final String procedureNameColumn, final String procedureDescColumn, final String zColumn, final String uomColumn, final String uomRegex,
+                                       final String procedureNameColumn, final String procedureDescColumn, final String procedureRegex, final String zColumn, final String uomColumn, final String uomRegex,
                                        final String valueColumn, final Set<String> obsPropColumns, final Set<String> obsPropNameColumns, final String typeColumn,  String obsPropRegex,
                                        final String mimeType, final String obsPropId, final String obsPropName, final boolean noHeader, final boolean directColumnIndex, final List<String> qualtityColumns,
                                        final List<String> qualityTypes) throws DataStoreException, MalformedURLException {
         super(observationFile, separator, quotechar, featureType, mainColumn, dateColumn, dateTimeformat, longitudeColumn, latitudeColumn, obsPropFilterColumns, observationType,
-              foiColumn, procedureId, procedureColumn, procedureNameColumn, procedureDescColumn, zColumn, uomRegex, obsPropRegex, obsPropId, obsPropName, mimeType, 
+              foiColumn, procedureId, procedureColumn, procedureNameColumn, procedureDescColumn, procedureRegex, zColumn, uomRegex, obsPropRegex, obsPropId, obsPropName, mimeType,
               noHeader, directColumnIndex, qualtityColumns, qualityTypes);
         this.valueColumn = valueColumn;
         this.obsPropColumns = obsPropColumns;
@@ -147,7 +147,8 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     if (typeColumnIndex != -1) {
                         if (!obsTypeCodes.contains(line[typeColumnIndex])) continue;
                     }
-                    result.add(NamesExt.create(procedureId + line[procIndex]));
+                    String procId = extractWithRegex(procRegex, line[procIndex]);
+                    result.add(NamesExt.create(procedureId + procId));
                 }
             }
             return result;
@@ -253,7 +254,8 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
 
                 // look for current procedure (for observation separation)
                 if (procIndex != -1) {
-                    currentProc = procedureId + line[procIndex];
+                    String procId = extractWithRegex(procRegex, line[procIndex]);
+                    currentProc = procedureId + procId;
                     if (sensorIDs != null && !sensorIDs.isEmpty() && !sensorIDs.contains(currentProc)) {
                         LOGGER.finer("skipping line due to none specified sensor related.");
                         continue;
@@ -446,7 +448,8 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 }
 
                 if (procedureIndex != -1) {
-                    currentProc = procedureId + line[procedureIndex];
+                    String procId = extractWithRegex(procRegex, line[procedureIndex]);
+                    currentProc = procedureId + procId;
                 } else if (procedureTree == null) {
                     currentProc = getProcedureID();
                 }
