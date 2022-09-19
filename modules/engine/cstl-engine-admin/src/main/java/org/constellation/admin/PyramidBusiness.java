@@ -464,7 +464,7 @@ public class PyramidBusiness implements IPyramidBusiness {
     protected void createTemplate(WritableTiledResource outRef, Envelope globalEnv, int tileSize, double[] scales) throws ConstellationException {
         try {
             //prepare the pyramid and mosaics
-            final Dimension tileDim = new Dimension(tileSize, tileSize);
+            final int[] tileDim = {tileSize, tileSize};
             final DefiningTileMatrixSet template = new TileMatrixSetBuilder()
                                                         .setDomain(globalEnv, 1)
                                                         .setScales(scales)

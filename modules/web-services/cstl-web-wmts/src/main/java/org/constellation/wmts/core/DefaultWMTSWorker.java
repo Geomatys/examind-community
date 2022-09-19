@@ -274,7 +274,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                         continue;
                     }
                     final TiledResource pmodel = (TiledResource) origin;
-                    final List<org.geotoolkit.storage.multires.TileMatrixSet> pyramids = new ArrayList<>(pmodel.getTileMatrixSets());
+                    final List<org.apache.sis.storage.tiling.TileMatrixSet> pyramids = new ArrayList<>(pmodel.getTileMatrixSets());
                     if (pyramids.isEmpty()) {
                         throw new CstlServiceException("No valid extent for layer " + name);
                     }
@@ -323,7 +323,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                     }
 
                     final List<BoundingBoxType> bboxList = new ArrayList<>();
-                    for (org.geotoolkit.storage.multires.TileMatrixSet pyramid : pyramids) {
+                    for (org.apache.sis.storage.tiling.TileMatrixSet pyramid : pyramids) {
                         final Envelope pyramidEnv = pyramid.getEnvelope().get();
                         final int envXAxis = Math.max(0, CRSUtilities.firstHorizontalAxis(pyramid.getCoordinateReferenceSystem()));
                         final int envYAxis = xAxis + 1;
@@ -371,7 +371,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                     }
                     outputLayer.setResourceURL(resources);
 
-                    for (org.geotoolkit.storage.multires.TileMatrixSet pr : pyramids) {
+                    for (org.apache.sis.storage.tiling.TileMatrixSet pr : pyramids) {
                         final TileMatrixSet tms = new TileMatrixSet();
                         tms.setIdentifier(new CodeType(pr.getIdentifier().toString()));
                         tms.setSupportedCRS(getCRSCode(pr.getCoordinateReferenceSystem()));
@@ -379,11 +379,11 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                         final List<TileMatrix> tm = new ArrayList<>();
                         final double[] scales = TileMatrices.getScales(pr);
                         for (int i = 0; i < scales.length; i++) {
-                            final Iterator<? extends org.geotoolkit.storage.multires.TileMatrix> mosaicIt = TileMatrices.getTileMatrices(pr, scales[i]).iterator();
+                            final Iterator<? extends org.apache.sis.storage.tiling.TileMatrix> mosaicIt = TileMatrices.getTileMatrices(pr, scales[i]).iterator();
                             if (!mosaicIt.hasNext()) {
                                 continue;
                             }
-                            final org.geotoolkit.storage.multires.TileMatrix mosaic = mosaicIt.next();
+                            final org.apache.sis.storage.tiling.TileMatrix mosaic = mosaicIt.next();
                             DirectPosition upperLeft = TileMatrices.getUpperLeftCorner(mosaic);
                             double scale = TileMatrices.getScale(mosaic);
                             //convert scale in the strange WMTS scale denominator
@@ -392,7 +392,9 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                             matrix.setIdentifier(new CodeType(mosaic.getIdentifier().toString()));
                             matrix.setScaleDenominator(scale);
                             matrix.setMatrixDimension(TileMatrices.getGridSize(mosaic));
-                            matrix.setTileDimension(mosaic.getTileSize());
+                            int[] tileSize = TileMatrices.getTileSize(mosaic);
+                            matrix.setTileWidth(tileSize[0]);
+                            matrix.setTileHeight(tileSize[1]);
                             matrix.getTopLeftCorner().add(upperLeft.getOrdinate(xAxis));
                             matrix.getTopLeftCorner().add(upperLeft.getOrdinate(yAxis));
                             tm.add(matrix);
@@ -712,8 +714,8 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
             final Resource origin = data.getOrigin();
             if (origin == null) throw new CstlServiceException("Invalid layer: no resource associated", INVALID_PARAMETER_VALUE, "layerName");
             else if (!(origin instanceof TiledResource)) throw new CstlServiceException("Invalid layer: not a tiled resource", INVALID_PARAMETER_VALUE, "layerName");
-            org.geotoolkit.storage.multires.TileMatrixSet pyramid = null;
-            for (org.geotoolkit.storage.multires.TileMatrixSet pr : ((TiledResource) origin).getTileMatrixSets()) {
+            org.apache.sis.storage.tiling.TileMatrixSet pyramid = null;
+            for (org.apache.sis.storage.tiling.TileMatrixSet pr : ((TiledResource) origin).getTileMatrixSets()) {
                 if (validPyramidNames.contains(pr.getIdentifier().toString())) {
                     pyramid = pr;
                     break;
@@ -725,8 +727,8 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                         INVALID_PARAMETER_VALUE, "tilematrixset");
             }
 
-            org.geotoolkit.storage.multires.TileMatrix mosaic = null;
-            for (org.geotoolkit.storage.multires.TileMatrix gm : pyramid.getTileMatrices().values()) {
+            org.apache.sis.storage.tiling.TileMatrix mosaic = null;
+            for (org.apache.sis.storage.tiling.TileMatrix gm : pyramid.getTileMatrices().values()) {
                 if (gm.getIdentifier().toString().equals(level)) {
                     mosaic = gm;
                     break;

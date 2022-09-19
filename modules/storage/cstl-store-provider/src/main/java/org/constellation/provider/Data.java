@@ -42,6 +42,8 @@ import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.WritableAggregate;
 import org.apache.sis.storage.WritableFeatureSet;
+import org.apache.sis.storage.tiling.TileMatrix;
+import org.apache.sis.storage.tiling.TileMatrixSet;
 import org.apache.sis.util.Classes;
 import org.constellation.api.DataType;
 import org.constellation.api.ServiceDef;
@@ -53,8 +55,7 @@ import org.constellation.repository.DataRepository;
 import org.geotoolkit.storage.multires.TiledResource;
 import org.geotoolkit.storage.multires.ProgressiveResource;
 import org.geotoolkit.storage.multires.TileFormat;
-import org.geotoolkit.storage.multires.TileMatrix;
-import org.geotoolkit.storage.multires.TileMatrixSet;
+import org.geotoolkit.storage.multires.TileMatrices;
 import org.opengis.feature.FeatureType;
 import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -344,8 +345,8 @@ public interface Data<T extends Resource> {
                             moss.add(mf);
                             mf.put("identifier", m.getIdentifier());
                             mf.put("tilingScheme", m.getTilingScheme().toString());
-                            mf.put("tile size width", m.getTileSize().width);
-                            mf.put("tile size height", m.getTileSize().height);
+                            mf.put("tile size width", TileMatrices.getTileSize(m)[0]);
+                            mf.put("tile size height", TileMatrices.getTileSize(m)[1]);
                         }
                         pf.put("mosaics", moss);
                     }
