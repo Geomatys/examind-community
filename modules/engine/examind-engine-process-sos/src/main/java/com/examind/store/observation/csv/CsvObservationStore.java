@@ -49,6 +49,8 @@ import static com.examind.store.observation.FileParsingUtils.*;
 import com.examind.store.observation.FileParsingObservationStore;
 import com.examind.store.observation.ObservationBlock;
 import java.util.Optional;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Implementation of an observation store for csv observation data based on {@link CSVFeatureStore}.
@@ -371,29 +373,28 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 measureFields.add(obsPropId);
             }
 
-            List<ProcedureTree> result = new ArrayList<>();
-            String currentProc          = null;
-            String previousProc         = null;
-            ProcedureTree procedureTree = null;
+            Map<String, ProcedureTree> result = new HashMap<>();
+            final Set<String> knownPositions  = new HashSet<>();
+            String previousProc               = null;
+            ProcedureTree currentPTree        = null;
             final Iterator<String[]> it = reader.iterator(!noHeader);
             while (it.hasNext()) {
                 final String[] line   = it.next();
                 AbstractGeometry geom = null;
                 Date dateParse        = null;
-
+                final String currentProc;
                 if (procedureIndex != -1) {
                     final String procId = extractWithRegex(procRegex, line[procedureIndex]);
                     currentProc = procedureId + procId;
-                } else if (procedureTree == null) {
+                } else {
                     currentProc = getProcedureID();
                 }
 
                 // look for current procedure description
                 String currentProcDesc = getColumnValue(procDescIndex, line, currentProc);
 
-                if (!currentProc.equals(previousProc) || procedureTree == null) {
-                    procedureTree = new ProcedureTree(currentProc, currentProcDesc, null, PROCEDURE_TREE_TYPE, observationType.toLowerCase(), measureFields);
-                    result.add(procedureTree);
+                if (!currentProc.equals(previousProc) || currentPTree == null) {
+                    currentPTree = result.computeIfAbsent(currentProc, procedure -> new ProcedureTree(procedure, currentProcDesc, null, PROCEDURE_TREE_TYPE, observationType.toLowerCase(), measureFields));
                 }
 
                 // update temporal interval
@@ -414,9 +415,13 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 try {
                     final double[] position = extractLinePosition(latitudeIndex, longitudeIndex, currentProc, line);
                     if (position.length == 2) {
-                        DirectPosition dp = new GeneralDirectPosition(position[1], position[0]);
-                        geom = GMLXmlFactory.buildPoint("3.2.1", null, dp);
-                        procedureTree.spatialBound.addLocation(dateParse, geom);
+                        final String posKey = currentProc + '-' + position[0] + "_" + position[1];
+                        if (!knownPositions.contains(posKey)) {
+                            knownPositions.add(posKey);
+                            DirectPosition dp = new GeneralDirectPosition(position[1], position[0]);
+                            geom = GMLXmlFactory.buildPoint("3.2.1", null, dp);
+                            currentPTree.spatialBound.addLocation(dateParse, geom);
+                        }
                     }
                 } catch (NumberFormatException | ParseException ex) {
                     LOGGER.fine(String.format("Problem parsing lat/lon field at line %d.(Error msg='%s'). skipping line...", count, ex.getMessage()));
@@ -425,7 +430,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 previousProc = currentProc;
             }
 
-            return result;
+            return new ArrayList<>(result.values());
         } catch (IOException ex) {
             LOGGER.log(Level.WARNING, "problem reading csv file", ex);
             throw new DataStoreException(ex);

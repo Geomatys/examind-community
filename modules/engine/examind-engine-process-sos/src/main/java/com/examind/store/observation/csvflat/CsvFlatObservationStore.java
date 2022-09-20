@@ -418,21 +418,20 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 headers = reader.getHeaders();
             }
 
-            // prepare spatial/time column indices
-            final List<Integer> dateIndexes = getColumnIndexes(dateColumns, headers);
+            final List<Integer> dateIndexes           = getColumnIndexes(dateColumns, headers);
+            final List<Integer> obsPropColumnIndexes  = getColumnIndexes(obsPropColumns, headers);
             int latitudeIndex   = getColumnIndex(latitudeColumn, headers);
             int longitudeIndex  = getColumnIndex(longitudeColumn, headers);
             int procedureIndex  = getColumnIndex(procedureColumn, headers);
             int procDescIndex   = getColumnIndex(procedureNameColumn, headers);
             int typeColumnIndex = getColumnIndex(typeColumn, headers);
 
-            final List<String> obsTypeCodes = getObsTypeCodes();
-            List<ProcedureTree> result      = new ArrayList<>();
-            String currentObstType          = observationType;
-            String currentProc              = null;
-            String previousProc             = null;
-            ProcedureTree procedureTree     = null;
-            int count                       = 1;
+            final List<String> obsTypeCodes   = getObsTypeCodes();
+            Map<String, ProcedureTree> result = new HashMap<>();
+            final Set<String> knownPositions  = new HashSet<>();
+            String previousProc               = null;
+            ProcedureTree currentPTree        = null;
+            int count                         = 1;
             
             final Iterator<String[]> it = reader.iterator(!noHeader);
             while (it.hasNext()) {
@@ -442,24 +441,48 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 Date dateParse        = null;
 
                 // checks if row matches the observed data types
+                final String currentObstType;
                 if (typeColumnIndex != -1) {
                     if (!obsTypeCodes.contains(line[typeColumnIndex])) continue;
                     currentObstType = getObservationTypeFromCode(line[typeColumnIndex]);
+                } else {
+                    currentObstType = observationType;
                 }
 
+                final String currentProc;
                 if (procedureIndex != -1) {
                     String procId = extractWithRegex(procRegex, line[procedureIndex]);
                     currentProc = procedureId + procId;
-                } else if (procedureTree == null) {
+                } else {
                     currentProc = getProcedureID();
                 }
 
-                // look for current procedure description
-                String currentProcDesc = getColumnValue(procDescIndex, line, currentProc);
+                String observedProperty = "";
+                if (obsPropId != null && !obsPropId.isEmpty()) {
+                    // Use fixed value
+                    observedProperty = obsPropId;
+                } else {
+                    // Concatenate observedProperty from input code columns
+                    boolean first = true;
+                    for (Integer codeColumnIndex : obsPropColumnIndexes) {
+                        if (!first) {
+                            observedProperty += "-";
+                        }
+                        observedProperty += line[codeColumnIndex];
+                        first = false;
+                    }
+                }
 
-                if (!currentProc.equals(previousProc) || procedureTree == null) {
-                    procedureTree = new ProcedureTree(currentProc, currentProcDesc, null, PROCEDURE_TREE_TYPE, currentObstType.toLowerCase(), measureColumns);
-                    result.add(procedureTree);
+                // checks if row matches the observed properties wanted
+                if (!measureColumns.contains(observedProperty)) {
+                    continue;
+                }
+
+                // look for current procedure description
+                final String currentProcDesc = getColumnValue(procDescIndex, line, currentProc);
+
+                if (!currentProc.equals(previousProc) || currentPTree == null) {
+                    currentPTree = result.computeIfAbsent(currentProc, procedure -> new ProcedureTree(procedure, currentProcDesc, null, PROCEDURE_TREE_TYPE, currentObstType, measureColumns));
                 }
 
                 // update temporal interval
@@ -480,9 +503,14 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 try {
                     final double[] position = extractLinePosition(latitudeIndex, longitudeIndex, currentProc, line);
                     if (position.length == 2) {
-                        DirectPosition dp = new GeneralDirectPosition(position[1], position[0]);
-                        geom = GMLXmlFactory.buildPoint("3.2.1", null, dp);
-                        procedureTree.spatialBound.addLocation(dateParse, geom);
+                        // only rcord when the sensor move
+                        final String posKey = currentProc + '-' + position[0] + "_" + position[1];
+                        if (!knownPositions.contains(posKey)) {
+                            knownPositions.add(posKey);
+                            DirectPosition dp = new GeneralDirectPosition(position[1], position[0]);
+                            geom = GMLXmlFactory.buildPoint("3.2.1", null, dp);
+                            currentPTree.spatialBound.addLocation(dateParse, geom);
+                        }
                     }
                 } catch (NumberFormatException | ParseException ex) {
                     LOGGER.fine(String.format("Problem parsing lat/lon field at line %d.(Error msg='%s'). skipping line...", count, ex.getMessage()));
@@ -491,7 +519,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 previousProc = currentProc;
             }
 
-            return result;
+            return new ArrayList<>(result.values());
         } catch (IOException ex) {
             LOGGER.log(Level.WARNING, "problem reading csv file", ex);
             throw new DataStoreException(ex);

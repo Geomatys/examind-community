@@ -23,14 +23,18 @@ import com.examind.store.observation.csvflat.CsvFlatObservationStoreFactory;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Logger;
 import org.constellation.test.utils.Order;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.geotoolkit.data.csv.CSVProvider;
 import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.observation.ObservationReader;
+import org.geotoolkit.observation.model.ExtractionResult;
 import org.geotoolkit.util.NamesExt;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -46,6 +50,7 @@ import org.opengis.util.GenericName;
  */
 public class CsvFlatObservationStoreTest {
 
+    private static final Logger LOGGER = Logger.getLogger("com.examind.store.observation.csv");
     private static Path DATA_DIRECTORY;
     
     private static Path survalFile;
@@ -83,7 +88,7 @@ public class CsvFlatObservationStoreTest {
         params.parameter(CsvFlatObservationStoreFactory.LATITUDE_COLUMN.getName().getCode()).setValue("LATITUDE");
         params.parameter(CsvFlatObservationStoreFactory.LONGITUDE_COLUMN.getName().getCode()).setValue("LONGITUDE");
 
-        params.parameter(CsvFlatObservationStoreFactory.OBS_PROP_COLUMN.getName().getCode()).setValue("7-FLORTOT,18-FLORTOT,18-SALI");
+        params.parameter(CsvFlatObservationStoreFactory.OBS_PROP_FILTER_COLUMN.getName().getCode()).setValue("7-FLORTOT,18-FLORTOT,18-SALI");
 
         params.parameter(CsvFlatObservationStoreFactory.FILE_MIME_TYPE.getName().getCode()).setValue("csv");
 
@@ -124,6 +129,25 @@ public class CsvFlatObservationStoreTest {
         TimePeriodType tp = (TimePeriodType) time;
         Assert.assertEquals("1987-06-01" , tp.getBeginPosition().getValue());
         Assert.assertEquals("2019-12-17" , tp.getEndPosition().getValue());
+
+        ExtractionResult results = store.getResults(new ArrayList<>());
+        final StringBuilder sb = new StringBuilder("result procedures:\n");
+        results.procedures.stream().forEach(p -> sb.append(p.id).append("\n"));
+        LOGGER.info(sb.toString());
+        Assert.assertEquals(1, results.procedures.size());
+        ExtractionResult.ProcedureTree proc = results.procedures.get(0);
+        Assert.assertEquals("urn:surval:25049001", proc.id);
+        Assert.assertEquals(1, proc.spatialBound.getHistoricalLocations().size());
+
+        List<ExtractionResult.ProcedureTree> procedures = store.getProcedures();
+
+        final StringBuilder sb2 = new StringBuilder("procedures:\n");
+        procedures.stream().forEach(p -> sb2.append(p.id).append("\n"));
+        LOGGER.info(sb2.toString());
+        Assert.assertEquals(1, procedures.size());
+        proc = procedures.get(0);
+        Assert.assertEquals("urn:surval:25049001", proc.id);
+        Assert.assertEquals(1, procedures.get(0).spatialBound.getHistoricalLocations().size());
     }
 
 

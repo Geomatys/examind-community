@@ -21,6 +21,8 @@ package com.examind.store.observation.csv;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import org.constellation.test.utils.Order;
@@ -29,6 +31,7 @@ import org.geotoolkit.data.csv.CSVProvider;
 import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.observation.ObservationReader;
+import org.geotoolkit.observation.model.ExtractionResult;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -121,5 +124,69 @@ public class CsvObservationStoreTest {
         TimePeriodType tp = (TimePeriodType) time;
         Assert.assertEquals("2018-11-02T07:10:52.000" , tp.getBeginPosition().getValue());
         Assert.assertEquals("2018-11-13T03:55:49.000" , tp.getEndPosition().getValue());
+
+        ExtractionResult results = store.getResults(new ArrayList<>());
+        Assert.assertEquals(1, results.procedures.size());
+        Assert.assertEquals(4, results.procedures.get(0).spatialBound.getHistoricalLocations().size());
+
+        List<ExtractionResult.ProcedureTree> procedures = store.getProcedures();
+        Assert.assertEquals(1, procedures.size());
+        Assert.assertEquals(4, procedures.get(0).spatialBound.getHistoricalLocations().size());
+    }
+
+    @Test
+    @Order(order = 1)
+    public void csvStoreTSTest() throws Exception {
+
+        CsvObservationStoreFactory factory = new CsvObservationStoreFactory();
+        ParameterValueGroup params = factory.getOpenParameters().createValue();
+        params.parameter(CsvObservationStoreFactory.LOCATION).setValue(mooFile.toUri().toString());
+
+        params.parameter(CsvObservationStoreFactory.DATE_COLUMN.getName().getCode()).setValue("DATE (yyyy-mm-ddThh:mi:ssZ)");
+        params.parameter(CsvObservationStoreFactory.MAIN_COLUMN.getName().getCode()).setValue("DATE (yyyy-mm-ddThh:mi:ssZ)");
+
+        params.parameter(CsvObservationStoreFactory.DATE_FORMAT.getName().getCode()).setValue("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        params.parameter(CsvObservationStoreFactory.FOI_COLUMN.getName().getCode()).setValue("CONFIG_MISSION_NUMBER");
+        params.parameter(CsvObservationStoreFactory.LATITUDE_COLUMN.getName().getCode()).setValue("LATITUDE (degree_north)");
+        params.parameter(CsvObservationStoreFactory.LONGITUDE_COLUMN.getName().getCode()).setValue("LONGITUDE (degree_east)");
+
+        params.parameter(CsvObservationStoreFactory.OBS_PROP_COLUMN.getName().getCode()).setValue("TEMP LEVEL0 (degree_Celsius),VEPK LEVEL0 (meter2 second)");
+
+        params.parameter(CsvObservationStoreFactory.OBSERVATION_TYPE.getName().getCode()).setValue("Timeserie");
+        params.parameter(CsvObservationStoreFactory.PROCEDURE_ID.getName().getCode()).setValue("urn:sensor:3");
+        params.parameter(CsvObservationStoreFactory.PROCEDURE_DESC_COLUMN.getName().getCode()).setValue("PLATFORM_DESC");
+        params.parameter(CsvObservationStoreFactory.FILE_MIME_TYPE.getName().getCode()).setValue("csv");
+
+        params.parameter(CSVProvider.SEPARATOR.getName().getCode()).setValue(Character.valueOf(','));
+
+        CsvObservationStore store = factory.open(params);
+
+        Set<GenericName> procedureNames = store.getProcedureNames();
+        Assert.assertEquals(1, procedureNames.size());
+
+        String sensorId = procedureNames.iterator().next().toString();
+        Assert.assertEquals("urn:sensor:3", sensorId);
+
+        Set<String> phenomenonNames = store.getPhenomenonNames();
+        Assert.assertTrue(phenomenonNames.contains("TEMP LEVEL0 (degree_Celsius)"));
+        Assert.assertTrue(phenomenonNames.contains("VEPK LEVEL0 (meter2 second)"));
+
+        ObservationReader reader = store.getReader();
+
+        TemporalGeometricPrimitive time = reader.getTimeForProcedure("2.0.0", sensorId);
+
+        Assert.assertTrue(time instanceof TimePeriodType);
+
+        TimePeriodType tp = (TimePeriodType) time;
+        Assert.assertEquals("2018-10-30T00:29:00.000" , tp.getBeginPosition().getValue());
+        Assert.assertEquals("2018-11-30T11:59:00.000" , tp.getEndPosition().getValue());
+
+        ExtractionResult results = store.getResults(new ArrayList<>());
+        Assert.assertEquals(1, results.procedures.size());
+        Assert.assertEquals(1, results.procedures.get(0).spatialBound.getHistoricalLocations().size());
+
+        List<ExtractionResult.ProcedureTree> procedures = store.getProcedures();
+        Assert.assertEquals(1, procedures.size());
+        Assert.assertEquals(1, procedures.get(0).spatialBound.getHistoricalLocations().size());
     }
 }
