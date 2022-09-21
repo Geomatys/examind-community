@@ -24,6 +24,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -41,26 +42,32 @@ public class FilterSQLRequest {
      * A part of the sql query the be append or not at the end depending on a condition calculated at build time.
      */
     private StringBuilder conditionalRequest;
-    
+
     private final List<Param> params;
 
     private final List<Param> conditionalParams;
-    
+
     public FilterSQLRequest() {
         this("", new ArrayList<>(), "", new ArrayList<>());
     }
-    
+
     public FilterSQLRequest(String s) {
         this(s, new ArrayList<>(), "", new ArrayList<>());
     }
-    
+
     private FilterSQLRequest(String s, List<Param> params, String cs, List<Param> cparams) {
         this.sqlRequest = new StringBuilder(s);
-        this.conditionalRequest = new StringBuilder();
+        this.conditionalRequest = new StringBuilder(cs);
+        if (params == null) {
+            params = new ArrayList<>();
+        }
         this.params = params;
+        if (cparams == null) {
+            cparams = new ArrayList<>();
+        }
         this.conditionalParams = cparams;
     }
-    
+
     public FilterSQLRequest append(String s) {
         return this.append(s, false);
     }
@@ -76,7 +83,7 @@ public class FilterSQLRequest {
     public FilterSQLRequest append(FilterSQLRequest s) {
         return this.append(s, false);
     }
-    
+
     public FilterSQLRequest append(FilterSQLRequest s, boolean conditional) {
         this.sqlRequest.append(s.sqlRequest);
         this.params.addAll(s.params);
@@ -86,7 +93,7 @@ public class FilterSQLRequest {
         }
         return this;
     }
-    
+
     public FilterSQLRequest delete(int start, int end) {
         this.sqlRequest.delete(start, end);
         return this;
@@ -96,7 +103,7 @@ public class FilterSQLRequest {
         this.sqlRequest.deleteCharAt(index);
         return this;
     }
-    
+
     public int length() {
         return this.sqlRequest.length();
     }
@@ -119,7 +126,7 @@ public class FilterSQLRequest {
     public FilterSQLRequest appendValue(int value) {
         return this.appendValue(value, false);
     }
-    
+
     public FilterSQLRequest appendValue(int value, boolean conditional) {
         if (conditional) {
             this.conditionalRequest.append("?");
@@ -134,7 +141,7 @@ public class FilterSQLRequest {
     public FilterSQLRequest appendValue(Timestamp value) {
         return this.appendValue(value, false);
     }
-    
+
     public FilterSQLRequest appendValue(Timestamp value, boolean conditional) {
         if (conditional) {
             this.conditionalRequest.append("?");
@@ -145,16 +152,20 @@ public class FilterSQLRequest {
         }
         return this;
     }
-    
+
     public boolean contains(String s) {
         return this.sqlRequest.toString().contains(s);
     }
 
-    public FilterSQLRequest appendObjectValue(Object value) {
-        return appendObjectValue(value, false);
+    public FilterSQLRequest appendNamedObjectValue(String name, Object value) {
+        return appendObjectValue(name, value, false);
     }
-    
-    public FilterSQLRequest appendObjectValue(Object value, boolean conditional) {
+
+    public FilterSQLRequest appendObjectValue(Object value) {
+        return appendObjectValue("unnamed", value, false);
+    }
+
+    public FilterSQLRequest appendObjectValue(String name, Object value, boolean conditional) {
         List<Param> currentParams;
         if (conditional) {
             this.conditionalRequest.append("?");
@@ -163,22 +174,63 @@ public class FilterSQLRequest {
             this.sqlRequest.append("?");
             currentParams = this.params;
         }
+        addParam(name, currentParams, value);
+        return this;
+    }
+
+    private void addParam(String name, List<Param> currentParams, Object value) {
+        currentParams.add(getParamFromValue(name, value));
+    }
+
+    private Param getParamFromValue(String name, Object value) {
         if (value instanceof String) {
-            currentParams.add(new Param(value, String.class));
+            return new Param(name, value, String.class);
         } else if (value instanceof Timestamp) {
-            currentParams.add(new Param(value, Timestamp.class));
+            return new Param(name, value, Timestamp.class);
         } else if (value instanceof Integer) {
-            currentParams.add(new Param(value, Integer.class));
+            return new Param(name, value, Integer.class);
         } else if (value instanceof Double) {
-            currentParams.add(new Param(value, Double.class));
+            return new Param(name, value, Double.class);
         } else if (value instanceof Long) {
-            currentParams.add(new Param(value, Long.class));
+            return new Param(name, value, Long.class);
         } else if (value != null) {
             throw new IllegalArgumentException(value.getClass().getSimpleName() + " is not supported in FilterSQLRequest");
         }
-        return this;
+        return null;
     }
-    
+
+    public void setParamValue(int i, Object newValue) {
+        params.get(i).value = newValue;
+    }
+
+    public void replaceNamedParam(String paramName, Object newValue) {
+        int index = getParamIndex(paramName);
+        setParamValue(index, newValue);
+    }
+
+    public void duplicateNamedParam(String paramName, int size) {
+        int index = getParamIndex(paramName);
+        Param p   = getParamByName(paramName);
+        for (int i = 1; i < size; i++) {
+            params.add(index, p);
+        }
+    }
+
+    private int getParamIndex(String name) {
+        Param p = getParamByName(name);
+        return params.indexOf(p);
+    }
+
+    private Param getParamByName(String name) {
+        for (int i = 0; i < params.size(); i++) {
+            Param p = params.get(i);
+            if (name.equals(p.name)) {
+                return p;
+            }
+        }
+        throw new IllegalArgumentException("No parameter \"" + name + "\" found!");
+    }
+
     public FilterSQLRequest replaceFirst(String text, String replacement) {
         String s = this.sqlRequest.toString();
         s = StringUtils.replaceOnce(s, text, replacement);
@@ -190,7 +242,7 @@ public class FilterSQLRequest {
 
         return this;
     }
-    
+
     public FilterSQLRequest replaceAll(String text, String replacement) {
         String s = this.sqlRequest.toString();
         s = s.replace(text, replacement);
@@ -202,15 +254,15 @@ public class FilterSQLRequest {
 
         return this;
     }
-    
+
     public FilterSQLRequest clone() {
-        return new FilterSQLRequest(this.sqlRequest.toString(), this.params, this.conditionalRequest.toString(), this.conditionalParams);
+        return new FilterSQLRequest(this.sqlRequest.toString(), new ArrayList<>(this.params), this.conditionalRequest.toString(), new ArrayList<>(this.conditionalParams));
     }
-    
+
     public String getRequest() {
         return this.sqlRequest.toString();
     }
-    
+
     public PreparedStatement fillParams(PreparedStatement stmt) throws SQLException {
         int i = 1;
         for (Param p : params) {
@@ -230,10 +282,6 @@ public class FilterSQLRequest {
         return stmt;
     }
 
-    public void setParamValue(int i, Object newValue) {
-        params.get(i).value = newValue;
-    }
-    
     @Override
     public String toString() {
         String s = sqlRequest.toString();
@@ -250,13 +298,41 @@ public class FilterSQLRequest {
     }
 
     private class Param {
+        public String name;
         public Object value;
         public Class type;
-        
+
         public Param(Object value, Class type) {
+            this("unnamed", value, type);
+        }
+
+        public Param(String name, Object value, Class type) {
+            this.name = name;
             this.value = value;
             this.type = type;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            final Param that = (Param) o;
+
+            return Objects.equals(this.name, that.name) &&
+                   Objects.equals(this.value, that.value) &&
+                   Objects.equals(this.type, that.type);
+        }
+
+        @Override
+        public int hashCode() {
+            int hash = 3;
+            hash = 71 * hash + Objects.hashCode(this.name);
+            hash = 71 * hash + Objects.hashCode(this.value);
+            hash = 71 * hash + Objects.hashCode(this.type);
+            return hash;
+        }
+
     }
 
     public static String getTimeValue(final Date time) {
