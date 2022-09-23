@@ -855,7 +855,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         final GridGeometry grid = data.getGridGeometry();
         // HACK: force 2D representation
         if (grid.getDimension() > 2) {
-            final GridGeometry subGrid2d = grid.reduce(subspace2d);
+            final GridGeometry subGrid2d = grid.selectDimensions(subspace2d);
             return new GridCoverageProcessor().resample(data, subGrid2d);
         } else {
             return data;

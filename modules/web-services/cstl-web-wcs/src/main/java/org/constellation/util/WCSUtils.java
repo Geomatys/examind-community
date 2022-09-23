@@ -334,7 +334,7 @@ public final class WCSUtils {
                  * non linear parts of the grid geometry to constants, but I have no time for now. Plus, all this code
                  * should not be necessary if we used proper APIs for response writing.
                  */
-                gg = gg.reduce(gg.getExtent().getSubspaceDimensions(2));
+                gg = gg.selectDimensions(gg.getExtent().getSubspaceDimensions(2));
             }
 
             new ReferencingBuilder(source).setCoordinateReferenceSystem(gg.getCoordinateReferenceSystem());

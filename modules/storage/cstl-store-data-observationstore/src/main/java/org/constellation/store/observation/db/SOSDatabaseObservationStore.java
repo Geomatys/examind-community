@@ -389,7 +389,7 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
             }
             //todo return created ids
             //return result;
-            listeners.fire(new FeatureStoreContentEvent(this, FeatureStoreContentEvent.Type.ADD, getType().getName(), result), FeatureStoreContentEvent.class);
+            listeners.fire( FeatureStoreContentEvent.class, new FeatureStoreContentEvent(this, FeatureStoreContentEvent.Type.ADD, getType().getName(), result));
         }
 
         @Override

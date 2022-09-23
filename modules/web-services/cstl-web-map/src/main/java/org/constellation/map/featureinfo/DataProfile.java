@@ -378,7 +378,7 @@ class DataProfile implements Spliterator<DataProfile.DataPoint> {
      */
     static @NonNull DirectPosition getPointOfInterest(@NonNull GridGeometry geometry) throws TransformException {
         if (geometry.isDefined(GridGeometry.EXTENT | GridGeometry.GRID_TO_CRS | GridGeometry.CRS)) {
-            final double[] pointOfInterest = geometry.getExtent().getPointOfInterest();
+            final double[] pointOfInterest = geometry.getExtent().getPointOfInterest(PixelInCell.CELL_CENTER);
             geometry.getGridToCRS(PixelInCell.CELL_CENTER).transform(pointOfInterest, 0, pointOfInterest, 0, 1);
             var fromGridPoint = new GeneralDirectPosition(pointOfInterest);
             fromGridPoint.setCoordinateReferenceSystem(geometry.getCoordinateReferenceSystem());

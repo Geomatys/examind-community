@@ -72,7 +72,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.xml.bind.Marshaller;
-import javax.measure.format.ParserException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -277,7 +276,7 @@ public class MetadataBusiness implements IMetadataBusiness {
                 meta     = metadataObj;
                 metaNode = getNodeFromObject(meta, EBRIMMarshallerPool.getInstance());
             }
-        } catch (JAXBException | ParserConfigurationException | ParserException | IllegalArgumentException ex) {
+        } catch (JAXBException | ParserConfigurationException | IllegalArgumentException ex) {
             throw new ConfigurationException(ex);
         }
 
@@ -1009,8 +1008,7 @@ public class MetadataBusiness implements IMetadataBusiness {
             final Metadata metadata = metadataRepository.findById(id);
             if (metadata != null && metadata.getProviderId() != null) {
                 final DataProvider provider = DataProviders.getProvider(metadata.getProviderId());
-                if (provider instanceof MetadataProvider) {
-                    final MetadataProvider mdStore = (MetadataProvider) provider;
+                if (provider instanceof MetadataProvider mdStore) {
                     try {
                         mdStore.deleteMetadata(metadata.getMetadataId());
                         toDelete.add(new MetadataWithState(metadata, metadata.getIsPublished(), metadata.getIsHidden()));
@@ -1408,8 +1406,7 @@ public class MetadataBusiness implements IMetadataBusiness {
         if (meta != null) {
             List<MetadataBbox> bboxes = metadataRepository.getBboxes(id);
             final DataProvider provider = DataProviders.getProvider(meta.getProviderId());
-            if (provider instanceof MetadataProvider) {
-                final MetadataProvider mdProvider = (MetadataProvider) provider;
+            if (provider instanceof MetadataProvider mdProvider) {
                 final MetadataData md = (MetadataData) provider.get(null, meta.getMetadataId());
 
                 final Node metaNode = md.getMetadata();
@@ -1429,8 +1426,7 @@ public class MetadataBusiness implements IMetadataBusiness {
                 template.setMetadataIdentifier(newMetadataID, metaObj);
 
                 // ISO 19115 case
-                if (metaObj instanceof DefaultMetadata) {
-                    DefaultMetadata isoMetadata = (DefaultMetadata) metaObj;
+                if (metaObj instanceof DefaultMetadata isoMetadata) {
                     isoMetadata.setDateStamp(new Date(dateStamp));
                 }
 

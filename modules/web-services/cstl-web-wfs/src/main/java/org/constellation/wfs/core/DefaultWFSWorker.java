@@ -49,7 +49,7 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import org.apache.sis.internal.feature.AttributeConvention;
 import org.apache.sis.internal.feature.jts.JTS;
-import org.apache.sis.internal.storage.aggregate.ConcatenatedFeatureSet;
+import org.apache.sis.storage.aggregate.ConcatenatedFeatureSet;
 import org.apache.sis.storage.FeatureQuery;
 import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
 import org.apache.sis.referencing.CRS;

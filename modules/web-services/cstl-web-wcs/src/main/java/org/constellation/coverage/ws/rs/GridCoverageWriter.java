@@ -112,7 +112,7 @@ public class GridCoverageWriter implements HttpMessageConverter<GeotiffResponse>
         if (!coverage.getGridGeometry().isConversionLinear(0, 1)) {
             DomainLinearizer linearizer = new DomainLinearizer();
             linearizer.setGridStartsAtZero(true);
-            GridGeometry resampleGrid = linearizer.apply(coverage.getGridGeometry().reduce(0,1));
+            GridGeometry resampleGrid = linearizer.apply(coverage.getGridGeometry().selectDimensions(0,1));
 
             final GridCoverageProcessor processor = new GridCoverageProcessor();
             processor.setInterpolation(Interpolation.NEAREST);

@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
+import org.apache.sis.internal.storage.MetadataBuilder;
 import org.apache.sis.metadata.MetadataStandard;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.referencing.ImmutableIdentifier;
@@ -273,6 +274,7 @@ public class TeamplateReaderUpdateTest {
         final DefaultFormatConsistency previousReport2 = new DefaultFormatConsistency();
         final DefaultQuantitativeResult previousConfResult2 = new DefaultQuantitativeResult();
         previousConfResult2.setErrorStatistic(new SimpleInternationalString("stats error"));
+        previousConfResult2.setResultScope(new DefaultScope(ScopeCode.MODEL));
         previousReport2.setResults(Arrays.asList(previousConfResult2));
         previousQuality2.setReports(Arrays.asList(previousReport2));
 
@@ -321,6 +323,7 @@ public class TeamplateReaderUpdateTest {
         final DefaultFormatConsistency report2 = new DefaultFormatConsistency();
         final DefaultQuantitativeResult confResult2 = new DefaultQuantitativeResult();
         confResult2.setErrorStatistic(new SimpleInternationalString("stats error"));
+        confResult2.setResultScope(new DefaultScope(ScopeCode.MODEL));
         report2.setResults(Arrays.asList(confResult2));
         quality2.setReports(Arrays.asList(report2));
 
@@ -369,6 +372,7 @@ public class TeamplateReaderUpdateTest {
         final DefaultFormatConsistency previousReport2 = new DefaultFormatConsistency();
         final DefaultQuantitativeResult previousConfResult2 = new DefaultQuantitativeResult();
         previousConfResult2.setErrorStatistic(new SimpleInternationalString("stats error"));
+        previousConfResult2.setResultScope(new DefaultScope(ScopeCode.MODEL));
         previousReport2.setResults(Arrays.asList(previousConfResult2));
         previousQuality2.setReports(Arrays.asList(previousReport2));
 
@@ -416,6 +420,7 @@ public class TeamplateReaderUpdateTest {
         final DefaultFormatConsistency report2 = new DefaultFormatConsistency();
         final DefaultQuantitativeResult confResult2 = new DefaultQuantitativeResult();
         confResult2.setErrorStatistic(new SimpleInternationalString("stats error"));
+        confResult2.setResultScope(new DefaultScope(ScopeCode.MODEL));
         report2.setResults(Arrays.asList(confResult2));
 
         quality.setReports(Arrays.asList(report2, report));
